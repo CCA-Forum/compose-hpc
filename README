@@ -1,11 +1,9 @@
 BRAID development status               Thu Dec  9 16:26:17 PST 2010
 
 
-As already briefly mentioned in the previous telecon, we are
-currently doing some prototyping in Python. The implementation
-language choice is motivated by Python being the highest-level
-language that we can assume to be pre-installed on all our target
-systems. So far we have three components:
+The implementation language choice is motivated by Python being the
+highest-level language that we can assume to be pre-installed on all
+our target systems. So far we have three components:
 
 - A complete parser for SIDL which generates an object-oriented
   intermediate representation (IR)
