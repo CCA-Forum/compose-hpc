@@ -1,0 +1,34 @@
+mod STMT is
+  pr QID .
+
+  sort Var .
+  subsort Qid < Var .
+
+  sort Expr .
+  subsort Var < Expr .
+  op malloc : Expr -> Expr [ctor].
+  op safe-malloc : Expr -> Expr [ctor].
+  op null : -> Expr [ctor].
+  op _==_ : Expr Expr -> Expr [ctor].
+
+  sort Stmt .
+  op _:=_ : Expr Expr -> Stmt [ctor].
+  op _;_ : Stmt Stmt -> Stmt [ctor].
+  op bail : -> Stmt [ctor].
+  op no-op : -> Stmt [ctor].
+  op if : Expr Stmt Stmt -> Stmt [ctor].
+
+  var X Y : Expr .
+  var S T : Stmt .
+
+  op applyTrans : Stmt -> Stmt .
+  eq applyTrans(S ; T) = applyTrans(S) ; applyTrans(T) .
+  eq applyTrans(X := malloc(Y)) = X := malloc(Y) ; if(X == null, bail, no-op) .
+  eq applyTrans(S) = S [owise].
+
+  rl [malloc-trans] : (X := malloc(Y)) => X := safe-malloc(Y) ; if(X == null, bail, no-op) .
+endm
+
+red applyTrans('X := malloc('Y) ; no-op) .
+rew 'X := malloc('Y) ; no-op .
+

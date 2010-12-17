@@ -1,0 +1,14 @@
+Name:           paul
+Version:        0.1
+Cabal-Version:  >= 1.2
+Author:         Geoff Hulette
+Synopsis:       Paul is the annotation parser for COMPOSE-HPC.
+Build-Type:     Simple
+
+Executable paul
+  Main-Is:         Main.hs
+  Hs-Source-Dirs:  src
+  Build-Depends:	 base >= 4 && < 5,array,
+                   parsec >= 2.1.0.1,
+                   language-c >= 0.3.2,
+                   language-c-comments >= 0.2
