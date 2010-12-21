@@ -1,0 +1,28 @@
+This is an initial version of PAUL, currently capable of extracting
+specially-formatted annotations from C source code.
+
+See example/Example.c for a simple demonstration of PAUL's current annotation
+format.
+
+To build PAUL from source you will need:
+
+  * The Haskell Platform, July 2010 or newer. Download from
+    http://hackage.haskell.org/platform/ and follow the instructions for your
+    platform.
+  * You will need to install some dependencies via Cabal. The
+    following commands should suffice:
+    $ cabal install language-c
+    $ cabal install language-c-comments
+
+To build PAUL:
+
+  $ cabal configure
+  $ cabal build
+
+To try it out:
+  
+  $ ./dist/build/paul/paul < example/Example.c
+
+Note that the Language-C currently has an unfortunate dependency on GCC for
+preprocessing, so you will need that C compiler. We are working on an
+alternative, compiler-independent preprocessing step.
