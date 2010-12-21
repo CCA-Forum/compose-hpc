@@ -1,6 +1,9 @@
 This is an initial version of PAUL, currently capable of extracting
 specially-formatted annotations from C source code.
 
+Please direct questions, comments, and feedback to Geoff Hulette via email at
+ghulett@sandia.gov.
+
 See example/Example.c for a simple demonstration of PAUL's current annotation
 format.
 
@@ -14,6 +17,10 @@ To build PAUL from source you will need:
     $ cabal install language-c
     $ cabal install language-c-comments
 
+Note that the Language-C currently has an unfortunate dependency on GCC
+for preprocessing, so you will need that C compiler. We are working on an
+alternative, compiler-independent preprocessing step.
+
 To build PAUL:
 
   $ cabal configure
@@ -21,8 +28,6 @@ To build PAUL:
 
 To try it out:
   
-  $ ./dist/build/paul/paul < example/Example.c
+  $ ./dist/build/paul/paul example/Example.c
 
-Note that the Language-C currently has an unfortunate dependency on GCC for
-preprocessing, so you will need that C compiler. We are working on an
-alternative, compiler-independent preprocessing step.
+Enjoy!
