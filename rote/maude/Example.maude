@@ -23,10 +23,12 @@ mod STMT is
 
   op applyTrans : Stmt -> Stmt .
   eq applyTrans(S ; T) = applyTrans(S) ; applyTrans(T) .
-  eq applyTrans(X := malloc(Y)) = X := malloc(Y) ; if(X == null, bail, no-op) .
+  eq applyTrans(X := malloc(Y)) = 
+    X := malloc(Y) ; if(X == null, bail, no-op) .
   eq applyTrans(S) = S [owise].
 
-  rl [malloc-trans] : (X := malloc(Y)) => X := safe-malloc(Y) ; if(X == null, bail, no-op) .
+  rl [malloc-trans] : (X := malloc(Y)) => 
+    X := safe-malloc(Y) ; if(X == null, bail, no-op) .
 endm
 
 red applyTrans('X := malloc('Y) ; no-op) .
