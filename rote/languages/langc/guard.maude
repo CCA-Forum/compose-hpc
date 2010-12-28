@@ -1,15 +1,15 @@
-mod GUARD is
+fmod GUARD is
   protecting STRING .
   protecting NAT .
   
   sort Term .
   sort TermList .
   
-  op _ _ : Term Term -> TermList .
-  op _ _ : Term TermList -> TermList .
-  op _[_] : Term Term -> Term .
-  op _[_] : Term TermList -> Term .
-  op !_ : Term -> Term .
+  op _ _ : Term Term -> TermList [ctor] .
+  op _ _ : Term TermList -> TermList [ctor] .
+  op _[_] : Term Term -> Term [ctor] .
+  op _[_] : Term TermList -> Term [ctor] .
+  op !_ : Term -> Term [ctor] .
   
   op Int : -> Term [ctor] .
   op Unit : -> Term [ctor] .
@@ -35,12 +35,12 @@ mod GUARD is
   var X Y Z : Term .
   var TS : TermList .
   
-  rl ExprStmt [Assign [Var [X] Call [Var [(Ident "malloc")] Z ]]] => 
+  eq ExprStmt [Assign [Var [X] Call [Var [(Ident "malloc")] Z ]]] = 
      CompoundStmt [ 
       ! ExprStmt [Assign [Var [X] Call [Var [(Ident "malloc")] Z ]]]
       IfStmt [ 
         Eq [Var [X] Null] 
         Call [Var [(Ident "exit")] Args [(Const 1)]]]] .
-endm
+endfm
 
 rew Unit [Func [(Ident "foo") Int Body [CompoundStmt [Declr [Just [(Ident "x")] Derived [CPtr]] ExprStmt [Assign [Var [(Ident "x")] Call [Var [(Ident "malloc")] Args [(Const 10)]]]] ReturnStmt [Just [(Const 0)]]]]]] .
