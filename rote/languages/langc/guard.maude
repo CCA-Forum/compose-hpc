@@ -1,0 +1,46 @@
+mod GUARD is
+  protecting STRING .
+  protecting NAT .
+  
+  sort Term .
+  sort TermList .
+  
+  op _ _ : Term Term -> TermList .
+  op _ _ : Term TermList -> TermList .
+  op _[_] : Term Term -> Term .
+  op _[_] : Term TermList -> Term .
+  op !_ : Term -> Term .
+  
+  op Int : -> Term [ctor] .
+  op Unit : -> Term [ctor] .
+  op Func : -> Term [ctor] .
+  op Body : -> Term [ctor] .
+  op Ident_ : String -> Term [ctor] .
+  op CompoundStmt : -> Term [ctor] .
+  op Declr : -> Term [ctor] .
+  op Just : -> Term [ctor] .
+  op Derived : -> Term [ctor] .
+  op CPtr : -> Term [ctor] .
+  op ExprStmt : -> Term [ctor] .
+  op Assign : -> Term [ctor] .
+  op Var : -> Term [ctor] .
+  op Call : -> Term [ctor] .
+  op Args : -> Term [ctor] .
+  op Const_ : Nat -> Term [ctor] .
+  op ReturnStmt : -> Term [ctor] .
+  op IfStmt : -> Term [ctor] .
+  op Null : -> Term [ctor] .
+  op Eq : -> Term [ctor] .
+  
+  var X Y Z : Term .
+  var TS : TermList .
+  
+  rl ExprStmt [Assign [Var [X] Call [Var [(Ident "malloc")] Z ]]] => 
+     CompoundStmt [ 
+      ! ExprStmt [Assign [Var [X] Call [Var [(Ident "malloc")] Z ]]]
+      IfStmt [ 
+        Eq [Var [X] Null] 
+        Call [Var [(Ident "exit")] Args [(Const 1)]]]] .
+endm
+
+rew Unit [Func [(Ident "foo") Int Body [CompoundStmt [Declr [Just [(Ident "x")] Derived [CPtr]] ExprStmt [Assign [Var [(Ident "x")] Call [Var [(Ident "malloc")] Args [(Const 10)]]]] ReturnStmt [Just [(Const 0)]]]]]] .

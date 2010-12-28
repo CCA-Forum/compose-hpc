@@ -1,3 +1,4 @@
+import System (getArgs)
 import Data.List (intercalate)
 import Language.C
 import Language.C.Data.Ident
@@ -6,7 +7,8 @@ import Language.C.System.GCC (newGCC)
 data Term = Term String [Term]
 
 instance Show Term where
-  show (Term x xs) = "(" ++ (join (x : map show xs)) ++ ")"
+  show (Term x []) = x
+  show (Term x xs) = x ++ " [" ++ (join (map show xs)) ++ "]"
     where join = intercalate " "
 
 class Termable a where
@@ -37,16 +39,16 @@ instance Termable CDeclSpec where
   term (CTypeQual typeQual) = error "CDeclSpec"
 
 instance Termable CTypeSpec where
-  term (CVoidType _) = Term "void" []
-  term (CCharType _) = Term "char" []
-  term (CShortType _) = Term "short" []
-  term (CIntType _) = Term "int" []
-  term (CLongType _) = Term "long" []
-  term (CFloatType _) = Term "float" []
-  term (CDoubleType _) = Term "double" []
-  term (CSignedType _) = Term "signed" []
-  term (CUnsigType _) = Term "unsigned" []
-  term (CBoolType _) = Term "bool" []
+  term (CVoidType _) = Term "Void" []
+  term (CCharType _) = Term "Char" []
+  term (CShortType _) = Term "Short" []
+  term (CIntType _) = Term "Int" []
+  term (CLongType _) = Term "Long" []
+  term (CFloatType _) = Term "Float" []
+  term (CDoubleType _) = Term "Double" []
+  term (CSignedType _) = Term "Signed" []
+  term (CUnsigType _) = Term "Unsigned" []
+  term (CBoolType _) = Term "Bool" []
   term _ = error "CTypeSpec"
 
 instance Termable CDecl where
@@ -58,7 +60,7 @@ instance Termable CDeclr where
     Term "Declr" [term ident,Term "Derived" (map term derivedDeclrs)]
     
 instance Termable Ident where
- term (Ident x _ _) = Term "Ident" [Term (show x) []]
+ term (Ident x _ _) = Term ("(Ident " ++ (show x) ++ ")") []
 
 declIdent :: CDecl -> Ident
 declIdent (CDecl _ [(Just (CDeclr (Just x) _ _ _ _), _, _)] _) = x
@@ -96,19 +98,19 @@ instance Termable CExpr where
   term (CConst cnst) = term cnst
   term _ = error "CExpr"
 
+constTermStr :: Show a => a -> String
+constTermStr x = "(Const " ++ show x ++ ")"
+
 instance Termable CConst where
-  term (CIntConst cint _) = Term "Const" [Term (show cint) []]
-  term (CCharConst cchar _) = Term "Const" [Term (show cchar) []]
-  term (CFloatConst cfloat _) = Term "Const" [Term (show cfloat) []]
-  term (CStrConst cstring _) = Term "Const" [Term (show cstring) []]
+  term (CIntConst n _) = Term (constTermStr n) []
+  term (CCharConst c _) = Term (constTermStr c) []
+  term (CFloatConst f _) = Term (constTermStr f) []
+  term (CStrConst s _) = Term (constTermStr s) []
 
 main :: IO ()
 main = do
-  let file = "examples/guard.c"
+  [file] <- getArgs
   result <- parseCFile (newGCC "gcc") Nothing [] file
   case result of
     Left err -> print err
-    Right x -> do
-      print (pretty x)
-      putStrLn "----"
-      print (term x)
+    Right x -> print (term x)
