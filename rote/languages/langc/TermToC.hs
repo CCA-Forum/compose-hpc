@@ -6,6 +6,7 @@ import Data.List (intercalate)
 data Term = Term String [Term]
           | Ident String
           | Const Int
+          | Bang Term
 
 instance Show Term where
   show (Term x []) = x
@@ -13,6 +14,7 @@ instance Show Term where
     where join = intercalate " "
   show (Ident x) = "(Ident " ++ show x ++ ")"
   show (Const n) = "(Const " ++ show n ++ ")"
+  show (Bang t) = "(! " ++ show t ++ ")"
 
 -- Tokens
 
@@ -46,8 +48,6 @@ allOf p = do
   eof
   return r
 
--- Terms and rule literals
-
 atom :: Parser String
 atom = do
   x <- letter
@@ -63,22 +63,24 @@ regularTerm = do
 bang :: Parser Term
 bang = do
   lexeme (char '!')
-  term
+  x <- term
+  return (Bang x)
 
 ident :: Parser Term
-ident = parens $ do
+ident = do
   reserved "Ident"
   x <- stringLit
   return (Ident x)
 
 constInt :: Parser Term
-constInt = parens $ do
+constInt = do
   reserved "Const"
   x <- natural
   return (Const (fromIntegral x))
 
 term :: Parser Term
-term =  bang
+term =  parens term
+    <|> bang
     <|> try ident
     <|> try constInt
     <|> regularTerm
@@ -87,10 +89,46 @@ term =  bang
 parseTerm :: String -> Either ParseError Term
 parseTerm = parse (allOf term) "Term"
 
+termToC :: Term -> String
+termToC (Term "Unit" funs) = intercalate "\n" (map termToC funs)
+termToC (Term "Func" [(Ident x),typ,(Term "Body" stmts)]) =
+  let typStr = termToC typ
+      bodyStr = intercalate "\n" (map termToC stmts)
+   in typStr ++ " " ++ x ++ " () {\n" ++ bodyStr ++ "}"
+termToC (Term "CompoundStmt" stmts) =
+  concatMap termToC stmts
+termToC (Term "Declr" [Term "Just" [Ident x],typ]) =
+  let typStr = termToC typ
+   in typStr ++ " " ++ x ++ ";\n"
+termToC (Term "Derived" [Term "CPtr" []]) = "int *"
+termToC (Term "ExprStmt" [stmt]) = 
+  let stmtStr = termToC stmt
+   in stmtStr ++ ";\n"
+termToC (Term "Assign" [Term "Var" [Ident x],expr]) =
+  let rhs = termToC expr
+   in x ++ " = " ++ rhs
+termToC (Term "Call" [Term "Var" [Ident x],Term "Args" args]) =
+  let argsStr = intercalate "," (map termToC args)
+   in x ++ "(" ++ argsStr ++ ")"
+termToC (Term "IfStmt" [test,consq]) =
+  let testStr = termToC test
+      consqStr = termToC consq
+   in "if(" ++ testStr ++ "){\n" ++ consqStr ++ ";\n}\n"
+termToC (Term "Eq" [lhs,rhs]) = (termToC lhs) ++ " == " ++ (termToC rhs)
+termToC (Term "Var" [Ident x]) = x
+termToC (Term "Null" []) = "NULL"
+termToC (Term "ReturnStmt" [Term "Just" [expr]]) =
+  let exprStr = termToC expr
+   in "return(" ++ exprStr ++ ");\n"
+termToC (Const n) = show n
+termToC (Bang t) = termToC t -- Ignore bangs
+termToC (Term "Int" []) = "int"
+termToC t = error ("Unknown term " ++ (show t))
+
 main :: IO ()
 main = do
   ctnts <- getContents
   case parseTerm ctnts of
     Left err -> print err
-    Right x -> print x
+    Right x -> putStrLn (termToC x)
   

@@ -42,5 +42,3 @@ fmod GUARD is
         Eq [Var [X] Null] 
         Call [Var [(Ident "exit")] Args [(Const 1)]]]] .
 endfm
-
-rew Unit [Func [(Ident "foo") Int Body [CompoundStmt [Declr [Just [(Ident "x")] Derived [CPtr]] ExprStmt [Assign [Var [(Ident "x")] Call [Var [(Ident "malloc")] Args [(Const 10)]]]] ReturnStmt [Just [(Const 0)]]]]]] .
