@@ -23,7 +23,7 @@ maude_output = `maude -no-banner -interactive guard.maude #{tmp_file}`
 md = /result Term:(.*)\nBye./m.match(maude_output)
 result_term = ""
 md[1].each_line do |line|
-  result_term += line.strip
+  result_term += line.strip + " "
 end
 
 puts "Output term"
