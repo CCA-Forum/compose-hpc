@@ -1,0 +1,25 @@
+Feel free to contact Geoff Hulette (ghulette@cs.uoregon.edu) if you need help
+getting the demo working. Consider the following a quick primer for the
+adventurous. You will need:
+
+Haskell Platform >= 2010.2.0.0 http://hackage.haskell.org/platform/
+Maude >= 2.5 http://maude.cs.uiuc.edu/download/
+Ruby >= 1.8 http://www.ruby-lang.org/en/
+GCC >= 3
+
+You will also need a Haskell library called language-c which you can easily
+install (once you have the Haskell platform) with this command:
+
+$ cabal install language-c
+
+To run the demo you must cd to this directory, and then run guard.rb on the
+example C file.
+
+$ ruby guard.rb examples/guard_ex1.c
+
+This will (hopefully) print out the original C file, then the term
+representation of the original code, then the term representation of the
+rewritten code, and finally the unparsed and rewritten C file. The process
+should transform the code such that the result from each malloc in the
+original C program is checked for a null value, and the program terminated if
+if is found.
