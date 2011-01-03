@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-tmp_dir = ENV['TMPDIR']
+tmp_dir = "/tmp" #ENV['TMPDIR']
 input_file = ARGV[0]
 
 puts "Input file"
@@ -14,7 +14,7 @@ puts "-" * 78
 puts input_term
 puts
 
-tmp_file = tmp_dir + "guard_temp.maude"
+tmp_file = tmp_dir + "/guard_temp.maude"
 tmph = File.new(tmp_file,"w")
 tmph.puts "rew " + input_term + " .\nquit .\n"
 tmph.close
