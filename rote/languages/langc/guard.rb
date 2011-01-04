@@ -1,6 +1,19 @@
 #!/usr/bin/env ruby
 
-tmp_dir = "/tmp" #ENV['TMPDIR']
+MAUDE = "/usr/local/maude/maude"
+TMPDIR = "/tmp"
+
+if not File.executable? MAUDE then
+  puts "Error: maude exec not found at #{MAUDE}"
+  exit
+end
+
+if not File.writable? TMPDIR then
+  puts "Error: temp dir #{TMPDIR} is not writable"
+  exit
+end
+
+
 input_file = ARGV[0]
 
 puts "Input file"
@@ -14,12 +27,12 @@ puts "-" * 78
 puts input_term
 puts
 
-tmp_file = tmp_dir + "/guard_temp.maude"
+tmp_file = File.join(TMPDIR, "guard_temp.maude")
 tmph = File.new(tmp_file,"w")
 tmph.puts "rew " + input_term + " .\nquit .\n"
 tmph.close
 
-maude_output = `maude -no-banner -interactive guard.maude #{tmp_file}`
+maude_output = `#{MAUDE} -no-banner -interactive guard.maude #{tmp_file}`
 md = /result Term:(.*)\nBye./m.match(maude_output)
 result_term = ""
 md[1].each_line do |line|
