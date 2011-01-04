@@ -1,3 +1,49 @@
+Demo summary:
+
+This demonstration is intended to show how term rewriting can be used to
+perform program transformations with a single, simple example.  The example
+chosen here is to rewrite C code with the following rule --- whenever a
+malloc statement is encountered, insert a conditional immediately after it
+that checks if the variable the malloc result is assigned to is null and
+exit if it is.  This is a crude but basic example intended to show how
+a complex rule can be defined over a subtree in the abstract syntax
+representation.  In this case, the rule corresponds to a subtree representing
+the assignment statement:
+
+VAR = malloc(params);
+
+Which, when matched in the program AST, is replaced with:
+
+VAR = malloc(params);
+if (VAR == null) {
+  exit(1);
+}
+
+The code is split into three pieces:
+
+1. CToTerm.hs : A program that takes a C source file, and turns it into
+   a Maude-compatible term representation.
+2. guard.maude : This is the Maude code that represents the term and
+   rewriting rule logic that does the pattern matching and structural
+   substitution to insert the conditional.
+3. TermToC.hs : This takes the terms produced by Maude after rewriting,
+   and produces a new source file representing the transformed C code.
+
+IMPORTANT NOTES:
+
+- This is a proof of principle, and *will break* if you attempt to push
+  arbitrary C code through it.  This is because we did not provide terms
+  for all possible parts of C -- just those necessary for the demo.
+
+- We are concerned with the term representation and rule specification
+  aspect of the problem here, not pretty printing.  So the code that comes
+  out of TermToC will be syntactically correct and compilable, but likely
+  has lost formatting that the original code had.
+
+---
+
+Usage:
+
 Feel free to contact Geoff Hulette (ghulette@cs.uoregon.edu) if you need help
 getting the demo working. Consider the following a quick primer for the
 adventurous. You will need:
