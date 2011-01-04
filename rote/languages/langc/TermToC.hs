@@ -97,10 +97,11 @@ termToC (Term "Func" [(Ident x),(Term "FunSpecifiers" [typ]),(Term "Body" stmts)
    in typStr ++ " " ++ x ++ " () {\n" ++ bodyStr ++ "}"
 termToC (Term "CompoundStmt" stmts) =
   concatMap termToC stmts
-termToC (Term "Declaration" [Term "DSpec" [typ], Term "Declr" [Term "Just" [Ident x], tqual]]) =
-  let typStr = termToC typ
+termToC (Term "Declaration" [Term "DSpec" typs, Term "Declr" [Term "Just" [Ident x], tqual]]) =
+  let typStr = intercalate " " (map termToC typs)
       tqstr = termToC tqual
   in typStr ++ tqstr ++ " " ++ x ++ ";\n"
+termToC (Term "Derived" []) = ""
 termToC (Term "Derived" [Term "CPtr" []]) = "*"
 termToC (Term "ExprStmt" [stmt]) = 
   let stmtStr = termToC stmt
@@ -125,7 +126,12 @@ termToC (Const n) = show n
 termToC (Bang t) = termToC t -- Ignore bangs
 termToC (Term "Int" []) = "int"
 termToC (Term "Double" []) = "double"
-termToC t = error ("Unknown term " ++ (show t))
+termToC (Term "Long" []) = "long"
+termToC (Term "Short" []) = "short"
+termToC (Term "Float" []) = "float"
+termToC (Term "Char" []) = "char"
+termToC (Term "Unsigned" []) = "unsigned"
+termToC t = error ("Currently unsupported term " ++ (show t))
 
 main :: IO ()
 main = do
