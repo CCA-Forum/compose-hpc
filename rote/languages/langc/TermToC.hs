@@ -101,8 +101,11 @@ termToC (Term "Declaration" [Term "DSpec" typs, Term "Declr" [Term "Just" [Ident
   let typStr = intercalate " " (map termToC typs)
       tqstr = termToC tqual
   in typStr ++ tqstr ++ " " ++ x ++ ";\n"
-termToC (Term "Derived" []) = ""
-termToC (Term "Derived" [Term "CPtr" []]) = "*"
+termToC (Term "Derived" terms) =
+  "" ++ concatMap (\t -> case t of
+                        Term "CPtr" [] -> "*"
+                        _              -> error "Unsupported derived term "++(show t))
+           terms
 termToC (Term "ExprStmt" [stmt]) = 
   let stmtStr = termToC stmt
    in stmtStr ++ ";\n"

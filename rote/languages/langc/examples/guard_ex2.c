@@ -2,7 +2,7 @@ int foo() {
   int *x;
   double *y;
   unsigned char c;
-  short s;
+  short **s;
   long l;
   unsigned long long ll;
   x = malloc(10);
