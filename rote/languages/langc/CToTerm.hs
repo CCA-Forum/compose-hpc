@@ -3,7 +3,6 @@ import Data.List (intercalate)
 import Language.C
 import Language.C.Data.Ident
 import Language.C.System.GCC (newGCC)
-import Debug.Trace
 
 data Term = Term String [Term]
 
@@ -75,7 +74,7 @@ declIdent (CDecl _ [(Just (CDeclr (Just x) _ _ _ _), _, _)] _) = x
 declIdent _ = error "declrIdent"
 
 instance Termable CDerivedDeclr where
-  term (CPtrDeclr typeQuals _) = Term (trace (show typeQuals) "CPtr") []
+  term (CPtrDeclr typeQuals _) = Term "CPtr" []
   term (CArrDeclr typeQuals arrSize _) = error "CDerivedDeclr"
   term (CFunDeclr (Left idents) attrs _) = error "CDerivedDeclr"
   term (CFunDeclr (Right (decls,isVariadic)) attrs _) = 

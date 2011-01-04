@@ -34,10 +34,7 @@ tmph.close
 
 maude_output = `#{MAUDE} -no-banner -interactive guard.maude #{tmp_file}`
 md = /result Term:(.*)\nBye./m.match(maude_output)
-result_term = ""
-md[1].each_line do |line|
-  result_term += line.strip + " "
-end
+result_term = md[1].split("\n").join(" ")
 
 puts "Output term"
 puts "-" * 78
