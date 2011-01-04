@@ -91,16 +91,17 @@ parseTerm = parse (allOf term) "Term"
 
 termToC :: Term -> String
 termToC (Term "Unit" funs) = intercalate "\n" (map termToC funs)
-termToC (Term "Func" [(Ident x),typ,(Term "Body" stmts)]) =
+termToC (Term "Func" [(Ident x),(Term "FunSpecifiers" [typ]),(Term "Body" stmts)]) =
   let typStr = termToC typ
       bodyStr = intercalate "\n" (map termToC stmts)
    in typStr ++ " " ++ x ++ " () {\n" ++ bodyStr ++ "}"
 termToC (Term "CompoundStmt" stmts) =
   concatMap termToC stmts
-termToC (Term "Declr" [Term "Just" [Ident x],typ]) =
+termToC (Term "Declaration" [Term "DSpec" [typ], Term "Declr" [Term "Just" [Ident x], tqual]]) =
   let typStr = termToC typ
-   in typStr ++ " " ++ x ++ ";\n"
-termToC (Term "Derived" [Term "CPtr" []]) = "int *"
+      tqstr = termToC tqual
+  in typStr ++ tqstr ++ " " ++ x ++ ";\n"
+termToC (Term "Derived" [Term "CPtr" []]) = "*"
 termToC (Term "ExprStmt" [stmt]) = 
   let stmtStr = termToC stmt
    in stmtStr ++ ";\n"
@@ -123,6 +124,7 @@ termToC (Term "ReturnStmt" [Term "Just" [expr]]) =
 termToC (Const n) = show n
 termToC (Bang t) = termToC t -- Ignore bangs
 termToC (Term "Int" []) = "int"
+termToC (Term "Double" []) = "double"
 termToC t = error ("Unknown term " ++ (show t))
 
 main :: IO ()

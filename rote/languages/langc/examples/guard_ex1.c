@@ -1,6 +1,6 @@
 int foo() {
   int *x;
-  int *y;
+  double *y;
   x = malloc(10);
   y = malloc(12);
   // if (x == null) exit(1);   <--- insert this

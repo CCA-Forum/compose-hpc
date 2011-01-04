@@ -12,9 +12,13 @@ fmod GUARD is
   op !_ : Term -> Term [ctor] .
   
   op Int : -> Term [ctor] .
+  op Double : -> Term [ctor] .
   op Unit : -> Term [ctor] .
   op Func : -> Term [ctor] .
   op Body : -> Term [ctor] .
+  op FunSpecifiers : -> Term [ctor] .
+  op Declaration : -> Term [ctor] .
+  op DSpec : -> Term [ctor] .
   op Ident_ : String -> Term [ctor] .
   op CompoundStmt : -> Term [ctor] .
   op Declr : -> Term [ctor] .

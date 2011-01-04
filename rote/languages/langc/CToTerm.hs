@@ -3,6 +3,7 @@ import Data.List (intercalate)
 import Language.C
 import Language.C.Data.Ident
 import Language.C.System.GCC (newGCC)
+import Debug.Trace
 
 data Term = Term String [Term]
 
@@ -25,18 +26,23 @@ instance Termable CTranslUnit where
     Term "Unit" (map term decls)
 
 instance Termable CExtDecl where
+  -- function definition
   term (CFDefExt funDef) = term funDef
+  -- global declaration, undefined until we need it
+  term (CDeclExt _)      = undefined
+  -- assembly stuff, unsupported, will be error
+  term (CAsmExt _)       = error "Asm in C code unsupported"
 
 instance Termable CFunDef where
-  term (CFunDef [retType] (CDeclr (Just (funcId)) _ _ _ _) decls stmt _) =
+  term (CFunDef specifiers (CDeclr (Just (funcId)) _ _ _ _) decls stmt _) =
     Term "Func" [ term funcId,
-                  term retType,
+                  Term "FunSpecifiers" $ map term specifiers,
                   Term "Body" [term stmt]]
 
 instance Termable CDeclSpec where
   term (CTypeSpec typeSpec) = term typeSpec
-  term (CStorageSpec storSpec) = error "CDeclSpec"
-  term (CTypeQual typeQual) = error "CDeclSpec"
+  term (CStorageSpec storSpec) = term storSpec
+  term (CTypeQual typeQual) = term typeQual
 
 instance Termable CTypeSpec where
   term (CVoidType _) = Term "Void" []
@@ -52,7 +58,9 @@ instance Termable CTypeSpec where
   term _ = error "CTypeSpec"
 
 instance Termable CDecl where
- term (CDecl _ [(Just x, _, _)] _) = term x
+ term (CDecl ds [(Just x, _, _)] _) = 
+   Term "Declaration" [ Term "DSpec" $ map term ds,
+                        term x ]
  term _ = error "CDecl"
 
 instance Termable CDeclr where
@@ -67,12 +75,34 @@ declIdent (CDecl _ [(Just (CDeclr (Just x) _ _ _ _), _, _)] _) = x
 declIdent _ = error "declrIdent"
 
 instance Termable CDerivedDeclr where
-  term (CPtrDeclr typeQuals _) = Term "CPtr" []
+  term (CPtrDeclr typeQuals _) = Term (trace (show typeQuals) "CPtr") []
   term (CArrDeclr typeQuals arrSize _) = error "CDerivedDeclr"
   term (CFunDeclr (Left idents) attrs _) = error "CDerivedDeclr"
   term (CFunDeclr (Right (decls,isVariadic)) attrs _) = 
     let argIds = map declIdent decls in
     Term "FuncDeclr" [Term "Params" (map term argIds)]
+
+instance Termable CStorageSpec where
+  term (CAuto _) = Term "Auto" []
+  term (CRegister _) = Term "Register" []
+  term (CStatic _) = Term "Static" []
+  term (CExtern _) = Term "Extern" []
+  term (CTypedef _) = Term "Typedef" []
+  term (CThread _) = error "Unsupported GNUC extension"
+
+instance Termable CTypeQual where
+  term (CConstQual _) = Term "Const" []
+  term (CVolatQual _) = Term "Volatile" []
+  term (CRestrQual _) = Term "Restrict" []
+  term (CInlineQual _) = Term "Inline" []
+  term (CAttrQual _) = error "attribute type qualifiers unsupported"
+
+instance Show CTypeQual where
+  show (CConstQual _) = "const"
+  show (CVolatQual _) = "volatile"
+  show (CRestrQual _) = "restrict"
+  show (CInlineQual _) = "inline"
+  show (CAttrQual _) = "const"
 
 instance Termable CStat where
   term (CExpr (Just expr) _) = 
