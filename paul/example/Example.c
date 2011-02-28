@@ -19,7 +19,7 @@ values can be any of the following:
 * Integers, e.g. 500
 * Floats, e.g. 3.1
 * Bools, e.g. True
-* Quoted escaped strings (e.g. "Hello there\n") and here documents
+* Quoted escaped strings (e.g. "Hello there\n") and "here documents"
 * Alphanumeric identifiers
 
 Other types? Note that a client can always override the default parser and
@@ -30,7 +30,7 @@ parse the annotation text (i.e. everything after the AID) themselves.
 /*%%% CONTRACT w="Multi-line\nstrings are fine" x=Identifier y=5.6
                z=True */
 
-
+// example of a heredoc:
 /*%%% CODE code=<<EOF
 int bar(int x, int y) {
   printf("Test this thing out\n");
@@ -39,32 +39,19 @@ int bar(int x, int y) {
 EOF x=5
 */
 
-/*
-               h=
-a.begin(EOF)
-b.begin(EOF.preamble)
-b.end(EOF.preamble)
-foo
-b.begin(EOF.suffix)
-a.end(EOF)
-*/
 
-/* FORTRAN90 block literals
-!%%% CONTRACT blah=whatever h=
-!begin(EOF)
-!this is my block
-!end(EOF)
-*/
+//%%% GUARD cond=NonZero arg=x onErrorCall=failWith errorCallArg="x = 0"
+double foo(double x, double y) {
+  return y / x;
+}
 
 double foo(double x, double y) {
-  
-  int x = 6;
-  /*%%% LOOP */
-  for(int i=0; i < 10; i++) {
-    x = x + i;
+  if(x != 0) {
+    failWith("x = 0");
   }
-  return x * y;
+  return y / x;
 }
+
 
 /*%%% RENAME name=oldmain */
 int main() {
