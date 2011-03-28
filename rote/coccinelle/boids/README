@@ -1,0 +1,13 @@
+Informal testing on my MacBook:
+
+capa:boids$ time ./boids_orig > orig.out
+real	4m14.459s
+user	4m14.355s
+sys	0m0.070s
+
+capa:boids$ time ./boids_new > orig.out
+real	4m0.325s
+user	4m0.244s
+sys	0m0.057s
+
+A speedup of about 5%.
