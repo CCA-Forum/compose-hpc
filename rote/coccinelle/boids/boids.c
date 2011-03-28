@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+
 /*****************************************************************************
   Vector stuff
 *****************************************************************************/
@@ -168,9 +169,11 @@ void output(struct boid *boids, int n) {
 *****************************************************************************/
 
 int main() {
+  long seed = 10231977L;
   int n = 100,i;
   struct boid *boids;
-  srand(10231977L);
+  printf("Using seed: %ld\n", seed);
+  srand(seed);
   boids = (struct boid *)malloc(n * sizeof(struct boid));
   init(boids,n);
   for(i=0;i < 100;i++) {
