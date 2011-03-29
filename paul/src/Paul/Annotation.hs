@@ -7,7 +7,7 @@ type Prefix = String
 ident :: Parser String
 ident = do
   x <- letter
-  xs <- many alphaNum
+  xs <- many (alphaNum <|> char '_')
   return (x:xs)
 
 annotation :: String -> Parser (String,String)

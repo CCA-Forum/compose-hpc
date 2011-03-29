@@ -1,3 +1,4 @@
+#undef __BLOCKS__ // This is required for Mac OS X's stupid mangled stdlib.h
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -7,6 +8,7 @@
   Boid stuff
 *****************************************************************************/
 
+/*%%% ABSORB_STRUCT_ARRAY */
 struct boid {
   Vec pos;
   Vec vel;
