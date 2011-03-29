@@ -34,8 +34,8 @@ components that we are working on right now:
 					     |	     | Generators
 					     |	     |
 				     +-----------+ +----------+
-				     + Fortran 77| | C, ...   |
-				     + 90, 2003  | |          |
+				     | Fortran 77| | C, ...   |
+				     | 90, 2003  | |          |
 				     +-----------+ +----------+
 
 The idea to use the s-expression-based IR to interface with ROTE
