@@ -1,0 +1,43 @@
+BRAID development status               Thu Dec  9 16:26:17 PST 2010
+
+
+The implementation language choice is motivated by Python being the
+highest-level language that we can assume to be pre-installed on all
+our target systems. So far we have three components:
+
+- A complete parser for SIDL which generates an object-oriented
+  intermediate representation (IR)
+
+- A converter to an extensible s-expression-based language
+  independent IR
+
+- The humble beginnings of code generators that convert this IR
+  into Fortran (77, 90, 2003) and C code. Other languages supported
+  by Babel will follow.
+
+  To facilitate the writing of these code generators we put some
+  effort into extending Python with a pattern-matching mechanism
+  for arbitrarily complex tuples. (And the s-expressions from the
+  IR are internally represented as Python tuples.)
+
+
+On the basis of the BRAID figure in the proposal, these are the
+components that we are working on right now:
+
+                Parser               Conversion
+   +-------------+  +------------------+  +---------------------+
+   | SIDL        |--| (Object-oriented)|--| Language indep. AST |
+   |             |  | Procedural IR    |  | (s-expressions)     |
+   +-------------+  +------------------+  +---------------------+
+					     |	     |
+					     |	     | Code
+					     |	     | Generators
+					     |	     |
+				     +-----------+ +----------+
+				     | Fortran 77| | C, ...   |
+				     | 90, 2003  | |          |
+				     +-----------+ +----------+
+
+The idea to use the s-expression-based IR to interface with ROTE
+at some later point. Other components (e.g. PAUL) can also
+generate this IR to get access to the code generators.
