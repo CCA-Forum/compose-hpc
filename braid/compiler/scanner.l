@@ -27,7 +27,7 @@
  * </pre>
  *
  */
- *include <string.h>
+#include <string.h>
 
 enum Token {
           t_KEYWORD=256,

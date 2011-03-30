@@ -1,3 +1,4 @@
+ACLOCAL_AMFLAGS=-I m4
 SUBDIRS = compiler
 
 info_TEXINFOS = doc/braid.texi
