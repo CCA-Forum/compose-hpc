@@ -89,9 +89,9 @@ clean-local:
 
 # Generate the parser tables
 braid: braid.py $(PYTHON_SOURCES)
-	echo "LD_LIBRARY_PATH=$(PYTHON_SHARED_LIBRARY_DIR):LD_LIBRARY_PATH" >$@
-	echo "env PYTHONPATH=$(PYTHONPATH) $(PYTHON) -O $< \$$*" >>$@
-	chmod u+x $@
+	@echo "LD_LIBRARY_PATH=$(PYTHON_SHARED_LIBRARY_DIR):LD_LIBRARY_PATH" >$@
+	@echo "env PYTHONPATH=$(PYTHONPATH) $(PYTHON) -O $< \$$*" >>$@
+	@chmod u+x $@
 
 parsetab.py: sidl_parser.py scanner.la sidl_token.py
 	env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile

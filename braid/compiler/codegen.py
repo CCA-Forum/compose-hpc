@@ -8,6 +8,13 @@
 # * It is ok to duplicate code if it increases locality and thus
 #   improves readability
 #
+# Each code generator is split into two components: the actual code
+# generator and the <language>File class which implements things such
+# as indentation and line wrapping. The code generator implements a \c
+# generate(sexpr) function which takes an \c ir node in s-expression
+# form.
+#
+#
 # Please report bugs to <adrian@llnl.gov>.
 #
 # \authors <pre>
@@ -79,7 +86,13 @@ def generate(language, ir_code):
 
 class Scope(object):
     """
-    we need at least stmt, block, function, module
+    This class provides an interface to the output file that is better
+    suited for generating source code than a sequential output
+    stream. In particular, it provides a solution for the problem that
+    often we want to add another definition the beginning of an
+    enclosing scope.
+
+    Scopes are nested and generally look like this:
 
     <pre>
     +--------------------+     +-----------------------------------+

@@ -9,8 +9,8 @@
 #
 # This parser uses the PLY (Python Lex & Yacc) published under BSD
 # license and available at http://www.dabeaz.com/ply/ . For practical
-# reasons, this library is included in this distribution in the ply/
-# subdirectory.
+# reasons, this library is included in this distribution in the
+# ../contrib/ directory.
 #
 # There are two choices of scanners available. The first one is
 # written in Python and is included in this file. For performance
@@ -364,7 +364,6 @@ def t_error(t):
 
 def p_start(p):
     '''start : requires imports userTypes'''
-    #{ return jjtThis; }
     p[0] = sidl.File(sidl.ListNode(p[1]), sidl.ListNode(p[2]), sidl.ListNode(p[3]))
 
 def p_empty(p):
@@ -503,10 +502,12 @@ def p_imports(p): # *
 
 def p_import_1(p):
     '''import : IMPORT scopedID SEMICOLON'''
+    print "FIXME: process import"
     p[0] = sidl.AstNode(ir.import_, p[2])
 
 def p_import_2(p):
     '''import : IMPORT scopedID version SEMICOLON'''
+    print "FIXME: process import"
     p[0] = sidl.AstNode(ir.import_, p[2], p[3])
 
 def p_import_error(p):
