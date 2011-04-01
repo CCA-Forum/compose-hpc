@@ -1,0 +1,50 @@
+\documentclass{report}
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+\begin{document}
+
+\newcommand{\myplot}[5]{
+  \begin{tikzpicture}[scale=1] 
+    \begin{loglogaxis}[
+        width=\textwidth,
+        %ymin=0.0001,ymax=25,
+        legend style={at={(0.5,-0.15)}, 
+        anchor=north,
+        legend columns=-1},
+        grid=major,
+        title=#1,
+        xlabel=#2,
+        ylabel=#3,
+        xtick={1,2,4,8,16,32,64,128},
+        xticklabels={1,2,4,8,16,32,64,128}
+      ]
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{C}     #5] {#4}; 
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{CXX}   #5] {#4}; 
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{F77}   #5] {#4}; 
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{F90}   #5] {#4};  
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{F03}   #5] {#4}; 
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{Java}  #5] {#4};  
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{Python}#5] {#4}; 
+
+      \addlegendentry{C}  
+      \addlegendentry{C++}
+      \addlegendentry{F77}
+      \addlegendentry{F90}
+      \addlegendentry{F03}
+      \addlegendentry{Java}
+      \addlegendentry{Python}
+    \end{loglogaxis}
+  \end{tikzpicture}
+}
+
+\myplot{bool/nop}{\#struct items}{\#instructions}{out/result_bool_nop.txt}{/1000000}\\
+\myplot{float/nop}{\#struct items}{\#instructions}{out/result_float_nop.txt}{/1000000}\\
+\myplot{string/nop}{\#struct items}{\#instructions}{out/result_string_nop.txt}{/100000}\\
+\myplot{bool/reverse}{\#struct items}{\#instructions}{out/result_bool_reverse.txt}{/1000000}\\
+\myplot{float/reverse}{\#struct items}{\#instructions}{out/result_float_reverse.txt}{/1000000}\\
+\myplot{string/reverse}{\#struct items}{\#instructions}{out/result_string_reverse.txt}{/100000}\\
+\myplot{int/bsort}{\#struct items}{\#instructions}{out/result_int_bsort.txt}{/100000}\\
+
+
+\end{document}
