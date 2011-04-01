@@ -10,7 +10,9 @@
 #
 # The functionality is implemented in 100% Python. To use pattern
 # matching in a function, the function must use the \@matcher
-# decorator.
+# decorator. In order to make it play well with editors that do syntax
+# coloring and indentation, we borrowed the \c with keyword. It still
+# kind of breaks flymake/pylint.
 #
 # \subsection example Example
 #
@@ -63,6 +65,11 @@
 # transformed version of the function can be compiled to a python
 # source file an loaded at a later time if desired for performance
 # reasons.
+#
+# Future plans
+#
+# One idea is to replace match() with an operator syntax like
+# <code>a ~ b</code>.
 #
 # Please report bugs to <adrian@llnl.gov>.
 #
@@ -124,6 +131,13 @@ def match(a, b):
     is commutative. \code match(a, b) == match(b, a) \endcode
     """
     return unify(a, b, [])
+
+def expect(a, b):
+    """
+    Same as \c match(a,b), but raise an exception if the unification fails.
+    """
+    if not unify(a, b, []):
+        raise Exception('type error (%s =/= %s)'%(str(a), str(b)))
 
 def member(a, l):
     """
@@ -245,8 +259,11 @@ def compile_matcher(f):
     \return None.
 
     The function is written to a file <f.__name__>_matcher.py
-    \bug  not any more
-    \todo rewrite this using the proper Python AST rewriting mechanisms
+    \bug not any more
+    \bug with match() and expect() cannot span multiple lines
+    \bug string literals are not recognized by the parser
+    \todo Once we are happy with the syntax, 
+          rewrite this using the proper Python AST rewriting mechanisms
     """
 
     def indentlevel(s):
@@ -260,13 +277,14 @@ def compile_matcher(f):
 	"""
 	extract variable names from the right-hand side expression
 	and rename anonymous variables to something unique
+        modifies regalloc[], anonymous_vars
 	"""
-	reserved_words = r'(False)|(True)|(None)|(NotImplemented)|(Ellipsis)'
+	reserved_words = r'(\..*)|(False)|(True)|(None)|(NotImplemented)|(Ellipsis)'
 	matches = re.findall(r'(^|\W)([_A-Z]\w*)($|[^\(\w])', rexpr)
 	names = set([])
 	for m in matches:
 	    var = m[1]
-	    if re.match(reserved_words, var):
+	    if m[0] == '.' or re.match(reserved_words, var):
 		# ignore reserved words
 		continue
 
@@ -286,6 +304,24 @@ def compile_matcher(f):
 
 	numregs[-1] = max(numregs[-1], len(names))
 	return rexpr
+
+    def get_vardecls():
+        decls = []
+        for i in range(0, numregs[-1]):
+            d = '' # FIXME
+            decls.append('_reg%s%d = %sVariable()' % (d, i, patmat_prefix))
+        return decls
+
+    def substitute_registers(line, d):
+        """
+        replace variables with registers in line
+        """
+        for i in range(0, len(regalloc[-1])):
+            line = re.sub(r'(\W|^)'+regalloc[-1][i]+r'(\W|$)',
+                          r'\1_reg%s%d\2' % (d, i),
+                          line)
+        return line
+
 
     def depthstr(n):
 	"""generate unique register names for each nesting level"""
@@ -332,6 +368,7 @@ def compile_matcher(f):
     anonymous_vars = Counter(0) # number of anonymous variables
     append_line(src[fc.co_firstlineno])
 
+    # FIXME: wouldn't one stack with a tuple/class of these be nicer?
     # stacks
     lexpr = [] # lhs expr of current match block
     numregs = [] # number of simulatneously live variables
@@ -355,10 +392,7 @@ def compile_matcher(f):
 	# leaving a with block
 	while len(withindent) > 0 and il <= withindent[-1]:
 	    # insert registers declarations
-	    decls = []
-	    for i in range(0, numregs[-1]):
-		decls.append('_reg%d = %sVariable()' % (i, patmat_prefix))
-
+	    decls = get_vardecls()
 	    # put all in one line, so we don't mess with the line numbering
 	    insert_line(withbegin[-1],
 			' '*(withindent[-1]) + '; '.join(decls) + '\n')
@@ -370,7 +404,8 @@ def compile_matcher(f):
 	    numregs.pop()
 	    lexpr.pop()
 	    if len(withindent) <> len(matchindent):
-		raise('**ERROR: %s:%d: missing if statement inside of if block'%
+		raise Exception(
+                    '**ERROR: %s:%d: missing if statement inside of if block'%
 		    (fc.co_filename, fc.co_firstlineno+2+num_lines.read()))
 	    # ... repeat for all closing blocks
 
@@ -389,6 +424,24 @@ def compile_matcher(f):
 	    withindent.append(il)
 	    withbegin.append(num_lines.read()-1)
 	    line = ""
+
+	# expect() is handled completely in here
+        # putting expect here is still half-baked...
+        # there is no automatic replacement of named variables and
+        # that is inconsistent with the with syntax
+	m = re.match(r'^ +(patmat\.)?expect\((.*)\) *$', line)
+	if m:
+	    if m.group(1):
+		patmat_prefix = m.group(1)
+	    numregs.append(0)
+	    regalloc.append([])
+            exprs = scan_variables(m.group(2))
+	    # put all in one line, so we don't mess with the line numbering
+	    vardecls = '; '.join(get_vardecls())+'; '
+            line = substitute_registers(
+                ' '*il+vardecls+patmat_prefix+'expect(%s)'%exprs+'\n', '')
+            regalloc.pop()
+	    numregs.pop(0)
 
 	# inside a matching rule
 	if len(lexpr) > 0:
@@ -417,13 +470,8 @@ def compile_matcher(f):
 			   patmat_prefix,
 			   lexpr[-1],
 			   scan_variables(rexpr))
-		    # allocate registers for variables
-		    d = depthstr(len(lexpr)-1)
-		    for i in range(0, len(regalloc[-1])):
-			line = re.sub(r'(\W|^)'+regalloc[-1][i]+r'(\W|$)',
-				      r'\1_reg%s%d\2' % (d, i),
-				      line)
-
+		    # substitute registers for variables
+                    line = substitute_registers(line, depthstr(len(lexpr)-1))
 		    # split off the part behind the ':' and append it
 		    then = m.group(5)
 		    if len(then) > 0:
@@ -433,14 +481,15 @@ def compile_matcher(f):
 
 	# every time
 	if len(withbegin) > 0:
-	    # allocate registers for variables
-	    # ... can be done more efficiently
-	    j = 0
-	    for alloc in regalloc:
-		d = depthstr(j)
-		for i in range(0, len(alloc)):
-		    line = line.replace(alloc[i], '_reg%s%d.binding' % (d, i))
-		j += 1
+            # substitute registers for variables
+            # ... can be done more efficiently
+            j = 0
+            for alloc in regalloc:
+                d = depthstr(j)
+                for i in range(0, len(alloc)):
+                    line = re.sub(r'(\W*)'+alloc[i],
+                                  r'\1_reg%s%d.binding' % (d, i), line)
+                j += 1
 
 	# copy the line to the output
 	append_line(line)
