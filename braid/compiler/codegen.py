@@ -45,6 +45,11 @@ def generate(language, ir_code):
     
     \param ir_code  Intermediate representation input.
     \return         string
+
+    >>> generate('F77', 1)
+    '1'
+    >>> generate('C', ('+', 1, 2))
+    '1 + 2'
     """
     # apparently CPython does not implement proper tail recursion
     import sys
@@ -99,22 +104,22 @@ class Scope(object):
     | header             |  +  | defs                              |
     +--------------------+     +-----------------------------------+
     </pre>
+
+    Subclasses of this might offer more sophisticated layouts.
+
+
+    \c self.indent_level is the level of indentation used by this \c
+    Scope object. The \c indent_level is constant for each \c Scope
+    object. If you want to change the indentation, the idea is to
+    create a child \Scope object with a different indentation.
+
     """
-    def __init__(self, parent=None, 
-                 relative_indent=0, indent_level=0, separator='\n'):
+    def __init__(self, parent=None, relative_indent=0, separator='\n'):
         """
         \param parent         The enclosing scope.
+
         \param relative_indent The amount of indentation relative to
                               the enclosing scope.
-
-        \param indent_level   This is the level of indentation used by
-                              this \c Scope object. The \c
-                              indent_level is constant for each \c
-                              Scope object. If you want to change the
-                              indentation, the idea is to create a
-                              child \Scope object with a different
-                              indentation.
-
 
         \param separator      This string will be inserted between every
                               two definitions.
@@ -125,8 +130,9 @@ class Scope(object):
         self._pre_defs = []
         self._post_defs = []
         self.relative_indent = relative_indent
-        self.indent_level = indent_level
-        self._sep = separator+' '*indent_level
+        if parent: self.indent_level = parent.indent_level + relative_indent
+        else:      self.indent_level = relative_indent
+        self._sep = separator+' '*self.indent_level
 
     def has_declaration_section(self):
         """
@@ -184,17 +190,18 @@ class Scope(object):
         """
         #print self._header, '+', self._defs, 'sep="',self._sep,'"'
         #import pdb; pdb.set_trace()
-        return (' '*self.relative_indent +
-                self._sep.join(self._header) +
-                self._sep.join(self._defs))
+        s = self._sep.join(self._header) + self._sep.join(self._defs)
+        if len(s) > 0:
+            return ' '*self.relative_indent + s
+        return s
 
 class SourceFile(Scope):
     """
     This class represents a generic source file
     """
-    def __init__(self, parent=None, relative_indent=0, indent_level=0):
+    def __init__(self, parent=None, relative_indent=0, separator='\n'):
         super(SourceFile, self).__init__(
-            parent, relative_indent, indent_level, separator='\n')
+            parent, relative_indent, separator)
 
     def has_declaration_section(self):
         return True
@@ -206,10 +213,8 @@ class SourceFile(Scope):
         """
         #print self._header, '+', self._defs, 'sep="',self._sep,'"'
         #import pdb; pdb.set_trace()
-        return (' '*self.relative_indent+
-                ('\n'+' '*self.relative_indent).join([
-                    self._sep.join(self._header),
-                    self._sep.join(self._defs)])+self._sep)
+        return (' '*self.relative_indent
+                +self._sep.join( self._header+self._defs ))
 
 
 class Function(Scope):
@@ -220,6 +225,10 @@ class Function(Scope):
         return True
 
 class GenericCodeGenerator(object):
+    """
+    All code generators shall implement this interface and inherit
+    from this class.
+    """
 
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SourceFile()):
@@ -244,11 +253,20 @@ class GenericCodeGenerator(object):
             elif (A):        
                 if (isinstance(A, list)):
                     for defn in A:
-                        gen(defn)
-                    return scope
+                        scope.new_def(gen(defn))
+                elif (isinstance(A, tuple)):
+                    raise Exception("not implemented: "+repr(A))
+                elif (isinstance(A, int)):   return str(A)
+                elif (isinstance(A, float)): return str(A)
+                elif (isinstance(A, complex)): return str(A)
+                elif (isinstance(A, long)): return str(A)
+                elif (isinstance(A, str)): 
+                    #print "FIXME: string `%s' encountered. Fix your generator"%A
+                    return A
                 else:
-                    return str(A)
-            else: raise Exception("match error: "+node.str())
+                    raise Exception("unexpected type"+repr(A))
+            else: raise Exception("match error: "+repr(node))
+        return scope
 
     def get_type(self, node):
         """
@@ -277,8 +295,7 @@ class F77File(SourceFile):
     def __init__(self, parent=None, relative_indent=0):
         super(F77File, self).__init__(
             parent=parent,
-            relative_indent=relative_indent,
-            indent_level=0)
+            relative_indent=relative_indent)
         self.label = 0
 
     def new_def(self, s, indent=0):
@@ -472,8 +489,8 @@ class F90File(SourceFile):
     """
     This class represents a Fortran 90 source file
     """
-    def __init__(self,parent=None,relative_indent=2, indent_level=2):
-        super(F90File, self).__init__(parent,relative_indent,indent_level)
+    def __init__(self,parent=None,relative_indent=2):
+        super(F90File, self).__init__(parent,relative_indent)
 
     def new_def(self, s, indent=0):
         """
@@ -627,7 +644,7 @@ class F03File(F90File):
     This class represents a Fortran 03 source file
     """
     def __init__(self):
-        super(F03File, self).__init__(relative_indent=4,indent_level=2)
+        super(F03File, self).__init__(relative_indent=4)
 
 class Fortran03CodeGenerator(Fortran90CodeGenerator):
     """
@@ -734,14 +751,14 @@ class CFile(SourceFile):
     """
     def __init__(self):
         #FIXME should be 0 see java comment
-        super(CFile, self).__init__(indent_level=2)
+        super(CFile, self).__init__(relative_indent=2)
     
 class CCompoundStmt(Scope):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
         super(CCompoundStmt, self).__init__(
             parent_scope,
-            indent_level=parent_scope.indent_level+2, 
+            relative_indent=2, 
             separator='\n')
     def __str__(self):
         return (' {\n'
@@ -917,7 +934,7 @@ class JavaFile(SourceFile):
     """
     def __init__(self):
         #FIXME: file sould be 0 and there should be a class and package scope
-        super(JavaFile, self).__init__(indent_level=4) 
+        super(JavaFile, self).__init__(relative_indent=4) 
 
 class JavaCodeGenerator(ClikeCodeGenerator):
     """
@@ -1008,8 +1025,8 @@ class PythonFile(SourceFile):
     """
     This class represents a Python source file
     """
-    def __init__(self, parent=None, indent_level=4):
-        super(PythonFile, self).__init__(parent, indent_level=indent_level)
+    def __init__(self, parent=None, relative_indent=4):
+        super(PythonFile, self).__init__(parent, relative_indent)
 
     def __str__(self):
         """
@@ -1147,23 +1164,22 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 raise Exception("unexpected retval")
             return str(child_scope)
 
-
         def gen_scope(pre, defs, post):
             sep = '\n'+' '*scope.indent_level
             new_def(pre+sep+
                     gen_in_scope(defs, 
-                                 Scope(4, scope.indent_level+4, 
+                                 Scope(4, 4, 
                                        separator=';\n'))+';'+
                     sep+post)
 
         def gen_comma_sep(defs):
-            return gen_in_scope(defs, Scope(indent_level=1, separator=','))
+            return gen_in_scope(defs, Scope(relative_indent=1, separator=','))
 
         def gen_ws_sep(defs):
-            return gen_in_scope(defs, Scope(indent_level=0, separator=' '))
+            return gen_in_scope(defs, Scope(relative_indent=0, separator=' '))
 
         def gen_dot_sep(defs):
-            return gen_in_scope(defs, Scope(indent_level=0, separator='.'))
+            return gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
 
         def tmap(f, l):
             return tuple(map(f, l))
@@ -1232,7 +1248,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (ir.mode,        Name):    return Name
             elif (ir.method_name, Name, []):return Name
             elif (ir.method_name, Name, Extension): return Name+' '+Extension
-            elif (ir.primitive_type, Name): return Name.lower()
+            elif (ir.primitive_type, Name): return Name
             elif (ir.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
             elif (Op, A, B):                return ' '.join((gen(A), Op, gen(B)))
             elif (Op, A):                   return ' '.join((Op, gen(A)))

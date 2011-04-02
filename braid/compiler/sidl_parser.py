@@ -679,8 +679,8 @@ def p_method_error(p):
 def p_typeVoid(p):
     '''typeVoid : type
                 | VOID'''
-    if p[1] == 'void':
-        return sidl.AstNode(ir.type, ir.void)
+    if p[1] == 'VOID':
+        p[0] = sidl.AstNode(ir.type_, ir.void)
     else: p[0] = p[1]
 
 def p_methodAttrs(p): # *
@@ -815,7 +815,7 @@ def p_primitiveType(p):
                      | DCOMPLEX
                      | STRING
                      | OPAQUE'''
-    p[0] = sidl.AstNode(ir.primitive_type, p[1])
+    p[0] = sidl.AstNode(ir.primitive_type, p[1].lower())
 
 def p_array(p):
     '''array : ARRAY LT scalarType dimension orientation GT'''
@@ -1045,13 +1045,11 @@ def p_maybeSemicolon(p):
 def p_scopedID(p):
     '''scopedID : maybeDot identifiers empty
                 | maybeDot identifiers EXTENSION'''
-    print p[1], p[2],p[3]
     p[0] = sidl.AstNode(ir.scoped_id, sidl.ListNode(p[2]), p[3])
 
 def p_identifiers(p): # +
     '''identifiers : IDENTIFIER
                    | IDENTIFIER DOT identifiers'''
-    print 'X',p[1]
     cons13(p)
 
 def p_literal(p):
