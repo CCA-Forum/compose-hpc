@@ -2,7 +2,7 @@
 # -*- python -*-
 ## @package sidl
 #
-# A SIDL class hierarchy
+# A SIDL class hierarchy (soon to be deprecated)
 #
 # Please report bugs to <adrian@llnl.gov>.
 #

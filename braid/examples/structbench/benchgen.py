@@ -114,8 +114,8 @@ def bsort_expr(n, datatype):
     copy = [(ir.stmt, (ir.set_struct_item, b, (ir.identifier, "b"), 'm%d'%i,
                       (ir.get_struct_item, a, (ir.identifier, "a"), 'm%d'%i)))
             for i in range(1, n+1)]
-    sort = [(ir.decl, (ir.type_, "bool"), (ir.identifier, "swapped")),
-            (ir.decl, (ir.type_, "int"), (ir.identifier, "tmp")),
+    sort = [(ir.var_decl, (ir.type_, "bool"), (ir.identifier, "swapped")),
+            (ir.var_decl, (ir.type_, "int"), (ir.identifier, "tmp")),
             (ir.do_while, (ir.identifier, "swapped"),
              # if A[i-1] > A[i]
              [assign((ir.identifier, "swapped"), ir.false)]+

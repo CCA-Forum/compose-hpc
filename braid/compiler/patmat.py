@@ -117,6 +117,9 @@ class Variable:
 	return self.binding == None
 
     def __str__(self):
+        repr(self)
+
+    def __repr__(self):
 	if self.binding == None:
 	    return '_'
 	else:
@@ -437,7 +440,9 @@ def compile_matcher(f):
 	    regalloc.append([])
             exprs = scan_variables(m.group(2))
 	    # put all in one line, so we don't mess with the line numbering
-	    vardecls = '; '.join(get_vardecls())+'; '
+	    vardecls = '; '.join(get_vardecls())
+            if len(vardecls) > 0:
+                vardecls += '; '
             line = substitute_registers(
                 ' '*il+vardecls+patmat_prefix+'expect(%s)'%exprs+'\n', '')
             regalloc.pop()

@@ -254,8 +254,6 @@ class GenericCodeGenerator(object):
                 if (isinstance(A, list)):
                     for defn in A:
                         scope.new_def(gen(defn))
-                elif (isinstance(A, tuple)):
-                    raise Exception("not implemented: "+repr(A))
                 elif (isinstance(A, int)):   return str(A)
                 elif (isinstance(A, float)): return str(A)
                 elif (isinstance(A, complex)): return str(A)
@@ -263,10 +261,24 @@ class GenericCodeGenerator(object):
                 elif (isinstance(A, str)): 
                     #print "FIXME: string `%s' encountered. Fix your generator"%A
                     return A
+                elif (isinstance(A, tuple)):
+                    raise Exception("not implemented: "+repr(A))
+                elif (A == None):
+                    raise Exception("None encountered "+repr(A))
                 else:
                     raise Exception("unexpected type"+repr(A))
             else: raise Exception("match error: "+repr(node))
         return scope
+
+    def gen_in_scope(self, defs, child_scope):
+        """
+        building block for things like \c gen_comma_sep
+        """
+        r = self.generate(defs, child_scope)
+        if (isinstance(r, str)):
+            raise Exception("unexpected retval")
+        return str(child_scope)
+
 
     def get_type(self, node):
         """
@@ -470,7 +482,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
 
-            elif (ir.decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
             elif (ir.goto, Label):    return 'goto '+Label
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '.eq.'
@@ -625,7 +637,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
                 return scope
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
-            elif (ir.decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '.eq.'
             elif (ir.true):           return '.true.'
@@ -733,7 +745,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
                   %s
                 end function %s
             ''' % (Typ, Name, gen(Args), gen(Body), Name)
-            elif (ir.decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
             elif ((ir.literal, Lit)): return "'%s'"%Lit
@@ -794,16 +806,37 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 s = s.parent
             s.new_header_def(self.get_type(typ)+' '+gen(name)+';')
 
+        def gen_comma_sep(defs):
+            return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
+
+        def gen_ws_sep(defs):
+            return self.gen_in_scope(defs, Scope(relative_indent=0, separator=' '))
+
+        def gen_dot_sep(defs):
+            return self.gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
+
+
         with match(node):
             if (ir.stmt, Expr):
                 return new_def(gen(Expr)+';')
-            elif ('return', Expr):
+            elif (ir.fn_decl, Type, Name, Args):
+                scope.new_header_def("%s %s(%s)"% (gen(Type), gen(Name), gen(Args)))
+            elif (ir.fn_defn, Type, Name, Args, Body):
+                return new_scope("%s %s(%s)"% 
+                                 (gen(Type), gen(Name), gen_comma_sep(Args)), 
+                                 gen(Body))
+            elif (ir.return_, Expr):
                 return "return %s" % gen(Expr)
             elif (ir.do_while, Condition, Body):
                 return new_scope('do', Body, ' while (%s);'%gen(Condition))
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
-            elif (ir.decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.arg, Attr, Mode, Type, Name): '%s %s'% (gen(Type), gen(Name))
+            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.call, Name, Args): 
+                return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
+            elif (ir.pointer, Expr):  return '*'+gen(Expr)
+            elif (ir.deref):          return '*'
             elif (ir.not_):           return '!'
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '=='
@@ -863,11 +896,23 @@ class CCodeGenerator(ClikeCodeGenerator):
                   %s
                 }
             ''' % (Typ, Name, pretty(Args), gen(Body))
-            elif (ir.get_struct_item, _, StructName, Item):
+
+            elif (ir.get_struct_item, _, (ir.deref, StructName), Item):
                 return gen(StructName)+'->'+gen(Item)
 
-            elif (ir.set_struct_item, _, StructName, Item, Value):
+            elif (ir.set_struct_item, _, (ir.deref, StructName), Item, Value):
                 return gen(StructName)+'->'+gen(Item)+' = '+gen(Value)
+
+            #FIXME: add a SIDL->C step that rewrites the SIDL struct accesses to use struct pointers
+
+            elif (ir.get_struct_item, _, StructName, Item):
+                return gen(StructName)+'.'+gen(Item)
+
+            elif (ir.set_struct_item, _, StructName, Item, Value):
+                return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
+
+            elif (ir.struct, Name, _): return gen(Name)
+
             elif (Expr):
                 return super(CCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
@@ -1094,7 +1139,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_block('if %s'%gen(Condition), Body)
 
-            elif (ir.decl, Type, Name): return ''
+            elif (ir.var_decl, Type, Name): return ''
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '=='
             elif (ir.not_):           return 'not'
@@ -1246,7 +1291,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (ir.identifier,  Name):    return Name
             elif (ir.version,     Version): return 'version %2.1f'%Version
             elif (ir.mode,        Name):    return Name
-            elif (ir.method_name, Name, []):return Name
+            elif (ir.method_name, Name, ''):return Name
             elif (ir.method_name, Name, Extension): return Name+' '+Extension
             elif (ir.primitive_type, Name): return Name
             elif (ir.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))

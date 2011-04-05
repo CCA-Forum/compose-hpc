@@ -68,13 +68,18 @@ literal         = 'literal'
 true            = 'TRUE'
 false           = 'FALSE'
 not_            = 'not'
-
+pointer         = 'pointer'  # Fixme only available in C-like languages
+deref           = 'deref'
 
 # additional Proc. IR nodes
 function        = 'function'
 void            = 'void'
 stmt            = 'stmt'
-decl            = 'decl'
+call            = 'call'
+var_decl        = 'var_decl'
+var_defn        = 'var_defn'
+fn_decl         = 'fn_decl'
+fn_defn         = 'fn_defn'
 get_struct_item = 'get_struct_item'
 set_struct_item = 'set_struct_item'
 assignment      = ':='
@@ -88,6 +93,7 @@ break_          = 'break'
 #class grammar:
 #    def stmt(expr):
 #        expect(expression) ...
+
 """
 FIXME ... func(x) = (ir.function, x)
 
