@@ -38,6 +38,8 @@ CCA_DIAGNOSE_BEGIN([PYTHON])
 LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
 CCA_DIAGNOSE_END([PYTHON])
 
+AC_SUBST([SWIPL], [`which swipl`])
+
 ############################################################
 #
 # Critical Applications.
