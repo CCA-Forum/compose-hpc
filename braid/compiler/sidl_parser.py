@@ -50,7 +50,7 @@ import ply.yacc as yacc
 def trace():
     import pdb; pdb.set_trace();
 
-import ir, sidl
+import ir, sidl_oop as sidl
 from patmat import matcher, Variable, match
 
 sys.path.append('.libs')
