@@ -8,10 +8,11 @@ endif
 PYTHONPATH=$(PYTHONPATH1)
 
 # list all Python source files that also contain unit tests
-PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py ir.py braid.py parsetab.py splicer.py
+PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py ir_handwritten.py braid.py parsetab.py splicer.py
 python_PYTHON = $(PYTHON_SOURCES) sidl_parser.py
 noinst_PYTHON = sidl_token.py
-BUILT_SOURCES = parsetab.py
+BUILT_SOURCES = parsetab.py ir.py
+GRAMMARS = ir.def
 
 bin_PROGRAMS = braid
 braid_SOURCES =
@@ -61,7 +62,7 @@ SIDL_TESTS= \
 	../regression/parser/wave2d.sidl \
 	../regression/parser/wrapper.sidl
 
-EXTRA_DIST=$(SIDL_TESTS)
+EXTRA_DIST=$(SIDL_TESTS) $(GRAMMARS) gramola.pl
 
 ## SIDL_TESTS=$(patsubst %.sidl,../regression/parser/%.sidl, $(SIDL_NAMES))
 
@@ -94,5 +95,14 @@ braid: braid.py $(PYTHON_SOURCES)
 	@chmod u+x $@
 
 parsetab.py: sidl_parser.py scanner.la sidl_token.py
-	env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
-	env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
+	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
+	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
+
+ir.py: $(srcdir)/ir.def $(srcdir)/gramola.pl
+	if [ -x $(SWIPL) ]; then \
+	  grep '^%%' $< | sed 's/^%%//g' >$@; \
+	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@; \
+	else \
+	  touch $@; \
+	  echo "WARNING: $@ was NOT updated because swipl is missing"; \
+	fi
