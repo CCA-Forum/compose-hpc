@@ -5,14 +5,14 @@ else
   PYTHONPATH1=$(top_srcdir)/contrib
 endif
 
-PYTHONPATH=$(PYTHONPATH1)
+PYTHONPATH=$(builddir):$(PYTHONPATH1)
 
 # list all Python source files that also contain unit tests
-PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py ir_handwritten.py braid.py parsetab.py splicer.py
+PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py ir_handwritten.py braid.py splicer.py
 python_PYTHON = $(PYTHON_SOURCES) sidl_parser.py
 noinst_PYTHON = sidl_token.py
-BUILT_SOURCES = parsetab.py ir.py
-GRAMMARS = ir.def
+BUILT_SOURCES = parsetab.py ir.py sidl_ir.py
+GRAMMARS = ir.def sidl_or.def
 
 bin_PROGRAMS = braid
 braid_SOURCES =
@@ -39,7 +39,7 @@ SIDL_TESTS= \
 	../regression/parser/hello-client.sidl \
 	../regression/parser/hello-server.sidl \
 	../regression/parser/hello.sidl \
-	../regression/parser/Hello.sidl \
+	../regression/parser/hello2.sidl \
 	../regression/parser/hooks.sidl \
 	../regression/parser/inherit.sidl \
 	../regression/parser/knapsack.sidl \
@@ -84,25 +84,31 @@ $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 $(builddir)/%.success: $(srcdir)/%.sidl braid
 	./braid $<
 
-clean-local:
-	rm -rf scanner.c braid *.pyc *.pyo parsetab.py* lextab.py* parser.log parser.out
-	rm -rf $(SIDL_TOKENS) $(UNIT_TOKENS)
-
 # Generate the parser tables
-braid: braid.py $(PYTHON_SOURCES)
+braid: ir.py braid.py $(PYTHON_SOURCES)
 	@echo "LD_LIBRARY_PATH=$(PYTHON_SHARED_LIBRARY_DIR):LD_LIBRARY_PATH" >$@
 	@echo "env PYTHONPATH=$(PYTHONPATH) $(PYTHON) -O $< \$$*" >>$@
 	@chmod u+x $@
 
-parsetab.py: sidl_parser.py scanner.la sidl_token.py
+parsetab.py: sidl_ir.py sidl_parser.py scanner.la sidl_token.py
 	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
 	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
 
 ir.py: $(srcdir)/ir.def $(srcdir)/gramola.pl
+sidl_ir.py: $(srcdir)/sidl_ir.def $(srcdir)/gramola.pl
+
+%.py: $(srcdir)/%.def
 	if [ -x $(SWIPL) ]; then \
-	  grep '^%%' $< | sed 's/^%%//g' >$@; \
+	  egrep '^%[^%]' $< | sed 's/^%//g' >$@; \
 	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@; \
 	else \
 	  touch $@; \
 	  echo "WARNING: $@ was NOT updated because swipl is missing"; \
 	fi
+
+clean-local:
+	rm -rf scanner.c braid *.pyc *.pyo parsetab.py* lextab.py* parser.log parser.out
+	rm -rf $(SIDL_TOKENS) $(UNIT_TOKENS)
+# This can be done cleaner... Problem is, we do not want to force the
+# dependency on swipl on the users
+	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi

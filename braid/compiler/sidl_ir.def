@@ -1,0 +1,99 @@
+%% -*- prolog -*-
+%%# Pipe this into GRAMOLA
+%%# Lines starting with a single '%' will be presereved.
+%%# 
+%%# 
+%#!/usr/bin/env python
+%# -*- python -*-
+%## @package ir
+%# Grammar for the SIDL intermediate representation (IR).
+%# This is NOT a grammar for SIDL, the language.
+%#
+%# Please report bugs to <adrian@llnl.gov>.
+%#
+%# \authors <pre>
+%#
+%# Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+%# Produced at the Lawrence Livermore National Laboratory
+%# Written by Adrian Prantl <adrian@llnl.gov>.
+%#  
+%# LLNL-CODE-473891.
+%# All rights reserved.
+%#  
+%# This file is part of BRAID. For details, see 
+%# http://compose-hpc.sourceforge.net/. 
+%# Please read the COPYRIGHT file for Our Notice and
+%# for the BSD License.
+%#
+%# </pre>
+
+%# Built-in types are [str, int, float]
+[ %# Do not forget to add parentheses around ( A|B )!
+  File_ = file_([Require], [Import], [UserType]),
+  Version = version(str | float | int),
+  Require = require(ScopedID, Version),
+  Import = import(ScopedID, Version),
+  Package = package(Name, Version, [UserType]),
+  UserType = user_type([(TypeAttr|CustomAttr)], CIPSE),
+  CIPSE = ( Class
+	  | Interface
+	  | Package
+	  | Struct
+	  | Enum ),
+  TypeAttr = type_attribute(final | abstract),
+  Name = identifier(str),
+  Enum = enum(Name, [Enumerator]),
+  Enumerator = enumerator(Name, int),
+  Struct = struct(Name, [StructItem]),
+  StructItem = struct_item(Type, Name),
+  Class = class_(Name, [Extends], [Implements], [Invariant], [Method]),
+  Interface = interface(Name, [Extends], [Invariant], [Method]),
+  Implements = ( implements(ScopedID)
+	       | implements_all(ScopedID)),
+  Method = method(Type, MethodName, [MethodAttr], [Arg], [Except], [From], [Require], [Ensure]),
+  MethodName = method_name(Name, Extension),
+  Extension = str,
+  Type = ( void | Type_ ),
+  MethodAttr = ( oneway
+	       | local
+	       | static
+	       | abstract
+	       | final
+	       | nonblocking
+	       | copy ),
+  From = from_(ScopedID),
+  Invariant = invariant(Assertion),
+  Assertion = assertion(Name, AssertExpr),
+  Except = [ScopedID],
+  Ensure = [ScopedID],
+  Extends = [ScopedID],
+  Arg = ( arg([ArgAttr], Mode, Type, Name)
+        | rarg([ArgAttr], Mode, Rarray) ),
+  ArgAttr = (copy | [str]),
+  CustomAttr = ( custom_attribute(str)
+	       | custom_attribute_assoc(str, str)
+	       ),
+  Mode = (in_ | out | inout),
+  Type_ = (PrimitiveType | Array | UserType),
+  PrimitiveType = primitive_type(
+      void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaqe),	  
+  Array = array(ScalarType, Dimension, Orientation),
+  ScalarType = (PrimitiveType|ScopedID),
+  Dimension = int,
+  Orientation = (row_major|column_major),
+  Rarray = rarray(PrimitiveType, Dimension, Name, Extents),
+  Extents = SimpleIntExpression,
+  SimpleIntExpression = int, % resolved by the parser?
+  AssertExpr = ( ifx_expression(BinOp, AssertExpr, AssertExpr)
+	       | prefix_expression(UnOp, AssertExpr)
+	       | fn_eval(Name, [Arg])
+	       | Name
+	       | Literal
+	       ),
+  BinOp = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
+	  |plus|minus|times|divide|modulo|rem|pow),
+  UnOp = ( is|log_not|bit_not ),
+  ScopedID = scoped_id([Name], Extension),
+  Literal = (int | float | str | pure | result | Complex),
+  Complex = complex_(float, float)
+].

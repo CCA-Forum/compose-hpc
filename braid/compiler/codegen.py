@@ -36,7 +36,7 @@
 import ir
 from patmat import matcher, Variable, match, member
 
-def generate(language, ir_code):
+def generate(language, ir_code, debug=False):
     """
     Call the appropriate generate() function.  
 
@@ -85,7 +85,10 @@ def generate(language, ir_code):
         # Invoke the post-mortem debugger
         import pdb, sys
         print sys.exc_info()
-        pdb.post_mortem()
+        if debug:
+            pdb.post_mortem()
+        else: 
+            exit(1)
 
 
 
@@ -247,7 +250,6 @@ class GenericCodeGenerator(object):
                 return scope.new_def(gen(Expr))
 
             elif (ir.identifier, Name): return Name
-            elif (ir.value, Value):     return gen(Value)
             elif (Op, A, B): return ' '.join((gen(A), gen(Op), gen(B)))
             elif (Op, A):    return ' '.join(        (gen(Op), gen(A)))
             elif (A):        
@@ -453,7 +455,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 return 'call %s_set_%s_f(%s, %s)' % (
                     gen(self.get_type(Struct)), gen(Item), gen(Name), gen(Value))
 
-            elif (ir.function, ir.void, Name, Attrs, Args, Excepts, From, Requires, Ensures, Body):
+            elif (ir.fn_defn, ir.void, Name, Attrs, Args, Excepts, From, Requires, Ensures, Body):
                 return new_def('''
                 subroutine %s
                   %s
@@ -462,7 +464,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 ''' % (Name, gen(Args),
                        gen(FunctionScope(scope), Body), Name))
 
-            elif (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return new_def('''
                 subroutine %s
                   %s
@@ -616,7 +618,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             elif (ir.set_struct_item, _, Name, Item, Value):
                 return gen(Name)+'%'+gen(Item)+' = '+gen(Value)
 
-            elif (ir.function, ir.void, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, Body):
+            elif (ir.fn_defn, ir.void, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, Body):
                 return '''
                 subroutine %s
                   %s
@@ -624,7 +626,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
                 end subroutine %s
                 ''' % (Name, gen(Args), gen(Body), Name)
 
-            elif (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 function %s
                   %s
@@ -730,7 +732,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
                 else:
                     return 'call set_%s(%s, %s)'%(gen(Item), gen(Name), gen(Value))
 
-            elif (ir.function, ir.void, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, Body):
+            elif (ir.fn_defn, ir.void, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, Body):
                 return '''
                 subroutine %s
                   %s
@@ -738,7 +740,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
                 end subroutine %s
                 ''' % (Name, gen(Args), gen(Body), Name)
 
-            elif (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 function %s
                   %s
@@ -890,7 +892,7 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 %s %s(%s) {
                   %s
@@ -953,7 +955,7 @@ class CXXCodeGenerator(CCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 %s %s(%s) {
                   %s
@@ -1044,7 +1046,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                 return tmp
 
         with match(node):
-            if (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 %s %s(%s) {
                   %s
@@ -1118,7 +1120,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
                            suffix)
 
         with match(node):
-            if (ir.function, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 def %s(%s):
                   %s
@@ -1307,3 +1309,4 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             else:
                 raise Exception("match error")
         return ''
+
