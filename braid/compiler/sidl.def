@@ -28,11 +28,13 @@
 %# </pre>
 
 %# Built-in types are [str, int, float]
-[ %# Do not forget to add parentheses around ( A|B )!
-  File_ = file_([Require], [Import], [UserType]),
+%# Do not forget to add parentheses around ( A|B )!
+%# Prefix an underscore to suppress singleton warning.
+[  
+  _File = file([Require], [Import], [UserType]),
   Version = version(str | float | int),
   Require = require(ScopedID, Version),
-  Import = import(ScopedID, Version),
+  Import = import_(ScopedID, Version),
   Package = package(Name, Version, [UserType]),
   UserType = user_type([(TypeAttr|CustomAttr)], CIPSE),
   CIPSE = ( Class
@@ -64,9 +66,9 @@
   From = from_(ScopedID),
   Invariant = invariant(Assertion),
   Assertion = assertion(Name, AssertExpr),
-  Except = [ScopedID],
-  Ensure = [ScopedID],
-  Extends = [ScopedID],
+  Except = except_([ScopedID]),
+  Ensure = ensure([ScopedID]),
+  Extends = extends([ScopedID]),
   Arg = ( arg([ArgAttr], Mode, Type, Name)
         | rarg([ArgAttr], Mode, Rarray) ),
   ArgAttr = (copy | [str]),
@@ -76,7 +78,7 @@
   Mode = (in_ | out | inout),
   Type_ = (PrimitiveType | Array | UserType),
   PrimitiveType = primitive_type(
-      void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaqe),	  
+      void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),	  
   Array = array(ScalarType, Dimension, Orientation),
   ScalarType = (PrimitiveType|ScopedID),
   Dimension = int,
@@ -87,12 +89,13 @@
   AssertExpr = ( ifx_expression(BinOp, AssertExpr, AssertExpr)
 	       | prefix_expression(UnOp, AssertExpr)
 	       | fn_eval(Name, [Arg])
+	       | var_ref(Name)
 	       | Name
 	       | Literal
 	       ),
   BinOp = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	  |plus|minus|times|divide|modulo|rem|pow),
-  UnOp = ( is|log_not|bit_not ),
+  UnOp = ( is_|log_not|bit_not ),
   ScopedID = scoped_id([Name], Extension),
   Literal = (int | float | str | pure | result | Complex),
   Complex = complex_(float, float)

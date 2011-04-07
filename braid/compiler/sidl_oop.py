@@ -22,7 +22,7 @@
 #
 # </pre>
 #
-import ir
+import sidl
 #             import pdb; pdb.set_trace()
 
 def make_sexp(child):
@@ -132,19 +132,19 @@ class ListNode(AstNode):
 
 class File(AstNode):
     def __init__(self, *children):
-        AstNode.__init__(self, ir.file_, *children)
+        AstNode.__init__(self, sidl.file_, *children)
     def requires(self): return self.children[0]
     def imports(self):  return self.children[1]
     def packages(self): return self.children[2]
 
 class Expression(AstNode):
     def __init__(self, *children):
-        AstNode.__init__(self, ir.expr, *children)
+        AstNode.__init__(self, sidl.expr, *children)
 
 class IfxExpression(Expression):
     """Base class for infix operators"""
     def __init__(self, *children):
-        AstNode.__init__(self, ir.expr, *children)
+        AstNode.__init__(self, sidl.expr, *children)
 
     def __str__(self):
         return str(self.children[0]) + ' ' \

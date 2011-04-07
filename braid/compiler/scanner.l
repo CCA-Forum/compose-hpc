@@ -45,7 +45,8 @@ enum Token {
           t_GT, t_LE, t_LT, t_MINUS, t_NE, t_BITWISE_OR, t_PLUS, t_POWER,
           t_SLASH, t_STAR, t_TILDE, t_LSHIFT, t_RSHIFT,
 
-          t_BOOLEAN_LITERAL, t_INTEGER_LITERAL,
+          t_BOOLEAN_LITERAL, /*t_INTEGER_LITERAL,*/
+	  t_HEX_LITERAL, t_OCTAL_LITERAL, 
           t_DECIMAL_LITERAL, t_FLOATING_POINT_LITERAL,
           t_SIMPLE_FLOATING_POINT_LITERAL, t_CHARACTER_LITERAL, t_STRING_LITERAL
 };
@@ -57,7 +58,6 @@ enum Token {
 static int yypos = 0;             // Character count in file
 static const char* yytype = NULL; // The python token type
 static char* ident = NULL;        // Used by IDENTIFIER_COLON
-static char* ident_end = NULL;    // Used by IDENTIFIER_COLON
 static const char *fn;            // Input file name
 
 %}
@@ -112,6 +112,8 @@ static|then|throws|version {
 and TOKEN(LOGICAL_AND)
 or  TOKEN(LOGICAL_OR)
 xor TOKEN(LOGICAL_XOR)
+false|true ID_TOKEN
+
 
 "["[a-zA-Z0-9_]+"]"      TOKEN(EXTENSION)
 [0-9]\.[0-9]+(\.[0-9]+)+ TOKEN(VERSION_STRING)
@@ -129,11 +131,11 @@ xor TOKEN(LOGICAL_XOR)
 }
 
 <INITIAL>{
-  {IDENTIFIER}  BEGIN(MULTI2); update_yypos(); ident = yytext; ident_end = yytext+yyleng;
+  {IDENTIFIER}  BEGIN(MULTI2); update_yypos(); ident = strdup(yytext);
 }
 <MULTI2>{
-  ":"           BEGIN(INITIAL); yytext=ident; *ident_end=0; TOKEN(IDENTIFIER_COLON)
-   .            BEGIN(INITIAL); yyless(0);    yytext=ident; TOKEN(IDENTIFIER);
+  ":"           BEGIN(INITIAL);            TOKEN(IDENTIFIER_COLON)
+   .            BEGIN(INITIAL); yyless(0); TOKEN(IDENTIFIER)
 }
 
   /* separators */
@@ -165,12 +167,9 @@ xor TOKEN(LOGICAL_XOR)
 ">>>" TOKEN(RSHIFT)
 
   /* literals */
-false|true ID_TOKEN
-
-({DECIMAL_LITERAL}|{HEX_LITERAL}|{OCTAL_LITERAL})[lL]? {
-        TOKEN(INTEGER_LITERAL)
-}
-
+{DECIMAL_LITERAL}[lL]?          TOKEN(DECIMAL_LITERAL)
+{HEX_LITERAL}[lL]?              TOKEN(HEX_LITERAL)
+{OCTAL_LITERAL}[lL]?            TOKEN(OCTAL_LITERAL)
 {SIMPLE_FLOATING_POINT_LITERAL} TOKEN(SIMPLE_FLOATING_POINT_LITERAL)
 
 {SIMPLE_FLOATING_POINT_LITERAL}{EXPONENT}[fFdD]? |
@@ -203,21 +202,23 @@ static PyObject*
 scanner_input(PyObject *self, PyObject *args)
 {
   if (!PyArg_ParseTuple(args, "s", &fn))
-    return NULL;
+    return Py_None;
   yyin = fopen(fn, "r");
-  return Py_BuildValue("i", 0);
+  return Py_BuildValue("i", 1);
 }
 
 static PyObject*
 scanner_token(PyObject *self, PyObject *args)
 {
+  static PyObject* r;
   int type = yylex();
   //while (yylex()) { fprintf(stdout, "token:'%s' :: %s\n", yytext, yytype); fflush(stdout);} exit(1);
-  if (type == 0) {
+  if (type == 0 && token_init) {
     // Free references to Token
-    Py_DECREF(token_init);
-    Py_DECREF(token_dict);
     Py_DECREF(token_module);
+    Py_DECREF(token_dict); 
+    // FIXME: this triggers a segfault: Py_DECREF(token_init);
+    fclose(yyin);
     return Py_None;
   }
 
@@ -227,9 +228,14 @@ scanner_token(PyObject *self, PyObject *args)
      token_dict   = PyModule_GetDict(token_module);
      token_init   = PyDict_GetItemString(token_dict, "Token");
   }
-  //fprintf(stderr, "token:%s\n", yytext); fflush(stderr);
-  return PyObject_CallFunction(token_init, "(ssii)",
-			       yytype, yytext, yylineno, yypos);
+  //fprintf(stderr, "(%d, %d), type: %s, token: `%s'\n", yylineno, yypos, yytype, yytext); fflush(stderr);
+  
+  r = PyObject_CallFunction(token_init, "(ssii)", yytype, ident?ident:yytext, yylineno, yypos);
+  if (ident) {
+    free(ident);
+    ident = NULL;
+  }
+  return r;
 }
 
 static PyMethodDef ScannerMethods[] = {

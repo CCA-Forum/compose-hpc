@@ -3,7 +3,7 @@ SUBDIRS = compiler
 
 info_TEXINFOS = doc/braid.texi
 .PHONY: doc
-doc:
+doc: all
 	doxygen || echo "Doxygen not found; SKIPPING"
 	$(MAKE) -j1 -C doc/latex
 

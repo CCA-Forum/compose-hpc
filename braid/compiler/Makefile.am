@@ -11,7 +11,7 @@ PYTHONPATH=$(builddir):$(PYTHONPATH1)
 PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py ir_handwritten.py braid.py splicer.py
 python_PYTHON = $(PYTHON_SOURCES) sidl_parser.py
 noinst_PYTHON = sidl_token.py
-BUILT_SOURCES = parsetab.py ir.py sidl_ir.py
+BUILT_SOURCES = parsetab.py ir.py sidl.py
 GRAMMARS = ir.def sidl_or.def
 
 bin_PROGRAMS = braid
@@ -75,7 +75,7 @@ TEST_EXTENSIONS = .py .sidl
 PY_LOG_COMPILER = env PYTHONPATH=$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
 SIDL_LOG_COMPILER = ./braid
-AM_SIDL_LOG_FLAGS = --gen-sexp
+AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
 
 
 $(builddir)/%.unit: $(srcdir)/%.py scanner.la
@@ -85,7 +85,7 @@ $(builddir)/%.success: $(srcdir)/%.sidl braid
 	./braid $<
 
 # Generate the parser tables
-braid: ir.py braid.py $(PYTHON_SOURCES)
+braid: braid.py ir.py $(PYTHON_SOURCES)
 	@echo "LD_LIBRARY_PATH=$(PYTHON_SHARED_LIBRARY_DIR):LD_LIBRARY_PATH" >$@
 	@echo "env PYTHONPATH=$(PYTHONPATH) $(PYTHON) -O $< \$$*" >>$@
 	@chmod u+x $@
@@ -95,10 +95,10 @@ parsetab.py: sidl_ir.py sidl_parser.py scanner.la sidl_token.py
 	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
 
 ir.py: $(srcdir)/ir.def $(srcdir)/gramola.pl
-sidl_ir.py: $(srcdir)/sidl_ir.def $(srcdir)/gramola.pl
+sidl.py: $(srcdir)/sidl.def $(srcdir)/gramola.pl
 
 %.py: $(srcdir)/%.def
-	if [ -x $(SWIPL) ]; then \
+	@if [ -x $(SWIPL) ]; then \
 	  egrep '^%[^%]' $< | sed 's/^%//g' >$@; \
 	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@; \
 	else \

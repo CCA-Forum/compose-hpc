@@ -33,7 +33,7 @@
 #
 # </pre>
 
-import ir
+import ir, sidl
 from patmat import matcher, Variable, match, member
 
 def generate(language, ir_code, debug=False):
@@ -369,30 +369,25 @@ class F77Scope(F77File):
         return False
 
 class Fortran77CodeGenerator(GenericCodeGenerator):
-    @matcher(globals(), debug=False)
-    def get_type(self, node):
-        """\return a string with the type of the IR node \c node."""
-        with match(node):
-            if ('struct', (ir.identifier, Package), (ir.identifier, Name), _): 
-                return ("%s_%s"%(Package, Name)).lower()
-            elif ('void'):        return "void"
-            elif ('bool'):        return "logical"
-            elif ('character'):   return "character"
-            elif ('dcomplex'):    return "double complex"
-            elif ('double'):      return "double precision"
-            elif ('fcomplex'):    return "complex"
-            elif ('float'):       return "real"
-            elif ('int'):         return "integer*4"
-            elif ('long'):        return "integer*8"
-            elif ('opaque'):      return "integer*8"
-            elif ('string'):      return "character*256"
-            elif ('enum'):        return "integer*8"
-            elif ('struct'):      return "integer*8"
-            elif ('class'):       return "integer*8"
-            elif ('interface'):   return "integer*8"
-            elif ('package'):     return "void"
-            elif ('symbol'):      return "integer*8"
-            else: return super(Fortran77CodeGenerator, self).get_type(node)
+    type_map = {
+        'void':        "void",
+        'bool':        "logical",
+        'character':   "character",
+        'dcomplex':    "double complex",
+        'double':      "double precision",
+        'fcomplex':    "complex",
+        'float':       "real",
+        'int':         "integer*4",
+        'long':        "integer*8",
+        'opaque':      "integer*8",
+        'string':      "character*256",
+        'enum':        "integer*8",
+        'struct':      "integer*8",
+        'class':       "integer*8",
+        'interface':   "integer*8",
+        'package':     "void",
+        'symbol':      "integer*8"
+        }
 
     @matcher(globals(), debug=False)
     def generate(self, node, scope):
@@ -440,8 +435,12 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             return scope
 
         with match(node):
-            if ('return', Expr):
+            if (ir.return_, Expr):
                 return "retval = %s" % gen(Expr)
+
+            elif (ir.primitive_type, T): return type_map[T]
+            elif (ir.struct, (ir.identifier, Package), (ir.identifier, Name), _): 
+                return ("%s_%s"%(Package, Name)).lower()
 
             elif (ir.get_struct_item, Struct, Name, Item):
                 tmp = 'tmp_%s_%s'%(gen(Name), gen(Item))
@@ -484,7 +483,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
 
-            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, Type, Name): declare_var(Type, gen(Name))
             elif (ir.goto, Label):    return 'goto '+Label
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '.eq.'
@@ -834,7 +833,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
             elif (ir.arg, Attr, Mode, Type, Name): '%s %s'% (gen(Type), gen(Name))
-            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
             elif (ir.call, Name, Args): 
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
             elif (ir.pointer, Expr):  return '*'+gen(Expr)
@@ -853,29 +852,26 @@ class CCodeGenerator(ClikeCodeGenerator):
     """
     C code generator
     """
-    @matcher(globals(), debug=False)
-    def get_type(self, node):
-        """\return a string with the type of the IR node \c node."""
-        with match(node):
-            if ('struct', Type, _): return Type
-            elif ('void'):        return "void"
-            elif ('bool'):        return "int"
-            elif ('character'):   return "char"
-            elif ('dcomplex'):    return ""
-            elif ('double'):      return "double"
-            elif ('fcomplex'):    return ""
-            elif ('float'):       return "float"
-            elif ('int'):         return "int"
-            elif ('long'):        return "long"
-            elif ('opaque'):      return "void*"
-            elif ('string'):      return "char*"
-            elif ('enum'):        return "enum"
-            elif ('struct'):      return "struct"
-            elif ('class'):       return ""
-            elif ('interface'):   return ""
-            elif ('package'):     return ""
-            elif ('symbol'):      return ""
-            else: return super(CCodeGenerator, self).get_type(node)
+
+    type_map = {
+        'void':        "void",
+        'bool':        "int",
+        'character':   "char",
+        'dcomplex':    "",
+        'double':      "double",
+        'fcomplex':    "",
+        'float':       "float",
+        'int':         "int",
+        'long':        "long",
+        'opaque':      "void*",
+        'string':      "char*",
+        'enum':        "enum",
+        'struct':      "struct",
+        'class':       "",
+        'interface':   "",
+        'package':     "",
+        'symbol':      ""
+        }
 
     @matcher(globals(), debug=False)
     def generate(self, node, scope=CFile()):
@@ -898,6 +894,9 @@ class CCodeGenerator(ClikeCodeGenerator):
                   %s
                 }
             ''' % (Typ, Name, pretty(Args), gen(Body))
+
+            elif (ir.struct, Name, _): return Name
+            elif (ir.primitive_type, Name, _): return Name
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), Item):
                 return gen(StructName)+'->'+gen(Item)
@@ -987,30 +986,25 @@ class JavaCodeGenerator(ClikeCodeGenerator):
     """
     Java code generator
     """
-    @matcher(globals(), debug=False)
-    def get_type(self, node):
-        """\return a string with the type of the IR node \c node."""
-        with match(node):
-            if ('struct', Package, Type, _): 
-                return self.generate(Package)+'.'+self.generate(Type)
-            elif ('void'):        return "void"
-            elif ('bool'):        return "boolean"
-            elif ('character'):   return "char"
-            elif ('dcomplex'):    return ""
-            elif ('double'):      return "double"
-            elif ('fcomplex'):    return ""
-            elif ('float'):       return "float"
-            elif ('int'):         return "int"
-            elif ('long'):        return "long"
-            elif ('opaque'):      return ""
-            elif ('string'):      return "String"
-            elif ('enum'):        return "enum"
-            elif ('struct'):      return "struct"
-            elif ('class'):       return ""
-            elif ('interface'):   return ""
-            elif ('package'):     return ""
-            elif ('symbol'):      return ""
-            else: return super(JavaCodeGenerator, self).get_type(node)
+    type_map = {
+        'void':        "void",
+        'bool':        "boolean",
+        'character':   "char",
+        'dcomplex':    "",
+        'double':      "double",
+        'fcomplex':    "",
+        'float':       "float",
+        'int':         "int",
+        'long':        "long",
+        'opaque':      "",
+        'string':      "String",
+        'enum':        "enum",
+        'struct':      "struct",
+        'class':       "",
+        'interface':   "",
+        'package':     "",
+        'symbol':      ""
+        }
 
     @matcher(globals(), debug=False)
     def generate(self, node, scope=JavaFile()):
@@ -1052,7 +1046,8 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                   %s
                 }
             ''' % (Typ, Name, pretty(Args), gen(Body))
-
+            elif (ir.primitive_type, Type): return type_map[Type]
+            elif (ir.struct, Package, Type, _): return gen(Package)+'.'+gen(Type)
             elif (ir.get_struct_item, Type, StructName, Item):
                 return deref(Type, StructName)+'.'+gen(Item)
 
@@ -1208,14 +1203,15 @@ class SIDLCodeGenerator(GenericCodeGenerator):
         def gen_in_scope(defs, child_scope):
             r = self.generate(defs, child_scope)
             if (r <> ''):
-                raise Exception("unexpected retval")
+                child_scope.new_def(r)
+                #raise Exception("unexpected retval")
             return str(child_scope)
 
         def gen_scope(pre, defs, post):
             sep = '\n'+' '*scope.indent_level
             new_def(pre+sep+
                     gen_in_scope(defs, 
-                                 Scope(4, 4, 
+                                 Scope(scope, 4, 
                                        separator=';\n'))+';'+
                     sep+post)
 
@@ -1234,34 +1230,34 @@ class SIDLCodeGenerator(GenericCodeGenerator):
         #import pdb; pdb.set_trace()
 
         with match(node):
-            if (ir.file_, Requires, Imports, Packages):
+            if (sidl.file, Requires, Imports, Packages):
                 new_def(gen(Requires))
                 new_def(gen(Imports))
                 new_def(gen(Packages))
                 return str(scope)
 
-            elif (ir.package, (ir.identifier, Name), Version, Usertypes):
+            elif (sidl.package, (sidl.identifier, Name), Version, Usertypes):
                 gen_scope('package %s %s {' % (Name, gen(Version)),
                           Usertypes,
                           '}')
 
-            elif (ir.user_type, Attrs, Defn): 
+            elif (sidl.user_type, Attrs, Defn): 
                 return gen_(Attrs)+gen(Defn)
 
-            elif (ir.class_, Name, Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods):
                 head = 'class '+gen(Name)
-                if (Extends)    <> []: head.append('extends '+gen_ws_sep(Extends))
-                if (Implements) <> []: head.append('implements '+gen_ws_sep(Implements))
-                if (Invariants) <> []: head.append('invariants '+gen_ws_sep(Invariants))
+                if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
+                if (Implements) <> []: head += ' implements '+gen_ws_sep(Implements)
+                if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
-            elif (ir.interface, Name, Extends, Invariants, Methods):
+            elif (sidl.interface, Name, Extends, Invariants, Methods):
                 head = 'interface '+gen(Name)
-                if (Extends)    <> []: head.append('extends '+gen_ws_sep(Extends))
-                if (Invariants) <> []: head.append('invariants '+gen_ws_sep(Invariants))
+                if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
+                if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
-            elif (ir.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (sidl.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return (gen_ws_sep(Attrs)+
                         gen(Typ)+' '+gen(Name)+'('+gen_comma_sep(Args)+')'+
                         _gen(Excepts)+
@@ -1269,34 +1265,34 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                         _gen(Requires)+
                         _gen(Ensures))
 
-            elif (ir.arg, Attrs, Mode, Typ, Name):
+            elif (sidl.arg, Attrs, Mode, Typ, Name):
+                return (sidl.arg, Attrs, Mode, Typ, Name)
                 return gen_(Attrs) + '%s %s %s' % tmap(gen, (Mode, Typ, Name))
 
-            elif (ir.array, Typ, Dimension, Orientation):
+            elif (sidl.array, Typ, Dimension, Orientation):
                 return ('array<%s%s%s>' % 
                         (gen(Typ), _comma_gen(Dimension), _comma_gen(Orientation)))
 
-            elif (ir.rarray, Typ, Dimension, Name, Extents):
+            elif (sidl.rarray, Typ, Dimension, Name, Extents):
                 return ('rarray<%s%s> %s(%s)' %
                         (gen(Typ), _comma_gen(Dimension), gen(Name), gen_comma_sep(Extents)))
 
-            elif (ir.enum, (ir.identifier, Name), Enumerators):
+            elif (sidl.enum, (sidl.identifier, Name), Enumerators):
                 gen_scope('enum %s {' % gen(Name), Enumerators, '}')
 
-            elif (ir.struct, (ir.identifier, Name), Items):
+            elif (sidl.struct, (sidl.identifier, Name), Items):
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
-            elif (ir.scoped_id, A, B):
+            elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 
-            elif (ir.attribute,   Name):    return Name
-            elif (ir.identifier,  Name):    return Name
-            elif (ir.version,     Version): return 'version %2.1f'%Version
-            elif (ir.mode,        Name):    return Name
-            elif (ir.method_name, Name, ''):return Name
-            elif (ir.method_name, Name, Extension): return Name+' '+Extension
-            elif (ir.primitive_type, Name): return Name
-            elif (ir.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
+            elif (sidl.type_attribute, Name): return Name
+            elif (sidl.identifier,  Name):    return Name
+            elif (sidl.version,     Version): return 'version %s'%str(Version)
+            elif (sidl.method_name, Name, []): return Name
+            elif (sidl.method_name, Name, Extension): return Name+' '+Extension
+            elif (sidl.primitive_type, Name): return Name
+            elif (sidl.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
             elif (Op, A, B):                return ' '.join((gen(A), Op, gen(B)))
             elif (Op, A):                   return ' '.join((Op, gen(A)))
             elif []: return ''
@@ -1309,4 +1305,3 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             else:
                 raise Exception("match error")
         return ''
-
