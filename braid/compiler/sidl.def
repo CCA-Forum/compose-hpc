@@ -1,11 +1,12 @@
 %% -*- prolog -*-
 %%# Pipe this into GRAMOLA
 %%# Lines starting with a single '%' will be presereved.
-%%# 
-%%# 
+%%# To avoid duplicate doxygen comments, '%%%' will be replaced by '##'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %#!/usr/bin/env python
 %# -*- python -*-
-%## @package sidl
+%%%# @package sidl
 %# Grammar for the SIDL intermediate representation (IR).
 %# This is NOT a grammar for SIDL, the language.
 %#
@@ -34,7 +35,7 @@
   _File = file([Require], [Import], [UserType]),
   Version = version(str | float | int),
   Require = require(ScopedID, Version),
-  Import = import_(ScopedID, Version),
+  Import = import(ScopedID, Version),
   Package = package(Name, Version, [UserType]),
   UserType = user_type([(TypeAttr|CustomAttr)], CIPSE),
   CIPSE = ( Class
@@ -47,15 +48,15 @@
   Enum = enum(Name, [Enumerator]),
   Enumerator = enumerator(Name, int),
   Struct = struct(Name, [StructItem]),
-  StructItem = struct_item(Type, Name),
-  Class = class_(Name, [Extends], [Implements], [Invariant], [Method]),
+  StructItem = struct_item(TypeVoid, Name),
+  Class = class(Name, [Extends], [Implements], [Invariant], [Method]),
   Interface = interface(Name, [Extends], [Invariant], [Method]),
   Implements = ( implements(ScopedID)
 	       | implements_all(ScopedID)),
-  Method = method(Type, MethodName, [MethodAttr], [Arg], [Except], [From], [Require], [Ensure]),
+  Method = method(TypeVoid, MethodName, [MethodAttr], [Arg], [Except], [From], [Require], [Ensure]),
   MethodName = method_name(Name, Extension),
   Extension = str,
-  Type = ( void | Type_ ),
+  TypeVoid = ( void | Type ),
   MethodAttr = ( oneway
 	       | local
 	       | static
@@ -63,20 +64,20 @@
 	       | final
 	       | nonblocking
 	       | copy ),
-  From = from_(ScopedID),
+  From = from(ScopedID),
   Invariant = invariant(Assertion),
   Assertion = assertion(Name, AssertExpr),
-  Except = except_([ScopedID]),
+  Except = except([ScopedID]),
   Ensure = ensure([ScopedID]),
   Extends = extends([ScopedID]),
-  Arg = ( arg([ArgAttr], Mode, Type, Name)
+  Arg = ( arg([ArgAttr], Mode, TypeVoid, Name)
         | rarg([ArgAttr], Mode, Rarray) ),
   ArgAttr = (copy | [str]),
   CustomAttr = ( custom_attribute(str)
 	       | custom_attribute_assoc(str, str)
 	       ),
-  Mode = (in_ | out | inout),
-  Type_ = (PrimitiveType | Array | UserType),
+  Mode = (in | out | inout),
+  Type = (PrimitiveType | Array | UserType),
   PrimitiveType = primitive_type(
       void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),	  
   Array = array(ScalarType, Dimension, Orientation),
@@ -95,8 +96,8 @@
 	       ),
   BinOp = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	  |plus|minus|times|divide|modulo|rem|pow),
-  UnOp = ( is_|log_not|bit_not ),
+  UnOp = ( is|log_not|bit_not ),
   ScopedID = scoped_id([Name], Extension),
   Literal = (int | float | str | pure | result | Complex),
-  Complex = complex_(float, float)
+  Complex = complex(float, float)
 ].

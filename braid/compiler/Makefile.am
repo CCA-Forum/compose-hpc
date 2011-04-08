@@ -99,7 +99,7 @@ sidl.py: $(srcdir)/sidl.def $(srcdir)/gramola.pl
 
 %.py: $(srcdir)/%.def
 	@if [ -x $(SWIPL) ]; then \
-	  egrep '^%[^%]' $< | sed 's/^%//g' >$@; \
+	  egrep '^%[^%]' $< | sed -e 's/^%//g' -e 's/^%%%/##/g' >$@; \
 	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@; \
 	else \
 	  touch $@; \

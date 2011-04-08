@@ -11,7 +11,7 @@
  * Output: Python code to create and typecheck expressions of that grammar
  *
  * Usage:
- *   egrep '^%[^%]' grammar_def.pl | sed 's/^%//g' >ir_def.py
+ *   egrep '^%[^%]' $< | sed -e 's/^%//g' -e 's/^%%%/##/g' >$@; \
  *   swipl -f gramola.pl -t main -q <grammar_def.pl >>ir_def.py
  */
 
@@ -37,16 +37,29 @@ main(_) :-
     maplist(docref, Varnames), !,
     % fixme use try catch instead
     (	maplist(unify, Grammar)
-    ;	format(user_error, '**ERROR: did you use the same symbol twice on the LHS?~n'),
+    ;	format(user_error, '**ERROR: did you use the same symbol twice on the LHS?~n', []),
 	fail), !,
     maplist(rhs_of, Grammar, GrammarRHS), !,
     maplist(constructor, GrammarRHS, Docstrings).
 
 main(_) :-
-    format(user_error, 'Internal error. Please complain to <adrian@llnl.gov>.~n').
+    format(user_error, 'Internal error. Please complain to <adrian@llnl.gov>.~n', []).
+
+python_reserved_word(A) :-
+    memberchk(A, ['False','True','None','NotImplemented','Ellipsis',
+		   and,as,assert,break,class,continue,def,del,elif,
+		   else,except,exec,finally,for,from,global,if,import,
+		   in,is,lambda,not,or,pass,print,raise,return,try,
+		   while,with,yield]).
+
+safe_atom(Atom, Safe) :-
+    (	python_reserved_word(Atom)
+    ->	atom_concat(Atom, '_', Safe)
+    ;	Atom = Safe).
 
 rhs_of(_=B, B).
-unify(A=B) :- A = B.
+unify(A=B) :- A = B, !.
+unify(Fail) :- format(user_error, '**Failed in rule `~w\'~n', [Fail]), fail.
 docref(Name=Var) :-
     atom_concat('\\c ', Name, Ref),
     downcase_atom(Ref, Var).
@@ -56,9 +69,8 @@ tokendef(str).
 tokendef(float).
 tokendef(int).
 tokendef(Token) :-
-    (	atom_concat(Token1, '_', Token) % remove trailing underscore from rhs
-    ;	Token1 = Token ),
-    format('~a = \'~a\'~n', [Token, Token1]).
+    safe_atom(Token, TokenS),
+    format('~a = \'~a\'~n', [TokenS, Token]).
 
 % recursively collect all functors from the grammar
 gather_tokens([], []).
@@ -155,14 +167,16 @@ constructor([_|_], Doc) :- format('# skipping ~w~n', [Doc]).
 constructor(Atom, _) :-
     atom(Atom),
     upcase_atom(Atom, Def),
-    format('def ~a():~n    return ~a~n', [Def, Atom]).
+    safe_atom(Def, Def1),
+    format('def ~a():~n    return ~a~n', [Def1, Atom]).
 
 constructor(Term, Docstring) :-
     ground(Term),		% sanity check
     Term =.. [Type|[Arg|Args]],
     pretty(Docstring, Doc),
     upcase_atom(Type, Def),
-    format('def ~a(*args):~n', [Def]),
+    safe_atom(Def, Def1),
+    format('def ~a(*args):~n', [Def1]),
     format('    """~n'),
     format('    Construct a "~a" node. Valid arguments are ~n    ~w~n', [Type, Doc]),
     format('    """~n'),
@@ -172,10 +186,10 @@ constructor(Term, Docstring) :-
 constructor(Error, _) :-
     format(user_error, '**ERROR: In ~w~n', [Error]),
     (	ground(Error),
-	format(user_error, 'Internal error, spawning debugger.~n'),
+	format(user_error, 'Internal error, spawning debugger.~n', []),
 	gtrace
-    ;	format(user_error, 'Most probably missing a definition in above term.~n'),
-	format(user_error, 'Look for symbols like `_G123\'.~n')
+    ;	format(user_error, 'Most probably missing a definition in above term.~n', []),
+	format(user_error, 'Look for symbols like `_G123\'.~n', [])
     ),
     halt(1).
 

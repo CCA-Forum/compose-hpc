@@ -1,8 +1,9 @@
-%%# -*- prolog -*-
+%% -*- prolog -*-
 %%# Pipe this into GRAMOLA
 %%# Lines starting with a single '%' will be presereved.
-%%# 
-%%# 
+%%# To avoid duplicate doxygen comments, '%%%' will be replaced by '##'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %#!/usr/bin/env python
 %# -*- python -*-
 %## @package ir
@@ -29,10 +30,10 @@
 %# Procedural IR Grammar definition
 %# Built-in types are [str, int, float]
 [ %# Do not forget to add parentheses around ( A|B )!
-  Stmt = stmt(Do_while | While_ | break_ | return_(Expr) | If_ | goto(Expr) | Expr),
+  Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
   Do_while = do_while(Body, BoolExpr),
-  While_ = while_(BoolExpr, Body),
-  If_ = if_(BoolExpr, Body),
+  While = while(BoolExpr, Body),
+  If = if(BoolExpr, Body),
   Body = [Stmt],
   Expr = ( plus(Expr, Expr) 
          | call(Expr, [Expr])
@@ -51,21 +52,21 @@
 	 | float
 	 ),
   Struct = struct(Name, [Struct_item]),
-  Struct_item = struct_item(Type_, Name),
+  Struct_item = struct_item(Type, Name),
   Enum = struct(Name, [Enum_item]),
   Enum_item = enum_item(Name),
 			    
   BoolExpr = (true | false
 	     | eq(Expr, Expr) | neq(Expr, Expr)
-	     | not_(Expr)
+	     | not(Expr)
              ),
   VarRefExpr = (Name | pointer(VarRefExpr) | deref(VarRefExpr)),
-  Fn_decl = fn_decl(Type_, Method_name, [Arg]),
-  Fn_defn = fn_defn(Type_, Method_name, [Arg], [Stmt]),
-  Arg = arg([Attr], Mode, Type_, Name),
+  Fn_decl = fn_decl(Type, Method_name, [Arg]),
+  Fn_defn = fn_defn(Type, Method_name, [Arg], [Stmt]),
+  Arg = arg([Attr], Mode, Type, Name),
   Attr = [],
-  Mode = (in_ | out | inout),
-  Type_ = (primitive_type(void | int) | User_type),
+  Mode = (in | out | inout),
+  Type = (primitive_type(void | int) | User_type),
   User_type = [],
   Method_name = method_name(string, string),
   Name = identifier(string)
