@@ -11,7 +11,7 @@
  * Output: Python code to create and typecheck expressions of that grammar
  *
  * Usage:
- *   egrep '^%[^%]' $< | sed -e 's/^%//g' -e 's/^%%%/##/g' >$@; \
+ *   egrep '^%[^%]' $< | sed -e 's/^% %%/##/g' -e 's/^%//g' >$@; \
  *   swipl -f gramola.pl -t main -q <grammar_def.pl >>ir_def.py
  */
 
@@ -121,7 +121,8 @@ type_check(A, Var, Indent) :-
 % atom
 type_check(A, Var, Indent) :-
     atom(A),
-    format('if (~a == ~a):~n', [Var, A]),
+    safe_atom(A, AS),
+    format('if (~a == ~a):~n', [Var, AS]),
     format('~a    pass~n', [Indent]).
 
 % list
@@ -139,7 +140,8 @@ type_check(A|B, Var, Indent) :-
 % tuple
 type_check(A, Var, Indent) :-
     A =.. [Type|_],
-    format('if (~a[0] == ~a):~n', [Var, Type]),
+    safe_atom(Type, TypeS),
+    format('if (~a[0] == ~a):~n', [Var, TypeS]),
     format('~a    is_~a(~a)~n', [Indent, Type, Var]).
 
 %% validations/2

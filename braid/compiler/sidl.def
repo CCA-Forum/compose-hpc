@@ -1,12 +1,12 @@
 %% -*- prolog -*-
 %%# Pipe this into GRAMOLA
 %%# Lines starting with a single '%' will be presereved.
-%%# To avoid duplicate doxygen comments, '%%%' will be replaced by '##'
+%%# To avoid duplicate doxygen comments, '% %%' will be replaced by '##'
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %#!/usr/bin/env python
 %# -*- python -*-
-%%%# @package sidl
+% %% @package sidl
 %# Grammar for the SIDL intermediate representation (IR).
 %# This is NOT a grammar for SIDL, the language.
 %#

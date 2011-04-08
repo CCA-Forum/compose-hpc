@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package parser
+## @package sidl_parser
 #
 # A parser for SIDL files.
 #
@@ -1163,11 +1163,3 @@ if __name__ == '__main__':
     _debug=0
     yacc.yacc(debug=_debug, optimize=1-_debug)
 
-    # # Profiling
-    # import hotshot, hotshot.stats
-    # prof = hotshot.Profile('parser.prof')
-    # prof.runcall(sidlParse, sys.argv[1])
-    # stats = hotshot.stats.load("parser.prof")
-    # stats.strip_dirs()
-    # stats.sort_stats('time', 'calls')
-    # stats.print_stats(20)
