@@ -1,0 +1,6 @@
+*.o
+*.out
+Grammar.c
+Grammar.h
+lemon
+calc
