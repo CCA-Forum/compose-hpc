@@ -30,9 +30,7 @@ main(_) :-
     format('~n~n## Token definitions~n~n'),
     copy_term(Docstrings, G),
     gather_tokens(G, T1),
-    maplist(downcase_lhs_of, Varnames, T2), !,
-    list_to_ord_set(T2, T3),
-    ord_union(T1, T3, Tokens),
+    ord_union(T1, [], Tokens),
     maplist(tokendef, Tokens), !,
 
     format('~n~n## Constructor definitions~n~n'),
@@ -47,7 +45,6 @@ main(_) :-
 main(_) :-
     format(user_error, 'Internal error. Please complain to <adrian@llnl.gov>.~n').
 
-downcase_lhs_of(A=_, A1) :- downcase_atom(A, A1).
 rhs_of(_=B, B).
 unify(A=B) :- A = B.
 docref(Name=Var) :-
@@ -117,12 +114,10 @@ type_check(A, Var, Indent) :-
 
 % list
 type_check([A], Var, Indent) :-
-    A =.. [Type|_],
     format('if instanceof(~a, list):~n', [Var]),
     format('~a    for arg in ~a:~n', [Indent, Var]),
     atom_concat(Indent, '        ', Indent1),
-    validation('arg', Type, Indent1).
-    %format('            is_~a(~a)~n', [Type, Type]).
+    validation(A, 'arg', Indent1).
 
 % alternatives
 type_check(A|B, Var, Indent) :-
@@ -147,7 +142,11 @@ validations([Arg|Args], Var, I) :-
     I1 is I+1,
     validations(Args, Var, I1).
 
-
+%% upcase_atom/2 convert 'abc' to 'Abc'
+upcase_atom(A, A1) :-
+    atom_chars(A, [C|Cs]),
+    char_type(C1, to_upper(C)),
+    atom_chars(A1, [C1|Cs]).
 
 %% constructor/2: output a constructor for a given grammar node
 constructor([], _).
@@ -155,13 +154,15 @@ constructor(_A|_B, Doc)    :- format('# skipping ~w~n', [Doc]).
 constructor([_|_], Doc) :- format('# skipping ~w~n', [Doc]).
 constructor(Atom, _) :-
     atom(Atom),
-    format('def ~a():~n    return ~a~n', [Atom, Atom]).
+    upcase_atom(Atom, Def),
+    format('def ~a():~n    return ~a~n', [Def, Atom]).
 
 constructor(Term, Docstring) :-
     ground(Term),		% sanity check
     Term =.. [Type|[Arg|Args]],
     pretty(Docstring, Doc),
-    format('def ~a(*args):~n', [Type]),
+    upcase_atom(Type, Def),
+    format('def ~a(*args):~n', [Def]),
     format('    """~n'),
     format('    Construct a "~a" node. Valid arguments are ~n    ~w~n', [Type, Doc]),
     format('    """~n'),
