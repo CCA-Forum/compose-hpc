@@ -1266,7 +1266,6 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                         _gen(Ensures))
 
             elif (sidl.arg, Attrs, Mode, Typ, Name):
-                return (sidl.arg, Attrs, Mode, Typ, Name)
                 return gen_(Attrs) + '%s %s %s' % tmap(gen, (Mode, Typ, Name))
 
             elif (sidl.array, Typ, Dimension, Orientation):

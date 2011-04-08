@@ -8,11 +8,11 @@ endif
 PYTHONPATH=$(builddir):$(PYTHONPATH1)
 
 # list all Python source files that also contain unit tests
-PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py ir_handwritten.py braid.py splicer.py
+PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py braid.py splicer.py
 python_PYTHON = $(PYTHON_SOURCES) sidl_parser.py
 noinst_PYTHON = sidl_token.py
 BUILT_SOURCES = parsetab.py ir.py sidl.py
-GRAMMARS = ir.def sidl_or.def
+GRAMMARS = ir.def sidl.def
 
 bin_PROGRAMS = braid
 braid_SOURCES =
@@ -84,13 +84,14 @@ $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 $(builddir)/%.success: $(srcdir)/%.sidl braid
 	./braid $<
 
-# Generate the parser tables
+# FIXME: this should be the .pyo file instead of .py
 braid: braid.py ir.py $(PYTHON_SOURCES)
 	@echo "LD_LIBRARY_PATH=$(PYTHON_SHARED_LIBRARY_DIR):LD_LIBRARY_PATH" >$@
 	@echo "env PYTHONPATH=$(PYTHONPATH) $(PYTHON) -O $< \$$*" >>$@
 	@chmod u+x $@
 
-parsetab.py: sidl_ir.py sidl_parser.py scanner.la sidl_token.py
+# Generate the parser tables
+parsetab.py: sidl.py sidl_parser.py scanner.la sidl_token.py
 	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
 	@env PYTHONPATH=$(PYTHONPATH) $(PYTHON) $< --compile
 
@@ -99,7 +100,7 @@ sidl.py: $(srcdir)/sidl.def $(srcdir)/gramola.pl
 
 %.py: $(srcdir)/%.def
 	@if [ -x $(SWIPL) ]; then \
-	  egrep '^%[^%]' $< | sed 's/^%//g' >$@; \
+	  egrep '^%[^%]' $< | sed -e 's/^% %%/##/g' -e 's/^%//g' >$@; \
 	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@; \
 	else \
 	  touch $@; \

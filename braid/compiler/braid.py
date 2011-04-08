@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package parser
+## @package braid
 #
 # Command line handling for the BRAID tool
 #
@@ -30,28 +30,7 @@ import sidl_parser
 import codegen
 import chapel
 
-if __name__ == '__main__':
-
-    cmdline = argparse.ArgumentParser(description='''
-Do magically wonderful things with SIDL (scientific interface
-definition language) files.
-''')
-    cmdline.add_argument('sidl_files', metavar='<file.sidl>', nargs='+',#type=file
-			 help='SIDL files to use as input')
-
-    cmdline.add_argument('--gen-sexp', action='store_true', dest='gen_sexp',
-			 help='generate an s-expression')
-
-    cmdline.add_argument('--gen-sidl', action='store_true', dest='gen_sidl',
-			 help='generate SIDL output again')
-
-    cmdline.add_argument('--client', metavar='<language>',
-                         help='generate client code in the specified language'+
-                         ' (Chapel)')
-
-    cmdline.add_argument('--debug', action='store_true', help='enable debugging features')
-
-    args = cmdline.parse_args()
+def braid(args):
     for sidl_file in args.sidl_files:
 	sidl_ast = sidl_parser.parse(sidl_file)
 
@@ -76,4 +55,41 @@ definition language) files.
         else:
             print "*ERROR: Unknown language `%s'." % args.client
             exit(1)
+
+if __name__ == '__main__':
+
+    cmdline = argparse.ArgumentParser(description='''
+Do magically wonderful things with SIDL (scientific interface
+definition language) files.
+''')
+    cmdline.add_argument('sidl_files', metavar='<file.sidl>', nargs='+',#type=file
+			 help='SIDL files to use as input')
+
+    cmdline.add_argument('--gen-sexp', action='store_true', dest='gen_sexp',
+			 help='generate an s-expression')
+
+    cmdline.add_argument('--gen-sidl', action='store_true', dest='gen_sidl',
+			 help='generate SIDL output again')
+
+    cmdline.add_argument('--client', metavar='<language>',
+                         help='generate client code in the specified language'+
+                         ' (Chapel)')
+
+    cmdline.add_argument('--debug', action='store_true', help='enable debugging features')
+    cmdline.add_argument('--profile', action='store_true', help='enable profiling')
+
+    args = cmdline.parse_args()
+
+    if args.profile:
+        # Profiling
+        import hotshot, hotshot.stats
+        prof = hotshot.Profile('braid.prof')
+        prof.runcall(braid, args)
+        stats = hotshot.stats.load('braid.prof')
+        stats.strip_dirs()
+        stats.sort_stats('time', 'calls')
+        stats.print_stats(20)
+    else:
+        braid(args)
+
     exit(0)

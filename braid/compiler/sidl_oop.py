@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package sidl
+## @package sidl_oop
 #
 # A SIDL class hierarchy (soon to be deprecated)
 #

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package parser
+## @package chapel
 #
 # Babel functionality for the Chapel PGAS language
 # http://chapel.cray.com/
@@ -24,7 +24,7 @@
 # </pre>
 #
 
-import ir
+import ir, sidl
 from patmat import matcher, match, expect, Variable
 from codegen import ClikeCodeGenerator, CCodeGenerator, SourceFile, CFile, Scope
 
@@ -33,7 +33,7 @@ def babel_object_type(name):
     return the IR node for the type of a Babel object 'name'
     \param name    the name of the object
     """
-    return (ir.pointer, (ir.struct, (ir.identifier, 's_%s__object'%name), []))
+    return ir.Pointer(ir.Struct(ir.Identifier('s_%s__object'%name), []))
 
 def babel_exception_type():
     """
@@ -72,13 +72,13 @@ class Chapel:
         def gen1(node, data1): return self.generate_client1(node, data1)
 
         with match(node):
-            if (ir.file_, Requires, Imports, UserTypes):
+            if (sidl.file_, Requires, Imports, UserTypes):
                 gen(UserTypes)
-            elif (ir.user_type, Attrs, Cipse):
+            elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
-            elif (ir.package, (ir.identifier, Name), Version, UserTypes):
+            elif (sidl.package, (sidl.identifier, Name), Version, UserTypes):
                 gen(UserTypes)
-            elif (ir.class_, (ir.identifier, Name), Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, (sidl.identifier, Name), Extends, Implements, Invariants, Methods):
                 expect(data, None)
                 impl = ChapelFile()
                 ci = self.ClassInfo(ChapelScope(impl), CFile(), EPV(Name))
@@ -91,11 +91,11 @@ class Chapel:
                 print Name+'.chpl:'
                 print str(ci.impl)
 
-                ci.stub.new_def((ir.var_decl, ci.epv.get_sexpr()))
+                ci.stub.new_def((sidl.var_decl, ci.epv.get_sexpr()))
                 print Name+'.c:'
                 print str(ci.stub)
 
-            elif (ir.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
+            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
                 self.generate_client_method(node, data)               
             elif A:
                 if (isinstance(A, list)):
@@ -108,11 +108,11 @@ class Chapel:
         return data
 
     def gen_default_methods(self, name, data):
-        data.epv.add_method((ir.method, ir.void, (ir.method_name, "_cast", []), [],
+        data.epv.add_method(ir.Fn_decl(ir.void, ir.Method_name, "_cast", []), [],
                              [(ir.arg, [], ir.in_, babel_object_type(name), 'self'), 
                               (ir.arg, [], ir.in_, 'const char*', 'name'), 
                               (ir.arg, [], ir.in_, babel_exception_type(), 'ex')], 
-                             None, None, None, None))
+                             None, None, None, None)
 
     @matcher(globals(), debug=False)
     def generate_client_method(self, method, data):
@@ -224,20 +224,20 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             return tuple(map(f, l))
 
         with match(node):
-            if (ir.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures):
+            if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures):
                 new_def('def %s(%s)'%(gen(Name), gen_comma_sep(Args)))
-            elif (ir.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
+            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
                 new_def('def %s(%s): %s'%(gen(Name), gen_comma_sep(Args), gen(Type)))
-            elif (ir.arg, Attrs, Mode, Type, Name):
+            elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s: %s'%(gen(Name), gen(Type))
-            elif (ir.primitive_type, Type):
+            elif (sidl.primitive_type, Type):
                 return self.type_map[Type]
-            elif (ir.attribute,   Name):    return Name
-            elif (ir.identifier,  Name):    return Name
-            elif (ir.method_name, Name, []): return Name
-            elif (ir.method_name, Name, Extension): return Name+' '+Extension
-            elif (ir.primitive_type, Name): return self.type_map[Name]
-            elif (ir.scoped_id, A, B):
+            elif (sidl.attribute,   Name):    return Name
+            elif (sidl.identifier,  Name):    return Name
+            elif (sidl.method_name, Name, []): return Name
+            elif (sidl.method_name, Name, Extension): return Name+' '+Extension
+            elif (sidl.primitive_type, Name): return self.type_map[Name]
+            elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
             elif (Expr):
                 return super(ChapelCodeGenerator, self).generate(Expr, scope)
