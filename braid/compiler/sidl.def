@@ -27,77 +27,80 @@
 %# for the BSD License.
 %#
 %# </pre>
-
-%# Built-in types are [str, int, float]
-%# Do not forget to add parentheses around ( A|B )!
-%# Prefix an underscore to suppress singleton warning.
+%#
+%#
+%# <h2>Grammar definition</h2>
+%#
+%%# Built-in types are [str, int, float]
+%%# Do not forget to add parentheses around ( A|B )!
+%%# Prefix an underscore to suppress singleton warnings.
 [  
-  _File = file([Require], [Import], [UserType]),
+  _File = file([Require], [Import], [User_type]),
   Version = version(str | float | int),
-  Require = require(ScopedID, Version),
-  Import = import(ScopedID, Version),
-  Package = package(Name, Version, [UserType]),
-  UserType = user_type([(TypeAttr|CustomAttr)], CIPSE),
-  CIPSE = ( Class
-	  | Interface
-	  | Package
-	  | Struct
-	  | Enum ),
-  TypeAttr = type_attribute(final | abstract),
-  Name = identifier(str),
-  Enum = enum(Name, [Enumerator]),
-  Enumerator = enumerator(Name, int),
-  Struct = struct(Name, [StructItem]),
-  StructItem = struct_item(TypeVoid, Name),
-  Class = class(Name, [Extends], [Implements], [Invariant], [Method]),
-  Interface = interface(Name, [Extends], [Invariant], [Method]),
-  Implements = ( implements(ScopedID)
-	       | implements_all(ScopedID)),
-  Method = method(TypeVoid, MethodName, [MethodAttr], [Arg], [Except], [From], [Require], [Ensure]),
-  MethodName = method_name(Name, Extension),
+  Require = require(Scoped_id, Version),
+  Import = import(Scoped_id, Version),
+  Package = package(Identifier, Version, [User_type]),
+  User_type = user_type([(Type_attr|Custom_attr)], Cipse),
+  Cipse = ( Class
+          | Interface
+          | Package
+          | Struct
+          | Enum ),
+  Type_attr = type_attribute(final | abstract),
+  Identifier = identifier(str),
+  Enum = enum(Identifier, [Enumerator]),
+  Enumerator = enumerator(Identifier, int),
+  Struct = struct(Identifier, [Struct_item]),
+  Struct_item = struct_item(Type_void, Identifier),
+  Class = class(Identifier, [Extends], [Implements], [Invariant], [Method]),
+  Interface = interface(Identifier, [Extends], [Invariant], [Method]),
+  Implements = ( implements(Scoped_id)
+               | implements_all(Scoped_id)),
+  Method = method(Type_void, Method_name, [Method_attr], [Arg], [Except], [From], [Require], [Ensure]),
+  Method_name = method_name(Identifier, Extension),
   Extension = str,
-  TypeVoid = ( void | Type ),
-  MethodAttr = ( oneway
-	       | local
-	       | static
-	       | abstract
-	       | final
-	       | nonblocking
-	       | copy ),
-  From = from(ScopedID),
+  Type_void = ( void | Type ),
+  Method_attr = ( oneway
+                | local
+                | static
+                | abstract
+                | final
+                | nonblocking
+                | copy ),
+  From = from(Scoped_id),
   Invariant = invariant(Assertion),
-  Assertion = assertion(Name, AssertExpr),
-  Except = except([ScopedID]),
-  Ensure = ensure([ScopedID]),
-  Extends = extends([ScopedID]),
-  Arg = ( arg([ArgAttr], Mode, TypeVoid, Name)
-        | rarg([ArgAttr], Mode, Rarray) ),
-  ArgAttr = (copy | [str]),
-  CustomAttr = ( custom_attribute(str)
-	       | custom_attribute_assoc(str, str)
-	       ),
+  Assertion = assertion(Identifier, AssertExpr),
+  Except = except([Scoped_id]),
+  Ensure = ensure([Scoped_id]),
+  Extends = extends([Scoped_id]),
+  Arg = ( arg([Arg_attr], Mode, Type_void, Identifier)
+        | rarg([Arg_attr], Mode, Rarray) ),
+  Arg_attr = (copy | [str]),
+  Custom_attr = ( custom_attribute(str)
+                | custom_attribute_assoc(str, str)
+                ),
   Mode = (in | out | inout),
-  Type = (PrimitiveType | Array | UserType),
-  PrimitiveType = primitive_type(
-      void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),	  
-  Array = array(ScalarType, Dimension, Orientation),
-  ScalarType = (PrimitiveType|ScopedID),
+  Type = (Primitive_type | Array | User_type),
+  Primitive_type = primitive_type(
+      void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),      
+  Array = array(Scalar_type, Dimension, Orientation),
+  Scalar_type = (Primitive_type|Scoped_id),
   Dimension = int,
   Orientation = (row_major|column_major),
-  Rarray = rarray(PrimitiveType, Dimension, Name, Extents),
+  Rarray = rarray(Primitive_type, Dimension, Identifier, Extents),
   Extents = SimpleIntExpression,
   SimpleIntExpression = int, % resolved by the parser?
-  AssertExpr = ( ifx_expression(BinOp, AssertExpr, AssertExpr)
-	       | prefix_expression(UnOp, AssertExpr)
-	       | fn_eval(Name, [Arg])
-	       | var_ref(Name)
-	       | Name
-	       | Literal
-	       ),
-  BinOp = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
-	  |plus|minus|times|divide|modulo|rem|pow),
-  UnOp = ( is|log_not|bit_not ),
-  ScopedID = scoped_id([Name], Extension),
+  AssertExpr = ( ifx_expression(Bin_op, AssertExpr, AssertExpr)
+               | prefix_expression(Un_op, AssertExpr)
+               | fn_eval(Identifier, [Arg])
+               | var_ref(Identifier)
+               | Identifier
+               | Literal
+               ),
+  Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
+          |plus|minus|times|divide|modulo|rem|pow),
+  Un_op = ( is|log_not|bit_not ),
+  Scoped_id = scoped_id([Identifier], Extension),
   Literal = (int | float | str | pure | result | Complex),
   Complex = complex(float, float)
 ].

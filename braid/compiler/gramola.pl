@@ -29,8 +29,7 @@ main(_) :-
 
     format('~n~n## Token definitions~n~n'),
     copy_term(Docstrings, G),
-    gather_tokens(G, T1),
-    ord_union(T1, [], Tokens),
+    gather_tokens(G, Tokens),
     maplist(tokendef, Tokens), !,
 
     format('~n~n## Constructor definitions~n~n'),
@@ -61,8 +60,9 @@ rhs_of(_=B, B).
 unify(A=B) :- A = B, !.
 unify(Fail) :- format(user_error, '**Failed in rule `~w\'~n', [Fail]), fail.
 docref(Name=Var) :-
-    atom_concat('\\c ', Name, Ref),
-    downcase_atom(Ref, Var).
+    safe_atom(Name, NameS),
+    atom_concat('\\c ', NameS, Var).
+    %downcase_atom(Ref, Var).
 
 % ignore python builtins
 tokendef(str).
@@ -115,7 +115,7 @@ validation(Arg, Var, Indent) :- !,
 % builtin
 type_check(A, Var, Indent) :-
     member(A, [int, str, float]),
-    format('if (instanceof(~a, ~a)):~n', [Var, A]),
+    format('if (isinstance(~a, ~a)):~n', [Var, A]),
     format('~a    pass~n', [Indent]).
 
 % atom
@@ -127,7 +127,7 @@ type_check(A, Var, Indent) :-
 
 % list
 type_check([A], Var, Indent) :-
-    format('if instanceof(~a, list):~n', [Var]),
+    format('if isinstance(~a, list):~n', [Var]),
     format('~a    for arg in ~a:~n', [Indent, Var]),
     atom_concat(Indent, '        ', Indent1),
     validation(A, 'arg', Indent1).
@@ -198,7 +198,8 @@ constructor(Error, _) :-
 % pretty-print grammar for the docstring
 pretty(Atom, PrettyAtom) :-
     atom(Atom),
-    format(atom(PrettyAtom), '~a()', [Atom]).
+    upcase_atom(Atom, A1), safe_atom(A1,A2),
+    format(atom(PrettyAtom), '~a()', [A2]).
 pretty([List], PrettyList1) :-
     pretty(List, PrettyList),
     format(atom(PrettyList1), '[~w]', [PrettyList]).
@@ -211,9 +212,11 @@ pretty(A=B, Rule) :-
     sub_atom(A, 3, _, 0, ShortA),
     maplist(pretty, Args, PrettyArgs),
     atomic_list_concat(PrettyArgs, ', ', PrettyArgs1),
-    format(atom(Rule), '(\\c "~a", ~w)', [ShortA, PrettyArgs1]).
+    format(atom(Rule), '(~w)~n    \\return (\\c "~a", ~w)',
+	   [PrettyArgs1, ShortA, PrettyArgs1]).
 pretty(Tuple, Rule) :-
     Tuple =.. [Type|Args],
     maplist(pretty, Args, PrettyArgs),
     atomic_list_concat(PrettyArgs, ', ', PrettyArgs1),
-    format(atom(Rule), '(\\c "~a", ~w)', [Type,PrettyArgs1]).
+    format(atom(Rule), '(~w)~n    \\return (\\c "~a", ~w)',
+	   [PrettyArgs1, Type, PrettyArgs1]).

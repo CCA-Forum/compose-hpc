@@ -42,14 +42,7 @@ def braid(args):
 
         # Client code generation
         if args.client == 'Chapel':
-            try:
-                chapel = chapel.Chapel(sidl_ast)
-                chapel.generate_client()
-            except:
-                # Invoke the post-mortem debugger
-                import pdb, sys
-                print sys.exc_info()
-                pdb.post_mortem()
+            chapel.Chapel(sidl_ast).generate_client()
         elif args.client == None:
             pass
         else:
