@@ -18,8 +18,9 @@ void TestVisitor::visit(SgNode *node) {
         switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT:
           case CPP_COMMENT:
+            string comment = (*i)->getString();
             cout << node->class_name() << endl;
-            cout << (*i)->getString() << endl;
+            cout << comment << endl;
             break;
         }
       }
