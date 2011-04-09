@@ -26,48 +26,53 @@
 %# for the BSD License.
 %#
 %# </pre>
-
-%# Procedural IR Grammar definition
-%# Built-in types are [str, int, float]
-[ %# Do not forget to add parentheses around ( A|B )!
+%#
+%#
+%# <h2>Grammar definition</h2>
+%#
+%%# Built-in types are [str, int, float]
+%%# Do not forget to add parentheses around ( A|B )!
+%%# In alternatives, atoms must come first: atom|complex(something).
+%%# Prefix an underscore to suppress singleton warnings.
+[
   Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
-  Do_while = do_while(Body, BoolExpr),
-  While = while(BoolExpr, Body),
-  If = if(BoolExpr, Body),
+  Do_while = do_while(Body, Expr),
+  While = while(Expr, Body),
+  If = if(Expr, Body),
   Body = [Stmt],
-  Expr = ( plus(Expr, Expr) 
-         | call(Expr, [Expr])
-         | var_decl(Name)
-         | var_defn(Name)
-	 | get_struct_item(Struct, Name, Struct_item)
-	 | set_struct_item(Struct, Name, Struct_item, Expr)
+  Expr = ( Literal
+	 | call(Expr, [Expr])
+         | var_decl(Identifier)
+         | var_defn(Identifier)
+	 | var_ref(Identifier)
+	 | get_struct_item(Struct, Identifier, Struct_item)
+	 | set_struct_item(Struct, Identifier, Struct_item, Expr)
          | assignment(VarRefExpr)
-         | plus(Expr, Expr)
-         | minus(Expr, Expr)
-         | times(Expr, Expr)
-	 | BoolExpr
-	 | str
-	 | literal(string)
-	 | int
-	 | float
+	 | infix_expr(Bin_op, Expr, Expr)
+	 | prefix_expr(Un_op, Expr)
 	 ),
-  Struct = struct(Name, [Struct_item]),
-  Struct_item = struct_item(Type, Name),
-  Enum = struct(Name, [Enum_item]),
-  Enum_item = enum_item(Name),
-			    
-  BoolExpr = (true | false
-	     | eq(Expr, Expr) | neq(Expr, Expr)
-	     | not(Expr)
-             ),
-  VarRefExpr = (Name | pointer(VarRefExpr) | deref(VarRefExpr)),
-  Fn_decl = fn_decl(Type, Method_name, [Arg]),
-  Fn_defn = fn_defn(Type, Method_name, [Arg], [Stmt]),
-  Arg = arg([Attr], Mode, Type, Name),
+  Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
+	   |plus|minus|times|divide|modulo|rem|pow),
+  Un_op = ( is|log_not|bit_not ),
+  Literal = (int | float | str | pure | result | Complex | true | false),
+  Complex = complex(float, float),
+  Struct = struct(Identifier, [Struct_item]),
+  Struct_item = struct_item(Type, Identifier),
+  Enum = struct(Identifier, [Enum_item]),
+  Enum_item = enum_item(Identifier),
+  VarRefExpr = (Identifier | pointer(VarRefExpr) | deref(VarRefExpr)),
+  Fn_decl = fn_decl(Type, Identifier, [Arg]),
+  Fn_defn = fn_defn(Type, Identifier, [Arg], [Stmt]),
+  Arg = arg([Attr], Mode, Type, Identifier),
   Attr = [],
   Mode = (in | out | inout),
   Type = (primitive_type(void | int) | User_type),
   User_type = [],
-  Method_name = method_name(string, string),
-  Name = identifier(string)
+  Identifier = identifier(str)
 ].
+%def Plus(A, B):
+%    """
+%    same as Infix_expr(ir.plus, A, B)
+%    """
+%    return Infix_expr(plus, A, B)
+%

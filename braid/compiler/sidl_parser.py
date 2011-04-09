@@ -893,7 +893,7 @@ def p_assertExpr_1(p):
 def p_assertExpr_2(p):
     '''assertExpr : orExpr IMPLIES orExpr
                   | orExpr IFF orExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 # TODO:
 #   simplify the grammar by using the following declaration
@@ -917,7 +917,7 @@ def p_orExpr_1(p):
 def p_orExpr_2(p):
     '''orExpr : andExpr LOGICAL_OR orExpr
               | andExpr LOGICAL_XOR orExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_andExpr_1(p):
     '''andExpr : bitwiseExpr'''
@@ -925,7 +925,7 @@ def p_andExpr_1(p):
 
 def p_andExpr_2(p):
     '''andExpr : bitwiseExpr LOGICAL_AND andExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_bitwiseExpr_1(p):
     '''bitwiseExpr : equalityExpr'''
@@ -935,7 +935,7 @@ def p_bitwiseExpr_2(p):
     '''bitwiseExpr : equalityExpr BITWISE_AND bitwiseExpr
                    | equalityExpr BITWISE_OR bitwiseExpr
                    | equalityExpr BITWISE_XOR bitwiseExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_equalityExpr_1(p):
     '''equalityExpr : relationalExpr'''
@@ -944,7 +944,7 @@ def p_equalityExpr_1(p):
 def p_equalityExpr_2(p):
     '''equalityExpr : relationalExpr EQ equalityExpr
                     | relationalExpr NE equalityExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_relationalExpr_1(p):
     '''relationalExpr : shiftExpr'''
@@ -955,7 +955,7 @@ def p_relationalExpr_2(p):
                       | shiftExpr GT relationalExpr
                       | shiftExpr LE relationalExpr
                       | shiftExpr GE relationalExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_shiftExpr_1(p):
     '''shiftExpr : addExpr'''
@@ -964,7 +964,7 @@ def p_shiftExpr_1(p):
 def p_shiftExpr_2(p):
     '''shiftExpr : addExpr LSHIFT shiftExpr
                  | addExpr RSHIFT shiftExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_addExpr_1(p):
     '''addExpr : multExpr'''
@@ -973,7 +973,7 @@ def p_addExpr_1(p):
 def p_addExpr_2(p):
     '''addExpr : multExpr PLUS addExpr
                | multExpr MINUS addExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_multExpr_1(p):
     '''multExpr : powerExpr'''
@@ -984,7 +984,7 @@ def p_multExpr_2(p):
                 | powerExpr SLASH multExpr
                 | powerExpr MODULUS multExpr
                 | powerExpr REMAINDER multExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_powerExpr_1(p):
     '''powerExpr : unaryExpr'''
@@ -992,13 +992,13 @@ def p_powerExpr_1(p):
 
 def p_powerExpr_2(p):
     '''powerExpr : unaryExpr POWER powerExpr'''
-    p[0] = (sidl.ifx_expression, p[2], p[1], p[3])
+    p[0] = (sidl.infix_expr, p[2], p[1], p[3])
 
 def p_unaryExpr_1(p):
     '''unaryExpr : IS funcEval
                  | NOT funcEval
                  | TILDE funcEval'''
-    p[0] = (p[1], p[2])
+    p[0] = (sidl.prefix_expr, p[1], p[2])
 
 def p_unaryExpr_2(p):
     '''unaryExpr : funcEval'''

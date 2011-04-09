@@ -33,8 +33,11 @@
 #
 # </pre>
 
+import sys
 import ir, sidl
 from patmat import matcher, Variable, match, member
+
+languages = ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
 
 def generate(language, ir_code, debug=False):
     """
@@ -46,13 +49,14 @@ def generate(language, ir_code, debug=False):
     \param ir_code  Intermediate representation input.
     \return         string
 
-    >>> generate('F77', 1)
-    '1'
-    >>> generate('C', ('+', 1, 2))
+    >>> generate('C', ir.Plus(1, 2))
     '1 + 2'
+    >>> [generate(lang, 1) for lang in languages] 
+    ['1', '1', '1', '1', '1', '1', '1']
+    >>> [generate(lang, ir.Plus(1, 2)) for lang in languages] 
+    ['1 + 2', '1 + 2', '1 + 2', '1 + 2', '1 + 2', '1 + 2', '1 + 2']
     """
     # apparently CPython does not implement proper tail recursion
-    import sys
     sys.setrecursionlimit(max(sys.getrecursionlimit(), 2**16))
 
     try:
@@ -83,7 +87,8 @@ def generate(language, ir_code, debug=False):
         else: raise Exception("unknown language")
     except:
         # Invoke the post-mortem debugger
-        import pdb, sys
+        import pdb
+        print sys.exc_info()
         print sys.exc_info()
         if debug:
             pdb.post_mortem()
@@ -232,7 +237,7 @@ class GenericCodeGenerator(object):
     All code generators shall implement this interface and inherit
     from this class.
     """
-
+    
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SourceFile()):
         """
@@ -249,9 +254,9 @@ class GenericCodeGenerator(object):
             if (ir.stmt, Expr):
                 return scope.new_def(gen(Expr))
 
-            elif (ir.identifier, Name): return Name
-            elif (Op, A, B): return ' '.join((gen(A), gen(Op), gen(B)))
-            elif (Op, A):    return ' '.join(        (gen(Op), gen(A)))
+            elif (ir.identifier, Name):   return Name
+            elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
+            elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (A):        
                 if (isinstance(A, list)):
                     for defn in A:
@@ -306,6 +311,7 @@ class F77File(SourceFile):
     """
     This class represents a Fortran 77 source file
     """
+
     def __init__(self, parent=None, relative_indent=0):
         super(F77File, self).__init__(
             parent=parent,
@@ -388,6 +394,33 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         'package':     "void",
         'symbol':      "integer*8"
         }
+
+    bin_op = {
+        'log_or':  '.or.',
+        'log_and': '.and.',
+        'eq':      '.eq.',
+        'ne':      '.neq.',
+        'bit_or':  '|',
+        'bit_and': '&',
+        'bit_xor': '^',
+        'lt':      '<',
+        'gt':      '>',
+        'lshift':  '<<',
+        'rshift':  '>>',
+        'plus':    '+',
+        'minus':   '-',
+        'times':   '*',
+        'divide':  '/',
+        'modulo':  '%',
+        'rem':     'rem',
+        'pow':     'pow'
+        }
+
+    un_op = { 
+        'log_not': '.not.',
+        'bit_not': '~'
+        }
+
 
     @matcher(globals(), debug=False)
     def generate(self, node, scope):
@@ -486,10 +519,8 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             elif (ir.var_decl, Type, Name): declare_var(Type, gen(Name))
             elif (ir.goto, Label):    return 'goto '+Label
             elif (ir.assignment):     return '='
-            elif (ir.eq):             return '.eq.'
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
-            elif ((ir.literal, Lit)): return "'%s'"%Lit
             elif (Expr):
                 return super(Fortran77CodeGenerator, self).generate(Expr, scope)
 
@@ -546,6 +577,32 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
     """
     Fortran 90 code generator
     """
+    bin_op = {
+        'log_or':  '.or.',
+        'log_and': '.and.',
+        'eq':      '.eq.',
+        'ne':      '.neq.',
+        'bit_or':  '|',
+        'bit_and': '&',
+        'bit_xor': '^',
+        'lt':      '<',
+        'gt':      '>',
+        'lshift':  '<<',
+        'rshift':  '>>',
+        'plus':    '+',
+        'minus':   '-',
+        'times':   '*',
+        'divide':  '/',
+        'modulo':  '%',
+        'rem':     'rem',
+        'pow':     'pow'
+        }
+
+    un_op = { 
+        'log_not': '.not.',
+        'bit_not': '~'
+        }
+
     @matcher(globals(), debug=False)
     def get_type(self, node):
         """\return a string with the type of the IR node \c node."""
@@ -638,12 +695,11 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
                 return scope
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
-            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '.eq.'
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
-            elif ((ir.literal, Lit)): return "'%s'"%Lit
             elif (Expr):
                 return super(Fortran90CodeGenerator, self).generate(Expr, scope)
 
@@ -746,10 +802,9 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
                   %s
                 end function %s
             ''' % (Typ, Name, gen(Args), gen(Body), Name)
-            elif (ir.var_decl, (ir.type_, Type), Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
-            elif ((ir.literal, Lit)): return "'%s'"%Lit
             elif (Expr):
                 return super(Fortran03CodeGenerator, self).generate(Expr, scope)
 
@@ -783,6 +838,31 @@ class ClikeCodeGenerator(GenericCodeGenerator):
     """
     C-like code generator
     """
+    bin_op = {
+        'log_or':  '||',
+        'log_and': '&&',
+        'eq':      '==',
+        'ne':      '!=',
+        'bit_or':  '|',
+        'bit_and': '&',
+        'bit_xor': '^',
+        'lt':      '<',
+        'gt':      '>',
+        'lshift':  '<<',
+        'rshift':  '>>',
+        'plus':    '+',
+        'minus':   '-',
+        'times':   '*',
+        'divide':  '/',
+        'modulo':  '%',
+        'rem':     'rem',
+        'pow':     'pow'
+        }
+
+    un_op = { 
+        'log_not': 'not',
+        'bit_not': '~'
+        }
 
     @matcher(globals(), debug=False)
     def generate(self, node, scope=CFile()):
@@ -838,12 +918,11 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
             elif (ir.pointer, Expr):  return '*'+gen(Expr)
             elif (ir.deref):          return '*'
-            elif (ir.not_):           return '!'
+            elif (ir.log_not):        return '!'
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '=='
             elif (ir.true):           return 'TRUE'
             elif (ir.false):          return 'FALSE'
-            elif ((ir.literal, Lit)): return '"%s"'%Lit
             elif (Expr):
                 return super(ClikeCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
@@ -1093,6 +1172,32 @@ class PythonCodeGenerator(GenericCodeGenerator):
     """
     Python code generator
     """
+    bin_op = {
+        'log_or':  'or',
+        'log_and': 'and',
+        'eq':      '==',
+        'ne':      '<>',
+        'bit_or':  '|',
+        'bit_and': '&',
+        'bit_xor': '^',
+        'lt':      '<',
+        'gt':      '>',
+        'lshift':  '<<',
+        'rshift':  '>>',
+        'plus':    '+',
+        'minus':   '-',
+        'times':   '*',
+        'divide':  '/',
+        'modulo':  '%',
+        'rem':     'rem',
+        'pow':     'pow'
+        }
+
+    un_op = { 
+        'log_not': '.not.',
+        'bit_not': '~'
+        }
+
     @matcher(globals(), debug=False)
     def generate(self, node, scope=PythonFile()):
         # recursion
@@ -1131,7 +1236,8 @@ class PythonCodeGenerator(GenericCodeGenerator):
 
             elif (ir.do_while, Condition, Body):
                 return new_block('while True', Body
-                                 +[(ir.if_, (ir.not_, Condition), (ir.stmt, ir.break_))])
+                                 +[(ir.if_, (ir.prefix_expr(ir.log_not, Condition), 
+                                             (ir.stmt, ir.break_)))])
 
             elif (ir.if_, Condition, Body):
                 return new_block('if %s'%gen(Condition), Body)
@@ -1139,10 +1245,8 @@ class PythonCodeGenerator(GenericCodeGenerator):
             elif (ir.var_decl, Type, Name): return ''
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '=='
-            elif (ir.not_):           return 'not'
             elif (ir.true):           return 'True'
             elif (ir.false):          return 'False'
-            elif ((ir.literal, Lit)): return "'%s'"%Lit
             elif (Expr):
                 return super(PythonCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
@@ -1292,8 +1396,8 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.method_name, Name, Extension): return Name+' '+Extension
             elif (sidl.primitive_type, Name): return Name
             elif (sidl.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
-            elif (Op, A, B):                return ' '.join((gen(A), Op, gen(B)))
-            elif (Op, A):                   return ' '.join((Op, gen(A)))
+            elif (sidl.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
+            elif (sidl.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif []: return ''
             elif A:
                 if (isinstance(A, list)):
@@ -1304,3 +1408,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             else:
                 raise Exception("match error")
         return ''
+
+if __name__ == '__main__':
+    print str(generate('C', ir.Plus(1, 2)))
+    print [generate(lang, ir.Plus(1, 2)) for lang in ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]] 
