@@ -33,6 +33,7 @@
 %#
 %%# Built-in types are [str, int, float]
 %%# Do not forget to add parentheses around ( A|B )!
+%%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [  
   _File = file([Require], [Import], [User_type]),
@@ -90,8 +91,8 @@
   Rarray = rarray(Primitive_type, Dimension, Identifier, Extents),
   Extents = SimpleIntExpression,
   SimpleIntExpression = int, % resolved by the parser?
-  AssertExpr = ( ifx_expression(Bin_op, AssertExpr, AssertExpr)
-               | prefix_expression(Un_op, AssertExpr)
+  AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
+               | prefix_expr(Un_op, AssertExpr)
                | fn_eval(Identifier, [Arg])
                | var_ref(Identifier)
                | Identifier

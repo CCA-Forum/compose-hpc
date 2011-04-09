@@ -24,8 +24,9 @@ main(_) :-
     format('#     ### DO NOT EDIT! ###~n'),
     format('#     ### ### #### ### ###~n'),
     prompt(_, ''),
-    read_term(Docstrings, [variable_names(Varnames), singletons(warning)]),
-    copy_term(Docstrings, Grammar),
+    read_term(Term, [variable_names(Varnames), singletons(warning)]),
+    normalize(Term, Docstrings, Varnames1),
+    copy_term(Docstrings, CyclicGrammar),
 
     format('~n~n## Token definitions~n~n'),
     copy_term(Docstrings, G),
@@ -33,13 +34,14 @@ main(_) :-
     maplist(tokendef, Tokens), !,
 
     format('~n~n## Constructor definitions~n~n'),
-    maplist(docref, Varnames), !,
+    maplist(docref, Varnames), % bind free variables in the docstrings to symbol names
+    maplist(docref, Varnames1), !,
     % fixme use try catch instead
-    (	maplist(unify, Grammar)
+    (	maplist(unify, CyclicGrammar)
     ;	format(user_error, '**ERROR: did you use the same symbol twice on the LHS?~n', []),
 	fail), !,
-    maplist(rhs_of, Grammar, GrammarRHS), !,
-    maplist(constructor, GrammarRHS, Docstrings).
+    maplist(rhs_of, CyclicGrammar, CycGrammarRHS), !,
+    maplist(constructor, CycGrammarRHS, Docstrings).
 
 main(_) :-
     format(user_error, 'Internal error. Please complain to <adrian@llnl.gov>.~n', []).
@@ -90,6 +92,47 @@ gather_tokens(A, Ts1) :-
     gather_tokens(As, Ts),
     ord_union([Name], Ts, Ts1).
 
+%%normalize/2
+% Rewrite the grammar such that each nested complex term on the RHS is
+% replaced by a Variable and an additional rule defining that
+% variable.
+normalize([], [], []).
+normalize([A=B|Rules], NormalizedRules, Varnames) :-
+    normalize_rhs(B, Bn, AdditionalRules, Varnames1, yes),
+    %format(user_error, '~w = ~w~n-->~n~w = ~w~n~w~n~n', [A,B, A, Bn,AdditionalRules]),
+    normalize(Rules, RulesN, Varnames2),
+    ord_add_element(AdditionalRules, A=Bn, AdditionalRules1),
+    ord_union(RulesN, AdditionalRules1, NormalizedRules),
+    append(Varnames1, Varnames2, Varnames). 
+%    normalize([A=Bn|AdditionalRules], AdditionalRulesN),
+%    ord_union(RulesN, AdditionalRulesN, NormalizedRules).
+    
+normalize_rhs(Var, Var, [], [], _) :- var(Var), !.
+normalize_rhs(Atom, Atom, [], [], _) :- atom(Atom), !.
+normalize_rhs([List], [List1], Rules, Varnames, _) :- !,
+    normalize_rhs(List, List1, Rules, Varnames, no).
+normalize_rhs(A|B, An|Bn, Rules, Varnames, _) :- !,
+    normalize_rhs(A, An, RulesA, VarnamesA, no),
+    normalize_rhs(B, Bn, RulesB, VarnamesB, no),
+    ord_union(RulesA, RulesB, Rules),
+    append(VarnamesA, VarnamesB, Varnames).
+% we recurse only into the outermost complex term
+normalize_rhs(Complex, ComplexN, Rules, Varnames, yes) :- !,
+    Complex =.. [Type|Args],
+    normalize_list(Args, ArgsN, Rules, Varnames),
+    ComplexN =.. [Type|ArgsN].
+% the interesting case
+normalize_rhs(Complex, Var, [Var=Complex], [Name=Var], _) :-
+    functor(Complex, Type, _),
+    uppercase_atom(Type, Name).
+
+normalize_list([], [], [], []).
+normalize_list([A|As], [An|Ans], Rules, Varnames) :-
+    normalize_rhs(A, An, RulesA, VarnamesA, no),
+    normalize_list(As, Ans, RulesAs, VarnamesAns),
+    ord_union(RulesA, RulesAs, Rules),
+    append(VarnamesA, VarnamesAns, Varnames).
+    
 
 % helper for alternatives
 validation1(Arg, Var, Indent) :- !,
@@ -137,7 +180,7 @@ type_check(A|B, Var, Indent) :-
     type_check(A, Var, Indent),
     validation1(B, Var, Indent).
 
-% tuple
+% complex term
 type_check(A, Var, Indent) :-
     A =.. [Type|_],
     safe_atom(Type, TypeS),
@@ -145,7 +188,7 @@ type_check(A, Var, Indent) :-
     format('~a    is_~a(~a)~n', [Indent, Type, Var]).
 
 %% validations/2
-% iterate over all elements of a tuple and print validation code
+% iterate over all elements of a complex term and print validation code
 validations(Args, Var) :-
     validations(Args, Var, 0).
 validations([], _, _).
@@ -156,8 +199,8 @@ validations([Arg|Args], Var, I) :-
     I1 is I+1,
     validations(Args, Var, I1).
 
-%% upcase_atom/2 convert 'abc' to 'Abc'
-upcase_atom(A, A1) :-
+%% uppercase_atom/2 convert 'abc' to 'Abc'
+uppercase_atom(A, A1) :-
     atom_chars(A, [C|Cs]),
     char_type(C1, to_upper(C)),
     atom_chars(A1, [C1|Cs]).
@@ -168,7 +211,7 @@ constructor(_A|_B, Doc)    :- format('# skipping ~w~n', [Doc]).
 constructor([_|_], Doc) :- format('# skipping ~w~n', [Doc]).
 constructor(Atom, _) :-
     atom(Atom),
-    upcase_atom(Atom, Def),
+    uppercase_atom(Atom, Def),
     safe_atom(Def, Def1),
     format('def ~a():~n    return ~a~n', [Def1, Atom]).
 
@@ -176,14 +219,15 @@ constructor(Term, Docstring) :-
     ground(Term),		% sanity check
     Term =.. [Type|[Arg|Args]],
     pretty(Docstring, Doc),
-    upcase_atom(Type, Def),
+    uppercase_atom(Type, Def),
     safe_atom(Def, Def1),
+    safe_atom(Type, Id),
     format('def ~a(*args):~n', [Def1]),
     format('    """~n'),
     format('    Construct a "~a" node. Valid arguments are ~n    ~w~n', [Type, Doc]),
     format('    """~n'),
     validations([Arg|Args], 'args'),
-    format('    return tuple(args)~n~n').
+    format('    return tuple([~a]+list(args))~n~n', [Id]).
 
 constructor(Error, _) :-
     format(user_error, '**ERROR: In ~w~n', [Error]),
@@ -198,7 +242,7 @@ constructor(Error, _) :-
 % pretty-print grammar for the docstring
 pretty(Atom, PrettyAtom) :-
     atom(Atom),
-    upcase_atom(Atom, A1), safe_atom(A1,A2),
+    uppercase_atom(Atom, A1), safe_atom(A1,A2),
     format(atom(PrettyAtom), '~a()', [A2]).
 pretty([List], PrettyList1) :-
     pretty(List, PrettyList),
@@ -214,8 +258,8 @@ pretty(A=B, Rule) :-
     atomic_list_concat(PrettyArgs, ', ', PrettyArgs1),
     format(atom(Rule), '(~w)~n    \\return (\\c "~a", ~w)',
 	   [PrettyArgs1, ShortA, PrettyArgs1]).
-pretty(Tuple, Rule) :-
-    Tuple =.. [Type|Args],
+pretty(Complex, Rule) :-
+    Complex =.. [Type|Args],
     maplist(pretty, Args, PrettyArgs),
     atomic_list_concat(PrettyArgs, ', ', PrettyArgs1),
     format(atom(Rule), '(~w)~n    \\return (\\c "~a", ~w)',

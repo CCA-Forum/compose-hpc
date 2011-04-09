@@ -32,6 +32,7 @@
 %#
 %%# Built-in types are [str, int, float]
 %%# Do not forget to add parentheses around ( A|B )!
+%%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
   Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
@@ -39,21 +40,21 @@
   While = while(Expr, Body),
   If = if(Expr, Body),
   Body = [Stmt],
-  Expr = ( call(Expr, [Expr])
+  Expr = ( Literal
+	 | call(Expr, [Expr])
          | var_decl(Identifier)
          | var_defn(Identifier)
 	 | var_ref(Identifier)
 	 | get_struct_item(Struct, Identifier, Struct_item)
 	 | set_struct_item(Struct, Identifier, Struct_item, Expr)
          | assignment(VarRefExpr)
-	 | ifx_expression(Bin_op, Expr, Expr)
-	 | prefix_expression(Un_op, Expr)
-	 | Literal
+	 | infix_expr(Bin_op, Expr, Expr)
+	 | prefix_expr(Un_op, Expr)
 	 ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
-  Literal = (int | float | str | pure | result | Complex),
+  Literal = (int | float | str | pure | result | Complex | true | false),
   Complex = complex(float, float),
   Struct = struct(Identifier, [Struct_item]),
   Struct_item = struct_item(Type, Identifier),
@@ -69,3 +70,9 @@
   User_type = [],
   Identifier = identifier(str)
 ].
+%def Plus(A, B):
+%    """
+%    same as Infix_expr(ir.plus, A, B)
+%    """
+%    return Infix_expr(plus, A, B)
+%
