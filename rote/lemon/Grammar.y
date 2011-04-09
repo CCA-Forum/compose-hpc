@@ -3,6 +3,8 @@
 %left DIVIDE TIMES.
 
 %include {
+#include <stdio.h>
+#include <assert.h>
 #include "Grammar.h"
 }
 

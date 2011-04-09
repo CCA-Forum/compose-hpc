@@ -1,22 +1,24 @@
-SOURCES     = Main.cpp TestVisitor.cpp
-EXECUTABLE  = comments
+SOURCES    = Grammar.c Main.c
+EXECUTABLE = calc
 
-OBJECTS=$(SOURCES:.cpp=.o)
-
-CC        = g++
+OBJECTS   = $(SOURCES:.c=.o)
+CC        = gcc
 CFLAGS    = 
-LDFLAGS   = -L$(ROSE_HOME)/lib -L$(BOOST_HOME)/lib -lrose
+LDFLAGS   =
 
-all: $(SOURCES) $(EXECUTABLE)
-	
+all: lemon $(SOURCES) $(EXECUTABLE)
+
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) -c $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-.cpp.o:
-	$(CC) $(CFLAGS) $< -o $@
+.c.o:
+	$(CC) -c $(CFLAGS) $< -o $@
+
+.y.c:
+	./lemon $<
 
 lemon: lemon.c
-  $(CC) lemon.c -o lemon
+	$(CC) lemon.c -o lemon
 
 clean:
-	rm -rf $(EXECUTABLE) $(OBJECTS) lemon
+	rm -rf $(EXECUTABLE) $(OBJECTS) Grammar.c Grammar.h lemon
