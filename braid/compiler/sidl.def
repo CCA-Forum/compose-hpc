@@ -6,7 +6,7 @@
 
 %#!/usr/bin/env python
 %# -*- python -*-
-% %% @package sidl
+%#% @package sidl
 %# Grammar for the SIDL intermediate representation (IR).
 %# This is NOT a grammar for SIDL, the language.
 %#
@@ -40,7 +40,7 @@
   Version = version(str | float | int),
   Require = require(Scoped_id, Version),
   Import = import(Scoped_id, Version),
-  Package = package(Identifier, Version, [User_type]),
+  Package = package(Id, Version, [User_type]),
   User_type = user_type([(Type_attr|Custom_attr)], Cipse),
   Cipse = ( Class
           | Interface
@@ -48,17 +48,17 @@
           | Struct
           | Enum ),
   Type_attr = type_attribute(final | abstract),
-  Identifier = identifier(str),
-  Enum = enum(Identifier, [Enumerator]),
-  Enumerator = enumerator(Identifier, int),
-  Struct = struct(Identifier, [Struct_item]),
-  Struct_item = struct_item(Type_void, Identifier),
-  Class = class(Identifier, [Extends], [Implements], [Invariant], [Method]),
-  Interface = interface(Identifier, [Extends], [Invariant], [Method]),
+  Id = id(str),
+  Enum = enum(Id, [Enumerator]),
+  Enumerator = enumerator(Id, int),
+  Struct = struct(Scoped_id, [Struct_item]),
+  Struct_item = struct_item(Type_void, Id),
+  Class = class(Id, [Extends], [Implements], [Invariant], [Method]),
+  Interface = interface(Id, [Extends], [Invariant], [Method]),
   Implements = ( implements(Scoped_id)
                | implements_all(Scoped_id)),
   Method = method(Type_void, Method_name, [Method_attr], [Arg], [Except], [From], [Require], [Ensure]),
-  Method_name = method_name(Identifier, Extension),
+  Method_name = method_name(Id, Extension),
   Extension = str,
   Type_void = ( void | Type ),
   Method_attr = ( oneway
@@ -70,38 +70,38 @@
                 | copy ),
   From = from(Scoped_id),
   Invariant = invariant(Assertion),
-  Assertion = assertion(Identifier, AssertExpr),
+  Assertion = assertion(Id, AssertExpr),
   Except = except([Scoped_id]),
   Ensure = ensure([Scoped_id]),
   Extends = extends([Scoped_id]),
-  Arg = ( arg([Arg_attr], Mode, Type_void, Identifier)
+  Arg = ( arg([Arg_attr], Mode, Type_void, Id)
         | rarg([Arg_attr], Mode, Rarray) ),
   Arg_attr = (copy | [str]),
   Custom_attr = ( custom_attribute(str)
                 | custom_attribute_assoc(str, str)
                 ),
   Mode = (in | out | inout),
-  Type = (Primitive_type | Array | User_type),
+  Type = (Primitive_type | Array | Scoped_id),
   Primitive_type = primitive_type(
-      void|bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),      
+      bool|char|integer|long|float|double|fcomplex|dcomplex|string|opaque),      
   Array = array(Scalar_type, Dimension, Orientation),
   Scalar_type = (Primitive_type|Scoped_id),
   Dimension = int,
   Orientation = (row_major|column_major),
-  Rarray = rarray(Primitive_type, Dimension, Identifier, Extents),
+  Rarray = rarray(Primitive_type, Dimension, Id, Extents),
   Extents = SimpleIntExpression,
   SimpleIntExpression = int, % resolved by the parser?
   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
                | prefix_expr(Un_op, AssertExpr)
-               | fn_eval(Identifier, [Arg])
-               | var_ref(Identifier)
-               | Identifier
+               | fn_eval(Id, [Arg])
+               | var_ref(Id)
+               | Id
                | Literal
                ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
           |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
-  Scoped_id = scoped_id([Identifier], Extension),
+  Scoped_id = scoped_id([Id], Extension),
   Literal = (int | float | str | pure | result | Complex),
   Complex = complex(float, float)
 ].

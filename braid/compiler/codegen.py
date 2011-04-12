@@ -236,6 +236,9 @@ class GenericCodeGenerator(object):
     """
     All code generators shall implement this interface and inherit
     from this class.
+
+    Classes inheriting from this one are expected to provide
+    type_map, un_op and bin_op.
     """
     
     @matcher(globals(), debug=False)
@@ -254,9 +257,10 @@ class GenericCodeGenerator(object):
             if (ir.stmt, Expr):
                 return scope.new_def(gen(Expr))
 
-            elif (ir.identifier, Name):   return Name
+            elif (ir.id, Name):             return Name
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
+            elif (ir.primitive_type, T):    return self.type_map[T]
             elif (A):        
                 if (isinstance(A, list)):
                     for defn in A:
@@ -472,7 +476,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 return "retval = %s" % gen(Expr)
 
             elif (ir.primitive_type, T): return type_map[T]
-            elif (ir.struct, (ir.identifier, Package), (ir.identifier, Name), _): 
+            elif (ir.struct, (ir.id, Package), (ir.id, Name), _): 
                 return ("%s_%s"%(Package, Name)).lower()
 
             elif (ir.get_struct_item, Struct, Name, Item):
@@ -864,7 +868,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
-    @matcher(globals(), debug=False)
+    @matcher(globals(), debug=True)
     def generate(self, node, scope=CFile()):
         # recursion
         def gen(node):
@@ -878,7 +882,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         def new_scope(prefix, body, suffix='\n'):
             '''used for things like if, while, ...'''
             comp_stmt = CCompoundStmt(scope)
-            return new_def(prefix+str(self.generate(body, comp_stmt))+suffix)
+            return new_def(prefix+str(self.generate(str(body), comp_stmt))+suffix)
 
         def declare_var(typ, name):
             '''unless, of course, var were declared'''
@@ -900,23 +904,31 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         with match(node):
             if (ir.stmt, Expr):
                 return new_def(gen(Expr)+';')
+
             elif (ir.fn_decl, Type, Name, Args):
                 scope.new_header_def("%s %s(%s)"% (gen(Type), gen(Name), gen(Args)))
+
             elif (ir.fn_defn, Type, Name, Args, Body):
                 return new_scope("%s %s(%s)"% 
                                  (gen(Type), gen(Name), gen_comma_sep(Args)), 
                                  gen(Body))
+
             elif (ir.return_, Expr):
                 return "return %s" % gen(Expr)
+
             elif (ir.do_while, Condition, Body):
                 return new_scope('do', Body, ' while (%s);'%gen(Condition))
+
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
+
             elif (ir.arg, Attr, Mode, Type, Name): '%s %s'% (gen(Type), gen(Name))
             elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
             elif (ir.call, Name, Args): 
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
-            elif (ir.pointer, Expr):  return '*'+gen(Expr)
+
+            elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
+            elif (ir.pointer_type, Type): return '*'+str(gen(Type))
             elif (ir.deref):          return '*'
             elif (ir.log_not):        return '!'
             elif (ir.assignment):     return '='
@@ -967,20 +979,13 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
-                return '''
-                %s %s(%s) {
-                  %s
-                }
-            ''' % (Typ, Name, pretty(Args), gen(Body))
-
-            elif (ir.struct, Name, _): return Name
+            if   (ir.struct, Name, _): return Name
             elif (ir.primitive_type, Name, _): return Name
 
-            elif (ir.get_struct_item, _, (ir.deref, StructName), Item):
+            elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'->'+gen(Item)
 
-            elif (ir.set_struct_item, _, (ir.deref, StructName), Item, Value):
+            elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'->'+gen(Item)+' = '+gen(Value)
 
             #FIXME: add a SIDL->C step that rewrites the SIDL struct accesses to use struct pointers
@@ -1033,14 +1038,7 @@ class CXXCodeGenerator(CCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
-                return '''
-                %s %s(%s) {
-                  %s
-                }
-            ''' % (Typ, Name, pretty(Args), gen(Body))
-
-            elif (ir.get_struct_item, _, StructName, Item):
+            if   (ir.get_struct_item, _, StructName, Item):
                 return gen(StructName)+'.'+gen(Item)
 
             elif (ir.set_struct_item, _, StructName, Item, Value):
@@ -1119,13 +1117,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                 return tmp
 
         with match(node):
-            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
-                return '''
-                %s %s(%s) {
-                  %s
-                }
-            ''' % (Typ, Name, pretty(Args), gen(Body))
-            elif (ir.primitive_type, Type): return type_map[Type]
+            if   (ir.primitive_type, Type): return type_map[Type]
             elif (ir.struct, Package, Type, _): return gen(Package)+'.'+gen(Type)
             elif (ir.get_struct_item, Type, StructName, Item):
                 return deref(Type, StructName)+'.'+gen(Item)
@@ -1340,7 +1332,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 new_def(gen(Packages))
                 return str(scope)
 
-            elif (sidl.package, (sidl.identifier, Name), Version, Usertypes):
+            elif (sidl.package, (sidl.id, Name), Version, Usertypes):
                 gen_scope('package %s %s {' % (Name, gen(Version)),
                           Usertypes,
                           '}')
@@ -1380,24 +1372,24 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 return ('rarray<%s%s> %s(%s)' %
                         (gen(Typ), _comma_gen(Dimension), gen(Name), gen_comma_sep(Extents)))
 
-            elif (sidl.enum, (sidl.identifier, Name), Enumerators):
+            elif (sidl.enum, (sidl.id, Name), Enumerators):
                 gen_scope('enum %s {' % gen(Name), Enumerators, '}')
 
-            elif (sidl.struct, (sidl.identifier, Name), Items):
+            elif (sidl.struct, (sidl.id, Name), Items):
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 
-            elif (sidl.type_attribute, Name): return Name
-            elif (sidl.identifier,  Name):    return Name
-            elif (sidl.version,     Version): return 'version %s'%str(Version)
-            elif (sidl.method_name, Name, []): return Name
-            elif (sidl.method_name, Name, Extension): return Name+' '+Extension
-            elif (sidl.primitive_type, Name): return Name
+            elif (sidl.type_attribute, Name):    return Name
+            elif (sidl.id, Name):                return Name
+            elif (sidl.version,     Version):    return 'version %s'%str(Version)
+            elif (sidl.method_name, Name, []):   return gen(Name)
+            elif (sidl.method_name, Name, Extension): return gen(Name)+' '+Extension
+            elif (sidl.primitive_type, Name):    return Name
             elif (sidl.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
-            elif (sidl.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
-            elif (sidl.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
+            elif (sidl.infix_expr, Op, A, B):    return ' '.join((gen(A), self.bin_op[Op], gen(B)))
+            elif (sidl.prefix_expr, Op, A):      return ' '.join((self.un_op[Op], gen(A)))
             elif []: return ''
             elif A:
                 if (isinstance(A, list)):

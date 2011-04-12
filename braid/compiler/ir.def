@@ -3,10 +3,9 @@
 %%# Lines starting with a single '%' will be presereved.
 %%# To avoid duplicate doxygen comments, '% %%' will be replaced by '##'
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %#!/usr/bin/env python
 %# -*- python -*-
-% %% @package ir
+%#% @package ir
 %# Convenience definitions for intermediate representation (IR) nodes.
 %#
 %# Please report bugs to <adrian@llnl.gov>.
@@ -42,11 +41,11 @@
   Body = [Stmt],
   Expr = ( Literal
 	 | call(Expr, [Expr])
-         | var_decl(Identifier)
-         | var_defn(Identifier)
-	 | var_ref(Identifier)
-	 | get_struct_item(Struct, Identifier, Struct_item)
-	 | set_struct_item(Struct, Identifier, Struct_item, Expr)
+         | var_decl(Id)
+         | var_defn(Id)
+	 | VarRefExpr
+	 | get_struct_item(Struct, Expr, Struct_item)
+	 | set_struct_item(Struct, Expr, Struct_item, Expr)
          | assignment(VarRefExpr)
 	 | infix_expr(Bin_op, Expr, Expr)
 	 | prefix_expr(Un_op, Expr)
@@ -54,25 +53,43 @@
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
-  Literal = (int | float | str | pure | result | Complex | true | false),
+  Literal = (int | float | str | pure | result | complex | true | false),
   Complex = complex(float, float),
-  Struct = struct(Identifier, [Struct_item]),
-  Struct_item = struct_item(Type, Identifier),
-  Enum = struct(Identifier, [Enum_item]),
-  Enum_item = enum_item(Identifier),
-  VarRefExpr = (Identifier | pointer(VarRefExpr) | deref(VarRefExpr)),
-  Fn_decl = fn_decl(Type, Identifier, [Arg]),
-  Fn_defn = fn_defn(Type, Identifier, [Arg], [Stmt]),
-  Arg = arg([Attr], Mode, Type, Identifier),
+  Struct = struct(Id, [Struct_item]),
+  Struct_item = struct_item(Type, Id),
+  Enum = enum(Id, [Enum_item]),
+  Enum_item = enum_item(Id),
+  VarRefExpr = (Id | Pointer_expr | Deref),
+  Pointer_expr = pointer_expr(VarRefExpr),
+  Deref = deref(VarRefExpr),
+  Fn_decl = fn_decl(Type, Id, [Arg]),
+  Fn_defn = fn_defn(Type, Id, [Arg], [Stmt]),
+  Arg = arg([Attr], Mode, Type, Id),
   Attr = [],
   Mode = (in | out | inout),
-  Type = (primitive_type(void | int) | User_type),
-  User_type = [],
-  Identifier = identifier(str)
+  Type = ( Primitive_type
+	 | Pointer_type
+	 | const(Type) 
+	 | Struct),
+  Primitive_type = primitive_type(
+      bool
+    | char
+    | integer
+    | long
+    | float
+    | double
+    | fcomplex
+    | dcomplex
+    | string
+    | void ),
+  Pointer_type = pointer_type(Type|Fn_decl),
+  Id = id(str)
 ].
+% ## const char*
+%const_str = Pointer_type(Const(Primitive_type(char)))
+% 
 %def Plus(A, B):
 %    """
 %    same as Infix_expr(ir.plus, A, B)
 %    """
 %    return Infix_expr(plus, A, B)
-%

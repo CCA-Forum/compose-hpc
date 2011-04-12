@@ -569,7 +569,7 @@ def p_typeAttr(p):
 
 def p_name(p):
     '''name : IDENTIFIER'''
-    p[0] = (sidl.identifier, p[1])
+    p[0] = (sidl.id, p[1])
 
 def p_enum(p):
     '''enum : ENUM name LBRACE enumerators RBRACE'''
@@ -699,8 +699,8 @@ def p_methodAttr(p):
     p[0] = p[1]
 
 def p_methodName(p):
-    '''methodName : IDENTIFIER empty
-                  | IDENTIFIER EXTENSION'''
+    '''methodName : name empty
+                  | name EXTENSION'''
     p[0] = (sidl.method_name, p[1], p[2])
 
 def p_maybeExceptClause(p):
@@ -743,7 +743,7 @@ def p_assertions(p): # +
 
 def p_assertion_1(p):
     '''assertion : IDENTIFIER_COLON assertExpr SEMICOLON'''
-    p[0] = (sidl.assertion, p[1], p[2])
+    p[0] = (sidl.assertion, (sidl.id, p[1]), p[2])
 
 def p_assertion_2(p):
     '''assertion : assertExpr SEMICOLON'''
@@ -814,7 +814,7 @@ def p_primitiveType(p):
                      | DCOMPLEX
                      | STRING
                      | OPAQUE'''
-    p[0] = (sidl.primitive_type, str.lower(p[1]))
+    p[0] = (sidl.primitive_type, str.lower(p[1]).replace('int','integer'))
 
 def p_array(p):
     '''array : ARRAY LT scalarType dimension orientation GT'''
@@ -1007,15 +1007,15 @@ def p_unaryExpr_2(p):
 
 # TODO funcEval is btw. not a good name...
 def p_funcEval_1(p):
-    '''funcEval : IDENTIFIER LPAREN funcArgs RPAREN'''
+    '''funcEval : name LPAREN funcArgs RPAREN'''
     p[0] = (sidl.fn_eval, p[1], p[3])
 
 def p_funcEval_2(p):
-    '''funcEval : IDENTIFIER LPAREN RPAREN'''
+    '''funcEval : name LPAREN RPAREN'''
     p[0] = (sidl.fn_eval, p[1], [])
 
 def p_funcEval_3(p):
-    '''funcEval : IDENTIFIER'''
+    '''funcEval : name'''
     p[0] = (sidl.var_ref, p[1])
 
 def p_funcEval_4(p):
@@ -1042,13 +1042,15 @@ def p_maybeSemicolon(p):
     pass
 
 def p_scopedID(p):
-    '''scopedID : maybeDot identifiers empty
-                | maybeDot identifiers EXTENSION'''
+    '''scopedID : maybeDot names empty
+                | maybeDot names EXTENSION'''
+
+    print "FIXME: do symbol table lookup"
     p[0] = (sidl.scoped_id, (p[2]), p[3])
 
-def p_identifiers(p): # +
-    '''identifiers : IDENTIFIER
-                   | IDENTIFIER DOT identifiers'''
+def p_names(p): # +
+    '''names : name
+             | name DOT names'''
     cons13(p)
 
 def p_literal(p):

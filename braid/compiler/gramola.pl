@@ -153,7 +153,17 @@ validation(Arg, Var, Indent) :- !,
 	validation1(B, Var, Indent)
     ;	type_check(Arg, Var, Indent)
     ),
-    format('~aelse: raise Exception(\'Grammar Error in argument \'+repr(~a))~n', [Indent,Var]).
+    format('~aelse:~n', [Indent]),
+    format('~a    print f.__name__+"():\\n    \\"\\"\\"%s\\"\\"\\"\\n" \
+	%f.__doc__.replace("\\\\n","\\n")\
+                  .replace("\\return","Returns")\
+                  .replace("\\\\c ","")~n',
+	  [Indent]),
+    format('~a    print "**GRAMMAR ERROR in argument \
+	    ~a = %s"%repr(~a)~n', [Indent, Var, Var]),
+    format('~a    print "  Most likely you want to enter \\"up<enter>l<enter>\\" \
+	   now to see what happened.\\n"~n', [Indent]),	    
+    format('~a    raise Exception("Grammar Error")~n', [Indent]).
 
 % builtin
 type_check(A, Var, Indent) :-
@@ -171,9 +181,9 @@ type_check(A, Var, Indent) :-
 % list
 type_check([A], Var, Indent) :-
     format('if isinstance(~a, list):~n', [Var]),
-    format('~a    for arg in ~a:~n', [Indent, Var]),
+    format('~a    for a in ~a:~n', [Indent, Var]),
     atom_concat(Indent, '        ', Indent1),
-    validation(A, 'arg', Indent1).
+    validation(A, 'a', Indent1).
 
 % alternatives
 type_check(A|B, Var, Indent) :-
@@ -185,13 +195,20 @@ type_check(A, Var, Indent) :-
     A =.. [Type|_],
     safe_atom(Type, TypeS),
     format('if (~a[0] == ~a):~n', [Var, TypeS]),
-    format('~a    is_~a(~a)~n', [Indent, Type, Var]).
+    format('~a    pass~n', [Indent]).
 
 %% validations/2
 % iterate over all elements of a complex term and print validation code
 validations(Args, Var) :-
+    length(Args, L),
+    format('    if len(~a) <> ~d:~n', [Var, L]),
+    format('        print "**GRAMMAR ERROR: expected ~d arguments for a", f.__name__~n', [L]),
+    format('        print "Most likely you want to enter \\"up<enter>l<enter>\\" \
+	  now to see what happened."~n'),
+    format('        raise Exception("Grammar Error")~n'),
     validations(Args, Var, 0).
-validations([], _, _).
+validations([], _,
+	    _).
 validations([Arg|Args], Var, I) :-
     format(atom(Var1), '~a[~d]', [Var, I]),
     validation(Arg, Var1, '    '),
@@ -221,13 +238,13 @@ constructor(Term, Docstring) :-
     pretty(Docstring, Doc),
     uppercase_atom(Type, Def),
     safe_atom(Def, Def1),
-    safe_atom(Type, Id),
     format('def ~a(*args):~n', [Def1]),
     format('    """~n'),
     format('    Construct a "~a" node. Valid arguments are ~n    ~w~n', [Type, Doc]),
     format('    """~n'),
+    format('    f = ~a~n', [Def1]),
     validations([Arg|Args], 'args'),
-    format('    return tuple([~a]+list(args))~n~n', [Id]).
+    format('    return tuple([\'~a\']+list(args))~n~n', [Type]).
 
 constructor(Error, _) :-
     format(user_error, '**ERROR: In ~w~n', [Error]),
