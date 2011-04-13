@@ -15,7 +15,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 .y.c:
-	./lemon $<
+	./lemon -q $<
 
 lemon: lemon.c
 	$(CC) lemon.c -o lemon
