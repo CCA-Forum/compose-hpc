@@ -15,6 +15,19 @@
  *   swipl -f gramola.pl -t main -q <grammar_def.pl >>ir_def.py
  */
 
+% Before doing anything else, set up handling to halt if warnings or errors
+% are encountered.
+:- dynamic prolog_reported_problems/0.
+% If the Prolog compiler encounters warnings or errors, record this fact in
+% a global flag. We let message_hook fail because that signals Prolog to
+% format output as usual (otherwise, we would have to worry about formatting
+% error messages).
+user:message_hook(_Term, warning, _Lines) :-
+    assert(prolog_reported_problems), !, fail.
+user:message_hook(_Term, error, _Lines) :-
+    assert(prolog_reported_problems), !, fail.
+
+
 :- use_module(library(ordsets)).
 
 main(_) :-
@@ -24,7 +37,9 @@ main(_) :-
     format('#     ### DO NOT EDIT! ###~n'),
     format('#     ### ### #### ### ###~n'),
     prompt(_, ''),
-    read_term(Term, [variable_names(Varnames), singletons(warning)]),
+    (	read_term(Term, [variable_names(Varnames), singletons(warning), syntax_errors(fail)])
+    ;	format(user_error, '**Syntax error.~n', []), halt(1)
+    ),
     normalize(Term, Docstrings, Varnames1),
     copy_term(Docstrings, CyclicGrammar),
 
@@ -39,7 +54,7 @@ main(_) :-
     % fixme use try catch instead
     (	maplist(unify, CyclicGrammar)
     ;	format(user_error, '**ERROR: did you use the same symbol twice on the LHS?~n', []),
-	fail), !,
+	halt(1)), !,
     maplist(rhs_of, CyclicGrammar, CycGrammarRHS), !,
     maplist(constructor, CycGrammarRHS, Docstrings).
 
@@ -281,3 +296,9 @@ pretty(Complex, Rule) :-
     atomic_list_concat(PrettyArgs, ', ', PrettyArgs1),
     format(atom(Rule), '(~w)~n    \\return (\\c "~a", ~w)',
 	   [PrettyArgs1, Type, PrettyArgs1]).
+
+
+
+% Finish error handling (see top of source file) by halting with an error
+% condition of Prolog generated any warnings or errors.
+:- (prolog_reported_problems -> halt(1) ; true).

@@ -101,14 +101,14 @@ sidl.py: $(srcdir)/sidl.def $(srcdir)/gramola.pl
 %.py: $(srcdir)/%.def
 	@echo "  GRAMOLA" $<
 	@if [ -x $(SWIPL) ]; then \
-          egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@; \
-	  echo '#\verbatim' >>$@; \
-	  egrep  -v '^%' $< | sed -e 's/\(.*\)/# \1/g' >>$@; \
-	  echo '#\endverbatim' >>$@; \
-	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@; \
+          egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
+	  echo '#\verbatim' >>$@ && \
+	  egrep  -v '^%' $< | sed -e 's/\(.*\)/# \1/g' >>$@ && \
+	  echo '#\endverbatim' >>$@ && \
+	  $(SWIPL) -f $(srcdir)/gramola.pl -t main -q -s <$< >>$@ && \
           egrep '^%[^#%]' $< | sed -e 's/^%//g' >>$@; \
 	else \
-	  touch $@; \
+	  touch $@ && \
 	  echo "WARNING: $@ was NOT updated because swipl is missing"; \
 	fi
 

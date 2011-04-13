@@ -29,6 +29,8 @@
 %#
 %# <h2>Grammar definition</h2>
 %#
+%# Caveats: scoped IDs in IR must always be absolute.
+%#
 %%# Built-in types are [str, int, float]
 %%# Do not forget to add parentheses around ( A|B )!
 %%# In alternatives, atoms must come first: atom|complex(something).
@@ -55,7 +57,7 @@
   Un_op = ( is|log_not|bit_not ),
   Literal = (int | float | str | pure | result | complex | true | false),
   Complex = complex(float, float),
-  Struct = struct(Id, [Struct_item]),
+  Struct = struct(Scoped_id, [Struct_item]),
   Struct_item = struct_item(Type, Id),
   Enum = enum(Id, [Enum_item]),
   Enum_item = enum_item(Id),
@@ -83,6 +85,8 @@
     | string
     | void ),
   Pointer_type = pointer_type(Type|Fn_decl),
+  Scoped_id = scoped_id([Id], Extension),
+  Extension = str,
   Id = id(str)
 ].
 % ## const char*
