@@ -1045,7 +1045,8 @@ def p_scopedID(p):
     '''scopedID : maybeDot names empty
                 | maybeDot names EXTENSION'''
 
-    print "FIXME: do symbol table lookup"
+    # print "FIXME: do symbol table lookup"
+    # see how chapel.py handles this!
     p[0] = (sidl.scoped_id, (p[2]), p[3])
 
 def p_names(p): # +

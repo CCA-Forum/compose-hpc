@@ -868,7 +868,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
-    @matcher(globals(), debug=True)
+    @matcher(globals(), debug=False)
     def generate(self, node, scope=CFile()):
         # recursion
         def gen(node):
@@ -979,7 +979,7 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if   (ir.struct, Name, _): return Name
+            if   (ir.struct, Name, _):         return Name
             elif (ir.primitive_type, Name, _): return Name
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
@@ -997,6 +997,8 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.struct, Name, _): return gen(Name)
+            elif (sidl.scoped_id, Names, Ext):
+                return '_'.join([name for _, name in Names])
 
             elif (Expr):
                 return super(CCodeGenerator, self).generate(Expr, scope)

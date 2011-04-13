@@ -28,18 +28,32 @@ import ir, sidl
 from patmat import matcher, match, expect, Variable
 from codegen import ClikeCodeGenerator, CCodeGenerator, SourceFile, CFile, Scope
 
-def babel_object_type(name):
+def babel_object_type(package, name):
     """
-    return the IR node for the type of a Babel object 'name'
+    \return the SIDL node for the type of a Babel object 'name'
     \param name    the name of the object
     """
-    return ir.Pointer(ir.Struct(ir.Identifier('s_%s__object'%name), []))
+    return sidl.Scoped_id(package+[sidl.Id('%s__object'%name)], "")
 
 def babel_exception_type():
     """
-    return the IR node for a Babel exception
+    \return the SIDL node for the Babel exception type
     """
-    return babel_object_type('sidl_BaseInterface')
+    return babel_object_type([sidl.Id('sidl')], 'BaseInterface')
+
+def ir_babel_object_type(package, name):
+    """
+    \return the IR node for the type of a Babel object 'name'
+    \param name    the name of the object
+    """
+    return ir.Pointer_type(ir.Struct(babel_object_type(package,name), []))
+
+def ir_babel_exception_type():
+    """
+    \return the IR node for the Babel exception type
+    """
+    return ir_babel_object_type([sidl.Id('sidl')], 'BaseInterface')
+
 
 class Chapel:
     class ClassInfo:
@@ -58,113 +72,308 @@ class Chapel:
         Create a new chapel code generator
         \param sidl_expr    s-expression of the SIDL data
         """
-        self._sidl = sidl_sexpr
+        self.sidl = sidl_sexpr
 
     def generate_client(self):
         """
-        Generate client code.
+        Generate client code. Operates in two passes:
+        \li create symbol table
+        \li do the work
         """
-        self.generate_client1(self._sidl, None)
+        try:       
+            sym = self.build_symbol_table(self.sidl, SymbolTable())
+            return self.generate_client1(self.sidl, None, sym) 
+                  
+        except:
+            # Invoke the post-mortem debugger
+            import pdb, sys
+            print sys.exc_info()
+            pdb.post_mortem()
 
     @matcher(globals(), debug=False)
-    def generate_client1(self, node, data):
-        def gen(node):           return self.generate_client1(node, data)
-        def gen1(node, data1): return self.generate_client1(node, data1)
+    def generate_client1(self, node, data, symbol_table):
+        def gen(node):         return self.generate_client1(node, data, symbol_table)
+        def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
+
+        if not symbol_table: 
+            raise Exception()
 
         with match(node):
-            if (sidl.file_, Requires, Imports, UserTypes):
+            if (sidl.file, Requires, Imports, UserTypes):
                 gen(UserTypes)
+
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
-            elif (sidl.package, (sidl.identifier, Name), Version, UserTypes):
-                gen(UserTypes)
-            elif (sidl.class_, (sidl.identifier, Name), Extends, Implements, Invariants, Methods):
+
+            elif (sidl.package, Name, Version, UserTypes):
+                self.generate_client1(UserTypes, data, symbol_table[Name])
+
+            elif (sidl.class_, (sidl.id, Name), Extends, Implements, Invariants, Methods):
                 expect(data, None)
                 impl = ChapelFile()
-                ci = self.ClassInfo(ChapelScope(impl), CFile(), EPV(Name))
-                self.gen_default_methods(Name, ci)
+                ci = self.ClassInfo(ChapelScope(impl), CFile(), EPV(Name, symbol_table))
+                self.gen_default_methods(symbol_table, Name, ci)
                 gen1(Methods, ci)
 
                 impl.new_def('module %s {'%Name)
                 impl.new_def(ci.impl)
-                data.impl.new_def('}')
+                #data.impl.new_def('}')
+                impl.new_def('}')
                 print Name+'.chpl:'
                 print str(ci.impl)
 
-                ci.stub.new_def((sidl.var_decl, ci.epv.get_sexpr()))
+                ci.stub.new_def((ir.var_decl, ci.epv.get_sexpr()))
                 print Name+'.c:'
                 print str(ci.stub)
 
             elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
-                self.generate_client_method(node, data)               
+                self.generate_client_method(symbol_table, node, data)               
+
             elif A:
                 if (isinstance(A, list)):
                     for defn in A:
                         gen(defn)
                 else:
-                    print "NOT HANDLED:", cipse
+                    raise Exception("NOT HANDLED:"+repr(A))
             else:
                 raise Exception("match error")
         return data
 
-    def gen_default_methods(self, name, data):
-        data.epv.add_method(ir.Fn_decl(ir.void, ir.Method_name, "_cast", []), [],
-                             [(ir.arg, [], ir.in_, babel_object_type(name), 'self'), 
-                              (ir.arg, [], ir.in_, 'const char*', 'name'), 
-                              (ir.arg, [], ir.in_, babel_exception_type(), 'ex')], 
-                             None, None, None, None)
+    @matcher(globals(), debug=False)
+    def build_symbol_table(self, node, symbol_table):
+        """
+        Build a hierarchical \c SymbolTable() for \c node.
+
+        For the time being, we store the fully scoped name
+        (= \c [package,subpackage,classname] ) for each class 
+        in the symbol table.
+        """
+
+        def gen(node):
+            return self.build_symbol_table(node, symbol_table)
+
+        with match(node):
+            if (sidl.file, Requires, Imports, UserTypes): 
+                gen(UserTypes)
+
+            elif (sidl.user_type, Attrs, Cipse): 
+                gen(Cipse)
+
+            elif (sidl.package, Name, Version, UserTypes):
+                symbol_table[Name] = SymbolTable(symbol_table, 
+                                                 symbol_table.prefix+[Name])
+                self.build_symbol_table(UserTypes, symbol_table[Name])
+
+            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods):
+                symbol_table[Name] = \
+                    ( sidl.class_, (sidl.scoped_id, symbol_table.prefix+[Name], []),
+                      Extends, Implements, Invariants, Methods )
+
+            elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items):
+                symbol_table[Name] = \
+                    ( sidl.struct, 
+                      (sidl.scoped_id, symbol_table.prefix+Names, []), 
+                      Items )
+
+            elif A:
+                if (isinstance(A, list)):
+                    for defn in A:
+                        gen(defn)
+                else:
+                    raise Exception("NOT HANDLED:"+repr(A))
+
+            else:
+                raise Exception("match error")
+
+        return symbol_table
+
+    def gen_default_methods(self, symbol_table, name, data):
+        data.epv.add_method(sidl.Method(
+                sidl.void,
+                sidl.Method_name(sidl.Id("_cast"), ''), [],
+                [sidl.Arg([], sidl.in_, babel_object_type(symbol_table.prefix, name), 
+                          sidl.Id('self')), 
+                 sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), sidl.Id('name')), 
+                 sidl.Arg([], sidl.in_, babel_exception_type(), sidl.Id('ex'))],
+                [], [], [], []))
 
     @matcher(globals(), debug=False)
-    def generate_client_method(self, method, data):
+    def generate_client_method(self, symbol_table, method, data):
         """
         Generate client code for a method interface.
         \param method   s-expression of the method's SIDL declaration
         """
-        expect(method, (ir.method, _, _, _, _, _, _, _, _))
         data.epv.add_method(method)
         # output _extern declaration
         data.impl.new_def('_extern '+ chpl_gen(method))
         # output the stub definition
-        stub = self.generate_stub(method, data)
+        stub = self.generate_stub(symbol_table, method, data)
         data.stub.new_header_def(c_gen(stub))
 
 
-    def generate_stub(self, (Method, Type, (_, Name, _Attr), Attrs, Args, Except, From, Requires, Ensures), data):
+    def generate_stub(self, symbol_table,
+                      (Method, Type, (_,  Name, _Attr), Attrs, Args, 
+                       Except, From, Requires, Ensures), data):
+
+        def argname((_arg, _attr, _mode, _type, Id)):
+            return Id
+        def low(sidl_term):
+            return lower_ir(symbol_table, sidl_term)
+
         #return method
-        expect(Method, ir.method)
-        args = ([(ir.arg, [], ir.in_, babel_object_type(Name), 'self')] +
-                Args +
-                [(ir.arg, [], ir.in_, babel_exception_type(), 'ex')]) 
+        expect(Method, sidl.method)
+        _, name = Name
+        decl_args = ([ir.Arg([], ir.in_, 
+                             ir_babel_object_type(symbol_table.prefix, name), 
+                             ir.Id('self'))] +
+                     low(Args) +
+                     [ir.Arg([], ir.in_, ir_babel_exception_type(), ir.Id('ex'))]) 
+        call_args = [ir.Id('self')] + map(argname, Args) + [ir.Id('ex')] 
         epv_type = data.epv.get_sexpr()
-        Body = (ir.stmt, 
-                (ir.return_, 
-                 (ir.call, 
-                  (ir.get_struct_item, epv_type, (ir.deref, 'self'), 
-                   'f_'+Method), args)))
-        return [(ir.fn_decl, Type, Name, args),
-                (ir.fn_defn, Type, Name, args, Body)]
+        Body = [ir.Stmt(
+            ir.Return(
+                ir.Call(
+                    ir.Get_struct_item(
+                        epv_type, 
+                        ir.Deref(ir.Id('self')),
+                        ir.Struct_item(
+                            ir.Primitive_type(ir.void), ir.Id('f_'+Method))), 
+                    call_args)))]
+        return [ir.Fn_decl(low(Type), Name, decl_args),
+                ir.Fn_defn(low(Type), Name, decl_args, Body)]
+
+@matcher(globals(), debug=False)
+def lower_ir(symbol_table, sidl_term):
+    """
+    lower SIDL into IR
+    """
+    def low(sidl_term):
+        return lower_ir(symbol_table, sidl_term)
+
+    def low_t(sidl_term):
+        return lower_type_ir(symbol_table, sidl_term)
+
+    with match(sidl_term):
+        if   (sidl.id, Name): return ir.Id(Name)
+        elif (sidl.struct, Name, Items):
+            return ir.Pointer_expr(ir.Struct(low_t(Name), Items))
+
+        elif (sidl.arg, Attrs, Mode, Typ, Name): 
+            return ir.Arg(Attrs, Mode, low_t(Typ), Name)
+
+        elif (sidl.void):                 return ir.Primitive_type(ir.void)
+        elif (sidl.primitive_type, Type): return low_t(sidl_term)
+
+        elif (Terms):        
+            if (isinstance(Terms, list)):
+                return map(low, Terms)
+        else :
+            raise Exception("Not implemented")
+
+@matcher(globals(), debug=False)
+def lower_type_ir(symbol_table, sidl_type):
+    """
+    lower SIDL types into IR
+    """
+    with match(sidl_type):
+        if (sidl.scoped_id, Names, Ext):
+            return lower_type_ir(symbol_table, lookup_type(symbol_table, Names))
+        elif (sidl.void):                        return ir.Primitive_type(ir.void)
+        elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.Primitive_type(ir.void))
+        elif (sidl.primitive_type, sidl.string): return ir.const_str
+        elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
+        elif (sidl.class_, Name, _, _, _, _):    
+            # FIXME
+            return ir.Pointer_type(ir.Struct(Name, []))
+        else:
+            raise Exception("Not implemented")
+ 
+def lookup_type(symbol_table, scopes):
+    """
+    perform a symbol lookup of a scoped identifier
+    """
+    n = len(scopes)
+    # go up (and down again) in the hierarchy
+    # FIXME: Is this the expected bahavior for nested packages?
+    sym = symbol_table[scopes[0]]
+    while not sym: # up until we find something
+        symbol_table = symbol_table.parent()
+        sym = symbol_table[scopes[0]]
+        
+    for i in range(0, n-1): # down again to resolve it
+        sym = sym[scopes[i]]
+    
+    if not sym:
+        raise Exception("Symbol lookup error: "+repr(key))
+
+    #print "successful lookup(", symbol_table, ",", scopes, ") =", sym
+    return sym
+
+class SymbolTable:
+    """
+    Hierarchical symbol table for SIDL identifiers.
+    \arg prefix  parent package. A list of identifiers 
+                 just as they would appear in a \c Scoped_id()
+    """
+    def __init__(self, parent=None, prefix=[]):
+        #print "new scope", self, 'parent =', parent
+        self._parent = parent
+        self._symbol = {}
+        self.prefix = prefix
+
+    def parent(self):
+        if self._parent: 
+            return self._parent
+        else: 
+            raise Exception("Symbol lookup error: no parent scope")
+
+    @matcher(globals())
+    def __getitem__(self, key):
+        expect(key, (sidl.id, _))
+        #print self, key, '?'
+        try:
+            return self._symbol[key]
+        except KeyError:
+            return None
+
+    @matcher(globals())
+    def __setitem__(self, key, value):
+        expect(key, (sidl.id, _))
+        #print self, key, '='#, value
+        self._symbol[key] = value
 
 class EPV:
     """
     Babel entry point vector for virtual method calls.
     """
-    def __init__(self, name):
+    def __init__(self, name, symbol_table):
         self.methods = []
         self.name = name
+        self.symbol_table = symbol_table
 
-    def add_method(self, (Method, Type, (_, Name, _Attr), Attrs, Args, Except, From, Requires, Ensures)):
+    def add_method(self, method):
         """
-        add another method to the vector
+        add another (SIDL) method to the vector
         """
-        self.methods.append((ir.pointer, (ir.function, Type, 'f_'+Name, Args)))
+        def to_fn_decl((_sidl_method, Type, 
+                        (Method_name, Name, Extension), 
+                        Attrs, Args, Except, From, Requires, Ensures)):
+            return ir.Fn_decl(lower_ir(self.symbol_table, Type), Name, Args)
+
+        self.methods.append(to_fn_decl(method))
         return self
 
     def get_sexpr(self):
         """
         return an s-expression of the EPV declaration
         """
-        return (ir.struct, (ir.identifier, 's_%s__epv'%self.name),
-                [(ir.struct_item, itype, iname) for itype, iname in self.methods])
+        def get_type_name((_fn_decl, Type, Name, _Args)):
+            return Type, Name
+
+        name = ir.Scoped_id(self.symbol_table.prefix+[ir.Id('%s__epv'%self.name)], '')
+        return ir.Struct(name,
+            [ir.Struct_item(itype, iname) 
+             for itype, iname in map(get_type_name, self.methods)])
 
 def chpl_gen(ir):
     return str(ChapelCodeGenerator().generate(ir, ChapelFile()))
@@ -226,21 +435,24 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         with match(node):
             if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures):
                 new_def('def %s(%s)'%(gen(Name), gen_comma_sep(Args)))
+
             elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
                 new_def('def %s(%s): %s'%(gen(Name), gen_comma_sep(Args), gen(Type)))
+
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s: %s'%(gen(Name), gen(Type))
-            elif (sidl.primitive_type, Type):
-                return self.type_map[Type]
-            elif (sidl.attribute,   Name):    return Name
-            elif (sidl.identifier,  Name):    return Name
-            elif (sidl.method_name, Name, []): return Name
+
+            elif (sidl.primitive_type, Type):         return self.type_map[Type]
+            elif (sidl.custom_attribute, Name):       return Name
+            elif (sidl.id,  Name):                    return Name
+            elif (sidl.method_name, Name, []):        return Name
             elif (sidl.method_name, Name, Extension): return Name+' '+Extension
-            elif (sidl.primitive_type, Name): return self.type_map[Name]
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
+
             elif (Expr):
                 return super(ChapelCodeGenerator, self).generate(Expr, scope)
+
             else:
                 raise Exception('match error')
         return scope
