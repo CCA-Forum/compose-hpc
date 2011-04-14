@@ -117,7 +117,6 @@ class Chapel:
 
                 impl.new_def('module %s {'%Name)
                 impl.new_def(ci.impl)
-                #data.impl.new_def('}')
                 impl.new_def('}')
                 print Name+'.chpl:'
                 print str(ci.impl)
