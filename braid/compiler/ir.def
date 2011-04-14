@@ -43,8 +43,8 @@
   Body = [Stmt],
   Expr = ( Literal
 	 | call(Expr, [Expr])
-         | var_decl(Id, Type)
-         | var_defn(Id, Type)
+         | var_decl(Type, Id)
+         | var_defn(Type, Id)
 	 | VarRefExpr
 	 | get_struct_item(Struct, Expr, Struct_item)
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)

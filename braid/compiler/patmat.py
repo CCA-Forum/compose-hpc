@@ -369,7 +369,11 @@ def compile_matcher(f):
     dest.append('\n'*(fc.co_firstlineno-5))
     num_lines = Counter(3) # number of elements in dest
     anonymous_vars = Counter(0) # number of anonymous variables
-    append_line(src[fc.co_firstlineno])
+    n = fc.co_firstlineno
+    while re.match(r'^\s*@', src[n]):
+        n += 1 # skip decorators
+    
+    append_line(src[n])
 
     # FIXME: wouldn't one stack with a tuple/class of these be nicer?
     # stacks
@@ -380,12 +384,12 @@ def compile_matcher(f):
     withindent = [] # indent level of current with block
     matchindent = [] # indent level of current match block
     patmat_prefix = ''
-    for line in src[fc.co_firstlineno+1:]+['<<EOF>>']:
+    for line in src[n+1:]+['<<EOF>>']:
 	# append_line('# %s:%s\n' % (fc.co_filename, n+fc.co_firstlineno))
 
 	il = indentlevel(line)
 	# check for empty/comment-only line (they mess with the indentation)
-	if re.match(r'^\w*(#.*)*$', line):
+	if re.match(r'^\s*(#.*)*$', line):
 	    # make sure it still is a comment after shifting the line
 	    # to the left
 	    line = "#"*base_indent+line

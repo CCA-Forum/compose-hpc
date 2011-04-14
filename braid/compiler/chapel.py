@@ -26,7 +26,10 @@
 
 import ir, sidl
 from patmat import matcher, match, expect, Variable
-from codegen import ClikeCodeGenerator, CCodeGenerator, SourceFile, CFile, Scope
+from codegen import (
+    ClikeCodeGenerator, CCodeGenerator, 
+    SourceFile, CFile, Scope, generator
+)
 
 def babel_object_type(package, name):
     """
@@ -115,13 +118,16 @@ class Chapel:
                 self.gen_default_methods(symbol_table, Name, ci)
                 gen1(Methods, ci)
 
+                # Implementation
                 impl.new_def('module %s {'%Name)
                 impl.new_def(ci.impl)
                 impl.new_def('}')
                 print Name+'.chpl:'
                 print str(ci.impl)
 
-                ci.stub.new_def((ir.var_decl, ci.epv.get_sexpr()))
+                # Stub (in C)
+                v = ir.Var_decl(ci.epv.get_sexpr(), ir.Id('%s__epv'%Name))
+                ci.stub.new_def(c_gen(v))
                 print Name+'.c:'
                 print str(ci.stub)
 
@@ -411,6 +417,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'symbol':    "integer"
         }
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=ChapelFile()):
         def gen(node):
@@ -441,11 +448,14 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s: %s'%(gen(Name), gen(Type))
 
-            elif (sidl.primitive_type, Type):         return self.type_map[Type]
-            elif (sidl.custom_attribute, Name):       return Name
-            elif (sidl.id,  Name):                    return Name
-            elif (sidl.method_name, Name, []):        return Name
-            elif (sidl.method_name, Name, Extension): return Name+' '+Extension
+            elif (sidl.class_, (sidl.id, Name), Extends, Implements, Invariants, Methods):
+                return 'class '+Name
+
+            elif (sidl.primitive_type, Type):       return self.type_map[Type]
+            elif (sidl.custom_attribute, Id):       return gen(Id)
+            elif (sidl.id, Name):                   return Name
+            elif (sidl.method_name, Id, []):        return gen(Id)
+            elif (sidl.method_name, Id, Extension): return gen(Id)
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 

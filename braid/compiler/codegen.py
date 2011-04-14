@@ -95,6 +95,19 @@ def generate(language, ir_code, debug=False):
         else: 
             exit(1)
 
+def generator(fn):
+    """
+    sanity-check decorator for generator functions
+    """
+    def wrapped(*args):
+        r = fn(*args)
+        if r == None or isinstance(r, tuple):
+            print args
+            print '---->', r
+            raise Exception("Code generator output failed sanity check")
+        return r
+
+    return wrapped
 
 
 class Scope(object):
@@ -241,6 +254,7 @@ class GenericCodeGenerator(object):
     type_map, un_op and bin_op.
     """
     
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SourceFile()):
         """
@@ -289,14 +303,6 @@ class GenericCodeGenerator(object):
         if (isinstance(r, str)):
             raise Exception("unexpected retval")
         return str(child_scope)
-
-
-    def get_type(self, node):
-        """
-        \return a string with the type of the IR node \c node.
-        """
-        import pdb; pdb.set_trace()
-        return "sFIXME "+str(node)
 
     def get_item_type(self, struct, item):
         """
@@ -425,7 +431,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
-
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope):
         """
@@ -631,6 +637,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             elif ('symbol'):      return ""
             else: return super(Fortran90CodeGenerator, self).get_type(node)
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=F90File()):
         # recursion
@@ -753,6 +760,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
     struct_direct_access = ['dcomplex', 'double', 'fcomplex', 'float', 
                             'int', 'long', 'enum']
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=F03File()):
         # recursion
@@ -868,6 +876,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=CFile()):
         # recursion
@@ -889,7 +898,8 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             s = scope
             while not s.has_declaration_section():
                 s = s.parent
-            s.new_header_def(self.get_type(typ)+' '+gen(name)+';')
+            s.new_header_def(gen(typ)+' '+gen(name)+';')
+            return scope
 
         def gen_comma_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
@@ -906,12 +916,13 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return new_def(gen(Expr)+';')
 
             elif (ir.fn_decl, Type, Name, Args):
-                scope.new_header_def("%s %s(%s)"% (gen(Type), gen(Name), gen(Args)))
+                scope.new_header_def("%s %s(%s)"% (
+                        gen(Type), gen(Name), gen_comma_sep(Args)))
+                return scope
 
             elif (ir.fn_defn, Type, Name, Args, Body):
-                return new_scope("%s %s(%s)"% 
-                                 (gen(Type), gen(Name), gen_comma_sep(Args)), 
-                                 gen(Body))
+                return new_scope("%s %s(%s)"% (
+                        gen(Type), gen(Name), gen_comma_sep(Args)), gen(Body))
 
             elif (ir.return_, Expr):
                 return "return %s" % gen(Expr)
@@ -922,8 +933,12 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
 
-            elif (ir.arg, Attr, Mode, Type, Name): '%s %s'% (gen(Type), gen(Name))
-            elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
+            elif (ir.arg, Attr, Mode, Type, Name): 
+                return '%s %s'% (gen(Type), gen(Name))
+
+            elif (ir.var_decl, Type, Name): 
+                return declare_var(gen(Type), gen(Name))
+
             elif (ir.call, Name, Args): 
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
@@ -964,6 +979,8 @@ class CCodeGenerator(ClikeCodeGenerator):
         'symbol':      ""
         }
 
+
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=CFile()):
         # recursion
@@ -979,8 +996,8 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if   (ir.struct, Name, _):         return Name
-            elif (ir.primitive_type, Name, _): return Name
+            if   (ir.struct, Name, _):         return gen(Name)
+            elif (ir.primitive_type, Name, _): return gen(Name)
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'->'+gen(Item)
@@ -997,7 +1014,7 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.struct, Name, _): return gen(Name)
-            elif (sidl.scoped_id, Names, Ext):
+            elif (ir.scoped_id, Names, Ext):
                 return '_'.join([name for _, name in Names])
 
             elif (Expr):
@@ -1025,6 +1042,7 @@ class CXXCodeGenerator(CCodeGenerator):
         """\return a string with the type of the IR node \c node."""
         return super(CXXCodeGenerator, self).get_type(node)
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=CXXFile()):
         # recursion
@@ -1085,6 +1103,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
         'symbol':      ""
         }
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=JavaFile()):
         # recursion
@@ -1192,6 +1211,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=PythonFile()):
         # recursion
@@ -1262,6 +1282,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
     """
     SIDL code generator
     """
+    @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SIDLFile()):
         # recursion
