@@ -274,7 +274,7 @@ def compile_matcher(f):
 	    return -1
 	if re.match(r'.*\t.*', s):
 	    raise Exception('Sorry... the input contains tabs:\n'+line)
-	return len(re.match(r'^ *', s).group(0))
+	return len(re.match(r'^\s*', s).group(0))
 
     def scan_variables(rexpr):
 	"""

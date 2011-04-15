@@ -33,7 +33,7 @@
 #
 # </pre>
 
-import sys
+import sys, re
 import ir, sidl
 from patmat import matcher, Variable, match, member
 
@@ -109,6 +109,48 @@ def generator(fn):
 
     return wrapped
 
+def accepts(*types):
+    """
+    Enforce function argument types. 
+    Taken from directly from pep-0318.
+    """
+    def check_accepts(f):
+        assert len(types) == f.func_code.co_argcount
+        def new_f(*args, **kwds):
+            for (a, t) in zip(args, types):
+                assert isinstance(a, t), \
+                       "arg %r does not match %s" % (a,t)
+            return f(*args, **kwds)
+        new_f.func_name = f.func_name
+        return new_f
+    return check_accepts
+
+def returns(rtype):
+    """
+    Enforce function return types. 
+    Taken from directly from pep-0318.
+    """
+    def check_returns(f):
+        def new_f(*args, **kwds):
+            result = f(*args, **kwds)
+            assert isinstance(result, rtype), \
+                   "return value %r does not match %s" % (result,rtype)
+            return result
+        new_f.func_name = f.func_name
+        return new_f
+    return check_returns
+
+def sep_by(separator, strings):
+    """
+    Similar to \c string.join() but appends the seperator also after
+    the last element, if any.
+    """
+    r = separator.join(strings)
+    if len(strings) > 0:
+        return r+separator
+    else:
+        return r
+
 
 class Scope(object):
     """
@@ -135,15 +177,23 @@ class Scope(object):
     create a child \Scope object with a different indentation.
 
     """
-    def __init__(self, parent=None, relative_indent=0, separator='\n'):
+    def __init__(self, 
+                 parent=None, 
+                 relative_indent=0, 
+                 separator='\n',
+                 max_line_length=80):
         """
-        \param parent         The enclosing scope.
+        \param parent           The enclosing scope.
 
-        \param relative_indent The amount of indentation relative to
-                              the enclosing scope.
+        \param relative_indent  The amount of indentation relative to
+                                the enclosing scope.
 
-        \param separator      This string will be inserted between every
-                              two definitions.
+        \param separator        This string will be inserted between every
+                                two definitions.
+
+        \param max_line_length  The maximum length that a line should occupy.
+                                Longer lines will be broken into shorter ones
+                                automatically.
         """
         self.parent = parent
         self._header = []
@@ -151,6 +201,7 @@ class Scope(object):
         self._pre_defs = []
         self._post_defs = []
         self.relative_indent = relative_indent
+        self._max_line_length = max_line_length
         if parent: self.indent_level = parent.indent_level + relative_indent
         else:      self.indent_level = relative_indent
         self._sep = separator+' '*self.indent_level
@@ -165,7 +216,7 @@ class Scope(object):
         """
         append definition \c s to the header of the scope
         """
-        self._header.append(s)
+        self._header.append(self.break_line(s))
 
     def new_def(self, s):
         """
@@ -177,11 +228,12 @@ class Scope(object):
         \return \c self
         """
         #print 'new_def', s
-        self._defs.extend(self._pre_defs)
-        self._defs.append(str(s))
-        self._defs.extend(self._post_defs)
-        self._pre_defs = []
-        self._post_defs = []
+        if s <> self:
+            self._defs.extend(self._pre_defs)
+            self._defs.append(self.break_line(str(s)))
+            self._defs.extend(self._post_defs)
+            self._pre_defs = []
+            self._post_defs = []
         return self
 
     def pre_def(self, s):
@@ -189,14 +241,14 @@ class Scope(object):
         Record a definition \c s to be added to \c defs before the
         next call of \c new_def.
         """
-        self._pre_defs.append(s)
+        self._pre_defs.append(self.break_line(s))
 
     def post_def(self, s):
         """
         Record a definition \c s to be added to \c defs after the
         next call of \c new_def.
         """
-        self._post_defs.append(s)
+        self._post_defs.append(self.break_line(s))
 
     def get_defs(self):
         """
@@ -215,6 +267,27 @@ class Scope(object):
         if len(s) > 0:
             return ' '*self.relative_indent + s
         return s
+
+    def break_line(self, string):
+        """
+        Break a string of C-like code at max_line_length.
+        """
+        # FIXME: this can't stay this way. We should be doing this only once per line
+        lines = []
+        for ln in string.split('\n'):
+            tokens = ln.split(' ')
+            indent = self._sep
+            if indent == '\n': indent = '\n  ' # toplevel
+            while len(tokens) > 0:
+                line = ""
+                while (len(tokens) > 0 and 
+                       len(line)+len(tokens[0]) < self._max_line_length):
+                    line += tokens.pop(0)
+                    if len(tokens): line += ' '
+                lines += [line]
+
+        return indent.join(lines)
+
 
 class SourceFile(Scope):
     """
@@ -333,7 +406,7 @@ class F77File(SourceFile):
         Append definition \c s to the scope
         \return  \c self
         """
-        # split long lines
+        # break long lines
         tokens = s.split()
         line = ' '*(self.relative_indent+indent)
         while len(tokens) > 0: 
@@ -829,17 +902,38 @@ class CFile(SourceFile):
     """
     This class represents a C source file
     """
-    def __init__(self):
+    def __init__(self, parent=None, relative_indent=0):
         #FIXME should be 0 see java comment
-        super(CFile, self).__init__(relative_indent=2)
-    
-class CCompoundStmt(Scope):
+        super(CFile, self).__init__(parent, relative_indent)
+
+    def __str__(self):
+        """
+        Perform the actual translation into a readable string,
+        complete with indentation and newlines.
+        """
+        return self.dot_h() + self.dot_c()
+
+    def dot_h(self):
+        """
+        Return a string of the header file declarations
+        """
+        s = sep_by(';\n', self._header)
+        #if len(s) > 0:
+        #    return ' '*self.relative_indent + s
+        return s
+
+    def dot_c(self):
+        """
+        Return a string of the c file declarations
+        """
+        return self._sep.join(self._defs)
+
+
+class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
-        super(CCompoundStmt, self).__init__(
-            parent_scope,
-            relative_indent=2, 
-            separator='\n')
+        super(CCompoundStmt, self).__init__(parent_scope, relative_indent=2)
+
     def __str__(self):
         return (' {\n'
                 + ' '*self.indent_level 
@@ -885,20 +979,21 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
         def new_def(s):
             #print 'new_def:', str(s)
-            #import pdb; pdb.set_trace()
             return scope.new_def(s)
 
+        @accepts(str, tuple, str)
         def new_scope(prefix, body, suffix='\n'):
             '''used for things like if, while, ...'''
             comp_stmt = CCompoundStmt(scope)
-            return new_def(prefix+str(self.generate(str(body), comp_stmt))+suffix)
+            s = str(self.generate(body, comp_stmt))
+            return new_def(prefix+s+suffix)
 
         def declare_var(typ, name):
             '''unless, of course, var were declared'''
             s = scope
             while not s.has_declaration_section():
                 s = s.parent
-            s.new_header_def(gen(typ)+' '+gen(name)+';')
+            s.new_header_def(gen(typ)+' '+gen(name))
             return scope
 
         def gen_comma_sep(defs):
@@ -922,7 +1017,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.fn_defn, Type, Name, Args, Body):
                 return new_scope("%s %s(%s)"% (
-                        gen(Type), gen(Name), gen_comma_sep(Args)), gen(Body))
+                        gen(Type), gen(Name), gen_comma_sep(Args)), Body)
 
             elif (ir.return_, Expr):
                 return "return %s" % gen(Expr)
@@ -1169,6 +1264,23 @@ class PythonFile(SourceFile):
         """
         return ' '*self.indent_level+(
             '\n'+' '*self.indent_level).join(self._header+self._defs)+'\n'
+
+    def break_line(self, string):
+        """
+        Break a string of Python code at max_line_length.
+        """
+        tokens = string.split()
+        indent = ('\\\n'+re.match(r'^\s*', tokens[0]).group(0) +
+                  ' '*self.relative_indent)
+        lines = []
+        while len(tokens) > 0:
+            line = ""
+            while (len(tokens) > 0 and 
+                   len(line)+len(tokens[0]) < self._max_line_length):
+                line += tokens.pop(0)+' '
+            lines += [line]
+        return indent.join(lines)
+
 
 class PythonIndentedBlock(PythonFile):
     """Represents an indented block of statements"""

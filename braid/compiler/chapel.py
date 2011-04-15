@@ -113,23 +113,25 @@ class Chapel:
 
             elif (sidl.class_, (sidl.id, Name), Extends, Implements, Invariants, Methods):
                 expect(data, None)
-                impl = ChapelFile()
-                ci = self.ClassInfo(ChapelScope(impl), CFile(), EPV(Name, symbol_table))
-                self.gen_default_methods(symbol_table, Name, ci)
+                # impl = ChapelFile()
+                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table))
+                # self.gen_default_methods(symbol_table, Name, ci)
                 gen1(Methods, ci)
 
-                # Implementation
-                impl.new_def('module %s {'%Name)
-                impl.new_def(ci.impl)
-                impl.new_def('}')
-                print Name+'.chpl:'
-                print str(ci.impl)
+                # # Implementation
+                # impl.new_def('module %s {'%Name)
+                # impl.new_def(ci.impl)
+                # impl.new_def('}')
+                # print Name+'.chpl:'
+                # print str(ci.impl)
 
                 # Stub (in C)
                 v = ir.Var_decl(ci.epv.get_sexpr(), ir.Id('%s__epv'%Name))
-                ci.stub.new_def(c_gen(v))
-                print Name+'.c:'
-                print str(ci.stub)
+                c_gen(v, ci.stub)
+                print '\n\n'+Name+'.h:'
+                print ci.stub.dot_h()
+                print '\n\n'+Name+'.c:'
+                print ci.stub.dot_c()
 
             elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
                 self.generate_client_method(symbol_table, node, data)               
@@ -213,7 +215,7 @@ class Chapel:
         data.impl.new_def('_extern '+ chpl_gen(method))
         # output the stub definition
         stub = self.generate_stub(symbol_table, method, data)
-        data.stub.new_header_def(c_gen(stub))
+        c_gen(stub, data.stub)
 
 
     def generate_stub(self, symbol_table,
@@ -381,10 +383,10 @@ class EPV:
              for itype, iname in map(get_type_name, self.methods)])
 
 def chpl_gen(ir):
-    return str(ChapelCodeGenerator().generate(ir, ChapelFile()))
+    return str(ChapelCodeGenerator().generate(ir, ChapelScope()))
 
-def c_gen(ir):
-    return str(CCodeGenerator().generate(ir, CFile()))
+def c_gen(ir, scope):
+    (CCodeGenerator().generate(ir, scope))
 
 class ChapelFile(SourceFile):
     def __init__(self, parent=None, relative_indent=0):
