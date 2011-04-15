@@ -31,7 +31,7 @@
 %#
 %# Caveats: scoped IDs in IR must always be absolute.
 %#
-%%# Built-in types are [str, int, float]
+%%# Built-in types are ['STR' | 'FLOAT' | 'INT']
 %%# Do not forget to add parentheses around ( A|B )!
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
@@ -55,8 +55,8 @@
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
-  Literal = (int | float | str | pure | result | complex | true | false),
-  Complex = complex(float, float),
+  Literal = ('STR' | 'FLOAT' | 'INT' | pure | result | Complex | true | false),
+  Complex = complex('FLOAT', 'FLOAT'),
   Struct = struct(Scoped_id, [Struct_item]),
   Struct_item = struct_item(Type, Id),
   Enum = enum(Id, [Enum_item]),
@@ -72,7 +72,8 @@
   Type = ( Primitive_type
 	 | Pointer_type
 	 | const(Type) 
-	 | Struct),
+	 | Struct
+	 | Enum),
   Primitive_type = primitive_type(
       bool
     | char
@@ -86,8 +87,8 @@
     | void ),
   Pointer_type = pointer_type(Type|Fn_decl),
   Scoped_id = scoped_id([Id], Extension),
-  Extension = str,
-  Id = id(str)
+  Extension = 'STR',
+  Id = id('STR')
 ].
 % ## const char*
 %const_str = Pointer_type(Const(Primitive_type(char)))

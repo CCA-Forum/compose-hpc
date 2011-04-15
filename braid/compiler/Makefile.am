@@ -9,7 +9,7 @@ PYTHONPATH=$(builddir):$(PYTHONPATH1)
 
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = patmat.py sidl_oop.py codegen.py braid.py splicer.py
-python_PYTHON = $(PYTHON_SOURCES) sidl_parser.py
+python_PYTHON = $(PYTHON_SOURCES) $(BUILT_SOURCES) sidl_parser.py
 noinst_PYTHON = sidl_token.py
 BUILT_SOURCES = parsetab.py ir.py sidl.py
 GRAMMARS = ir.def sidl.def

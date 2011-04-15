@@ -31,13 +31,13 @@
 %#
 %# <h2>Grammar definition</h2>
 %#
-%%# Built-in types are [str, int, float]
+%%# Built-in types are ['STR' | 'FLOAT' | 'INT']
 %%# Do not forget to add parentheses around ( A|B )!
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [  
   _File = file([Require], [Import], [User_type]),
-  Version = version(str | float | int),
+  Version = version('STR' | 'FLOAT' | 'INT'),
   Require = require(Scoped_id, Version),
   Import = import(Scoped_id, Version),
   Package = package(Id, Version, [User_type]),
@@ -48,7 +48,7 @@
           | Struct
           | Enum ),
   Type_attr = type_attribute(final | abstract),
-  Id = id(str),
+  Id = id('STR'),
   Enum = enum(Id, [Enumerator]),
   Enumerator = enumerator(Id, int),
   Struct = struct(Scoped_id, [Struct_item]),
@@ -59,7 +59,7 @@
                | implements_all(Scoped_id)),
   Method = method(Type_void, Method_name, [Method_attr], [Arg], [Except], [From], [Require], [Ensure]),
   Method_name = method_name(Id, Extension),
-  Extension = str,
+  Extension = 'STR',
   Type_void = ( void | Type ),
   Method_attr = ( oneway
                 | local
@@ -76,14 +76,14 @@
   Extends = extends([Scoped_id]),
   Arg = ( arg([Arg_attr], Mode, Type_void, Id)
         | rarg([Arg_attr], Mode, Rarray) ),
-  Arg_attr = (copy | [str]),
-  Custom_attr = ( custom_attribute(str)
-                | custom_attribute_assoc(str, str)
+  Arg_attr = (copy | ['STR']),
+  Custom_attr = ( custom_attribute('STR')
+                | custom_attribute_assoc('STR', 'STR')
                 ),
   Mode = (in | out | inout),
   Type = (Primitive_type | Array | Scoped_id),
   Primitive_type = primitive_type(
-      bool|char|integer|long|float|double|fcomplex|dcomplex|string|opaque),      
+      bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),      
   Array = array(Scalar_type, Dimension, Orientation),
   Scalar_type = (Primitive_type|Scoped_id),
   Dimension = int,
@@ -102,6 +102,6 @@
           |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
   Scoped_id = scoped_id([Id], Extension),
-  Literal = (int | float | str | pure | result | Complex),
-  Complex = complex(float, float)
+  Literal = ('INT' | 'FLOAT' | 'STR' | pure | result | Complex),
+  Complex = complex('FLOAT', 'FLOAT')
 ].

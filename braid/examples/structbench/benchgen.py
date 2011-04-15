@@ -1,4 +1,4 @@
-import ir, codegen
+import sidl, ir, codegen
 # Generator for testcases
 # This is a one-shot script to generate a couple of testcases.
 # It also doubles as a convoluted example of how to use BRAID to
@@ -38,23 +38,23 @@ def sidl_code(n, datatype):
     
     }                                            
     """
-    return (ir.file_, [], [], [
-            (ir.package, (ir.identifier, "s"), (ir.version, 1.0),
-             [(ir.user_type, [], (ir.struct, (ir.identifier, 'Vector'), 
-                                  [(ir.struct_item, (ir.primitive_type, datatype), 
-                                    (ir.identifier, 'm%d'%i))
+    return sidl.File([], [], [sidl.User_type([],
+            sidl.Package(sidl.Id("s"), sidl.Version(1.0),
+             [sidl.User_type([], sidl.Struct(sidl.Scoped_id([sidl.Id('Vector')], ''),
+                                  [sidl.Struct_item(sidl.Primitive_type(datatype),
+                                                    sidl.Id('m%d'%i))
                                    for i in range(1, n+1)])),
-              (ir.user_type, [], 
-               (ir.class_, (ir.identifier, "Benchmark"), [], [], [],
-                [(ir.method, 
-                  (ir.primitive_type, datatype), 
-                  (ir.identifier, "run"), [],
-                  [(ir.arg, [], (ir.mode, "in"), 
-                    (ir.scoped_id, ["Vector"], []), (ir.identifier, "a")),
-                   (ir.arg, [], (ir.mode, "inout"), 
-                    (ir.scoped_id, ["Vector"], []), (ir.identifier, "b"))],
+              sidl.User_type([], 
+               sidl.Class(sidl.Id("Benchmark"), [], [], [],
+                [sidl.Method(
+                  sidl.Primitive_type(datatype), 
+                  sidl.Method_name(sidl.Id("run"), ''), [],
+                  [sidl.Arg([], sidl.in_, 
+                            sidl.Scoped_id([sidl.Id("Vector")], ''), sidl.Id("a")),
+                   sidl.Arg([], sidl.inout,
+                            sidl.Scoped_id([sidl.Id("Vector")], ''), sidl.Id("b"))],
                   [], [], [], [])
-                 ]))])])
+                 ]))]))])
 
 #-----------------------------------------------------------------------
 # benchmark kernels
@@ -63,81 +63,89 @@ def dotproduct_expr(n, datatype):
     def add(a, b):
         return ("+", a, b)
 
-    a = (ir.struct, (ir.identifier, "s"), (ir.identifier, 'Vector'), 
-         [(ir.struct_item, datatype, 'm%d'%i) for i in range(1, n+1)])
+    def item(name):
+        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+
+    a = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''),
+         [ir.Struct_item(ir.Primitive_type(datatype), ir.Id('m%d'%i)) for i in range(1, n+1)])
     b = a
     e = reduce(add, map(lambda i:
                             ("*",
-                             (ir.get_struct_item, a, (ir.identifier, "a"), 'm%d'%i),
-                             (ir.get_struct_item, b, (ir.identifier, "b"), 'm%d'%i)),
+                             ir.Get_struct_item(a, ir.Id("a"), 'm%d'%i),
+                             ir.Get_struct_item(b, ir.Id("b"), 'm%d'%i)),
                         range(1, n+1)))
-    return (ir.stmt, ('return', e))
+    return ir.Stmt(('return', e))
 
 def const_access_expr(n, datatype):
     def add(a, b):
         return ("+", a, b)
 
-    t = (ir.struct, (ir.identifier, "s"), (ir.identifier, 'Vector'), 
-         [(ir.struct_item, datatype, 'm%d'%i) for i in range(1, n+1)])
-    a = (ir.arg, t, ir.in_)
-    b = (ir.arg, t, ir.inout)
+    def item(name):
+        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+
+    t = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''), 
+         [ir.Struct_item(ir.Primitive_type(datatype), ir.Id('m%d'%i)) for i in range(1, n+1)])
     e = reduce(add, map(lambda i:
                             ("*",
-                             (ir.get_struct_item, a, (ir.identifier, "a"), 'm%d'%(i%n+1)),
-			     (ir.get_struct_item, b, (ir.identifier, "b"), 'm%d'%(i%n+1))),
+                             ir.Get_struct_item(t, ir.Id("a"), item('m%d'%(i%n+1))),
+			     ir.Get_struct_item(t, ir.Id("b"), item('m%d'%(i%n+1)))),
                         range(1, 129)))
-    return (ir.stmt, ('return', e))
+    return ir.Stmt(('return', e))
 
 def reverse_expr(n, datatype):
     'b_i = a_{n-i}'
-    t = (ir.struct, (ir.identifier, "s"), (ir.identifier, 'Vector'), 
-         [(ir.struct_item, datatype, 'm%d'%i) for i in range(1, n+1)])
-    a = (ir.arg, t, ir.in_)
-    b = (ir.arg, t, ir.inout)
-    revs = [(ir.stmt, (ir.set_struct_item, b, (ir.identifier, "b"), 'm%d'%i,
-                       (ir.get_struct_item, a, (ir.identifier, "a"), 'm%d'%(n-i+1))))
+    def item(name):
+        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+
+    t = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''), 
+         [ir.Struct_item(ir.Primitive_type(datatype), ir.Id('m%d'%i)) for i in range(1, n+1)])
+    revs = [ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%i),
+                       ir.Get_struct_item(t, ir.Id("a"), item('m%d'%(n-i+1)))))
             for i in range(1, n+1)]
-    return revs+[(ir.stmt, ('return', retval(n, datatype)))]
+    return revs+[ir.Stmt(('return', retval(n, datatype)))]
 
 
 def nop_expr(n, datatype):
-    return (ir.stmt, ('return', retval(n, datatype)))
+    return ir.Stmt(('return', retval(n, datatype)))
 
 def bsort_expr(n, datatype):
     def assign(var, val):
-        return (ir.stmt, (ir.assignment, var, val))
+        return ir.Stmt((ir.assignment, var, val))
 
-    t = (ir.struct, (ir.identifier, "s"), (ir.identifier, 'Vector'), 
-         [(ir.struct_item, datatype, 'm%d'%i) for i in range(1, n+1)])
-    a = (ir.arg, t, ir.in_)
-    b = (ir.arg, t, ir.inout)
-    copy = [(ir.stmt, (ir.set_struct_item, b, (ir.identifier, "b"), 'm%d'%i,
-                      (ir.get_struct_item, a, (ir.identifier, "a"), 'm%d'%i)))
+    def item(name):
+        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+
+    t = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''),
+            [item('m%d'%i) for i in range(1, n+1)])
+    a = ir.Arg(t, ir.in_)
+    b = ir.Arg(t, ir.inout)
+    copy = [ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%i),
+                      ir.Get_struct_item(t, ir.Id("a"), item('m%d'%i))))
             for i in range(1, n+1)]
-    sort = [(ir.var_decl, (ir.type_, "bool"), (ir.identifier, "swapped")),
-            (ir.var_decl, (ir.type_, "int"), (ir.identifier, "tmp")),
-            (ir.do_while, (ir.identifier, "swapped"),
+    sort = [(ir.var_decl, (ir.type_, "bool"), ir.Id("swapped")),
+            (ir.var_decl, (ir.type_, "int"), ir.Id("tmp")),
+            (ir.do_while, ir.Id("swapped"),
              # if A[i-1] > A[i]
-             [assign((ir.identifier, "swapped"), ir.false)]+
-             [[(ir.if_, ('>', (ir.get_struct_item, b, (ir.identifier, "b"), 'm%d'%(i-1)),
-                              (ir.get_struct_item, b, (ir.identifier, "b"), 'm%d'%i)),
+             [assign(ir.Id("swapped"), ir.false)]+
+             [[(ir.if_, ('>', ir.Get_struct_item(t, ir.Id("b"), item('m%d'%(i-1))),
+                              ir.Get_struct_item(t, ir.Id("b"), item('m%d'%i))),
                 # swap( A[i-1], A[i] )
                 # swapped = true
-                [assign((ir.identifier, "tmp"), 
-                        (ir.get_struct_item, b, (ir.identifier, "b"), 'm%d'%i)),
-                 (ir.stmt, (ir.set_struct_item, b, (ir.identifier, "b"), 'm%d'%i,
-                           (ir.get_struct_item, b, (ir.identifier, "b"), 'm%d'%(i-1)))),
-                 (ir.stmt, (ir.set_struct_item, b, (ir.identifier, "b"), 'm%d'%(i-1),
-                           (ir.identifier, "tmp"))),
-                 assign((ir.identifier, "swapped"), ir.true)])]
+                [assign(ir.Id("tmp"), 
+                        ir.Get_struct_item(t, ir.Id("b"), item('m%d'%i))),
+                 ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%i),
+                           ir.Get_struct_item(t, ir.Id("b"), item('m%d'%(i-1))))),
+                 ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%(i-1)),
+                           ir.Id("tmp"))),
+                 assign(ir.Id("swapped"), ir.true)])]
               for i in range(2, n+1)])]
-    return copy+sort+[(ir.stmt, ('return', retval(n, datatype)))]
+    return copy+sort+[ir.Stmt(('return', retval(n, datatype)))]
 
 def retval(n, datatype):
     if datatype == "bool":     return (ir.true)
-    elif datatype == "int":  return (ir.value, n)
-    elif datatype == "float":  return (ir.value, n)
-    elif datatype == "string": return (ir.literal, str(n))
+    elif datatype == "int":  return (n)
+    elif datatype == "float":  return (n)
+    elif datatype == "string": return (str(n))
     else: raise
 
 #-----------------------------------------------------------------------
@@ -213,8 +221,8 @@ EXIT: /* this is error handling code for any exceptions that were thrown */
 
 import subprocess, splicer, argparse, os, re
 #-----------------------------------------------------------------------
-if __name__ == '__main__':
 #-----------------------------------------------------------------------
+def main():
     cmdline = argparse.ArgumentParser(description='auto-generate struct benchmarks')
     cmdline.add_argument('i', metavar='n', type=int,
 			 help='number of elements in the Vector struct')
@@ -386,3 +394,11 @@ medtime ./runC2{lang} out{lang} {i} {t} {e}
                                    for lang in languages])+' >times\n')
     f.close()
 
+if __name__ == '__main__':
+    try:
+        main()
+    except:
+        # Invoke the post-mortem debugger
+        import pdb, sys
+        print sys.exc_info()
+        pdb.post_mortem()

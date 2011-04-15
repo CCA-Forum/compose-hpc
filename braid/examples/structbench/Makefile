@@ -1,5 +1,5 @@
 BABELPATH=/home/prantl1/work/babel/install/bin
-PYTHONPATH=/home/prantl1/work/babel/install/lib/python2.6/site-packages
+PYTHONPATH=../../../../braid.build/compiler:../../compiler
 
 #NUMBERS=1 #2 4 6 8 12 16 24 32 48 64 96 128 #256 512
 NUMBERS=$(shell seq 1 16) 18 20 $(shell seq 24 4 48) 64 96 128

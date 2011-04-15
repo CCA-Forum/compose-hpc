@@ -36,6 +36,7 @@ main(_) :-
     format('#     ### ### #### ### ###~n'),
     format('#     ### DO NOT EDIT! ###~n'),
     format('#     ### ### #### ### ###~n'),
+    format('import types as PythonTypes~n'),
     prompt(_, ''),
     (	read_term(Term, [variable_names(Varnames), singletons(warning), syntax_errors(fail)])
     ;	format(user_error, '**Syntax error.~n', []), halt(1)
@@ -79,12 +80,11 @@ unify(Fail) :- format(user_error, '**Failed in rule `~w\'~n', [Fail]), fail.
 docref(Name=Var) :-
     safe_atom(Name, NameS),
     atom_concat('\\c ', NameS, Var).
-    %downcase_atom(Ref, Var).
 
 % ignore python builtins
-tokendef(str).
-tokendef(float).
-tokendef(int).
+tokendef('STR').
+tokendef('FLOAT').
+tokendef('INT').
 tokendef(Token) :-
     safe_atom(Token, TokenS),
     format('~a = \'~a\'~n', [TokenS, Token]).
@@ -181,16 +181,19 @@ validation(Arg, Var, Indent) :- !,
     format('~a    raise Exception("Grammar Error")~n', [Indent]).
 
 % builtin
+builtin_name('STR', 'PythonTypes.StringType').
+builtin_name('INT', 'PythonTypes.IntType').
+builtin_name('FLOAT', 'PythonTypes.FloatType').
 type_check(A, Var, Indent) :-
-    member(A, [int, str, float]),
-    format('if (isinstance(~a, ~a)):~n', [Var, A]),
+    builtin_name(A, BuiltinType),
+    format('if isinstance(~a, ~a):~n', [Var, BuiltinType]),
     format('~a    pass~n', [Indent]).
 
 % atom
 type_check(A, Var, Indent) :-
     atom(A),
     safe_atom(A, AS),
-    format('if (~a == ~a):~n', [Var, AS]),
+    format('if ~a == ~a:~n', [Var, AS]),
     format('~a    pass~n', [Indent]).
 
 % list
@@ -209,7 +212,7 @@ type_check(A|B, Var, Indent) :-
 type_check(A, Var, Indent) :-
     A =.. [Type|_],
     safe_atom(Type, TypeS),
-    format('if (~a[0] == ~a):~n', [Var, TypeS]),
+    format('if isinstance(~a, tuple) and ~a[0] == ~a:~n', [Var, Var, TypeS]),
     format('~a    pass~n', [Indent]).
 
 %% validations/2

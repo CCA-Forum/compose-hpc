@@ -276,8 +276,6 @@ class Scope(object):
         lines = []
         for ln in string.split('\n'):
             tokens = ln.split(' ')
-            indent = self._sep
-            if indent == '\n': indent = '\n  ' # toplevel
             while len(tokens) > 0:
                 line = ""
                 while (len(tokens) > 0 and 
@@ -286,6 +284,8 @@ class Scope(object):
                     if len(tokens): line += ' '
                 lines += [line]
 
+        il = self.indent_level + max(self.relative_indent, 2) # toplevel
+        indent = '\n' +' '*self.indent_level
         return indent.join(lines)
 
 
@@ -348,6 +348,7 @@ class GenericCodeGenerator(object):
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
+            elif (ir.struct_item, Type, (ir.id, Name)): return Name
             elif (A):        
                 if (isinstance(A, list)):
                     for defn in A:
@@ -1507,10 +1508,10 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 return ('rarray<%s%s> %s(%s)' %
                         (gen(Typ), _comma_gen(Dimension), gen(Name), gen_comma_sep(Extents)))
 
-            elif (sidl.enum, (sidl.id, Name), Enumerators):
+            elif (sidl.enum, Name, Enumerators):
                 gen_scope('enum %s {' % gen(Name), Enumerators, '}')
 
-            elif (sidl.struct, (sidl.id, Name), Items):
+            elif (sidl.struct, Name, Items):
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
             elif (sidl.scoped_id, A, B):
@@ -1537,5 +1538,12 @@ class SIDLCodeGenerator(GenericCodeGenerator):
         return ''
 
 if __name__ == '__main__':
-    print str(generate('C', ir.Plus(1, 2)))
-    print [generate(lang, ir.Plus(1, 2)) for lang in ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]] 
+    try:
+        print str(generate('C', ir.Plus(1, 2)))
+        print [generate(lang, ir.Plus(1, 2)) for lang in ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]] 
+    except:
+        # Invoke the post-mortem debugger
+        import pdb, sys
+        print sys.exc_info()
+        pdb.post_mortem()
+
