@@ -29,10 +29,10 @@ void append_char(char *d, char c) {
 
 %%
 
-[ \t\n]              {}
-=                    { yyextra = copy(yytext,yyleng); return EQ; }
-[0-9]+|[0-9]*        { yyextra = copy(yytext,yyleng); return NUM; }
-[A-Za-z][A-Za-z0-9]* { yyextra = copy(yytext,yyleng); return ID; }
+[ \t\n]                  {}
+=                        { yyextra = copy(yytext,yyleng); return EQ; }
+[0-9]+|[0-9]*            { yyextra = copy(yytext,yyleng); return NUM; }
+[A-Za-z\_][A-Za-z0-9\_]* { yyextra = copy(yytext,yyleng); return ID; }
 \" { 
   yyextra = (char *)calloc(sizeof(char),MAX_STRING_LENGTH);
   BEGIN(STR);

@@ -17,6 +17,7 @@ using namespace std;
 
 %syntax_error { 
   printf("Syntax error!\n");
+  exit(1);
 }
 
 %parse_failure {
