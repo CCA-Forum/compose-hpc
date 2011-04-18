@@ -95,14 +95,14 @@ class Variable:
     """
     A logical variable for use with \c match and \c unify.
     """
-
     def __init__(self):
 	self.binding = None
 
     def bind(self, value, bindings):
 	"""
 	Bind the variable to a \c value and record the variable onto
-	the trail stack \param bindings the trail stack.
+	the trail stack \c bindings the trail stack.
+
 	\param value     the new value for the variable.
 	\param bindings  a mutable list of bindings
 	"""

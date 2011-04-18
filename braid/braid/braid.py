@@ -29,6 +29,7 @@ import argparse
 import sidl_parser
 import codegen
 import chapel
+import config
 
 def braid(args):
     for sidl_file in args.sidl_files:
@@ -51,11 +52,12 @@ def braid(args):
 
 if __name__ == '__main__':
 
-    cmdline = argparse.ArgumentParser(description='''
-Do magically wonderful things with SIDL (scientific interface
-definition language) files.
-''')
-    cmdline.add_argument('sidl_files', metavar='<file.sidl>', nargs='+',#type=file
+    cmdline = argparse.ArgumentParser(description=config.PACKAGE_STRING+'''
+-- Do magically wonderful things with SIDL 
+(scientific interface definition language) files.
+''', epilog="Please report bugs to <%s>."%config.PACKAGE_BUGREPORT)
+
+    cmdline.add_argument('sidl_files', metavar='<file.sidl>', nargs='*',#type=file
 			 help='SIDL files to use as input')
 
     cmdline.add_argument('--gen-sexp', action='store_true', dest='gen_sexp',
@@ -70,8 +72,16 @@ definition language) files.
 
     cmdline.add_argument('--debug', action='store_true', help='enable debugging features')
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')
+    cmdline.add_argument('--version', action='store_true', help='print version and exit')
 
     args = cmdline.parse_args()
+
+    if args.version:
+        print config.PACKAGE_STRING
+        exit(0)
+    if len(args.sidl_files) == 0:
+        cmdline.print_help()
+        exit(1)
 
     if args.profile:
         # Profiling

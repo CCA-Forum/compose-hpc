@@ -1,0 +1,127 @@
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am
+
+# 3rd party stuff
+if PYTHON_VERSION_2_6
+# add Backports
+  PYTHONPATH1=$(top_srcdir)/contrib/argparse-1.1
+  python_PYTHON += $(top_srcdir)/contrib/argparse-1.1/argparse.py
+else
+  PYTHONPATH1=
+endif
+python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py
+PYTHONPATH=$(top_srcdir)/contrib/ply:$(PYTHONPATH1):.libs:$(builddir)/braid/.libs
+
+# list all Python source files that also contain unit tests
+PYTHON_SOURCES = \
+	braid/braid.py \
+	braid/chapel.py \
+	braid/codegen.py \
+	braid/config.py \
+	braid/patmat.py \
+	braid/sidl_oop.py \
+	braid/splicer.py
+
+# the nobase_ prefix prevents path stripping during install
+nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES) braid/sidl_parser.py
+noinst_PYTHON += braid/sidl_token.py
+BUILT_SOURCES += braid/parsetab.py braid/ir.py braid/sidl.py
+GRAMMARS = braid/ir.def braid/sidl.def
+
+bin_SCRIPTS += braid/braid
+
+nobase_pyexec_LTLIBRARIES += braid/scanner.la
+braid_scanner_la_SOURCES = braid/scanner.l
+braid_scanner_la_CPPFLAGS = $(PYTHONINC)
+braid_scanner_la_LDFLAGS = -avoid-version -module
+braid_scanner_la_LIBADD = -lfl
+
+SIDL_TESTS= \
+	regression/parser/args.sidl \
+	regression/parser/ArrayTest.sidl \
+	regression/parser/cca-0.6.3.sidl \
+	regression/parser/cca-0.8.2.sidl \
+	regression/parser/cca.sidl \
+	regression/parser/clife.sidl \
+	regression/parser/construct.sidl \
+	regression/parser/cxxlife.sidl \
+	regression/parser/decaf.sidl \
+	regression/parser/enums.sidl \
+	regression/parser/ExceptionTest.sidl \
+	regression/parser/f90life.sidl \
+	regression/parser/hello-client.sidl \
+	regression/parser/hello-server.sidl \
+	regression/parser/hello.sidl \
+	regression/parser/hello2.sidl \
+	regression/parser/hooks.sidl \
+	regression/parser/inherit.sidl \
+	regression/parser/knapsack.sidl \
+	regression/parser/life.sidl \
+	regression/parser/objarg.sidl \
+	regression/parser/ordering.sidl \
+	regression/parser/output.sidl \
+	regression/parser/Overload.sidl \
+	regression/parser/pythonlife.sidl \
+	regression/parser/sidl.sidl \
+	regression/parser/sidlx.sidl \
+	regression/parser/sort.sidl \
+	regression/parser/strings.sidl \
+	regression/parser/strop.sidl \
+	regression/parser/struct.sidl \
+	regression/parser/vect.sidl \
+	regression/parser/wave2d_cxx_internal.sidl \
+	regression/parser/wave2d_cxx.sidl \
+	regression/parser/wave2d_f90.sidl \
+	regression/parser/wave2d.sidl \
+	regression/parser/wrapper.sidl
+
+EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py
+
+## SIDL_TESTS=$(patsubst %.sidl,../regression/parser/%.sidl, $(SIDL_NAMES))
+
+#UNIT_TOKENS = $(patsubst %.py,%.unit, $(python_PYTHON))
+# Most of the Python files contain doctest tests
+# see
+# http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
+if ENABLE_REGRESSION
+TESTS = $(PYTHON_SOURCES) $(SIDL_TESTS)
+endif
+TEST_EXTENSIONS = .py .sidl
+PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
+AM_PY_LOG_FLAGS = -m doctest
+SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
+AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
+
+$(builddir)/%.unit: $(srcdir)/%.py scanner.la
+	env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) -m doctest $<
+
+$(builddir)/%.success: $(srcdir)/%.sidl braid
+	braid/braid $<
+
+braid/parsetab.py: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
+	@echo "  PYTHON Generate the sidl parser tables"
+	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$< --compile
+	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$< --compile
+
+braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
+braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
+
+braid/%.py: $(srcdir)/braid/%.def
+	@echo "  GRAMOLA" $<
+	@if [ -x $(SWIPL) ]; then \
+          egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
+	  echo '#\verbatim' >>$@ && \
+	  egrep  -v '^%' $< | sed -e 's/\(.*\)/# \1/g' >>$@ && \
+	  echo '#\endverbatim' >>$@ && \
+	  $(SWIPL) -f $(srcdir)/braid/gramola.pl -t main -q -s <$< >>$@ && \
+          egrep '^%[^#%]' $< | sed -e 's/^%//g' >>$@; \
+	else \
+	  touch $@ && \
+	  echo "WARNING: $@ was NOT updated because swipl is missing"; \
+	fi
+
+clean-braid:
+	cd braid && rm -rf scanner.c braid *.pyc *.pyo parsetab.py* lextab.py* parser.log parser.out
+	rm -rf $(SIDL_TOKENS) $(UNIT_TOKENS)
+# This can be done cleaner... Problem is, we do not want to force the
+# dependency on swipl on the users
+	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi

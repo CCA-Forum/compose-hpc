@@ -45,7 +45,7 @@ import logging, operator, os.path, sys
 #import re
 #import ply.lex as lex
 #from ply.lex import TOKEN
-import ply.yacc as yacc
+import yacc
 
 def trace():
     import pdb; pdb.set_trace();

@@ -1,12 +1,12 @@
 AC_PREREQ(2.64)
-AC_INIT([braid],[0.2.1],[adrian@llnl.gov])
+AC_INIT([Braid],[0.2.1],[adrian@llnl.gov])
 AC_CONFIG_SRCDIR([COPYRIGHT])
 AC_CONFIG_MACRO_DIR([m4])
 CCA_DIAGNOSE_INIT(toolcheck.log)
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE([foreign no-dependencies no-installinfo no-installman no-texinfo.tex 1.11 dist-bzip2 parallel-tests color-tests silent-rules])
+AM_INIT_AUTOMAKE([foreign no-dependencies no-installinfo no-installman no-texinfo.tex 1.11 dist-bzip2 parallel-tests color-tests silent-rules std-options])
 dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
 AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
@@ -55,7 +55,7 @@ AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
 
-AC_CONFIG_FILES([Makefile compiler/Makefile Doxyfile])
+AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile])
 
 AC_OUTPUT
 

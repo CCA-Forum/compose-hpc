@@ -26,7 +26,9 @@ import os,re
 def replace(filename, splicer_name, text):
     """
     Replace the contents of a \c splicer_block with \c text.
-    \param filename   The name of the file to edit.
+    \param filename      The name of the file to edit.
+    \param splicer_name  The name of the splicer block to edit.
+    \param text          The text to put inside the splicer block.
 
     expect(string, string, string)
     """

@@ -35,6 +35,7 @@ def babel_object_type(package, name):
     """
     \return the SIDL node for the type of a Babel object 'name'
     \param name    the name of the object
+    \param package the list of IDs making up the package
     """
     return sidl.Scoped_id(package+[sidl.Id('%s__object'%name)], "")
 
@@ -48,6 +49,7 @@ def ir_babel_object_type(package, name):
     """
     \return the IR node for the type of a Babel object 'name'
     \param name    the name of the object
+    \param package the list of IDs making up the package
     """
     return ir.Pointer_type(ir.Struct(babel_object_type(package,name), []))
 
@@ -73,7 +75,7 @@ class Chapel:
     def __init__(self, sidl_sexpr):
         """
         Create a new chapel code generator
-        \param sidl_expr    s-expression of the SIDL data
+        \param sidl_sexpr    s-expression of the SIDL data
         """
         self.sidl = sidl_sexpr
 
@@ -208,7 +210,9 @@ class Chapel:
     def generate_client_method(self, symbol_table, method, data):
         """
         Generate client code for a method interface.
-        \param method   s-expression of the method's SIDL declaration
+        \param method        s-expression of the method's SIDL declaration
+        \param symbol_table  the symbol table of the SIDL file
+        \param data          a ClassInfo object
         """
         data.epv.add_method(method)
         # output _extern declaration

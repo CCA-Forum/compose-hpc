@@ -1,8 +1,8 @@
 \input texinfo @c -*-texinfo-*-
 @c %**start of header
 @setfilename braid.info
-@set UPDATED 10 December 2010
-@set UPDATED-MONTH December 2010
+@set UPDATED 11 April 2011
+@set UPDATED-MONTH April 2011
 @set EDITION 1.0
 @set VERSION 1.0
 @settitle BRAID @value{VERSION}
@@ -17,10 +17,10 @@
 @copying
 This manual is for BRAID (version @value{VERSION}, @value{UPDATED}).
 
-Copyright @copyright{} 2010, Lawrence Livermore National Security, LLC
+Copyright @copyright{} 2011, Lawrence Livermore National Security, LLC
 Produced at the Lawrence Livermore National Laboratory.
 Written by the Components Team @email{components@@llnl.gov}
-UCRL-CODE-?????????
+LLNL-CODE-473891.
 All rights reserved.
 @end copying
 

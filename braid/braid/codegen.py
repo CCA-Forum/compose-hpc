@@ -9,10 +9,10 @@
 #   improves readability
 #
 # Each code generator is split into two components: the actual code
-# generator and the <language>File class which implements things such
-# as indentation and line wrapping. The code generator implements a \c
-# generate(sexpr) function which takes an \c ir node in s-expression
-# form.
+# generator and the <em>language</em>File class which implements
+# things such as indentation and line wrapping. The code generator
+# implements a \c generate(sexpr) function which takes an \c ir node
+# in s-expression form.
 #
 #
 # Please report bugs to <adrian@llnl.gov>.
@@ -47,6 +47,7 @@ def generate(language, ir_code, debug=False):
     \c ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
     
     \param ir_code  Intermediate representation input.
+    \param debug    Turn on patmat debugging.
     \return         string
 
     >>> generate('C', ir.Plus(1, 2))
@@ -174,7 +175,7 @@ class Scope(object):
     \c self.indent_level is the level of indentation used by this \c
     Scope object. The \c indent_level is constant for each \c Scope
     object. If you want to change the indentation, the idea is to
-    create a child \Scope object with a different indentation.
+    create a child \c Scope object with a different indentation.
 
     """
     def __init__(self, 

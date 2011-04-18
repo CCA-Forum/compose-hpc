@@ -1,21 +1,11 @@
 ACLOCAL_AMFLAGS=-I m4
-SUBDIRS = compiler
 
-info_TEXINFOS = doc/braid.texi
-.PHONY: doc
-doc: all
-	doxygen || echo "Doxygen not found; SKIPPING"
-	$(MAKE) -j1 -C doc/latex
-
-dist-local: doc
-
-distclean-local:
-	rm -f toolcheck.log
-
-clean-local:
-	rm -rf doc/html
-	rm -rf doc/latex
-	rm -rf doc/man
+python_PYTHON= 
+nobase_python_PYTHON= 
+noinst_PYTHON= 
+BUILT_SOURCES= 
+nobase_pyexec_LTLIBRARIES=
+bin_SCRIPTS=
 
 EXTRA_DIST= \
 	COPYRIGHT README \
@@ -33,12 +23,41 @@ EXTRA_DIST= \
 	contrib/ply/cpp.py	       \
 	contrib/ply/ctokens.py	       \
 	contrib/ply/lex.py	       \
-	contrib/ply/yacc.py  	       \
-	doc/latex/*.pdf \
-	doc/html/*.* \
+	contrib/ply/yacc.py
+
+# Recursive make considered harmful
+include braid/Makefile.include
+
+DISTCHECK_CONFIGURE_FLAGS=--disable-documentation
+if ENABLE_DOCUMENTATION
+EXTRA_DIST+= \
+	doc/html/index.html \
+	doc/latex/*.pdf     \
+	doc/html/*.*        \
 	doc/html/search/*.*
+braid/braid: $(BUILT_SOURCES) doc/html/index.html
+endif
+
+.PHONY: doc
+doc:
+	@echo "  DOXYGEN"
+	@doxygen >/dev/null || echo "Doxygen not found; SKIPPING"
+	$(MAKE) -j1 -C doc/latex >/dev/null
+doc/html/index.html:
+	$(MAKE) doc
+
+info_TEXINFOS = doc/braid.texi
+
+distclean-local:
+	rm -f toolcheck.log
+
+clean-local: clean-braid
+	rm -rf doc/html
+	rm -rf doc/latex
+	rm -rf doc/man
+
 
 if PYTHON_VERSION_2_6
 # add Backports
-  python_PYTHON = contrib/argparse-1.1/argparse.py
+  python_PYTHON += contrib/argparse-1.1/argparse.py
 endif
