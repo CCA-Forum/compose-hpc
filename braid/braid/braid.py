@@ -25,11 +25,8 @@
 # \mainpage
 # Welcome to Braid/Babel 2!
 
-import argparse
-import sidl_parser
-import codegen
-import chapel
-import config
+import argparse, re
+import sidl_parser, codegen, chapel, config
 
 def braid(args):
     for sidl_file in args.sidl_files:
@@ -42,12 +39,12 @@ def braid(args):
 	    print str(codegen.generate("SIDL", sidl_ast, args.debug))
 
         # Client code generation
-        if args.client == 'Chapel':
+        if re.match(r'([cC]hapel)|(chpl)', args.client):
             chapel.Chapel(sidl_ast).generate_client()
         elif args.client == None:
             pass
         else:
-            print "*ERROR: Unknown language `%s'." % args.client
+            print "**ERROR: Unknown language `%s'." % args.client
             exit(1)
 
 if __name__ == '__main__':

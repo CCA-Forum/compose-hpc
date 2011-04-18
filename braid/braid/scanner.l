@@ -27,6 +27,7 @@
  * </pre>
  *
  */
+#include <stdlib.h>
 #include <string.h>
 
 enum Token {
@@ -207,6 +208,11 @@ scanner_input(PyObject *self, PyObject *args)
   return Py_BuildValue("i", 1);
 }
 
+static void crash(const char* msg) {
+  fprintf(stderr, "** FATAL ERROR: %s\n", msg);
+  exit(1);
+}
+
 static PyObject*
 scanner_token(PyObject *self, PyObject *args)
 {
@@ -225,8 +231,17 @@ scanner_token(PyObject *self, PyObject *args)
   if (token_init == NULL) {
      // Load the Token module
      token_module = PyImport_Import(PyString_FromString("sidl_token"));
-     token_dict   = PyModule_GetDict(token_module);
-     token_init   = PyDict_GetItemString(token_dict, "Token");
+     if (!token_module) { 
+       crash("Could not open sidl_token.py[oc]"); 
+     }
+     token_dict = PyModule_GetDict(token_module);
+     if (!token_dict) { 
+       crash("Could not open dictionary in sidl_token module"); 
+     }
+     token_init = PyDict_GetItemString(token_dict, "Token");
+     if (!token_init) { 
+       crash("Could not locate definition of Token()"); 
+     }
   }
   //fprintf(stderr, "(%d, %d), type: %s, token: `%s'\n", yylineno, yypos, yytype, yytext); fflush(stderr);
   

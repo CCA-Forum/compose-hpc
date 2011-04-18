@@ -19,11 +19,12 @@ PYTHON_SOURCES = \
 	braid/config.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
+	braid/sidl_parser.py \
+	braid/sidl_token.py \
 	braid/splicer.py
 
 # the nobase_ prefix prevents path stripping during install
-nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES) braid/sidl_parser.py
-noinst_PYTHON += braid/sidl_token.py
+nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES)
 BUILT_SOURCES += braid/parsetab.py braid/ir.py braid/sidl.py
 GRAMMARS = braid/ir.def braid/sidl.def
 
