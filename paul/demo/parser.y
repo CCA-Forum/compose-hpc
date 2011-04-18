@@ -1,5 +1,6 @@
 %include {
 #include <iostream>
+#include <stdlib.h>
 #include <assert.h>
 #include "parser.h"
 #include "Annotation.h"
@@ -8,16 +9,15 @@ using namespace std;
 }
 
 %extra_argument   { Annotation **ann }
-
 %token_type       { char * }
 %token_destructor { free($$); }
-
 %type kvpairs     { Annotation * }
 %type key         { char * }
 %type value       { Dynamic * }
 
-%syntax_error {
+%syntax_error { 
   printf("Syntax error!\n");
+  exit(1);
 }
 
 %parse_failure {

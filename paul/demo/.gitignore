@@ -1,0 +1,7 @@
+*.o
+lemon
+paul
+parser.c
+parser.h
+scanner.c
+scanner.h
