@@ -30,7 +30,7 @@ void AbsorbStructTransform::generate() {
     SgDeclarationStatement *decl = typ->get_declaration();
     SgClassDeclaration *clsDecl = isSgClassDeclaration(decl);
     if(clsDecl) {
-      const SgClassDefinition *def = clsDecl->get_definition();
+      SgClassDefinition *def = clsDecl->get_definition();
       cout << def << endl;
       cout << typ->get_mangled().str() << endl;
     }
