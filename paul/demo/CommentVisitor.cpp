@@ -28,14 +28,16 @@ string annotation_text(const string s) {
   return s.substr(1);
 }
 
-void handle_comment(const string s, SgNode *node) {
+void handle_comment(const string s, SgLocatedNode *node) {
   if(is_annotation(s)) {
     string ann_text = annotation_text(s);
     Annotation *ann = Annotation::parse(ann_text);
     if(ann != NULL) {
       cout << "Handling: " << ann->get_id() << endl;
-      Transform *transf = Transform::get_transform(root,ann);
+      Transform *transf = Transform::get_transform(node,ann);
       transf->generate();
+      // AstDOTGeneration gen;
+      // gen.generate(node,"boids.c");
       delete transf;
       delete ann;
     }
@@ -53,13 +55,12 @@ void CommentVisitor::visit(SgNode *node) {
         switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT: {
             string comment = remove_c_comment_marks((*i)->getString());
-            handle_comment(comment,node);
-            //cout << node->class_name() << endl;
+            handle_comment(comment,locatedNode);
             break;
           }
           case CPP_COMMENT: {
             string comment = remove_cpp_comment_marks((*i)->getString());
-            handle_comment(comment,node);
+            handle_comment(comment,locatedNode);
             break;
           }
         }

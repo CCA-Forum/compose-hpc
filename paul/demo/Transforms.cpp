@@ -2,11 +2,11 @@
 
 using namespace SageInterface;
 
-Transform::Transform(SgProject *theroot) {
+Transform::Transform(SgLocatedNode *theroot) {
   root = theroot;
 }
 
-Transform *Transform::get_transform(SgProject *theroot,Annotation *ann) {
+Transform *Transform::get_transform(SgLocatedNode *theroot,Annotation *ann) {
   if(ann->get_id() == "ABSORB_STRUCT_ARRAY") {
     string name = ann->get_attrib("structId")->string_value();
     return new AbsorbStructTransform(name,theroot);
@@ -17,22 +17,24 @@ Transform *Transform::get_transform(SgProject *theroot,Annotation *ann) {
   }
 }
 
-AbsorbStructTransform::AbsorbStructTransform(const string s,SgProject *p) 
+AbsorbStructTransform::AbsorbStructTransform(const string s,SgLocatedNode *p) 
 : Transform(p) {
   struct_name = s;
 }
 
 void AbsorbStructTransform::generate() {
-  SgScopeStatement *scope = getFirstGlobalScope(root);
-  SgType *t = lookupNamedTypeInParentScopes(struct_name,scope);
-  SgClassType *typ = isSgClassType(t);
-  if(typ) {
-    SgDeclarationStatement *decl = typ->get_declaration();
-    SgClassDeclaration *clsDecl = isSgClassDeclaration(decl);
-    if(clsDecl) {
-      SgClassDefinition *def = clsDecl->get_definition();
-      cout << def << endl;
-      cout << typ->get_mangled().str() << endl;
-    }
+  SgClassDeclaration *clsDecl = isSgClassDeclaration(root);
+  cout << "Generating ABSORB_STRUCT_ARRAY for struct "
+       << clsDecl->get_mangled_name().str() 
+       << endl;
+  if(clsDecl) {
+    SgClassDefinition *def = clsDecl->get_definition();
+    cout << def->get_members().size() << endl;
+  }
+  else {
+    cout << "ABSORB_STRUCT_ARRAY must be attached to a struct, found"
+         << root->class_name() 
+         << endl;
+    exit(1);
   }
 }

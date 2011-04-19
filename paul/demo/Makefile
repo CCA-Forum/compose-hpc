@@ -34,4 +34,5 @@ lemon: lemon.c
 	gcc lemon.c -o lemon
 
 clean:
-	rm -rf $(BIN) $(OBJECTS) *.ti parser.c parser.h scanner.c scanner.h lemon
+	rm -rf $(BIN) $(OBJECTS) lemon parser.c parser.h scanner.c scanner.h \
+	       *.ti *.dot
