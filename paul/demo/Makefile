@@ -1,10 +1,11 @@
 SOURCES    = scanner.l parser.y main.cpp \
 						 Annotation.cpp \
 						 Dynamic.cpp \
-						 CommentVisitor.cpp
+						 CommentVisitor.cpp \
+						 Transforms.cpp
 BIN        = paul
 
-OBJECTS   = scanner.o parser.o Annotation.o Dynamic.o CommentVisitor.o main.o
+OBJECTS   = scanner.o parser.o Annotation.o Dynamic.o CommentVisitor.o main.o Transforms.o
 CC        = g++
 CFLAGS    = -I$(ROSE_HOME)/include -I$(BOOST_HOME)/include
 LDFLAGS   = -L$(ROSE_HOME)/lib -L$(BOOST_HOME)/lib -lm -lfl -lrose

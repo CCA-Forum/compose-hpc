@@ -1,3 +1,6 @@
+#ifndef ANNOTATION_H
+#define ANNOTATION_H
+
 #include <iostream>
 #include <string.h>
 #include <map>
@@ -16,3 +19,5 @@ public:
   void add_attrib(const string, Dynamic *);
   static Annotation *parse(const string);
 };
+
+#endif

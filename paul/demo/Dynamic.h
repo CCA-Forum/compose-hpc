@@ -1,3 +1,6 @@
+#ifndef DYNAMIC_H
+#define DYNAMIC_H
+
 #include <iostream>
 
 using namespace std;
@@ -27,3 +30,4 @@ public:
   virtual string string_value();
 };
 
+#endif
