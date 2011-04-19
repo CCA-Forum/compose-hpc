@@ -1,5 +1,6 @@
 #include "Dynamic.h"
 #include <sstream>
+#include <stdlib.h>
 #include <assert.h>
 
 DynInt::DynInt(int x) {
