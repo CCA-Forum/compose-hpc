@@ -34,5 +34,58 @@ void AbsorbStructTransform::generate() {
     exit(1);
   }
   SgClassDefinition *def = clsDecl->get_definition();
-  cerr << def->get_members().size() << endl;
+  int n = def->get_members().size();
+  
+  cout << "@def@"                                      << endl;
+  cout << "identifier s;"                              << endl;
+  for(int i=1; i <= n; i++) {
+    cout << "identifier x" << i << ";"                 << endl;
+    cout << "type T" << i << ";"                       << endl;
+  }
+  cout << "@@"                                         << endl;
+  cout << "struct s {"                                 << endl;
+  for(int i=1; i <= n; i++) {
+    cout << "- T" << i << " x" << i << ";"             << endl;
+    cout << "+ T" << i << " *x" << i << ";"            << endl;
+  }
+  cout << "};"                                         << endl;
+  cout                                                 << endl;
+  cout << "@decl@"                                     << endl;
+  cout << "identifier def.s,k;"                        << endl;
+  cout << "@@"                                         << endl;
+  cout << "- struct s *k;"                             << endl;
+  cout << "+ struct s k;"                              << endl;
+  cout                                                 << endl;
+  cout << "@@"                                         << endl;
+  cout << "function foo;"                              << endl;
+  cout << "identifier def.s,k,x;"                      << endl;
+  cout << "expression E1;"                             << endl;
+  cout << "@@"                                         << endl;
+  cout << "foo(...,"                                   << endl;
+  cout << "- struct s *k"                              << endl;
+  cout << "+ struct s k"                               << endl;
+  cout << ",...) {"                                    << endl;
+  cout << "<..."                                       << endl;
+  cout << "- k[E1].x"                                  << endl;
+  cout << "+ k.x[E1]"                                  << endl;
+  cout << "...>"                                       << endl;
+  cout << "}"                                          << endl;
+  cout                                                 << endl;
+  cout << "@@"                                         << endl;
+  cout << "identifier decl.k,def.s;"                   << endl;
+  for(int i=1; i <= n; i++) {
+    cout << "identifier def.x" << i << ";"             << endl;
+    cout << "type def.T" << i << ";"                   << endl;
+  }
+  cout << "expression E;"                              << endl;
+  cout << "@@"                                         << endl;
+  cout << "- k = malloc(E * sizeof(struct s));"        << endl;
+  for(int i=1; i <= n; i++) {
+    cout << "+ k.x" << i << " = malloc(E * sizeof(T" << i << "));" << endl;
+  }
+  cout << "..."                                        << endl;
+  cout << "- free(k);"                                 << endl;
+  for(int i=1; i <= n; i++) {
+    cout << "+ free(k.x" << i << ");"                  << endl;
+  }
 }
