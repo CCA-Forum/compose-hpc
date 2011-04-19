@@ -33,7 +33,7 @@ void handle_comment(const string s, SgLocatedNode *node) {
     string ann_text = annotation_text(s);
     Annotation *ann = Annotation::parse(ann_text);
     if(ann != NULL) {
-      cout << "Handling: " << ann->get_id() << endl;
+      cerr << "Handling " << ann->get_id() << endl;
       Transform *transf = Transform::get_transform(node,ann);
       transf->generate();
       // AstDOTGeneration gen;

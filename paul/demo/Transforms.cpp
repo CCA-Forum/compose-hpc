@@ -24,17 +24,15 @@ AbsorbStructTransform::AbsorbStructTransform(const string s,SgLocatedNode *p)
 
 void AbsorbStructTransform::generate() {
   SgClassDeclaration *clsDecl = isSgClassDeclaration(root);
-  cout << "Generating ABSORB_STRUCT_ARRAY for struct "
+  cerr << "Generating ABSORB_STRUCT_ARRAY for struct "
        << clsDecl->get_mangled_name().str() 
        << endl;
-  if(clsDecl) {
-    SgClassDefinition *def = clsDecl->get_definition();
-    cout << def->get_members().size() << endl;
-  }
-  else {
-    cout << "ABSORB_STRUCT_ARRAY must be attached to a struct, found"
+  if(!clsDecl) {
+    cerr << "ABSORB_STRUCT_ARRAY must be attached to a struct, found"
          << root->class_name() 
          << endl;
     exit(1);
   }
+  SgClassDefinition *def = clsDecl->get_definition();
+  cerr << def->get_members().size() << endl;
 }
