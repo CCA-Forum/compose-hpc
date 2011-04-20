@@ -8,7 +8,7 @@
   Boid stuff
 *****************************************************************************/
 
-/*% ABSORB_STRUCT_ARRAY structId=boid */
+/*% ABSORB_STRUCT_ARRAY outerAllocMethod=stack */
 struct boid {
   Vec pos;
   Vec vel;
