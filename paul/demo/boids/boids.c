@@ -4,6 +4,9 @@
 #include <math.h>
 #include "vector.h"
 
+#define NUM_BOIDS (1000)
+#define NUM_STEPS (500)
+
 /*****************************************************************************
   Boid stuff
 *****************************************************************************/
@@ -106,13 +109,13 @@ void output(struct boid *boids, int n) {
 
 int main() {
   long seed = 10231977L;
-  int n = 100,i;
+  int n = NUM_BOIDS,i;
   struct boid *boids;
   printf("Using seed: %ld\n", seed);
   srand(seed);
   boids = malloc(n * sizeof(struct boid));
   init(boids,n);
-  for(i=0;i < 100;i++) {
+  for(i=0;i < NUM_STEPS;i++) {
     step(boids,n);
   }
   output(boids,n);

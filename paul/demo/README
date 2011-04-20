@@ -1,0 +1,31 @@
+This code demonstrates the use of PAUL and ROTE to transform a flocking
+simulation code written in C. The original code uses an array of dynamically
+allocated structs to represent each "bird". We annotated boids/boids.c with an
+ABSORB_STRUCT_ARRAY directive, which tells PAUL/ROTE to replace the array of
+structs with a single struct containing dynamically allocated arrays for each
+field. This improves the cache behavior and therefore performance of the
+simulation.
+
+First you must build PAUL -- just run make in this directory. You must have
+Rose and Boost installed, and the makefile expects the environment variables
+ROSE_HOME and BOOST_HOME to be defined. The build process has been tested
+successfully on Mac OS X 10.6 and Linux.
+
+ROTE needs Coccinelle installed and in your PATH. We are using version
+0.2.5-rc7.
+
+Use ./run_demo.sh to perform an example transformation:
+
+1. PAUL will process the annotation and generate the transformation code;
+2. ROTE will process the transformation, generating boids_new.c from boids.c;
+3. Both versions of the program will be compiled;
+4. The original version will be executed and timed;
+5. The transformed version will be executed and timed;
+6. The output of the two versions will be compared (there should be no 
+   discrepancy);
+
+Note that if you would like to run a longer or shorter test you can modify the
+NUM_BOIDS and/or NUM_STEPS values defined at the top of boids.c. The provided
+values yield runtimes of about 15 seconds on my 2010 MacBook Pro.
+
+Please email ghulett@sandia.gov with any feedback.

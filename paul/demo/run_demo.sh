@@ -11,9 +11,13 @@ echo "Building both versions of boids"
 gcc -Wall -o boids_orig vector.c boids.c -lm
 gcc -Wall -o boids_new vector.c boids_new.c -lm
 
-echo "Comparing versions"
-./boids_orig > orig.out
-./boids_new > new.out
+echo "Running original version"
+time ./boids_orig > orig.out
+
+echo "Running modified version"
+time ./boids_new > new.out
+
+echo "Comparing outputs (should be empty):"
 diff orig.out new.out
 
 echo "Cleanup"
