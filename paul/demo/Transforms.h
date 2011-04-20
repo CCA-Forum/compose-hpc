@@ -16,9 +16,8 @@ public:
 };
 
 class AbsorbStructTransform : public Transform {
-  string struct_name;
 public:
-  AbsorbStructTransform(const string s, SgLocatedNode *root);
+  AbsorbStructTransform(Annotation *a, SgLocatedNode *root);
   virtual void generate();
 };
 

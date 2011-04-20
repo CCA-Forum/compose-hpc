@@ -8,8 +8,7 @@ Transform::Transform(SgLocatedNode *theroot) {
 
 Transform *Transform::get_transform(SgLocatedNode *theroot,Annotation *ann) {
   if(ann->get_id() == "ABSORB_STRUCT_ARRAY") {
-    string name = ann->get_attrib("structId")->string_value();
-    return new AbsorbStructTransform(name,theroot);
+    return new AbsorbStructTransform(ann,theroot);
   }
   else {
     cerr << "Unknown annotation: " << ann->get_id() << endl;
@@ -17,9 +16,22 @@ Transform *Transform::get_transform(SgLocatedNode *theroot,Annotation *ann) {
   }
 }
 
-AbsorbStructTransform::AbsorbStructTransform(const string s,SgLocatedNode *p) 
+AbsorbStructTransform::AbsorbStructTransform(Annotation *a,SgLocatedNode *p) 
 : Transform(p) {
-  struct_name = s;
+  string allocStr = a->get_attrib("outerAllocMethod")->string_value();
+  if(allocStr == "stack") {
+    // ok
+    return;
+  }
+  if(allocStr == "dynamic") {
+    cerr << "Dynamic allocation is not currently supported" << endl;
+    exit(1);
+  }
+  else {
+    cerr << "Allocation method not recognized: " << allocStr << endl;
+    exit(1);
+  }
+  
 }
 
 void AbsorbStructTransform::generate() {
