@@ -72,12 +72,14 @@ class Chapel:
             self.epv = epv
 
 
-    def __init__(self, sidl_sexpr):
+    def __init__(self, filename, sidl_sexpr):
         """
         Create a new chapel code generator
+        \param filename      full path to the SIDL file
         \param sidl_sexpr    s-expression of the SIDL data
         """
-        self.sidl = sidl_sexpr
+        self.sidl_ast = sidl_sexpr
+        self.sidl_file = filename
 
     def generate_client(self):
         """
@@ -86,8 +88,8 @@ class Chapel:
         \li do the work
         """
         try:       
-            sym = self.build_symbol_table(self.sidl, SymbolTable())
-            return self.generate_client1(self.sidl, None, sym) 
+            sym = self.build_symbol_table(self.sidl_ast, SymbolTable())
+            self.generate_client1(self.sidl_ast, None, sym) 
                   
         except:
             # Invoke the post-mortem debugger
@@ -113,7 +115,7 @@ class Chapel:
             elif (sidl.package, Name, Version, UserTypes):
                 self.generate_client1(UserTypes, data, symbol_table[Name])
 
-            elif (sidl.class_, (sidl.id, Name), Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods):
                 expect(data, None)
                 # impl = ChapelFile()
                 ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table))
@@ -130,11 +132,21 @@ class Chapel:
                 # Stub (in C)
                 v = ir.Var_decl(ci.epv.get_sexpr(), '%s__epv'%Name)
                 c_gen(v, ci.stub)
-                ci.stub.new_def(Import(Name))
-                print '\n\n'+Name+'.h:'
-                print ci.stub.dot_h()
-                print '\n\n'+Name+'.c:'
-                print ci.stub.dot_c()
+                c_gen(ir.Import(Name), ci.stub)
+
+                # Header
+                stub_h = open(Name+'.h','w')
+                stub_h.write(ci.stub.dot_h())
+                stub_h.close()
+
+                # C-file
+                stub_h = open(Name+'.c','w')
+                stub_h.write(ci.stub.dot_c())
+                stub_h.close()
+
+                # Makefile
+                generate_makefile(self.sidl_file, Name)
+
 
             elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
                 self.generate_client_method(symbol_table, node, data)               
@@ -234,9 +246,8 @@ class Chapel:
 
         #return method
         expect(Method, sidl.method)
-        _, name = Name
         decl_args = ([ir.Arg([], ir.in_, 
-                             ir_babel_object_type(symbol_table.prefix, name), 
+                             ir_babel_object_type(symbol_table.prefix, Name), 
                              'self')] +
                      low(Args) +
                      [ir.Arg([], ir.in_, ir_babel_exception_type(), 'ex')]) 
@@ -249,7 +260,7 @@ class Chapel:
                         epv_type, 
                         ir.Deref('self'),
                         ir.Struct_item(
-                            ir.Primitive_type(ir.void), 'f_'+Method)),
+                            ir.Primitive_type(ir.void), 'f_'+Name)),
                     call_args)))]
         return [ir.Fn_decl(low(Type), Name, decl_args),
                 ir.Fn_defn(low(Type), Name, decl_args, Body)]
@@ -266,8 +277,7 @@ def lower_ir(symbol_table, sidl_term):
         return lower_type_ir(symbol_table, sidl_term)
 
     with match(sidl_term):
-        if   (sidl.id, Name): return Name
-        elif (sidl.struct, Name, Items):
+        if (sidl.struct, Name, Items):
             return ir.Pointer_expr(ir.Struct(low_t(Name), Items))
 
         elif (sidl.arg, Attrs, Mode, Typ, Name): 
@@ -341,7 +351,6 @@ class SymbolTable:
 
     @matcher(globals())
     def __getitem__(self, key):
-        expect(key, (sidl.id, _))
         #print self, key, '?'
         try:
             return self._symbol[key]
@@ -350,7 +359,6 @@ class SymbolTable:
 
     @matcher(globals())
     def __setitem__(self, key, value):
-        expect(key, (sidl.id, _))
         #print self, key, '='#, value
         self._symbol[key] = value
 
@@ -455,12 +463,11 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s: %s'%(gen(Name), gen(Type))
 
-            elif (sidl.class_, (sidl.id, Name), Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods):
                 return 'class '+Name
 
             elif (sidl.primitive_type, Type):       return self.type_map[Type]
             elif (sidl.custom_attribute, Id):       return gen(Id)
-            elif (sidl.id, Name):                   return Name
             elif (sidl.method_name, Id, []):        return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id)
             elif (sidl.scoped_id, A, B):
@@ -472,3 +479,178 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             else:
                 raise Exception('match error')
         return scope
+
+def generate_makefile(sidl_file, classnames):
+    """
+    FIXME: make this a file copy from $prefix/share
+           make this work for more than one class
+    """
+    babel_make = open('babel.make', 'w')
+    babel_make.write("""
+IORHDRS = {file}_IOR.h
+STUBHDRS = {file}.h
+STUBSRCS = {file}_Stub.c
+""".format(file=classnames))
+    babel_make.close()
+
+    makefile = open('GNUmakefile', 'w')
+    makefile.write(r"""
+# Generic Chapel Babel wrapper GNU Makefile
+# $Id$
+# 
+# Copyright (c) 2008, Lawrence Livermore National Security, LLC.
+# Produced at the Lawrence Livermore National Laboratory.
+# Written by the Components Team <components@llnl.gov>
+# UCRL-CODE-2002-054
+# All rights reserved.
+# 
+# This file is part of Babel. For more information, see
+# http://www.llnl.gov/CASC/components/. Please read the COPYRIGHT file
+# for Our Notice and the LICENSE file for the GNU Lesser General Public
+# License.
+# 
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License (as published by
+# the Free Software Foundation) version 2.1 dated February 1999.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
+# conditions of the GNU Lesser General Public License for more details.
+# 
+# You should have recieved a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+# This Makefile uses GNU make extensions, so it may not work with
+# other implementations of make.
+
+include babel.make
+# please name the server library here
+LIBNAME=impl
+# please name the SIDL file here
+SIDLFILE="""+sidl_file+r"""
+# extra include/compile flags 
+EXTRAFLAGS=
+# extra libraries that the implementation needs to link against
+EXTRALIBS=
+# library version number
+VERSION=0.1.1
+# PREFIX specifies the top of the installation directory
+PREFIX=/usr/local
+# the default installation installs the .la and .scl (if any) into the
+# LIBDIR
+LIBDIR=$(PREFIX)/lib
+# the default installation installs the stub header and IOR header files
+# in INCLDIR
+INCLDIR=$(PREFIX)/include
+
+
+# most of the rest of the file should not require editing
+
+ifeq ($(IMPLSRCS),)
+  SCLFILE=
+  BABELFLAG=--client=c
+  MODFLAG=
+else
+  SCLFILE=lib$(LIBNAME).scl
+  BABELFLAG=--server=c
+  MODFLAG=-module
+endif
+
+all : lib$(LIBNAME).la $(SCLFILE)
+
+CC=`babel-config --query-var=CC`
+INCLUDES=`babel-config --includes`
+CFLAGS=`babel-config --flags-c`
+LIBS=`babel-config --libs-c-client`
+
+STUBOBJS=$(STUBSRCS:.c=.lo)
+IOROBJS=$(IORSRCS:.c=.lo)
+SKELOBJS=$(SKELSRCS:.c=.lo)
+IMPLOBJS=$(IMPLSRCS:.c=.lo)
+
+PUREBABELGEN=$(IORHDRS) $(IORSRCS) $(STUBSRCS) $(STUBHDRS) $(SKELSRCS)
+BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
+
+$(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
+
+lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
+	babel-libtool --mode=link --tag=CC $(CC) -o lib$(LIBNAME).la \
+	  -rpath $(LIBDIR) -release $(VERSION) \
+	  -no-undefined $(MODFLAG) \
+	  $(CFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
+	  $(EXTRALIBS)
+
+$(PUREBABELGEN) $(BABELGEN) : babel-stamp
+	@if test -f $@; then \
+	    touch $@; \
+	else \
+	    rm -f babel-stamp ; \
+	    $(MAKE) babel-stamp; \
+	fi
+
+babel-stamp: $(SIDLFILE)
+	@rm -f babel-temp
+	@touch babel-temp
+	babel $(BABELFLAG) $(SIDLFILE) 
+	@mv -f babel-temp $@
+
+lib$(LIBNAME).scl : $(IORSRCS)
+ifeq ($(IORSRCS),)
+	echo "lib$(LIBNAME).scl is not needed for client-side C bindings."
+else
+	-rm -f $@
+	echo '<?xml version="1.0" ?>' > $@
+	echo '<scl>' >> $@	
+	if test `uname` = "Darwin"; then scope="global"; else scope="local"; \
+	   fi ; \
+          echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
+	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$@
+	echo "  </library>" >>$@
+	echo "</scl>" >>$@
+endif
+
+.SUFFIXES: .lo
+
+.c.lo:
+	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
+
+clean : 
+	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo
+
+realclean : clean
+	-rm -f lib$(LIBNAME).la lib$(LIBNAME).scl
+	-rm -rf .libs
+
+install : install-libs install-headers install-scl
+
+
+install-libs : lib$(LIBNAME).la
+	-mkdir -p $(LIBDIR)
+	babel-libtool --mode=install install -c lib$(LIBNAME).la \
+	  $(LIBDIR)/lib$(LIBNAME).la
+
+install-scl : $(SCLFILE)
+ifneq ($(IORSRCS),)
+	-rm -f $(LIBDIR)/lib$(LIBNAME).scl
+	-mkdir -p $(LIBDIR)
+	echo '<?xml version="1.0" ?>' > $(LIBDIR)/lib$(LIBNAME).scl
+	echo '<scl>' >> $(LIBDIR)/lib$(LIBNAME).scl	
+	if test `uname` = "Darwin"; then scope="global"; else scope="local"; \
+	   fi ; \
+          echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
+	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
+	echo "  </library>" >>$(LIBDIR)/lib$(LIBNAME).scl
+	echo "</scl>" >>$(LIBDIR)/lib$(LIBNAME).scl
+endif
+
+install-headers : $(IORHDRS) $(STUBHDRS)
+	-mkdir -p $(INCLDIR)
+	for i in $^ ; do \
+	  babel-libtool --mode=install cp $$i $(INCLDIR)/$$i ; \
+	done
+
+.PHONY: all clean realclean install install-libs install-headers install-scl
+""")
+    makefile.close()

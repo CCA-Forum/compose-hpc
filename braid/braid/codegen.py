@@ -928,6 +928,13 @@ class CFile(SourceFile):
         """
         return self._sep.join(self._defs)
 
+    def new_global_def(self, defn):
+        """
+        Insert a definition in front of all other definitions. Useful
+        for \c Import().
+        """
+        self._defs = [defn]+self._defs
+        return self
 
 class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
@@ -1110,7 +1117,10 @@ class CCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.struct, Name, _): return gen(Name)
             elif (ir.scoped_id, Names, Ext):
-                return '_'.join([name for _, name in Names])
+                return '_'.join([name for name in Names])
+
+            elif (ir.import_, Name): 
+                return scope.new_global_def('#include <%s.h>'%Name)
 
             elif (Expr):
                 return super(CCodeGenerator, self).generate(Expr, scope)

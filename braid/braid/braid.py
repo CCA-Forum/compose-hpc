@@ -42,7 +42,7 @@ def braid(args):
         if args.client == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):
-            chapel.Chapel(sidl_ast).generate_client()
+            chapel.Chapel(sidl_file, sidl_ast).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
             exit(1)
