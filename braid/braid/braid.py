@@ -39,10 +39,10 @@ def braid(args):
 	    print str(codegen.generate("SIDL", sidl_ast, args.debug))
 
         # Client code generation
-        if re.match(r'([cC]hapel)|(chpl)', args.client):
-            chapel.Chapel(sidl_ast).generate_client()
-        elif args.client == None:
+        if args.client == None:
             pass
+        elif re.match(r'([cC]hapel)|(chpl)', args.client):
+            chapel.Chapel(sidl_ast).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
             exit(1)

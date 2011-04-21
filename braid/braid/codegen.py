@@ -286,9 +286,8 @@ class Scope(object):
                 lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
-        indent = '\n' +' '*self.indent_level
+        indent = '\n' +' '*il
         return indent.join(lines)
-
 
 class SourceFile(Scope):
     """
