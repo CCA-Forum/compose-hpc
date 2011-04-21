@@ -569,7 +569,7 @@ def p_typeAttr(p):
 
 def p_name(p):
     '''name : IDENTIFIER'''
-    p[0] = (sidl.id, p[1])
+    p[0] = p[1]
 
 def p_enum(p):
     '''enum : ENUM name LBRACE enumerators RBRACE'''
@@ -743,7 +743,7 @@ def p_assertions(p): # +
 
 def p_assertion_1(p):
     '''assertion : IDENTIFIER_COLON assertExpr SEMICOLON'''
-    p[0] = (sidl.assertion, (sidl.id, p[1]), p[2])
+    p[0] = (sidl.assertion, (p[1]), p[2])
 
 def p_assertion_2(p):
     '''assertion : assertExpr SEMICOLON'''

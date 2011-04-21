@@ -344,11 +344,10 @@ class GenericCodeGenerator(object):
             if (ir.stmt, Expr):
                 return scope.new_def(gen(Expr))
 
-            elif (ir.id, Name):             return Name
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
-            elif (ir.struct_item, Type, (ir.id, Name)): return Name
+            elif (ir.struct_item, Type, Name): return Name
             elif (A):        
                 if (isinstance(A, list)):
                     for defn in A:
@@ -556,7 +555,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 return "retval = %s" % gen(Expr)
 
             elif (ir.primitive_type, T): return type_map[T]
-            elif (ir.struct, (ir.id, Package), (ir.id, Name), _): 
+            elif (ir.struct, (Package), (Name), _): 
                 return ("%s_%s"%(Package, Name)).lower()
 
             elif (ir.get_struct_item, Struct, Name, Item):
@@ -1468,7 +1467,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 new_def(gen(Packages))
                 return str(scope)
 
-            elif (sidl.package, (sidl.id, Name), Version, Usertypes):
+            elif (sidl.package, (Name), Version, Usertypes):
                 gen_scope('package %s %s {' % (Name, gen(Version)),
                           Usertypes,
                           '}')
@@ -1524,7 +1523,6 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 
             elif (sidl.type_attribute, Name):    return Name
-            elif (sidl.id, Name):                return Name
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
             elif (sidl.method_name, Name, []):   return gen(Name)
             elif (sidl.method_name, Name, Extension): return gen(Name)+' '+Extension

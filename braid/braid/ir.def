@@ -36,6 +36,7 @@
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
+  Import = import(Id),
   Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
   Do_while = do_while(Body, Expr),
   While = while(Expr, Body),
@@ -88,7 +89,7 @@
   Pointer_type = pointer_type(Type|Fn_decl),
   Scoped_id = scoped_id([Id], Extension),
   Extension = 'STR',
-  Id = id('STR')
+  Id = 'STR'
 ].
 % ## const char*
 %const_str = Pointer_type(Const(Primitive_type(char)))

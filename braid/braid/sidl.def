@@ -48,7 +48,7 @@
           | Struct
           | Enum ),
   Type_attr = type_attribute(final | abstract),
-  Id = id('STR'),
+  Id = 'STR',
   Enum = enum(Id, [Enumerator]),
   Enumerator = enumerator(Id, int),
   Struct = struct(Scoped_id, [Struct_item]),

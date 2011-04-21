@@ -37,13 +37,13 @@ def babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return sidl.Scoped_id(package+[sidl.Id('%s__object'%name)], "")
+    return sidl.Scoped_id(package+['%s__object'%name], "")
 
 def babel_exception_type():
     """
     \return the SIDL node for the Babel exception type
     """
-    return babel_object_type([sidl.Id('sidl')], 'BaseInterface')
+    return babel_object_type(['sidl'], 'BaseInterface')
 
 def ir_babel_object_type(package, name):
     """
@@ -57,7 +57,7 @@ def ir_babel_exception_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir_babel_object_type([sidl.Id('sidl')], 'BaseInterface')
+    return ir_babel_object_type(['sidl'], 'BaseInterface')
 
 
 class Chapel:
@@ -128,8 +128,9 @@ class Chapel:
                 # print str(ci.impl)
 
                 # Stub (in C)
-                v = ir.Var_decl(ci.epv.get_sexpr(), ir.Id('%s__epv'%Name))
+                v = ir.Var_decl(ci.epv.get_sexpr(), '%s__epv'%Name)
                 c_gen(v, ci.stub)
+                ci.stub.new_def(Import(Name))
                 print '\n\n'+Name+'.h:'
                 print ci.stub.dot_h()
                 print '\n\n'+Name+'.c:'
@@ -199,11 +200,11 @@ class Chapel:
     def gen_default_methods(self, symbol_table, name, data):
         data.epv.add_method(sidl.Method(
                 sidl.void,
-                sidl.Method_name(sidl.Id("_cast"), ''), [],
+                sidl.Method_name("_cast", ''), [],
                 [sidl.Arg([], sidl.in_, babel_object_type(symbol_table.prefix, name), 
-                          sidl.Id('self')), 
-                 sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), sidl.Id('name')), 
-                 sidl.Arg([], sidl.in_, babel_exception_type(), sidl.Id('ex'))],
+                          'self'), 
+                 sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), 'name'), 
+                 sidl.Arg([], sidl.in_, babel_exception_type(), 'ex')],
                 [], [], [], []))
 
     @matcher(globals(), debug=False)
@@ -236,19 +237,19 @@ class Chapel:
         _, name = Name
         decl_args = ([ir.Arg([], ir.in_, 
                              ir_babel_object_type(symbol_table.prefix, name), 
-                             ir.Id('self'))] +
+                             'self')] +
                      low(Args) +
-                     [ir.Arg([], ir.in_, ir_babel_exception_type(), ir.Id('ex'))]) 
-        call_args = [ir.Id('self')] + map(argname, Args) + [ir.Id('ex')] 
+                     [ir.Arg([], ir.in_, ir_babel_exception_type(), 'ex')]) 
+        call_args = ['self'] + map(argname, Args) + ['ex'] 
         epv_type = data.epv.get_sexpr()
         Body = [ir.Stmt(
             ir.Return(
                 ir.Call(
                     ir.Get_struct_item(
                         epv_type, 
-                        ir.Deref(ir.Id('self')),
+                        ir.Deref('self'),
                         ir.Struct_item(
-                            ir.Primitive_type(ir.void), ir.Id('f_'+Method))), 
+                            ir.Primitive_type(ir.void), 'f_'+Method)),
                     call_args)))]
         return [ir.Fn_decl(low(Type), Name, decl_args),
                 ir.Fn_defn(low(Type), Name, decl_args, Body)]
@@ -265,7 +266,7 @@ def lower_ir(symbol_table, sidl_term):
         return lower_type_ir(symbol_table, sidl_term)
 
     with match(sidl_term):
-        if   (sidl.id, Name): return ir.Id(Name)
+        if   (sidl.id, Name): return Name
         elif (sidl.struct, Name, Items):
             return ir.Pointer_expr(ir.Struct(low_t(Name), Items))
 
@@ -381,7 +382,7 @@ class EPV:
         def get_type_name((_fn_decl, Type, Name, _Args)):
             return Type, Name
 
-        name = ir.Scoped_id(self.symbol_table.prefix+[ir.Id('%s__epv'%self.name)], '')
+        name = ir.Scoped_id(self.symbol_table.prefix+['%s__epv'%self.name], '')
         return ir.Struct(name,
             [ir.Struct_item(itype, iname) 
              for itype, iname in map(get_type_name, self.methods)])
