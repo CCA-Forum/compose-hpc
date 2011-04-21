@@ -28,4 +28,4 @@ Note that if you would like to run a longer or shorter test you can modify the
 NUM_BOIDS and/or NUM_STEPS values defined at the top of boids.c. The provided
 values yield runtimes of about 15 seconds on my 2010 MacBook Pro.
 
-Please email ghulett@sandia.gov with any feedback.
+Please email ghulett@sandia.gov or matt@galois.com with any feedback.
