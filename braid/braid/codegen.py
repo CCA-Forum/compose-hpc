@@ -1509,7 +1509,13 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                         (gen(Typ), _comma_gen(Dimension), gen(Name), gen_comma_sep(Extents)))
 
             elif (sidl.enum, Name, Enumerators):
-                gen_scope('enum %s {' % gen(Name), Enumerators, '}')
+                gen_scope('enum %s {' % gen(Name), gen_comma_sep(Enumerators), '}')
+
+            elif (sidl.enumerator, Name):
+                return gen(Name)
+
+            elif (sidl.enumerator, Name, Value):
+                return '%s = %s' % (gen(Name), gen(Value))
 
             elif (sidl.struct, Name, Items):
                 gen_scope('struct %s {' % gen(Name), Items, '}')

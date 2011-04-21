@@ -587,7 +587,7 @@ def p_enumerator(p):
     if len(p) < 4:
         p[0] = (sidl.enumerator, p[1])
     else:
-        p[0] = (sidl.enumerator, p[2], p[1], p[3])
+        p[0] = (sidl.enumerator, p[1], p[3])
 
 def p_struct(p):
     '''struct : STRUCT name LBRACE structItems RBRACE'''
@@ -1115,6 +1115,47 @@ def p_integer_2(p):
 
 # ----------------------------------------------------------------------
 
+def package_nest(node, in_package):
+    """
+    Grammar checker to make sure class, interface, struct and enum are
+    nested in a package.
+    """
+    if not isinstance(node, tuple):
+        return in_package
+
+    t = node[0]
+    if t == sidl.package:
+        in_package = True
+    if not in_package:
+        if (t == sidl.class_ or
+            t == sidl.interface or
+            t == sidl.struct or
+            t == sidl.enum):
+            print "**ERROR: %s %s must appear inside of a package."%(node[0], node[1][1])
+            exit(1)
+    return in_package
+    
+def traversal(node, f, inherited):
+    """
+    Perform a top-down, left-right traversal.
+    \param node        The starting node.
+    \param f           The action to perform.
+    \param inherited   The initial inherited attributes.
+    """
+    for child in node:
+        inherit = f(child, inherited)
+        if (isinstance(child, tuple) or 
+            isinstance(child, list)):
+            traversal(child, f, inherit)
+
+def check_grammar(sidl_sexp):
+    """
+    Perform various grammar checks on a SIDL AST.
+    """
+    traversal(sidl_sexp, package_nest, False)
+
+# ----------------------------------------------------------------------
+
 
 
 def parse(sidl_file, debug=False):
@@ -1154,7 +1195,9 @@ def parse(sidl_file, debug=False):
         debug = log
 
     #import pdb; pdb.set_trace()
-    return parser.parse(sidlFile, lexer=scanner, debug=debug)
+    sexp = parser.parse(sidlFile, lexer=scanner, debug=debug)
+    check_grammar(sexp)
+    return sexp
 
 if __name__ == '__main__':
     # Run the scanner and parser in non-optimizing mode. This will
