@@ -112,7 +112,7 @@ class Variable:
 
     def free(self):
 	"""
-	Remove any binding of this variable
+	\return True if this is an unbound variable.
 	"""
 	return self.binding == None
 

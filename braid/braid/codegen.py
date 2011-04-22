@@ -14,6 +14,11 @@
 # implements a \c generate(sexpr) function which takes an \c ir node
 # in s-expression form.
 #
+# \todo Should performance ever become an issue with these code
+# generators, we might want to replace the cascade of
+# match()-statements with a more orderly traversal; ideally one that
+# would automatically be generated from the grammar and invokes
+# functions named after each node's id.
 #
 # Please report bugs to <adrian@llnl.gov>.
 #
@@ -35,7 +40,7 @@
 
 import sys, re
 import ir, sidl
-from patmat import matcher, Variable, match, member
+from patmat import matcher, Variable, match, unify, member
 
 languages = ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
 

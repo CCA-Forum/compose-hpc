@@ -25,7 +25,7 @@
 #
 
 import ir, sidl
-from patmat import matcher, match, expect, Variable
+from patmat import matcher, match, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator, 
     SourceFile, CFile, Scope, generator
