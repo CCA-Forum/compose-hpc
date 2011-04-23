@@ -2,6 +2,7 @@
 %option yylineno
 %option stack
 %x IN_COMMENT
+%x IN_DOC_COMMENT
 %x MULTI1
 %x MULTI2
 %{
@@ -52,14 +53,36 @@ enum Token {
           t_SIMPLE_FLOATING_POINT_LITERAL, t_CHARACTER_LITERAL, t_STRING_LITERAL
 };
 
+static int yypos = 0;                  // Character count in file
+static const char* yytype = NULL;      // The python token type
+static char* ident = NULL;	       // Used by IDENTIFIER_COLON
+static char* doc_comment = NULL;       // Used by IDENTIFIER_COLON/DOC_COMMENT
+static size_t doc_comment_len = 0;     // Used by DOC_COMMENT
+static size_t doc_comment_alloc = 0;   // Used by DOC_COMMENT
+static const char *fn;                 // Input file name
+
 #define update_yypos() { yypos += yyleng; }
 #define ID_TOKEN       { update_yypos(); yytype = yytext; return -1; }
 #define TOKEN(TOKEN)   { update_yypos(); yytype = #TOKEN; return t_##TOKEN; }
-
-static int yypos = 0;             // Character count in file
-static const char* yytype = NULL; // The python token type
-static char* ident = NULL;        // Used by IDENTIFIER_COLON
-static const char *fn;            // Input file name
+#define max(X,Y)       ((X) > (Y) ? (X) : (Y))
+#define new_doxy()     { if (doc_comment) {doc_comment[0] = 0; doc_comment_len = 0;} }
+// Concat yytext+offset to the (growing) doc_comment buffer
+static void concat_doxy(offset)                                                
+{									   
+  update_yypos();							   
+  if (!doc_comment) {							   
+    doc_comment_alloc = 1024;						   
+    doc_comment = malloc(doc_comment_alloc);				   
+    doc_comment_len = 0;						   
+    doc_comment[0] = 0;							   
+  }									   
+  if (yyleng-offset + doc_comment_len >= doc_comment_alloc) {		   
+    doc_comment_alloc = max(doc_comment_alloc*2, 1024);			   
+    doc_comment = realloc(doc_comment, doc_comment_alloc); 
+  }									   
+  strncat(doc_comment, yytext+offset, doc_comment_alloc-doc_comment_len);		   
+  doc_comment_len += yyleng - offset;					   
+}						      
 
 %}
 
@@ -73,21 +96,33 @@ STRING_LITERAL                "(~["\\\n\r]|(\\[ntbrf\\'"]|([0-7][0-7]?)|([0-3][0
 IDENTIFIER                    [a-zA-Z][a-zA-Z_0-9]*
 
 %%
- /*defeat emacs syntax highlighting"'*/
+ /*defeat emacs syntax highlighting: "'*/
 
 
 <INITIAL,MULTI1,MULTI2>{
   [ \t\f] update_yypos(); // White Space
   [\r\n]  update_yypos();
 
-  "//".*  update_yypos(); // C++ comment
-  "/*"    update_yypos(); yy_push_state(IN_COMMENT); /* C comment */
+  "///".* new_doxy(); concat_doxy(3);                                // C++ Doxygen comment
+  "//".*  update_yypos();                                            // C++ comment
+  "/**"   new_doxy(); update_yypos(); yy_push_state(IN_DOC_COMMENT); // C Doxygen comment
+  "/*"    update_yypos(); yy_push_state(IN_COMMENT);                 // C comment
 }
 <IN_COMMENT>{
   "*/"        update_yypos(); yy_pop_state();
   [^*\n]+     update_yypos(); // eat comment in chunks
   "*"         update_yypos(); // eat the lone star
   [\r\n]      update_yypos();
+}
+<IN_DOC_COMMENT>{
+  "*/"        update_yypos(); yy_pop_state();
+  [^*\n]+     concat_doxy(0); // this adds the contents of yytext to doc_comment
+  "*"         concat_doxy(0);
+  [\r\n]+[ \t]*"*"[^/] {      // ignore '*' at the beginning of a line
+    yyless(yyleng-1);
+    yytext[yyleng-1] = ' '; concat_doxy(0); 
+  }
+  [\r\n]      concat_doxy(0);
 }
 
   /* TODO  <"/**" ~["/"] > { input_stream.backup(1); } : IN_DOC_COMMENT */
@@ -185,13 +220,15 @@ false|true ID_TOKEN
 <<EOF>>   return 0;
 
 . {
-
     fprintf(stderr, "**ERROR: %s:%d:\n  unexpected token '%s'.\n",
             fn, yylineno, yytext);
     exit(1);
 }
 %%
 
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
 #include <Python.h>
 #include <stdio.h>
 
@@ -219,15 +256,22 @@ scanner_token(PyObject *self, PyObject *args)
   static PyObject* r;
   int type = yylex();
   //while (yylex()) { fprintf(stdout, "token:'%s' :: %s\n", yytext, yytype); fflush(stdout);} exit(1);
+
+  // EOF
   if (type == 0 && token_init) {
     // Free references to Token
     Py_DECREF(token_module);
     Py_DECREF(token_dict); 
     // FIXME: this triggers a segfault: Py_DECREF(token_init);
     fclose(yyin);
+    free(doc_comment);
+    doc_comment = NULL;
+    doc_comment_alloc = 0;
+    doc_comment_len = 0;
     return Py_None;
   }
 
+  // Initialization
   if (token_init == NULL) {
      // Load the Token module
      token_module = PyImport_Import(PyString_FromString("sidl_token"));
@@ -245,12 +289,20 @@ scanner_token(PyObject *self, PyObject *args)
   }
   //fprintf(stderr, "(%d, %d), type: %s, token: `%s'\n", yylineno, yypos, yytype, yytext); fflush(stderr);
   
-  r = PyObject_CallFunction(token_init, "(ssii)", yytype, ident?ident:yytext, yylineno, yypos);
-  if (ident) {
-    free(ident);
-    ident = NULL;
-  }
+  // Build python return value
+  r = PyObject_CallFunction(token_init, "(ssii)", yytype, ident?ident:yytext,
+  			    yylineno, yypos);
+  free(ident);
+  ident = NULL;
+
   return r;
+}
+
+static PyObject*
+last_doc_comment(PyObject *self, PyObject *args)
+{
+  //fprintf(stderr, "doc: `%s, %d'\n", doc_comment, doc_comment_len); fflush(stderr);
+  return Py_BuildValue("s#", doc_comment?doc_comment:"", doc_comment_len);
 }
 
 static PyMethodDef ScannerMethods[] = {
@@ -258,6 +310,8 @@ static PyMethodDef ScannerMethods[] = {
      "set the input stream."},
     {"token",  scanner_token, METH_VARARGS,
      "return a new token from the input stream."},
+    {"last_doc_comment",  last_doc_comment, METH_VARARGS,
+     "return the last doc comment read from the input stream."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

@@ -1050,7 +1050,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
-            elif (ir.pointer_type, Type): return '*'+str(gen(Type))
+            elif (ir.pointer_type, Type): return str(gen(Type))+'*'
             elif (ir.deref):          return '*'
             elif (ir.log_not):        return '!'
             elif (ir.assignment):     return '='
@@ -1461,6 +1461,10 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                                        separator=';\n'))+';'+
                     sep+post)
 
+        def gen_comment(doc_comment):
+            if doc_comment <> '':
+                new_def('/**'+doc_comment+'*/')
+
         def gen_comma_sep(defs):
             return gen_in_scope(defs, Scope(relative_indent=1, separator=','))
 
@@ -1482,7 +1486,8 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 new_def(gen(Packages))
                 return str(scope)
 
-            elif (sidl.package, (Name), Version, Usertypes):
+            elif (sidl.package, (Name), Version, Usertypes, DocComment):
+                gen_comment(DocComment)
                 gen_scope('package %s %s {' % (Name, gen(Version)),
                           Usertypes,
                           '}')
@@ -1490,20 +1495,23 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.user_type, Attrs, Defn): 
                 return gen_(Attrs)+gen(Defn)
 
-            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
+                gen_comment(DocComment)
                 head = 'class '+gen(Name)
                 if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
                 if (Implements) <> []: head += ' implements '+gen_ws_sep(Implements)
                 if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
-            elif (sidl.interface, Name, Extends, Invariants, Methods):
+            elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
+                gen_comment(DocComment)
                 head = 'interface '+gen(Name)
                 if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
                 if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
-            elif (sidl.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (sidl.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, DocComment):
+                gen_comment(DocComment)
                 return (gen_ws_sep(Attrs)+
                         gen(Typ)+' '+gen(Name)+'('+gen_comma_sep(Args)+')'+
                         _gen(Excepts)+

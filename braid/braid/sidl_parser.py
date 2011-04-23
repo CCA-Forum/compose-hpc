@@ -42,51 +42,43 @@
 # </pre>
 #
 import logging, operator, os.path, sys
-#import re
+sys.path.append('.libs')
+import yacc, sidl, scanner
 #import ply.lex as lex
 #from ply.lex import TOKEN
-import yacc
-
-def trace():
-    import pdb; pdb.set_trace();
-
-import sidl
-from patmat import matcher, Variable, match
-
-sys.path.append('.libs')
-import scanner
 
 sidlFile = ''
 
-tokens = [ 'VOID', 'ARRAY', 'RARRAY', 'BOOL', 'CHAR', 'DCOMPLEX', 'DOUBLE',
-            'FCOMPLEX', 'FLOAT', 'INT', 'LONG', 'OPAQUE', 'STRING',
+tokens = [ 
+    'VOID', 'ARRAY', 'RARRAY', 'BOOL', 'CHAR', 'DCOMPLEX', 'DOUBLE',
+    'FCOMPLEX', 'FLOAT', 'INT', 'LONG', 'OPAQUE', 'STRING',
 
-            'CLASS', 'ENUM', 'STRUCT', 'INTERFACE',
+    'CLASS', 'ENUM', 'STRUCT', 'INTERFACE',
 
-            'ABSTRACT', 'LOGICAL_AND', 'COPY', 'COMMA_COLUMN_MAJOR', 'ENSURE',
-            'EXTENDS', 'FINAL', 'FROM', 'IFF', 'IMPLEMENTS', 'IMPLEMENTS_ALL',
-            'IMPLIES', 'IMPORT', 'IN', 'INOUT', 'INVARIANT', 'IS', 'LOCAL',
-            'MODULUS', 'NOT', 'NULL', 'NONBLOCKING', 'ONEWAY', 'LOGICAL_OR',
-            'OUT', 'PACKAGE', 'PURE', 'REMAINDER', 'REQUIRE', 'RESULT', 'COMMA_ROW_MAJOR',
-            'STATIC', 'THROWS', 'VERSION', 'LOGICAL_XOR',
-            # 'THEN', 'ELSE', 'ORDER',
+    'ABSTRACT', 'LOGICAL_AND', 'COPY', 'COMMA_COLUMN_MAJOR', 'ENSURE',
+    'EXTENDS', 'FINAL', 'FROM', 'IFF', 'IMPLEMENTS', 'IMPLEMENTS_ALL',
+    'IMPLIES', 'IMPORT', 'IN', 'INOUT', 'INVARIANT', 'IS', 'LOCAL',
+    'MODULUS', 'NOT', 'NULL', 'NONBLOCKING', 'ONEWAY', 'LOGICAL_OR',
+    'OUT', 'PACKAGE', 'PURE', 'REMAINDER', 'REQUIRE', 'RESULT', 'COMMA_ROW_MAJOR',
+    'STATIC', 'THROWS', 'VERSION', 'LOGICAL_XOR',
+    # 'THEN', 'ELSE', 'ORDER',
 
-            'IDENTIFIER', 'EXTENSION', 'VERSION_STRING',
+    'IDENTIFIER', 'EXTENSION', 'VERSION_STRING',
 
-            'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE',
-            #'LBRACKET', 'RBRACKET',
-            'SEMICOLON', 'COMMA', 'DOT', 'ATTRIB_BEGIN', 'ATTRIB_ID',
-            'ATTRIB_STRING', 'ATTRIB_EQ', 'ATTRIB_COMMA', 'ATTRIB_END',
+    'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE',
+    #'LBRACKET', 'RBRACKET',
+    'SEMICOLON', 'COMMA', 'DOT', 'ATTRIB_BEGIN', 'ATTRIB_ID',
+    'ATTRIB_STRING', 'ATTRIB_EQ', 'ATTRIB_COMMA', 'ATTRIB_END',
 
-            'ASSIGN', 'BITWISE_AND', 'BITWISE_XOR', 'IDENTIFIER_COLON', 'EQ', 'GE',
-            'GT', 'LE', 'LT', 'MINUS', 'NE', 'BITWISE_OR', 'PLUS', 'POWER',
-            'SLASH', 'STAR', 'TILDE', 'LSHIFT', 'RSHIFT',
-
-            'BOOLEAN_LITERAL', # 'INTEGER_LITERAL',
-            'HEX_LITERAL', 'OCTAL_LITERAL', #'FALSE', 'TRUE',
-            'DECIMAL_LITERAL', 'FLOATING_POINT_LITERAL',
-            'SIMPLE_FLOATING_POINT_LITERAL', 'CHARACTER_LITERAL', 'STRING_LITERAL'
-            ]
+    'ASSIGN', 'BITWISE_AND', 'BITWISE_XOR', 'IDENTIFIER_COLON', 'EQ', 'GE',
+    'GT', 'LE', 'LT', 'MINUS', 'NE', 'BITWISE_OR', 'PLUS', 'POWER',
+    'SLASH', 'STAR', 'TILDE', 'LSHIFT', 'RSHIFT',
+    
+    'BOOLEAN_LITERAL', # 'INTEGER_LITERAL',
+    'HEX_LITERAL', 'OCTAL_LITERAL', #'FALSE', 'TRUE',
+    'DECIMAL_LITERAL', 'FLOATING_POINT_LITERAL',
+    'SIMPLE_FLOATING_POINT_LITERAL', 'CHARACTER_LITERAL', 'STRING_LITERAL'
+]
 
 # # White Space
 # t_ignore = ' \t\f'
@@ -516,12 +508,12 @@ def p_import_error(p):
 def p_package_1(p):
     '''package : PACKAGE name LBRACE userTypes RBRACE'''
     no_comma(p[5])
-    p[0] = (sidl.package, p[2], 'no version', (p[4]))
+    p[0] = (sidl.package, p[2], 'no version', (p[4]), scanner.last_doc_comment())
 
 def p_package_2(p):
     '''package : PACKAGE name version LBRACE userTypes RBRACE'''
     no_comma(p[6])
-    p[0] = (sidl.package, p[2], p[3], (p[5]))
+    p[0] = (sidl.package, p[2], p[3], (p[5]), scanner.last_doc_comment())
 
 def p_package_error_1(p):
     '''package : PACKAGE error'''
@@ -592,7 +584,7 @@ def p_enumerator(p):
 def p_struct(p):
     '''struct : STRUCT name LBRACE structItems RBRACE'''
     no_comma(p[5])
-    p[0] = (sidl.struct, p[2], (p[4]))
+    p[0] = (sidl.struct, p[2], (p[4]), scanner.last_doc_comment())
 
 def p_structItems(p): # *
     '''structItems : empty
@@ -610,7 +602,7 @@ def p_structItem_2(p):
 def p_class(p):
     '''class : CLASS name maybeExtendsOne implementsSomeAllLists LBRACE invariants methods RBRACE'''
     no_comma(p[8])
-    p[0] = (sidl.class_, p[2], p[3], (p[4]), (p[6]), (p[7]))
+    p[0] = (sidl.class_, p[2], p[3], (p[4]), (p[6]), (p[7]), scanner.last_doc_comment())
 
 def p_implementsSomeAllLists(p):
     '''implementsSomeAllLists : empty
@@ -641,7 +633,7 @@ def p_methods(p): # *
 def p_interface(p):
     '''interface : INTERFACE name extendsList LBRACE invariants methods RBRACE'''
     no_comma(p[7])
-    p[0] = (sidl.interface, p[2], (p[3]), (p[5]), (p[6]))
+    p[0] = (sidl.interface, p[2], (p[3]), (p[5]), (p[6]), scanner.last_doc_comment())
 
 def p_scopedIDs(p): # +
     '''scopedIDs : scopedID
@@ -668,7 +660,7 @@ def p_implementsAllList(p):
 
 def p_method(p):
     '''method : methodAttrs typeVoid methodName LPAREN maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions'''
-    p[0] = (sidl.method, p[2], p[3], (p[1]), (p[5]), p[7], p[8], (p[10]), (p[11]))
+    p[0] = (sidl.method, p[2], p[3], (p[1]), (p[5]), p[7], p[8], (p[10]), (p[11]), scanner.last_doc_comment())
 
 def p_method_error(p):
     '''method : methodAttrs typeVoid methodName error maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions
@@ -1180,13 +1172,6 @@ def parse(sidl_file, debug=False):
 
     parser = yacc.yacc(debug=debug, optimize=optimize)
 
-    # try:
-    #     f = open(sidlFile)
-    #     data = f.read()
-    #     f.close()
-    # except IndexError:
-    #     print "Cannot read file", sidlFile
-
     if debug == 1:
         logging.basicConfig(filename='parser.log', level=logging.DEBUG,
                             filemode = "w",
@@ -1204,8 +1189,6 @@ if __name__ == '__main__':
     # generate 'parsetab.py' which contains the
     # automaton. Subsequent runs can then use python -O $0.
     # print 'Generating scanner...'
-    # lex.lex(debug=_debug, optimize=1-_debug)
-    print 'Generating parser...'
-    _debug=0
-    yacc.yacc(debug=_debug, optimize=1-_debug)
-
+    # lex.lex(debug=_debug, optimize=0)
+    print '  --> Generating parser'
+    yacc.yacc(optimize=0,debug=1,debugfile='parser.out')
