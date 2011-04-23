@@ -1,4 +1,4 @@
-# TO BE INCLUDED BY THE TOPLEVEL Makefile.am
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am -*- makefile-automake -*-
 
 # 3rd party stuff
 if PYTHON_VERSION_2_6
@@ -100,8 +100,9 @@ $(builddir)/%.success: $(srcdir)/%.sidl braid
 
 braid/parsetab.py: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
 	@echo "  PYTHON Generate the sidl parser tables"
-	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$< --compile
-	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$< --compile
+	@rm -f $@
+	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$<
+	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$<
 
 braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
@@ -123,6 +124,6 @@ braid/%.py: $(srcdir)/braid/%.def
 clean-braid:
 	cd braid && rm -rf scanner.c braid *.pyc *.pyo parsetab.py* lextab.py* parser.log parser.out
 	rm -rf $(SIDL_TOKENS) $(UNIT_TOKENS)
-# This can be done cleaner... Problem is, we do not want to force the
-# dependency on swipl on the users
+# This can be done more nicely... Problem is, we do not want to force
+# the dependency on swipl on the users
 	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi

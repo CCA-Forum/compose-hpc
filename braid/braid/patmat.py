@@ -89,7 +89,7 @@
 #
 # </pre>
 
-import re, string
+import re
 
 class Variable:
     """

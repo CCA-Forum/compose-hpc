@@ -72,14 +72,16 @@ class Chapel:
             self.epv = epv
 
 
-    def __init__(self, filename, sidl_sexpr):
+    def __init__(self, filename, sidl_sexpr, create_makefile):
         """
         Create a new chapel code generator
-        \param filename      full path to the SIDL file
-        \param sidl_sexpr    s-expression of the SIDL data
+        \param filename        full path to the SIDL file
+        \param sidl_sexpr      s-expression of the SIDL data
+        \param create_makefile if \c True, also generate a GNUmakefile
         """
         self.sidl_ast = sidl_sexpr
         self.sidl_file = filename
+        self.create_makefile = create_makefile
 
     def generate_client(self):
         """
@@ -132,20 +134,21 @@ class Chapel:
                 # Stub (in C)
                 v = ir.Var_decl(ci.epv.get_sexpr(), '%s__epv'%Name)
                 c_gen(v, ci.stub)
-                c_gen(ir.Import(Name), ci.stub)
+                c_gen(ir.Import(Name+'_Stub'), ci.stub)
 
                 # Header
-                stub_h = open(Name+'.h','w')
+                stub_h = open(Name+'_Stub.h','w')
                 stub_h.write(ci.stub.dot_h())
                 stub_h.close()
 
                 # C-file
-                stub_h = open(Name+'.c','w')
+                stub_h = open(Name+'_Stub.c','w')
                 stub_h.write(ci.stub.dot_c())
                 stub_h.close()
 
                 # Makefile
-                generate_makefile(self.sidl_file, Name)
+                if self.create_makefile:
+                    generate_makefile(self.sidl_file, Name)
 
 
             elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
@@ -550,18 +553,18 @@ INCLDIR=$(PREFIX)/include
 
 ifeq ($(IMPLSRCS),)
   SCLFILE=
-  BABELFLAG=--client=c
+  BABELFLAG=--client=Chapel
   MODFLAG=
 else
   SCLFILE=lib$(LIBNAME).scl
-  BABELFLAG=--server=c
+  BABELFLAG=--server=Chapel
   MODFLAG=-module
 endif
 
 all : lib$(LIBNAME).la $(SCLFILE)
 
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes`
+INCLUDES=`babel-config --includes` -I.
 CFLAGS=`babel-config --flags-c`
 LIBS=`babel-config --libs-c-client`
 
@@ -593,7 +596,7 @@ $(PUREBABELGEN) $(BABELGEN) : babel-stamp
 babel-stamp: $(SIDLFILE)
 	@rm -f babel-temp
 	@touch babel-temp
-	babel $(BABELFLAG) $(SIDLFILE) 
+	braid $(BABELFLAG) $(SIDLFILE) 
 	@mv -f babel-temp $@
 
 lib$(LIBNAME).scl : $(IORSRCS)

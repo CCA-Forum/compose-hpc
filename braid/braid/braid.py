@@ -42,7 +42,7 @@ def braid(args):
         if args.client == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):
-            chapel.Chapel(sidl_file, sidl_ast).generate_client()
+            chapel.Chapel(sidl_file, sidl_ast, args.makefile).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
             exit(1)
@@ -63,9 +63,12 @@ if __name__ == '__main__':
     cmdline.add_argument('--gen-sidl', action='store_true', dest='gen_sidl',
 			 help='generate SIDL output again')
 
-    cmdline.add_argument('--client', metavar='<language>',
+    cmdline.add_argument('-c', '--client', metavar='<language>',
                          help='generate client code in the specified language'+
                          ' (Chapel)')
+
+    cmdline.add_argument('-m', '--makefile', action='store_true',
+                         help='generate a default GNUmakefile')
 
     cmdline.add_argument('--debug', action='store_true', help='enable debugging features')
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')
@@ -79,6 +82,12 @@ if __name__ == '__main__':
     if len(args.sidl_files) == 0:
         cmdline.print_help()
         exit(1)
+
+    # Dependencies
+    if args.makefile and not args.client:
+        print """
+Warning: --makefile is only effective when used in conjunction with --client!
+"""
 
     if args.profile:
         # Profiling
