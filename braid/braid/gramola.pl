@@ -176,8 +176,8 @@ validation(Arg, Var, Indent) :- !,
 	  [Indent]),
     format('~a    print "**GRAMMAR ERROR in argument \
 	    ~a = %s"%repr(~a)~n', [Indent, Var, Var]),
-    format('~a    print "  Most likely you want to enter \\"up<enter>l<enter>\\" \
-	   now to see what happened.\\n"~n', [Indent]),	    
+    format('~a    print "  Most likely you now want to enter \\"up<enter>l<enter>\\"\\n \
+	   into the debugger to see what happened.\\n"~n', [Indent]),	    
     format('~a    raise Exception("Grammar Error")~n', [Indent]).
 
 % builtin
@@ -270,7 +270,10 @@ constructor(Error, _) :-
 	format(user_error, 'Internal error, spawning debugger.~n', []),
 	gtrace
     ;	format(user_error, 'Most probably missing a definition in above term.~n', []),
-	format(user_error, 'Look for symbols like `_G123\'.~n', [])
+	format(user_error, 'Until better error recovery is implemented, ~n', []),
+	format(user_error, 'please look for symbols like `_G123\' in the output~n', []),
+    	format(user_error, 'above and compare that to the grammar definition~n', []),
+	format(user_error, 'to identify the offending term.~n', [])
     ),
     halt(1).
 

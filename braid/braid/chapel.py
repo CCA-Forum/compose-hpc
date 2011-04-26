@@ -24,7 +24,7 @@
 # </pre>
 #
 
-import ir, sidl
+import ir, sidl, re
 from patmat import matcher, match, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator, 
@@ -51,7 +51,7 @@ def ir_babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Pointer_type(ir.Struct(babel_object_type(package,name), []))
+    return ir.Pointer_type(ir.Struct(babel_object_type(package,name), [], ''))
 
 def ir_babel_exception_type():
     """
@@ -114,10 +114,10 @@ class Chapel:
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
 
-            elif (sidl.package, Name, Version, UserTypes):
+            elif (sidl.package, Name, Version, UserTypes, DocComment):
                 self.generate_client1(UserTypes, data, symbol_table[Name])
 
-            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
                 # impl = ChapelFile()
                 ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table))
@@ -146,12 +146,17 @@ class Chapel:
                 stub_h.write(ci.stub.dot_c())
                 stub_h.close()
 
+                # Impl
+                stub_h = open(Name+'_Impl.chpl','w')
+                stub_h.write(str(ci.impl))
+                stub_h.close()
+
                 # Makefile
                 if self.create_makefile:
                     generate_makefile(self.sidl_file, Name)
 
 
-            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
+            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
                 self.generate_client_method(symbol_table, node, data)               
 
             elif A:
@@ -184,17 +189,17 @@ class Chapel:
             elif (sidl.user_type, Attrs, Cipse): 
                 gen(Cipse)
 
-            elif (sidl.package, Name, Version, UserTypes):
+            elif (sidl.package, Name, Version, UserTypes, DocComment):
                 symbol_table[Name] = SymbolTable(symbol_table, 
                                                  symbol_table.prefix+[Name])
                 self.build_symbol_table(UserTypes, symbol_table[Name])
 
-            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods):
+            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
                 symbol_table[Name] = \
                     ( sidl.class_, (sidl.scoped_id, symbol_table.prefix+[Name], []),
                       Extends, Implements, Invariants, Methods )
 
-            elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items):
+            elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
                 symbol_table[Name] = \
                     ( sidl.struct, 
                       (sidl.scoped_id, symbol_table.prefix+Names, []), 
@@ -240,7 +245,7 @@ class Chapel:
 
     def generate_stub(self, symbol_table,
                       (Method, Type, (_,  Name, _Attr), Attrs, Args, 
-                       Except, From, Requires, Ensures), data):
+                       Except, From, Requires, Ensures, DocComment), data):
 
         def argname((_arg, _attr, _mode, _type, Id)):
             return Id
@@ -265,8 +270,8 @@ class Chapel:
                         ir.Struct_item(
                             ir.Primitive_type(ir.void), 'f_'+Name)),
                     call_args)))]
-        return [ir.Fn_decl(low(Type), Name, decl_args),
-                ir.Fn_defn(low(Type), Name, decl_args, Body)]
+        return [ir.Fn_decl(low(Type), Name, decl_args, DocComment),
+                ir.Fn_defn(low(Type), Name, decl_args, Body, DocComment)]
 
 @matcher(globals(), debug=False)
 def lower_ir(symbol_table, sidl_term):
@@ -281,7 +286,7 @@ def lower_ir(symbol_table, sidl_term):
 
     with match(sidl_term):
         if (sidl.struct, Name, Items):
-            return ir.Pointer_expr(ir.Struct(low_t(Name), Items))
+            return ir.Pointer_expr(ir.Struct(low_t(Name), Items, ''))
 
         elif (sidl.arg, Attrs, Mode, Typ, Name): 
             return ir.Arg(Attrs, Mode, low_t(Typ), Name)
@@ -309,7 +314,7 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.class_, Name, _, _, _, _):    
             # FIXME
-            return ir.Pointer_type(ir.Struct(Name, []))
+            return ir.Pointer_type(ir.Struct(Name, [], ''))
         else:
             raise Exception("Not implemented")
  
@@ -380,8 +385,8 @@ class EPV:
         """
         def to_fn_decl((_sidl_method, Type, 
                         (Method_name, Name, Extension), 
-                        Attrs, Args, Except, From, Requires, Ensures)):
-            return ir.Fn_decl(lower_ir(self.symbol_table, Type), Name, Args)
+                        Attrs, Args, Except, From, Requires, Ensures, DocComment)):
+            return ir.Fn_decl(lower_ir(self.symbol_table, Type), Name, Args, DocComment)
 
         self.methods.append(to_fn_decl(method))
         return self
@@ -390,13 +395,14 @@ class EPV:
         """
         return an s-expression of the EPV declaration
         """
-        def get_type_name((_fn_decl, Type, Name, _Args)):
+        def get_type_name((_fn_decl, Type, Name, _Args, _DocComment)):
             return Type, Name
 
         name = ir.Scoped_id(self.symbol_table.prefix+['%s__epv'%self.name], '')
         return ir.Struct(name,
             [ir.Struct_item(itype, iname) 
-             for itype, iname in map(get_type_name, self.methods)])
+             for itype, iname in map(get_type_name, self.methods)], 
+                         'Entry Point Vector (EPV)')
 
 def chpl_gen(ir):
     return str(ChapelCodeGenerator().generate(ir, ChapelScope()))
@@ -456,18 +462,27 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         def tmap(f, l):
             return tuple(map(f, l))
 
-        with match(node):
-            if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures):
-                new_def('def %s(%s)'%(gen(Name), gen_comma_sep(Args)))
+        def gen_comment(doc_comment):
+            if doc_comment == '': 
+                return ''
+            sep = '\n'+' '*scope.indent_level
+            return (sep+'* ').join(['/**']+
+                                   re.split('\n\s*', doc_comment)
+                                   )+sep+'*/'+sep
 
-            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures):
-                new_def('def %s(%s): %s'%(gen(Name), gen_comma_sep(Args), gen(Type)))
+        with match(node):
+            if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
+                new_def('%sdef %s(%s)'%(gen_comment(DocComment), gen(Name), gen_comma_sep(Args)))
+
+            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
+                new_def('%sdef %s(%s): %s'%(gen_comment(DocComment),
+                                            gen(Name), gen_comma_sep(Args), gen(Type)))
 
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s: %s'%(gen(Name), gen(Type))
 
-            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods):
-                return 'class '+Name
+            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
+                return gen_comment(DocComment)+'class '+Name
 
             elif (sidl.primitive_type, Type):       return self.type_map[Type]
             elif (sidl.custom_attribute, Id):       return gen(Id)

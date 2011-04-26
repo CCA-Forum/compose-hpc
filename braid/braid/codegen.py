@@ -278,17 +278,18 @@ class Scope(object):
         """
         Break a string of C-like code at max_line_length.
         """
-        # FIXME: this can't stay this way. We should be doing this only once per line
+        # FIXME: this should be implemented more efficiently
         lines = []
-        for ln in string.split('\n'):
-            tokens = ln.split(' ')
-            while len(tokens) > 0:
-                line = ""
-                while (len(tokens) > 0 and 
-                       len(line)+len(tokens[0]) < self._max_line_length):
-                    line += tokens.pop(0)
-                    if len(tokens): line += ' '
-                lines += [line]
+        if string.count("\n") > 0:
+            return string
+        tokens = string.split(' ')
+        while len(tokens) > 0:
+            line = ""
+            while (len(tokens) > 0 and 
+                   len(line)+len(tokens[0]) < self._max_line_length):
+                line += tokens.pop(0)
+                if len(tokens): line += ' '
+            lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
         indent = '\n' +' '*il
@@ -560,7 +561,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 return "retval = %s" % gen(Expr)
 
             elif (ir.primitive_type, T): return type_map[T]
-            elif (ir.struct, (Package), (Name), _): 
+            elif (ir.struct, (Package), (Name), DocComment): 
                 return ("%s_%s"%(Package, Name)).lower()
 
             elif (ir.get_struct_item, Struct, Name, Item):
@@ -1017,18 +1018,27 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         def gen_dot_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
 
+        def gen_comment(doc_comment):
+            if doc_comment == '': 
+                return ''
+            sep = '\n'+' '*scope.indent_level
+            return (sep+'* ').join(['/**']+
+                                   re.split('\n\s*', doc_comment)
+                                   )+sep+'*/'+sep
 
         with match(node):
             if (ir.stmt, Expr):
                 return new_def(gen(Expr)+';')
 
-            elif (ir.fn_decl, Type, Name, Args):
-                scope.new_header_def("%s %s(%s)"% (
+            elif (ir.fn_decl, Type, Name, Args, DocComment):
+                scope.new_header_def("%s%s %s(%s)"% (
+                        gen_comment(DocComment),
                         gen(Type), gen(Name), gen_comma_sep(Args)))
                 return scope
 
-            elif (ir.fn_defn, Type, Name, Args, Body):
-                return new_scope("%s %s(%s)"% (
+            elif (ir.fn_defn, Type, Name, Args, Body, DocComment):
+                return new_scope("%s%s %s(%s)"% (
+                        gen_comment(DocComment),
                         gen(Type), gen(Name), gen_comma_sep(Args)), Body)
 
             elif (ir.return_, Expr):
@@ -1103,7 +1113,7 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if   (ir.struct, Name, _):         return gen(Name)
+            if   (ir.struct, Name, _, DocComment): return gen(Name)
             elif (ir.primitive_type, Name, _): return gen(Name)
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
@@ -1120,7 +1130,6 @@ class CCodeGenerator(ClikeCodeGenerator):
             elif (ir.set_struct_item, _, StructName, Item, Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
-            elif (ir.struct, Name, _): return gen(Name)
             elif (ir.scoped_id, Names, Ext):
                 return '_'.join([name for name in Names])
 
@@ -1249,7 +1258,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
 
         with match(node):
             if   (ir.primitive_type, Type): return type_map[Type]
-            elif (ir.struct, Package, Type, _): return gen(Package)+'.'+gen(Type)
+
             elif (ir.get_struct_item, Type, StructName, Item):
                 return deref(Type, StructName)+'.'+gen(Item)
 
@@ -1462,8 +1471,12 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                     sep+post)
 
         def gen_comment(doc_comment):
-            if doc_comment <> '':
-                new_def('/**'+doc_comment+'*/')
+            if doc_comment == '': 
+                return ''
+            sep = '\n'+' '*scope.indent_level
+            return (sep+'* ').join(['/**']+
+                                   re.split('\n\s*', doc_comment)
+                                   )+sep+'*/'+sep
 
         def gen_comma_sep(defs):
             return gen_in_scope(defs, Scope(relative_indent=1, separator=','))
@@ -1488,7 +1501,8 @@ class SIDLCodeGenerator(GenericCodeGenerator):
 
             elif (sidl.package, (Name), Version, Usertypes, DocComment):
                 gen_comment(DocComment)
-                gen_scope('package %s %s {' % (Name, gen(Version)),
+                gen_scope('%spackage %s %s {' % (
+                        gen_comment(DocComment), Name, gen(Version)),
                           Usertypes,
                           '}')
 
@@ -1496,23 +1510,20 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 return gen_(Attrs)+gen(Defn)
 
             elif (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
-                gen_comment(DocComment)
-                head = 'class '+gen(Name)
+                head = gen_comment(DocComment)+'class '+gen(Name)
                 if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
                 if (Implements) <> []: head += ' implements '+gen_ws_sep(Implements)
                 if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
             elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
-                gen_comment(DocComment)
-                head = 'interface '+gen(Name)
+                head = gen_comment(DocComment)+'interface '+gen(Name)
                 if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
                 if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
             elif (sidl.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, DocComment):
-                gen_comment(DocComment)
-                return (gen_ws_sep(Attrs)+
+                return (gen_comment(DocComment)+gen_ws_sep(Attrs)+
                         gen(Typ)+' '+gen(Name)+'('+gen_comma_sep(Args)+')'+
                         _gen(Excepts)+
                         _gen(Froms)+

@@ -36,6 +36,7 @@
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
+  _File = [Fn_decl | Fn_defn | Import],
   Import = import(Id),
   Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
   Do_while = do_while(Body, Expr),
@@ -58,15 +59,15 @@
   Un_op = ( is|log_not|bit_not ),
   Literal = ('STR' | 'FLOAT' | 'INT' | pure | result | Complex | true | false),
   Complex = complex('FLOAT', 'FLOAT'),
-  Struct = struct(Scoped_id, [Struct_item]),
+  Struct = struct(Scoped_id, [Struct_item], DocComment),
   Struct_item = struct_item(Type, Id),
-  Enum = enum(Id, [Enum_item]),
+  Enum = enum(Id, [Enum_item], DocComment),
   Enum_item = enum_item(Id),
   VarRefExpr = (Id | Pointer_expr | Deref),
   Pointer_expr = pointer_expr(VarRefExpr),
   Deref = deref(VarRefExpr),
-  Fn_decl = fn_decl(Type, Id, [Arg]),
-  Fn_defn = fn_defn(Type, Id, [Arg], [Stmt]),
+  Fn_decl = fn_decl(Type, Id, [Arg], DocComment),
+  Fn_defn = fn_defn(Type, Id, [Arg], [Stmt], DocComment),
   Arg = arg([Attr], Mode, Type, Id),
   Attr = [],
   Mode = (in | out | inout),
@@ -89,7 +90,8 @@
   Pointer_type = pointer_type(Type|Fn_decl),
   Scoped_id = scoped_id([Id], Extension),
   Extension = 'STR',
-  Id = 'STR'
+  Id = 'STR',
+  DocComment='STR'
 ].
 % ## const char*
 %const_str = Pointer_type(Const(Primitive_type(char)))
