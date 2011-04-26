@@ -24,11 +24,11 @@
 # </pre>
 #
 
-import ir, sidl, re
+import ir, sidl, re, os
 from patmat import matcher, match, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator, 
-    SourceFile, CFile, Scope, generator
+    SourceFile, CFile, Scope, generator, accepts
 )
 
 def babel_object_type(package, name):
@@ -59,6 +59,21 @@ def ir_babel_exception_type():
     """
     return ir_babel_object_type(['sidl'], 'BaseInterface')
 
+@accepts(str, str)
+def write_to(filename, string):
+    """
+    Create/Overwrite a file named \c filename with the contents of \c
+    string.
+    The file is written atomically.
+    """
+    tmp = '#'+filename+'#'
+    f = open(tmp,'w')
+    f.write(string)
+    f.flush()
+    os.fsync(f)
+    f.close()
+    os.rename(tmp, filename)
+
 
 class Chapel:
     class ClassInfo:
@@ -66,10 +81,11 @@ class Chapel:
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
         """
-        def __init__(self, impl=None, stub=None, epv=None):
+        def __init__(self, impl=None, stub=None, epv=None, ior=None):
             self.impl = impl
             self.stub = stub
             self.epv = epv
+            self.ior = ior
 
 
     def __init__(self, filename, sidl_sexpr, create_makefile):
@@ -120,7 +136,7 @@ class Chapel:
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
                 # impl = ChapelFile()
-                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table))
+                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), ior=CFile())
                 # self.gen_default_methods(symbol_table, Name, ci)
                 gen1(Methods, ci)
 
@@ -131,25 +147,22 @@ class Chapel:
                 # print Name+'.chpl:'
                 # print str(ci.impl)
 
+                # IOR
+                v = ir.Type_decl(ci.epv.get_sexpr())
+                c_gen(v, ci.ior)
+                write_to(Name+'_IOR.h', str(ci.ior))
+
                 # Stub (in C)
-                v = ir.Var_decl(ci.epv.get_sexpr(), '%s__epv'%Name)
-                c_gen(v, ci.stub)
                 c_gen(ir.Import(Name+'_Stub'), ci.stub)
 
                 # Header
-                stub_h = open(Name+'_Stub.h','w')
-                stub_h.write(ci.stub.dot_h())
-                stub_h.close()
+                write_to(Name+'_Stub.h', ci.stub.dot_h())
 
                 # C-file
-                stub_h = open(Name+'_Stub.c','w')
-                stub_h.write(ci.stub.dot_c())
-                stub_h.close()
+                write_to(Name+'_Stub.c', ci.stub.dot_c())
 
                 # Impl
-                stub_h = open(Name+'_Impl.chpl','w')
-                stub_h.write(str(ci.impl))
-                stub_h.close()
+                write_to(Name+'_Impl.chpl', str(ci.impl))
 
                 # Makefile
                 if self.create_makefile:
@@ -297,7 +310,7 @@ def lower_ir(symbol_table, sidl_term):
         elif (Terms):        
             if (isinstance(Terms, list)):
                 return map(low, Terms)
-        else :
+        else:
             raise Exception("Not implemented")
 
 @matcher(globals(), debug=False)
@@ -395,8 +408,8 @@ class EPV:
         """
         return an s-expression of the EPV declaration
         """
-        def get_type_name((_fn_decl, Type, Name, _Args, _DocComment)):
-            return Type, Name
+        def get_type_name((fn_decl, Type, Name, Args, DocComment)):
+            return ir.Pointer_type((fn_decl, Type, Name, Args, DocComment)), Name
 
         name = ir.Scoped_id(self.symbol_table.prefix+['%s__epv'%self.name], '')
         return ir.Struct(name,
@@ -466,9 +479,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             if doc_comment == '': 
                 return ''
             sep = '\n'+' '*scope.indent_level
-            return (sep+'* ').join(['/**']+
+            return (sep+' * ').join(['/**']+
                                    re.split('\n\s*', doc_comment)
-                                   )+sep+'*/'+sep
+                                   )+sep+' */'+sep
 
         with match(node):
             if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
@@ -503,16 +516,13 @@ def generate_makefile(sidl_file, classnames):
     FIXME: make this a file copy from $prefix/share
            make this work for more than one class
     """
-    babel_make = open('babel.make', 'w')
-    babel_make.write("""
+    write_to('babel.make', """
 IORHDRS = {file}_IOR.h
 STUBHDRS = {file}.h
 STUBSRCS = {file}_Stub.c
 """.format(file=classnames))
-    babel_make.close()
 
-    makefile = open('GNUmakefile', 'w')
-    makefile.write(r"""
+    write_to('GNUmakefile', r"""
 # Generic Chapel Babel wrapper GNU Makefile
 # $Id$
 # 
@@ -671,4 +681,3 @@ install-headers : $(IORHDRS) $(STUBHDRS)
 
 .PHONY: all clean realclean install install-libs install-headers install-scl
 """)
-    makefile.close()

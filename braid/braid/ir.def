@@ -36,7 +36,9 @@
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
-  _File = [Fn_decl | Fn_defn | Import],
+  _File = [ Fn_decl | Fn_defn | Import
+	  | Var_decl | Var_defn | type_decl(Type)
+	  ],
   Import = import(Id),
   Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
   Do_while = do_while(Body, Expr),
@@ -45,8 +47,8 @@
   Body = [Stmt],
   Expr = ( Literal
 	 | call(Expr, [Expr])
-         | var_decl(Type, Id)
-         | var_defn(Type, Id)
+         | Var_decl
+         | Var_defn
 	 | VarRefExpr
 	 | get_struct_item(Struct, Expr, Struct_item)
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
@@ -54,6 +56,8 @@
 	 | infix_expr(Bin_op, Expr, Expr)
 	 | prefix_expr(Un_op, Expr)
 	 ),
+  Var_decl = var_decl(Type, Id),
+  Var_defn = var_defn(Type, Id),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),

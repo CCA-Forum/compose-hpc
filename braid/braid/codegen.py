@@ -353,7 +353,6 @@ class GenericCodeGenerator(object):
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
-            elif (ir.struct_item, Type, Name): return Name
             elif (A):        
                 if (isinstance(A, list)):
                     for defn in A:
@@ -908,9 +907,9 @@ class CFile(SourceFile):
     """
     This class represents a C source file
     """
-    def __init__(self, parent=None, relative_indent=0):
+    def __init__(self, parent=None, relative_indent=0, separator='\n'):
         #FIXME should be 0 see java comment
-        super(CFile, self).__init__(parent, relative_indent)
+        super(CFile, self).__init__(parent, relative_indent, separator)
 
     def __str__(self):
         """
@@ -945,7 +944,9 @@ class CFile(SourceFile):
 class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
-        super(CCompoundStmt, self).__init__(parent_scope, relative_indent=2)
+        super(CCompoundStmt, self).__init__(parent_scope, 
+                                            separator=';\n', 
+                                            relative_indent=2)
 
     def __str__(self):
         return (' {\n'
@@ -1006,7 +1007,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             s = scope
             while not s.has_declaration_section():
                 s = s.parent
-            s.new_header_def(gen(typ)+' '+gen(name))
+            s.new_header_def(gen(typ)+' '+name)
             return scope
 
         def gen_comma_sep(defs):
@@ -1022,9 +1023,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             if doc_comment == '': 
                 return ''
             sep = '\n'+' '*scope.indent_level
-            return (sep+'* ').join(['/**']+
+            return (sep+' * ').join(['/**']+
                                    re.split('\n\s*', doc_comment)
-                                   )+sep+'*/'+sep
+                                   )+sep+' */'+sep
 
         with match(node):
             if (ir.stmt, Expr):
@@ -1058,6 +1059,13 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.call, Name, Args): 
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
+
+            elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
+                return new_scope('struct %s'%gen(Name), StructItems)
+            elif (ir.struct_item, Type, Name): return '%s %s'%(gen(Type),gen(Name))
+
+            elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
+                  return "%s (*%s)(%s)"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'
@@ -1474,9 +1482,9 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             if doc_comment == '': 
                 return ''
             sep = '\n'+' '*scope.indent_level
-            return (sep+'* ').join(['/**']+
+            return (sep+' * ').join(['/**']+
                                    re.split('\n\s*', doc_comment)
-                                   )+sep+'*/'+sep
+                                   )+sep+' */'+sep
 
         def gen_comma_sep(defs):
             return gen_in_scope(defs, Scope(relative_indent=1, separator=','))
