@@ -907,9 +907,9 @@ class CFile(SourceFile):
     """
     This class represents a C source file
     """
-    def __init__(self, parent=None, relative_indent=0, separator='\n'):
+    def __init__(self, parent=None, relative_indent=0):
         #FIXME should be 0 see java comment
-        super(CFile, self).__init__(parent, relative_indent, separator)
+        super(CFile, self).__init__(parent, relative_indent)
 
     def __str__(self):
         """
@@ -945,7 +945,6 @@ class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
         super(CCompoundStmt, self).__init__(parent_scope, 
-                                            separator=';\n', 
                                             relative_indent=2)
 
     def __str__(self):
@@ -1062,10 +1061,14 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
                 return new_scope('struct %s'%gen(Name), StructItems)
+            elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)), Name):
+                # yes, both Names should be identical
+                return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
+
             elif (ir.struct_item, Type, Name): return '%s %s'%(gen(Type),gen(Name))
 
             elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
-                  return "%s (*%s)(%s)"%(gen(Type), gen(Name), gen_comma_sep(Args))
+                  return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'

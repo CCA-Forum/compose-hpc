@@ -177,16 +177,22 @@ def unify(a, b, bindings):
     2
     >>> A = Variable(); unify((1,2), (A,A), [])
     False
+    >>> A = Variable(); B = Variable(); unify((1,(2,3),3), (1,(A,B),B), [])
+    True
     """
     if isinstance(a, Variable): # Variable
 	if a.free():
 	    a.bind(b, bindings)
 	    return True
+        else:
+            a = a.binding
     if isinstance(b, Variable): # Variable
 	if b.free():
 	    b.bind(a, bindings)
 	    return True
-    elif isinstance(a, tuple): # Term
+        else:
+            b = b.binding
+    if isinstance(a, tuple): # Term
 	if isinstance(b, tuple): # Term
 	    if len(a) != len(b):
 		unbind(bindings)
