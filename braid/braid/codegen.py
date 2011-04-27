@@ -148,14 +148,13 @@ def returns(rtype):
 
 def sep_by(separator, strings):
     """
-    Similar to \c string.join() but appends the seperator also after
+    Similar to \c string.join() but appends the separator also after
     the last element, if any.
     """
-    r = separator.join(strings)
     if len(strings) > 0:
-        return r+separator
+        return separator.join(strings+[separator])
     else:
-        return r
+        return ''
 
 
 class Scope(object):
@@ -223,6 +222,7 @@ class Scope(object):
         append definition \c s to the header of the scope
         """
         self._header.append(self.break_line(s))
+        return self
 
     def new_def(self, s):
         """
@@ -918,13 +918,20 @@ class CFile(SourceFile):
         """
         return self.dot_h() + self.dot_c()
 
-    def dot_h(self):
+    def dot_h(self, filename=None):
         """
-        Return a string of the header file declarations
+        Return a string of the header file declarations.
+
+        \param filename   The name of the header file. If provided, construct an
+        \c #ifdef guard using this filename.
         """
-        s = sep_by(';\n', self._header)
-        #if len(s) > 0:
-        #    return ' '*self.relative_indent + s
+        s = sep_by('\n', self._header)
+        if filename:
+            guard = re.sub(r'[/.]', '_', filename.capitalize())
+            s = sep_by('\n', ['#ifdef __%s__'%guard,
+                              '#define __%s__'%guard,
+                              s,
+                              '#endif'])
         return s
 
     def dot_c(self):
@@ -999,14 +1006,20 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             '''used for things like if, while, ...'''
             comp_stmt = CCompoundStmt(scope)
             s = str(self.generate(body, comp_stmt))
-            return new_def(prefix+s+suffix)
+            return new_def(''.join([prefix,s,suffix]))
+
+        def new_header_scope(prefix, body, suffix=';\n'):
+            '''used for things like struct, enum, ...'''
+            comp_stmt = CCompoundStmt(scope)
+            s = str(self.generate(body, comp_stmt))
+            return scope.new_header_def(''.join([prefix,s,suffix]))
 
         def declare_var(typ, name):
             '''unless, of course, var were declared'''
             s = scope
             while not s.has_declaration_section():
                 s = s.parent
-            s.new_header_def(gen(typ)+' '+name)
+            s.new_header_def('%s %s;'%(gen(typ),name))
             return scope
 
         def gen_comma_sep(defs):
@@ -1031,7 +1044,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return new_def(gen(Expr)+';')
 
             elif (ir.fn_decl, Type, Name, Args, DocComment):
-                scope.new_header_def("%s%s %s(%s)"% (
+                scope.new_header_def("%s%s %s(%s);"% (
                         gen_comment(DocComment),
                         gen(Type), gen(Name), gen_comma_sep(Args)))
                 return scope
@@ -1060,7 +1073,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
-                return new_scope('struct %s'%gen(Name), StructItems)
+                return new_header_scope('struct %s'%gen(Name), StructItems)
             elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)), Name):
                 # yes, both Names should be identical
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
@@ -1124,8 +1137,7 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if   (ir.struct, Name, _, DocComment): return "struct %s"%gen(Name)
-            elif (ir.primitive_type, Name, _): return gen(Name)
+            if (ir.primitive_type, Name, _): return gen(Name)
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'->'+gen(Item)
@@ -1142,8 +1154,15 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.scoped_id, Names, Ext):
-                name = '_'.join([name for name in Names])
-                return gen((ir.pointer_type, (ir.pointer_type, (ir.struct, name, [], ''))))
+                return '_'.join(Names)
+
+            elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
+                return gen((ir.pointer_type, 
+                            (ir.pointer_type, 
+                             (ir.struct, gen((ir.scoped_id, Names, Ext)), Items, DocComment))))
+
+            elif (ir.struct, Name, _, DocComment): 
+                return "struct %s"%gen(Name)
 
             elif (ir.import_, Name): 
                 return scope.new_global_def('#include <%s.h>'%Name)

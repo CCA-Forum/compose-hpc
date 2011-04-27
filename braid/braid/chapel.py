@@ -51,9 +51,7 @@ def ir_babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Pointer_type(
-        ir.Pointer_type(
-            ir.Struct(babel_object_type(package,name), [], '')))
+    return ir.Struct(babel_object_type(package,name), [], '')
 
 def ir_babel_exception_type():
     """
@@ -139,26 +137,20 @@ class Chapel:
                 expect(data, None)
                 # impl = ChapelFile()
                 ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), ior=CFile())
+                ci.stub.new_header_def(str(c_gen(ir.Import(Name+'_Stub'))))
                 # self.gen_default_methods(symbol_table, Name, ci)
                 gen1(Methods, ci)
-
-                # # Implementation
-                # impl.new_def('module %s {'%Name)
-                # impl.new_def(ci.impl)
-                # impl.new_def('}')
-                # print Name+'.chpl:'
-                # print str(ci.impl)
 
                 # IOR
                 v = ir.Type_decl(ci.epv.get_sexpr())
                 c_gen(v, ci.ior)
-                write_to(Name+'_IOR.h', str(ci.ior))
+                write_to(Name+'_IOR.h', ci.ior.dot_h(Name+'_IOR.h'))
 
                 # Stub (in C)
                 c_gen(ir.Import(Name+'_Stub'), ci.stub)
 
                 # Header
-                write_to(Name+'_Stub.h', ci.stub.dot_h())
+                write_to(Name+'_Stub.h', ci.stub.dot_h(Name+'_Stub.h'))
 
                 # C-file
                 write_to(Name+'_Stub.c', ci.stub.dot_c())
@@ -427,8 +419,8 @@ class EPV:
 def chpl_gen(ir):
     return str(ChapelCodeGenerator().generate(ir, ChapelScope()))
 
-def c_gen(ir, scope):
-    (CCodeGenerator().generate(ir, scope))
+def c_gen(ir, scope=CFile()):
+    return CCodeGenerator().generate(ir, scope)
 
 class ChapelFile(SourceFile):
     def __init__(self, parent=None, relative_indent=0):
