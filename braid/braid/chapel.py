@@ -51,7 +51,9 @@ def ir_babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Pointer_type(ir.Struct(babel_object_type(package,name), [], ''))
+    return ir.Pointer_type(
+        ir.Pointer_type(
+            ir.Struct(babel_object_type(package,name), [], '')))
 
 def ir_babel_exception_type():
     """
@@ -326,8 +328,7 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.class_, Name, _, _, _, _):    
-            # FIXME
-            return ir.Pointer_type(ir.Struct(Name, [], ''))
+            return ir.Pointer_type(ir.Pointer_type(ir.Struct(Name, [], '')))
         else:
             raise Exception("Not implemented")
  
@@ -399,7 +400,13 @@ class EPV:
         def to_fn_decl((_sidl_method, Type, 
                         (Method_name, Name, Extension), 
                         Attrs, Args, Except, From, Requires, Ensures, DocComment)):
-            return ir.Fn_decl(lower_ir(self.symbol_table, Type), Name, Args, DocComment)
+            typ = lower_ir(self.symbol_table, Type)
+            name = 'f_'+Name
+            arg_self = sidl.Arg([], sidl.in_, 
+                                babel_object_type(self.symbol_table.prefix, Name), 
+                                'self')
+            arg_ex = sidl.Arg([], sidl.in_, babel_exception_type(), 'ex')
+            return ir.Fn_decl(typ, name, [arg_self]+Args+[arg_ex], DocComment)
 
         self.methods.append(to_fn_decl(method))
         return self

@@ -1124,7 +1124,7 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if   (ir.struct, Name, _, DocComment): return gen(Name)
+            if   (ir.struct, Name, _, DocComment): return "struct %s"%gen(Name)
             elif (ir.primitive_type, Name, _): return gen(Name)
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
@@ -1142,7 +1142,8 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.scoped_id, Names, Ext):
-                return '_'.join([name for name in Names])
+                name = '_'.join([name for name in Names])
+                return gen((ir.pointer_type, (ir.pointer_type, (ir.struct, name, [], ''))))
 
             elif (ir.import_, Name): 
                 return scope.new_global_def('#include <%s.h>'%Name)
