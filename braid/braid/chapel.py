@@ -141,9 +141,9 @@ class Chapel:
                 # impl = ChapelFile()
                 ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), ior=CFile())
                 ci.stub.genh(ir.Import(Name+'_IOR'))
-                # self.gen_default_methods(symbol_table, Name, ci)
-                gen1(Methods, ci)
+                self.gen_default_methods(symbol_table, Name, ci)
                 self.generate_ior(ci)
+                gen1(Methods, ci)
 
                 # IOR
                 write_to(Name+'_IOR.h', ci.ior.dot_h(Name+'_IOR.h'))
@@ -232,7 +232,7 @@ class Chapel:
                           'self'), 
                  sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), 'name'), 
                  sidl.Arg([], sidl.in_, babel_exception_type(), 'ex')],
-                [], [], [], []))
+                [], [], [], [], 'Cast'))
 
     @matcher(globals(), debug=False)
     def generate_client_method(self, symbol_table, method, ci):
@@ -264,15 +264,18 @@ class Chapel:
         decl_args = babel_args(Args, symbol_table, ci.epv.name) 
         call_args = ['self'] + map(argname, Args) + ['ex'] 
         epv_type = ci.epv.get_sexpr()
-        Body = [ir.Stmt(
-            ir.Return(
-                ir.Call(
-                    ir.Get_struct_item(
-                        epv_type, 
-                        ir.Deref('self'),
-                        ir.Struct_item(
-                            ir.Primitive_type(ir.void), 'f_'+Name)),
-                    call_args)))]
+        obj_type = ci.obj
+        Body = [ir.Stmt
+                (ir.Return
+                 (ir.Call
+                  (ir.Get_struct_item
+                   (epv_type,
+                    ir.Get_struct_item
+                    (obj_type, 
+                     ir.Deref('self'),
+                     ir.Struct_item(ir.Primitive_type(ir.void), 'f_'+Name)),
+                    ir.Struct_item(ir.Primitive_type(ir.void), 'd_data')),
+                   call_args)))]
         return [ir.Fn_decl(low(Type), Name, decl_args, DocComment),
                 ir.Fn_defn(low(Type), Name, decl_args, Body, DocComment)]
 
@@ -282,7 +285,7 @@ class Chapel:
             ir.Struct(ir.Scoped_id(ci.epv.symbol_table.prefix+[ci.epv.name,'_cstats'], ''), 
                       [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")], 
                        'The controls and statistics structure')
-        obj = \
+        ci.obj = \
             ir.Struct(ir.Scoped_id(ci.epv.symbol_table.prefix+[ci.epv.name,'_object'], ''), 
                       [ir.Struct_item(ir_babel_object_type(['sidl'], 'BaseClass'), 
                                       "d_sidl_baseclass"),
@@ -295,7 +298,7 @@ class Chapel:
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
         ci.ior.gen(ir.Type_decl(cstats))
-        ci.ior.gen(ir.Type_decl(obj))
+        ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(epv))
 
 @matcher(globals(), debug=False)
@@ -354,7 +357,7 @@ def lookup_type(symbol_table, scopes):
         symbol_table = symbol_table.parent()
         sym = symbol_table[scopes[0]]
         
-    for i in range(0, n-1): # down again to resolve it
+    for i in range(1, n-1): # down again to resolve it
         sym = sym[scopes[i]]
     
     if not sym:

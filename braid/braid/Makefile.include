@@ -3,13 +3,12 @@
 # 3rd party stuff
 if PYTHON_VERSION_2_6
 # add Backports
-  PYTHONPATH1=$(top_srcdir)/contrib/argparse-1.1
-  python_PYTHON += $(top_srcdir)/contrib/argparse-1.1/argparse.py
+  BACKPORTS=$(top_srcdir)/contrib/argparse-1.1
 else
-  PYTHONPATH1=
+  BACKPORTS=
 endif
 python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py
-PYTHONPATH=$(top_srcdir)/contrib/ply:$(PYTHONPATH1):.libs:$(builddir)/braid/.libs
+PYTHONPATH=$(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs
 
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = \
@@ -101,8 +100,8 @@ $(builddir)/%.success: $(srcdir)/%.sidl braid
 braid/parsetab.py: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
 	@echo "  PYTHON Generate the sidl parser tables"
 	@rm -f $@
-	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$<
-	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(PYTHONPATH1) $(PYTHON) ../$<
+	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
+	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 
 braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
