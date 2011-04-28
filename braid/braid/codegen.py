@@ -923,12 +923,12 @@ class CFile(SourceFile):
         Return a string of the header file declarations.
 
         \param filename   The name of the header file. If provided, construct an
-        \c #ifdef guard using this filename.
+        \c \#ifdef guard using this filename.
         """
         s = sep_by('\n', self._header)
         if filename:
             guard = re.sub(r'[/.]', '_', filename.capitalize())
-            s = sep_by('\n', ['#ifdef __%s__'%guard,
+            s = sep_by('\n', ['#ifndef __%s__'%guard,
                               '#define __%s__'%guard,
                               s,
                               '#endif'])
@@ -947,6 +947,20 @@ class CFile(SourceFile):
         """
         self._defs = [defn]+self._defs
         return self
+
+    def gen(self, ir):
+        """
+        Invoke the C code generator on \c ir and append the result to
+        this CFile.
+        """
+        CCodeGenerator().generate(ir, self)
+
+    def genh(self, ir):
+        """
+        Invoke the C code generator on \c ir and append the result to
+        this CFile's header.
+        """
+        self.new_header_def(str(CCodeGenerator().generate(ir, CFile())))
 
 class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
@@ -1078,13 +1092,14 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 # yes, both Names should be identical
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
-            elif (ir.struct_item, Type, Name): return '%s %s'%(gen(Type),gen(Name))
+            elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
 
             elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
                   return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'
+            elif (ir.typedef_type, Type): return Type
             elif (ir.deref):          return '*'
             elif (ir.log_not):        return '!'
             elif (ir.assignment):     return '='

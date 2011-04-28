@@ -77,6 +77,7 @@
   Mode = (in | out | inout),
   Type = ( Primitive_type
 	 | Pointer_type
+	 | typedef_type(Id)
 	 | const(Type) 
 	 | Struct
 	 | Enum),
