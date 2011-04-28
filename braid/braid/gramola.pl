@@ -38,7 +38,9 @@ main(_) :-
     format('#     ### ### #### ### ###~n'),
     format('import types as PythonTypes~n'),
     prompt(_, ''),
-    (	read_term(Term, [variable_names(Varnames), singletons(warning), syntax_errors(fail)])
+    (	read_term(Term, [variable_names(Varnames),
+			 singletons(warning),
+			 syntax_errors(fail)])
     ;	format(user_error, '**Syntax error.~n', []), halt(1)
     ),
     normalize(Term, Docstrings, Varnames1),
@@ -50,18 +52,27 @@ main(_) :-
     maplist(tokendef, Tokens), !,
 
     format('~n~n## Constructor definitions~n~n'),
-    maplist(docref, Varnames), % bind free variables in the docstrings to symbol names
+    % bind free variables in the docstrings to symbol names
+    maplist(docref, Varnames),
     maplist(docref, Varnames1), !,
-    % fixme use try catch instead
+    % FIXME: use try, catch instead
     (	maplist(unify, CyclicGrammar)
-    ;	format(user_error, '**ERROR: did you use the same symbol twice on the LHS?~n', []),
+    ;	format(user_error,
+	       '**ERROR: did you use the same symbol twice on the LHS?~n', []),
 	halt(1)), !,
     maplist(rhs_of, CyclicGrammar, CycGrammarRHS), !,
     maplist(constructor, CycGrammarRHS, Docstrings).
 
+%    format('~n~n## Traversal classes~n~n'),
+%    format('def DepthFirstPostOrderTraversal():~n'),
+%    format('    """~n'),
+%    format('    Inherit from this class for a Depth-first post-order traversal.~n'),
+%    format('    """~n'),
+    
 main(_) :-
     format(user_error, 'Internal error. Please complain to <adrian@llnl.gov>.~n', []).
 
+% all reserved words in the Python language
 python_reserved_word(A) :-
     memberchk(A, ['False','True','None','NotImplemented','Ellipsis',
 		   and,as,assert,break,class,continue,def,del,elif,
@@ -107,6 +118,7 @@ gather_tokens(A, Ts1) :-
     gather_tokens(As, Ts),
     ord_union([Name], Ts, Ts1).
 
+% ----------------------------------------------------------------------
 %%normalize/2
 % Rewrite the grammar such that each nested complex term on the RHS is
 % replaced by a Variable and an additional rule defining that
@@ -114,13 +126,10 @@ gather_tokens(A, Ts1) :-
 normalize([], [], []).
 normalize([A=B|Rules], NormalizedRules, Varnames) :-
     normalize_rhs(B, Bn, AdditionalRules, Varnames1, yes),
-    %format(user_error, '~w = ~w~n-->~n~w = ~w~n~w~n~n', [A,B, A, Bn,AdditionalRules]),
     normalize(Rules, RulesN, Varnames2),
     ord_add_element(AdditionalRules, A=Bn, AdditionalRules1),
     ord_union(RulesN, AdditionalRules1, NormalizedRules),
     append(Varnames1, Varnames2, Varnames). 
-%    normalize([A=Bn|AdditionalRules], AdditionalRulesN),
-%    ord_union(RulesN, AdditionalRulesN, NormalizedRules).
     
 normalize_rhs(Var, Var, [], [], _) :- var(Var), !.
 normalize_rhs(Atom, Atom, [], [], _) :- atom(Atom), !.
@@ -147,7 +156,8 @@ normalize_list([A|As], [An|Ans], Rules, Varnames) :-
     normalize_list(As, Ans, RulesAs, VarnamesAns),
     ord_union(RulesA, RulesAs, Rules),
     append(VarnamesA, VarnamesAns, Varnames).
-    
+% ----------------------------------------------------------------------
+
 
 % helper for alternatives
 validation1(Arg, Var, Indent) :- !,
@@ -277,6 +287,8 @@ constructor(Error, _) :-
     ),
     halt(1).
 
+% ----------------------------------------------------------------------
+
 % pretty-print grammar for the docstring
 pretty(Atom, PrettyAtom) :-
     atom(Atom),
@@ -303,7 +315,7 @@ pretty(Complex, Rule) :-
     format(atom(Rule), '(~w)~n    \\return (\\c "~a", ~w)',
 	   [PrettyArgs1, Type, PrettyArgs1]).
 
-
+% ----------------------------------------------------------------------
 
 % Finish error handling (see top of source file) by halting with an error
 % condition of Prolog generated any warnings or errors.

@@ -37,7 +37,10 @@ def babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return sidl.Scoped_id(package+['%s__object'%name], "")
+    if isinstance(name, tuple):
+        name = name[1]
+    else: name = [name]
+    return sidl.Scoped_id(package+name+['_object'], "")
 
 def babel_exception_type():
     """
@@ -258,7 +261,7 @@ class Chapel:
 
         #return method
         expect(Method, sidl.method)
-        decl_args = babel_args(low(Args), symbol_table, ci.epv.name) 
+        decl_args = babel_args(Args, symbol_table, ci.epv.name) 
         call_args = ['self'] + map(argname, Args) + ['ex'] 
         epv_type = ci.epv.get_sexpr()
         Body = [ir.Stmt(
@@ -335,7 +338,7 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.class_, Name, _, _, _, _):    
-            return ir.Struct(Name, [], '')
+            return ir_babel_object_type([], Name)
         else:
             raise Exception("Not implemented")
  
@@ -435,7 +438,7 @@ def babel_args(args, symbol_table, class_name):
     arg_self = ir.Arg([], sidl.in_, ir_babel_object_type(symbol_table.prefix, 
                                                            class_name), 'self')
     arg_ex = ir.Arg([], sidl.in_, ir_babel_exception_type(), 'ex')
-    return [arg_self]+args+[arg_ex]
+    return [arg_self]+lower_ir(symbol_table, args)+[arg_ex]
 
 def arg_ex():
     """
