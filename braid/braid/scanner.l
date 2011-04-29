@@ -260,8 +260,8 @@ scanner_token(PyObject *self, PyObject *args)
   // EOF
   if (type == 0 && token_init) {
     // Free references to Token
-    Py_DECREF(token_module);
-    Py_DECREF(token_dict); 
+    // FIXME: this segfaults upon restarting: Py_DECREF(token_module); 
+    // FIXME: this segfaults upon restarting: Py_DECREF(token_dict); 
     // FIXME: this triggers a segfault: Py_DECREF(token_init);
     fclose(yyin);
     free(doc_comment);

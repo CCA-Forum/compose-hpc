@@ -565,7 +565,7 @@ def p_name(p):
 
 def p_enum(p):
     '''enum : ENUM name LBRACE enumerators RBRACE'''
-    p[0] = (sidl.enum, p[2], (p[4]))
+    p[0] = (sidl.enum, p[2], (p[4]), scanner.last_doc_comment())
 
 def p_enumerators(p): # +
     '''enumerators : enumerator

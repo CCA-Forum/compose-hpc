@@ -46,14 +46,14 @@ def braid(args):
                 print "**ERROR: Please reconfigure BRAID to have Babel support."
                 exit(1)
 
-            print "'resolving symbol `sidl'"
+            print "resolving symbol `sidl'"
             _, _, _, sidl = sidl_parser.parse(config.SIDL_PATH+'/sidl.sidl')
-            print "'resolving symbol `sidlx'"
+            print "resolving symbol `sidlx'"
             _, _, _, sidlx = sidl_parser.parse(config.SIDL_PATH+'/sidlx.sidl')
 
             # merge in the standard library
             sf, req, imp, defs = sidl_ast
-            sidl_ast = sf, req, imp, [sidl, sidlx, defs]
+            sidl_ast = sf, req, [sidl, sidlx], defs
             chapel.Chapel(sidl_file, sidl_ast, args.makefile).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client

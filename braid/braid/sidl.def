@@ -50,7 +50,7 @@
   Type_attr = type_attribute(final | abstract),
   Id = 'STR',
   Doc_comment = 'STR',
-  Enum = enum(Id, [Enumerator]),
+  Enum = enum(Id, [Enumerator], Doc_comment),
   Enumerator = enumerator(Id, int),
   Struct = struct(Scoped_id, [Struct_item]),
   Struct_item = struct_item(Type_void, Id),

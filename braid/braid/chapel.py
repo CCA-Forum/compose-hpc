@@ -191,12 +191,15 @@ class Chapel:
 
         with match(node):
             if (sidl.file, Requires, Imports, UserTypes): 
+                gen(Imports)
                 gen(UserTypes)
 
             elif (sidl.user_type, Attrs, Cipse): 
                 gen(Cipse)
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
+                print "Building symbols for package %s" \
+                    %'.'.join(symbol_table.prefix+[Name])
                 symbol_table[Name] = SymbolTable(symbol_table, 
                                                  symbol_table.prefix+[Name])
                 self.build_symbol_table(UserTypes, symbol_table[Name])
@@ -206,8 +209,20 @@ class Chapel:
                     ( sidl.class_, (sidl.scoped_id, symbol_table.prefix+[Name], []),
                       Extends, Implements, Invariants, Methods )
 
-            elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
+            elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
                 symbol_table[Name] = \
+                    ( sidl.interface, (sidl.scoped_id, symbol_table.prefix+[Name], []),
+                      Extends, Invariants, Methods )
+
+            elif (sidl.enum, Name, Items, DocComment):
+                symbol_table[Name] = \
+                    ( sidl.enum, 
+                      Name,
+                      Items )
+
+            elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
+                import pdb; pdb.set_trace()
+                symbol_table[Names[-1]] = \
                     ( sidl.struct, 
                       (sidl.scoped_id, symbol_table.prefix+Names, []), 
                       Items )
@@ -217,7 +232,7 @@ class Chapel:
                     for defn in A:
                         gen(defn)
                 else:
-                    raise Exception("NOT HANDLED:"+repr(A))
+                    raise Exception("build_symbol_table: NOT HANDLED:"+repr(A))
 
             else:
                 raise Exception("match error")
@@ -341,6 +356,8 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.class_, Name, _, _, _, _):    
+            return ir_babel_object_type([], Name)
+        elif (sidl.interface, Name, _, _, _):    
             return ir_babel_object_type([], Name)
         else:
             raise Exception("Not implemented")

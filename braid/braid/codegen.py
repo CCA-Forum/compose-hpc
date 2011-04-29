@@ -1118,7 +1118,7 @@ class CCodeGenerator(ClikeCodeGenerator):
     type_map = {
         'void':        "void",
         'bool':        "int",
-        'character':   "char",
+        'char':        "char",
         'dcomplex':    "",
         'double':      "double",
         'fcomplex':    "",
@@ -1152,7 +1152,8 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if (ir.primitive_type, Name, _): return gen(Name)
+            if (ir.primitive_type, Name): return self.type_map[Name]
+            elif (ir.const, Type): return "const %s"%gen(Type)
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'->'+gen(Item)
