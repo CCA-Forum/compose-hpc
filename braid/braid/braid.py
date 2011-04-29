@@ -42,22 +42,40 @@ def braid(args):
         if args.client == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):
-            if not config.HAVE_BABEL:
-                print "**ERROR: Please reconfigure BRAID to have Babel support."
-                exit(1)
-
-            print "resolving symbol `sidl'"
-            _, _, _, sidl = sidl_parser.parse(config.SIDL_PATH+'/sidl.sidl')
-            print "resolving symbol `sidlx'"
-            _, _, _, sidlx = sidl_parser.parse(config.SIDL_PATH+'/sidlx.sidl')
-
-            # merge in the standard library
-            sf, req, imp, defs = sidl_ast
-            sidl_ast = sf, req, [sidl, sidlx], defs
-            chapel.Chapel(sidl_file, sidl_ast, args.makefile).generate_client()
+            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast), 
+                          args.makefile).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
             exit(1)
+
+        # Server code generation
+        if args.server == None:
+            pass
+        elif re.match(r'([cC]hapel)|(chpl)', args.server):
+            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast), 
+                          args.makefile).generate_server()
+        else:
+            print "**ERROR: Unknown language `%s'." % args.client
+            exit(1)
+
+def inject_sidl_runtime(sidl_ast):
+    """
+    Parse the sidl, sidlx runtime library and inject it into the
+    imports field of \c sidl_ast.
+    """
+    if not config.HAVE_BABEL:
+        print "**ERROR: Please reconfigure BRAID to have Babel support."
+        exit(1)
+
+    print "resolving symbol `sidl'"
+    _, _, _, sidl = sidl_parser.parse(config.SIDL_PATH+'/sidl.sidl')
+    print "resolving symbol `sidlx'"
+    _, _, _, sidlx = sidl_parser.parse(config.SIDL_PATH+'/sidlx.sidl')
+
+    # merge in the standard library
+    sf, req, imp, defs = sidl_ast
+    return sf, req, [sidl, sidlx], defs
+
 
 if __name__ == '__main__':
     cmdline = argparse.ArgumentParser(description=config.PACKAGE_STRING+'''
@@ -78,6 +96,10 @@ if __name__ == '__main__':
                          help='generate client code in the specified language'+
                          ' (Chapel)')
 
+    cmdline.add_argument('-s', '--server', metavar='<language>',
+                         help='generate server code in the specified language'+
+                         ' (Chapel)')
+
     cmdline.add_argument('-m', '--makefile', action='store_true',
                          help='generate a default GNUmakefile')
 
@@ -95,9 +117,10 @@ if __name__ == '__main__':
         exit(1)
 
     # Dependencies
-    if args.makefile and not args.client:
+    if args.makefile and not (args.client or args.server):
         print """
-Warning: --makefile is only effective when used in conjunction with --client!
+Warning: The option --makefile is only effective when used in
+         conjunction with --client or --server!
 """
 
     if args.profile:

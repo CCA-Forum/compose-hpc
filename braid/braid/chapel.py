@@ -84,9 +84,10 @@ class Chapel:
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
         """
-        def __init__(self, impl=None, stub=None, epv=None, ior=None):
+        def __init__(self, impl=None, stub=None, epv=None, ior=None, skel=None):
             self.impl = impl
             self.stub = stub
+            self.skel = skel
             self.epv = epv
             self.ior = ior
 
@@ -118,8 +119,28 @@ class Chapel:
             print sys.exc_info()
             pdb.post_mortem()
 
+    def generate_server(self):
+        """
+        Generate server code. Operates in two passes:
+        \li create symbol table
+        \li do the work
+        """
+        try:       
+            sym = self.build_symbol_table(self.sidl_ast, SymbolTable())
+            self.generate_server1(self.sidl_ast, None, sym) 
+                  
+        except:
+            # Invoke the post-mortem debugger
+            import pdb, sys
+            print sys.exc_info()
+            pdb.post_mortem()
+
+
     @matcher(globals(), debug=False)
     def generate_client1(self, node, data, symbol_table):
+        """
+        CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT
+        """
         def gen(node):         return self.generate_client1(node, data, symbol_table)
         def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
 
@@ -132,7 +153,6 @@ class Chapel:
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                # impl = ChapelFile()
                 ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), ior=CFile())
                 ci.stub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
@@ -149,16 +169,85 @@ class Chapel:
                 # Stub C-file
                 write_to(Name+'_Stub.c', ci.stub.dot_c())
 
+                # Makefile
+                if self.create_makefile:
+                    generate_client_makefile(self.sidl_file, Name)
+
+
+            elif (sidl.package, Name, Version, UserTypes, DocComment):
+                self.generate_client1(UserTypes, data, symbol_table[Name])
+
+            elif (sidl.user_type, Attrs, Cipse):
+                gen(Cipse)
+
+            elif (sidl.file, Requires, Imports, UserTypes):
+                gen(UserTypes)
+
+            elif A:
+                if (isinstance(A, list)):
+                    for defn in A:
+                        gen(defn)
+                else:
+                    raise Exception("NOT HANDLED:"+repr(A))
+            else:
+                raise Exception("match error")
+        return data
+
+    @matcher(globals(), debug=False)
+    def generate_server1(self, node, data, symbol_table):
+        """
+        SERVER SERVER SERVER SERVER SERVER SERVER SERVER SERVER SERVER SERVER
+        """
+        def gen(node):         return self.generate_server1(node, data, symbol_table)
+        def gen1(node, data1): return self.generate_server1(node, data1, symbol_table)
+
+        if not symbol_table: 
+            raise Exception()
+
+        with match(node):
+            if (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
+                pass#self.generate_server_method(symbol_table, node, data)               
+
+            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
+                expect(data, None)
+                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), 
+                                    ior=CFile(), skel=CFile())
+                ci.stub.genh(ir.Import(Name+'_IOR'))
+                self.gen_default_methods(symbol_table, Name, ci)
+                gen1(Methods, ci)
+                self.generate_ior(ci)
+
+                # IOR
+                write_to(Name+'_IOR.h', ci.ior.dot_h(Name+'_IOR.h'))
+                write_to(Name+'_IOR.c', ci.ior.dot_c())
+
+                # The server-side stub is used for, e.g., the
+                # babelized Array-init functions
+
+                # Stub (in C)
+                ci.stub.gen(ir.Import(Name+'_Stub'))
+                # Stub Header
+                write_to(Name+'_Stub.h', ci.stub.dot_h(Name+'_Stub.h'))
+                # Stub C-file
+                write_to(Name+'_Stub.c', ci.stub.dot_c())
+
+                # Skeleton (in C)
+                ci.skel.gen(ir.Import(Name+'_Skel'))
+                # Skel Header
+                write_to(Name+'_Skel.h', ci.skel.dot_h(Name+'_Skel.h'))
+                # Skel C-file
+                write_to(Name+'_Skel.c', ci.skel.dot_c())
+
                 # Impl
                 write_to(Name+'_Impl.chpl', str(ci.impl))
 
                 # Makefile
                 if self.create_makefile:
-                    generate_makefile(self.sidl_file, Name)
+                    generate_server_makefile(self.sidl_file, Name)
 
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
-                self.generate_client1(UserTypes, data, symbol_table[Name])
+                self.generate_server1(UserTypes, data, symbol_table[Name])
 
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
@@ -593,7 +682,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 raise Exception('match error')
         return scope
 
-def generate_makefile(sidl_file, classnames):
+def generate_client_makefile(sidl_file, classnames):
     """
     FIXME: make this a file copy from $prefix/share
            make this work for more than one class
@@ -603,7 +692,26 @@ IORHDRS = {file}_IOR.h
 STUBHDRS = {file}.h
 STUBSRCS = {file}_Stub.c
 """.format(file=classnames))
+    generate_client_server_makefile(sidl_file)
 
+
+def generate_server_makefile(sidl_file, classnames):
+    """
+    FIXME: make this a file copy from $prefix/share
+           make this work for more than one class
+    """
+    write_to('babel.make', """
+IMPLHDRS = 
+IMPLSRCS = {file}_Impl.chpl
+IORHDRS = {file}_IOR.h Array_IOR.h
+IORSRCS = {file}_IOR.c
+SKELSRCS = {file}_Skel.c
+STUBHDRS = {file}.h
+STUBSRCS = {file}_Stub.c
+""".format(file=classnames))
+    generate_client_server_makefile(sidl_file)
+
+def generate_client_server_makefile(sidl_file):
     write_to('GNUmakefile', r"""
 # Generic Chapel Babel wrapper GNU Makefile
 # $Id$
