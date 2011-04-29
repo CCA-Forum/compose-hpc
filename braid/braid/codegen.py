@@ -1097,10 +1097,10 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
                   return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
+            elif (ir.deref, Expr):        return '*'+gen(Expr)
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'
             elif (ir.typedef_type, Type): return Type
-            elif (ir.deref):          return '*'
             elif (ir.log_not):        return '!'
             elif (ir.assignment):     return '='
             elif (ir.eq):             return '=='
@@ -1154,6 +1154,9 @@ class CCodeGenerator(ClikeCodeGenerator):
         with match(node):
             if (ir.primitive_type, Name): return self.type_map[Name]
             elif (ir.const, Type): return "const %s"%gen(Type)
+
+            elif (ir.get_struct_item, _, (ir.deref,(ir.deref,StructName)), (ir.struct_item, _, Item)):
+                return "(*%s)->%s"%(gen(StructName),gen(Item))
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'->'+gen(Item)

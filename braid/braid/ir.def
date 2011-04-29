@@ -50,7 +50,6 @@
          | Var_decl
          | Var_defn
 	 | VarRefExpr
-	 | get_struct_item(Struct, Expr, Struct_item)
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
          | assignment(VarRefExpr)
 	 | infix_expr(Bin_op, Expr, Expr)
@@ -63,11 +62,15 @@
   Un_op = ( is|log_not|bit_not ),
   Literal = ('STR' | 'FLOAT' | 'INT' | pure | result | Complex | true | false),
   Complex = complex('FLOAT', 'FLOAT'),
-  Struct = struct(Scoped_id, [Struct_item], DocComment),
+  Struct = struct((Scoped_id|Id), [Struct_item], DocComment),
   Struct_item = struct_item(Type, Id),
   Enum = enum(Id, [Enum_item], DocComment),
   Enum_item = enum_item(Id),
-  VarRefExpr = (Id | Pointer_expr | Deref),
+  VarRefExpr = ( Id
+	       | Pointer_expr
+	       | Deref
+	       | get_struct_item(Struct, Expr, Struct_item)
+	       ),
   Pointer_expr = pointer_expr(VarRefExpr),
   Deref = deref(VarRefExpr),
   Fn_decl = fn_decl(Type, Id, [Arg], DocComment),

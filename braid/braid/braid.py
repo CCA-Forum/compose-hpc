@@ -60,7 +60,6 @@ def braid(args):
             exit(1)
 
 if __name__ == '__main__':
-
     cmdline = argparse.ArgumentParser(description=config.PACKAGE_STRING+'''
 -- Do magically wonderful things with SIDL 
 (scientific interface definition language) files.

@@ -456,7 +456,7 @@ def compile_matcher(f):
             line = substitute_registers(
                 ' '*il+vardecls+patmat_prefix+'expect(%s)'%exprs+'\n', '')
             regalloc.pop()
-	    numregs.pop(0)
+	    numregs.pop()
 
 	# inside a matching rule
 	if len(lexpr) > 0:

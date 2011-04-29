@@ -1,5 +1,6 @@
-BRAID development status               Thu Dec  9 16:26:17 PST 2010
-
+BRAID development status                                 -*- rst -*-
+========================    
+                                        Thu Dec  9 16:26:17 PST 2010
 
 The implementation language choice is motivated by Python being the
 highest-level language that we can assume to be pre-installed on all

@@ -127,14 +127,8 @@ class Chapel:
             raise Exception()
 
         with match(node):
-            if (sidl.file, Requires, Imports, UserTypes):
-                gen(UserTypes)
-
-            elif (sidl.user_type, Attrs, Cipse):
-                gen(Cipse)
-
-            elif (sidl.package, Name, Version, UserTypes, DocComment):
-                self.generate_client1(UserTypes, data, symbol_table[Name])
+            if (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
+                self.generate_client_method(symbol_table, node, data)               
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
@@ -142,8 +136,8 @@ class Chapel:
                 ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), ior=CFile())
                 ci.stub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
-                self.generate_ior(ci)
                 gen1(Methods, ci)
+                self.generate_ior(ci)
 
                 # IOR
                 write_to(Name+'_IOR.h', ci.ior.dot_h(Name+'_IOR.h'))
@@ -163,8 +157,14 @@ class Chapel:
                     generate_makefile(self.sidl_file, Name)
 
 
-            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                self.generate_client_method(symbol_table, node, data)               
+            elif (sidl.package, Name, Version, UserTypes, DocComment):
+                self.generate_client1(UserTypes, data, symbol_table[Name])
+
+            elif (sidl.user_type, Attrs, Cipse):
+                gen(Cipse)
+
+            elif (sidl.file, Requires, Imports, UserTypes):
+                gen(UserTypes)
 
             elif A:
                 if (isinstance(A, list)):
@@ -190,21 +190,7 @@ class Chapel:
             return self.build_symbol_table(node, symbol_table)
 
         with match(node):
-            if (sidl.file, Requires, Imports, UserTypes): 
-                gen(Imports)
-                gen(UserTypes)
-
-            elif (sidl.user_type, Attrs, Cipse): 
-                gen(Cipse)
-
-            elif (sidl.package, Name, Version, UserTypes, DocComment):
-                print "Building symbols for package %s" \
-                    %'.'.join(symbol_table.prefix+[Name])
-                symbol_table[Name] = SymbolTable(symbol_table, 
-                                                 symbol_table.prefix+[Name])
-                self.build_symbol_table(UserTypes, symbol_table[Name])
-
-            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
+            if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
                 symbol_table[Name] = \
                     ( sidl.class_, (sidl.scoped_id, symbol_table.prefix+[Name], []),
                       Extends, Implements, Invariants, Methods )
@@ -227,6 +213,20 @@ class Chapel:
                       (sidl.scoped_id, symbol_table.prefix+Names, []), 
                       Items )
 
+            elif (sidl.package, Name, Version, UserTypes, DocComment):
+                print "Building symbols for package %s" \
+                    %'.'.join(symbol_table.prefix+[Name])
+                symbol_table[Name] = SymbolTable(symbol_table, 
+                                                 symbol_table.prefix+[Name])
+                self.build_symbol_table(UserTypes, symbol_table[Name])
+
+            elif (sidl.user_type, Attrs, Cipse): 
+                gen(Cipse)
+
+            elif (sidl.file, Requires, Imports, UserTypes): 
+                gen(Imports)
+                gen(UserTypes)
+
             elif A:
                 if (isinstance(A, list)):
                     for defn in A:
@@ -240,14 +240,36 @@ class Chapel:
         return symbol_table
 
     def gen_default_methods(self, symbol_table, name, data):
+        """
+        Generate default Babel object methods such as _cast() Also
+        generates other IOR data structures such as the _object and
+        the controls and statistics struct.
+        """
+
+        def unscope((struct, scoped_id, items, doc)):
+            return struct, c_gen(scoped_id), items, doc
+
         data.epv.add_method(sidl.Method(
                 sidl.void,
                 sidl.Method_name("_cast", ''), [],
-                [sidl.Arg([], sidl.in_, babel_object_type(symbol_table.prefix, name), 
-                          'self'), 
-                 sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), 'name'), 
-                 sidl.Arg([], sidl.in_, babel_exception_type(), 'ex')],
+                [sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), 'name')],
                 [], [], [], [], 'Cast'))
+        prefix = data.epv.symbol_table.prefix
+        data.cstats = \
+            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''), 
+                      [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")], 
+                       'The controls and statistics structure')
+        data.obj = \
+            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''), 
+                      [ir.Struct_item(ir_babel_object_type(['sidl'], 'BaseClass'), 
+                                      "d_sidl_baseclass"),
+                       ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"), 
+                       ir.Struct_item(unscope(data.cstats), "d_cstats"),
+                       ir.Struct_item(ir.Pointer_type(ir.Primitive_type(ir.void)), "d_data")
+                       ],
+                       'The class object structure')
+            
+
 
     @matcher(globals(), debug=False)
     def generate_client_method(self, symbol_table, method, ci):
@@ -261,16 +283,20 @@ class Chapel:
         # output _extern declaration
         ci.impl.new_def('_extern '+ chpl_gen(method))
         # output the stub definition
-        stub = self.generate_stub(symbol_table, method, ci)
+        stub = self.generate_method_stub(symbol_table, method, ci)
         c_gen(stub, ci.stub)
 
 
-    def generate_stub(self, symbol_table,
+    def generate_method_stub(self, symbol_table,
                       (Method, Type, (_,  Name, _Attr), Attrs, Args, 
                        Except, From, Requires, Ensures, DocComment), ci):
+        """
+        Generate the stub for a specific method in C.
+        """
 
         def argname((_arg, _attr, _mode, _type, Id)):
             return Id
+
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
@@ -278,43 +304,28 @@ class Chapel:
         expect(Method, sidl.method)
         decl_args = babel_args(Args, symbol_table, ci.epv.name) 
         call_args = ['self'] + map(argname, Args) + ['ex'] 
-        epv_type = ci.epv.get_sexpr()
+        epv_type = ci.epv.get_type()
         obj_type = ci.obj
-        Body = [ir.Stmt
-                (ir.Return
-                 (ir.Call
-                  (ir.Get_struct_item
-                   (epv_type,
-                    ir.Get_struct_item
-                    (obj_type, 
-                     ir.Deref('self'),
-                     ir.Struct_item(ir.Primitive_type(ir.void), 'f_'+Name)),
-                    ir.Struct_item(ir.Primitive_type(ir.void), 'd_data')),
-                   call_args)))]
-        return [ir.Fn_decl(low(Type), Name, decl_args, DocComment),
-                ir.Fn_defn(low(Type), Name, decl_args, Body, DocComment)]
+        decl = ir.Fn_decl(low(Type), Name, decl_args, DocComment)
+        fptr = ir.Get_struct_item \
+            (epv_type,
+             ir.Deref(ir.Get_struct_item(obj_type, 
+                                         ir.Deref(ir.Deref('self')),
+                                         ir.Struct_item(epv_type, 'd_epv'))),
+             ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
+        body = [ir.Stmt(ir.Return(ir.Call(fptr, call_args)))]
+        return [decl,
+                ir.Fn_defn(low(Type), Name, decl_args, body, DocComment)]
 
     def generate_ior(self, ci):
-        epv = ci.epv.get_sexpr()
-        cstats = \
-            ir.Struct(ir.Scoped_id(ci.epv.symbol_table.prefix+[ci.epv.name,'_cstats'], ''), 
-                      [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")], 
-                       'The controls and statistics structure')
-        ci.obj = \
-            ir.Struct(ir.Scoped_id(ci.epv.symbol_table.prefix+[ci.epv.name,'_object'], ''), 
-                      [ir.Struct_item(ir_babel_object_type(['sidl'], 'BaseClass'), 
-                                      "d_sidl_baseclass"),
-                       ir.Struct_item(ir.Pointer_type(epv), "d_epv"), 
-                       ir.Struct_item(cstats, "d_cstats"),
-                       ir.Struct_item(ir.Pointer_type(ir.Primitive_type(ir.void)), "d_data")
-                       ],
-                       'The class object structure')
-            
+        """
+        Generate the IOR header file in C.
+        """
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
-        ci.ior.gen(ir.Type_decl(cstats))
+        ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
-        ci.ior.gen(ir.Type_decl(epv))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
 
 @matcher(globals(), debug=False)
 def lower_ir(symbol_table, sidl_term):
@@ -422,6 +433,7 @@ class EPV:
         self.methods = []
         self.name = name
         self.symbol_table = symbol_table
+        self.finalized = False
 
     def add_method(self, method):
         """
@@ -435,21 +447,33 @@ class EPV:
             args = babel_args(Args, self.symbol_table, self.name)
             return ir.Fn_decl(typ, name, args, DocComment)
 
+        if self.finalized:
+            import pdb; pdb.set_trace()
         self.methods.append(to_fn_decl(method))
         return self
 
-    def get_sexpr(self):
+    def get_ir(self):
         """
         return an s-expression of the EPV declaration
         """
         def get_type_name((fn_decl, Type, Name, Args, DocComment)):
             return ir.Pointer_type((fn_decl, Type, Name, Args, DocComment)), Name
 
+        self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
         return ir.Struct(name,
             [ir.Struct_item(itype, iname) 
              for itype, iname in map(get_type_name, self.methods)], 
                          'Entry Point Vector (EPV)')
+
+    def get_type(self):
+        """
+        return an s-expression of the EPV's type
+        """
+        name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
+        return ir.Struct(name, [], 'Entry Point Vector (EPV)')
+
+
 
 def babel_args(args, symbol_table, class_name):
     """

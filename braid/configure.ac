@@ -59,12 +59,14 @@ PKG_PROG_PKG_CONFIG
 #
 # Babel
 #
+AC_MSG_CHECKING([for babel])
 PKG_CHECK_EXISTS([babel >= 2.0.0], 
     [AC_SUBST([HAVE_BABEL], 1)
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
-     AC_MSG_RESULT([Found Babel])],
-     [AC_MSG_NOTICE([Did not find Babel version 2 or later! Please remember to set PKG_CONFIG_PATH accordingly.])
+     AC_MSG_RESULT([($BABEL_PREFIX/bin/babel)])],
+     [AC_MSG_RESULT([no])
+      AC_MSG_NOTICE([Did not find Babel version 2 or later! Please remember to set PKG_CONFIG_PATH accordingly.])
       AC_SUBST([HAVE_BABEL], 0)])
 
 
