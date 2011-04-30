@@ -24,7 +24,7 @@
 # </pre>
 #
 
-import ir, sidl, re, os
+import config, ir, sidl, re, os
 from patmat import matcher, match, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator, 
@@ -762,7 +762,14 @@ LIBDIR=$(PREFIX)/lib
 # the default installation installs the stub header and IOR header files
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
-
+CHPL="""+config.CHPL+r"""
+CHPL_ROOT="""+config.CHPL_ROOT+r""" 
+CHPL_MAKE_MEM=default
+CHPL_MAKE_COMM=mpi
+CHPL_MAKE_COMPILER=gnu
+CHPL_MAKE_TASKS=nanox
+CHPL_MAKE_THREADS=pthreads
+include """+config.CHPL_ROOT+r"""/runtime/etc/Makefile.include
 
 # most of the rest of the file should not require editing
 
@@ -786,7 +793,7 @@ LIBS=`babel-config --libs-c-client`
 STUBOBJS=$(STUBSRCS:.c=.lo)
 IOROBJS=$(IORSRCS:.c=.lo)
 SKELOBJS=$(SKELSRCS:.c=.lo)
-IMPLOBJS=$(IMPLSRCS:.c=.lo)
+IMPLOBJS=$(IMPLSRCS:.chpl=.lo)
 
 PUREBABELGEN=$(IORHDRS) $(IORSRCS) $(STUBSRCS) $(STUBHDRS) $(SKELSRCS)
 BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
@@ -829,7 +836,11 @@ else
 	echo "</scl>" >>$@
 endif
 
-.SUFFIXES: .lo
+.SUFFIXES: .lo .chpl
+
+.chpl.lo:
+	$(CHPL) --savec $<.dir $<
+	babel-libtool --mode=compile --tag=CC $(CC) -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<.dir/_main.c
 
 .c.lo:
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<

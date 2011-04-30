@@ -64,10 +64,26 @@ PKG_CHECK_EXISTS([babel >= 2.0.0],
     [AC_SUBST([HAVE_BABEL], 1)
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
-     AC_MSG_RESULT([($BABEL_PREFIX/bin/babel)])],
+     AC_MSG_RESULT([$BABEL_PREFIX/bin/babel])],
      [AC_MSG_RESULT([no])
       AC_MSG_NOTICE([Did not find Babel version 2 or later! Please remember to set PKG_CONFIG_PATH accordingly.])
       AC_SUBST([HAVE_BABEL], 0)])
+
+############################################################
+#
+# Chapel
+#
+AC_MSG_CHECKING([for chapel])
+CHAPEL=`which chpl`
+AS_IF([test -x "${CHAPEL}"],
+    [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
+     AC_MSG_RESULT([${CHAPEL} (version ${CHAPEL_VERSION})])
+     AC_SUBST([CHPL], ["${CHAPEL}"])
+     AC_SUBST([CHPL_ROOT], ["`dirname ${CHAPEL}`/../.."])
+     AC_SUBST([CHPL_VERSION], ["${CHAPEL_VERSION}"])],
+    [AC_MSG_RESULT([no])
+     AC_MSG_NOTICE([Did not find Chapel!])
+      AC_SUBST([CHPL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
 
 AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile])
