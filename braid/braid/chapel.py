@@ -12,12 +12,12 @@
 # Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
-#  
+#
 # LLNL-CODE-473891.
 # All rights reserved.
-#  
-# This file is part of BRAID. For details, see 
-# http://compose-hpc.sourceforge.net/. 
+#
+# This file is part of BRAID. For details, see
+# http://compose-hpc.sourceforge.net/.
 # Please read the COPYRIGHT file for Our Notice and
 # for the BSD License.
 #
@@ -27,7 +27,7 @@
 import config, ir, sidl, re, os
 from patmat import matcher, match, unify, expect, Variable
 from codegen import (
-    ClikeCodeGenerator, CCodeGenerator, 
+    ClikeCodeGenerator, CCodeGenerator,
     SourceFile, CFile, Scope, generator, accepts
 )
 
@@ -109,10 +109,10 @@ class Chapel:
         \li create symbol table
         \li do the work
         """
-        try:       
+        try:
             sym = self.build_symbol_table(self.sidl_ast, SymbolTable())
-            self.generate_client1(self.sidl_ast, None, sym) 
-                  
+            self.generate_client1(self.sidl_ast, None, sym)
+
         except:
             # Invoke the post-mortem debugger
             import pdb, sys
@@ -125,10 +125,10 @@ class Chapel:
         \li create symbol table
         \li do the work
         """
-        try:       
+        try:
             sym = self.build_symbol_table(self.sidl_ast, SymbolTable())
-            self.generate_server1(self.sidl_ast, None, sym) 
-                  
+            self.generate_server1(self.sidl_ast, None, sym)
+
         except:
             # Invoke the post-mortem debugger
             import pdb, sys
@@ -144,12 +144,12 @@ class Chapel:
         def gen(node):         return self.generate_client1(node, data, symbol_table)
         def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
 
-        if not symbol_table: 
+        if not symbol_table:
             raise Exception()
 
         with match(node):
             if (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                self.generate_client_method(symbol_table, node, data)               
+                self.generate_client_method(symbol_table, node, data)
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
@@ -201,16 +201,16 @@ class Chapel:
         def gen(node):         return self.generate_server1(node, data, symbol_table)
         def gen1(node, data1): return self.generate_server1(node, data1, symbol_table)
 
-        if not symbol_table: 
+        if not symbol_table:
             raise Exception()
 
         with match(node):
             if (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                pass#self.generate_server_method(symbol_table, node, data)               
+                pass#self.generate_server_method(symbol_table, node, data)
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), 
+                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table),
                                     ior=CFile(), skel=CFile())
                 ci.stub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
@@ -271,7 +271,7 @@ class Chapel:
         Build a hierarchical \c SymbolTable() for \c node.
 
         For the time being, we store the fully scoped name
-        (= \c [package,subpackage,classname] ) for each class 
+        (= \c [package,subpackage,classname] ) for each class
         in the symbol table.
         """
 
@@ -291,28 +291,28 @@ class Chapel:
 
             elif (sidl.enum, Name, Items, DocComment):
                 symbol_table[Name] = \
-                    ( sidl.enum, 
+                    ( sidl.enum,
                       Name,
                       Items )
 
             elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
                 import pdb; pdb.set_trace()
                 symbol_table[Names[-1]] = \
-                    ( sidl.struct, 
-                      (sidl.scoped_id, symbol_table.prefix+Names, []), 
+                    ( sidl.struct,
+                      (sidl.scoped_id, symbol_table.prefix+Names, []),
                       Items )
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 print "Building symbols for package %s" \
                     %'.'.join(symbol_table.prefix+[Name])
-                symbol_table[Name] = SymbolTable(symbol_table, 
+                symbol_table[Name] = SymbolTable(symbol_table,
                                                  symbol_table.prefix+[Name])
                 self.build_symbol_table(UserTypes, symbol_table[Name])
 
-            elif (sidl.user_type, Attrs, Cipse): 
+            elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
 
-            elif (sidl.file, Requires, Imports, UserTypes): 
+            elif (sidl.file, Requires, Imports, UserTypes):
                 gen(Imports)
                 gen(UserTypes)
 
@@ -345,19 +345,19 @@ class Chapel:
                 [], [], [], [], 'Cast'))
         prefix = data.epv.symbol_table.prefix
         data.cstats = \
-            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''), 
-                      [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")], 
+            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''),
+                      [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")],
                        'The controls and statistics structure')
         data.obj = \
-            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''), 
-                      [ir.Struct_item(ir_babel_object_type(['sidl'], 'BaseClass'), 
+            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''),
+                      [ir.Struct_item(ir_babel_object_type(['sidl'], 'BaseClass'),
                                       "d_sidl_baseclass"),
-                       ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"), 
+                       ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"),
                        ir.Struct_item(unscope(data.cstats), "d_cstats"),
                        ir.Struct_item(ir.Pointer_type(ir.Primitive_type(ir.void)), "d_data")
                        ],
                        'The class object structure')
-            
+
 
 
     @matcher(globals(), debug=False)
@@ -377,7 +377,7 @@ class Chapel:
 
 
     def generate_method_stub(self, symbol_table,
-                      (Method, Type, (_,  Name, _Attr), Attrs, Args, 
+                      (Method, Type, (_,  Name, _Attr), Attrs, Args,
                        Except, From, Requires, Ensures, DocComment), ci):
         """
         Generate the stub for a specific method in C.
@@ -391,14 +391,14 @@ class Chapel:
 
         #return method
         expect(Method, sidl.method)
-        decl_args = babel_args(Args, symbol_table, ci.epv.name) 
-        call_args = ['self'] + map(argname, Args) + ['ex'] 
+        decl_args = babel_args(Args, symbol_table, ci.epv.name)
+        call_args = ['self'] + map(argname, Args) + ['ex']
         epv_type = ci.epv.get_type()
         obj_type = ci.obj
         decl = ir.Fn_decl(low(Type), Name, decl_args, DocComment)
         fptr = ir.Get_struct_item \
             (epv_type,
-             ir.Deref(ir.Get_struct_item(obj_type, 
+             ir.Deref(ir.Get_struct_item(obj_type,
                                          ir.Deref(ir.Deref('self')),
                                          ir.Struct_item(epv_type, 'd_epv'))),
              ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
@@ -431,13 +431,13 @@ def lower_ir(symbol_table, sidl_term):
         if (sidl.struct, Name, Items):
             return ir.Pointer_expr(ir.Struct(low_t(Name), Items, ''))
 
-        elif (sidl.arg, Attrs, Mode, Typ, Name): 
+        elif (sidl.arg, Attrs, Mode, Typ, Name):
             return ir.Arg(Attrs, Mode, low_t(Typ), Name)
 
         elif (sidl.void):                 return ir.Primitive_type(ir.void)
         elif (sidl.primitive_type, Type): return low_t(sidl_term)
 
-        elif (Terms):        
+        elif (Terms):
             if (isinstance(Terms, list)):
                 return map(low, Terms)
         else:
@@ -455,13 +455,13 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.Primitive_type(ir.void))
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
-        elif (sidl.class_, Name, _, _, _, _):    
+        elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
-        elif (sidl.interface, Name, _, _, _):    
+        elif (sidl.interface, Name, _, _, _):
             return ir_babel_object_type([], Name)
         else:
             raise Exception("Not implemented")
- 
+
 def lookup_type(symbol_table, scopes):
     """
     perform a symbol lookup of a scoped identifier
@@ -473,10 +473,10 @@ def lookup_type(symbol_table, scopes):
     while not sym: # up until we find something
         symbol_table = symbol_table.parent()
         sym = symbol_table[scopes[0]]
-        
+
     for i in range(1, n-1): # down again to resolve it
         sym = sym[scopes[i]]
-    
+
     if not sym:
         raise Exception("Symbol lookup error: "+repr(key))
 
@@ -486,7 +486,7 @@ def lookup_type(symbol_table, scopes):
 class SymbolTable:
     """
     Hierarchical symbol table for SIDL identifiers.
-    \arg prefix  parent package. A list of identifiers 
+    \arg prefix  parent package. A list of identifiers
                  just as they would appear in a \c Scoped_id()
     """
     def __init__(self, parent=None, prefix=[]):
@@ -496,9 +496,9 @@ class SymbolTable:
         self.prefix = prefix
 
     def parent(self):
-        if self._parent: 
+        if self._parent:
             return self._parent
-        else: 
+        else:
             raise Exception("Symbol lookup error: no parent scope")
 
     @matcher(globals())
@@ -528,8 +528,8 @@ class EPV:
         """
         add another (SIDL) method to the vector
         """
-        def to_fn_decl((_sidl_method, Type, 
-                        (Method_name, Name, Extension), 
+        def to_fn_decl((_sidl_method, Type,
+                        (Method_name, Name, Extension),
                         Attrs, Args, Except, From, Requires, Ensures, DocComment)):
             typ = lower_ir(self.symbol_table, Type)
             name = 'f_'+Name
@@ -551,8 +551,8 @@ class EPV:
         self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
         return ir.Struct(name,
-            [ir.Struct_item(itype, iname) 
-             for itype, iname in map(get_type_name, self.methods)], 
+            [ir.Struct_item(itype, iname)
+             for itype, iname in map(get_type_name, self.methods)],
                          'Entry Point Vector (EPV)')
 
     def get_type(self):
@@ -568,7 +568,7 @@ def babel_args(args, symbol_table, class_name):
     """
     \return [self]+args+[ex]
     """
-    arg_self = ir.Arg([], sidl.in_, ir_babel_object_type(symbol_table.prefix, 
+    arg_self = ir.Arg([], sidl.in_, ir_babel_object_type(symbol_table.prefix,
                                                            class_name), 'self')
     arg_ex = ir.Arg([], sidl.in_, ir_babel_exception_type(), 'ex')
     return [arg_self]+lower_ir(symbol_table, args)+[arg_ex]
@@ -577,7 +577,7 @@ def arg_ex():
     """
     default SIDL exception argument
     """
-    return 
+    return
 
 
 def chpl_gen(ir):
@@ -605,7 +605,7 @@ class ChapelScope(ChapelFile):
 
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
-    type_map = { 
+    type_map = {
         'void':      "void",
         'bool':      "logical",
         'character': "character",
@@ -647,7 +647,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             return tuple(map(f, l))
 
         def gen_comment(doc_comment):
-            if doc_comment == '': 
+            if doc_comment == '':
                 return ''
             sep = '\n'+' '*scope.indent_level
             return (sep+' * ').join(['/**']+
@@ -701,12 +701,12 @@ def generate_server_makefile(sidl_file, classnames):
            make this work for more than one class
     """
     write_to('babel.make', """
-IMPLHDRS = 
+IMPLHDRS =
 IMPLSRCS = {file}_Impl.chpl
-IORHDRS = {file}_IOR.h Array_IOR.h
+IORHDRS = {file}_IOR.h #FIXME Array_IOR.h
 IORSRCS = {file}_IOR.c
 SKELSRCS = {file}_Skel.c
-STUBHDRS = {file}.h
+STUBHDRS = #FIXME {file}.h
 STUBSRCS = {file}_Stub.c
 """.format(file=classnames))
     generate_client_server_makefile(sidl_file)
@@ -715,27 +715,27 @@ def generate_client_server_makefile(sidl_file):
     write_to('GNUmakefile', r"""
 # Generic Chapel Babel wrapper GNU Makefile
 # $Id$
-# 
+#
 # Copyright (c) 2008, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory.
 # Written by the Components Team <components@llnl.gov>
 # UCRL-CODE-2002-054
 # All rights reserved.
-# 
+#
 # This file is part of Babel. For more information, see
 # http://www.llnl.gov/CASC/components/. Please read the COPYRIGHT file
 # for Our Notice and the LICENSE file for the GNU Lesser General Public
 # License.
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License (as published by
 # the Free Software Foundation) version 2.1 dated February 1999.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
 # conditions of the GNU Lesser General Public License for more details.
-# 
+#
 # You should have recieved a copy of the GNU Lesser General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
@@ -748,7 +748,7 @@ include babel.make
 LIBNAME=impl
 # please name the SIDL file here
 SIDLFILE="""+sidl_file+r"""
-# extra include/compile flags 
+# extra include/compile flags
 EXTRAFLAGS=
 # extra libraries that the implementation needs to link against
 EXTRALIBS=
@@ -762,14 +762,15 @@ LIBDIR=$(PREFIX)/lib
 # the default installation installs the stub header and IOR header files
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
-CHPL="""+config.CHPL+r"""
-CHPL_ROOT="""+config.CHPL_ROOT+r""" 
-CHPL_MAKE_MEM=default
-CHPL_MAKE_COMM=mpi
-CHPL_MAKE_COMPILER=gnu
-CHPL_MAKE_TASKS=nanox
-CHPL_MAKE_THREADS=pthreads
-include """+config.CHPL_ROOT+r"""/runtime/etc/Makefile.include
+CHAPEL="""+config.CHAPEL+r"""
+CHAPEL_ROOT="""+config.CHAPEL_ROOT+r"""
+CHAPEL_MAKE_MEM=default
+CHAPEL_MAKE_COMM=none
+CHAPEL_MAKE_COMPILER=gnu
+CHAPEL_MAKE_TASKS=nanox
+CHAPEL_MAKE_THREADS=pthreads
+include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
+CHAPELFLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/linux64 -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
 
 # most of the rest of the file should not require editing
 
@@ -786,7 +787,7 @@ endif
 all : lib$(LIBNAME).la $(SCLFILE)
 
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I.
+INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include
 CFLAGS=`babel-config --flags-c`
 LIBS=`babel-config --libs-c-client`
 
@@ -818,7 +819,7 @@ $(PUREBABELGEN) $(BABELGEN) : babel-stamp
 babel-stamp: $(SIDLFILE)
 	@rm -f babel-temp
 	@touch babel-temp
-	braid $(BABELFLAG) $(SIDLFILE) 
+	braid $(BABELFLAG) $(SIDLFILE)
 	@mv -f babel-temp $@
 
 lib$(LIBNAME).scl : $(IORSRCS)
@@ -827,10 +828,10 @@ ifeq ($(IORSRCS),)
 else
 	-rm -f $@
 	echo '<?xml version="1.0" ?>' > $@
-	echo '<scl>' >> $@	
+	echo '<scl>' >> $@
 	if test `uname` = "Darwin"; then scope="global"; else scope="local"; \
 	   fi ; \
-          echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
+	  echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
 	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$@
 	echo "  </library>" >>$@
 	echo "</scl>" >>$@
@@ -840,12 +841,12 @@ endif
 
 .chpl.lo:
 	$(CHPL) --savec $<.dir $<
-	babel-libtool --mode=compile --tag=CC $(CC) -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<.dir/_main.c
+	babel-libtool --mode=compile --tag=CC $(CC) -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) $(CHAPELFLAGS) -c -o $@ $<.dir/_main.c
 
 .c.lo:
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
-clean : 
+clean :
 	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo
 
 realclean : clean
@@ -865,10 +866,10 @@ ifneq ($(IORSRCS),)
 	-rm -f $(LIBDIR)/lib$(LIBNAME).scl
 	-mkdir -p $(LIBDIR)
 	echo '<?xml version="1.0" ?>' > $(LIBDIR)/lib$(LIBNAME).scl
-	echo '<scl>' >> $(LIBDIR)/lib$(LIBNAME).scl	
+	echo '<scl>' >> $(LIBDIR)/lib$(LIBNAME).scl
 	if test `uname` = "Darwin"; then scope="global"; else scope="local"; \
 	   fi ; \
-          echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
+	  echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
 	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "  </library>" >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "</scl>" >>$(LIBDIR)/lib$(LIBNAME).scl

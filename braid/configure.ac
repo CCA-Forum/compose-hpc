@@ -1,12 +1,15 @@
 AC_PREREQ(2.64)
-AC_INIT([Braid],[0.2.1],[adrian@llnl.gov])
+AC_INIT([Braid],[0.2.1],[components@llnl.gov],
+        [braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
 AC_CONFIG_MACRO_DIR([m4])
 CCA_DIAGNOSE_INIT(toolcheck.log)
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE([foreign no-dependencies no-installinfo no-installman no-texinfo.tex 1.11 dist-bzip2 parallel-tests color-tests silent-rules std-options])
+AM_INIT_AUTOMAKE([foreign no-dependencies no-installinfo no-installman 
+  no-texinfo.tex 1.11 dist-bzip2 parallel-tests color-tests silent-rules 
+  std-options])
 dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
 AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
@@ -78,12 +81,12 @@ CHAPEL=`which chpl`
 AS_IF([test -x "${CHAPEL}"],
     [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
      AC_MSG_RESULT([${CHAPEL} (version ${CHAPEL_VERSION})])
-     AC_SUBST([CHPL], ["${CHAPEL}"])
-     AC_SUBST([CHPL_ROOT], ["`dirname ${CHAPEL}`/../.."])
-     AC_SUBST([CHPL_VERSION], ["${CHAPEL_VERSION}"])],
+     AC_SUBST([CHAPEL], ["${CHAPEL}"])
+     AC_SUBST([CHAPEL_ROOT], ["`dirname \`dirname \\\`dirname ${CHAPEL}\\\`\``"])
+     AC_SUBST([CHAPEL_VERSION], ["${CHAPEL_VERSION}"])],
     [AC_MSG_RESULT([no])
      AC_MSG_NOTICE([Did not find Chapel!])
-      AC_SUBST([CHPL], ['echo "**ERROR: No Chapel compiler" ; false'])])
+      AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
 
 AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile])
