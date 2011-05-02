@@ -767,10 +767,11 @@ CHAPEL_ROOT="""+config.CHAPEL_ROOT+r"""
 CHAPEL_MAKE_MEM=default
 CHAPEL_MAKE_COMM=none
 CHAPEL_MAKE_COMPILER=gnu
-CHAPEL_MAKE_TASKS=nanox
+CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
-include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
-CHAPELFLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/linux64 -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
+####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
+CHPL=chpl
+CHPLFLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/linux64 -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
 
 # most of the rest of the file should not require editing
 
@@ -839,12 +840,13 @@ endif
 
 .SUFFIXES: .lo .chpl
 
-.chpl.lo:
-	$(CHPL) --savec $<.dir $<
-	babel-libtool --mode=compile --tag=CC $(CC) -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) $(CHAPELFLAGS) -c -o $@ $<.dir/_main.c
-
 .c.lo:
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
+
+.chpl.lo:
+	$(CHPL) --savec $<.dir $<
+	babel-libtool --mode=compile --tag=CC $(CC) -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) $(CHPLFLAGS) -c -o $@ $<.dir/_main.c
+
 
 clean :
 	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo
