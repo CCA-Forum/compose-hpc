@@ -28,7 +28,8 @@ import config, ir, sidl, re, os
 from patmat import matcher, match, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
-    SourceFile, CFile, Scope, generator, accepts
+    SourceFile, CFile, Scope, generator, accepts,
+    sep_by
 )
 
 def babel_object_type(package, name):
@@ -62,6 +63,9 @@ def ir_babel_exception_type():
     """
     return ir_babel_object_type(['sidl'], 'BaseInterface')
 
+def argname((_arg, _attr, _mode, _type, Id)):
+    return Id
+
 @accepts(str, str)
 def write_to(filename, string):
     """
@@ -84,12 +88,13 @@ class Chapel:
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
         """
-        def __init__(self, impl=None, stub=None, epv=None, ior=None, skel=None):
-            self.impl = impl
-            self.stub = stub
-            self.skel = skel
-            self.epv = epv
-            self.ior = ior
+        def __init__(self, name, symbol_table):
+            self.impl = ChapelFile()
+            self.stub = CFile()
+            self.chpl_stub = ChapelFile(relative_indent=8)
+            self.skel = CFile()
+            self.epv = EPV(name, symbol_table)
+            self.ior = CFile()
 
 
     def __init__(self, filename, sidl_sexpr, create_makefile):
@@ -153,21 +158,32 @@ class Chapel:
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table), ior=CFile())
+                ci = self.ClassInfo(Name, symbol_table)
                 ci.stub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
+
+                # recurse to generate method code
                 gen1(Methods, ci)
-                self.generate_ior(ci)
 
                 # IOR
+                self.generate_ior(ci)
                 write_to(Name+'_IOR.h', ci.ior.dot_h(Name+'_IOR.h'))
 
                 # Stub (in C)
-                ci.stub.gen(ir.Import(Name+'_Stub'))
+                ci.stub.gen(ir.Import(Name+'_cStub'))
                 # Stub Header
-                write_to(Name+'_Stub.h', ci.stub.dot_h(Name+'_Stub.h'))
+                write_to(Name+'_cStub.h', ci.stub.dot_h(Name+'_cStub.h'))
                 # Stub C-file
-                write_to(Name+'_Stub.c', ci.stub.dot_c())
+                write_to(Name+'_cStub.c', ci.stub.dot_c())
+
+                # Stub (in Chapel)
+                chpl_defs = ci.chpl_stub
+                ci.chpl_stub = ChapelFile()
+                ci.chpl_stub.new_def(chpl_defs.get_decls())
+                ci.chpl_stub.new_def('class %s {'%chpl_gen(Name))
+                ci.chpl_stub.new_def(chpl_defs.get_defs())
+                ci.chpl_stub.new_def('}')
+                write_to(Name+'_Stub.chpl', str(ci.chpl_stub))
 
                 # Makefile
                 if self.create_makefile:
@@ -210,7 +226,7 @@ class Chapel:
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                ci = self.ClassInfo(ChapelScope(), CFile(), EPV(Name, symbol_table),
+                ci = self.ClassInfo(ChapelFile(), CFile(), EPV(Name, symbol_table),
                                     ior=CFile(), skel=CFile())
                 ci.stub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
@@ -358,8 +374,6 @@ class Chapel:
                        ],
                        'The class object structure')
 
-
-
     @matcher(globals(), debug=False)
     def generate_client_method(self, symbol_table, method, ci):
         """
@@ -368,9 +382,30 @@ class Chapel:
         \param symbol_table  the symbol table of the SIDL file
         \param ci            a ClassInfo object
         """
+
+        def low(sidl_term):
+            return lower_ir(symbol_table, sidl_term)
+
         ci.epv.add_method(method)
         # output _extern declaration
-        ci.impl.new_def('_extern '+ chpl_gen(method))
+
+        (Method, Type, (_,  Name, Attr), Attrs, Args,
+         Except, From, Requires, Ensures, DocComment) = method
+
+        ci.chpl_stub.new_header_def('_extern '+ chpl_gen(
+                sidl.Method(Type, sidl.Method_name(Name+'_stub', Attr), 
+                            Attrs, Args,
+                            Except, From, Requires, Ensures, DocComment)))
+
+        #decl = ir.Fn_decl(low(Type), Name, Args, DocComment)
+        if Type == sidl.void:
+            body = [ir.Stmt(ir.Call(Name+'_stub', map(argname, Args)))]
+        else:
+            body = [ir.Stmt(ir.Return(ir.Call(Name+'_stub', map(argname, Args))))]
+        defn = ir.Fn_defn(low(Type), Name, Args, body, DocComment)
+
+        #ci.chpl_stub.new_header_def(chpl_gen(decl))
+        ci.chpl_stub.new_def(chpl_gen(defn))
         # output the stub definition
         stub = self.generate_method_stub(symbol_table, method, ci)
         c_gen(stub, ci.stub)
@@ -382,10 +417,6 @@ class Chapel:
         """
         Generate the stub for a specific method in C.
         """
-
-        def argname((_arg, _attr, _mode, _type, Id)):
-            return Id
-
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
@@ -589,7 +620,36 @@ def c_gen(ir, scope=CFile()):
 class ChapelFile(SourceFile):
     def __init__(self, parent=None, relative_indent=0):
         super(ChapelFile, self).__init__(
-            parent, relative_indent, separator=';\n')
+            parent, relative_indent, separator='\n')
+
+    def __str__(self):
+        """
+        Perform the actual translation into a readable string,
+        complete with indentation and newlines.
+        """
+        h_indent = ''
+        d_indent = ''
+        if len(self._header) > 0: h_indent=self._sep
+        if len(self._defs) > 0:   d_indent=self._sep
+
+        return ''.join([
+            h_indent,
+            sep_by(';'+self._sep, self._header),
+            d_indent,
+            sep_by(self._sep, self._defs)])
+
+    def get_decls(self):
+        h_indent = ''
+        if len(self._header) > 0: 
+            h_indent=self._sep
+        return ''.join([h_indent, sep_by(';'+self._sep, self._header)])
+
+    def get_defs(self):
+        d_indent = ''
+        if len(self._defs) > 0:   
+            d_indent=self._sep
+        return ''.join([d_indent, sep_by(self._sep, self._defs)])
+
 
     def gen(self, ir):
         """
@@ -600,8 +660,18 @@ class ChapelFile(SourceFile):
 
 
 class ChapelScope(ChapelFile):
-    def __init__(self, parent=None, relative_indent=2):
+    def __init__(self, parent=None, relative_indent=4):
         super(ChapelScope, self).__init__(parent, relative_indent)
+
+    def __str__(self):
+        return self._sep.join(self._header+self._defs)
+
+class ChapelLine(ChapelFile):
+    def __init__(self, parent=None, relative_indent=4):
+        super(ChapelLine, self).__init__(parent, relative_indent)
+
+    def __str__(self):
+        return self._sep.join(self._header+self._defs)
 
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
@@ -616,7 +686,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'int':       "int",
         'long':      "int",
         'opaque':    "int",
-        'string':    "character",
+        'string':    "string",
         'enum':      "integer",
         'struct':    "integer",
         'class':     "integer",
@@ -633,6 +703,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
         def new_def(s):
             return scope.new_def(s)
+
+        def new_header_def(s):
+            return scope.new_header_def(s)
+
+        @accepts(str, tuple, str)
+        def new_scope(prefix, body, suffix='\n'):
+            '''used for things like if, while, ...'''
+            comp_stmt = ChapelFile(scope)
+            s = str(self.generate(body, comp_stmt))
+            return new_def(''.join([prefix,s,suffix]))
 
         def gen_comma_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
@@ -656,11 +736,26 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
         with match(node):
             if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                new_def('%sdef %s(%s)'%(gen_comment(DocComment), gen(Name), gen_comma_sep(Args)))
+                new_def('%sproc %s(%s)'%(gen_comment(DocComment), gen(Name), gen_comma_sep(Args)))
 
             elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                new_def('%sdef %s(%s): %s'%(gen_comment(DocComment),
+                new_def('%sproc %s(%s): %s'%(gen_comment(DocComment),
                                             gen(Name), gen_comma_sep(Args), gen(Type)))
+
+            elif (ir.fn_defn, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
+                new_scope('%sproc %s(%s) {'%
+                          (gen_comment(DocComment), 
+                           gen(Name), gen_comma_sep(Args)),
+                          Body,
+                          '}')
+
+            elif (ir.fn_defn, Type, Name, Args, Body, DocComment):
+                new_scope('%sproc %s(%s): %s {'%
+                          (gen_comment(DocComment), 
+                           gen(Name), gen_comma_sep(Args),
+                           gen(Type)),
+                          Body,
+                          '}')
 
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s: %s'%(gen(Name), gen(Type))
@@ -668,9 +763,11 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
                 return gen_comment(DocComment)+'class '+Name
 
+            elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
+                return "string"
+
             elif (sidl.primitive_type, Type):       return self.type_map[Type]
             elif (sidl.custom_attribute, Id):       return gen(Id)
-            elif (sidl.method_name, Id, []):        return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id)
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
@@ -690,7 +787,9 @@ def generate_client_makefile(sidl_file, classnames):
     write_to('babel.make', """
 IORHDRS = {file}_IOR.h
 STUBHDRS = {file}.h
-STUBSRCS = {file}_Stub.c
+STUBSRCS = {file}_cStub.c 
+# this is handled by the use statement in the implementation instead:
+# {file}_Stub.chpl
 """.format(file=classnames))
     generate_client_server_makefile(sidl_file)
 
@@ -707,7 +806,7 @@ IORHDRS = {file}_IOR.h #FIXME Array_IOR.h
 IORSRCS = {file}_IOR.c
 SKELSRCS = {file}_Skel.c
 STUBHDRS = #FIXME {file}.h
-STUBSRCS = {file}_Stub.c
+STUBSRCS = {file}_cStub.c
 """.format(file=classnames))
     generate_client_server_makefile(sidl_file)
 
@@ -771,8 +870,8 @@ CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 CHPL=chpl
-CHPLFLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/linux64 -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
-
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/linux64 -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
+CHPL_LDFLAGS=-L$(CHAPEL_ROOT)/lib/linux64/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads $(CHAPEL_ROOT)/lib/linux64/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
 # most of the rest of the file should not require editing
 
 ifeq ($(IMPLSRCS),)
@@ -785,14 +884,19 @@ else
   MODFLAG=-module
 endif
 
-all : lib$(LIBNAME).la $(SCLFILE)
+all : lib$(LIBNAME).la $(SCLFILE) runChapel
+
+runChapel: lib$(LIBNAME).la $(SERVER).la $(IMPL).lo
+	babel-libtool --mode=link $(CC) -static $(IMPLOBJS) lib$(LIBNAME).la \
+	  $(SERVER).la $(CHPL_LDFLAGS) -o $@
+
 
 CC=`babel-config --query-var=CC`
 INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include
 CFLAGS=`babel-config --flags-c`
 LIBS=`babel-config --libs-c-client`
 
-STUBOBJS=$(STUBSRCS:.c=.lo)
+STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
 IOROBJS=$(IORSRCS:.c=.lo)
 SKELOBJS=$(SKELSRCS:.c=.lo)
 IMPLOBJS=$(IMPLSRCS:.chpl=.lo)
@@ -844,9 +948,10 @@ endif
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 .chpl.lo:
-	$(CHPL) --savec $<.dir $<
-	babel-libtool --mode=compile --tag=CC $(CC) -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) $(CHPLFLAGS) -c -o $@ $<.dir/_main.c
-
+	$(CHPL) --savec $<.dir $< --make echo
+	babel-libtool --mode=compile --tag=CC $(CC) \
+            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
+            $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 
 clean :
 	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo
