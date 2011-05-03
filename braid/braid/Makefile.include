@@ -24,7 +24,7 @@ PYTHON_SOURCES = \
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES)
-BUILT_SOURCES += braid/parsetab.py braid/ir.py braid/sidl.py
+BUILT_SOURCES += braid/parsetab.pyc braid/ir.py braid/sidl.py
 GRAMMARS = braid/ir.def braid/sidl.def
 
 bin_SCRIPTS += braid/braid
@@ -97,7 +97,7 @@ $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 $(builddir)/%.success: $(srcdir)/%.sidl braid
 	braid/braid $<
 
-braid/parsetab.py: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
+$(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
 	@echo "  PYTHON Generate the sidl parser tables"
 	@rm -f $@
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
