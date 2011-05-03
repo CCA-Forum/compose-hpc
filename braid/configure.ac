@@ -16,7 +16,7 @@ dnl To regenerate configure and .in files, configure with --enable-maintainer-mo
 AM_MAINTAINER_MODE
 
 dnl AC_CONFIG_HEADERS(runtime/sidl/ignore_me.h)
-AC_DEFINE([BABEL_VERSION_HEX],[0x01099000],
+AC_DEFINE([BRAID_VERSION_HEX],[0x00021000],
 	[Hexified form of release number: 2 hex digits each for major, minor, bugfix, and alpha/beta/candidate/distributed ])
 
 LLNL_CHECK_AUTOMAKE([1.11])
@@ -26,8 +26,8 @@ LLNL_CHECK_AUTOCONF([2.64])
 #
 # Additional configure options.
 #
-LLNL_CROSS_COMPILING
-LLNL_AUTO_DISABLE
+dnl LLNL_CROSS_COMPILING
+dnl LLNL_AUTO_DISABLE
 LLNL_ENABLE_REGRESSION
 LLNL_ENABLE_DOCUMENTATION
 

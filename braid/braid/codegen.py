@@ -152,7 +152,7 @@ def sep_by(separator, strings):
     the last element, if any.
     """
     if len(strings) > 0:
-        return separator.join(strings+[separator])
+        return separator.join(strings+[''])
     else:
         return ''
 
