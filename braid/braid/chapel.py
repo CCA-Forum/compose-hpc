@@ -177,10 +177,37 @@ class Chapel:
                 write_to(Name+'_cStub.c', ci.stub.dot_c())
 
                 # Stub (in Chapel)
+                qname = '_'.join(symbol_table.prefix+[Name])                
+                # Chapel supports C structs via the _extern keyword,
+                # but they must be typedef'ed in a header file that
+                # must be passed to the chpl compiler.
+                typedefs = sep_by('\n',[
+                        '#include <%s_IOR.h>'%Name,
+                        'typedef struct %s__object _%s__object;'%(qname, qname),
+                        'typedef _%s__object* %s__object;'%(qname, qname),
+                        'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
+                        'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;'
+                        ])
+                write_to(Name+'_Stub.h', typedefs)
                 chpl_defs = ci.chpl_stub
                 ci.chpl_stub = ChapelFile()
                 ci.chpl_stub.new_def(chpl_defs.get_decls())
+                ci.chpl_stub.new_def('_extern class sidl_BaseInterface__object {};')
+                ci.chpl_stub.new_def('_extern class %s__object {};'%qname)
+                ci.chpl_stub.new_def('_extern proc %s__createObject('%qname+
+                                     'd_data: int, '+
+                                     'inout ex: sidl_BaseInterface__object)'+
+                                     ': %s__object;'%qname)
                 ci.chpl_stub.new_def('class %s {'%chpl_gen(Name))
+                #ci.chpl_stub.new_def(chpl_gen(ir.Var_decl(ir_babel_object_type([], Name), 'self')))
+                ci.chpl_stub.new_def('var self: %s__object;'%qname)
+                body = [
+                    'var ex: sidl_BaseInterface__object;',
+                    'this.self = %s__createObject(0, ex);'%qname
+                    ]
+                ci.chpl_stub.new_def(chpl_gen(
+                    (ir.fn_defn, ir.Primitive_type(ir.void), 
+                               chpl_gen(Name), [], body, 'Constructor')))
                 ci.chpl_stub.new_def(chpl_defs.get_defs())
                 ci.chpl_stub.new_def('}')
                 write_to(Name+'_Stub.chpl', str(ci.chpl_stub))
@@ -394,14 +421,20 @@ class Chapel:
 
         ci.chpl_stub.new_header_def('_extern '+ chpl_gen(
                 sidl.Method(Type, sidl.Method_name(Name+'_stub', Attr), 
-                            Attrs, Args,
+                            Attrs, 
+                            [ir.Arg([], ir.inout, ir_babel_object_type(
+                                symbol_table.prefix, ci.epv.name), 'self')]+
+                            Args+
+                            [ir.Arg([], ir.inout, ir_babel_exception_type(), 'ex')],
                             Except, From, Requires, Ensures, DocComment)))
 
         #decl = ir.Fn_decl(low(Type), Name, Args, DocComment)
+        call_args = ["self"]+map(argname, Args)+["ex"]
+        body = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), "ex"))]
         if Type == sidl.void:
-            body = [ir.Stmt(ir.Call(Name+'_stub', map(argname, Args)))]
+            body += [ir.Stmt(ir.Call(Name+'_stub', call_args))]
         else:
-            body = [ir.Stmt(ir.Return(ir.Call(Name+'_stub', map(argname, Args))))]
+            body += [ir.Stmt(ir.Return(ir.Call(Name+'_stub', call_args)))]
         defn = ir.Fn_defn(low(Type), Name, Args, body, DocComment)
 
         #ci.chpl_stub.new_header_def(chpl_gen(decl))
@@ -422,11 +455,12 @@ class Chapel:
 
         #return method
         expect(Method, sidl.method)
+        sname = Name+'_stub'
         decl_args = babel_args(Args, symbol_table, ci.epv.name)
         call_args = ['self'] + map(argname, Args) + ['ex']
         epv_type = ci.epv.get_type()
         obj_type = ci.obj
-        decl = ir.Fn_decl(low(Type), Name, decl_args, DocComment)
+        decl = ir.Fn_decl(low(Type), sname, decl_args, DocComment)
         fptr = ir.Get_struct_item \
             (epv_type,
              ir.Deref(ir.Get_struct_item(obj_type,
@@ -435,7 +469,7 @@ class Chapel:
              ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
         body = [ir.Stmt(ir.Return(ir.Call(fptr, call_args)))]
         return [decl,
-                ir.Fn_defn(low(Type), Name, decl_args, body, DocComment)]
+                ir.Fn_defn(low(Type), sname, decl_args, body, DocComment)]
 
     def generate_ior(self, ci):
         """
@@ -766,6 +800,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
 
+            elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
+                return '_'.join(Names)
+
+            elif (ir.var_decl, Type, Name): 
+                return 'var %s:%s'%(gen(Name), gen(Type))
+
             elif (sidl.primitive_type, Type):       return self.type_map[Type]
             elif (sidl.custom_attribute, Id):       return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id)
@@ -848,7 +888,7 @@ LIBNAME=impl
 # please name the SIDL file here
 SIDLFILE="""+sidl_file+r"""
 # extra include/compile flags
-EXTRAFLAGS=
+EXTRAFLAGS=-ggdb -O0
 # extra libraries that the implementation needs to link against
 EXTRALIBS=
 # library version number
@@ -886,9 +926,9 @@ endif
 
 all : lib$(LIBNAME).la $(SCLFILE) runChapel
 
-runChapel: lib$(LIBNAME).la $(SERVER).la $(IMPL).lo
-	babel-libtool --mode=link $(CC) -static $(IMPLOBJS) lib$(LIBNAME).la \
-	  $(SERVER).la $(CHPL_LDFLAGS) -o $@
+runChapel: lib$(LIBNAME).la $(SERVER).la $(IMPLOBJS) $(IMPL).lo 
+	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER).la $(CHPL_LDFLAGS) -o $@
 
 
 CC=`babel-config --query-var=CC`
@@ -948,7 +988,7 @@ endif
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< --make echo
+	$(CHPL) --savec $<.dir $< *_Stub.h --make true # don't use chpl to compile
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
