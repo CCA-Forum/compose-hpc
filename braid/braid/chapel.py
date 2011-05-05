@@ -386,6 +386,31 @@ class Chapel:
                 sidl.Method_name("_cast", ''), [],
                 [sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), 'name')],
                 [], [], [], [], 'Cast'))
+        def placeholder(name):
+            data.epv.add_method(sidl.Method(
+                    sidl.void,
+                    sidl.Method_name(name, ''), [],
+                    [sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), name)],
+                    [], [], [], [], name))
+
+        placeholder('_delete')
+        placeholder('_exec')
+        placeholder('_getURL')
+        placeholder('_raddRef')
+        placeholder('_isRemote')
+        placeholder('_setHooks')
+        placeholder('_set_contracts ')
+        placeholder('_dump_stats')
+        placeholder('_ctor')
+        placeholder('_ctor2')
+        placeholder('_dtor')
+        placeholder('_load')
+        placeholder('_addRef')
+        placeholder('_deleteRef')
+        placeholder('_isSame')
+        placeholder('_isType')
+        placeholder('_getClassInfo')
+
         prefix = data.epv.symbol_table.prefix
         data.cstats = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''),
@@ -393,7 +418,7 @@ class Chapel:
                        'The controls and statistics structure')
         data.obj = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''),
-                      [ir.Struct_item(ir_babel_object_type(['sidl'], 'BaseClass'),
+                      [ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
                                       "d_sidl_baseclass"),
                        ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"),
                        ir.Struct_item(unscope(data.cstats), "d_cstats"),
@@ -792,7 +817,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                           '}')
 
             elif (sidl.arg, Attrs, Mode, Type, Name):
-                return '%s: %s'%(gen(Name), gen(Type))
+                return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
                 return gen_comment(DocComment)+'class '+Name
