@@ -381,35 +381,50 @@ class Chapel:
         def unscope((struct, scoped_id, items, doc)):
             return struct, c_gen(scoped_id), items, doc
 
-        data.epv.add_method(sidl.Method(
-                sidl.void,
-                sidl.Method_name("_cast", ''), [],
-                [sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), 'name')],
-                [], [], [], [], 'Cast'))
-        def placeholder(name):
-            data.epv.add_method(sidl.Method(
-                    sidl.void,
-                    sidl.Method_name(name, ''), [],
-                    [sidl.Arg([], sidl.in_, sidl.Primitive_type(sidl.string), name)],
-                    [], [], [], [], name))
+        def builtin(t, name, args):
+            data.epv.add_method(
+                sidl.Method(t, sidl.Method_name(name, ''), [],
+                            args, [], [], [], [], 
+                            'Implicit built-in method: '+name))
 
-        placeholder('_delete')
-        placeholder('_exec')
-        placeholder('_getURL')
-        placeholder('_raddRef')
-        placeholder('_isRemote')
-        placeholder('_setHooks')
-        placeholder('_set_contracts ')
-        placeholder('_dump_stats')
-        placeholder('_ctor')
-        placeholder('_ctor2')
-        placeholder('_dtor')
-        placeholder('_load')
-        placeholder('_addRef')
-        placeholder('_deleteRef')
-        placeholder('_isSame')
-        placeholder('_isType')
-        placeholder('_getClassInfo')
+        def inarg(t, name):
+            return sidl.Arg([], sidl.in_, t, name)
+
+        builtin(sidl.void, "_cast",
+                [inarg(sidl.pt_string, 'name')])
+
+        builtin(sidl.void, "_delete", [])
+
+        builtin(sidl.void, "_exec", [
+                inarg(sidl.pt_string, 'methodName'),
+                inarg(sidl.void, 'FIXMEinArgs'),
+                inarg(sidl.void, 'FIXMEoutArgs')])
+
+        builtin(sidl.pt_string, "_getURL", [])
+        builtin(sidl.void, "_raddRef", [])
+        builtin(sidl.pt_bool, "_isRemote", [])
+        builtin(sidl.void, '_setHooks', 
+                [inarg(sidl.pt_bool, 'enable')])
+        builtin(sidl.void, '_set_contracts ', [
+                inarg(sidl.pt_bool, 'enable'),
+                inarg(sidl.pt_string, 'enfFilename'),
+                inarg(sidl.pt_bool, 'resetCounters')],
+                )
+        builtin(sidl.void, '_dump_stats', 
+                [inarg(sidl.pt_string, 'filename'),
+                 inarg(sidl.pt_string, 'prefix')])
+        builtin(sidl.void, '_ctor', [])
+        builtin(sidl.void, '_ctor2',
+                [inarg(sidl.void, 'private_data')])
+        builtin(sidl.void, '_dtor', [])
+        builtin(sidl.void, '_load', [])
+        builtin(sidl.void, '_addRef', [])
+        builtin(sidl.void, '_deleteRef', [])
+        builtin(sidl.pt_bool, '_isSame',
+                [inarg(babel_exception_type(), 'iobj')])
+        builtin(sidl.pt_bool, '_isType',
+                [inarg(sidl.pt_string, 'type')])
+        builtin(babel_object_type(['sidl'], 'ClassInfo'), '_getClassInfo', [])
 
         prefix = data.epv.symbol_table.prefix
         data.cstats = \
@@ -524,8 +539,9 @@ def lower_ir(symbol_table, sidl_term):
         elif (sidl.arg, Attrs, Mode, Typ, Name):
             return ir.Arg(Attrs, Mode, low_t(Typ), Name)
 
-        elif (sidl.void):                 return ir.Primitive_type(ir.void)
-        elif (sidl.primitive_type, Type): return low_t(sidl_term)
+        elif (sidl.void):              return ir.Primitive_type(ir.void)
+        elif (sidl.primitive_type, _): return low_t(sidl_term)
+        elif (sidl.scoped_id, _, _):   return low_t(sidl_term)
 
         elif (Terms):
             if (isinstance(Terms, list)):

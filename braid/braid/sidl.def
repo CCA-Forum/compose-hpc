@@ -17,12 +17,12 @@
 %# Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 %# Produced at the Lawrence Livermore National Laboratory
 %# Written by Adrian Prantl <adrian@llnl.gov>.
-%#  
+%#
 %# LLNL-CODE-473891.
 %# All rights reserved.
-%#  
-%# This file is part of BRAID. For details, see 
-%# http://compose-hpc.sourceforge.net/. 
+%#
+%# This file is part of BRAID. For details, see
+%# http://compose-hpc.sourceforge.net/.
 %# Please read the COPYRIGHT file for Our Notice and
 %# for the BSD License.
 %#
@@ -35,7 +35,7 @@
 %%# Do not forget to add parentheses around ( A|B )!
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
-[  
+[
   _File = file([Require], [Import], [User_type]),
   Version = version('STR' | 'FLOAT' | 'INT'),
   Require = require(Scoped_id, Version),
@@ -43,10 +43,10 @@
   Package = package(Id, Version, [User_type], Doc_comment),
   User_type = user_type([(Type_attr|Custom_attr)], Cipse),
   Cipse = ( Class
-          | Interface
-          | Package
-          | Struct
-          | Enum ),
+	  | Interface
+	  | Package
+	  | Struct
+	  | Enum ),
   Type_attr = type_attribute(final | abstract),
   Id = 'STR',
   Doc_comment = 'STR',
@@ -57,19 +57,19 @@
   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
   Interface = interface(Id, [Extends], [Invariant], [Method], Doc_comment),
   Implements = ( implements(Scoped_id)
-               | implements_all(Scoped_id)),
+	       | implements_all(Scoped_id)),
   Method = method(Type_void, Method_name, [Method_attr], [Arg],
 		  [Except], [From], [Require], [Ensure], Doc_comment),
   Method_name = method_name(Id, Extension),
   Extension = 'STR',
   Type_void = ( void | Type ),
   Method_attr = ( oneway
-                | local
-                | static
-                | abstract
-                | final
-                | nonblocking
-                | copy ),
+		| local
+		| static
+		| abstract
+		| final
+		| nonblocking
+		| copy ),
   From = from(Scoped_id),
   Invariant = invariant(Assertion),
   Assertion = assertion(Id, AssertExpr),
@@ -77,15 +77,15 @@
   Ensure = ensure([Scoped_id]),
   Extends = extends([Scoped_id]),
   Arg = ( arg([Arg_attr], Mode, Type_void, Id)
-        | rarg([Arg_attr], Mode, Rarray) ),
+	| rarg([Arg_attr], Mode, Rarray) ),
   Arg_attr = (copy | ['STR']),
   Custom_attr = ( custom_attribute('STR')
-                | custom_attribute_assoc('STR', 'STR')
-                ),
+		| custom_attribute_assoc('STR', 'STR')
+		),
   Mode = (in | out | inout),
   Type = (Primitive_type | Array | Scoped_id),
   Primitive_type = primitive_type(
-      bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),      
+      bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),
   Array = array(Scalar_type, Dimension, Orientation),
   Scalar_type = (Primitive_type|Scoped_id),
   Dimension = int,
@@ -94,16 +94,28 @@
   Extents = SimpleIntExpression,
   SimpleIntExpression = int, % resolved by the parser?
   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
-               | prefix_expr(Un_op, AssertExpr)
-               | fn_eval(Id, [Arg])
-               | var_ref(Id)
-               | Id
-               | Literal
-               ),
+	       | prefix_expr(Un_op, AssertExpr)
+	       | fn_eval(Id, [Arg])
+	       | var_ref(Id)
+	       | Id
+	       | Literal
+	       ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
-          |plus|minus|times|divide|modulo|rem|pow),
+	  |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
   Scoped_id = scoped_id([Id], Extension),
   Literal = ('INT' | 'FLOAT' | 'STR' | pure | result | Complex),
   Complex = complex('FLOAT', 'FLOAT')
 ].
+% ## sidl primitive types
+%pt_bool = Primitive_type(bool)
+%pt_bool     = Primitive_type(bool)
+%pt_char     = Primitive_type(char)
+%pt_int	     = Primitive_type(int)
+%pt_long     = Primitive_type(long)
+%pt_float    = Primitive_type(float)
+%pt_double   = Primitive_type(double)
+%pt_fcomplex = Primitive_type(fcomplex)
+%pt_dcomplex = Primitive_type(dcomplex)
+%pt_string   = Primitive_type(string)
+%pt_opaque   = Primitive_type(opaque)
