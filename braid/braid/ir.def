@@ -101,6 +101,19 @@
   Id = 'STR',
   DocComment='STR'
 ].
+% ## ir primitive types
+%pt_bool = Primitive_type(bool)
+%pt_bool     = Primitive_type(bool)
+%pt_char     = Primitive_type(char)
+%pt_integer  = Primitive_type(integer)
+%pt_long     = Primitive_type(long)
+%pt_float    = Primitive_type(float)
+%pt_double   = Primitive_type(double)
+%pt_fcomplex = Primitive_type(fcomplex)
+%pt_dcomplex = Primitive_type(dcomplex)
+%pt_string   = Primitive_type(string)
+%pt_void     = Primitive_type(void)
+%
 % ## const char*
 %const_str = Pointer_type(Const(Primitive_type(char)))
 % 

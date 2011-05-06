@@ -55,7 +55,7 @@ def ir_babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Struct(babel_object_type(package,name), [], '')
+    return ir.Struct(babel_object_type(package, name), [], '')
 
 def ir_babel_exception_type():
     """
@@ -206,11 +206,11 @@ class Chapel:
                     'this.self = %s__createObject(0, ex);'%qname
                     ]
                 ci.chpl_stub.new_def(chpl_gen(
-                    (ir.fn_defn, ir.Primitive_type(ir.void), 
+                    (ir.fn_defn, ir.pt_void, 
                                chpl_gen(Name), [], body, 'Constructor')))
                 ci.chpl_stub.new_def(chpl_defs.get_defs())
                 ci.chpl_stub.new_def('}')
-                write_to(Name+'_Stub.chpl', str(ci.chpl_stub))
+                self.pkg_chpl_stub.new_def(ci.chpl_stub)
 
                 # Makefile
                 if self.create_makefile:
@@ -218,7 +218,9 @@ class Chapel:
 
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
+                self.pkg_chpl_stub = ChapelFile()
                 self.generate_client1(UserTypes, data, symbol_table[Name])
+                write_to(Name+'.chpl', str(self.pkg_chpl_stub))
 
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
@@ -390,6 +392,7 @@ class Chapel:
         def inarg(t, name):
             return sidl.Arg([], sidl.in_, t, name)
 
+        # Implicit Built-in methods
         builtin(sidl.void, "_cast",
                 [inarg(sidl.pt_string, 'name')])
 
@@ -426,18 +429,21 @@ class Chapel:
                 [inarg(sidl.pt_string, 'type')])
         builtin(babel_object_type(['sidl'], 'ClassInfo'), '_getClassInfo', [])
 
+        # cstats
         prefix = data.epv.symbol_table.prefix
         data.cstats = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''),
                       [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")],
                        'The controls and statistics structure')
+
+        # @class@__object
         data.obj = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''),
                       [ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
                                       "d_sidl_baseclass"),
                        ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"),
                        ir.Struct_item(unscope(data.cstats), "d_cstats"),
-                       ir.Struct_item(ir.Pointer_type(ir.Primitive_type(ir.void)), "d_data")
+                       ir.Struct_item(ir.Pointer_type(ir.pt_void), "d_data")
                        ],
                        'The class object structure')
 
@@ -539,7 +545,7 @@ def lower_ir(symbol_table, sidl_term):
         elif (sidl.arg, Attrs, Mode, Typ, Name):
             return ir.Arg(Attrs, Mode, low_t(Typ), Name)
 
-        elif (sidl.void):              return ir.Primitive_type(ir.void)
+        elif (sidl.void):              return ir.pt_void
         elif (sidl.primitive_type, _): return low_t(sidl_term)
         elif (sidl.scoped_id, _, _):   return low_t(sidl_term)
 
@@ -557,8 +563,8 @@ def lower_type_ir(symbol_table, sidl_type):
     with match(sidl_type):
         if (sidl.scoped_id, Names, Ext):
             return lower_type_ir(symbol_table, lookup_type(symbol_table, Names))
-        elif (sidl.void):                        return ir.Primitive_type(ir.void)
-        elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.Primitive_type(ir.void))
+        elif (sidl.void):                        return ir.pt_void
+        elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.class_, Name, _, _, _, _):
