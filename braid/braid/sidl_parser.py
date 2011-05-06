@@ -809,7 +809,7 @@ def p_primitiveType(p):
                      | DCOMPLEX
                      | STRING
                      | OPAQUE'''
-    p[0] = (sidl.primitive_type, str.lower(p[1]).replace('int','integer'))
+    p[0] = (sidl.primitive_type, str.lower(p[1]))
 
 def p_array(p):
     '''array : ARRAY LT scalarType dimension orientation GT'''

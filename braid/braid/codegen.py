@@ -466,7 +466,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
     type_map = {
         'void':        "void",
         'bool':        "logical",
-        'character':   "character",
+        'char':        "character",
         'dcomplex':    "double complex",
         'double':      "double precision",
         'fcomplex':    "complex",
@@ -698,7 +698,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             if ('struct', Type, _): return Type
             elif ('void'):        return "void"
             elif ('bool'):        return "logical"
-            elif ('character'):   return "character (len=1)"
+            elif ('char'):        return "character (len=1)"
             elif ('dcomplex'):    return "complex (kind=sidl_dcomplex)"
             elif ('double'):      return "real (kind=sidl_double)"
             elif ('fcomplex'):    return "complex (kind=sidl_fcomplex)"
@@ -815,7 +815,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
             if ('struct', Type, _): return Type
             elif ('void'):        return "void"
             elif ('bool'):        return "logical"
-            elif ('character'):   return "character (len=1)"
+            elif ('char'):        return "character (len=1)"
             elif ('dcomplex'):    return "complex (kind=sidl_dcomplex)"
             elif ('double'):      return "real (kind=sidl_double)"
             elif ('fcomplex'):    return "complex (kind=sidl_fcomplex)"
@@ -1119,20 +1119,16 @@ class CCodeGenerator(ClikeCodeGenerator):
         'void':        "void",
         'bool':        "int",
         'char':        "char",
-        'dcomplex':    "",
+        'dcomplex':    "complex double",
         'double':      "double",
-        'fcomplex':    "",
+        'fcomplex':    "complex float",
         'float':       "float",
         'int':         "int",
         'long':        "long",
         'opaque':      "void*",
         'string':      "char*",
         'enum':        "enum",
-        'struct':      "struct",
-        'class':       "",
-        'interface':   "",
-        'package':     "",
-        'symbol':      ""
+        'struct':      "struct"
         }
 
 
@@ -1255,7 +1251,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
     type_map = {
         'void':        "void",
         'bool':        "boolean",
-        'character':   "char",
+        'char':        "char",
         'dcomplex':    "",
         'double':      "double",
         'fcomplex':    "",

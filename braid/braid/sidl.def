@@ -51,7 +51,7 @@
   Id = 'STR',
   Doc_comment = 'STR',
   Enum = enum(Id, [Enumerator], Doc_comment),
-  Enumerator = enumerator(Id, int),
+  Enumerator = enumerator(Id, 'INT'),
   Struct = struct(Scoped_id, [Struct_item]),
   Struct_item = struct_item(Type_void, Id),
   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
@@ -88,11 +88,11 @@
       bool|char|int|long|float|double|fcomplex|dcomplex|string|opaque),
   Array = array(Scalar_type, Dimension, Orientation),
   Scalar_type = (Primitive_type|Scoped_id),
-  Dimension = int,
+  Dimension = 'INT',
   Orientation = (row_major|column_major),
   Rarray = rarray(Primitive_type, Dimension, Id, Extents),
   Extents = SimpleIntExpression,
-  SimpleIntExpression = int, % resolved by the parser?
+  SimpleIntExpression = 'INT', % resolved by the parser?
   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
 	       | prefix_expr(Un_op, AssertExpr)
 	       | fn_eval(Id, [Arg])

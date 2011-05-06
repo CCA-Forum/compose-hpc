@@ -87,7 +87,7 @@
   Primitive_type = primitive_type(
       bool
     | char
-    | integer
+    | int
     | long
     | float
     | double
@@ -105,7 +105,7 @@
 %pt_bool = Primitive_type(bool)
 %pt_bool     = Primitive_type(bool)
 %pt_char     = Primitive_type(char)
-%pt_integer  = Primitive_type(integer)
+%pt_integer  = Primitive_type(int)
 %pt_long     = Primitive_type(long)
 %pt_float    = Primitive_type(float)
 %pt_double   = Primitive_type(double)

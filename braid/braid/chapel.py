@@ -759,7 +759,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
     type_map = {
         'void':      "void",
         'bool':      "logical",
-        'character': "character",
+        'char':      "character",
         'dcomplex':  "double complex",
         'double':    "double precision",
         'fcomplex':  "complex",
@@ -788,7 +788,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         def new_header_def(s):
             return scope.new_header_def(s)
 
-        @accepts(str, tuple, str)
+        @accepts(str, list, str)
         def new_scope(prefix, body, suffix='\n'):
             '''used for things like if, while, ...'''
             comp_stmt = ChapelFile(scope)
