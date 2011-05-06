@@ -6,10 +6,10 @@ rm -rf $DIR/*
 cd $DIR
 cat >impl.chpl <<EOF
 module HelloWorld {
-    use World_Stub;
+    use hello;
     proc main() {
-        var hw : World_Stub.World;
-        hw = new World_Stub.World();
+        var hw: hello.World;
+        hw = new hello.World();
         hw.setName("Hello World!");
         writeln(hw.getMsg());
         delete hw;

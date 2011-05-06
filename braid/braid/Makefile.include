@@ -1,4 +1,4 @@
-# TO BE INCLUDED BY THE TOPLEVEL Makefile.am -*- makefile-automake -*-
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
 # 3rd party stuff
 if PYTHON_VERSION_2_6
@@ -24,7 +24,7 @@ PYTHON_SOURCES = \
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES)
-BUILT_SOURCES += braid/parsetab.pyc braid/ir.py braid/sidl.py
+BUILT_SOURCES += braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
 GRAMMARS = braid/ir.def braid/sidl.def
 
 bin_SCRIPTS += braid/braid
@@ -83,9 +83,9 @@ EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py
 # see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
 if ENABLE_REGRESSION
-TESTS = $(PYTHON_SOURCES) $(SIDL_TESTS)
+TESTS += $(PYTHON_SOURCES) $(SIDL_TESTS)
 endif
-TEST_EXTENSIONS = .py .sidl
+TEST_EXTENSIONS += .py .sidl
 PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
 SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
@@ -94,14 +94,19 @@ AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
 $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 	env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) -m doctest $<
 
-$(builddir)/%.success: $(srcdir)/%.sidl braid
-	braid/braid $<
+## $(builddir)/%.success: $(srcdir)/%.sidl braid
+##	braid/braid $<
 
 $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
 	@echo "  PYTHON Generate the sidl parser tables"
 	@rm -f $@
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
+
+braid/legal.py: $(srcdir)/../LICENSE
+	echo "license = '''">$@
+	cat $< >>$@
+	echo "'''">>$@
 
 braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl

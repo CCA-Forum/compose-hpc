@@ -1,4 +1,18 @@
 #!/usr/bin/bash
 echo "Running Braid -> Babel tests."
 echo "Expecting Babel sources in @BABEL_SRCDIR@"
-cp @BABEL_SRCDIR@
+cd @top_builddir@/regression/interop/args                                                   &&\ 
+cp @BABEL_SRCDIR@/regression/args/libC -r .   						    &&\ 
+babel=@BABEL_PREFIX@/bin/babel								    &&\ 
+braid=env PYTHONPATH=@top_builddir@/braid:@PYTHONPATH@ @PYTHON@ @top_srcdir@/braid/braid.py &&\ 
+SIDL=@BABEL_SRCDIR@/regression/args/args.sidl						    &&\ 
+JOBS=8											    &&\ 
+cd libC											    &&\ 
+$babel ../$SIDL -sc --makefile             						    &&\ 
+perl -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0/" GNUmakefile					    &&\ 
+make -j$JOBS -l$JOBS									    &&\ 
+cd ..											    &&\ 
+cd runChapel										    &&\ 
+$braid $sidl -cchapel --makefile							    &&\ 
+make -j$JOBS -l$JOBS									    &&\ 
+./runChapel										     

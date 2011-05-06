@@ -67,9 +67,12 @@ PKG_CHECK_EXISTS([babel >= 2.0.0],
     [AC_SUBST([HAVE_BABEL], 1)
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
+     AC_SUBST([BABEL_SRCDIR], 
+              [`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`])
      AC_MSG_RESULT([$BABEL_PREFIX/bin/babel])],
      [AC_MSG_RESULT([no])
-      AC_MSG_NOTICE([Did not find Babel version 2 or later! Please remember to set PKG_CONFIG_PATH accordingly.])
+      AC_MSG_NOTICE([Did not find Babel version 2 or later! 
+Please remember to set PKG_CONFIG_PATH accordingly.])
       AC_SUBST([HAVE_BABEL], 0)])
 
 ############################################################
@@ -82,14 +85,15 @@ AS_IF([test -x "${CHAPEL}"],
     [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
      AC_MSG_RESULT([${CHAPEL} (version ${CHAPEL_VERSION})])
      AC_SUBST([CHAPEL], ["${CHAPEL}"])
-     AC_SUBST([CHAPEL_ROOT], ["`dirname \`dirname \\\`dirname ${CHAPEL}\\\`\``"])
+     AC_SUBST([CHAPEL_ROOT], 
+              ["`dirname \`dirname \\\`dirname ${CHAPEL}\\\`\``"])
      AC_SUBST([CHAPEL_VERSION], ["${CHAPEL_VERSION}"])],
     [AC_MSG_RESULT([no])
      AC_MSG_NOTICE([Did not find Chapel!])
       AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
 
-AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile])
+AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile regression/interop/driver.sh.in])
 
 AC_OUTPUT
 

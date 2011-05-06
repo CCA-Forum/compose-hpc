@@ -6,6 +6,8 @@ noinst_PYTHON=
 BUILT_SOURCES= 
 nobase_pyexec_LTLIBRARIES=
 bin_SCRIPTS=
+TESTS=
+TEST_EXTENSIONS=
 
 EXTRA_DIST= \
 	COPYRIGHT README \
@@ -27,6 +29,7 @@ EXTRA_DIST= \
 
 # Recursive make considered harmful
 include braid/Makefile.include
+include regression/interop/Makefile.include
 
 DISTCHECK_CONFIGURE_FLAGS=--disable-documentation
 if ENABLE_DOCUMENTATION
