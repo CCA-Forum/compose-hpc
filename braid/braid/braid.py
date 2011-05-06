@@ -26,7 +26,7 @@
 # Welcome to Braid/Babel 2!
 
 import argparse, re
-import sidl_parser, codegen, chapel, config
+import sidl_parser, codegen, chapel, config, legal
 
 def braid(args):
     for sidl_file in args.sidl_files:
@@ -64,7 +64,8 @@ def inject_sidl_runtime(sidl_ast):
     imports field of \c sidl_ast.
     """
     if not config.HAVE_BABEL:
-        print "**ERROR: Please reconfigure BRAID to have Babel support."
+        print "**ERROR: Please reconfigure %s to have Babel support." \
+              %config.PACKAGE_NAME
         exit(1)
 
     print "resolving symbol `sidl'"
@@ -106,9 +107,22 @@ if __name__ == '__main__':
     cmdline.add_argument('--debug', action='store_true', help='enable debugging features')
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')
     cmdline.add_argument('--version', action='store_true', help='print version and exit')
+    cmdline.add_argument('--license', action='store_true', help='print licensing details')
 
     args = cmdline.parse_args()
 
+    if args.license:
+        print config.PACKAGE_STRING
+        print '''
+Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+Produced at the Lawrence Livermore National Laboratory.
+Written by Adrian Prantl <adrian@llnl.gov>.
+LLNL-CODE-473891. All rights reserved.
+
+For details, see {pkg_url}
+'''.format(pkg_url=config.PACKAGE_URL)
+        print legal.license
+        exit(0)
     if args.version:
         print config.PACKAGE_STRING
         exit(0)

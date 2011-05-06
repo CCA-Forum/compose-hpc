@@ -1,0 +1,9 @@
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
+testdir=$(srcdir)/regression/interop/
+if ENABLE_REGRESSION
+TESTS += $(testdir)/args.babel
+endif
+TEST_EXTENSIONS += .babel
+BABEL_LOG_COMPILER = $(testdir)/driver.sh
+AM_BABEL_LOG_FLAGS =
+
