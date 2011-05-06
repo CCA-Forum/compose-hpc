@@ -38,6 +38,7 @@ LLNL_ENABLE_DOCUMENTATION
 AM_PATH_PYTHON([2.6])
 AM_CONDITIONAL([PYTHON_VERSION_2_6], [test x"$PYTHON_VERSION" == x2.6])
 CCA_DIAGNOSE_BEGIN([PYTHON])
+LLNL_LIBXML_CONFIG
 LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
 CCA_DIAGNOSE_END([PYTHON])
 
@@ -93,7 +94,7 @@ AS_IF([test -x "${CHAPEL}"],
       AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
 
-AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile regression/interop/driver.sh.in])
+AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile regression/interop/driver.sh])
 
 AC_OUTPUT
 

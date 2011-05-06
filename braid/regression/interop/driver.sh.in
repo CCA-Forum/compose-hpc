@@ -1,18 +1,45 @@
-#!/usr/bin/bash
+#!/bin/sh
 echo "Running Braid -> Babel tests."
 echo "Expecting Babel sources in @BABEL_SRCDIR@"
-cd @top_builddir@/regression/interop/args                                                   &&\ 
-cp @BABEL_SRCDIR@/regression/args/libC -r .   						    &&\ 
-babel=@BABEL_PREFIX@/bin/babel								    &&\ 
-braid=env PYTHONPATH=@top_builddir@/braid:@PYTHONPATH@ @PYTHON@ @top_srcdir@/braid/braid.py &&\ 
-SIDL=@BABEL_SRCDIR@/regression/args/args.sidl						    &&\ 
-JOBS=8											    &&\ 
-cd libC											    &&\ 
-$babel ../$SIDL -sc --makefile             						    &&\ 
-perl -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0/" GNUmakefile					    &&\ 
-make -j$JOBS -l$JOBS									    &&\ 
-cd ..											    &&\ 
-cd runChapel										    &&\ 
-$braid $sidl -cchapel --makefile							    &&\ 
-make -j$JOBS -l$JOBS									    &&\ 
-./runChapel										     
+# Argument layout:
+# $1..N-1 .... make makeflags
+# $N ......... file
+end=
+make=$1
+while [ -n "$1" ] ; do
+  last=$1
+  shift
+  if [ "$1" = "--" ]; then
+      end="true" # stop copying after the -- argument
+  fi
+  if [ -z "$end" ]; then
+      make="$make $1"
+  fi
+done
+
+#echo "make = $make"
+#echo "file = $last"
+#set -x
+name=`basename $last .babel`
+babel=@BABEL_PREFIX@/bin/babel
+braid="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
+sidl=@BABEL_SRCDIR@/regression/$name/$name.sidl
+
+# setup directory, copy over babel regression test
+cd regression/interop/$name                             ||exit 1
+cp -r ../@srcdir@/$name/runChapel .			||exit 1
+cp -r @BABEL_SRCDIR@/regression/$name/libC .		||exit 1
+
+# generate server
+cd libC							||exit 1
+$babel $sidl -sc --makefile				||exit 1
+# turn on debugging
+perl -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0/" GNUmakefile	||exit 1
+$make							||exit 1
+cd ..							||exit 1
+# generate client
+cd runChapel						||exit 1
+$braid $sidl -cchapel --makefile			||exit 1
+$make							||exit 1
+exec ./runChapel
+
