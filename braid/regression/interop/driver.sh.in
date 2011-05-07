@@ -40,6 +40,6 @@ cd ..							||exit 1
 # generate client
 cd runChapel						||exit 1
 $braid $sidl -cchapel --makefile			||exit 1
-$make							||exit 1
+$make SERVER=../libC/libimpl IMPL=$nametest      	||exit 1
 exec ./runChapel
 

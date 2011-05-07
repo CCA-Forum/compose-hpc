@@ -10,11 +10,11 @@ delete hw;
   bool inout = true;
   var obj: Args.Basic obj = Args.Basic();
     
-  MYASSERT( obj.returnbackbool( ) == true );
-  MYASSERT( obj.passinbool( true ) == true );
-  MYASSERT( obj.passoutbool( out ) == true && out == true );
-  MYASSERT( obj.passinoutbool( inout ) == true && inout == false );
-  MYASSERT( obj.passeverywherebool( true, out, inout ) == true &&
+  assert( obj.returnbackbool( ) == true );
+  assert( obj.passinbool( true ) == true );
+  assert( obj.passoutbool( out ) == true && out == true );
+  assert( obj.passinoutbool( inout ) == true && inout == false );
+  assert( obj.passeverywherebool( true, out, inout ) == true &&
 	    out == true && inout == true );    
 } 
 

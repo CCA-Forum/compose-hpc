@@ -1119,9 +1119,10 @@ class CCodeGenerator(ClikeCodeGenerator):
         'void':        "void",
         'bool':        "int",
         'char':        "char",
-        'dcomplex':    "complex double",
+        # FIXME: this should move into another pass
+        'dcomplex':    "struct sidl_dcomplex",
         'double':      "double",
-        'fcomplex':    "complex float",
+        'fcomplex':    "struct sidl_fcomplex",
         'float':       "float",
         'int':         "int",
         'long':        "long",
