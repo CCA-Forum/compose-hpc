@@ -1,22 +1,16 @@
-use World_Stub;
-
-var hw : World_Stub.World;
-hw = new World_Stub.World();
-hw.setName("Hello World!");
-writeln(hw.getMsg());
-delete hw;
-{ // bool 
-  bool out;
-  bool inout = true;
-  var obj: Args.Basic obj = Args.Basic();
+use Args;
+  // bool 
+  var b_out: bool;
+  var b_inout: bool = true;
+  var obj: Args.Basic = new Args.Basic();
     
   assert( obj.returnbackbool( ) == true );
   assert( obj.passinbool( true ) == true );
-  assert( obj.passoutbool( out ) == true && out == true );
-  assert( obj.passinoutbool( inout ) == true && inout == false );
-  assert( obj.passeverywherebool( true, out, inout ) == true &&
-	    out == true && inout == true );    
-} 
+  assert( obj.passoutbool( b_out ) == true && b_out == true );
+  assert( obj.passinoutbool( b_inout ) == true && b_inout == false );
+  assert( obj.passeverywherebool( true, b_out, b_inout ) == true &&
+	    b_out == true && b_inout == true );    
+ 
 
   /* { // char  */
   /*   char out; */

@@ -758,12 +758,12 @@ class ChapelLine(ChapelFile):
 class ChapelCodeGenerator(ClikeCodeGenerator):
     type_map = {
         'void':      "void",
-        'bool':      "logical",
-        'char':      "character",
-        'dcomplex':  "double complex",
-        'double':    "double precision",
-        'fcomplex':  "complex",
-        'float':     "real",
+        'bool':      "bool",
+        'char':      "uint(8)",
+        'dcomplex':  "complex(128)",
+        'double':    "real(64)",
+        'fcomplex':  "complex(64)",
+        'float':     "real(32)",
         'int':       "int",
         'long':      "int",
         'opaque':    "int",
