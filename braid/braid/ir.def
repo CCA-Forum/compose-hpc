@@ -51,7 +51,7 @@
          | Var_defn
 	 | VarRefExpr
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
-         | assignment(VarRefExpr)
+         | assignment(VarRefExpr, Expr)
 	 | infix_expr(Bin_op, Expr, Expr)
 	 | prefix_expr(Un_op, Expr)
 	 ),
@@ -105,7 +105,7 @@
 %pt_bool = Primitive_type(bool)
 %pt_bool     = Primitive_type(bool)
 %pt_char     = Primitive_type(char)
-%pt_integer  = Primitive_type(int)
+%pt_int      = Primitive_type(int)
 %pt_long     = Primitive_type(long)
 %pt_float    = Primitive_type(float)
 %pt_double   = Primitive_type(double)

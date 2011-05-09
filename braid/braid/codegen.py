@@ -1055,7 +1055,10 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
         with match(node):
             if (ir.stmt, Expr):
-                return new_def(gen(Expr)+';')
+                e = gen(Expr)
+                if e <> scope:
+                    return new_def(e+';')
+                else: return scope
 
             elif (ir.fn_decl, Type, Name, Args, DocComment):
                 scope.new_header_def("%s%s %s(%s);"% (
@@ -1077,8 +1080,14 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
 
-            elif (ir.arg, Attr, Mode, Type, Name): 
+            elif (ir.arg, Attr, ir.in_, Type, Name):                 
                 return '%s %s'% (gen(Type), gen(Name))
+
+            elif (ir.arg, Attr, ir.out, Type, Name):                 
+                return '%s %s'% (gen((ir.pointer_type, Type)), gen(Name))
+
+            elif (ir.arg, Attr, ir.inout, Type, Name):                 
+                return '%s %s'% (gen((ir.pointer_type, Type)), gen(Name))
 
             elif (ir.var_decl, Type, Name): 
                 return declare_var(gen(Type), gen(Name))
@@ -1097,12 +1106,12 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
                   return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
+            elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.deref, Expr):        return '*'+gen(Expr)
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'
             elif (ir.typedef_type, Type): return Type
             elif (ir.log_not):        return '!'
-            elif (ir.assignment):     return '='
             elif (ir.eq):             return '=='
             elif (ir.true):           return 'TRUE'
             elif (ir.false):          return 'FALSE'
@@ -1117,7 +1126,7 @@ class CCodeGenerator(ClikeCodeGenerator):
 
     type_map = {
         'void':        "void",
-        'bool':        "int",
+        'bool':        "_Bool",
         'char':        "char",
         # FIXME: this should move into another pass
         'dcomplex':    "struct sidl_dcomplex",

@@ -477,6 +477,7 @@ class Chapel:
         #decl = ir.Fn_decl(low(Type), Name, Args, DocComment)
         call_args = ["self"]+map(argname, Args)+["ex"]
         body = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), "ex"))]
+        
         if Type == sidl.void:
             body += [ir.Stmt(ir.Call(Name+'_stub', call_args))]
         else:
@@ -499,11 +500,32 @@ class Chapel:
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
+        def convert_arg((_, attrs, mode, typ, name)):
+            """
+            Extract name and perform argument conversions
+            """
+            deref = ref = ''
+            if typ == sidl.pt_bool:
+                if mode <> sidl.in_:
+                    deref = '*'
+                    ref = '&'
+                    
+                pre_call.append((ir.stmt, "int _arg_{name} = (int){deref}{name}"
+                              .format(name=name, deref=deref)))
+                post_call.append((ir.stmt, "{deref}{name} = ({typ})_arg_{name}"
+                               .format(deref=deref, name=name,
+                                       typ=c_gen(sidl.pt_bool))))
+                name = ref+"_arg_"+name
+                
+            return name
+
         #return method
         expect(Method, sidl.method)
         sname = Name+'_stub'
         decl_args = babel_args(Args, symbol_table, ci.epv.name)
-        call_args = ['self'] + map(argname, Args) + ['ex']
+        pre_call = [ir.Stmt(ir.Var_decl(Type, "_retval"))]
+        post_call = []
+        call_args = ["self"]+map(convert_arg, Args)+["ex"]
         epv_type = ci.epv.get_type()
         obj_type = ci.obj
         decl = ir.Fn_decl(low(Type), sname, decl_args, DocComment)
@@ -513,9 +535,17 @@ class Chapel:
                                          ir.Deref(ir.Deref('self')),
                                          ir.Struct_item(epv_type, 'd_epv'))),
              ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
-        body = [ir.Stmt(ir.Return(ir.Call(fptr, call_args)))]
+        
+        if Type == sidl.void:
+            body = [ir.Stmt(ir.Call(fptr, call_args))]
+        else:
+            body = [ir.Stmt(ir.Assignment("_retval",
+                                          ir.Call(fptr, call_args)))]
+            post_call.append(ir.Stmt(ir.Return("_retval")))
+
         return [decl,
-                ir.Fn_defn(low(Type), sname, decl_args, body, DocComment)]
+                ir.Fn_defn(low(Type), sname, decl_args, pre_call+body+post_call,
+                           DocComment)]
 
     def generate_ior(self, ci):
         """
@@ -563,9 +593,11 @@ def lower_type_ir(symbol_table, sidl_type):
     with match(sidl_type):
         if (sidl.scoped_id, Names, Ext):
             return lower_type_ir(symbol_table, lookup_type(symbol_table, Names))
+        # FIXME: use sidl_xxx typedefs
         elif (sidl.void):                        return ir.pt_void
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
+        elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
@@ -678,7 +710,7 @@ class EPV:
 
 def babel_args(args, symbol_table, class_name):
     """
-    \return [self]+args+[ex]
+    \return a SIDL -> Ir lowered version of [self]+args+[ex]
     """
     arg_self = ir.Arg([], sidl.in_, ir_babel_object_type(symbol_table.prefix,
                                                            class_name), 'self')
