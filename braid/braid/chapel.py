@@ -96,17 +96,18 @@ class Chapel:
             self.epv = EPV(name, symbol_table)
             self.ior = CFile()
 
-
-    def __init__(self, filename, sidl_sexpr, create_makefile):
+    def __init__(self, filename, sidl_sexpr, create_makefile, verbose):
         """
         Create a new chapel code generator
         \param filename        full path to the SIDL file
         \param sidl_sexpr      s-expression of the SIDL data
         \param create_makefile if \c True, also generate a GNUmakefile
+        \param verbose         if \c True, print extra messages
         """
         self.sidl_ast = sidl_sexpr
         self.sidl_file = filename
         self.create_makefile = create_makefile
+        self.verbose = verbose
 
     def generate_client(self):
         """
@@ -181,18 +182,24 @@ class Chapel:
                 # Chapel supports C structs via the _extern keyword,
                 # but they must be typedef'ed in a header file that
                 # must be passed to the chpl compiler.
-                typedefs = sep_by('\n',[
-                        '#include <%s_IOR.h>'%Name,
-                        'typedef struct %s__object _%s__object;'%(qname, qname),
-                        'typedef _%s__object* %s__object;'%(qname, qname),
-                        'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
-                        'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;'
-                        ])
-                write_to(Name+'_Stub.h', typedefs)
+                typedefs = CFile();
+                typedefs._header = [
+                    '// Package header (enums, etc...)',
+                    '#include <%s.h>' % '_'.join(symbol_table.prefix),
+                    '#include <%s_IOR.h>'%Name,
+                    'typedef struct %s__object _%s__object;'%(qname, qname),
+                    'typedef _%s__object* %s__object;'%(qname, qname),
+                    '#ifndef _CHPL_SIDL_BASETYPES',
+                    '#define _CHPL_SIDL_BASETYPES',
+                    'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
+                    'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
+                    '#endif'
+                    ]
+                write_to(Name+'_Stub.h', typedefs.dot_h(Name+'_Stub.h'))
                 chpl_defs = ci.chpl_stub
                 ci.chpl_stub = ChapelFile()
                 ci.chpl_stub.new_def(chpl_defs.get_decls())
-                ci.chpl_stub.new_def('_extern class sidl_BaseInterface__object {};')
+                ci.chpl_stub.new_def('use sidl;')
                 ci.chpl_stub.new_def('_extern class %s__object {};'%qname)
                 ci.chpl_stub.new_def('_extern proc %s__createObject('%qname+
                                      'd_data: int, '+
@@ -217,12 +224,26 @@ class Chapel:
                     generate_client_makefile(self.sidl_file, Name)
 
             elif (sidl.enum, Name, Items, DocComment):
-                self.pkg_chpl_stub.gen(node)
+                # Generate Chapel stub
+                self.pkg_chpl_stub.gen(ir.Type_decl(node))
+                self.pkg_enums.append(node)
                 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
+                # Generate the chapel stub
                 self.pkg_chpl_stub = ChapelFile()
+                self.pkg_enums = []
                 self.generate_client1(UserTypes, data, symbol_table[Name])
                 write_to(Name+'.chpl', str(self.pkg_chpl_stub))
+
+                pkg_h = CFile()
+                for enum in self.pkg_enums:
+                    pkg_h.gen(ir.Type_decl(enum))
+                write_to(Name+'.h', pkg_h.dot_h(Name+'.h'))
+
+                # FIXME: this should happen as an action of IMPORTS
+                sidl_chpl_stub = ChapelFile()
+                sidl_chpl_stub.new_def('_extern class sidl_BaseInterface__object {};')
+                write_to('sidl.chpl', str(sidl_chpl_stub))
 
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
@@ -337,11 +358,7 @@ class Chapel:
                       Extends, Invariants, Methods )
 
             elif (sidl.enum, Name, Items, DocComment):
-                symbol_table[Name] = \
-                    ( sidl.enum,
-                      Name,
-                      Items,
-                      DocComment)
+                symbol_table[Name] = node
 
             elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
                 import pdb; pdb.set_trace()
@@ -351,8 +368,10 @@ class Chapel:
                       Items )
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
-                print "Building symbols for package %s" \
-                    %'.'.join(symbol_table.prefix+[Name])
+                if (self.verbose):
+                    print "Building symbols for package %s" \
+                          %'.'.join(symbol_table.prefix+[Name])
+                    
                 symbol_table[Name] = SymbolTable(symbol_table,
                                                  symbol_table.prefix+[Name])
                 self.build_symbol_table(UserTypes, symbol_table[Name])
@@ -526,8 +545,8 @@ class Chapel:
         expect(Method, sidl.method)
         sname = Name+'_stub'
         decl_args = babel_args(Args, symbol_table, ci.epv.name)
-        pre_call = [ir.Stmt(ir.Var_decl(lower_type_ir(symbol_table, Type),
-                                        "_retval"))]
+        
+        pre_call = []
         post_call = []
         call_args = ["self"]+map(convert_arg, Args)+["ex"]
         epv_type = ci.epv.get_type()
@@ -543,6 +562,9 @@ class Chapel:
         if Type == sidl.void:
             body = [ir.Stmt(ir.Call(fptr, call_args))]
         else:
+            pre_call.append(ir.Stmt(ir.Var_decl(
+                lower_type_ir(symbol_table, Type),
+                "_retval")))
             body = [ir.Stmt(ir.Assignment("_retval",
                                           ir.Call(fptr, call_args)))]
             post_call.append(ir.Stmt(ir.Return("_retval")))
@@ -555,6 +577,7 @@ class Chapel:
         """
         Generate the IOR header file in C.
         """
+        ci.ior.genh(ir.Import('_'.join(ci.epv.symbol_table.prefix)))
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
         ci.ior.gen(ir.Type_decl(ci.cstats))

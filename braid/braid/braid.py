@@ -42,8 +42,8 @@ def braid(args):
         if args.client == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):
-            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast), 
-                          args.makefile).generate_client()
+            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast, args), 
+                          args.makefile, args.verbose).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
             exit(1)
@@ -52,13 +52,13 @@ def braid(args):
         if args.server == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.server):
-            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast), 
-                          args.makefile).generate_server()
+            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast, args), 
+                          args.makefile, args.verbose).generate_server()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
             exit(1)
 
-def inject_sidl_runtime(sidl_ast):
+def inject_sidl_runtime(sidl_ast, args):
     """
     Parse the sidl, sidlx runtime library and inject it into the
     imports field of \c sidl_ast.
@@ -68,9 +68,12 @@ def inject_sidl_runtime(sidl_ast):
               %config.PACKAGE_NAME
         exit(1)
 
-    print "resolving symbol `sidl'"
+    if args.verbose:
+        print "resolving symbol `sidl'"
     _, _, _, sidl = sidl_parser.parse(config.SIDL_PATH+'/sidl.sidl')
-    print "resolving symbol `sidlx'"
+
+    if args.verbose:
+        print "resolving symbol `sidlx'"
     _, _, _, sidlx = sidl_parser.parse(config.SIDL_PATH+'/sidlx.sidl')
 
     # merge in the standard library
@@ -108,6 +111,7 @@ if __name__ == '__main__':
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')
     cmdline.add_argument('--version', action='store_true', help='print version and exit')
     cmdline.add_argument('--license', action='store_true', help='print licensing details')
+    cmdline.add_argument('-v', '--verbose', action='store_true', help='print more debug info')    
 
     args = cmdline.parse_args()
 

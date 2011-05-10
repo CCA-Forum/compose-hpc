@@ -38,7 +38,7 @@
 #
 # </pre>
 
-import sys, re
+import re, string, sys
 import ir, sidl
 from patmat import matcher, Variable, match, unify, member
 
@@ -927,7 +927,7 @@ class CFile(SourceFile):
         """
         s = sep_by('\n', self._header)
         if filename:
-            guard = re.sub(r'[/.]', '_', filename.capitalize())
+            guard = re.sub(r'[/.]', '_', string.upper(filename))
             s = sep_by('\n', ['#ifndef __%s__'%guard,
                               '#define __%s__'%guard,
                               s,
@@ -1025,10 +1025,10 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         @accepts(str, str, str)
         def new_scope1(prefix, body, suffix):
             '''used for things like enumerator'''
-            return new_def(''.join([prefix,body,suffix]))
+            return scope.new_header_def(''.join([prefix,body,suffix])+';')
 
         def new_header_scope(prefix, body, suffix=';\n'):
-            '''used for things like struct, enum, ...'''
+            '''used for things like struct ...'''
             comp_stmt = CCompoundStmt(scope)
             s = str(self.generate(body, comp_stmt))
             return scope.new_header_def(''.join([prefix,s,suffix]))
@@ -1100,8 +1100,10 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.call, Name, Args): 
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
+            # FIXME should we use scoped_id instead of typedecl?
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
                 return new_header_scope('struct %s'%gen(Name), StructItems)
+
             elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)), Name):
                 # yes, both Names should be identical
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
@@ -1109,6 +1111,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
 
             elif (ir.enum, Name, Items, DocComment):
+                return "enum "+gen(Name)
+
+            elif (ir.type_decl, (ir.enum, Name, Items, DocComment)):
                 return new_scope1('enum %s {'%gen(Name), gen_comma_sep(Items), '}')
 
             elif (ir.enumerator, Name):

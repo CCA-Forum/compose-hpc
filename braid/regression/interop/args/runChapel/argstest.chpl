@@ -1,15 +1,39 @@
 use Args;
-  // bool 
-  var b_out: bool;
-  var b_inout: bool = true;
-  var obj: Args.Basic = new Args.Basic();
-    
-  assert( obj.returnbackbool( ) == true );
-  assert( obj.passinbool( true ) == true );
-  assert( obj.passoutbool( b_out ) == true && b_out == true );
-  assert( obj.passinoutbool( b_inout ) == true && b_inout == false );
-  assert( obj.passeverywherebool( true, b_out, b_inout ) == true &&
-	    b_out == true && b_inout == true );    
+use synch;
+
+var part_no: int = 0;
+var tracker: synch.RegOut = new synch.RegOut();  
+
+proc init_part()
+{
+  part_no += 1;
+  tracker.startPart(part_no);
+  tracker.writeComment("Part "+part_no);
+}
+
+proc run_part(result: bool)
+{
+  var r: ResultType;
+  if (result) then
+    r = ResultType.PASS;
+  else 
+    r = ResultType.FAIL;
+  tracker.endPart(part_no, r);
+  tracker.writeComment("Part "+part_no);
+}
+
+
+// bool 
+var b_out: bool;
+var b_inout: bool = true;
+var obj: Args.Basic = new Args.Basic();
+
+init_part(); run_part( obj.returnbackbool( ) == true );
+init_part(); run_part( obj.passinbool( true ) == true );
+init_part(); run_part( obj.passoutbool( b_out ) == true && b_out == true );
+init_part(); run_part( obj.passinoutbool( b_inout ) == true && b_inout == false );
+init_part(); run_part( obj.passeverywherebool( true, b_out, b_inout ) == true &&
+		       b_out == true && b_inout == true );    
  
 
   /* { // char  */
@@ -133,3 +157,5 @@ use Args;
 
   /* } */
   /*   } */
+
+tracker.close();
