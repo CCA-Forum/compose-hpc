@@ -301,8 +301,11 @@ scanner_token(PyObject *self, PyObject *args)
 static PyObject*
 last_doc_comment(PyObject *self, PyObject *args)
 {
+  static PyObject* r;
   //fprintf(stderr, "doc: `%s, %d'\n", doc_comment, doc_comment_len); fflush(stderr);
-  return Py_BuildValue("s#", doc_comment?doc_comment:"", doc_comment_len);
+  r = Py_BuildValue("s#", doc_comment?doc_comment:"", doc_comment_len);
+  new_doxy(); // reset the docstring
+  return r;
 }
 
 static PyMethodDef ScannerMethods[] = {
