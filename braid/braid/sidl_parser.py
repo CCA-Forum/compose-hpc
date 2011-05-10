@@ -1042,7 +1042,10 @@ def p_scopedID(p):
 
     # print "FIXME: do symbol table lookup"
     # see how chapel.py handles this!
-    p[0] = (sidl.scoped_id, (p[2]), p[3])
+    if p[3] == []:
+        p[0] = (sidl.scoped_id, (p[2]), '')
+    else:
+        p[0] = (sidl.scoped_id, (p[2]), p[3])
 
 def p_names(p): # +
     '''names : name
