@@ -1015,12 +1015,17 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             #print 'new_def:', str(s)
             return scope.new_def(s)
 
-        @accepts(str, tuple, str)
+        @accepts(str, list, str)
         def new_scope(prefix, body, suffix='\n'):
             '''used for things like if, while, ...'''
             comp_stmt = CCompoundStmt(scope)
             s = str(self.generate(body, comp_stmt))
             return new_def(''.join([prefix,s,suffix]))
+
+        @accepts(str, str, str)
+        def new_scope1(prefix, body, suffix):
+            '''used for things like enumerator'''
+            return new_def(''.join([prefix,body,suffix]))
 
         def new_header_scope(prefix, body, suffix=';\n'):
             '''used for things like struct, enum, ...'''
@@ -1103,8 +1108,17 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
 
+            elif (ir.enum, Name, Items, DocComment):
+                return new_scope1('enum %s {'%gen(Name), gen_comma_sep(Items), '}')
+
+            elif (ir.enumerator, Name):
+                return new_def(gen(Name))
+
+            elif (ir.enumerator, Name, Value):
+                return new_def(gen(Name)+" = "+gen(Value))
+
             elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
-                  return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
+                return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.deref, Expr):        return '*'+gen(Expr)

@@ -216,7 +216,9 @@ class Chapel:
                 if self.create_makefile:
                     generate_client_makefile(self.sidl_file, Name)
 
-
+            elif (sidl.enum, Name, Items, DocComment):
+                self.pkg_chpl_stub.gen(node)
+                
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 self.pkg_chpl_stub = ChapelFile()
                 self.generate_client1(UserTypes, data, symbol_table[Name])
@@ -338,7 +340,8 @@ class Chapel:
                 symbol_table[Name] = \
                     ( sidl.enum,
                       Name,
-                      Items )
+                      Items,
+                      DocComment)
 
             elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
                 import pdb; pdb.set_trace()
@@ -523,7 +526,8 @@ class Chapel:
         expect(Method, sidl.method)
         sname = Name+'_stub'
         decl_args = babel_args(Args, symbol_table, ci.epv.name)
-        pre_call = [ir.Stmt(ir.Var_decl(Type, "_retval"))]
+        pre_call = [ir.Stmt(ir.Var_decl(lower_type_ir(symbol_table, Type),
+                                        "_retval"))]
         post_call = []
         call_args = ["self"]+map(convert_arg, Args)+["ex"]
         epv_type = ci.epv.get_type()
@@ -599,6 +603,9 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
+        elif (sidl.enum, _, _, _):               return sidl_type # identical
+        elif (sidl.enumerator, _):               return sidl_type
+        elif (sidl.enumerator, _, _):            return sidl_type
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
         elif (sidl.interface, Name, _, _, _):
@@ -811,6 +818,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
     @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=ChapelFile()):
+        """
+        This code generator is a bit unusual in that it accepts a
+        hybrif of \c sidl and \c ir nodes.
+        """
         def gen(node):
             return self.generate(node, scope)
 
@@ -1005,9 +1016,9 @@ endif
 
 all : lib$(LIBNAME).la $(SCLFILE) runChapel
 
-runChapel: lib$(LIBNAME).la $(SERVER).la $(IMPLOBJS) $(IMPL).lo 
+runChapel: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER).la $(CHPL_LDFLAGS) -o $@
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) -o $@
 
 
 CC=`babel-config --query-var=CC`

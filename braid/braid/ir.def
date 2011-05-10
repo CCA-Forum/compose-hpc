@@ -64,8 +64,8 @@
   Complex = complex('FLOAT', 'FLOAT'),
   Struct = struct((Scoped_id|Id), [Struct_item], DocComment),
   Struct_item = struct_item(Type, Id),
-  Enum = enum(Id, [Enum_item], DocComment),
-  Enum_item = enum_item(Id),
+  Enum = enum(Id, [Enumerator], DocComment),
+  Enumerator = ( enumerator(Id) | enumerator(Id, 'INT')),
   VarRefExpr = ( Id
 	       | Pointer_expr
 	       | Deref
