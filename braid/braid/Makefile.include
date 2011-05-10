@@ -104,9 +104,9 @@ $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 
 braid/legal.py: $(srcdir)/../LICENSE
-	echo "license = '''">$@
-	cat $< >>$@
-	echo "'''">>$@
+	@echo "license = '''">$@
+	@cat $< >>$@
+	@echo "'''">>$@
 
 braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
