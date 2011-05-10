@@ -621,7 +621,7 @@ def p_implementsAllLists(p): # +
     cons(p)
 
 def p_invariants(p): # *
-    '''invariants : invariants invariant
+    '''invariants : invariant invariants
                   | empty'''
     consx(p)
 
@@ -660,6 +660,7 @@ def p_implementsAllList(p):
 
 def p_method(p):
     '''method : methodAttrs typeVoid methodName LPAREN maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions'''
+    print p[1]
     p[0] = (sidl.method, p[2], p[3], (p[1]), (p[5]), p[7], p[8], (p[10]), (p[11]), scanner.last_doc_comment())
 
 def p_method_error(p):
@@ -675,8 +676,8 @@ def p_typeVoid(p):
     else: p[0] = p[1]
 
 def p_methodAttrs(p): # *
-    '''methodAttrs : methodAttrs methodAttr
-                   | methodAttrs customAttrList
+    '''methodAttrs : methodAttr     methodAttrs 
+                   | customAttrList methodAttrs 
                    | empty'''
     consx(p)
 
@@ -688,7 +689,7 @@ def p_methodAttr(p):
                   | FINAL
                   | NONBLOCKING
                   | COPY'''
-    p[0] = p[1]
+    p[0] = str.lower(p[1])
 
 def p_methodName(p):
     '''methodName : name empty
