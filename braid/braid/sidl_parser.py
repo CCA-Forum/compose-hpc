@@ -660,7 +660,6 @@ def p_implementsAllList(p):
 
 def p_method(p):
     '''method : methodAttrs typeVoid methodName LPAREN maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions'''
-    print p[1]
     p[0] = (sidl.method, p[2], p[3], (p[1]), (p[5]), p[7], p[8], (p[10]), (p[11]), scanner.last_doc_comment())
 
 def p_method_error(p):

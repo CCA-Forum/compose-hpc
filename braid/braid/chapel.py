@@ -25,7 +25,7 @@
 #
 
 import config, ir, sidl, re, os
-from patmat import matcher, match, unify, expect, Variable
+from patmat import matcher, match, member, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
     SourceFile, CFile, Scope, generator, accepts,
@@ -481,12 +481,13 @@ class Chapel:
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
-        ci.epv.add_method(method)
-        # output _extern declaration
-
         (Method, Type, (_,  Name, Attr), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
+        if not list(member(sidl.static, Attrs)):
+            ci.epv.add_method(method)
+
+        # output _extern declaration
         ci.chpl_stub.new_header_def('_extern '+ chpl_gen(
                 sidl.Method(Type, sidl.Method_name(Name+'_stub', Attr), 
                             Attrs, 
@@ -552,12 +553,18 @@ class Chapel:
         epv_type = ci.epv.get_type()
         obj_type = ci.obj
         decl = ir.Fn_decl(low(Type), sname, decl_args, DocComment)
-        fptr = ir.Get_struct_item \
-            (epv_type,
-             ir.Deref(ir.Get_struct_item(obj_type,
-                                         ir.Deref(ir.Deref('self')),
-                                         ir.Struct_item(epv_type, 'd_epv'))),
-             ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
+
+        if list(member(sidl.static, Attrs)):
+            # static call
+            fptr = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+        else:
+            # dynamic virtual method call
+            fptr = ir.Get_struct_item \
+              (epv_type,
+               ir.Deref(ir.Get_struct_item(obj_type,
+                                           ir.Deref(ir.Deref('self')),
+                                           ir.Struct_item(epv_type, 'd_epv'))),
+               ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
         
         if Type == sidl.void:
             body = [ir.Stmt(ir.Call(fptr, call_args))]
