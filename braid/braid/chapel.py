@@ -24,7 +24,7 @@
 # </pre>
 #
 
-import config, ir, sidl, re, os
+import config, ir, os, re, sidl, types
 from patmat import matcher, match, member, unify, expect, Variable
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
@@ -92,6 +92,7 @@ class Chapel:
             self.impl = ChapelFile()
             self.stub = CFile()
             self.chpl_stub = ChapelFile(relative_indent=8)
+            self.chpl_static_stub = ChapelFile(relative_indent=4)            
             self.skel = CFile()
             self.epv = EPV(name, symbol_table)
             self.ior = CFile()
@@ -205,6 +206,7 @@ class Chapel:
                                      'd_data: int, '+
                                      'inout ex: sidl_BaseInterface__object)'+
                                      ': %s__object;'%qname)
+                ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
                 ci.chpl_stub.new_def('class %s {'%chpl_gen(Name))
                 #ci.chpl_stub.new_def(chpl_gen(ir.Var_decl(ir_babel_object_type([], Name), 'self')))
                 ci.chpl_stub.new_def('var self: %s__object;'%qname)
@@ -215,6 +217,14 @@ class Chapel:
                 ci.chpl_stub.new_def(chpl_gen(
                     (ir.fn_defn, ir.pt_void, 
                                chpl_gen(Name), [], body, 'Constructor')))
+
+                ci.chpl_stub.new_def(chpl_gen(
+                    (ir.fn_defn, ir.pt_void, 
+                     chpl_gen(Name),
+                     [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
+                      ['this.self = obj;'],
+                      'Constructor for wrapping an existing object')))
+
                 ci.chpl_stub.new_def(chpl_defs.get_defs())
                 ci.chpl_stub.new_def('}')
                 self.pkg_chpl_stub.new_def(ci.chpl_stub)
@@ -232,7 +242,7 @@ class Chapel:
                 # Generate the chapel stub
                 self.pkg_chpl_stub = ChapelFile()
                 self.pkg_enums = []
-                self.generate_client1(UserTypes, data, symbol_table[Name])
+                self.generate_client1(UserTypes, data, symbol_table[[Name]])
                 write_to(Name+'.chpl', str(self.pkg_chpl_stub))
 
                 pkg_h = CFile()
@@ -374,7 +384,7 @@ class Chapel:
                     
                 symbol_table[Name] = SymbolTable(symbol_table,
                                                  symbol_table.prefix+[Name])
-                self.build_symbol_table(UserTypes, symbol_table[Name])
+                self.build_symbol_table(UserTypes, symbol_table[[Name]])
 
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
@@ -481,34 +491,72 @@ class Chapel:
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
+        def convert_arg((_, attrs, mode, typ, name)):
+            """
+            Extract name and generate argument conversions
+            """
+            if (typ[0] == sidl.scoped_id and
+                symbol_table[typ[1]][0] == sidl.class_):
+                pre_call.append((ir.stmt, "var _c_{name}: {ior_type}"
+                                 .format(name=name, ChplType=c_gen(low(typ)))))
+                post_call.append((ir.stmt, "{name} = {typ}(_c_{name})"
+                                  .format(name=name, typ=typ)))
+                name = "_c_"+name
+                
+            return name
+
         (Method, Type, (_,  Name, Attr), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
-        if not list(member(sidl.static, Attrs)):
-            ci.epv.add_method(method)
+        static = list(member(sidl.static, Attrs))
 
-        # output _extern declaration
+        if static:
+            extern_self = []
+            call_self = []
+            # FIXME static methods do not need a C stub
+        else:
+            ci.epv.add_method(method)
+            extern_self = [ir.Arg([], ir.inout, ir_babel_object_type(
+                symbol_table.prefix, ci.epv.name), 'self')]
+            call_self = ["self"]
+
+        # _extern declaration
         ci.chpl_stub.new_header_def('_extern '+ chpl_gen(
-                sidl.Method(Type, sidl.Method_name(Name+'_stub', Attr), 
+                (sidl.method,ior_type(symbol_table, Type),
+                            sidl.Method_name(Name+'_stub', Attr), 
                             Attrs, 
-                            [ir.Arg([], ir.inout, ir_babel_object_type(
-                                symbol_table.prefix, ci.epv.name), 'self')]+
-                            Args+
+                            extern_self+Args+
                             [ir.Arg([], ir.inout, ir_babel_exception_type(), 'ex')],
                             Except, From, Requires, Ensures, DocComment)))
 
-        #decl = ir.Fn_decl(low(Type), Name, Args, DocComment)
-        call_args = ["self"]+map(argname, Args)+["ex"]
-        body = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), "ex"))]
-        
+        # Chapel stub
+        pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), "ex"))]
+        post_call = []
+        call_args = call_self+map(convert_arg, Args)+["ex"]
+
         if Type == sidl.void:
-            body += [ir.Stmt(ir.Call(Name+'_stub', call_args))]
+            call = [ir.Stmt(ir.Call(Name+'_stub', call_args))]
         else:
-            body += [ir.Stmt(ir.Return(ir.Call(Name+'_stub', call_args)))]
-        defn = ir.Fn_defn(low(Type), Name, Args, body, DocComment)
+            pre_call.append(ir.Stmt((ir.var_decl, ior_type(symbol_table, Type), "_retval")))
+
+            # TODO:
+            # do an fptr call here and move the stub generation code into the code generator
+            call = [ir.Stmt(
+                ir.Assignment("_retval", ir.Call(Name+'_stub', call_args)))]
+            retval = "_retval"
+            if (Type[0] == sidl.scoped_id and
+                symbol_table[Type[1]][0] == sidl.class_):
+                # wrap the C type in the native Chapel object
+                retval = ir.Call(".".join(Type[1]), [retval])
+
+            post_call.append(ir.Stmt(ir.Return(retval)))
+        defn = (ir.fn_defn, Type, Name, Args, pre_call+call+post_call, DocComment)
 
         #ci.chpl_stub.new_header_def(chpl_gen(decl))
-        ci.chpl_stub.new_def(chpl_gen(defn))
+        if static:
+            ci.chpl_static_stub.new_def(chpl_gen(defn))
+        else:
+            ci.chpl_stub.new_def(chpl_gen(defn))
         # output the stub definition
         stub = self.generate_method_stub(symbol_table, method, ci)
         c_gen(stub, ci.stub)
@@ -525,7 +573,7 @@ class Chapel:
 
         def convert_arg((_, attrs, mode, typ, name)):
             """
-            Extract name and perform argument conversions
+            Extract name and generate argument conversions
             """
             deref = ref = ''
             if typ == sidl.pt_bool:
@@ -539,7 +587,6 @@ class Chapel:
                                .format(deref=deref, name=name,
                                        typ=c_gen(sidl.pt_bool))))
                 name = ref+"_arg_"+name
-                
             return name
 
         #return method
@@ -565,12 +612,12 @@ class Chapel:
                                            ir.Deref(ir.Deref('self')),
                                            ir.Struct_item(epv_type, 'd_epv'))),
                ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
-        
+
         if Type == sidl.void:
             body = [ir.Stmt(ir.Call(fptr, call_args))]
         else:
             pre_call.append(ir.Stmt(ir.Var_decl(
-                lower_type_ir(symbol_table, Type),
+                ior_type(symbol_table, Type),
                 "_retval")))
             body = [ir.Stmt(ir.Assignment("_retval",
                                           ir.Call(fptr, call_args)))]
@@ -590,6 +637,18 @@ class Chapel:
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
+
+def ior_type(symbol_table, t):
+    """
+    if \c t is a scoped_id return the IOR type of t.
+    else return \c t.
+    """
+    if (t[0] == sidl.scoped_id and
+        symbol_table[t[1]][0] == sidl.class_):
+        return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
+
+    else: return t
+
 
 @matcher(globals(), debug=False)
 def lower_ir(symbol_table, sidl_term):
@@ -626,7 +685,7 @@ def lower_type_ir(symbol_table, sidl_type):
     """
     with match(sidl_type):
         if (sidl.scoped_id, Names, Ext):
-            return lower_type_ir(symbol_table, lookup_type(symbol_table, Names))
+            return lower_type_ir(symbol_table, symbol_table[Names])
         # FIXME: use sidl_xxx typedefs
         elif (sidl.void):                        return ir.pt_void
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
@@ -642,27 +701,6 @@ def lower_type_ir(symbol_table, sidl_type):
             return ir_babel_object_type([], Name)
         else:
             raise Exception("Not implemented")
-
-def lookup_type(symbol_table, scopes):
-    """
-    perform a symbol lookup of a scoped identifier
-    """
-    n = len(scopes)
-    # go up (and down again) in the hierarchy
-    # FIXME: Is this the expected bahavior for nested packages?
-    sym = symbol_table[scopes[0]]
-    while not sym: # up until we find something
-        symbol_table = symbol_table.parent()
-        sym = symbol_table[scopes[0]]
-
-    for i in range(1, n-1): # down again to resolve it
-        sym = sym[scopes[i]]
-
-    if not sym:
-        raise Exception("Symbol lookup error: "+repr(key))
-
-    #print "successful lookup(", symbol_table, ",", scopes, ") =", sym
-    return sym
 
 class SymbolTable:
     """
@@ -682,18 +720,57 @@ class SymbolTable:
         else:
             raise Exception("Symbol lookup error: no parent scope")
 
-    @matcher(globals())
-    def __getitem__(self, key):
+    def lookup(self, key):
+        """
+        return the enytry for \c key or \c None otherwise.
+        """
         #print self, key, '?'
         try:
             return self._symbol[key]
         except KeyError:
             return None
 
-    @matcher(globals())
+    @accepts(types.InstanceType, list)
+    def __getitem__(self, scopes):
+        """
+        perform a recursive symbol lookup of a scoped identifier
+        """
+        n = len(scopes)
+        symbol_table = self
+        # go up (and down again) in the hierarchy
+        # FIXME: Is this the expected behavior for nested packages?
+        sym = symbol_table.lookup(scopes[0])
+        while not sym: # up until we find something
+            symbol_table = symbol_table.parent()
+            sym = symbol_table.lookup(scopes[0])
+     
+        for i in range(1, n-1): # down again to resolve it
+            sym = sym.lookup(scopes[i])
+     
+        if not sym:
+            raise Exception("Symbol lookup error: "+repr(scopes))
+     
+        #print "successful lookup(", symbol_table, ",", scopes, ") =", sym
+        return sym
+
     def __setitem__(self, key, value):
         #print self, key, '='#, value
         self._symbol[key] = value
+
+    def get_full_name(self, scopes):
+        """
+        return a tuple of scopes, name for a scoped id.
+        """
+        n = len(scopes)
+        symbol_table = self
+        # go up (and down again) in the hierarchy
+        while not symbol_table.lookup(scopes[0]): # up until we find something
+            symbol_table = symbol_table.parent()
+
+        #while symbol_table._parent:
+        #    symbol_table = symbol_table.parent()
+        #    scopes.insert(
+        return symbol_table.prefix+scopes[0:len(scopes)-1], scopes[-1]
 
 class EPV:
     """
