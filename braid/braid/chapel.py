@@ -25,7 +25,7 @@
 #
 
 import config, ir, os, re, sidl, types
-from patmat import matcher, match, member, unify, expect, Variable
+from patmat import matcher, match, member, unify, expect, Variable, unzip
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
     SourceFile, CFile, Scope, generator, accepts,
@@ -371,7 +371,6 @@ class Chapel:
                 symbol_table[Name] = node
 
             elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
-                import pdb; pdb.set_trace()
                 symbol_table[Names[-1]] = \
                     ( sidl.struct,
                       (sidl.scoped_id, symbol_table.prefix+Names, []),
@@ -571,13 +570,14 @@ class Chapel:
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
-        def convert_arg((_, attrs, mode, typ, name)):
+        def convert_arg((arg, attrs, mode, typ, name)):
             """
             Extract name and generate argument conversions
             """
-            deref = ref = ''
+            call_name = name
             if typ == sidl.pt_bool:
                 # sidl_bool is an int, but chapel bool is a char/_Bool
+                deref = ref = ''
                 if mode <> sidl.in_:
                     deref = '*'
                     ref = '&'
@@ -587,24 +587,25 @@ class Chapel:
                 post_call.append((ir.stmt, "{deref}{name} = ({typ})_arg_{name}"
                                .format(deref=deref, name=name,
                                        typ=c_gen(sidl.pt_bool))))
-                name = ref+"_arg_"+name
+                call_name = ref+"_arg_"+name
+                # Bypass the bool -> int conversion for the stub decl
+                typ = (ir.primitive_type, "_Bool")
 
-            #elif is_obj_type(symbol_table, Type):
-            #    name = "*"+name
-                
-            return name
+            return call_name, (arg, attrs, mode, typ, name)
 
         #return method
         expect(Method, sidl.method)
-        sname = Name+'_stub'
-        decl_args = babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
-        static = list(member(sidl.static, Attrs))
-        
         pre_call = []
         post_call = []
         call_args = []
+        sname = Name+'_stub'
+        names, args = unzip(map(convert_arg, Args))
+        decl_args = babel_stub_args(Attrs, args,
+                                    symbol_table, ci.epv.name)
+
+        static = list(member(sidl.static, Attrs))        
         if not static: call_args.append("*self")
-        call_args += map(convert_arg, Args)+["ex"]
+        call_args += names+["ex"]
         epv_type = ci.epv.get_type()
         obj_type = ci.obj
         decl = ir.Fn_decl(low(Type), sname, decl_args, DocComment)
@@ -700,6 +701,7 @@ def lower_type_ir(symbol_table, sidl_type):
     """
     lower SIDL types into IR
     """
+    c_bool = "_Bool"
     with match(sidl_type):
         if (sidl.scoped_id, Names, Ext):
             return lower_type_ir(symbol_table, symbol_table[Names])
@@ -708,6 +710,7 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
+        elif (sidl.primitive_type, c_bool):      return ir.Typedef_type(c_bool)
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.enum, _, _, _):               return sidl_type # identical
         elif (sidl.enumerator, _):               return sidl_type

@@ -91,6 +91,12 @@
 
 import re
 
+def unzip(lst):
+    """
+    Like zip(*lst), but works also for empty lists.
+    """
+    return [a for a, b in lst], [b for a, b in lst]
+
 class Variable:
     """
     A logical variable for use with \c match and \c unify.
@@ -156,6 +162,12 @@ def member(a, l):
 	if unify(a, b, bindings):
 	    yield True
 	    unbind(bindings)
+
+def member_chk(a, l):
+    """
+    True iff a is in l. Warning: Complexity is O(N).
+    """
+    return list(member(a, l))
 
 def unbind(bindings):
     """
