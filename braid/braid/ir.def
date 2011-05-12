@@ -47,6 +47,7 @@
   Body = [Stmt],
   Expr = ( Literal
 	 | call(Expr, [Expr])
+	 | new(Type, [Arg])
          | Var_decl
          | Var_defn
 	 | VarRefExpr

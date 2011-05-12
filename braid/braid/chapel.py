@@ -544,19 +544,21 @@ class Chapel:
             call = [ir.Stmt(
                 ir.Assignment("_retval", ir.Call(Name+'_stub', call_args)))]
             retval = "_retval"
+
+            # retval type conversion
             if (Type[0] == sidl.scoped_id and
                 symbol_table[Type[1]][0] == sidl.class_):
-                # wrap the C type in the native Chapel object
-                retval = ir.Call(".".join(Type[1]), [retval])
+                # wrap the C type in a native Chapel object
+                retval = (ir.new, ".".join(Type[1]), [retval])
 
             post_call.append(ir.Stmt(ir.Return(retval)))
         defn = (ir.fn_defn, Type, Name, Args, pre_call+call+post_call, DocComment)
 
-        #ci.chpl_stub.new_header_def(chpl_gen(decl))
         if static:
             ci.chpl_static_stub.new_def(chpl_gen(defn))
         else:
             ci.chpl_stub.new_def(chpl_gen(defn))
+
         # output the stub definition
         stub = self.generate_method_stub(symbol_table, method, ci)
         c_gen(stub, ci.stub)
@@ -987,6 +989,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                            gen(Type)),
                           Body,
                           '}')
+
+            elif (ir.new, Type, Args):
+                return 'new %s(%s)'%(gen(Type), gen_comma_sep(Args))
 
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
