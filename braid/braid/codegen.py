@@ -14,6 +14,18 @@
 # implements a \c generate(sexpr) function which takes an \c ir node
 # in s-expression form.
 #
+# If the generate() function performs a straightforward translation of
+# an expression it should return a string of the generated
+# expression. Sometimes, the translation will have a side-effect on
+# the \c scope object (viz. allocating a temporary variable in a
+# parent scope). If the function generates a complete definition, it
+# will call something like \c scope.new_def() and will return the
+# scope instead of a string. This usually happens at points in the
+# output language grammar where some kind of separator needs to be
+# applied. To compose subscopes into new expressions, most code
+# generators provide functions such as gen_comma_sep(scope) to
+# generate, e.g., a list of comma-separated expressions.
+#
 # \todo Should performance ever become an issue with these code
 # generators, we might want to replace the cascade of
 # match()-statements with a more orderly traversal; ideally one that
@@ -337,7 +349,7 @@ class GenericCodeGenerator(object):
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SourceFile()):
         """
-        Language-independent generator rules
+        Language-independent generator rules.
 
         \param node       s-expression-based intermediate representation (input)
         \param scope      the \c Scope object the output will be written to
