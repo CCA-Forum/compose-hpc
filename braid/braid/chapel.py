@@ -495,8 +495,7 @@ class Chapel:
             """
             Extract name and generate argument conversions
             """
-            if (typ[0] == sidl.scoped_id and
-                symbol_table[typ[1]][0] == sidl.class_):
+            if is_obj_type(symbol_table, typ):
                 pre_call.append((ir.stmt, "var _c_{name}: {ior_type}"
                                  .format(name=name, ChplType=c_gen(low(typ)))))
                 post_call.append((ir.stmt, "{name} = {typ}(_c_{name})"
@@ -546,8 +545,7 @@ class Chapel:
             retval = "_retval"
 
             # retval type conversion
-            if (Type[0] == sidl.scoped_id and
-                symbol_table[Type[1]][0] == sidl.class_):
+            if is_obj_type(symbol_table, Type):
                 # wrap the C type in a native Chapel object
                 retval = (ir.new, ".".join(Type[1]), [retval])
 
@@ -568,7 +566,7 @@ class Chapel:
                       (Method, Type, (_,  Name, _Attr), Attrs, Args,
                        Except, From, Requires, Ensures, DocComment), ci):
         """
-        Generate the stub for a specific method in C.
+        Generate the stub for a specific method in C (cStub).
         """
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
@@ -579,6 +577,7 @@ class Chapel:
             """
             deref = ref = ''
             if typ == sidl.pt_bool:
+                # sidl_bool is an int, but chapel bool is a char/_Bool
                 if mode <> sidl.in_:
                     deref = '*'
                     ref = '&'
@@ -589,23 +588,30 @@ class Chapel:
                                .format(deref=deref, name=name,
                                        typ=c_gen(sidl.pt_bool))))
                 name = ref+"_arg_"+name
+
+            #elif is_obj_type(symbol_table, Type):
+            #    name = "*"+name
+                
             return name
 
         #return method
         expect(Method, sidl.method)
         sname = Name+'_stub'
-        decl_args = babel_args(Args, symbol_table, ci.epv.name)
+        decl_args = babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
+        static = list(member(sidl.static, Attrs))
         
         pre_call = []
         post_call = []
-        call_args = ["self"]+map(convert_arg, Args)+["ex"]
+        call_args = []
+        if not static: call_args.append("*self")
+        call_args += map(convert_arg, Args)+["ex"]
         epv_type = ci.epv.get_type()
         obj_type = ci.obj
         decl = ir.Fn_decl(low(Type), sname, decl_args, DocComment)
-
         if list(member(sidl.static, Attrs)):
             # static call
             fptr = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+            sdecls = [ir.Fn_decl(low(Type), fptr, decl_args, DocComment)]
         else:
             # dynamic virtual method call
             fptr = ir.Get_struct_item \
@@ -614,6 +620,7 @@ class Chapel:
                                            ir.Deref(ir.Deref('self')),
                                            ir.Struct_item(epv_type, 'd_epv'))),
                ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
+            sdecls = []
 
         if Type == sidl.void:
             body = [ir.Stmt(ir.Call(fptr, call_args))]
@@ -625,7 +632,7 @@ class Chapel:
                                           ir.Call(fptr, call_args)))]
             post_call.append(ir.Stmt(ir.Return("_retval")))
 
-        return [decl,
+        return sdecls+[decl,
                 ir.Fn_defn(low(Type), sname, decl_args, pre_call+body+post_call,
                            DocComment)]
 
@@ -639,6 +646,14 @@ class Chapel:
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
+
+        
+
+def is_obj_type(symbol_table, typ):
+    return typ[0] == sidl.scoped_id and (
+        symbol_table[typ[1]][0] == sidl.class_ or
+        symbol_table[typ[1]][0] == sidl.interface)
+
 
 def ior_type(symbol_table, t):
     """
@@ -793,7 +808,7 @@ class EPV:
                         Attrs, Args, Except, From, Requires, Ensures, DocComment)):
             typ = lower_ir(self.symbol_table, Type)
             name = 'f_'+Name
-            args = babel_args(Args, self.symbol_table, self.name)
+            args = babel_args(Attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(typ, name, args, DocComment)
 
         if self.finalized:
@@ -824,14 +839,35 @@ class EPV:
 
 
 
-def babel_args(args, symbol_table, class_name):
+def babel_args(attrs, args, symbol_table, class_name):
     """
-    \return a SIDL -> Ir lowered version of [self]+args+[ex]
+    \return a SIDL -> Ir lowered version of [self]+args+[*ex]
     """
-    arg_self = ir.Arg([], sidl.in_, ir_babel_object_type(symbol_table.prefix,
-                                                           class_name), 'self')
-    arg_ex = ir.Arg([], sidl.in_, ir_babel_exception_type(), 'ex')
-    return [arg_self]+lower_ir(symbol_table, args)+[arg_ex]
+    if list(member(sidl.static, attrs)):
+        arg_self = []
+    else:
+        arg_self = \
+            [ir.Arg([], sidl.in_,
+                    ir_babel_object_type(symbol_table.prefix, class_name),
+                    'self')]
+    arg_ex = \
+        [ir.Arg([], sidl.in_, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
+    return arg_self+lower_ir(symbol_table, args)+arg_ex
+
+def babel_stub_args(attrs, args, symbol_table, class_name):
+    """
+    \return a SIDL -> Ir lowered version of [*self]+args+[*ex]
+    """
+    if list(member(sidl.static, attrs)):
+        arg_self = []
+    else:
+        arg_self = [
+            ir.Arg([], sidl.in_, ir.Pointer_type(
+                ir_babel_object_type(symbol_table.prefix, class_name)), 'self')]
+    arg_ex = \
+        [ir.Arg([], sidl.in_, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
+    return arg_self+lower_ir(symbol_table, args)+arg_ex
+
 
 def arg_ex():
     """
