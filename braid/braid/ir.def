@@ -40,7 +40,7 @@
 	  | Var_decl | Var_defn | type_decl(Type)
 	  ],
   Import = import(Id),
-  Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr),
+  Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr | Comment),
   Do_while = do_while(Body, Expr),
   While = while(Expr, Body),
   If = if(Expr, Body),
@@ -101,6 +101,7 @@
   Extension = 'STR',
   Id = 'STR',
   DocComment='STR'
+  Comment = comment('STR')
 ].
 % ## ir primitive types
 %pt_bool = Primitive_type(bool)

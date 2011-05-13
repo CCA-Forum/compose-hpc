@@ -1142,6 +1142,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'
             elif (ir.typedef_type, Type): return Type
+            elif (ir.comment, Comment):   return '/* %s */'%Comment
             elif (ir.log_not):        return '!'
             elif (ir.eq):             return '=='
             elif (ir.true):           return 'TRUE'
