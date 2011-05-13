@@ -575,22 +575,47 @@ class Chapel:
             Extract name and generate argument conversions
             """
             call_name = name
+            deref = ref = ''
+            if mode <> sidl.in_:
+                deref = '*'
+                ref = '&'
+
+            # Case-by-case for each data type
+
+            # BOOL
             if typ == sidl.pt_bool:
-                # sidl_bool is an int, but chapel bool is a char/_Bool
-                deref = ref = ''
-                if mode <> sidl.in_:
-                    deref = '*'
-                    ref = '&'
+                pre_call.append(ir.Comment(
+                    "sidl_bool is an int, but chapel bool is a char/_Bool"))
+                pre_call.append((ir.stmt, "int _arg_"+name))
+
+                if mode <> sidl.out:
+                    pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}"
+                                     .format(n=name, p=deref)))
                     
-                pre_call.append((ir.stmt, "int _arg_{name} = (int){deref}{name}"
-                              .format(name=name, deref=deref)))
-                post_call.append((ir.stmt, "{deref}{name} = ({typ})_arg_{name}"
-                               .format(deref=deref, name=name,
-                                       typ=c_gen(sidl.pt_bool))))
+                if mode <> sidl.in_:
+                    post_call.append((ir.stmt, "{p}{n} = ({typ})_arg_{n}"
+                            .format((p=deref, n=name, typ=c_gen(sidl.pt_bool))))
+
                 call_name = ref+"_arg_"+name
                 # Bypass the bool -> int conversion for the stub decl
-                typ = (ir.primitive_type, "_Bool")
+                typ = (ir.primitive_type, "_Bool") # FIXME: use the typedef type right away
 
+            # CHAR
+            elif typ == sidl.pt_char:
+                pre_call.append(ir.Comment(
+                    "in chapel, a char is a string of length 1"))
+                typ = sidl.pt_string
+
+                pre_call.append((ir.stmt, "char _arg_%s"%name))
+                if mode <> sidl.out:
+                    pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}[0]"
+                                     .format(n=name, p=deref)))
+                    
+                if mode <> sidl.in_:
+                    post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
+                                      .format(p=deref, n=name)))
+                call_name = ref+"_arg_"+name
+                
             return call_name, (arg, attrs, mode, typ, name)
 
         #return method
@@ -629,6 +654,7 @@ class Chapel:
             pre_call.append(ir.Stmt(ir.Var_decl(
                 ior_type(symbol_table, Type),
                 "_retval")))
+            print "FIXME do retval -> arg conversion"
             body = [ir.Stmt(ir.Assignment("_retval",
                                           ir.Call(fptr, call_args)))]
             post_call.append(ir.Stmt(ir.Return("_retval")))
@@ -946,7 +972,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
     type_map = {
         'void':      "void",
         'bool':      "bool",
-        'char':      "uint(8)",
+        'char':      "string",
         'dcomplex':  "complex(128)",
         'double':    "real(64)",
         'fcomplex':  "complex(64)",
