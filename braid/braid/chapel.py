@@ -90,12 +90,12 @@ class Chapel:
         """
         def __init__(self, name, symbol_table):
             self.impl = ChapelFile()
-            self.stub = CFile()
             self.chpl_stub = ChapelFile(relative_indent=8)
             self.chpl_static_stub = ChapelFile(relative_indent=4)            
             self.skel = CFile()
             self.epv = EPV(name, symbol_table)
             self.ior = CFile()
+            self.obj = None
 
     def __init__(self, filename, sidl_sexpr, create_makefile, verbose):
         """
@@ -117,8 +117,10 @@ class Chapel:
         \li do the work
         """
         try:
-            sym = self.build_symbol_table(self.sidl_ast, SymbolTable())
-            self.generate_client1(self.sidl_ast, None, sym)
+            ast = self.consolidate_packages(self.sidl_ast)
+            symbol_table = self.build_symbol_table(ast, SymbolTable())
+            ast = self.resolve_symbols(self.sidl_ast, symbol_table)
+            self.generate_client1(self.sidl_ast, None, symbol_table)
 
         except:
             # Invoke the post-mortem debugger
@@ -161,7 +163,7 @@ class Chapel:
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
                 ci = self.ClassInfo(Name, symbol_table)
-                ci.stub.genh(ir.Import(Name+'_IOR'))
+                ci.chpl_stub.cstub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
 
                 # recurse to generate method code
@@ -172,11 +174,12 @@ class Chapel:
                 write_to(Name+'_IOR.h', ci.ior.dot_h(Name+'_IOR.h'))
 
                 # Stub (in C)
-                ci.stub.gen(ir.Import(Name+'_cStub'))
+                cstub = ci.chpl_stub.cstub
+                cstub.gen(ir.Import(Name+'_cStub'))
                 # Stub Header
-                write_to(Name+'_cStub.h', ci.stub.dot_h(Name+'_cStub.h'))
+                write_to(Name+'_cStub.h', cstub.dot_h(Name+'_cStub.h'))
                 # Stub C-file
-                write_to(Name+'_cStub.c', ci.stub.dot_c())
+                write_to(Name+'_cStub.c', cstub.dot_c())
 
                 # Stub (in Chapel)
                 qname = '_'.join(symbol_table.prefix+[Name])                
@@ -215,11 +218,11 @@ class Chapel:
                     'this.self = %s__createObject(0, ex);'%qname
                     ]
                 ci.chpl_stub.new_def(chpl_gen(
-                    (ir.fn_defn, ir.pt_void, 
+                    (ir.fn_defn, [], ir.pt_void, 
                                chpl_gen(Name), [], body, 'Constructor')))
 
                 ci.chpl_stub.new_def(chpl_gen(
-                    (ir.fn_defn, ir.pt_void, 
+                    (ir.fn_defn, [], ir.pt_void, 
                      chpl_gen(Name),
                      [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
                       ['this.self = obj;'],
@@ -290,7 +293,7 @@ class Chapel:
                 expect(data, None)
                 ci = self.ClassInfo(ChapelFile(), CFile(), EPV(Name, symbol_table),
                                     ior=CFile(), skel=CFile())
-                ci.stub.genh(ir.Import(Name+'_IOR'))
+                ci.chpl_stub.cstub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
                 gen1(Methods, ci)
                 self.generate_ior(ci)
@@ -303,11 +306,12 @@ class Chapel:
                 # babelized Array-init functions
 
                 # Stub (in C)
-                ci.stub.gen(ir.Import(Name+'_Stub'))
+                cstub = ci.chpl_stub.cstub
+                cstub.gen(ir.Import(Name+'_cStub'))
                 # Stub Header
-                write_to(Name+'_Stub.h', ci.stub.dot_h(Name+'_Stub.h'))
+                write_to(Name+'_cStub.h', cstub.dot_h(Name+'_cStub.h'))
                 # Stub C-file
-                write_to(Name+'_Stub.c', ci.stub.dot_c())
+                write_to(Name+'_cStub.c', cstub.dot_c())
 
                 # Skeleton (in C)
                 ci.skel.gen(ir.Import(Name+'_Skel'))
@@ -346,7 +350,14 @@ class Chapel:
     @matcher(globals(), debug=False)
     def build_symbol_table(self, node, symbol_table):
         """
-        Build a hierarchical \c SymbolTable() for \c node.
+        Does two things:
+
+        * Build a hierarchical \c SymbolTable() for \c node.
+
+        * Resolve all scoped ids in definitions to their full name:
+          They are still stored as scoped_id, but they are guaranteed
+          to contain a full name, including all parent
+          namespaces/scopes.
 
         For the time being, we store the fully scoped name
         (= \c [package,subpackage,classname] ) for each class
@@ -403,6 +414,92 @@ class Chapel:
                 raise Exception("match error")
 
         return symbol_table
+
+    @matcher(globals(), debug=False)
+    def resolve_symbols(self, node, symbol_table):
+        """
+        Resolve all scoped ids in types to their full name:
+        They are still stored as scoped_id, but they are guaranteed
+        to contain a full name, including all parent
+        namespaces/scopes.
+        """
+
+        def res(node):
+            return self.resolve_symbols(node, symbol_table)
+
+#        if node <> []:
+#            print node[0], symbol_table
+            
+        with match(node):
+            if (sidl.scoped_id, Names, Ext):
+                return (sidl.scoped_id, symbol_table.get_full_name(Names), Ext)
+
+            elif (sidl.package, Name, Version, UserTypes, DocComment):
+                #if (self.verbose):
+                print "Resolving symbols for package %s" \
+                          %'.'.join(symbol_table.prefix+[Name])
+                return (sidl.package, Name, Version,
+                        self.resolve_symbols(UserTypes, symbol_table._symbol[Name]), DocComment)
+
+            else:
+                if (isinstance(node, list)):
+                    return map(res, node)
+                elif (isinstance(node, tuple)):
+                    return tuple(map(res, node))
+                else:
+                    return node
+
+    @matcher(globals(), debug=False)
+    def consolidate_packages(self, node):
+        """
+        Package definitions need not be physically together in the
+        SIDL file. This function sorts all packages in a user_type and
+        merges adjacent packages of the same name.
+
+        Run this function before building the symbol table!
+        """
+
+        def partition(nodes):
+            packages = {}
+            others = []
+            for n in nodes:
+                with match(n):
+                    if (sidl.user_type, Attr, (sidl.package, Name, Version, UTs, _)):
+                        p = packages.get(Name)
+                        if p: # Merge with other existing package
+                            (ut, attr, (pkg, name, version, usertypes, doc_comment)) = p
+
+                            if Version <> version:
+                                print "** WARNING: Version mismatch in %s:"\
+                                      "'%s' vs. '%s'"% Name, Version, version
+                                
+                            packages[Name] = ut, attr, (pkg, name, version,
+                                                        usertypes+UTs, doc_comment)
+                        else:
+                            packages[Name] = n
+                    else:
+                        others.append(n)
+                
+            return packages.values(), others 
+
+        def cons(node): return self.consolidate_packages(node)
+
+        with match(node):
+            if (sidl.class_, _, _, _, _, _, _):
+                return node # speedup -- cut off search
+
+            else:
+                if (isinstance(node, list)):
+                    pkgs, others = partition(node)
+                    if pkgs <> []: # also a little speedup
+                        return map(cons, pkgs)+others
+                    else:
+                        return map(cons, others)
+                elif (isinstance(node, tuple)):
+                    return tuple(map(cons, node))
+                else:
+                    return node
+
 
     def gen_default_methods(self, symbol_table, name, data):
         """
@@ -532,15 +629,32 @@ class Chapel:
         post_call = []
         call_args = call_self+map(convert_arg, Args)+["ex"]
 
+        decl_args = babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
+        decl = ir.Fn_decl([], low(Type), Name+"_stub", decl_args, DocComment)
+
+        if static:
+            # static call
+            callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+        else:
+            # dynamic virtual method call
+            epv_type = ci.epv.get_type()
+            obj_type = ci.obj
+            callee = ir.Get_struct_item \
+                     (epv_type,
+                      ir.Deref(ir.Get_struct_item(obj_type,
+                                                  ir.Deref(ir.Deref('self')),
+                                                  ir.Struct_item(epv_type, 'd_epv'))),
+                      ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
+
         if Type == sidl.void:
-            call = [ir.Stmt(ir.Call(Name+'_stub', call_args))]
+            call = [ir.Stmt(ir.Call(callee, call_args))]
+
         else:
             pre_call.append(ir.Stmt((ir.var_decl, ior_type(symbol_table, Type), "_retval")))
 
             # TODO:
             # do an fptr call here and move the stub generation code into the code generator
-            call = [ir.Stmt(
-                ir.Assignment("_retval", ir.Call(Name+'_stub', call_args)))]
+            call = [ir.Stmt(ir.Assignment("_retval", ir.Call(callee, call_args)))]
             retval = "_retval"
 
             # retval type conversion
@@ -549,119 +663,19 @@ class Chapel:
                 retval = (ir.new, ".".join(Type[1]), [retval])
 
             post_call.append(ir.Stmt(ir.Return(retval)))
-        defn = (ir.fn_defn, Type, Name, Args, pre_call+call+post_call, DocComment)
+
+
+        defn = (ir.fn_defn, [], Type, Name, Args, pre_call+call+post_call, DocComment)
 
         if static:
-            ci.chpl_static_stub.new_def(chpl_gen(defn))
+            chpl_gen(defn, ci.chpl_static_stub)
         else:
-            ci.chpl_stub.new_def(chpl_gen(defn))
+            chpl_gen(defn, ci.chpl_stub)
 
-        # output the stub definition
-        stub = self.generate_method_stub(symbol_table, method, ci)
-        c_gen(stub, ci.stub)
+        # # output the stub definition
+        # stub = self.generate_method_stub(symbol_table, method, ci)
+        # c_gen(stub, ci.stub)
 
-
-    def generate_method_stub(self, symbol_table,
-                      (Method, Type, (_,  Name, _Attr), Attrs, Args,
-                       Except, From, Requires, Ensures, DocComment), ci):
-        """
-        Generate the stub for a specific method in C (cStub).
-        """
-        def low(sidl_term):
-            return lower_ir(symbol_table, sidl_term)
-
-        def convert_arg((arg, attrs, mode, typ, name)):
-            """
-            Extract name and generate argument conversions
-            """
-            call_name = name
-            deref = ref = ''
-            if mode <> sidl.in_:
-                deref = '*'
-                ref = '&'
-
-            # Case-by-case for each data type
-
-            # BOOL
-            if typ == sidl.pt_bool:
-                pre_call.append(ir.Comment(
-                    "sidl_bool is an int, but chapel bool is a char/_Bool"))
-                pre_call.append((ir.stmt, "int _arg_"+name))
-
-                if mode <> sidl.out:
-                    pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}"
-                                     .format(n=name, p=deref)))
-                    
-                if mode <> sidl.in_:
-                    post_call.append((ir.stmt, "{p}{n} = ({typ})_arg_{n}"
-                            .format((p=deref, n=name, typ=c_gen(sidl.pt_bool))))
-
-                call_name = ref+"_arg_"+name
-                # Bypass the bool -> int conversion for the stub decl
-                typ = (ir.primitive_type, "_Bool") # FIXME: use the typedef type right away
-
-            # CHAR
-            elif typ == sidl.pt_char:
-                pre_call.append(ir.Comment(
-                    "in chapel, a char is a string of length 1"))
-                typ = sidl.pt_string
-
-                pre_call.append((ir.stmt, "char _arg_%s"%name))
-                if mode <> sidl.out:
-                    pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}[0]"
-                                     .format(n=name, p=deref)))
-                    
-                if mode <> sidl.in_:
-                    post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
-                                      .format(p=deref, n=name)))
-                call_name = ref+"_arg_"+name
-                
-            return call_name, (arg, attrs, mode, typ, name)
-
-        #return method
-        expect(Method, sidl.method)
-        pre_call = []
-        post_call = []
-        call_args = []
-        sname = Name+'_stub'
-        names, args = unzip(map(convert_arg, Args))
-        decl_args = babel_stub_args(Attrs, args,
-                                    symbol_table, ci.epv.name)
-
-        static = list(member(sidl.static, Attrs))        
-        if not static: call_args.append("*self")
-        call_args += names+["ex"]
-        epv_type = ci.epv.get_type()
-        obj_type = ci.obj
-        decl = ir.Fn_decl(low(Type), sname, decl_args, DocComment)
-        if list(member(sidl.static, Attrs)):
-            # static call
-            fptr = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
-            sdecls = [ir.Fn_decl(low(Type), fptr, decl_args, DocComment)]
-        else:
-            # dynamic virtual method call
-            fptr = ir.Get_struct_item \
-              (epv_type,
-               ir.Deref(ir.Get_struct_item(obj_type,
-                                           ir.Deref(ir.Deref('self')),
-                                           ir.Struct_item(epv_type, 'd_epv'))),
-               ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name))
-            sdecls = []
-
-        if Type == sidl.void:
-            body = [ir.Stmt(ir.Call(fptr, call_args))]
-        else:
-            pre_call.append(ir.Stmt(ir.Var_decl(
-                ior_type(symbol_table, Type),
-                "_retval")))
-            print "FIXME do retval -> arg conversion"
-            body = [ir.Stmt(ir.Assignment("_retval",
-                                          ir.Call(fptr, call_args)))]
-            post_call.append(ir.Stmt(ir.Return("_retval")))
-
-        return sdecls+[decl,
-                ir.Fn_defn(low(Type), sname, decl_args, pre_call+body+post_call,
-                           DocComment)]
 
     def generate_ior(self, ci):
         """
@@ -674,6 +688,93 @@ class Chapel:
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
 
+
+
+def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
+    """
+    Generate the stub for a specific method in C (cStub).
+    """
+    def low(sidl_term):
+        return lower_ir(symbol_table, sidl_term)
+
+    def convert_arg((arg, attrs, mode, typ, name)):
+        """
+        Extract name and generate argument conversions
+        """
+        call_name = name
+        deref = ref = ''
+        if mode <> sidl.in_:
+            deref = '*'
+            ref = '&'
+
+        # Case-by-case for each data type
+
+        # BOOL
+        if typ == sidl.pt_bool:
+            pre_call.append(ir.Comment(
+                "sidl_bool is an int, but chapel bool is a char/_Bool"))
+            pre_call.append((ir.stmt, "int _arg_"+name))
+
+            if mode <> sidl.out:
+                pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}"
+                                 .format(n=name, p=deref)))
+
+            if mode <> sidl.in_:
+                post_call.append((ir.stmt, "{p}{n} = ({typ})_arg_{n}"
+                        .format(p=deref, n=name, typ=c_gen(sidl.pt_bool))))
+
+            call_name = ref+"_arg_"+name
+            # Bypass the bool -> int conversion for the stub decl
+            typ = (ir.primitive_type, "_Bool") # FIXME: use the typedef type right away
+
+        # CHAR
+        elif typ == sidl.pt_char:
+            pre_call.append(ir.Comment(
+                "in chapel, a char is a string of length 1"))
+            typ = sidl.pt_string
+
+            pre_call.append((ir.stmt, "char _arg_%s"%name))
+            if mode <> sidl.out:
+                pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}[0]"
+                                 .format(n=name, p=deref)))
+
+            if mode <> sidl.in_:
+                post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
+                                  .format(p=deref, n=name)))
+            call_name = ref+"_arg_"+name
+
+        return call_name, (arg, attrs, mode, typ, name)
+
+    _, _ , _, (_, (_, impl_decl), _) = VCallExpr
+    (_, Attrs, Type, Name, Args, DocComment) = impl_decl
+
+    cstub_decl_args = Args #babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
+    cstub_decl = ir.Fn_decl([], Type, Name+"_stub", cstub_decl_args, DocComment)
+
+    #return method
+    pre_call = []
+    post_call = []
+    call_args = []
+    sname = Name+'_stub'
+    names, args = unzip(map(convert_arg, Args))
+
+    static = list(member(sidl.static, Attrs))        
+    if not static: call_args.append("*self")
+    call_args += names+["ex"]
+
+    if Type == sidl.void:
+        body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
+    else:
+        pre_call.append(ir.Stmt(ir.Var_decl(Type, "_retval")))
+        print "FIXME do retval -> arg conversion"
+        body = [ir.Stmt(ir.Assignment("_retval",
+                                      ir.Call(VCallExpr, call_args)))]
+        post_call.append(ir.Stmt(ir.Return("_retval")))
+
+    # Generate the c code into the scope's associated cStub
+    c_gen([cstub_decl, ir.Fn_defn([], Type, sname, cstub_decl_args,
+                                  pre_call+body+post_call, DocComment)],
+          scope.cstub)
         
 
 def is_obj_type(symbol_table, typ):
@@ -768,7 +869,7 @@ class SymbolTable:
 
     def lookup(self, key):
         """
-        return the enytry for \c key or \c None otherwise.
+        return the entry for \c key or \c None otherwise.
         """
         #print self, key, '?'
         try:
@@ -816,7 +917,11 @@ class SymbolTable:
         #while symbol_table._parent:
         #    symbol_table = symbol_table.parent()
         #    scopes.insert(
-        return symbol_table.prefix+scopes[0:len(scopes)-1], scopes[-1]
+        r = symbol_table.prefix+scopes[0:len(scopes)-1], scopes[-1]
+        return r
+
+    def __str__(self):
+        return str(self._symbol)
 
 class EPV:
     """
@@ -838,7 +943,7 @@ class EPV:
             typ = lower_ir(self.symbol_table, Type)
             name = 'f_'+Name
             args = babel_args(Attrs, Args, self.symbol_table, self.name)
-            return ir.Fn_decl(typ, name, args, DocComment)
+            return ir.Fn_decl(Attrs, typ, name, args, DocComment)
 
         if self.finalized:
             import pdb; pdb.set_trace()
@@ -849,8 +954,8 @@ class EPV:
         """
         return an s-expression of the EPV declaration
         """
-        def get_type_name((fn_decl, Type, Name, Args, DocComment)):
-            return ir.Pointer_type((fn_decl, Type, Name, Args, DocComment)), Name
+        def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
+            return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
 
         self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
@@ -905,16 +1010,21 @@ def arg_ex():
     return
 
 
-def chpl_gen(ir):
-    return str(ChapelCodeGenerator().generate(ir, ChapelScope()))
-
-def c_gen(ir, scope=CFile()):
-    return CCodeGenerator().generate(ir, scope)
-
 class ChapelFile(SourceFile):
+    """
+    Particularities:
+    
+    * Chapel files also have a cstub which is used to output code that
+      can not otherwise be expressed in Chapel.
+    """
+    
     def __init__(self, parent=None, relative_indent=0):
         super(ChapelFile, self).__init__(
             parent, relative_indent, separator='\n')
+        if parent:
+            self.cstub = parent.cstub
+        else:
+            self.cstub = CFile()
 
     def __str__(self):
         """
@@ -967,6 +1077,11 @@ class ChapelLine(ChapelFile):
     def __str__(self):
         return self._sep.join(self._header+self._defs)
 
+def chpl_gen(ir, scope=ChapelScope()):
+    return str(ChapelCodeGenerator().generate(ir, scope))
+
+def c_gen(ir, scope=CFile()):
+    return CCodeGenerator().generate(ir, scope)
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
     type_map = {
@@ -1040,20 +1155,26 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 new_def('%sproc %s(%s): %s'%(gen_comment(DocComment),
                                             gen(Name), gen_comma_sep(Args), gen(Type)))
 
-            elif (ir.fn_defn, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
+            elif (ir.fn_defn, Attrs, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s) {'%
                           (gen_comment(DocComment), 
                            gen(Name), gen_comma_sep(Args)),
                           Body,
                           '}')
 
-            elif (ir.fn_defn, Type, Name, Args, Body, DocComment):
+            elif (ir.fn_defn, Attrs, Type, Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s): %s {'%
                           (gen_comment(DocComment), 
                            gen(Name), gen_comma_sep(Args),
                            gen(Type)),
                           Body,
                           '}')
+
+            elif (ir.call, (ir.get_struct_item, _, _, (ir.struct_item, _, Name)), Args):
+                # We can't do a func pointer call in Chapel
+                # Emit a C stub for that
+                generate_method_stub(scope, node)
+                return gen((ir.call, re.sub('^f_', '', Name+'_stub'), Args))
 
             elif (ir.new, Type, Args):
                 return 'new %s(%s)'%(gen(Type), gen_comma_sep(Args))

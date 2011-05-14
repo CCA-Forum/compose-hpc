@@ -36,17 +36,21 @@
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
-  _File = [ Fn_decl | Fn_defn | Import
-	  | Var_decl | Var_defn | type_decl(Type)
+  _File = [ Fn_decl | Fn_defn
+	  | Var_decl | Var_defn
+	  | Import
+	  | type_decl(Type)
 	  ],
   Import = import(Id),
-  Stmt = stmt(Do_while | While | break | return(Expr) | If | goto(Expr) | Expr | Comment),
+  Stmt = (stmt(Do_while | While | break | Return | If | Goto | Expr) | Comment),
+  Return = return(Expr),
+  Goto = goto(Expr),
   Do_while = do_while(Body, Expr),
   While = while(Expr, Body),
   If = if(Expr, Body),
   Body = [Stmt],
   Expr = ( Literal
-	 | call(Expr, [Expr])
+	 | call(Expr, [Expr])	 
 	 | new(Type, [Arg])
          | Var_decl
          | Var_defn
@@ -74,10 +78,10 @@
 	       ),
   Pointer_expr = pointer_expr(VarRefExpr),
   Deref = deref(VarRefExpr),
-  Fn_decl = fn_decl(Type, Id, [Arg], DocComment),
-  Fn_defn = fn_defn(Type, Id, [Arg], [Stmt], DocComment),
+  Fn_decl = fn_decl([Attr], Type, Id, [Arg], DocComment),
+  Fn_defn = fn_defn([Attr], Type, Id, [Arg], [Stmt], DocComment),
   Arg = arg([Attr], Mode, Type, Id),
-  Attr = [],
+  Attr = (static | pure),
   Mode = (in | out | inout),
   Type = ( Primitive_type
 	 | Pointer_type
@@ -100,7 +104,7 @@
   Scoped_id = scoped_id([Id], Extension),
   Extension = 'STR',
   Id = 'STR',
-  DocComment='STR'
+  DocComment='STR',
   Comment = comment('STR')
 ].
 % ## ir primitive types

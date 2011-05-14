@@ -587,7 +587,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 return 'call %s_set_%s_f(%s, %s)' % (
                     gen(self.get_type(Struct)), gen(Item), gen(Name), gen(Value))
 
-            elif (ir.fn_defn, ir.void, Name, Attrs, Args, Excepts, From, Requires, Ensures, Body):
+            elif (ir.fn_defn, Attrs, ir.void, Name, Args, Excepts, From, Requires, Ensures, Body):
                 return new_def('''
                 subroutine %s
                   %s
@@ -596,7 +596,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
                 ''' % (Name, gen(Args),
                        gen(FunctionScope(scope), Body), Name))
 
-            elif (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (ir.fn_defn, Attrs, Typ, Name, Args, Excepts, Froms, Requires, Ensures):
                 return new_def('''
                 subroutine %s
                   %s
@@ -775,7 +775,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             elif (ir.set_struct_item, _, Name, Item, Value):
                 return gen(Name)+'%'+gen(Item)+' = '+gen(Value)
 
-            elif (ir.fn_defn, ir.void, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, Body):
+            elif (ir.fn_defn, Attrs, ir.void, Name, Args, Excepts, Froms, Requires, Ensures, Body):
                 return '''
                 subroutine %s
                   %s
@@ -783,7 +783,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
                 end subroutine %s
                 ''' % (Name, gen(Args), gen(Body), Name)
 
-            elif (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            elif (ir.fn_defn, Attrs, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
                 return '''
                 function %s
                   %s
@@ -1077,13 +1077,13 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                     return new_def(e+';')
                 else: return scope
 
-            elif (ir.fn_decl, Type, Name, Args, DocComment):
+            elif (ir.fn_decl, Attrs, Type, Name, Args, DocComment):
                 scope.new_header_def("%s%s %s(%s);"% (
                         gen_comment(DocComment),
                         gen(Type), gen(Name), gen_comma_sep(Args)))
                 return scope
 
-            elif (ir.fn_defn, Type, Name, Args, Body, DocComment):
+            elif (ir.fn_defn, Attrs, Type, Name, Args, Body, DocComment):
                 return new_scope("%s%s %s(%s)"% (
                         gen_comment(DocComment),
                         gen(Type), gen(Name), gen_comma_sep(Args)), Body)
@@ -1116,7 +1116,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
                 return new_header_scope('struct %s'%gen(Name), StructItems)
 
-            elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)), Name):
+            elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)), Name):
                 # yes, both Names should be identical
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
@@ -1134,7 +1134,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.enumerator, Name, Value):
                 return new_def(gen(Name)+" = "+gen(Value))
 
-            elif (ir.pointer_type, (ir.fn_decl, Type, Name, Args, DocComment)): 
+            elif (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)): 
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
@@ -1457,7 +1457,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
                            suffix)
 
         with match(node):
-            if (ir.fn_defn, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures):
+            if (ir.fn_defn, Attrs, Typ, Name, Args, Body):
                 return '''
                 def %s(%s):
                   %s
