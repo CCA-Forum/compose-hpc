@@ -307,6 +307,15 @@ class Scope(object):
         indent = '\n' +' '*il
         return indent.join(lines)
 
+    def get_toplevel(self):
+        """
+        \return the topmost ancestor of this scope
+        """
+        t = self
+        while t.parent:
+            t = t.parent
+        return t
+
 class SourceFile(Scope):
     """
     This class represents a generic source file

@@ -97,11 +97,12 @@ class Chapel:
             self.ior = CFile()
             self.obj = None
 
-    def __init__(self, filename, sidl_sexpr, create_makefile, verbose):
+    def __init__(self, filename, sidl_sexpr, symbol_table, create_makefile, verbose):
         """
         Create a new chapel code generator
         \param filename        full path to the SIDL file
         \param sidl_sexpr      s-expression of the SIDL data
+        \param symbol_table    symbol table for the SIDL data
         \param create_makefile if \c True, also generate a GNUmakefile
         \param verbose         if \c True, print extra messages
         """
@@ -117,10 +118,7 @@ class Chapel:
         \li do the work
         """
         try:
-            ast = self.consolidate_packages(self.sidl_ast)
-            symbol_table = self.build_symbol_table(ast, SymbolTable())
-            ast = self.resolve_symbols(self.sidl_ast, symbol_table)
-            self.generate_client1(self.sidl_ast, None, symbol_table)
+            self.generate_client1(self.sidl_ast, None)
 
         except:
             # Invoke the post-mortem debugger
@@ -135,8 +133,7 @@ class Chapel:
         \li do the work
         """
         try:
-            sym = self.build_symbol_table(self.sidl_ast, SymbolTable())
-            self.generate_server1(self.sidl_ast, None, sym)
+            self.generate_server1(self.sidl_ast, None)
 
         except:
             # Invoke the post-mortem debugger
@@ -146,7 +143,7 @@ class Chapel:
 
 
     @matcher(globals(), debug=False)
-    def generate_client1(self, node, data, symbol_table):
+    def generate_client1(self, node, data):
         """
         CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT
         """
@@ -211,24 +208,25 @@ class Chapel:
                                      ': %s__object;'%qname)
                 ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
                 ci.chpl_stub.new_def('class %s {'%chpl_gen(Name))
-                #ci.chpl_stub.new_def(chpl_gen(ir.Var_decl(ir_babel_object_type([], Name), 'self')))
-                ci.chpl_stub.new_def('var self: %s__object;'%qname)
+                chpl_class = ChapelScope(ci.chpl_stub)
+                chpl_class.new_def('var self: %s__object;'%qname)
                 body = [
-                    'var ex: sidl_BaseInterface__object;',
-                    'this.self = %s__createObject(0, ex);'%qname
+                    '  var ex: sidl_BaseInterface__object;',
+                    '  this.self = %s__createObject(0, ex);'%qname
                     ]
-                ci.chpl_stub.new_def(chpl_gen(
+                chpl_gen(
                     (ir.fn_defn, [], ir.pt_void, 
-                               chpl_gen(Name), [], body, 'Constructor')))
+                     Name, [], body, 'Constructor'), chpl_class)
 
-                ci.chpl_stub.new_def(chpl_gen(
+                chpl_gen(
                     (ir.fn_defn, [], ir.pt_void, 
                      chpl_gen(Name),
                      [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                      ['this.self = obj;'],
-                      'Constructor for wrapping an existing object')))
+                      ['  this.self = obj;'],
+                      'Constructor for wrapping an existing object'), chpl_class)
 
-                ci.chpl_stub.new_def(chpl_defs.get_defs())
+                chpl_class.new_def(chpl_defs.get_defs())
+                ci.chpl_stub.new_def(chpl_class)
                 ci.chpl_stub.new_def('}')
                 self.pkg_chpl_stub.new_def(ci.chpl_stub)
 
@@ -347,159 +345,6 @@ class Chapel:
                 raise Exception("match error")
         return data
 
-    @matcher(globals(), debug=False)
-    def build_symbol_table(self, node, symbol_table):
-        """
-        Does two things:
-
-        * Build a hierarchical \c SymbolTable() for \c node.
-
-        * Resolve all scoped ids in definitions to their full name:
-          They are still stored as scoped_id, but they are guaranteed
-          to contain a full name, including all parent
-          namespaces/scopes.
-
-        For the time being, we store the fully scoped name
-        (= \c [package,subpackage,classname] ) for each class
-        in the symbol table.
-        """
-
-        def gen(node):
-            return self.build_symbol_table(node, symbol_table)
-
-        with match(node):
-            if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
-                symbol_table[Name] = \
-                    ( sidl.class_, (sidl.scoped_id, symbol_table.prefix+[Name], []),
-                      Extends, Implements, Invariants, Methods )
-
-            elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
-                symbol_table[Name] = \
-                    ( sidl.interface, (sidl.scoped_id, symbol_table.prefix+[Name], []),
-                      Extends, Invariants, Methods )
-
-            elif (sidl.enum, Name, Items, DocComment):
-                symbol_table[Name] = node
-
-            elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
-                symbol_table[Names[-1]] = \
-                    ( sidl.struct,
-                      (sidl.scoped_id, symbol_table.prefix+Names, []),
-                      Items )
-
-            elif (sidl.package, Name, Version, UserTypes, DocComment):
-                if (self.verbose):
-                    print "Building symbols for package %s" \
-                          %'.'.join(symbol_table.prefix+[Name])
-                    
-                symbol_table[Name] = SymbolTable(symbol_table,
-                                                 symbol_table.prefix+[Name])
-                self.build_symbol_table(UserTypes, symbol_table[[Name]])
-
-            elif (sidl.user_type, Attrs, Cipse):
-                gen(Cipse)
-
-            elif (sidl.file, Requires, Imports, UserTypes):
-                gen(Imports)
-                gen(UserTypes)
-
-            elif A:
-                if (isinstance(A, list)):
-                    for defn in A:
-                        gen(defn)
-                else:
-                    raise Exception("build_symbol_table: NOT HANDLED:"+repr(A))
-
-            else:
-                raise Exception("match error")
-
-        return symbol_table
-
-    @matcher(globals(), debug=False)
-    def resolve_symbols(self, node, symbol_table):
-        """
-        Resolve all scoped ids in types to their full name:
-        They are still stored as scoped_id, but they are guaranteed
-        to contain a full name, including all parent
-        namespaces/scopes.
-        """
-
-        def res(node):
-            return self.resolve_symbols(node, symbol_table)
-
-#        if node <> []:
-#            print node[0], symbol_table
-            
-        with match(node):
-            if (sidl.scoped_id, Names, Ext):
-                return (sidl.scoped_id, symbol_table.get_full_name(Names), Ext)
-
-            elif (sidl.package, Name, Version, UserTypes, DocComment):
-                #if (self.verbose):
-                print "Resolving symbols for package %s" \
-                          %'.'.join(symbol_table.prefix+[Name])
-                return (sidl.package, Name, Version,
-                        self.resolve_symbols(UserTypes, symbol_table._symbol[Name]), DocComment)
-
-            else:
-                if (isinstance(node, list)):
-                    return map(res, node)
-                elif (isinstance(node, tuple)):
-                    return tuple(map(res, node))
-                else:
-                    return node
-
-    @matcher(globals(), debug=False)
-    def consolidate_packages(self, node):
-        """
-        Package definitions need not be physically together in the
-        SIDL file. This function sorts all packages in a user_type and
-        merges adjacent packages of the same name.
-
-        Run this function before building the symbol table!
-        """
-
-        def partition(nodes):
-            packages = {}
-            others = []
-            for n in nodes:
-                with match(n):
-                    if (sidl.user_type, Attr, (sidl.package, Name, Version, UTs, _)):
-                        p = packages.get(Name)
-                        if p: # Merge with other existing package
-                            (ut, attr, (pkg, name, version, usertypes, doc_comment)) = p
-
-                            if Version <> version:
-                                print "** WARNING: Version mismatch in %s:"\
-                                      "'%s' vs. '%s'"% Name, Version, version
-                                
-                            packages[Name] = ut, attr, (pkg, name, version,
-                                                        usertypes+UTs, doc_comment)
-                        else:
-                            packages[Name] = n
-                    else:
-                        others.append(n)
-                
-            return packages.values(), others 
-
-        def cons(node): return self.consolidate_packages(node)
-
-        with match(node):
-            if (sidl.class_, _, _, _, _, _, _):
-                return node # speedup -- cut off search
-
-            else:
-                if (isinstance(node, list)):
-                    pkgs, others = partition(node)
-                    if pkgs <> []: # also a little speedup
-                        return map(cons, pkgs)+others
-                    else:
-                        return map(cons, others)
-                elif (isinstance(node, tuple)):
-                    return tuple(map(cons, node))
-                else:
-                    return node
-
 
     def gen_default_methods(self, symbol_table, name, data):
         """
@@ -615,22 +460,13 @@ class Chapel:
                 symbol_table.prefix, ci.epv.name), 'self')]
             call_self = ["self"]
 
-        # _extern declaration
-        ci.chpl_stub.new_header_def('_extern '+ chpl_gen(
-                (sidl.method,ior_type(symbol_table, Type),
-                            sidl.Method_name(Name+'_stub', Attr), 
-                            Attrs, 
-                            extern_self+Args+
-                            [ir.Arg([], ir.inout, ir_babel_exception_type(), 'ex')],
-                            Except, From, Requires, Ensures, DocComment)))
-
         # Chapel stub
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), "ex"))]
         post_call = []
         call_args = call_self+map(convert_arg, Args)+["ex"]
 
         decl_args = babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
-        decl = ir.Fn_decl([], low(Type), Name+"_stub", decl_args, DocComment)
+        decl = ir.Fn_decl([], low(Type), Name, decl_args, DocComment)
 
         if static:
             # static call
@@ -670,7 +506,9 @@ class Chapel:
         if static:
             chpl_gen(defn, ci.chpl_static_stub)
         else:
-            chpl_gen(defn, ci.chpl_stub)
+            pass
+                #import pdb; pdb.set_trace()
+                #chpl_gen(defn, ci.chpl_stub)
 
         # # output the stub definition
         # stub = self.generate_method_stub(symbol_table, method, ci)
@@ -747,15 +585,15 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
 
     _, _ , _, (_, (_, impl_decl), _) = VCallExpr
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
+    sname = Name+'_stub'
 
     cstub_decl_args = Args #babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
-    cstub_decl = ir.Fn_decl([], Type, Name+"_stub", cstub_decl_args, DocComment)
+    cstub_decl = ir.Fn_decl([], Type, sname, cstub_decl_args, DocComment)
 
     #return method
     pre_call = []
     post_call = []
     call_args = []
-    sname = Name+'_stub'
     names, args = unzip(map(convert_arg, Args))
 
     static = list(member(sidl.static, Attrs))        
@@ -771,11 +609,12 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                                       ir.Call(VCallExpr, call_args)))]
         post_call.append(ir.Stmt(ir.Return("_retval")))
 
-    # Generate the c code into the scope's associated cStub
+    # Generate the C code into the scope's associated cStub
     c_gen([cstub_decl, ir.Fn_defn([], Type, sname, cstub_decl_args,
                                   pre_call+body+post_call, DocComment)],
           scope.cstub)
-        
+    # Chapel _extern declaration
+    scope.get_toplevel().new_header_def('_extern '+ chpl_gen(cstub_decl))
 
 def is_obj_type(symbol_table, typ):
     return typ[0] == sidl.scoped_id and (
@@ -1171,7 +1010,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                           '}')
 
             elif (ir.call, (ir.get_struct_item, _, _, (ir.struct_item, _, Name)), Args):
-                # We can't do a func pointer call in Chapel
+                # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
                 generate_method_stub(scope, node)
                 return gen((ir.call, re.sub('^f_', '', Name+'_stub'), Args))

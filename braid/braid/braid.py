@@ -26,7 +26,7 @@
 # Welcome to Braid/Babel 2!
 
 import argparse, re
-import sidl_parser, codegen, chapel, config, legal
+import sidl_parser, sidl_symbols, codegen, chapel, config, legal
 
 def braid(args):
     for sidl_file in args.sidl_files:
@@ -42,7 +42,9 @@ def braid(args):
         if args.client == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):
-            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast, args), 
+            sidl_ast = inject_sidl_runtime(sidl_ast, args)
+            symtab, sidl_ast = sidl_symbols.resolve(sidl_ast, args.verbose)
+            chapel.Chapel(sidl_file, sidl_ast, symtab, args), 
                           args.makefile, args.verbose).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
@@ -52,7 +54,9 @@ def braid(args):
         if args.server == None:
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.server):
-            chapel.Chapel(sidl_file, inject_sidl_runtime(sidl_ast, args), 
+            sidl_ast = inject_sidl_runtime(sidl_ast, args)
+            symtab, sidl_ast = sidl_symbols.resolve(sidl_ast, args.verbose)
+            chapel.Chapel(sidl_file, sidl_ast, symtab, args), 
                           args.makefile, args.verbose).generate_server()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
@@ -69,16 +73,18 @@ def inject_sidl_runtime(sidl_ast, args):
         exit(1)
 
     if args.verbose:
-        print "resolving symbol `sidl'"
+        print "loading library `sidl'"
     _, _, _, sidl = sidl_parser.parse(config.SIDL_PATH+'/sidl.sidl')
 
     if args.verbose:
-        print "resolving symbol `sidlx'"
+        print "loading library `sidlx'"
     _, _, _, sidlx = sidl_parser.parse(config.SIDL_PATH+'/sidlx.sidl')
 
     # merge in the standard library
     sf, req, imp, defs = sidl_ast
     return sf, req, [sidl, sidlx], defs
+
+
 
 
 if __name__ == '__main__':
