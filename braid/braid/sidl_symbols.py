@@ -22,7 +22,9 @@
 #
 # </pre>
 #
-from patmat import matcher, match, member, unify, expect, Variable, unzip
+from codegen import accepts, returns
+from patmat import matcher, match, member, unify, expect, Variable
+import sidl, types
 
 def resolve(ast, verbose=True):
     """
@@ -32,7 +34,7 @@ def resolve(ast, verbose=True):
     """
     
     ast1 = consolidate_packages(ast)
-    symtab = build_symbol_table(ast1, verbose)
+    symtab = build_symbol_table(ast1, SymbolTable(), verbose)
     ast2 = resolve_symbols(ast1, symtab, verbose)
     return ast2, symtab
 
@@ -121,7 +123,9 @@ def resolve_symbols(node, symbol_table, verbose=True):
 
     with match(node):
         if (sidl.scoped_id, Names, Ext):
-            return (sidl.scoped_id, symbol_table.get_full_name(Names), Ext)
+            prefix, name = symbol_table.get_full_name(Names)
+            #print Names, "->", prefix, name
+            return (sidl.scoped_id, prefix+name, Ext)
 
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
@@ -188,3 +192,78 @@ def consolidate_packages(node):
                 return tuple(map(cons, node))
             else:
                 return node
+
+
+class SymbolTable:
+    """
+    Hierarchical symbol table for SIDL identifiers.
+    \arg prefix  parent package. A list of identifiers
+                 just as they would appear in a \c Scoped_id()
+    """
+    def __init__(self, parent=None, prefix=[]):
+        #print "new scope", self, 'parent =', parent
+        self._parent = parent
+        self._symbol = {}
+        self.prefix = prefix
+
+    def parent(self):
+        if self._parent:
+            return self._parent
+        else:
+            raise Exception("Symbol lookup error: no parent scope")
+
+    def lookup(self, key):
+        """
+        return the entry for \c key or \c None otherwise.
+        """
+        #print self, key, '?'
+        try:
+            return self._symbol[key]
+        except KeyError:
+            return None
+
+    @accepts(types.InstanceType, list)
+    def __getitem__(self, scopes):
+        """
+        perform a recursive symbol lookup of a scoped identifier
+        """
+        n = len(scopes)
+        symbol_table = self
+        # go up (and down again) in the hierarchy
+        # FIXME: Is this the expected behavior for nested packages?
+        sym = symbol_table.lookup(scopes[0])
+        while not sym: # up until we find something
+            symbol_table = symbol_table.parent()
+            sym = symbol_table.lookup(scopes[0])
+
+        for i in range(1, n): # down again to resolve it
+            sym = sym.lookup(scopes[i])
+     
+        if not sym:
+            raise Exception("Symbol lookup error: "+repr(scopes))
+     
+        #print "successful lookup(", symbol_table, ",", scopes, ") =", sym
+        return sym
+
+    def __setitem__(self, key, value):
+        #print self, key, '='#, value
+        self._symbol[key] = value
+
+    def get_full_name(self, scopes):
+        """
+        return a tuple of scopes, name for a scoped id.
+        """
+        n = len(scopes)
+        symbol_table = self
+        # go up (and down again) in the hierarchy
+        while not symbol_table.lookup(scopes[0]): # up until we find something
+            symbol_table = symbol_table.parent()
+
+        #while symbol_table._parent:
+        #    symbol_table = symbol_table.parent()
+        #    scopes.insert(
+        r = symbol_table.prefix+scopes[0:len(scopes)-1], [scopes[-1]]
+        return r
+
+    def __str__(self):
+        return str(self._symbol)

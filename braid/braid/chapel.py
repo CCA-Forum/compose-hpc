@@ -40,8 +40,8 @@ def babel_object_type(package, name):
     """
     if isinstance(name, tuple):
         name = name[1]
-    else: name = [name]
-    return sidl.Scoped_id(package+name+['_object'], "")
+    elif isinstance(name, str): name = [name]
+    return sidl.Scoped_id(package+name, "")
 
 def babel_exception_type():
     """
@@ -55,7 +55,10 @@ def ir_babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Struct(babel_object_type(package, name), [], '')
+    if isinstance(name, tuple):
+        name = name[1]
+    elif isinstance(name, str): name = [name]
+    return ir.Struct(babel_object_type(package+name, '_object'), [], '')
 
 def ir_babel_exception_type():
     """
@@ -107,6 +110,7 @@ class Chapel:
         \param verbose         if \c True, print extra messages
         """
         self.sidl_ast = sidl_sexpr
+        self.symbol_table = symbol_table
         self.sidl_file = filename
         self.create_makefile = create_makefile
         self.verbose = verbose
@@ -118,7 +122,7 @@ class Chapel:
         \li do the work
         """
         try:
-            self.generate_client1(self.sidl_ast, None)
+            self.generate_client1(self.sidl_ast, None, self.symbol_table)
 
         except:
             # Invoke the post-mortem debugger
@@ -133,7 +137,7 @@ class Chapel:
         \li do the work
         """
         try:
-            self.generate_server1(self.sidl_ast, None)
+            self.generate_server1(self.sidl_ast, None, self.symbol_table)
 
         except:
             # Invoke the post-mortem debugger
@@ -143,7 +147,7 @@ class Chapel:
 
 
     @matcher(globals(), debug=False)
-    def generate_client1(self, node, data):
+    def generate_client1(self, node, data, symbol_table):
         """
         CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT
         """
@@ -467,7 +471,6 @@ class Chapel:
 
         decl_args = babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
         decl = ir.Fn_decl([], low(Type), Name, decl_args, DocComment)
-
         if static:
             # static call
             callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
@@ -506,12 +509,10 @@ class Chapel:
         if static:
             chpl_gen(defn, ci.chpl_static_stub)
         else:
-            pass
-                #import pdb; pdb.set_trace()
-                #chpl_gen(defn, ci.chpl_stub)
+            chpl_gen(defn, ci.chpl_stub)
 
         # # output the stub definition
-        # stub = self.generate_method_stub(symbol_table, method, ci)
+        # stub = self.generate_method_stub(self.symbol_table, method, ci)
         # c_gen(stub, ci.stub)
 
 
@@ -532,9 +533,6 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     """
     Generate the stub for a specific method in C (cStub).
     """
-    def low(sidl_term):
-        return lower_ir(symbol_table, sidl_term)
-
     def convert_arg((arg, attrs, mode, typ, name)):
         """
         Extract name and generate argument conversions
@@ -573,13 +571,18 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
 
             pre_call.append((ir.stmt, "char _arg_%s"%name))
             if mode <> sidl.out:
-                pre_call.append((ir.stmt, "_arg_+{n} = (int){p}{n}[0]"
+                pre_call.append((ir.stmt, "_arg_{n} = (int){p}{n}[0]"
                                  .format(n=name, p=deref)))
 
             if mode <> sidl.in_:
                 post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
                                   .format(p=deref, n=name)))
             call_name = ref+"_arg_"+name
+
+        # SELF
+        # FIXME!!! (why is this ** in the first place?)
+        elif name == 'self':
+            call_name = '*self'
 
         return call_name, (arg, attrs, mode, typ, name)
 
@@ -593,12 +596,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     #return method
     pre_call = []
     post_call = []
-    call_args = []
     names, args = unzip(map(convert_arg, Args))
+    call_args = names
 
     static = list(member(sidl.static, Attrs))        
-    if not static: call_args.append("*self")
-    call_args += names+["ex"]
 
     if Type == sidl.void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
@@ -614,7 +615,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                                   pre_call+body+post_call, DocComment)],
           scope.cstub)
     # Chapel _extern declaration
-    scope.get_toplevel().new_header_def('_extern '+ chpl_gen(cstub_decl))
+    scope.get_toplevel().new_header_def('_extern '+chpl_gen(cstub_decl, ChapelScope()))
 
 def is_obj_type(symbol_table, typ):
     return typ[0] == sidl.scoped_id and (
@@ -687,80 +688,6 @@ def lower_type_ir(symbol_table, sidl_type):
             return ir_babel_object_type([], Name)
         else:
             raise Exception("Not implemented")
-
-class SymbolTable:
-    """
-    Hierarchical symbol table for SIDL identifiers.
-    \arg prefix  parent package. A list of identifiers
-                 just as they would appear in a \c Scoped_id()
-    """
-    def __init__(self, parent=None, prefix=[]):
-        #print "new scope", self, 'parent =', parent
-        self._parent = parent
-        self._symbol = {}
-        self.prefix = prefix
-
-    def parent(self):
-        if self._parent:
-            return self._parent
-        else:
-            raise Exception("Symbol lookup error: no parent scope")
-
-    def lookup(self, key):
-        """
-        return the entry for \c key or \c None otherwise.
-        """
-        #print self, key, '?'
-        try:
-            return self._symbol[key]
-        except KeyError:
-            return None
-
-    @accepts(types.InstanceType, list)
-    def __getitem__(self, scopes):
-        """
-        perform a recursive symbol lookup of a scoped identifier
-        """
-        n = len(scopes)
-        symbol_table = self
-        # go up (and down again) in the hierarchy
-        # FIXME: Is this the expected behavior for nested packages?
-        sym = symbol_table.lookup(scopes[0])
-        while not sym: # up until we find something
-            symbol_table = symbol_table.parent()
-            sym = symbol_table.lookup(scopes[0])
-     
-        for i in range(1, n-1): # down again to resolve it
-            sym = sym.lookup(scopes[i])
-     
-        if not sym:
-            raise Exception("Symbol lookup error: "+repr(scopes))
-     
-        #print "successful lookup(", symbol_table, ",", scopes, ") =", sym
-        return sym
-
-    def __setitem__(self, key, value):
-        #print self, key, '='#, value
-        self._symbol[key] = value
-
-    def get_full_name(self, scopes):
-        """
-        return a tuple of scopes, name for a scoped id.
-        """
-        n = len(scopes)
-        symbol_table = self
-        # go up (and down again) in the hierarchy
-        while not symbol_table.lookup(scopes[0]): # up until we find something
-            symbol_table = symbol_table.parent()
-
-        #while symbol_table._parent:
-        #    symbol_table = symbol_table.parent()
-        #    scopes.insert(
-        r = symbol_table.prefix+scopes[0:len(scopes)-1], scopes[-1]
-        return r
-
-    def __str__(self):
-        return str(self._symbol)
 
 class EPV:
     """
@@ -916,10 +843,14 @@ class ChapelLine(ChapelFile):
     def __str__(self):
         return self._sep.join(self._header+self._defs)
 
-def chpl_gen(ir, scope=ChapelScope()):
+def chpl_gen(ir, scope=None):
+    if scope == None:
+        scope = ChapelScope()
     return str(ChapelCodeGenerator().generate(ir, scope))
 
-def c_gen(ir, scope=CFile()):
+def c_gen(ir, scope=None):
+    if scope == None:
+        scope = CFile()
     return CCodeGenerator().generate(ir, scope)
 
 class ChapelCodeGenerator(ClikeCodeGenerator):

@@ -19,6 +19,7 @@ PYTHON_SOURCES = \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
+	braid/sidl_symbols.py \
 	braid/sidl_token.py \
 	braid/splicer.py
 
@@ -114,7 +115,7 @@ braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
 
 braid/%.py: $(srcdir)/braid/%.def
-	@echo "  GRAMOLA" $<
+	@echo "  GEN" $@
 	@if [ -x $(SWIPL) ]; then \
           egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
 	  echo '#\verbatim' >>$@ && \

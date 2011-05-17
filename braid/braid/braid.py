@@ -43,8 +43,8 @@ def braid(args):
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
-            symtab, sidl_ast = sidl_symbols.resolve(sidl_ast, args.verbose)
-            chapel.Chapel(sidl_file, sidl_ast, symtab, args), 
+            sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
+            chapel.Chapel(sidl_file, sidl_ast, symtab,
                           args.makefile, args.verbose).generate_client()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
@@ -55,8 +55,8 @@ def braid(args):
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.server):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
-            symtab, sidl_ast = sidl_symbols.resolve(sidl_ast, args.verbose)
-            chapel.Chapel(sidl_file, sidl_ast, symtab, args), 
+            sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
+            chapel.Chapel(sidl_file, sidl_ast, symtab,
                           args.makefile, args.verbose).generate_server()
         else:
             print "**ERROR: Unknown language `%s'." % args.client
