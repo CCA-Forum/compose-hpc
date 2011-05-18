@@ -115,7 +115,8 @@ def generate(language, ir_code, debug=False):
 
 def generator(fn):
     """
-    sanity-check decorator for generator functions
+    decorator for generator functions
+    sanity-check of output
     """
     def wrapped(*args):
         r = fn(*args)
@@ -374,25 +375,39 @@ class GenericCodeGenerator(object):
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
-            elif (A):        
-                if (isinstance(A, list)):
-                    for defn in A:
-                        scope.new_def(gen(defn))
-                elif (isinstance(A, int)):   return str(A)
-                elif (isinstance(A, float)): return str(A)
-                elif (isinstance(A, complex)): return str(A)
-                elif (isinstance(A, long)): return str(A)
-                elif (isinstance(A, str)): 
-                    #print "FIXME: string `%s' encountered. Fix your generator"%A
-                    return A
-                elif (isinstance(A, tuple)):
-                    raise Exception("not implemented: "+repr(A))
-                elif (A == None):
-                    raise Exception("None encountered "+repr(A))
-                else:
-                    raise Exception("unexpected type"+repr(A))
-            else: raise Exception("match error: "+repr(node))
+            else: raise Exception("unexpected type"+repr(node))
         return scope
+
+    def generate_non_tuple(self, node, scope):
+        """
+        This used to be part of GenericCodeGenerator.generate() but
+        was moved into a seperate function for performance
+        reasons. The idea is to put a
+        <code>
+        val = self.generate_non_tuple(node, scope)
+        if val:
+          return val
+        <code>
+        before the main with match() clause in the generator function.
+        """
+        if (isinstance(node, tuple)):
+            return None
+            
+        if (isinstance(node, list)):
+            for defn in node:
+                scope.new_def(self.generate(defn, scope))
+            return scope
+
+        elif (isinstance(node, int)):     return str(node)
+        elif (isinstance(node, float)):   return str(node)
+        elif (isinstance(node, complex)): return str(node)
+        elif (isinstance(node, long)):    return str(node)
+        elif (isinstance(node, str)): 
+            #print "FIXME: string `%s' encountered. Fix your generator"%node
+            return node
+        else:
+            raise Exception("unexpected type"+repr(node))
+        
 
     def gen_in_scope(self, defs, child_scope):
         """
@@ -576,6 +591,10 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             new_def(suffix)
             return scope
 
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
+        
         with match(node):
             if (ir.return_, Expr):
                 return "retval = %s" % gen(Expr)
@@ -771,6 +790,10 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             # print "pre_def", s
             return scope.pre_def(s)
 
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
+
         with match(node):
             if (ir.stmt, Expr):
                 return scope.new_def(gen(Expr)+'\n')
@@ -879,6 +902,10 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
         def pre_def(s):
             # print "pre_def", s
             return scope.pre_def(s)
+
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
 
         with match(node):
             if ('return', Expr):
@@ -1198,6 +1225,10 @@ class CCodeGenerator(ClikeCodeGenerator):
             # print "pre_def", s
             return scope.pre_def(s)
 
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
+
         with match(node):
             if (ir.primitive_type, Name): return self.type_map[Name]
             elif (ir.const, Type): return "const %s"%gen(Type)
@@ -1352,6 +1383,10 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                     s.new_header_def(decl)
                 return tmp
 
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
+
         with match(node):
             if   (ir.primitive_type, Type): return type_map[Type]
 
@@ -1464,6 +1499,10 @@ class PythonCodeGenerator(GenericCodeGenerator):
             return new_def(prefix+
                            str(self.generate(body, block))+
                            suffix)
+
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
 
         with match(node):
             if (ir.fn_defn, Attrs, Typ, Name, Args, Body):

@@ -581,8 +581,12 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
 
         # SELF
         # FIXME!!! (why is this ** in the first place?)
+        # cf. babel_stub_args
         elif name == 'self':
+            typ = typ[1]
             call_name = '*self'
+        elif typ[0] == ir.pointer_type: # ex
+            typ = typ[1]
 
         return call_name, (arg, attrs, mode, typ, name)
 
@@ -590,18 +594,16 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
     sname = Name+'_stub'
 
-    cstub_decl_args = Args #babel_stub_args(Attrs, Args, symbol_table, ci.epv.name)
-    cstub_decl = ir.Fn_decl([], Type, sname, cstub_decl_args, DocComment)
-
     #return method
     pre_call = []
     post_call = []
-    names, args = unzip(map(convert_arg, Args))
-    call_args = names
+    call_args, cstub_decl_args = unzip(map(convert_arg, Args))
+    cstub_decl = ir.Fn_decl([], Type, sname, cstub_decl_args, DocComment)
+
 
     static = list(member(sidl.static, Attrs))        
 
-    if Type == sidl.void:
+    if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
         pre_call.append(ir.Stmt(ir.Var_decl(Type, "_retval")))
@@ -917,15 +919,19 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                    re.split('\n\s*', doc_comment)
                                    )+sep+' */'+sep
 
+        val = self.generate_non_tuple(node, scope)
+        if val:
+            return val
+
         with match(node):
-            if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                new_def('%sproc %s(%s)'%(gen_comment(DocComment), gen(Name), gen_comma_sep(Args)))
+            # if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
+            #     new_def('%sproc %s(%s)'%(gen_comment(DocComment), gen(Name), gen_comma_sep(Args)))
 
-            elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-                new_def('%sproc %s(%s): %s'%(gen_comment(DocComment),
-                                            gen(Name), gen_comma_sep(Args), gen(Type)))
+            # elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
+            #     new_def('%sproc %s(%s): %s'%(gen_comment(DocComment),
+            #                                 gen(Name), gen_comma_sep(Args), gen(Type)))
 
-            elif (ir.fn_defn, Attrs, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
+            if (ir.fn_defn, Attrs, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s) {'%
                           (gen_comment(DocComment), 
                            gen(Name), gen_comma_sep(Args)),
@@ -940,6 +946,13 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                           Body,
                           '}')
 
+            elif (ir.fn_decl, Attrs, (ir.primitive_type, 'void'), Name, Args, DocComment):
+                new_def('proc %s(%s)'% (gen(Name), gen_comma_sep(Args)))
+
+            elif (ir.fn_decl, Attrs, Type, Name, Args, DocComment):
+                new_def('proc %s(%s): %s {'%
+                        (gen(Name), gen_comma_sep(Args), gen(Type)))
+
             elif (ir.call, (ir.get_struct_item, _, _, (ir.struct_item, _, Name)), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
@@ -948,6 +961,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.new, Type, Args):
                 return 'new %s(%s)'%(gen(Type), gen_comma_sep(Args))
+
+            elif (ir.const, Type):
+                return '/*FIXME: CONST*/'+gen(Type)
 
             elif (sidl.arg, Attrs, Mode, Type, Name):
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
