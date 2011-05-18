@@ -14,7 +14,7 @@
 # coloring and indentation, we borrowed the \c with keyword. It still
 # kind of breaks flymake/pylint.
 #
-# \subsection example Example
+# \section example Example
 #
 # \code
 # @matcher(globals()) def demo(sexp):

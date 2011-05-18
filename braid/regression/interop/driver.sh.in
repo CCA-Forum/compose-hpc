@@ -45,6 +45,7 @@ if [ ! -e output/libC/Makefile ]; then
 fi
 
 echo "--setup directory, copy over babel regression test"
+mkdir -p $name
 cd $name                                                ||exit 1
 cp -u -r ../@srcdir@/$name/runChapel .			||exit 1
 cp -u -r @BABEL_SRCDIR@/regression/$name/libC .		||exit 1

@@ -43,7 +43,7 @@ endif
 
 .PHONY: doc
 doc:
-	@echo "  DOXYGEN"
+	@echo "  GEN [doxygen documentation]"
 	@doxygen >/dev/null || echo "Doxygen not found; SKIPPING"
 	$(MAKE) -j1 -C doc/latex >/dev/null
 doc/html/index.html:

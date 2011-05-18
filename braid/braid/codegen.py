@@ -387,7 +387,7 @@ class GenericCodeGenerator(object):
         val = self.generate_non_tuple(node, scope)
         if val <> None:
           return val
-        <code>
+        </code>
         before the main with match() clause in the generator function.
         """
         if (isinstance(node, tuple)):
