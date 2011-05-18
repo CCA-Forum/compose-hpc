@@ -554,7 +554,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         """
         call_name = name
         deref = ref = ''
-        if mode <> sidl.in_:
+        if mode <> sidl.in_ and name <> '_retval':
             deref = '*'
             ref = '&'
 
@@ -590,6 +590,8 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                                  .format(n=name, p=deref)))
 
             if mode <> sidl.in_:
+                post_call.append((ir.stmt, "{p}{n} = calloc(1,2) /*FIXME*/"
+                                  .format(p=deref, n=name)))
                 post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
                                   .format(p=deref, n=name)))
             call_name = ref+"_arg_"+name
@@ -608,11 +610,13 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
     sname = Name+'_stub'
 
-    #return method
     pre_call = []
     post_call = []
     call_args, cstub_decl_args = unzip(map(convert_arg, Args))
     cstub_decl = ir.Fn_decl([], Type, sname, cstub_decl_args, DocComment)
+
+    # return value type conversion -- treat it as an out argument
+    retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
 
 
     static = list(member(sidl.static, Attrs))        
@@ -620,11 +624,15 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
-        pre_call.append(ir.Stmt(ir.Var_decl(Type, "_retval")))
+        if Type == sidl.pt_char:
+            # FIXME use a retval argument instead:
+            pre_call.append(ir.Stmt(ir.Var_decl(Type, '*_retval = calloc(1,2) /*FIXME*/')))
+        else:
+            pre_call.append(ir.Stmt(ir.Var_decl(Type, '_retval')))
         #print "FIXME do retval -> arg conversion"
-        body = [ir.Stmt(ir.Assignment("_retval",
+        body = [ir.Stmt(ir.Assignment(retval_expr,
                                       ir.Call(VCallExpr, call_args)))]
-        post_call.append(ir.Stmt(ir.Return("_retval")))
+        post_call.append(ir.Stmt(ir.Return('_retval')))
 
     # Generate the C code into the scope's associated cStub
     c_gen([cstub_decl,
@@ -768,7 +776,7 @@ def babel_args(attrs, args, symbol_table, class_name):
                     ir_babel_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], sidl.in_, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
+        [ir.Arg([], sidl.inout, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 def babel_stub_args(attrs, args, symbol_table, class_name):
@@ -782,7 +790,7 @@ def babel_stub_args(attrs, args, symbol_table, class_name):
             ir.Arg([], sidl.in_, ir.Pointer_type(
                 ir_babel_object_type(symbol_table.prefix, class_name)), 'self')]
     arg_ex = \
-        [ir.Arg([], sidl.in_, ir.Pointer_type(ir.Pointer_type(ir_babel_exception_type())), 'ex')]
+        [ir.Arg([], sidl.inout, ir.Pointer_type(ir.Pointer_type(ir_babel_exception_type())), 'ex')]
     return arg_self+args+arg_ex
 
 
