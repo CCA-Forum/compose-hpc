@@ -385,7 +385,7 @@ class GenericCodeGenerator(object):
         reasons. The idea is to put a
         <code>
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
           return val
         <code>
         before the main with match() clause in the generator function.
@@ -592,7 +592,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             return scope
 
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
             return val
         
         with match(node):
@@ -791,7 +791,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             return scope.pre_def(s)
 
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
             return val
 
         with match(node):
@@ -904,7 +904,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
             return scope.pre_def(s)
 
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
             return val
 
         with match(node):
@@ -1145,6 +1145,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.var_decl, Type, Name): 
                 return declare_var(gen(Type), gen(Name))
 
+            elif (ir.call, (ir.deref, Name), Args): 
+                return '(*%s)(%s)' % (gen(Name), gen_comma_sep(Args))
+
             elif (ir.call, Name, Args): 
                 return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
@@ -1226,7 +1229,7 @@ class CCodeGenerator(ClikeCodeGenerator):
             return scope.pre_def(s)
 
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
             return val
 
         with match(node):
@@ -1244,10 +1247,10 @@ class CCodeGenerator(ClikeCodeGenerator):
 
             #FIXME: add a SIDL->C step that rewrites the SIDL struct accesses to use struct pointers
 
-            elif (ir.get_struct_item, _, StructName, Item):
+            elif (ir.get_struct_item, _, StructName, (ir.struct_item, _, Item)):
                 return gen(StructName)+'.'+gen(Item)
 
-            elif (ir.set_struct_item, _, StructName, Item, Value):
+            elif (ir.set_struct_item, _, StructName, (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.scoped_id, Names, Ext):
@@ -1384,7 +1387,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                 return tmp
 
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
             return val
 
         with match(node):
@@ -1501,7 +1504,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
                            suffix)
 
         val = self.generate_non_tuple(node, scope)
-        if val:
+        if val <> None:
             return val
 
         with match(node):
