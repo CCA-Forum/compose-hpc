@@ -1263,6 +1263,9 @@ class CCodeGenerator(ClikeCodeGenerator):
             elif (ir.struct, Name, _, DocComment): 
                 return "struct %s"%gen(Name)
 
+            elif (ir.sign_extend, Bits, Expr):
+                return "(int%d_t)%s"%(Bits, gen(Expr))
+
             elif (ir.import_, Name): 
                 return scope.new_global_def('#include <%s.h>'%Name)
 

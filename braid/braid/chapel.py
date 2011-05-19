@@ -190,6 +190,7 @@ class Chapel:
                 typedefs = CFile();
                 typedefs._header = [
                     '// Package header (enums, etc...)',
+                    '#include <stdint.h>',
                     '#include <%s.h>' % '_'.join(symbol_table.prefix),
                     '#include <%s_IOR.h>'%Name,
                     'typedef struct %s__object _%s__object;'%(qname, qname),
@@ -458,31 +459,21 @@ class Chapel:
             elif typ[0] == sidl.scoped_id:
                 # Symbol
                 ctype = symbol_table[typ[1]]
-            
+
             elif typ == sidl.void:
                 ctype = ir.pt_void
-
+                
             return cname, (arg, attrs, mode, ctype, name)
 
+        # Chapel stub
         (Method, Type, (_,  Name, Attr), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
         static = list(member(sidl.static, Attrs))
 
-        if static:
-            extern_self = []
-            call_self = []
-        else:
-            ci.epv.add_method(method)
-            extern_self = [ir.Arg([], ir.inout, ir_babel_object_type(
-                symbol_table.prefix, ci.epv.name), 'self')]
-            call_self = ["self"]
-
-        # Chapel stub
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
         call_args, decl_args = unzip(map(convert_arg, Args))
-        call_args = call_self + call_args + ['ex']
         return_expr = []
         return_stmt = []
 
@@ -493,6 +484,31 @@ class Chapel:
         decl = ir.Fn_decl([], ctype, Name, decl_args, DocComment)
 
         if static:
+            extern_self = []
+            call_self = []
+        else:
+            ci.epv.add_method(method)
+            extern_self = [ir.Arg([], ir.inout, ir_babel_object_type(
+                symbol_table.prefix, ci.epv.name), 'self')]
+            call_self = ["self"]
+
+        call_args = call_self + call_args + ['ex']
+
+        if static:
+            # FIXME:
+            # here we assume that static implies final -- is this true?
+
+            # final : Final methods are the opposite of virtual. While
+            # they may still be inherited by child classes, they
+            # cannot be overridden.
+
+            # static : Static methods are sometimes called "class
+            # methods" because they are part of a class, but do not
+            # depend on an object instance. In non-OO languages, this
+            # means that the typical first argument of an instance is
+            # removed. In OO languages, these are mapped directly to
+            # an Java or C++ static method.
+            
             # static call
             callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
 
@@ -538,6 +554,7 @@ class Chapel:
         ci.ior.genh(ir.Import('_'.join(ci.epv.symbol_table.prefix)))
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
+        ci.ior.genh(ir.Import('stdint'))
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
@@ -595,6 +612,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                 post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
                                   .format(p=deref, n=name)))
             call_name = ref+"_arg_"+name
+
+        elif typ[0] == sidl.enum:
+            call_name = ir.Sign_extend(64, name)
 
         # SELF
         # cf. babel_stub_args
@@ -704,8 +724,8 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
-        elif (sidl.enum, _, _, _):               return sidl_type # identical
-        elif (sidl.enumerator, _):               return sidl_type
+        elif (sidl.enum, _, _, _):               return ir.Typedef_type('int64_t')
+        elif (sidl.enumerator, _):               return sidl_type # identical
         elif (sidl.enumerator, _, _):            return sidl_type
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)

@@ -59,6 +59,7 @@
          | assignment(VarRefExpr, Expr)
 	 | infix_expr(Bin_op, Expr, Expr)
 	 | prefix_expr(Un_op, Expr)
+	 | sign_extend(Bits, Expr)
 	 ),
   Var_decl = var_decl(Type, Id),
   Var_defn = var_defn(Type, Id),
@@ -105,6 +106,7 @@
   Extension = 'STR',
   Id = 'STR',
   DocComment='STR',
+  Bits = 'INT',
   Comment = comment('STR')
 ].
 % ## ir primitive types

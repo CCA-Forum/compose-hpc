@@ -116,7 +116,7 @@ braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
 
 braid/%.py: $(srcdir)/braid/%.def
 	@echo "  GEN" $@
-	@if [ -x $(SWIPL) ]; then \
+	@if [ -n "$(SWIPL)" ]; then \
           egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
 	  echo '#\verbatim' >>$@ && \
 	  egrep  -v '^%' $< | sed -e 's/\(.*\)/# \1/g' >>$@ && \
