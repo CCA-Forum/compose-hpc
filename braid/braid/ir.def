@@ -36,11 +36,11 @@
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
-  _File = [ Fn_decl | Fn_defn
+  _File = [ (Fn_decl | Fn_defn
 	  | Var_decl | Var_defn
 	  | Import
 	  | type_decl(Type)
-	  ],
+	  ) ],
   Import = import(Id),
   Stmt = (stmt(Do_while | While | break | Return | If | Goto | Expr) | Comment),
   Return = return(Expr),

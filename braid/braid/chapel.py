@@ -1111,8 +1111,8 @@ CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 CHPL=chpl
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/linux64 -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
-CHPL_LDFLAGS=-L$(CHAPEL_ROOT)/lib/linux64/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads $(CHAPEL_ROOT)/lib/linux64/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
+CHPL_LDFLAGS=-L$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads $(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
 # most of the rest of the file should not require editing
 
 ifeq ($(IMPLSRCS),)
