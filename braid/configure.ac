@@ -3,8 +3,8 @@ AC_INIT([Braid],[0.2.1],[components@llnl.gov],
         [braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
 AC_CONFIG_MACRO_DIR([m4])
-CCA_DIAGNOSE_INIT(toolcheck.log)
 AC_CONFIG_AUX_DIR([config])
+CCA_DIAGNOSE_INIT(toolcheck.log)
 AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE([foreign no-dependencies no-installinfo no-installman 
@@ -13,7 +13,6 @@ AM_INIT_AUTOMAKE([foreign no-dependencies no-installinfo no-installman
 dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
 AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
-AM_MAINTAINER_MODE
 
 dnl AC_CONFIG_HEADERS(runtime/sidl/ignore_me.h)
 AC_DEFINE([BRAID_VERSION_HEX],[0x00021000],

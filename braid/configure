@@ -676,9 +676,6 @@ ENABLE_DOCUMENTATION_FALSE
 ENABLE_DOCUMENTATION_TRUE
 ENABLE_REGRESSION_FALSE
 ENABLE_REGRESSION_TRUE
-MAINT
-MAINTAINER_MODE_FALSE
-MAINTAINER_MODE_TRUE
 AM_BACKSLASH
 AM_DEFAULT_VERBOSITY
 am__untar
@@ -758,7 +755,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_silent_rules
-enable_maintainer_mode
 enable_regression
 enable_documentation
 with_libxml2
@@ -1407,8 +1403,6 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-silent-rules          less verbose build output (undo: `make V=1')
   --disable-silent-rules         verbose build output (undo: `make V=0')
-  --enable-maintainer-mode  enable make rules and dependencies not useful
-			  (and sometimes confusing) to the casual installer
   --enable-regression     enable regression test suite [default=yes]
   --enable-documentation  enable documentation generation [default=yes]
   --enable-python[=PYTHON]
@@ -2138,6 +2132,29 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+ac_aux_dir=
+for ac_dir in config "$srcdir"/config; do
+  for ac_t in install-sh install.sh shtool; do
+    if test -f "$ac_dir/$ac_t"; then
+      ac_aux_dir=$ac_dir
+      ac_install_sh="$ac_aux_dir/$ac_t -c"
+      break 2
+    fi
+  done
+done
+if test -z "$ac_aux_dir"; then
+  as_fn_error "cannot find install-sh, install.sh, or shtool in config \"$srcdir\"/config" "$LINENO" 5
+fi
+
+# These three variables are undocumented and unsupported,
+# and are intended to be withdrawn in a future Autoconf release.
+# They can cause serious problems if a builder's source tree is in a directory
+# whose full name contains unusual characters.
+ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
+ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
+ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
+
+
 
 
 if test "xtoolcheck.log" = "x"; then
@@ -2161,29 +2178,6 @@ diagnose_XML2=unchecked
 diagnose_PTHREAD_LIBS=unchecked
 diagnose_LIBTOOL=unchecked
 EOF
-
-
-ac_aux_dir=
-for ac_dir in config "$srcdir"/config; do
-  for ac_t in install-sh install.sh shtool; do
-    if test -f "$ac_dir/$ac_t"; then
-      ac_aux_dir=$ac_dir
-      ac_install_sh="$ac_aux_dir/$ac_t -c"
-      break 2
-    fi
-  done
-done
-if test -z "$ac_aux_dir"; then
-  as_fn_error "cannot find install-sh, install.sh, or shtool in config \"$srcdir\"/config" "$LINENO" 5
-fi
-
-# These three variables are undocumented and unsupported,
-# and are intended to be withdrawn in a future Autoconf release.
-# They can cause serious problems if a builder's source tree is in a directory
-# whose full name contains unusual characters.
-ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
-ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
-ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
 # Make sure we can run config.sub.
@@ -2798,29 +2792,6 @@ no)  AM_DEFAULT_VERBOSITY=1;;
 *)   AM_DEFAULT_VERBOSITY=0;;
 esac
 AM_BACKSLASH='\'
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
-$as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
-    # Check whether --enable-maintainer-mode was given.
-if test "${enable_maintainer_mode+set}" = set; then :
-  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
-else
-  USE_MAINTAINER_MODE=no
-fi
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
-$as_echo "$USE_MAINTAINER_MODE" >&6; }
-   if test $USE_MAINTAINER_MODE = yes; then
-  MAINTAINER_MODE_TRUE=
-  MAINTAINER_MODE_FALSE='#'
-else
-  MAINTAINER_MODE_TRUE='#'
-  MAINTAINER_MODE_FALSE=
-fi
-
-  MAINT=$MAINTAINER_MODE_TRUE
-
 
 
 
@@ -13272,10 +13243,6 @@ else
   am__EXEEXT_FALSE=
 fi
 
-if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
-  as_fn_error "conditional \"MAINTAINER_MODE\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
 if test -z "${ENABLE_REGRESSION_TRUE}" && test -z "${ENABLE_REGRESSION_FALSE}"; then
   as_fn_error "conditional \"ENABLE_REGRESSION\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5

@@ -1,4 +1,4 @@
-ACLOCAL_AMFLAGS=-I m4
+ACLOCAL_AMFLAGS = -I m4
 
 python_PYTHON= 
 nobase_python_PYTHON= 
