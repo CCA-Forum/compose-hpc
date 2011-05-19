@@ -796,7 +796,7 @@ def babel_args(attrs, args, symbol_table, class_name):
                     ir_babel_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
+        [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 def babel_stub_args(attrs, args, symbol_table, class_name):
@@ -810,7 +810,7 @@ def babel_stub_args(attrs, args, symbol_table, class_name):
             ir.Arg([], sidl.in_, ir.Pointer_type(
                 ir_babel_object_type(symbol_table.prefix, class_name)), 'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir.Pointer_type(ir.Pointer_type(ir_babel_exception_type())), 'ex')]
+        [ir.Arg([], sidl.inout, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
     return arg_self+args+arg_ex
 
 
