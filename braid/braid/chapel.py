@@ -907,9 +907,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'double':    "real(64)",
         'fcomplex':  "complex(64)",
         'float':     "real(32)",
-        'int':       "int",
-        'long':      "int",
-        'opaque':    "int",
+        'int':       "int(32)",
+        'long':      "int(64)",
+        'opaque':    "int(64)",
         'string':    "string"
         }
 
