@@ -86,6 +86,7 @@ def write_to(filename, string):
 
 
 class Chapel:
+    
     class ClassInfo:
         """
         Holder object for the code generation scopes and other data
