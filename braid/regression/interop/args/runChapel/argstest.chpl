@@ -37,7 +37,9 @@ proc run_part(result: bool)
   delete obj;
 }
 
-{ // char
+{ 
+  // char
+  writeln("Start: Testing char (string in chapel)");
   var c_out: string;
   var c_inout: string = 'A';
   var obj: Args.Basic = new Args.Basic();
@@ -49,36 +51,50 @@ proc run_part(result: bool)
   init_part(); run_part( obj.passeverywherechar( '3', c_out, c_inout ) == '3' &&
 			 c_out == '3' && c_inout == 'A' );
   delete obj;
+  writeln("End: Testing char (string in chapel)");
 }
 
+{ 
+  // int 
+  writeln("Start: Testing 32-bit int");
+  
+  var i32_out: int(32);
+  var i32_inout: int(32) = 3;
+  
+  var obj: Args.Basic = new Args.Basic();
 
-  /* { // int  */
-  /*   int32_t out; */
-  /*   int32_t inout = 3; */
-  /*   Args::Basic obj = makeObject(); */
- 
-  /*   init_part(); run_part( obj.returnbackint( ) == 3 ); */
-  /*   init_part(); run_part( obj.passinint( 3 ) == true ); */
-  /*   init_part(); run_part( obj.passoutint( out ) == true && out == 3 ); */
-  /*   init_part(); run_part( obj.passinoutint( inout ) == true && inout == -3 ); */
-  /*   init_part(); run_part( obj.passeverywhereint( 3, out, inout ) == 3 && */
-  /* 	      out == 3 && inout == 3 ); */
-  /* } */
+  init_part(); run_part( obj.returnbackint( ) == 3 );
+  init_part(); run_part( obj.passinint( 3 ) == true );
+  init_part(); run_part( obj.passoutint( i32_out ) == true && i32_out == 3 );
+  init_part(); run_part( obj.passinoutint( i32_inout ) == true && i32_inout == -3 );
+  init_part(); run_part( obj.passeverywhereint( 3, i32_out, i32_inout ) == 3 &&
+	      i32_out == 3 && i32_inout == 3 );
+  
+  writeln("End: Testing 32-bit int");
+}
 
+{ 
+  // long 
+  writeln("Start: Testing 64-bit int");
+  
+  var THREE_POS: int(64) = 3;
+  var THREE_NEG: int(64) = -3;
 
-  /* { // long  */
-  /*   int64_t out; */
-  /*   int64_t inout = 3L; */
-  /*   Args::Basic obj = makeObject(); */
- 
-  /*   init_part(); run_part( obj.returnbacklong( ) == 3L ); */
-  /*   init_part(); run_part( obj.passinlong( 3L ) == true ); */
-  /*   init_part(); run_part( obj.passoutlong( out ) == true && out == 3L ); */
-  /*   init_part(); run_part( obj.passinoutlong( inout ) == true && inout == -3L ); */
-  /*   init_part(); run_part( obj.passeverywherelong( 3L, out, inout ) == 3L && */
-  /* 	      out == 3L && inout == 3L ); */
-  /* } */
+  var i64_in: int(64) = 3;
+  var i64_out: int(64);
+  var i64_inout: int(64) = 3;
+  
+  var obj: Args.Basic = new Args.Basic();
 
+  writeln('returnbacklong'); init_part(); run_part( obj.returnbacklong( ) == THREE_POS );
+  writeln('passinlong'); init_part(); run_part( obj.passinlong( i64_in ) == true );
+  writeln('passoutlong'); init_part(); run_part( obj.passoutlong( i64_out ) == true && i64_out == THREE_POS );
+  writeln('passinoutlong'); init_part(); run_part( obj.passinoutlong( i64_inout ) == true && i64_inout == THREE_NEG );
+  writeln('passeverywherelong'); init_part(); run_part( obj.passeverywherelong( 3, i64_out, i64_inout ) == THREE_POS &&
+	      i64_out == THREE_POS && i64_inout == THREE_POS );
+  
+  writeln("End: Testing 64-bit int");
+}
 
   /* { // float  */
   /*   ostringstream buf; */

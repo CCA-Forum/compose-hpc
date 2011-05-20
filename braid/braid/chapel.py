@@ -86,6 +86,7 @@ def write_to(filename, string):
 
 
 class Chapel:
+    
     class ClassInfo:
         """
         Holder object for the code generation scopes and other data
@@ -907,8 +908,8 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'double':    "real(64)",
         'fcomplex':  "complex(64)",
         'float':     "real(32)",
-        'int':       "int",
-        'long':      "int",
+        'int':       "int(32)",
+        'long':      "int(64)",
         'opaque':    "int",
         'string':    "string"
         }
