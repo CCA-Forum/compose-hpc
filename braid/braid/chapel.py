@@ -312,6 +312,7 @@ class Chapel:
                 # Stub (in C)
                 cstub = ci.chpl_stub.cstub
                 cstub.gen(ir.Import(Name+'_cStub'))
+                cstub.gen(ir.Import('stdint'))                
                 # Stub Header
                 write_to(Name+'_cStub.h', cstub.dot_h(Name+'_cStub.h'))
                 # Stub C-file
@@ -614,6 +615,14 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                                   .format(p=deref, n=name)))
             call_name = ref+"_arg_"+name
 
+        # INT
+        elif typ == sidl.pt_int:
+            typ = ir.Typedef_type("int32_t")
+
+        # LONG
+        elif typ == sidl.pt_long:
+            typ = ir.Typedef_type("int64_t")
+
         elif typ[0] == sidl.enum:
             call_name = ir.Sign_extend(64, name)
 
@@ -724,6 +733,7 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
+        elif (sidl.primitive_type, sidl.long):   return ir.Typedef_type('int64_t')
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.enum, _, _, _):               return ir.Typedef_type('int64_t')
         elif (sidl.enumerator, _):               return sidl_type # identical
@@ -957,6 +967,8 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                    re.split('\n\s*', doc_comment)
                                    )+sep+' */'+sep
         cbool = '_Bool'
+        int32 = 'int32_t'
+        int64 = 'int64_t'
 
         val = self.generate_non_tuple(node, scope)
         if val <> None:
@@ -1020,6 +1032,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.typedef_type, cbool):
                 return "bool"
+
+            elif (ir.typedef_type, int32):
+                return "int(32)" #FIXME!
+
+            elif (ir.typedef_type, int64):
+                return "int(64)" #FIXME! use something like sidl_long in both places instead
 
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
                 return '_'.join(Names)
