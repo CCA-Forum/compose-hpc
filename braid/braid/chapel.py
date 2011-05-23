@@ -609,7 +609,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                                  .format(n=name, p=deref)))
 
             if mode <> sidl.in_:
-                post_call.append((ir.stmt, "{p}{n} = calloc(1,2) /*FIXME*/"
+                post_call.append((ir.stmt, "{p}{n} = calloc(1,2) /*FIXME: memory leak*/"
                                   .format(p=deref, n=name)))
                 post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
                                   .format(p=deref, n=name)))
@@ -656,10 +656,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     else:
         if Type == sidl.pt_char:
             # FIXME use a retval argument instead:
-            pre_call.append(ir.Stmt(ir.Var_decl(Type, '*_retval = calloc(1,2) /*FIXME*/')))
+            pre_call.append(ir.Stmt(ir.Var_decl(Type, '*_retval = calloc(1,2) /*FIXME: memory leak*/')))
         else:
             pre_call.append(ir.Stmt(ir.Var_decl(Type, '_retval')))
-        #print "FIXME do retval -> arg conversion"
         body = [ir.Stmt(ir.Assignment(retval_expr,
                                       ir.Call(VCallExpr, call_args)))]
         post_call.append(ir.Stmt(ir.Return('_retval')))
@@ -728,7 +727,6 @@ def lower_type_ir(symbol_table, sidl_type):
     with match(sidl_type):
         if (sidl.scoped_id, Names, Ext):
             return lower_type_ir(symbol_table, symbol_table[Names])
-        # FIXME: use sidl_xxx typedefs
         elif (sidl.void):                        return ir.pt_void
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
@@ -1034,10 +1032,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return "bool"
 
             elif (ir.typedef_type, int32):
-                return "int(32)" #FIXME!
+                return "int(32)"
 
             elif (ir.typedef_type, int64):
-                return "int(64)" #FIXME! use something like sidl_long in both places instead
+                return "int(64)"
 
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
                 return '_'.join(Names)
