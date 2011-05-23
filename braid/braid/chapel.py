@@ -643,10 +643,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     pre_call = []
     post_call = []
     call_args, cstub_decl_args = unzip(map(convert_arg, Args))
-    cstub_decl = ir.Fn_decl([], Type, sname, cstub_decl_args, DocComment)
 
     # return value type conversion -- treat it as an out argument
     retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
+    cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
 
 
     static = list(member(sidl.static, Attrs))        
@@ -665,7 +665,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
 
     # Generate the C code into the scope's associated cStub
     c_gen([cstub_decl,
-           ir.Fn_defn([], Type, sname, cstub_decl_args,
+           ir.Fn_defn([], ctype, sname, cstub_decl_args,
                       pre_call+body+post_call, DocComment)], scope.cstub)
     
     # Chapel _extern declaration
@@ -1171,7 +1171,7 @@ runChapel: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 
 CC=`babel-config --query-var=CC`
 INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include
-CFLAGS=`babel-config --flags-c`
+CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
 STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
@@ -1226,7 +1226,7 @@ endif
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< *_Stub.h --make true # don't use chpl to compile
+	$(CHPL) --savec $<.dir $< *Stub.h --make true # don't use chpl to compile
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
