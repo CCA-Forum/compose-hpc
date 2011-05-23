@@ -86,11 +86,11 @@ proc run_part(result: bool)
   
   var obj: Args.Basic = new Args.Basic();
 
-  writeln('returnbacklong'); init_part(); run_part( obj.returnbacklong( ) == THREE_POS );
-  writeln('passinlong'); init_part(); run_part( obj.passinlong( i64_in ) == true );
-  writeln('passoutlong'); init_part(); run_part( obj.passoutlong( i64_out ) == true && i64_out == THREE_POS );
-  writeln('passinoutlong'); init_part(); run_part( obj.passinoutlong( i64_inout ) == true && i64_inout == THREE_NEG );
-  writeln('passeverywherelong'); init_part(); run_part( obj.passeverywherelong( 3, i64_out, i64_inout ) == THREE_POS &&
+  init_part(); run_part( obj.returnbacklong( ) == THREE_POS );
+  init_part(); run_part( obj.passinlong( i64_in ) == true );
+  init_part(); run_part( obj.passoutlong( i64_out ) == true && i64_out == THREE_POS );
+  init_part(); run_part( obj.passinoutlong( i64_inout ) == true && i64_inout == THREE_NEG );
+  init_part(); run_part( obj.passeverywherelong( 3, i64_out, i64_inout ) == THREE_POS &&
 	      i64_out == THREE_POS && i64_inout == THREE_POS );
   
   writeln("End: Testing 64-bit int");
