@@ -39,7 +39,7 @@ proc run_part(result: bool)
 
 { 
   // char
-  writeln("Start: Testing char (string in chapel)");
+  tracker.writeComment("Start: Testing char (string in chapel)");
   var c_out: string;
   var c_inout: string = 'A';
   var obj: Args.Basic = new Args.Basic();
@@ -51,12 +51,12 @@ proc run_part(result: bool)
   init_part(); run_part( obj.passeverywherechar( '3', c_out, c_inout ) == '3' &&
 			 c_out == '3' && c_inout == 'A' );
   delete obj;
-  writeln("End: Testing char (string in chapel)");
+  tracker.writeComment("End: Testing char (string in chapel)");
 }
 
 { 
   // int 
-  writeln("Start: Testing 32-bit int");
+  tracker.writeComment("Start: Testing 32-bit int");
   
   var i32_out: int(32);
   var i32_inout: int(32) = 3;
@@ -70,12 +70,12 @@ proc run_part(result: bool)
   init_part(); run_part( obj.passeverywhereint( 3, i32_out, i32_inout ) == 3 &&
 	      i32_out == 3 && i32_inout == 3 );
   
-  writeln("End: Testing 32-bit int");
+  tracker.writeComment("End: Testing 32-bit int");
 }
 
 { 
   // long 
-  writeln("Start: Testing 64-bit int");
+  tracker.writeComment("Start: Testing 64-bit int");
   
   var THREE_POS: int(64) = 3;
   var THREE_NEG: int(64) = -3;
@@ -86,44 +86,65 @@ proc run_part(result: bool)
   
   var obj: Args.Basic = new Args.Basic();
 
-  writeln('returnbacklong'); init_part(); run_part( obj.returnbacklong( ) == THREE_POS );
-  writeln('passinlong'); init_part(); run_part( obj.passinlong( i64_in ) == true );
-  writeln('passoutlong'); init_part(); run_part( obj.passoutlong( i64_out ) == true && i64_out == THREE_POS );
-  writeln('passinoutlong'); init_part(); run_part( obj.passinoutlong( i64_inout ) == true && i64_inout == THREE_NEG );
-  writeln('passeverywherelong'); init_part(); run_part( obj.passeverywherelong( 3, i64_out, i64_inout ) == THREE_POS &&
+  init_part(); run_part( obj.returnbacklong( ) == THREE_POS );
+  init_part(); run_part( obj.passinlong( i64_in ) == true );
+  init_part(); run_part( obj.passoutlong( i64_out ) == true && i64_out == THREE_POS );
+  init_part(); run_part( obj.passinoutlong( i64_inout ) == true && i64_inout == THREE_NEG );
+  init_part(); run_part( obj.passeverywherelong( 3, i64_out, i64_inout ) == THREE_POS &&
 	      i64_out == THREE_POS && i64_inout == THREE_POS );
   
-  writeln("End: Testing 64-bit int");
+  tracker.writeComment("End: Testing 64-bit int");
 }
 
-  /* { // float  */
-  /*   ostringstream buf; */
-  /*   float out; */
-  /*   float inout = 3.1F; */
-  /*   Args::Basic obj = makeObject(); */
-  /*   buf << "obj.returnbackfloat() == " << obj.returnbackfloat(); */
-  /*   tracker.writeComment(buf.str()); */
-  /*   init_part(); run_part( obj.returnbackfloat( ) == 3.1F ); */
-  /*   init_part(); run_part( obj.passinfloat( 3.1F ) == true ); */
-  /*   init_part(); run_part( obj.passoutfloat( out ) == true && out == 3.1F ); */
-  /*   init_part(); run_part( obj.passinoutfloat( inout ) == true && inout == -3.1F ); */
-  /*   init_part(); run_part( obj.passeverywherefloat( 3.1F, out, inout ) == 3.1F && */
-  /* 	      out == 3.1F && inout == 3.1F ); */
-  /* } */
+//**
+{ 
+  // float  
+  tracker.writeComment("Start: Testing 32-bit real");
 
+  var r32_out: real(32) = 0.0: real(32);  
+  var r32_inout: real(32) = 3.1: real(32); 
+  
+  var obj: Args.Basic = new Args.Basic();
 
-  /* { // double  */
-  /*   double out; */
-  /*   double inout = 3.14; */
-  /*   Args::Basic obj = makeObject(); */
+  tracker.writeComment("obj.returnbackfloat() = " + obj.returnbackfloat());
  
-  /*   init_part(); run_part( obj.returnbackdouble( ) == 3.14 ); */
-  /*   init_part(); run_part( obj.passindouble( 3.14 ) == true ); */
-  /*   init_part(); run_part( obj.passoutdouble( out ) == true && out == 3.14 ); */
-  /*   init_part(); run_part( obj.passinoutdouble( inout ) == true && inout == -3.14 ); */
-  /*   init_part(); run_part( obj.passeverywheredouble( 3.14, out, inout ) == 3.14 && */
-  /* 	      out == 3.14 && inout == 3.14 ); */
-  /* } */
+  var PLUS_THREE_POINT_ONE = 3.1: real(32);
+  var MINUS_THREE_POINT_ONE = -3.1: real(32);
+
+  writeln("returnbackfloat"); init_part(); run_part( obj.returnbackfloat() == PLUS_THREE_POINT_ONE ); 
+  writeln("passinfloat"); init_part(); run_part( obj.passinfloat( PLUS_THREE_POINT_ONE ) == true ); 
+  writeln("passoutfloat"); init_part(); run_part( obj.passoutfloat( r32_out ) == true && r32_out == PLUS_THREE_POINT_ONE ); 
+  writeln("passinoutfloat"); init_part(); run_part( obj.passinoutfloat( r32_inout ) == true && r32_inout == MINUS_THREE_POINT_ONE ); 
+  writeln("passeverywherefloat"); init_part(); run_part( obj.passeverywherefloat( PLUS_THREE_POINT_ONE, r32_out, r32_inout ) == PLUS_THREE_POINT_ONE && 
+	      r32_out == PLUS_THREE_POINT_ONE && r32_inout == PLUS_THREE_POINT_ONE ); 
+
+  tracker.writeComment("End: Testing 32-bit real");
+}
+//**/
+
+{ 
+  // double  
+  tracker.writeComment("Start: Testing 64-bit real");
+
+  var r64_out: real(64) = 0.0: real(64);  
+  var r64_inout: real(64) = 3.14: real(64); 
+  
+  var obj: Args.Basic = new Args.Basic();
+
+  tracker.writeComment("obj.returnbackdouble() = " + obj.returnbackdouble());
+ 
+  var PLUS_THREE_POINT_ONE_FOUR = 3.14: real(64);
+  var MINUS_THREE_POINT_ONE_FOUR = -3.14: real(64);
+
+  writeln("returnbackdouble"); init_part(); run_part( obj.returnbackdouble() == PLUS_THREE_POINT_ONE_FOUR ); 
+  writeln("passindouble"); init_part(); run_part( obj.passindouble( PLUS_THREE_POINT_ONE_FOUR ) == true ); 
+  writeln("passoutdouble"); init_part(); run_part( obj.passoutdouble( r64_out ) == true && r64_out == PLUS_THREE_POINT_ONE_FOUR ); 
+  writeln("passinoutdouble"); init_part(); run_part( obj.passinoutdouble( r64_inout ) == true && r64_inout == MINUS_THREE_POINT_ONE_FOUR ); 
+  writeln("passeverywheredouble"); init_part(); run_part( obj.passeverywheredouble( PLUS_THREE_POINT_ONE_FOUR, r64_out, r64_inout ) == PLUS_THREE_POINT_ONE_FOUR && 
+	      r64_out == PLUS_THREE_POINT_ONE_FOUR && r64_inout == PLUS_THREE_POINT_ONE_FOUR ); 
+
+  tracker.writeComment("End: Testing 64-bit real");
+} 
 
 
   /* { // fcomplex  */
