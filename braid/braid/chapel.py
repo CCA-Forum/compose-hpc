@@ -25,12 +25,20 @@
 #
 
 import config, ir, os, re, sidl, types
+from sets import Set
 from patmat import matcher, match, member, unify, expect, Variable, unzip
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
     SourceFile, CFile, Scope, generator, accepts,
     sep_by
 )
+
+def drop(lst):
+    """
+    If \c lst is \c [] return \c None, else return \c lst[0] .
+    """
+    if lst: return lst[0]
+    else:   return None
 
 def babel_object_type(package, name):
     """
@@ -165,7 +173,6 @@ class Chapel:
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
                 ci = self.ClassInfo(Name, symbol_table)
-                ci.chpl_stub.cstub.genh(ir.Import(Name+'_IOR'))
                 self.gen_default_methods(symbol_table, Name, ci)
 
                 # recurse to generate method code
@@ -177,6 +184,10 @@ class Chapel:
 
                 # Stub (in C)
                 cstub = ci.chpl_stub.cstub
+                cstub.genh_top(ir.Import(Name+'_IOR'))
+                for code in cstub.optional:
+                    cstub.new_global_def(code)
+                    
                 cstub.gen(ir.Import(Name+'_cStub'))
                 # Stub Header
                 write_to(Name+'_cStub.h', cstub.dot_h(Name+'_cStub.h'))
@@ -562,10 +573,20 @@ class Chapel:
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
 
 
+char_lut = '''
+/* This burial ground of bytes is used for char [in]out arguments. */
+static const unsigned char chpl_char_lut[512] = {
+  '''+' '.join(['%d, 0,'%i for i in range(0, 256)])+'''
+};
+'''
 
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     """
     Generate the stub for a specific method in C (cStub).
+
+    \return   if the methods needs an extra inout argument for the
+              return value, this function returns its type, otherwise
+              it returns \c None.
     """
     def convert_arg((arg, attrs, mode, typ, name)):
         """
@@ -601,7 +622,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         elif typ == sidl.pt_char:
             pre_call.append(ir.Comment(
                 "in chapel, a char is a string of length 1"))
-            typ = sidl.pt_string
+            typ = ir.const_str
 
             pre_call.append((ir.stmt, "char _arg_%s"%name))
             if mode <> sidl.out:
@@ -609,11 +630,12 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                                  .format(n=name, p=deref)))
 
             if mode <> sidl.in_:
-                post_call.append((ir.stmt, "{p}{n} = calloc(1,2) /*FIXME: memory leak*/"
-                                  .format(p=deref, n=name)))
-                post_call.append((ir.stmt, "{p}{n}[0] = _arg_{n}"
+                # we can't allocate a new string, this would leak memory
+                post_call.append((ir.stmt,
+                    "{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_arg_{n}]"
                                   .format(p=deref, n=name)))
             call_name = ref+"_arg_"+name
+            scope.cstub.optional.add(char_lut)
 
         # INT
         elif typ == sidl.pt_int:
@@ -640,6 +662,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
     sname = Name+'_stub'
 
+    retval_arg = []
     pre_call = []
     post_call = []
     call_args, cstub_decl_args = unzip(map(convert_arg, Args))
@@ -654,11 +677,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
-        if Type == sidl.pt_char:
-            # FIXME use a retval argument instead:
-            pre_call.append(ir.Stmt(ir.Var_decl(Type, '*_retval = calloc(1,2) /*FIXME: memory leak*/')))
-        else:
-            pre_call.append(ir.Stmt(ir.Var_decl(Type, '_retval')))
+        pre_call.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
         body = [ir.Stmt(ir.Assignment(retval_expr,
                                       ir.Call(VCallExpr, call_args)))]
         post_call.append(ir.Stmt(ir.Return('_retval')))
@@ -672,6 +691,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     chplstub_decl = cstub_decl
     scope.get_toplevel().new_header_def('_extern '+chpl_gen(chplstub_decl))
 
+    return retval_arg
 
 def is_obj_type(symbol_table, typ):
     return typ[0] == sidl.scoped_id and (
@@ -845,6 +865,9 @@ class ChapelFile(SourceFile):
             self.cstub = parent.cstub
         else:
             self.cstub = CFile()
+            # This is for definitions that are generated in multiple
+            # locations but should be written out only once.
+            self.cstub.optional = Set()
 
     def __str__(self):
         """
@@ -1005,8 +1028,14 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.call, (ir.deref, (ir.get_struct_item, _, _, (ir.struct_item, _, Name))), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
-                generate_method_stub(scope, node)
-                return gen((ir.call, re.sub('^f_', '', Name+'_stub'), Args))
+                retval_arg = generate_method_stub(scope, node)
+                stubname = re.sub('^f_', '', Name+'_stub')
+                if retval_arg:
+                    scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
+                    scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
+                    return '_retval'
+                else:
+                    return gen(ir.Call(stubname, Args))
 
             elif (ir.new, Type, Args):
                 return 'new %s(%s)'%(gen(Type), gen_comma_sep(Args))
