@@ -25,7 +25,6 @@
 #
 
 import config, ir, os, re, sidl, types
-from sets import Set
 from patmat import matcher, match, member, unify, expect, Variable, unzip
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
@@ -637,6 +636,14 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
             call_name = ref+"_arg_"+name
             scope.cstub.optional.add(char_lut)
 
+        # STRING
+        elif typ == sidl.pt_string:
+            typ = ir.const_str
+            if mode <> sidl.in_:
+                # Convert null pointer into empty string
+                post_call.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'
+                                  .format(n=name, p=deref))) 
+
         # INT
         elif typ == sidl.pt_int:
             typ = ir.Typedef_type("int32_t")
@@ -691,7 +698,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     chplstub_decl = cstub_decl
     scope.get_toplevel().new_header_def('_extern '+chpl_gen(chplstub_decl))
 
-    return retval_arg
+    return drop(retval_arg)
 
 def is_obj_type(symbol_table, typ):
     return typ[0] == sidl.scoped_id and (
@@ -867,7 +874,7 @@ class ChapelFile(SourceFile):
             self.cstub = CFile()
             # This is for definitions that are generated in multiple
             # locations but should be written out only once.
-            self.cstub.optional = Set()
+            self.cstub.optional = set()
 
     def __str__(self):
         """
