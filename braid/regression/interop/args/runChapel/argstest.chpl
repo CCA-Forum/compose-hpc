@@ -28,13 +28,39 @@ param EPSILON = 0.0001;
 proc assertEquals(expected: real(32), actual: real(32)): bool 
 {
   var diff = abs(expected - actual);
-  return (diff < EPSILON);
+  var res = (diff < EPSILON);
+  if (!res) {
+    tracker.writeComment("Expected: " + expected + ", Found: " + actual);
+  }
+  return res;
 }
 
 proc assertEquals(expected: real(64), actual: real(64)): bool 
 {
   var diff = abs(expected - actual);
-  return (diff < EPSILON);
+  var res = (diff < EPSILON);
+  if (!res) {
+    tracker.writeComment("Expected: " + expected + ", Found: " + actual);
+  }
+  return res;
+}
+
+proc assertEquals(expected: complex(64), actual: complex(64)): bool 
+{
+  var res = assertEquals(expected.re, actual.re) && assertEquals(expected.im, actual.im);
+  if (!res) {
+    tracker.writeComment("Expected: " + expected + ", Found: " + actual);
+  }
+  return res;
+}
+
+proc assertEquals(expected: complex(128), actual: complex(128)): bool 
+{
+  var res = assertEquals(expected.re, actual.re) && assertEquals(expected.im, actual.im);
+  if (!res) {
+    tracker.writeComment("Expected: " + expected + ", Found: " + actual);
+  }
+  return res;
 }
 // END: Assert methods
 
@@ -75,17 +101,20 @@ proc assertEquals(expected: real(64), actual: real(64)): bool
   // int 
   tracker.writeComment("Start: Testing 32-bit int");
   
+  var POS_VALUE_INT32 = 3; 
+  var NEG_VALUE_INT32 = -3; 
+
   var i32_out: int(32);
-  var i32_inout: int(32) = 3;
+  var i32_inout: int(32) = POS_VALUE_INT32; 
   
   var obj: Args.Basic = new Args.Basic();
 
-  init_part(); run_part( obj.returnbackint( ) == 3 );
-  init_part(); run_part( obj.passinint( 3 ) == true );
-  init_part(); run_part( obj.passoutint( i32_out ) == true && i32_out == 3 );
-  init_part(); run_part( obj.passinoutint( i32_inout ) == true && i32_inout == -3 );
-  init_part(); run_part( obj.passeverywhereint( 3, i32_out, i32_inout ) == 3 &&
-	      i32_out == 3 && i32_inout == 3 );
+  init_part(); run_part( obj.returnbackint() == 3 );
+  init_part(); run_part( obj.passinint(POS_VALUE_INT32) == true );
+  init_part(); run_part( obj.passoutint(i32_out) == true && i32_out == POS_VALUE_INT32 );
+  init_part(); run_part( obj.passinoutint(i32_inout) == true && i32_inout == NEG_VALUE_INT32 );
+  init_part(); run_part( obj.passeverywhereint( POS_VALUE_INT32, i32_out, i32_inout ) == POS_VALUE_INT32 &&
+	      i32_out == POS_VALUE_INT32 && i32_inout == POS_VALUE_INT32 );
   
   tracker.writeComment("End: Testing 32-bit int");
 }
@@ -94,6 +123,7 @@ proc assertEquals(expected: real(64), actual: real(64)): bool
   // long 
   tracker.writeComment("Start: Testing 64-bit int");
   
+  // Large 64 bit numbers
   var THREE_POS: int(64) = 3;
   var THREE_NEG: int(64) = -3;
 
@@ -172,30 +202,38 @@ proc assertEquals(expected: real(64), actual: real(64)): bool
 } 
 
 
-  /* { // fcomplex  */
-  /*   ostringstream buf; */
-  /*   complex<float> retval; */
-  /*   complex<float> in( 3.1F, 3.1F ); */
-  /*   complex<float> out; */
-  /*   complex<float> inout( 3.1F, 3.1F ); */
-  /*   Args::Basic obj = makeObject(); */
- 
-  /*   buf << "retval = " << obj.returnbackfcomplex( ); */
-  /*   tracker.writeComment(buf.str()); */
-  /*   retval = obj.returnbackfcomplex( );  */
-  /*   init_part(); run_part( retval.real() == 3.1F && retval.imag() == 3.1F); */
-  /*   init_part(); run_part( obj.passinfcomplex( in ) == true ); */
+{ 
+  // complex with 32-bit floating point numbers as components
+  tracker.writeComment("Start: Testing complex with 32-bit components");
 
-  /*   init_part(); run_part( obj.passoutfcomplex( out ) == true &&  */
-  /* 	      out.real() == 3.1F && out.imag() == 3.1F ); */
-  /*   init_part(); run_part( obj.passinoutfcomplex( inout ) == true &&  */
-  /* 	      inout.real() == 3.1F && inout.imag() == -3.1F ); */
-  /*   tracker.writeComment("retval = obj.passeverywherefcomplex( in, out, inout );"); */
-  /*   retval = obj.passeverywherefcomplex( in, out, inout ); */
-  /*   init_part(); run_part( retval.real() == 3.1F && retval.imag() == 3.1F && */
-  /* 	      out.real() == 3.1F && out.imag() == 3.1F &&  */
-  /* 	      inout.real() == 3.1F && inout.imag() == 3.1F ); */
-  /* } */
+  var POS_VALUE_C64: complex(64); POS_VALUE_C64.re = 3.1: real(32); POS_VALUE_C64.im = 3.1: real(32); 
+  var NEG_VALUE_C64: complex(64); NEG_VALUE_C64.re = 3.1: real(32); NEG_VALUE_C64.im = -3.1: real(32); 
+
+  var retval: complex(64); 
+  var c32_in: complex(64); c32_in.re = 3.1: real(32); c32_in.im = 3.1: real(32); 
+  var c32_out: complex(64); 
+  var c32_inout: complex(64); c32_inout.re = 3.1: real(32); c32_inout.im = 3.1: real(32); 
+
+  var obj: Args.Basic = new Args.Basic(); 
+
+  writeln("retval = " + obj.returnbackfcomplex()); 
+  
+  retval = obj.returnbackfcomplex( );  
+  init_part(); run_part(assertEquals(POS_VALUE_C64, retval)); 
+  init_part(); run_part( obj.passinfcomplex(c32_in) == true ); 
+
+  init_part(); run_part( obj.passoutfcomplex(c32_out) == true &&  
+	      assertEquals(POS_VALUE_C64, c32_out)); 
+  init_part(); run_part( obj.passinoutfcomplex(c32_inout) == true &&  
+	      assertEquals(NEG_VALUE_C64, c32_inout)); 
+  
+  retval = obj.passeverywherefcomplex(c32_in, c32_out, c32_inout); 
+  init_part(); run_part(assertEquals(POS_VALUE_C64, retval) && 
+	      assertEquals(POS_VALUE_C64, c32_out) &&  
+	      assertEquals(POS_VALUE_C64, c32_inout)); 
+  
+  tracker.writeComment("End: Testing complex with 32-bit components");
+} 
 
 
   /* { // dcomplex  */
@@ -203,7 +241,7 @@ proc assertEquals(expected: real(64), actual: real(64)): bool
   /*   complex<double> in( 3.14, 3.14 ); */
   /*   complex<double> out; */
   /*   complex<double> inout( 3.14, 3.14 ); */
-  /*   Args::Basic obj = makeObject(); */
+  /*   var obj: Args.Basic = new Args.Basic(); */
  
   /*   tracker.writeComment("retval = obj.returnback( );"); */
   /*   retval = obj.returnbackdcomplex( ); */

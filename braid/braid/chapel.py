@@ -166,6 +166,8 @@ class Chapel:
                 expect(data, None)
                 ci = self.ClassInfo(Name, symbol_table)
                 ci.chpl_stub.cstub.genh(ir.Import(Name+'_IOR'))
+                ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
+                ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
                 self.gen_default_methods(symbol_table, Name, ci)
 
                 # recurse to generate method code
@@ -178,6 +180,7 @@ class Chapel:
                 # Stub (in C)
                 cstub = ci.chpl_stub.cstub
                 cstub.gen(ir.Import(Name+'_cStub'))
+                
                 # Stub Header
                 write_to(Name+'_cStub.h', cstub.dot_h(Name+'_cStub.h'))
                 # Stub C-file
@@ -573,9 +576,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         """
         call_name = name
         deref = ref = ''
+        accessor = '.'
         if mode <> sidl.in_ and name <> '_retval':
             deref = '*'
             ref = '&'
+            accessor = '->'
 
         # Case-by-case for each data type
 
@@ -622,10 +627,25 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         # LONG
         elif typ == sidl.pt_long:
             typ = ir.Typedef_type("int64_t")
-
+        
+        # COMPLEX - 32 Bit components
+        elif typ == sidl.pt_fcomplex:
+            pre_call.append(ir.Comment(
+                "in chapel, a fcomplex is a _complex64"))
+            typ = ir.Typedef_type("_complex64")
+            call_name = ref + "_arg_" + name
+            sidl_type_str = "struct sidl_fcomplex"
+            pre_call.append((ir.stmt, "{t} _arg_{n}".format(t=sidl_type_str, n=name)))
+            if mode <> sidl.out:
+                pre_call.append((ir.stmt, "_arg_{n}.real = {n}{a}re".format(n=name, p=deref, a=accessor)))
+                pre_call.append((ir.stmt, "_arg_{n}.imaginary = {n}{a}im".format(n=name, p=deref, a=accessor)))
+            if mode <> sidl.in_:
+                post_call.append((ir.stmt, "{n}{a}re = _arg_{n}.real".format(p=deref, n=name, a=accessor)))
+                post_call.append((ir.stmt, "{n}{a}im = _arg_{n}.imaginary".format(p=deref, n=name, a=accessor)))
+            
         elif typ[0] == sidl.enum:
             call_name = ir.Sign_extend(64, name)
-
+            
         # SELF
         # cf. babel_stub_args
         elif name == 'self':
@@ -657,6 +677,8 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         if Type == sidl.pt_char:
             # FIXME use a retval argument instead:
             pre_call.append(ir.Stmt(ir.Var_decl(Type, '*_retval = calloc(1,2) /*FIXME: memory leak*/')))
+        elif Type == sidl.pt_fcomplex:
+            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex64"), '_retval')))
         else:
             pre_call.append(ir.Stmt(ir.Var_decl(Type, '_retval')))
         body = [ir.Stmt(ir.Assignment(retval_expr,
@@ -967,7 +989,8 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         cbool = '_Bool'
         int32 = 'int32_t'
         int64 = 'int64_t'
-
+        fcomplex = '_complex64'
+        
         val = self.generate_non_tuple(node, scope)
         if val <> None:
             return val
@@ -1036,7 +1059,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.typedef_type, int64):
                 return "int(64)"
-
+            
+            elif (ir.typedef_type, fcomplex):
+                return "complex(64)"
+            
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
                 return '_'.join(Names)
 
