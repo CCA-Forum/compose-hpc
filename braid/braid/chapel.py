@@ -883,7 +883,7 @@ class ChapelFile(SourceFile):
             h_indent,
             sep_by(';'+self._sep, self._header),
             d_indent,
-            sep_by(self._sep, self._defs)])
+            self._sep.join(self._defs)])
 
     def get_decls(self):
         h_indent = ''
@@ -966,7 +966,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             '''used for things like if, while, ...'''
             comp_stmt = ChapelFile(scope, relative_indent=4)
             s = str(self.generate(body, comp_stmt))
-            return new_def(''.join([prefix,s,suffix]))
+            return new_def(scope._sep.join([prefix+s,suffix]))
 
         def gen_comma_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
@@ -1009,6 +1009,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                            gen(Name), gen_comma_sep(Args)),
                           Body,
                           '}')
+                new_def('')
 
             elif (ir.fn_defn, Attrs, Type, Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s): %s {'%
@@ -1017,6 +1018,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                            gen(Type)),
                           Body,
                           '}')
+                new_def('')
 
             elif (ir.fn_decl, Attrs, (ir.primitive_type, 'void'), Name, Args, DocComment):
                 new_def('proc %s(%s)'% (gen(Name), gen_comma_sep(Args)))

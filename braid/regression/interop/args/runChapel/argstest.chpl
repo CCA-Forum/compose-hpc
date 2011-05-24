@@ -19,7 +19,7 @@ proc run_part(result: bool)
   else 
     r = ResultType.FAIL;
   tracker.endPart(part_no, r);
-  tracker.writeComment("End Part "+part_no);
+  tracker.writeComment("End of part "+part_no);
 }
 
 {
