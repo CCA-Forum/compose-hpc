@@ -233,7 +233,40 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
 	      assertEquals(POS_VALUE_C64, c32_inout)); 
   
   tracker.writeComment("End: Testing complex with 32-bit components");
-} 
+}
+
+{ 
+  // complex with 64-bit floating point numbers as components
+  tracker.writeComment("Start: Testing complex with 64-bit components");
+
+  var POS_VALUE_C128: complex(128); POS_VALUE_C128.re = 3.14: real(64); POS_VALUE_C128.im = 3.14: real(64); 
+  var NEG_VALUE_C128: complex(128); NEG_VALUE_C128.re = 3.14: real(64); NEG_VALUE_C128.im = -3.14: real(64); 
+
+  var retval: complex(128); 
+  var c64_in: complex(128); c64_in.re = 3.14: real(64); c64_in.im = 3.14: real(64); 
+  var c64_out: complex(128); 
+  var c64_inout: complex(128); c64_inout.re = 3.14: real(64); c64_inout.im = 3.14: real(64); 
+
+  var obj: Args.Basic = new Args.Basic(); 
+
+  writeln("retval = " + obj.returnbackdcomplex()); 
+  
+  retval = obj.returnbackdcomplex( );  
+  init_part(); run_part(assertEquals(POS_VALUE_C128, retval)); 
+  init_part(); run_part( obj.passindcomplex(c64_in) == true ); 
+
+  init_part(); run_part( obj.passoutdcomplex(c64_out) == true &&  
+	      assertEquals(POS_VALUE_C128, c64_out)); 
+  init_part(); run_part( obj.passinoutdcomplex(c64_inout) == true &&  
+	      assertEquals(NEG_VALUE_C128, c64_inout)); 
+  
+  retval = obj.passeverywheredcomplex(c64_in, c64_out, c64_inout); 
+  init_part(); run_part(assertEquals(POS_VALUE_C128, retval) && 
+	      assertEquals(POS_VALUE_C128, c64_out) &&  
+	      assertEquals(POS_VALUE_C128, c64_inout)); 
+  
+  tracker.writeComment("End: Testing complex with 64-bit components");
+}  
 
 
   /* { // dcomplex  */

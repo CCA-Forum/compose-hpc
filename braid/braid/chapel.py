@@ -628,13 +628,16 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         elif typ == sidl.pt_long:
             typ = ir.Typedef_type("int64_t")
         
-        # COMPLEX - 32 Bit components
-        elif typ == sidl.pt_fcomplex:
+        # COMPLEX - 32/64 Bit components
+        elif (typ == sidl.pt_fcomplex or typ == sidl.pt_dcomplex):
+            
+            sidl_type_str = "struct " + ("sidl_fcomplex" if (typ == sidl.pt_fcomplex) else "sidl_dcomplex")
+            complex_type_name = "_complex64" if (typ == sidl.pt_fcomplex) else "_complex128"
+            
             pre_call.append(ir.Comment(
-                "in chapel, a fcomplex is a _complex64"))
-            typ = ir.Typedef_type("_complex64")
+                "in chapel, a " + sidl_type_str + " is a " + complex_type_name))
+            typ = ir.Typedef_type(complex_type_name)
             call_name = ref + "_arg_" + name
-            sidl_type_str = "struct sidl_fcomplex"
             pre_call.append((ir.stmt, "{t} _arg_{n}".format(t=sidl_type_str, n=name)))
             if mode <> sidl.out:
                 pre_call.append((ir.stmt, "_arg_{n}.real = {n}{a}re".format(n=name, a=accessor)))
@@ -679,6 +682,8 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
             pre_call.append(ir.Stmt(ir.Var_decl(Type, '*_retval = calloc(1,2) /*FIXME: memory leak*/')))
         elif Type == sidl.pt_fcomplex:
             pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex64"), '_retval')))
+        elif Type == sidl.pt_dcomplex:
+            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex128"), '_retval')))
         else:
             pre_call.append(ir.Stmt(ir.Var_decl(Type, '_retval')))
         body = [ir.Stmt(ir.Assignment(retval_expr,
@@ -990,6 +995,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         int32 = 'int32_t'
         int64 = 'int64_t'
         fcomplex = '_complex64'
+        dcomplex = '_complex128'
         
         val = self.generate_non_tuple(node, scope)
         if val <> None:
@@ -1062,6 +1068,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             
             elif (ir.typedef_type, fcomplex):
                 return "complex(64)"
+            
+            elif (ir.typedef_type, dcomplex):
+                return "complex(128)"
             
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
                 return '_'.join(Names)
