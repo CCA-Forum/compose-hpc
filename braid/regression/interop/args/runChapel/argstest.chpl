@@ -22,6 +22,23 @@ proc run_part(result: bool)
   tracker.writeComment("Part "+part_no);
 }
 
+// START: Assert methods
+param EPSILON = 0.0001;
+
+proc assertEquals(expected: real(32), actual: real(32)): bool 
+{
+  var diff = abs(expected - actual);
+  return (diff < EPSILON);
+}
+
+proc assertEquals(expected: real(64), actual: real(64)): bool 
+{
+  var diff = abs(expected - actual);
+  return (diff < EPSILON);
+}
+// END: Assert methods
+
+
 {
   // bool 
   var b_out: bool;
@@ -111,12 +128,16 @@ proc run_part(result: bool)
   var PLUS_THREE_POINT_ONE = 3.1: real(32);
   var MINUS_THREE_POINT_ONE = -3.1: real(32);
 
-  writeln("returnbackfloat"); init_part(); run_part( obj.returnbackfloat() == PLUS_THREE_POINT_ONE ); 
-  writeln("passinfloat"); init_part(); run_part( obj.passinfloat( PLUS_THREE_POINT_ONE ) == true ); 
-  writeln("passoutfloat"); init_part(); run_part( obj.passoutfloat( r32_out ) == true && r32_out == PLUS_THREE_POINT_ONE ); 
-  writeln("passinoutfloat"); init_part(); run_part( obj.passinoutfloat( r32_inout ) == true && r32_inout == MINUS_THREE_POINT_ONE ); 
-  writeln("passeverywherefloat"); init_part(); run_part( obj.passeverywherefloat( PLUS_THREE_POINT_ONE, r32_out, r32_inout ) == PLUS_THREE_POINT_ONE && 
-	      r32_out == PLUS_THREE_POINT_ONE && r32_inout == PLUS_THREE_POINT_ONE ); 
+  init_part(); run_part(assertEquals(obj.returnbackfloat(), PLUS_THREE_POINT_ONE)); 
+  init_part(); run_part(obj.passinfloat( PLUS_THREE_POINT_ONE ) == true ); 
+  init_part(); run_part(obj.passoutfloat( r32_out ) == true && 
+          assertEquals(r32_out, PLUS_THREE_POINT_ONE)); 
+  init_part(); run_part(obj.passinoutfloat( r32_inout ) == true && 
+          assertEquals(r32_inout, MINUS_THREE_POINT_ONE)); 
+  init_part(); run_part(
+          assertEquals(obj.passeverywherefloat( PLUS_THREE_POINT_ONE, r32_out, r32_inout ), PLUS_THREE_POINT_ONE) && 
+	      assertEquals(r32_out, PLUS_THREE_POINT_ONE) && 
+          assertEquals(r32_inout, PLUS_THREE_POINT_ONE)); 
 
   tracker.writeComment("End: Testing 32-bit real");
 }
@@ -136,12 +157,16 @@ proc run_part(result: bool)
   var PLUS_THREE_POINT_ONE_FOUR = 3.14: real(64);
   var MINUS_THREE_POINT_ONE_FOUR = -3.14: real(64);
 
-  writeln("returnbackdouble"); init_part(); run_part( obj.returnbackdouble() == PLUS_THREE_POINT_ONE_FOUR ); 
-  writeln("passindouble"); init_part(); run_part( obj.passindouble( PLUS_THREE_POINT_ONE_FOUR ) == true ); 
-  writeln("passoutdouble"); init_part(); run_part( obj.passoutdouble( r64_out ) == true && r64_out == PLUS_THREE_POINT_ONE_FOUR ); 
-  writeln("passinoutdouble"); init_part(); run_part( obj.passinoutdouble( r64_inout ) == true && r64_inout == MINUS_THREE_POINT_ONE_FOUR ); 
-  writeln("passeverywheredouble"); init_part(); run_part( obj.passeverywheredouble( PLUS_THREE_POINT_ONE_FOUR, r64_out, r64_inout ) == PLUS_THREE_POINT_ONE_FOUR && 
-	      r64_out == PLUS_THREE_POINT_ONE_FOUR && r64_inout == PLUS_THREE_POINT_ONE_FOUR ); 
+  init_part(); run_part(assertEquals(obj.returnbackdouble(), PLUS_THREE_POINT_ONE_FOUR)); 
+  init_part(); run_part( obj.passindouble( PLUS_THREE_POINT_ONE_FOUR ) == true ); 
+  init_part(); run_part( obj.passoutdouble( r64_out ) == true && 
+          assertEquals(r64_out, PLUS_THREE_POINT_ONE_FOUR)); 
+  init_part(); run_part( obj.passinoutdouble( r64_inout ) == true && 
+          assertEquals(r64_inout, MINUS_THREE_POINT_ONE_FOUR)); 
+  init_part(); run_part( 
+          assertEquals(obj.passeverywheredouble( PLUS_THREE_POINT_ONE_FOUR, r64_out, r64_inout ), PLUS_THREE_POINT_ONE_FOUR) && 
+	      assertEquals(r64_out, PLUS_THREE_POINT_ONE_FOUR) && 
+          assertEquals(r64_inout, PLUS_THREE_POINT_ONE_FOUR)); 
 
   tracker.writeComment("End: Testing 64-bit real");
 } 
