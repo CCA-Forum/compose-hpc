@@ -1010,6 +1010,14 @@ class CFile(SourceFile):
         """
         self.new_header_def(str(CCodeGenerator().generate(ir, CFile())))
 
+    def genh_top(self, ir):
+        """
+        Invoke the C code generator on \c ir and prepend the result to
+        this CFile's header.
+        """
+        self._header.insert(0, (str(CCodeGenerator().generate(ir, CFile()))))
+
+
 class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
