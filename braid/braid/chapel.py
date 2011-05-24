@@ -637,11 +637,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
             sidl_type_str = "struct sidl_fcomplex"
             pre_call.append((ir.stmt, "{t} _arg_{n}".format(t=sidl_type_str, n=name)))
             if mode <> sidl.out:
-                pre_call.append((ir.stmt, "_arg_{n}.real = {n}{a}re".format(n=name, p=deref, a=accessor)))
-                pre_call.append((ir.stmt, "_arg_{n}.imaginary = {n}{a}im".format(n=name, p=deref, a=accessor)))
+                pre_call.append((ir.stmt, "_arg_{n}.real = {n}{a}re".format(n=name, a=accessor)))
+                pre_call.append((ir.stmt, "_arg_{n}.imaginary = {n}{a}im".format(n=name, a=accessor)))
             if mode <> sidl.in_:
-                post_call.append((ir.stmt, "{n}{a}re = _arg_{n}.real".format(p=deref, n=name, a=accessor)))
-                post_call.append((ir.stmt, "{n}{a}im = _arg_{n}.imaginary".format(p=deref, n=name, a=accessor)))
+                post_call.append((ir.stmt, "{n}{a}re = _arg_{n}.real".format(n=name, a=accessor)))
+                post_call.append((ir.stmt, "{n}{a}im = _arg_{n}.imaginary".format(n=name, a=accessor)))
             
         elif typ[0] == sidl.enum:
             call_name = ir.Sign_extend(64, name)
