@@ -760,7 +760,8 @@ def p_arg_1(p):
 
 def p_arg_2(p):
     '''arg : argAttrs mode rarray'''
-    p[0] = (sidl.arg, p[1], p[2], p[3])
+    p[0] = (sidl.arg, p[1], p[2], # pull out the name
+            (p[3][0], p[3][1], p[3][2], p[3][4]), p[3][3])
 
 def p_argAttrs(p):
     '''argAttrs : COPY

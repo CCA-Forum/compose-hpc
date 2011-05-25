@@ -375,7 +375,7 @@ class GenericCodeGenerator(object):
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
-            else: raise Exception("unexpected type"+repr(node))
+            else: raise Exception("unhandled node"+repr(node))
         return scope
 
     def generate_non_tuple(self, node, scope):
@@ -406,7 +406,7 @@ class GenericCodeGenerator(object):
             #print "FIXME: string `%s' encountered. Fix your generator"%node
             return node
         else:
-            raise Exception("unexpected type"+repr(node))
+            raise Exception("unexpected node type"+repr(node))
         
 
     def gen_in_scope(self, defs, child_scope):

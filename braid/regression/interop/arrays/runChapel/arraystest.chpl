@@ -796,9 +796,8 @@ tracker.setExpectations(-1);
 
 
   {
-    var irarray: TEST_SIZE*int(32);
-    magicNumber = clearstack(magicNumber);
-    ArrayOps::initRarray1Int(irarray, TEST_SIZE);
+    var irarray: [0..TEST_SIZE-1] int(32);
+    ArrayOps.initRarray1Int(irarray, TEST_SIZE);
     init_part(); run_part("Check rarray int 1", ArrayOps::checkRarray1Int(irarray, TEST_SIZE) == TRUE);
   }
 

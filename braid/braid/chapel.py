@@ -466,7 +466,7 @@ class Chapel:
                 ctype = ior_type(symbol_table, typ)
                 pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                 # wrap the C type in a native Chapel object
-                conv = (ir.new, ".".join(Type[1]), [cname])
+                conv = (ir.new, ".".join(typ[1]), [cname])
                 if name == 'retval':
                     return_expr.append(conv)
                 else:
@@ -479,7 +479,16 @@ class Chapel:
 
             elif typ == sidl.void:
                 ctype = ir.pt_void
-                
+
+            elif typ == (sidl.array, [], [] ,[]): # Generic array
+                return convert_arg((arg, attrs, mode, sidl.void, name)) #FIXME
+
+            elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+                return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+
+            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, Orientation
+                return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+
             return cname, (arg, attrs, mode, ctype, name)
 
         # Chapel stub
@@ -688,6 +697,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         elif typ[0] == ir.pointer_type: # ex
             typ = typ[1]
 
+        # ARRAYS
+        elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+            import pdb; pdb.set_trace()
+            return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+
         return call_name, (arg, attrs, mode, typ, name)
 
     _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
@@ -771,6 +785,8 @@ def lower_ir(symbol_table, sidl_term):
         elif (sidl.void):              return ir.pt_void
         elif (sidl.primitive_type, _): return low_t(sidl_term)
         elif (sidl.scoped_id, _, _):   return low_t(sidl_term)
+        elif (sidl.array, _, _, _):    return low_t(sidl_term)
+        elif (sidl.rarray, _, _, _):   return low_t(sidl_term)
 
         elif (Terms):
             if (isinstance(Terms, list)):
@@ -781,11 +797,13 @@ def lower_ir(symbol_table, sidl_term):
 @matcher(globals(), debug=False)
 def lower_type_ir(symbol_table, sidl_type):
     """
+    FIXME!! can we merge this with convert_arg??
     lower SIDL types into IR
     """
     with match(sidl_type):
         if (sidl.scoped_id, Names, Ext):
             return lower_type_ir(symbol_table, symbol_table[Names])
+        
         elif (sidl.void):                        return ir.pt_void
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
@@ -795,10 +813,21 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.enum, _, _, _):               return ir.Typedef_type('int64_t')
         elif (sidl.enumerator, _):               return sidl_type # identical
         elif (sidl.enumerator, _, _):            return sidl_type
+        elif (sidl.rarray, Scalar_type, Dimension, Extents):
+            return lower_type_ir(symbol_table, Scalar_type) # FIXME
+
+        elif (sidl.array, [], [], []):
+            return ir.Pointer_type(ir.pt_void)
+
+        elif (sidl.array, Scalar_type, Dimension, Orientation):
+            return lower_type_ir(symbol_table, Scalar_type) # FIXME
+
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
+        
         elif (sidl.interface, Name, _, _, _):
             return ir_babel_object_type([], Name)
+        
         else:
             raise Exception("Not implemented")
 
@@ -1091,6 +1120,15 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
                 return gen_comment(DocComment)+'class '+Name
+
+            elif (sidl.array, [], [], []):
+                return gen(ir.pt_void)+'/*FIXME*/'
+
+            elif (sidl.array, Scalar_type, Dimension, Orientation):
+                return gen(Scalar_type)+'/*FIXME*/'
+
+            elif (sidl.rarray, Scalar_type, Dimension, Extents):
+                return gen(Scalar_type)+'/*FIXME*/'
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
