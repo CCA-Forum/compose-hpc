@@ -55,7 +55,9 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 # see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
 @ENABLE_REGRESSION_TRUE@am__append_1 = $(PYTHON_SOURCES) $(SIDL_TESTS) \
-@ENABLE_REGRESSION_TRUE@	$(testdir)/args.babel
+@ENABLE_REGRESSION_TRUE@	$(testdir)/args.babel \
+@ENABLE_REGRESSION_TRUE@	$(testdir)/arrays.babel \
+@ENABLE_REGRESSION_TRUE@	$(testdir)/strings.babel
 @ENABLE_DOCUMENTATION_TRUE@am__append_2 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
@@ -405,6 +407,7 @@ SHELL = @SHELL@
 SIDL_PATH = @SIDL_PATH@
 STRIP = @STRIP@
 SWIPL = @SWIPL@
+SWIPL_PREFIX = @SWIPL_PREFIX@
 VERSION = @VERSION@
 WHICH_PYTHON = @WHICH_PYTHON@
 XML2_CONFIG = @XML2_CONFIG@

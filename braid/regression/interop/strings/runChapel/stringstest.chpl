@@ -1,3 +1,8 @@
+// 
+// File:        stringstests.chpl
+// Copyright:   (c) 2011 Lawrence Livermore National Security, LLC
+// Description: Test string interoperability
+// 
 use Strings;
 use synch;
 

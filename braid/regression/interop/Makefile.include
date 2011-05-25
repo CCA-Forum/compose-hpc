@@ -2,7 +2,9 @@
 testdir=$(srcdir)/regression/interop
 
 if ENABLE_REGRESSION
-TESTS += $(testdir)/args.babel
+TESTS += $(testdir)/args.babel \
+  $(testdir)/arrays.babel \
+  $(testdir)/strings.babel	
 endif
 
 TEST_EXTENSIONS += .babel
