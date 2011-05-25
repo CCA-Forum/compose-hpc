@@ -709,7 +709,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
-        if Type == sidl.pt_fcomplex:
+        if Type == sidl.pt_char:
+            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("const char*"), '_retval')))
+        elif Type == sidl.pt_fcomplex:
             pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex64"), '_retval')))
         elif Type == sidl.pt_dcomplex:
             pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex128"), '_retval')))
