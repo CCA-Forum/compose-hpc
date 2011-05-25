@@ -608,6 +608,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+SWIPL
+SWIPL_PREFIX
 CHAPEL_VERSION
 CHAPEL_ROOT
 CHAPEL
@@ -633,7 +635,6 @@ CPP
 LEXLIB
 LEX_OUTPUT_ROOT
 LEX
-SWIPL
 WHICH_PYTHON
 SERVER_PYTHON_FALSE
 SERVER_PYTHON_TRUE
@@ -5868,9 +5869,6 @@ WHICH_PYTHON=$which_progval
 echo "diagnose_PYTHON=checked" >> $cca_diagnose_file
 echo "diagnose_PYTHON_value=`echo $PYTHON 2>/dev/null`" >> $cca_diagnose_file
 
-
-
-SWIPL=`which swipl`
 
 
 ############################################################
@@ -13127,6 +13125,50 @@ $as_echo "$as_me: Did not find Chapel!" >&6;}
 
 fi
 
+############################################################
+#
+# SWI-Prolog (compile-time-only dependency)
+#
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for swipl" >&5
+$as_echo_n "checking for swipl... " >&6; }
+if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pl >= 5.8.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "pl >= 5.8.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  SWIPL_PREFIX=`$PKG_CONFIG pl --variable prefix`
+
+     SWIPL="${SWIPL_PREFIX}/bin/swipl"
+
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${SWIPL}" >&5
+$as_echo "${SWIPL}" >&6; }
+
+else
+  if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"swipl >= 5.8.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "swipl >= 5.8.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  SWIPL_PREFIX=`$PKG_CONFIG swipl --variable prefix`
+
+         SWIPL="${SWIPL_PREFIX}/bin/swipl"
+
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+         { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
+Please remember to set PKG_CONFIG_PATH accordingly." >&5
+$as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
+Please remember to set PKG_CONFIG_PATH accordingly." >&6;}
+         SWIPL=""
+
+
+fi
+
+fi
 
 ac_config_files="$ac_config_files Makefile braid/braid braid/config.py Doxyfile regression/interop/driver.sh"
 

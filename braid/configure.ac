@@ -42,8 +42,6 @@ LLNL_LIBXML_CONFIG
 LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
 CCA_DIAGNOSE_END([PYTHON])
 
-AC_SUBST([SWIPL], [`which swipl`])
-
 ############################################################
 #
 # Critical Applications.
@@ -93,6 +91,26 @@ AS_IF([test -x "${CHAPEL}"],
      AC_MSG_NOTICE([Did not find Chapel!])
       AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
+############################################################
+#
+# SWI-Prolog (compile-time-only dependency)
+#
+AC_MSG_CHECKING([for swipl])
+PKG_CHECK_EXISTS([pl >= 5.8.0],
+    [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG pl --variable prefix`])
+     AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
+     AC_MSG_RESULT([${SWIPL}])
+    ],
+    [PKG_CHECK_EXISTS([swipl >= 5.8.0], 
+        [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG swipl --variable prefix`])
+         AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
+	],
+	[AC_MSG_RESULT([no])
+         AC_MSG_NOTICE([Did not find SWI-Prolog version 5.8 or later! 
+Please remember to set PKG_CONFIG_PATH accordingly.])
+         AC_SUBST([SWIPL], [""])
+        ])
+    ])
 
 AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile regression/interop/driver.sh])
 
