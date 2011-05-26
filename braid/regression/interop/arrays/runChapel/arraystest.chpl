@@ -127,16 +127,16 @@ tracker.setExpectations(-1);
   /*   magicNumber = clearstack(magicNumber); */
   /* }  */
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   ArrayTest.ArrayOps.makeInt(218, iarray); */
-  /*   init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == true); */
-  /*   init_part(); run_part("makeInt", ArrayTest.ArrayOps.reverseInt(iarray, false) == true); */
-  /*   init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == false); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+    magicNumber = clearstack(magicNumber);
+    var iarray: new sidl.array(int(32));
+    ArrayTest.ArrayOps.makeInt(218, iarray);
+    init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == true);
+    init_part(); run_part("makeInt", ArrayTest.ArrayOps.reverseInt(iarray, false) == true);
+    init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == false);
+    iarray.deleteRef();
+    magicNumber = clearstack(magicNumber);
+}
 
   /* { */
   /*   magicNumber = clearstack(magicNumber); */

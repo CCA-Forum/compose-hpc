@@ -65,3 +65,11 @@ if PYTHON_VERSION_2_6
   python_PYTHON += contrib/argparse-1.1/argparse.py
 endif
 
+########################################################################
+# Babel functionality: 
+
+# Runtime support files
+include_HEADERS = \
+  chpl/chpl_array.h \
+  chpl/array.chpl
+
