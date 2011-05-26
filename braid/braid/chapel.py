@@ -618,38 +618,38 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         # BOOL
         if typ == sidl.pt_bool:
             pre_call.append(ir.Comment(
-                "sidl_bool is an int, but chapel bool is a char/_Bool"))
-            pre_call.append((ir.stmt, "int _arg_"+name))
+                'sidl_bool is an int, but chapel bool is a char/_Bool'))
+            pre_call.append((ir.stmt, 'int _babel_'+name))
 
             if mode <> sidl.out:
-                pre_call.append((ir.stmt, "_arg_{n} = (int){p}{n}"
+                pre_call.append((ir.stmt, '_babel_{n} = (int){p}{n}'
                                  .format(n=name, p=deref)))
 
             if mode <> sidl.in_:
-                post_call.append((ir.stmt, "{p}{n} = ({typ})_arg_{n}"
+                post_call.append((ir.stmt, '{p}{n} = ({typ})_babel_{n}'
                         .format(p=deref, n=name, typ=c_gen(sidl.pt_bool))))
 
-            call_name = ref+"_arg_"+name
+            call_name = ref+'_babel_'+name
             # Bypass the bool -> int conversion for the stub decl
-            typ = (ir.typedef_type, "_Bool")
+            typ = (ir.typedef_type, '_Bool')
 
         # CHAR
         elif typ == sidl.pt_char:
             pre_call.append(ir.Comment(
-                "in chapel, a char is a string of length 1"))
+                'in chapel, a char is a string of length 1'))
             typ = ir.const_str
 
-            pre_call.append((ir.stmt, "char _arg_%s"%name))
+            pre_call.append((ir.stmt, 'char _babel_%s'%name))
             if mode <> sidl.out:
-                pre_call.append((ir.stmt, "_arg_{n} = (int){p}{n}[0]"
+                pre_call.append((ir.stmt, '_babel_{n} = (int){p}{n}[0]'
                                  .format(n=name, p=deref)))
 
             if mode <> sidl.in_:
                 # we can't allocate a new string, this would leak memory
                 post_call.append((ir.stmt,
-                    "{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_arg_{n}]"
+                    '{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_babel_{n}]'
                                   .format(p=deref, n=name)))
-            call_name = ref+"_arg_"+name
+            call_name = ref+'_babel_'+name
             scope.cstub.optional.add(char_lut)
 
         # STRING
@@ -662,29 +662,30 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
 
         # INT
         elif typ == sidl.pt_int:
-            typ = ir.Typedef_type("int32_t")
+            typ = ir.Typedef_type('int32_t')
 
         # LONG
         elif typ == sidl.pt_long:
-            typ = ir.Typedef_type("int64_t")
+            typ = ir.Typedef_type('int64_t')
         
         # COMPLEX - 32/64 Bit components
         elif (typ == sidl.pt_fcomplex or typ == sidl.pt_dcomplex):
             
-            sidl_type_str = "struct " + ("sidl_fcomplex" if (typ == sidl.pt_fcomplex) else "sidl_dcomplex")
-            complex_type_name = "_complex64" if (typ == sidl.pt_fcomplex) else "_complex128"
+            sidl_type_str = 'struct ' + ('sidl_fcomplex' if (typ == sidl.pt_fcomplex) else 'sidl_dcomplex')
+            complex_type_name = '_complex64' if (typ == sidl.pt_fcomplex) else '_complex128'
             
             pre_call.append(ir.Comment(
-                "in chapel, a " + sidl_type_str + " is a " + complex_type_name))
+                'in chapel, a ' + sidl_type_str + ' is a ' + complex_type_name))
             typ = ir.Typedef_type(complex_type_name)
-            call_name = ref + "_arg_" + name
-            pre_call.append((ir.stmt, "{t} _arg_{n}".format(t=sidl_type_str, n=name)))
+            call_name = ref + '_babel_' + name
+            pre_call.append((ir.stmt, '{t} _babel_{n}'.format(t=sidl_type_str, n=name)))
+            fmt = {'n':name, 'a':accessor}
             if mode <> sidl.out:
-                pre_call.append((ir.stmt, "_arg_{n}.real = {n}{a}re".format(n=name, a=accessor)))
-                pre_call.append((ir.stmt, "_arg_{n}.imaginary = {n}{a}im".format(n=name, a=accessor)))
+                pre_call.append((ir.stmt, '_babel_{n}.real = {n}{a}re'.format(**fmt)))
+                pre_call.append((ir.stmt, '_babel_{n}.imaginary = {n}{a}im'.format(**fmt)))
             if mode <> sidl.in_:
-                post_call.append((ir.stmt, "{n}{a}re = _arg_{n}.real".format(n=name, a=accessor)))
-                post_call.append((ir.stmt, "{n}{a}im = _arg_{n}.imaginary".format(n=name, a=accessor)))
+                post_call.append((ir.stmt, '{n}{a}re = _babel_{n}.real'.format(**fmt)))
+                post_call.append((ir.stmt, '{n}{a}im = _babel_{n}.imaginary'.format(**fmt)))
             
         elif typ[0] == sidl.enum:
             call_name = ir.Sign_extend(64, name)
@@ -724,11 +725,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
         if Type == sidl.pt_char:
-            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("const char*"), '_retval')))
+            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type('const char*'), '_retval')))
         elif Type == sidl.pt_fcomplex:
-            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex64"), '_retval')))
+            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type('_complex64'), '_retval')))
         elif Type == sidl.pt_dcomplex:
-            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type("_complex128"), '_retval')))
+            pre_call.append(ir.Stmt(ir.Var_decl(ir.Typedef_type('_complex128'), '_retval')))
         else:
             pre_call.append(ir.Stmt(ir.Var_decl(Type, '_retval')))
         body = [ir.Stmt(ir.Assignment(retval_expr,
