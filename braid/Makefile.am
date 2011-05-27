@@ -82,4 +82,4 @@ EXTRA_DIST += chpl/sidl.inc chpl/array.inc
 chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
 	@mkdir -p chpl
 	$(AM_V_GEN)
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P $< -o $@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $< -o $@

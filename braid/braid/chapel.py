@@ -475,8 +475,11 @@ class Chapel:
             elif typ == sidl.void:
                 ctype = ir.pt_void
 
+            elif typ == sidl.opaque:
+                ctype = ir.Pointer_type(ir.pt_void)
+
             elif typ == (sidl.array, [], [] ,[]): # Generic array
-                return convert_arg((arg, attrs, mode, sidl.void, name)) #FIXME
+                return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
                 return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME

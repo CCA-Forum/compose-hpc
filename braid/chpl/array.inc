@@ -123,7 +123,7 @@
      * sidlLower(array,ind). 
      */
     proc sidlLower(in ind: int(32)): int(32) {
-      _extern proc sidlLower(inout array: sidl__array,in ind: int(32)): int(32);
+      _extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(ior, ind);
     }
     //#define sidlLower(array,ind) (((const struct sidl__array *)(array))->d_lower[(ind)])
@@ -134,7 +134,7 @@
      * sidlUpper(array,ind). 
      */
     proc sidlUpper(in ind: int(32)): int(32) {
-      _extern proc sidlUpper(inout array: sidl__array,in ind: int(32)): int(32);
+      _extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(ior, ind);
     }
     //#define sidlUpper(array,ind) (((const struct sidl__array *)(array))->d_upper[(ind)])
@@ -550,4 +550,3 @@
     //sidl__array_remove(struct sidl__array * const array);
      
     }
-}
