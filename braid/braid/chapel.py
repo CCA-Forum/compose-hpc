@@ -1295,7 +1295,7 @@ CHPL_LDFLAGS=-L$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/gnu/comm-none/substrate-
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include
 CHPL_HEADERS=-I$(SIDL_RUNTIME)/chpl -M$(SIDL_RUNTIME)/chpl \
-  chpl_array.h
+  chpl_sidl_array.h
 
 # most of the rest of the file should not require editing
 
@@ -1375,7 +1375,7 @@ endif
 .chpl.lo:
 	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) --make true # don't use chpl to compile
 	babel-libtool --mode=compile --tag=CC $(CC) \
-            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
+            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -I$(SIDL_RUNTIME)/chpl \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 
 clean :

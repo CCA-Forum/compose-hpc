@@ -484,7 +484,7 @@ noinst_PYTHON =
 # Babel functionality: 
 
 # Runtime support files
-nobase_include_HEADERS = chpl/chpl_array.h chpl/sidl.chpl
+nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl
 BUILT_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py \
 	braid/legal.py chpl/sidl.chpl
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
