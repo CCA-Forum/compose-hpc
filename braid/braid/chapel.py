@@ -272,11 +272,6 @@ class Chapel:
                     pkg_h.gen(ir.Type_decl(enum))
                 write_to(Name+'.h', pkg_h.dot_h(Name+'.h'))
 
-                # FIXME: this should happen as an action of IMPORTS
-                sidl_chpl_stub = ChapelFile()
-                sidl_chpl_stub.new_def('_extern class sidl_BaseInterface__object {};')
-                write_to('sidl.chpl', str(sidl_chpl_stub))
-
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
 
@@ -480,8 +475,11 @@ class Chapel:
             elif typ == sidl.void:
                 ctype = ir.pt_void
 
+            elif typ == sidl.opaque:
+                ctype = ir.Pointer_type(ir.pt_void)
+
             elif typ == (sidl.array, [], [] ,[]): # Generic array
-                return convert_arg((arg, attrs, mode, sidl.void, name)) #FIXME
+                return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
                 return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
@@ -677,7 +675,8 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         # COMPLEX - 32/64 Bit components
         elif (typ == sidl.pt_fcomplex or typ == sidl.pt_dcomplex):
             
-            sidl_type_str = 'struct ' + ('sidl_fcomplex' if (typ == sidl.pt_fcomplex) else 'sidl_dcomplex')
+            sidl_type_str = 'struct '+('sidl_fcomplex' if (typ == sidl.pt_fcomplex)
+                                  else 'sidl_dcomplex')
             complex_type_name = '_complex64' if (typ == sidl.pt_fcomplex) else '_complex128'
             
             pre_call.append(ir.Comment(
@@ -1279,6 +1278,11 @@ CHAPEL_MAKE_THREADS=pthreads
 CHPL=chpl
 CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
 CHPL_LDFLAGS=-L$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads $(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
+
+SIDL_RUNTIME="""+config.PREFIX+r"""/include
+CHPL_HEADERS=-I$(SIDL_RUNTIME)/chpl -M$(SIDL_RUNTIME)/chpl \
+  chpl_array.h
+
 # most of the rest of the file should not require editing
 
 ifeq ($(IMPLSRCS),)
@@ -1355,7 +1359,7 @@ endif
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< *Stub.h --make true # don't use chpl to compile
+	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) --make true # don't use chpl to compile
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c

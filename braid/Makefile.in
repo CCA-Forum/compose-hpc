@@ -18,6 +18,7 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -39,9 +40,9 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
-	$(nobase_python_PYTHON) $(noinst_PYTHON) $(srcdir)/Doxyfile.in \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/braid/Makefile.include \
+	$(nobase_include_HEADERS) $(nobase_python_PYTHON) \
+	$(noinst_PYTHON) $(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/braid/Makefile.include \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
 	$(top_srcdir)/configure \
@@ -178,7 +179,8 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)"
+	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" \
+	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(nobase_pyexec_LTLIBRARIES)
 braid_scanner_la_DEPENDENCIES =
 am_braid_scanner_la_OBJECTS = braid_scanner_la-scanner.lo
@@ -243,6 +245,7 @@ DVIPS = dvips
 am__python_PYTHON_DIST = $(top_srcdir)/contrib/ply/yacc.py \
 	contrib/argparse-1.1/argparse.py
 py_compile = $(top_srcdir)/config/py-compile
+HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 # If stdout is a non-dumb tty, use colors.  If test -t is not supported,
@@ -469,13 +472,21 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
+
+# initialize everything to blank so the include files can use the += operator
 python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_3)
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_SOURCES)
 noinst_PYTHON = 
+
+########################################################################
+# Babel functionality: 
+
+# Runtime support files
+nobase_include_HEADERS = chpl/chpl_array.h chpl/sidl.chpl
 BUILT_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py \
-	braid/legal.py
+	braid/legal.py chpl/sidl.chpl
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
 bin_SCRIPTS = braid/braid
 TESTS = $(am__append_1)
@@ -488,7 +499,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/ply/README contrib/ply/__init__.py contrib/ply/cpp.py \
 	contrib/ply/ctokens.py contrib/ply/lex.py contrib/ply/yacc.py \
 	$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py \
-	braid/sidl.py $(am__append_2)
+	braid/sidl.py $(am__append_2) chpl/sidl.inc chpl/array.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -964,6 +975,29 @@ uninstall-pythonPYTHON:
 	cd "$(DESTDIR)$(pythondir)" && rm -f $$filesc || exit $$?; \
 	echo " ( cd '$(DESTDIR)$(pythondir)' && rm -f" $$fileso ")"; \
 	cd "$(DESTDIR)$(pythondir)" && rm -f $$fileso
+install-nobase_includeHEADERS: $(nobase_include_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
+	@list='$(nobase_include_HEADERS)'; test -n "$(includedir)" || list=; \
+	$(am__nobase_list) | while read dir files; do \
+	  xfiles=; for file in $$files; do \
+	    if test -f "$$file"; then xfiles="$$xfiles $$file"; \
+	    else xfiles="$$xfiles $(srcdir)/$$file"; fi; done; \
+	  test -z "$$xfiles" || { \
+	    test "x$$dir" = x. || { \
+	      echo "$(MKDIR_P) '$(DESTDIR)$(includedir)/$$dir'"; \
+	      $(MKDIR_P) "$(DESTDIR)$(includedir)/$$dir"; }; \
+	    echo " $(INSTALL_HEADER) $$xfiles '$(DESTDIR)$(includedir)/$$dir'"; \
+	    $(INSTALL_HEADER) $$xfiles "$(DESTDIR)$(includedir)/$$dir" || exit $$?; }; \
+	done
+
+uninstall-nobase_includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nobase_include_HEADERS)'; test -n "$(includedir)" || list=; \
+	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(includedir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(includedir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -1336,9 +1370,9 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)"; do \
+	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1398,7 +1432,8 @@ info: info-am
 
 info-am: $(INFO_DEPS)
 
-install-data-am: install-nobase_pythonPYTHON install-pythonPYTHON
+install-data-am: install-nobase_includeHEADERS \
+	install-nobase_pythonPYTHON install-pythonPYTHON
 
 install-dvi: install-dvi-am
 
@@ -1523,7 +1558,8 @@ ps: ps-am
 ps-am: $(PSS)
 
 uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
-	uninstall-info-am uninstall-nobase_pyexecLTLIBRARIES \
+	uninstall-info-am uninstall-nobase_includeHEADERS \
+	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
 	uninstall-pythonPYTHON
 
@@ -1541,16 +1577,17 @@ uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
 	install-binSCRIPTS install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
-	install-nobase_pyexecLTLIBRARIES install-nobase_pythonPYTHON \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-pythonPYTHON install-strip installcheck \
-	installcheck-am installcheck-binSCRIPTS installdirs \
-	maintainer-clean maintainer-clean-aminfo \
+	install-nobase_includeHEADERS install-nobase_pyexecLTLIBRARIES \
+	install-nobase_pythonPYTHON install-pdf install-pdf-am \
+	install-ps install-ps-am install-pythonPYTHON install-strip \
+	installcheck installcheck-am installcheck-binSCRIPTS \
+	installdirs maintainer-clean maintainer-clean-aminfo \
 	maintainer-clean-generic mostlyclean mostlyclean-aminfo \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am recheck recheck-html tags uninstall \
 	uninstall-am uninstall-binSCRIPTS uninstall-dvi-am \
 	uninstall-html-am uninstall-info-am \
+	uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
 	uninstall-pythonPYTHON
@@ -1560,12 +1597,13 @@ $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 	env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) -m doctest $<
 
 $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
-	@echo "  PYTHON Generate the sidl parser tables"
+	@echo "  GEN Generate the sidl parser tables"
 	@rm -f $@
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 
 braid/legal.py: $(srcdir)/../LICENSE
+	$(AM_V_GEN)
 	@echo "## @package legal">$@
 	@echo "# The BSD license.">>$@
 	@echo "license = '''">>$@
@@ -1576,7 +1614,7 @@ braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
 
 braid/%.py: $(srcdir)/braid/%.def
-	@echo "  GEN" $@
+	$(AM_V_GEN)
 	@if [ -n "$(SWIPL)" ]; then \
           egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
 	  echo '#\verbatim' >>$@ && \
@@ -1601,7 +1639,8 @@ clean-braid:
 doc:
 	@echo "  GEN [doxygen documentation]"
 	@doxygen >/dev/null || echo "Doxygen not found; SKIPPING"
-	$(MAKE) -j1 -C doc/latex >/dev/null
+	$(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null
+
 doc/html/index.html:
 	$(MAKE) doc
 
@@ -1612,6 +1651,11 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
+
+chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
+	@mkdir -p chpl
+	$(AM_V_GEN)
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $< -o $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package sidl_parser
+## @package sidl_symbols
 #
 # Symbol table creation and symbol resolving for SIDL ASTs.
 #

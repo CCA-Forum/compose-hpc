@@ -1,8 +1,10 @@
 ACLOCAL_AMFLAGS = -I m4
 
+# initialize everything to blank so the include files can use the += operator
 python_PYTHON= 
 nobase_python_PYTHON= 
 noinst_PYTHON= 
+nobase_include_HEADERS=
 BUILT_SOURCES= 
 nobase_pyexec_LTLIBRARIES=
 bin_SCRIPTS=
@@ -45,7 +47,8 @@ endif
 doc:
 	@echo "  GEN [doxygen documentation]"
 	@doxygen >/dev/null || echo "Doxygen not found; SKIPPING"
-	$(MAKE) -j1 -C doc/latex >/dev/null
+	$(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null
+
 doc/html/index.html:
 	$(MAKE) doc
 
@@ -65,3 +68,18 @@ if PYTHON_VERSION_2_6
   python_PYTHON += contrib/argparse-1.1/argparse.py
 endif
 
+########################################################################
+# Babel functionality: 
+
+# Runtime support files
+nobase_include_HEADERS += \
+  chpl/chpl_array.h \
+  chpl/sidl.chpl
+
+BUILT_SOURCES += chpl/sidl.chpl
+EXTRA_DIST += chpl/sidl.inc chpl/array.inc
+
+chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
+	@mkdir -p chpl
+	$(AM_V_GEN)
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $< -o $@
