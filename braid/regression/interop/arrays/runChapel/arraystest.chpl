@@ -131,10 +131,10 @@ tracker.setExpectations(-1);
 {
    magicNumber = clearstack(magicNumber);
    var iarray: sidl.Array(int(32));
-   ArrayTest.ArrayOps.makeInt(218, iarray);
-   init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == true);
-   init_part(); run_part("makeInt", ArrayTest.ArrayOps.reverseInt(iarray, false) == true);
-   init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == false);
+   ArrayOps_static.makeInt(218, iarray);
+   init_part(); run_part("makeInt", ArrayOps.checkInt(iarray) == true);
+   init_part(); run_part("makeInt", ArrayOps.reverseInt(iarray, false) == true);
+   init_part(); run_part("makeInt", ArrayOps.checkInt(iarray) == false);
    iarray.deleteRef();
    magicNumber = clearstack(magicNumber);
 }
@@ -818,9 +818,9 @@ tracker.setExpectations(-1);
     magicNumber = clearstack(magicNumber);
     writeln("Magic Number: " + magicNumber);
     writeln("Before Init:"); writeln(irarray);
-    initRarray1Int(irarray, TEST_SIZE_I32);
+    ArrayOps_static.initRarray1Int(irarray, TEST_SIZE_I32);
     writeln("After Init:"); writeln(irarray);
-    init_part(); run_part("Check rarray int 1", checkRarray1Int(irarray, TEST_SIZE_I32) == true);
+    init_part(); run_part("Check rarray int 1", ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE_I32) == true);
   }
 
   /* { */

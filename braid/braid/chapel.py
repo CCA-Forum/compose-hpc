@@ -226,9 +226,13 @@ class Chapel:
                                      'd_data: int, '+
                                      'inout ex: sidl_BaseInterface__object)'+
                                      ': %s__object;'%qname)
+                name = chpl_gen(Name)
                 ci.chpl_stub.new_def(chpl_defs.get_decls())
+                ci.chpl_stub.new_def('// All the static methods of class '+name)
+                ci.chpl_stub.new_def('module %s_static {'%name)
                 ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
-                ci.chpl_stub.new_def('class %s {'%chpl_gen(Name))
+                ci.chpl_stub.new_def('}')
+                ci.chpl_stub.new_def('class %s {'%name)
                 chpl_class = ChapelScope(ci.chpl_stub)
                 chpl_class.new_def('var self: %s__object;'%qname)
                 body = [
@@ -512,15 +516,15 @@ class Chapel:
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
-        call_args, decl_args = unzip(map(convert_arg, Args))
+        call_args, cdecl_args = unzip(map(convert_arg, Args))
         return_expr = []
         return_stmt = []
 
         # return value type conversion -- treat it as an out argument
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
-        decl_args = babel_stub_args(Attrs, decl_args, symbol_table, ci.epv.name)
-        decl = ir.Fn_decl([], ctype, Name, decl_args, DocComment)
+        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
+        cdecl = ir.Fn_decl([], ctype, Name, cdecl_args, DocComment)
 
         if static:
             extern_self = []
@@ -560,7 +564,7 @@ class Chapel:
                 ir.Deref(ir.Get_struct_item(obj_type,
                                             ir.Deref('self'),
                                             ir.Struct_item(epv_type, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name)))
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name)))
 
 
         if Type == sidl.void:
@@ -579,9 +583,9 @@ class Chapel:
 
         if static:
             # FIXME static functions still _may_ have a cstub
-            # FIXME can we reuse decl for this?
+            # FIXME can we reuse cdecl for this?
             impl_decl = ir.Fn_decl([], ctype,
-                                   callee, decl_args, DocComment)
+                                   callee, cdecl_args, DocComment)
             ci.chpl_static_stub.new_def('_extern '+chpl_gen(impl_decl)+';')
             chpl_gen(defn, ci.chpl_static_stub)
         else:
