@@ -129,14 +129,14 @@ tracker.setExpectations(-1);
   /* }  */
 
 {
-//   magicNumber = clearstack(magicNumber);
-//   var iarray: sidl.Array(int(32));
-//   ArrayTest.ArrayOps_static.makeInt(218, iarray);
-//   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
-//   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.reverseInt(iarray, false) == true);
-//   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == false);
-//   iarray.deleteRef();
-//   magicNumber = clearstack(magicNumber);
+   magicNumber = clearstack(magicNumber);
+   var iarray: sidl.Array(int(32));
+   ArrayTest.ArrayOps_static.makeInt(218, iarray);
+   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
+   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.reverseInt(iarray, false) == true);
+   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == false);
+   iarray.deleteRef();
+   magicNumber = clearstack(magicNumber);
 }
 
   /* { */
