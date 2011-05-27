@@ -32,6 +32,8 @@ from codegen import (
     sep_by
 )
 
+chpl_dom_var_template = '_babel_dom_{arg_name}'
+
 def drop(lst):
     """
     If \c lst is \c [] return \c None, else return \c lst[0] .
@@ -487,9 +489,9 @@ class Chapel:
             elif typ[0] == sidl.rarray: # Scalar_type, Dimension, Orientation
                 # mode is always inout for an array
                 mode = sidl.inout
-                convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
-                # we need to reference the lowest element of the array using the domain
-                chpl_dom_var_name = '__babel_Dom_{arg_name}'.format(arg_name=convert_el_res[0])
+                convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) 
+                # reference the lowest element of the array using the domain
+                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=convert_el_res[0])
                 call_expr_str = convert_el_res[0] + '(' + chpl_dom_var_name + '.low' + ')'
                 return (call_expr_str, convert_el_res[1])
 
@@ -1121,11 +1123,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.const, Type):
                 return '/*FIXME: CONST*/'+gen(Type)
 
-            elif (sidl.arg, Attrs, Mode, Type, Name):
-                (arg_mode, arg_name, arg_type) = (gen(Mode), gen(Name), gen(Type))
-                # replace arg_name in the type in case something new was defined
-                arg_type = arg_type.format(arg_name=arg_name);
+            # Special handling of rarray types
+            elif (sidl.arg, Attrs, Mode, (sidl.rarray, Scalar_type, Dimension, Extents), Name):
+                (arg_mode, arg_name) = (gen(Mode), gen(Name))
+                # rarray type will include a new domain variable definition
+                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=Name)
+                arg_type = '[?' + chpl_dom_var_name + '] ' + gen(Scalar_type)
                 return '%s %s: %s'%(arg_mode, arg_name, arg_type)
+                
+            elif (sidl.arg, Attrs, Mode, Type, Name):
+                return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
                 return gen_comment(DocComment)+'class '+Name
@@ -1135,12 +1142,6 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
                 return gen(Scalar_type)+'/*FIXME*/'
-
-            elif (sidl.rarray, Scalar_type, Dimension, Extents):
-                # Expect caller to replace arg_name in the type
-                chpl_dom_var_name = '__babel_Dom_{arg_name}'
-                chpl_array_type = '[?' + chpl_dom_var_name + '] ' + gen(Scalar_type)
-                return chpl_array_type
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
