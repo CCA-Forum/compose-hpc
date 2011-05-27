@@ -836,7 +836,6 @@ tracker.setExpectations(-1);
     tracker.writeComment("End: Check initialization for int 32b - 3D");
   }
 
-/*
   {
     tracker.writeComment("Start: Check initialization for int 32b - 7D");
 
@@ -844,12 +843,12 @@ tracker.setExpectations(-1);
     var irarray: [0.. #n, 0.. #m, 0.. #o, 0.. #p, 0.. #q, 0.. #r, 0.. #s] int(32); //2*2*2*2*3*3*3 
 
     magicNumber = clearstack(magicNumber);
-    ArrayTest.ArrayOps.initRarray7Int(irarray, n, m, o, p, q, r, s);
-    init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps.checkRarray7Int(irarray, n, m, o, p, q, r, s) == true);
+    ArrayTest.ArrayOps_static.initRarray7Int(irarray, n, m, o, p, q, r, s);
+    init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps_static.checkRarray7Int(irarray, n, m, o, p, q, r, s) == true);
 
     tracker.writeComment("End: Check initialization for int 32b - 7D");
   }
-*/
+
   {
     tracker.writeComment("Start: Check initialization for real 64b - 1D");
 
@@ -883,8 +882,8 @@ tracker.setExpectations(-1);
     [(i) in [0..8]] a[i] = i;
     [(i) in [0..5]] b[i] = i;
 
-    ArrayTest.ArrayOps.matrixMultiply(a, b, x, n, m, o);
-    init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps.checkMatrixMultiply(a, b, x, n, m, o) == true);
+    ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o);
+    init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);
 
     tracker.writeComment("End: Check matrix multiplication");
  }
