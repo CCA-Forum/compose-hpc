@@ -469,6 +469,10 @@
      * count goes to zero, destroy the array.
      * Return true iff the array is destroyed
      */
+    proc deleteRef() {
+      _extern proc sidl__array_deleteRef(in a: sidl.sidl__array);
+	sidl__array_deleteRef(ior);
+    }
     //void
     //sidl__array_deleteRef(struct sidl__array* array);
      
