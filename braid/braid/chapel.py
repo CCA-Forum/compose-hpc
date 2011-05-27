@@ -174,6 +174,7 @@ class Chapel:
                 ci = self.ClassInfo(Name, symbol_table)
                 ci.chpl_stub.cstub.genh(ir.Import(Name+'_IOR'))
                 ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
+                ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
                 ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
                 
                 self.gen_default_methods(symbol_table, Name, ci)
@@ -461,15 +462,19 @@ class Chapel:
             ctype = typ
 
             if is_obj_type(symbol_table, typ):
-                cname = "_IOR_"+name
                 ctype = ior_type(symbol_table, typ)
-                pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
-                # wrap the C type in a native Chapel object
-                conv = (ir.new, ".".join(typ[1]), [cname])
-                if name == 'retval':
-                    return_expr.append(conv)
-                else:
-                    post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+                if mode <> sidl.out:
+                    cname = name+'.ior'
+
+                if mode <> sidl.in_:
+                    cname = '_IOR_'+name
+                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                    # wrap the C type in a native Chapel object
+                    conv = (ir.new, ".".join(typ[1]), [cname])
+                    if name == 'retval':
+                        return_expr.append(conv)
+                    else:
+                        post_call.append(ir.Stmt(ir.Assignment(name, conv)))
 
             
             elif typ[0] == sidl.scoped_id:
@@ -486,16 +491,19 @@ class Chapel:
                 return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                mode = ir.inout
-                cname = "_IOR_"+name
-                ctype = ir.Typedef_type('sidl.sidl__array')
-                pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
-                # wrap the C type in a native Chapel object
-                conv = (ir.new, 'sidl.Array', [cname, typ[1]])
-                if name == 'retval':
-                    return_expr.append(conv)
-                else:
-                    post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+                ctype = ir.Typedef_type('sidl__array')
+                if mode <> sidl.out:
+                    cname = name+'.ior'
+
+                if mode <> sidl.in_:
+                    cname = '_IOR_'+name
+                    # wrap the C type in a native Chapel object
+                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                    conv = (ir.new, 'sidl.Array', [cname, typ[1]])
+                    if name == 'retval':
+                        return_expr.append(conv)
+                    else:
+                        post_call.append(ir.Stmt(ir.Assignment(name, conv)))
 
             elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
                 # mode is always inout for an array
@@ -511,7 +519,7 @@ class Chapel:
         # Chapel stub
         (Method, Type, (_,  Name, Attr), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
-         
+
         static = list(member(sidl.static, Attrs))
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
@@ -599,6 +607,7 @@ class Chapel:
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
         ci.ior.genh(ir.Import('stdint'))
+        ci.ior.genh(ir.Import('chpl_sidl_array'))
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
@@ -714,13 +723,12 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
         elif name == 'self':
             typ = typ[1]
             #call_name = '*self'
-        elif typ[0] == ir.pointer_type: # ex
+        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # ex
             typ = typ[1]
 
         # ARRAYS
         elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
             import pdb; pdb.set_trace()
-            return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
 
         return call_name, (arg, attrs, mode, typ, name)
 
@@ -834,13 +842,13 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.enumerator, _):               return sidl_type # identical
         elif (sidl.enumerator, _, _):            return sidl_type
         elif (sidl.rarray, Scalar_type, Dimension, Extents):
-            return lower_type_ir(symbol_table, Scalar_type) # FIXME
+            return ir.Pointer_type(lower_type_ir(symbol_table, Scalar_type)) # FIXME
 
         elif (sidl.array, [], [], []):
             return ir.Pointer_type(ir.pt_void)
 
         elif (sidl.array, Scalar_type, Dimension, Orientation):
-            return lower_type_ir(symbol_table, Scalar_type) # FIXME
+            return ir.Typedef_type('sidl__array')
 
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
@@ -1317,7 +1325,7 @@ runChapel: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 
 
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include
+INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include -I$(SIDL_RUNTIME)/chpl
 CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
@@ -1375,7 +1383,7 @@ endif
 .chpl.lo:
 	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) --make true # don't use chpl to compile
 	babel-libtool --mode=compile --tag=CC $(CC) \
-            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -I$(SIDL_RUNTIME)/chpl \
+            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 
 clean :

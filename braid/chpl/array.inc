@@ -91,7 +91,9 @@
     type ScalarType;
     var ior: sidl__array;
 
-    proc Array(in ior: sidl__array, type ScalarType) { };
+    proc Array(in ior: sidl__array, type ScalarType) { 
+      this.ior = ior;
+    }    
      
     /**
      * The relation operators available in the built-in quantifier operators.

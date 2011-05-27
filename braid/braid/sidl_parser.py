@@ -400,7 +400,7 @@ def consx(p):
 
     If there is no \c p[1], return an empty list.
     """
-    if p[1] == []:
+    if len(p) == 2:
         p[0] = []
     else:
         p[0] = [p[1]] + p[2]
@@ -678,6 +678,11 @@ def p_methodAttrs(p): # *
     '''methodAttrs : methodAttr     methodAttrs 
                    | customAttrList methodAttrs 
                    | empty'''
+
+    # FIXME!!! I need to debug this:
+    if len(p) > 2 and not isinstance(p[2],  list):
+        p[2] = [p[2]]
+        
     consx(p)
 
 def p_methodAttr(p):
@@ -689,7 +694,7 @@ def p_methodAttr(p):
                   | NONBLOCKING
                   | COPY'''
     p[0] = str.lower(p[1])
-
+   
 def p_methodName(p):
     '''methodName : name empty
                   | name EXTENSION'''
