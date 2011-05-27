@@ -8,7 +8,7 @@ use synch;
 use sidl;
 
 var part_no: int = 0;
-var tracker: synch.RegOut = synch.getInstance();
+var tracker: synch.RegOut = synch.RegOut_static.getInstance();
 var magic_number = 13;
 
 proc init_part()
@@ -129,14 +129,14 @@ tracker.setExpectations(-1);
   /* }  */
 
 {
-   magicNumber = clearstack(magicNumber);
-   var iarray: sidl.Array(int(32));
-   ArrayOps_static.makeInt(218, iarray);
-   init_part(); run_part("makeInt", ArrayOps.checkInt(iarray) == true);
-   init_part(); run_part("makeInt", ArrayOps.reverseInt(iarray, false) == true);
-   init_part(); run_part("makeInt", ArrayOps.checkInt(iarray) == false);
-   iarray.deleteRef();
-   magicNumber = clearstack(magicNumber);
+//   magicNumber = clearstack(magicNumber);
+//   var iarray: sidl.Array(int(32));
+//   ArrayTest.ArrayOps_static.makeInt(218, iarray);
+//   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
+//   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.reverseInt(iarray, false) == true);
+//   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == false);
+//   iarray.deleteRef();
+//   magicNumber = clearstack(magicNumber);
 }
 
   /* { */
@@ -818,9 +818,9 @@ tracker.setExpectations(-1);
     magicNumber = clearstack(magicNumber);
     writeln("Magic Number: " + magicNumber);
     writeln("Before Init:"); writeln(irarray);
-    ArrayOps_static.initRarray1Int(irarray, TEST_SIZE_I32);
+    ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE_I32);
     writeln("After Init:"); writeln(irarray);
-    init_part(); run_part("Check rarray int 1", ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE_I32) == true);
+    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE_I32) == true);
   }
 
   /* { */
