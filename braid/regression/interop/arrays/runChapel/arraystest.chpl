@@ -870,7 +870,7 @@ tracker.setExpectations(-1);
 
     tracker.writeComment("End: Check initialization for complex with 64b components - 1D");
   }
-/*
+
   {
     tracker.writeComment("Start: Check matrix multiplication");
    
@@ -887,7 +887,7 @@ tracker.setExpectations(-1);
 
     tracker.writeComment("End: Check matrix multiplication");
  }
-*/
+
   
   /* { */
   /*   magicNumber = clearstack(magicNumber); */
