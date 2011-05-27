@@ -457,7 +457,7 @@ class Chapel:
             ctype = typ
 
             if is_obj_type(symbol_table, typ):
-                cname = "_c_"+name
+                cname = "_IOR_"+name
                 ctype = ior_type(symbol_table, typ)
                 pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                 # wrap the C type in a native Chapel object
@@ -482,9 +482,18 @@ class Chapel:
                 return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+                mode = ir.inout
+                cname = "_IOR_"+name
+                ctype = ir.Typedef_type('sidl.sidl__array')
+                pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                # wrap the C type in a native Chapel object
+                conv = (ir.new, 'sidl.Array', [cname, typ[1]])
+                if name == 'retval':
+                    return_expr.append(conv)
+                else:
+                    post_call.append(ir.Stmt(ir.Assignment(name, conv)))
 
-            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, Orientation
+            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
                 # mode is always inout for an array
                 mode = sidl.inout
                 convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
@@ -555,10 +564,11 @@ class Chapel:
 
 
         if Type == sidl.void:
+            Type = ir.pt_void
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
             if return_expr:
-                call = [ir.Stmt(ir.Assignment("_c_retval", ir.Call(callee, call_args)))]
+                call = [ir.Stmt(ir.Assignment("_IOR_retval", ir.Call(callee, call_args)))]
                 return_stmt = [ir.Stmt(ir.Return(return_expr[0]))]
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
@@ -1134,7 +1144,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return gen(ir.pt_void)+'/*FIXME*/'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                return gen(Scalar_type)+'/*FIXME*/'
+                return 'sidl.Array(%s)'%gen(Scalar_type)
 
             elif (sidl.rarray, Scalar_type, Dimension, Extents):
                 # Expect caller to replace arg_name in the type
