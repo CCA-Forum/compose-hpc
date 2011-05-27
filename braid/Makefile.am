@@ -61,6 +61,9 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
+	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
+		cd $(builddir)/regression/interop && rm -rf $(BABEL_TESTS); \
+	fi
 
 
 if PYTHON_VERSION_2_6
