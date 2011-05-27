@@ -73,7 +73,7 @@ endif
 
 # Runtime support files
 nobase_include_HEADERS += \
-  chpl/chpl_array.h \
+  chpl/chpl_sidl_array.h \
   chpl/sidl.chpl
 
 BUILT_SOURCES += chpl/sidl.chpl

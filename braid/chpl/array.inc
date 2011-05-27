@@ -91,7 +91,9 @@
     type ScalarType;
     var ior: sidl__array;
 
-    proc Array(in ior: sidl__array, type ScalarType) { };
+    proc Array(in ior: sidl__array, type ScalarType) { 
+      this.ior = ior;
+    }    
      
     /**
      * The relation operators available in the built-in quantifier operators.
@@ -469,6 +471,10 @@
      * count goes to zero, destroy the array.
      * Return true iff the array is destroyed
      */
+    proc deleteRef() {
+      _extern proc sidl__array_deleteRef(in a: sidl.sidl__array);
+	sidl__array_deleteRef(ior);
+    }
     //void
     //sidl__array_deleteRef(struct sidl__array* array);
      
