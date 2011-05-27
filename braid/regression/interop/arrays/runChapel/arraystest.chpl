@@ -5,6 +5,7 @@
 // 
 use ArrayTest;
 use synch;
+use sidl;
 
 var part_no: int = 0;
 var tracker: synch.RegOut = synch.getInstance();
@@ -129,7 +130,7 @@ tracker.setExpectations(-1);
 
 {
     magicNumber = clearstack(magicNumber);
-    var iarray: new sidl.array(int(32));
+    var iarray: new sidl.Array(int(32));
     ArrayTest.ArrayOps.makeInt(218, iarray);
     init_part(); run_part("makeInt", ArrayTest.ArrayOps.checkInt(iarray) == true);
     init_part(); run_part("makeInt", ArrayTest.ArrayOps.reverseInt(iarray, false) == true);

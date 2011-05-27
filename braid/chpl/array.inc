@@ -1,37 +1,32 @@
-/**
- * @package chapel
- *
- * Definition of the array data type for chapel
- * http://chapel.cray.com/
- * 
- * What we are doing in here is actually wrapping the SIDL Array
- * MACRO(!) API, which is possible because Chapel is eventually being
- * compiled down to C.
- *
- * Please report bugs to <adrian@llnl.gov>.
- *
- * \authors <pre>
- *
- * Copyright (c) 2011, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory
- * Written by Adrian Prantl <adrian@llnl.gov>.
- *
- * LLNL-CODE-473891.
- * All rights reserved.
- *
- * This file is part of BRAID. For details, see
- * http://compose-hpc.sourceforge.net/.
- * Please read the COPYRIGHT file for Our Notice and
- * for the BSD License.
- *
- * </pre>
- */
+// -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 
-module sidl {
-  /* class Array { */
-  /*   type Type; */
-  /*   var ior: Type; */
-  /* } */
+  /**
+   *
+   * Definition of the array data type for chapel
+   * http://chapel.cray.com/
+   * 
+   * What we are doing in here is actually wrapping the SIDL Array
+   * MACRO(!) API, which is possible because Chapel is eventually being
+   * compiled down to C.
+   *
+   * Please report bugs to <adrian@llnl.gov>.
+   *
+   * \authors <pre>
+   *
+   * Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+   * Produced at the Lawrence Livermore National Laboratory
+   * Written by Adrian Prantl <adrian@llnl.gov>.
+   *
+   * LLNL-CODE-473891.
+   * All rights reserved.
+   *
+   * This file is part of BRAID. For details, see
+   * http://compose-hpc.sourceforge.net/.
+   * Please read the COPYRIGHT file for Our Notice and
+   * for the BSD License.
+   *
+   * </pre>
+   */
   class Array {
     enum sidl_array_ordering {
       sidl_general_order=0, /* this must be zero (i.e. a false value) */

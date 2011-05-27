@@ -272,11 +272,6 @@ class Chapel:
                     pkg_h.gen(ir.Type_decl(enum))
                 write_to(Name+'.h', pkg_h.dot_h(Name+'.h'))
 
-                # FIXME: this should happen as an action of IMPORTS
-                sidl_chpl_stub = ChapelFile()
-                sidl_chpl_stub.new_def('_extern class sidl_BaseInterface__object {};')
-                write_to('sidl.chpl', str(sidl_chpl_stub))
-
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
 
