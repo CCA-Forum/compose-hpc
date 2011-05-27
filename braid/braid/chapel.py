@@ -487,14 +487,20 @@ class Chapel:
                 return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
 
             elif typ[0] == sidl.rarray: # Scalar_type, Dimension, Orientation
-                return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+                # mode is always inout for an array
+                mode = sidl.inout
+                convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+                # we need to reference the lowest element of the array using the domain
+                chpl_dom_var_name = '__babel_Dom_{arg_name}'.format(arg_name=convert_el_res[0])
+                call_expr_str = convert_el_res[0] + '(' + chpl_dom_var_name + '.low' + ')'
+                return (call_expr_str, convert_el_res[1])
 
             return cname, (arg, attrs, mode, ctype, name)
 
         # Chapel stub
         (Method, Type, (_,  Name, Attr), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
-
+         
         static = list(member(sidl.static, Attrs))
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
@@ -1019,7 +1025,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
     def generate(self, node, scope=ChapelFile()):
         """
         This code generator is a bit unusual in that it accepts a
-        hybrif of \c sidl and \c ir nodes.
+        hybrid of \c sidl and \c ir nodes.
         """
         def gen(node):
             return self.generate(node, scope)
@@ -1117,7 +1123,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return '/*FIXME: CONST*/'+gen(Type)
 
             elif (sidl.arg, Attrs, Mode, Type, Name):
-                return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
+                (arg_mode, arg_name, arg_type) = (gen(Mode), gen(Name), gen(Type))
+                # replace arg_name in the type in case something new was defined
+                arg_type = arg_type.format(arg_name=arg_name);
+                return '%s %s: %s'%(arg_mode, arg_name, arg_type)
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
                 return gen_comment(DocComment)+'class '+Name
@@ -1129,7 +1138,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return gen(Scalar_type)+'/*FIXME*/'
 
             elif (sidl.rarray, Scalar_type, Dimension, Extents):
-                return gen(Scalar_type)+'/*FIXME*/'
+                # Expect caller to replace arg_name in the type
+                chpl_dom_var_name = '__babel_Dom_{arg_name}'
+                chpl_array_type = '[?' + chpl_dom_var_name + '] ' + gen(Scalar_type)
+                return chpl_array_type
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"

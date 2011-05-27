@@ -812,10 +812,14 @@ tracker.setExpectations(-1);
 
 
   {
-    var irarray: [0..TEST_SIZE-1] int(32);
+    var TEST_SIZE_I32: int(32) = TEST_SIZE: int(32);
+    var irarray: [0..TEST_SIZE_I32 - 1] int(32);
     magicNumber = clearstack(magicNumber);
-    ArrayOps.initRarray1Int(irarray, TEST_SIZE);
-    init_part(); run_part("Check rarray int 1", ArrayOps.checkRarray1Int(irarray, TEST_SIZE) == true);
+    writeln("Magic Number: " + magicNumber);
+    writeln("Before Init:"); writeln(irarray);
+    initRarray1Int(irarray, TEST_SIZE_I32);
+    writeln("After Init:"); writeln(irarray);
+    init_part(); run_part("Check rarray int 1", checkRarray1Int(irarray, TEST_SIZE_I32) == true);
   }
 
   /* { */
