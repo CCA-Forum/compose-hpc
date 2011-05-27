@@ -2,7 +2,7 @@ use Args;
 use synch;
 
 var part_no: int = 0;
-var tracker: synch.RegOut = synch.getInstance();
+var tracker: synch.RegOut = synch.RegOut_static.getInstance();
 
 proc init_part()
 {

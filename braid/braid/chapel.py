@@ -228,9 +228,13 @@ class Chapel:
                                      'd_data: int, '+
                                      'inout ex: sidl_BaseInterface__object)'+
                                      ': %s__object;'%qname)
+                name = chpl_gen(Name)
                 ci.chpl_stub.new_def(chpl_defs.get_decls())
+                ci.chpl_stub.new_def('// All the static methods of class '+name)
+                ci.chpl_stub.new_def('module %s_static {'%name)
                 ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
-                ci.chpl_stub.new_def('class %s {'%chpl_gen(Name))
+                ci.chpl_stub.new_def('}')
+                ci.chpl_stub.new_def('class %s {'%name)
                 chpl_class = ChapelScope(ci.chpl_stub)
                 chpl_class.new_def('var self: %s__object;'%qname)
                 body = [
@@ -459,7 +463,7 @@ class Chapel:
             ctype = typ
 
             if is_obj_type(symbol_table, typ):
-                cname = "_c_"+name
+                cname = "_IOR_"+name
                 ctype = ior_type(symbol_table, typ)
                 pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                 # wrap the C type in a native Chapel object
@@ -484,9 +488,18 @@ class Chapel:
                 return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                return convert_arg((arg, attrs, mode, typ[1], name)) #FIXME
+                mode = ir.inout
+                cname = "_IOR_"+name
+                ctype = ir.Typedef_type('sidl.sidl__array')
+                pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                # wrap the C type in a native Chapel object
+                conv = (ir.new, 'sidl.Array', [cname, typ[1]])
+                if name == 'retval':
+                    return_expr.append(conv)
+                else:
+                    post_call.append(ir.Stmt(ir.Assignment(name, conv)))
 
-            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, Orientation
+            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
                 # mode is always inout for an array
                 mode = sidl.inout
                 convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) 
@@ -505,15 +518,15 @@ class Chapel:
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
-        call_args, decl_args = unzip(map(convert_arg, Args))
+        call_args, cdecl_args = unzip(map(convert_arg, Args))
         return_expr = []
         return_stmt = []
 
         # return value type conversion -- treat it as an out argument
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
-        decl_args = babel_stub_args(Attrs, decl_args, symbol_table, ci.epv.name)
-        decl = ir.Fn_decl([], ctype, Name, decl_args, DocComment)
+        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
+        cdecl = ir.Fn_decl([], ctype, Name, cdecl_args, DocComment)
 
         if static:
             extern_self = []
@@ -553,14 +566,15 @@ class Chapel:
                 ir.Deref(ir.Get_struct_item(obj_type,
                                             ir.Deref('self'),
                                             ir.Struct_item(epv_type, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(decl), 'f_'+Name)))
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name)))
 
 
         if Type == sidl.void:
+            Type = ir.pt_void
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
             if return_expr:
-                call = [ir.Stmt(ir.Assignment("_c_retval", ir.Call(callee, call_args)))]
+                call = [ir.Stmt(ir.Assignment("_IOR_retval", ir.Call(callee, call_args)))]
                 return_stmt = [ir.Stmt(ir.Return(return_expr[0]))]
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
@@ -571,9 +585,9 @@ class Chapel:
 
         if static:
             # FIXME static functions still _may_ have a cstub
-            # FIXME can we reuse decl for this?
+            # FIXME can we reuse cdecl for this?
             impl_decl = ir.Fn_decl([], ctype,
-                                   callee, decl_args, DocComment)
+                                   callee, cdecl_args, DocComment)
             ci.chpl_static_stub.new_def('_extern '+chpl_gen(impl_decl)+';')
             chpl_gen(defn, ci.chpl_static_stub)
         else:
@@ -1141,7 +1155,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return gen(ir.pt_void)+'/*FIXME*/'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                return gen(Scalar_type)+'/*FIXME*/'
+                return 'sidl.Array(%s)'%gen(Scalar_type)
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"

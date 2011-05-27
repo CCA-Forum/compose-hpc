@@ -1,5 +1,64 @@
 // -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 
+  enum sidl_array_ordering {
+    sidl_general_order=0, /* this must be zero (i.e. a false value) */
+    sidl_column_major_order=1,
+    sidl_row_major_order=2
+  };
+
+  enum sidl_array_type {
+    sidl_undefined_array = 0,
+    /* these values must match values used in F77 & F90 too */
+    sidl_bool_array      = 1,
+    sidl_char_array      = 2,
+    sidl_dcomplex_array  = 3,
+    sidl_double_array    = 4,
+    sidl_fcomplex_array  = 5,
+    sidl_float_array     = 6,
+    sidl_int_array       = 7,
+    sidl_long_array      = 8,
+    sidl_opaque_array    = 9,
+    sidl_string_array    = 10,
+    sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
+  };
+   
+  /**
+   * The virtual function table for the multi-dimensional arrays of
+   * any type.
+   */
+  /* struct sidl__array_vtable { */
+   
+    /*
+     * This function should release resources associates with the array
+     * passed in.  It is called when the reference count goes to zero.
+     */
+  /*   void (*d_destroy)(struct sidl__array *); */
+   
+    /*
+     * If this array controls its own data (i.e. owns the memory), this
+     * can simply increment the reference count of the argument and
+     * return it.  If the data is borrowed (e.g. a borrowed array), this
+     * should make a new array of the same size and copy data from the
+     * passed in array to the new array.
+     */
+  /*   struct sidl__array *(*d_smartcopy)(struct sidl__array *); */
+   
+    /*
+     * Return the type of the array. The type is an integer value
+     * that should match one of the values in enum sidl_array_type.
+     */
+  /*   int32_t (*d_arraytype)(void); */
+  /* }; */
+   
+  _extern class sidl__array {
+    /* int32_t                         *d_lower; */
+    /* int32_t                         *d_upper; */
+    /* int32_t                         *d_stride; */
+    /* const struct sidl__array_vtable *d_vtable; */
+    var d_dimen:    int(32);
+    var d_refcount: int(32);
+  };
+
   /**
    *
    * Definition of the array data type for chapel
@@ -28,74 +87,11 @@
    * </pre>
    */
   class Array {
-    enum sidl_array_ordering {
-      sidl_general_order=0, /* this must be zero (i.e. a false value) */
-      sidl_column_major_order=1,
-      sidl_row_major_order=2
-    };
-
-    enum sidl_array_type {
-      sidl_undefined_array = 0,
-      /* these values must match values used in F77 & F90 too */
-      sidl_bool_array      = 1,
-      sidl_char_array      = 2,
-      sidl_dcomplex_array  = 3,
-      sidl_double_array    = 4,
-      sidl_fcomplex_array  = 5,
-      sidl_float_array     = 6,
-      sidl_int_array       = 7,
-      sidl_long_array      = 8,
-      sidl_opaque_array    = 9,
-      sidl_string_array    = 10,
-      sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
-    };
-     
-    /**
-     * The virtual function table for the multi-dimensional arrays of
-     * any type.
-     */
-    /* struct sidl__array_vtable { */
-     
-      /*
-       * This function should release resources associates with the array
-       * passed in.  It is called when the reference count goes to zero.
-       */
-    /*   void (*d_destroy)(struct sidl__array *); */
-     
-      /*
-       * If this array controls its own data (i.e. owns the memory), this
-       * can simply increment the reference count of the argument and
-       * return it.  If the data is borrowed (e.g. a borrowed array), this
-       * should make a new array of the same size and copy data from the
-       * passed in array to the new array.
-       */
-    /*   struct sidl__array *(*d_smartcopy)(struct sidl__array *); */
-     
-      /*
-       * Return the type of the array. The type is an integer value
-       * that should match one of the values in enum sidl_array_type.
-       */
-    /*   int32_t (*d_arraytype)(void); */
-    /* }; */
-     
-    _extern class sidl__array {
-      /* int32_t                         *d_lower; */
-      /* int32_t                         *d_upper; */
-      /* int32_t                         *d_stride; */
-      /* const struct sidl__array_vtable *d_vtable; */
-      var d_dimen:    int(32);
-      var d_refcount: int(32);
-    };
-
-    /***********************************************************************/
-    /***********************************************************************/
-    /***********************************************************************/
     // Actual Chapel defintions
-    type Type;
+    type ScalarType;
     var ior: sidl__array;
-    /***********************************************************************/
-    /***********************************************************************/
-    /***********************************************************************/
+
+    proc Array(in ior: sidl__array, type ScalarType) { };
      
     /**
      * The relation operators available in the built-in quantifier operators.
@@ -177,12 +173,12 @@
      */
     //#define sidlArrayElem1(array, ind1) \
     //  (*(sidlArrayAddr1(array,ind1)))
-    _extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32)): Type;
+    _extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32)): ScalarType;
     _extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32), 
-				in val: int(32)): Type;
+				in val: int(32)): ScalarType;
 
-    proc get(in ind: int(32)): Type      { return sidlArrayElem1(ior, ind); }    
-    proc set(in ind: int(32), val: Type) { sidlArrayElem1Set(ior, ind, val); }
+    proc get(in ind: int(32)): ScalarType      { return sidlArrayElem1(ior, ind); }    
+    proc set(in ind: int(32), val: ScalarType) { sidlArrayElem1Set(ior, ind, val); }
      
     /**
      * Return the address of an element in a two dimensional array.
