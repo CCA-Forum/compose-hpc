@@ -501,6 +501,9 @@ class Chapel:
                     cname = '_IOR_'+name
                     # wrap the C type in a native Chapel object
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                    if mode == sidl.inout:
+                        pre_call.append(ir.Stmt(ir.Assignment(cname, name+'.ior')))
+                        
                     conv = (ir.new, 'sidl.Array', [cname, typ[1]])
                     if name == 'retval':
                         return_expr.append(conv)
