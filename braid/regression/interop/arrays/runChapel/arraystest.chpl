@@ -831,7 +831,7 @@ tracker.setExpectations(-1);
 
     magicNumber = clearstack(magicNumber);
     ArrayTest.ArrayOps_static.initRarray3Int(irarray, n, m, o);
-    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray3Int(irarray, n, m, o) == true);
+    init_part(); run_part("Check rarray int 2", ArrayTest.ArrayOps_static.checkRarray3Int(irarray, n, m, o) == true);
 
     tracker.writeComment("End: Check initialization for int 32b - 3D");
   }
@@ -855,7 +855,7 @@ tracker.setExpectations(-1);
     var irarray: [0..TEST_SIZE - 1] real(64);
     magicNumber = clearstack(magicNumber);
     ArrayTest.ArrayOps_static.initRarray1Double(irarray, TEST_SIZE);
-    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Double(irarray, TEST_SIZE) == true);
+    init_part(); run_part("Check rarray double 1", ArrayTest.ArrayOps_static.checkRarray1Double(irarray, TEST_SIZE) == true);
 
     tracker.writeComment("End: Check initialization for real 64b - 1D");
   }
@@ -866,7 +866,7 @@ tracker.setExpectations(-1);
     var irarray: [0..TEST_SIZE - 1] complex(128);
     magicNumber = clearstack(magicNumber);
     ArrayTest.ArrayOps_static.initRarray1Dcomplex(irarray, TEST_SIZE);
-    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Dcomplex(irarray, TEST_SIZE) == true);
+    init_part(); run_part("Check rarray dcomplex 1", ArrayTest.ArrayOps_static.checkRarray1Dcomplex(irarray, TEST_SIZE) == true);
 
     tracker.writeComment("End: Check initialization for complex with 64b components - 1D");
   }
