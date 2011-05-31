@@ -86,9 +86,16 @@
    *
    * </pre>
    */
+
+  /* _extern class SidlIntArrayIOR { */
+  /*   // wraps sidl_int__array */
+  /*   class sidl_array d_metadata; */
+  /*   opaque d_firstElement; */
+  /* } */
+
   class Array {
     // Actual Chapel defintions
-    type ScalarType;
+    type ScalarType, IORType;
     var ior: sidl__array;
 
     proc Array(in ior: sidl__array, type ScalarType) { 

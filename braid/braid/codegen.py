@@ -300,7 +300,7 @@ class Scope(object):
         in_quote = False
         while len(tokens) > 0:
             line = ""
-            while (len(tokens)b > 0 and 
+            while (len(tokens) > 0 and 
                    ((len(line)+len(tokens[0]) < self._max_line_length)
                     or in_quote)):
                 number_of_quotes += tokens[0].count('"')

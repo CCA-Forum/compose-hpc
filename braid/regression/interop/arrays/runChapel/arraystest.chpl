@@ -764,18 +764,18 @@ tracker.setExpectations(-1);
   /* 	     ArrayTest.ArrayOps.check2Int(iarray) == true); */
 
   /* } */
-  /* { */
-  /*   int32_t* irarray = NULL; */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray = ArrayTest.ArrayOps.createInt(TEST_SIZE); */
+  {
+    /* int32_t* irarray = NULL; */
+    /* magicNumber = clearstack(magicNumber); */
+    /* sidl::array<int32_t> iarray = ArrayTest.ArrayOps.createInt(TEST_SIZE); */
 
-  /*   init_part(); run_part("createInt", iarray); */
-  /*   init_part(); run_part("createInt", ArrayTest.ArrayOps.checkInt(iarray) == true); */
+    /* init_part(); run_part("createInt", iarray); */
+    /* init_part(); run_part("createInt", ArrayTest.ArrayOps.checkInt(iarray) == true); */
 
-  /*   irarray = iarray.first();//->d_firstElement; */
-  /*   init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps.checkRarray1Int(irarray, TEST_SIZE) == true); */
+    /* irarray = iarray.first();//->d_firstElement; */
+    /* init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps.checkRarray1Int(irarray, TEST_SIZE) == true); */
     
-  /* } */
+  }
 
   /* { */
   /*   int32_t* irarray = NULL; */
