@@ -43,7 +43,9 @@ sidl=@BABEL_SRCDIR@/regression/$name/$name.sidl
 cd regression/interop                                   ||exit 1
 
 echo "--copy over the tracker"
-cp -u -r @BABEL_SRCDIR@/regression/output .             ||exit 1
+# use -n so parallel make doesn't fail. 
+# But to update it we'll need to run `make clean'!
+cp -n -r @BABEL_SRCDIR@/regression/output .             ||exit 1
 if [ ! -e output/libC/Makefile ]; then
     cd output/libC                                      ||exit 1
     echo "--build tracker"

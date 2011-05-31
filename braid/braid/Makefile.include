@@ -84,7 +84,7 @@ EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py
 # see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
 if ENABLE_REGRESSION
-TESTS += #$(PYTHON_SOURCES) $(SIDL_TESTS)
+TESTS += $(PYTHON_SOURCES) $(SIDL_TESTS)
 endif
 
 TEST_EXTENSIONS += .py .sidl

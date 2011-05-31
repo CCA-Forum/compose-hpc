@@ -95,7 +95,7 @@
 
   class Array {
     // Actual Chapel defintions
-    type ScalarType, IORType;
+    type ScalarType;//, IORType;
     var ior: sidl__array;
 
     proc Array(in ior: sidl__array, type ScalarType) { 
