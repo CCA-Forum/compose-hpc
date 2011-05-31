@@ -297,19 +297,24 @@ class Scope(object):
             return string
         tokens = string.split(' ')
         number_of_quotes = 0
+        in_quote = False
         while len(tokens) > 0:
             line = ""
-            number_of_quotes += token[0].count('"')
-            in_quote = number_of_quotes&1 # odd number of quotes
-            while (len(tokens) > 0 and 
+            while (len(tokens)b > 0 and 
                    ((len(line)+len(tokens[0]) < self._max_line_length)
                     or in_quote)):
+                number_of_quotes += tokens[0].count('"')
+                in_quote = number_of_quotes&1 # odd number of quotes
                 line += tokens.pop(0)
                 if len(tokens): line += ' '
+
             lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
         indent = '\n' +' '*il
+        if string.count('xxx'):
+            print string
+            print '->', indent.join(lines)
         return indent.join(lines)
 
     def get_toplevel(self):
