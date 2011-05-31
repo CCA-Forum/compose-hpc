@@ -813,62 +813,81 @@ tracker.setExpectations(-1);
 
 
   {
-    var TEST_SIZE_I32: int(32) = TEST_SIZE: int(32);
-    var irarray: [0..TEST_SIZE_I32 - 1] int(32);
+    tracker.writeComment("Start: Check initialization for int 32b - 1D");
+
+    var irarray: [0..TEST_SIZE - 1] int(32);
     magicNumber = clearstack(magicNumber);
-    writeln("Magic Number: " + magicNumber);
-    writeln("Before Init:"); writeln(irarray);
-    ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE_I32);
-    writeln("After Init:"); writeln(irarray);
-    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE_I32) == true);
+    ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE);
+    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE) == true);
+
+    tracker.writeComment("End: Check initialization for int 32b - 1D");
   }
 
-  /* { */
-  /*   int32_t irarray[24]; //2*3*4  */
-  /*   int32_t n=2, m=3 , o=4; */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   ArrayTest.ArrayOps.initRarray3Int(irarray, n,m,o); */
-  /*   init_part(); run_part("Check rarray int 3", ArrayTest.ArrayOps.checkRarray3Int(irarray, n,m,o) == true); */
+  {
+    tracker.writeComment("Start: Check initialization for int 32b - 3D");
 
-  /* } */
+    var n = 2, m = 3, o = 4;    
+    var irarray: [0.. #n, 0.. #m, 0.. #o] int(32); //2*3*4 
 
-  /* { */
-  /*   int32_t irarray[432]; //2*2*2*2*3*3*3  */
-  /*   int32_t n=2, m=2 , o=2, p=2, q=3,r=3,s=3; */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   ArrayTest.ArrayOps.initRarray7Int(irarray, n,m,o,p,q,r,s); */
-  /*   init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps.checkRarray7Int(irarray, n,m,o,p,q,r,s) == true); */
+    magicNumber = clearstack(magicNumber);
+    ArrayTest.ArrayOps_static.initRarray3Int(irarray, n, m, o);
+    init_part(); run_part("Check rarray int 2", ArrayTest.ArrayOps_static.checkRarray3Int(irarray, n, m, o) == true);
 
-  /* } */
+    tracker.writeComment("End: Check initialization for int 32b - 3D");
+  }
 
+  {
+    tracker.writeComment("Start: Check initialization for int 32b - 7D");
 
-  /* { */
-  /*   double drarray[TEST_SIZE];  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   ArrayTest.ArrayOps.initRarray1Double(drarray, TEST_SIZE); */
-  /*   init_part(); run_part("Check rarray double 1", ArrayTest.ArrayOps.checkRarray1Double(drarray, TEST_SIZE) == true); */
-  /* } */
+    var n = 2, m = 2 , o = 2, p = 2, q = 3, r = 3, s = 3;
+    var irarray: [0.. #n, 0.. #m, 0.. #o, 0.. #p, 0.. #q, 0.. #r, 0.. #s] int(32); //2*2*2*2*3*3*3 
 
-  /* { */
-  /*   struct sidl_dcomplex dcrarray[TEST_SIZE];  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   ArrayTest.ArrayOps.initRarray1Dcomplex(dcrarray, TEST_SIZE); */
-  /*   init_part(); run_part("Check rarray Dcomplex 1", ArrayTest.ArrayOps.checkRarray1Dcomplex(dcrarray, TEST_SIZE) == true); */
-  /* } */
+    magicNumber = clearstack(magicNumber);
+    ArrayTest.ArrayOps_static.initRarray7Int(irarray, n, m, o, p, q, r, s);
+    init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps_static.checkRarray7Int(irarray, n, m, o, p, q, r, s) == true);
 
-  /* { */
-  /*   int32_t n = 3, m = 3, o = 2, a[9], b[6], x[6]; */
-  /*   int i = 0; */
-  /*   for(i = 0; i < 9; ++i) { */
-  /*     a[i]=i; */
-  /*   } */
-  /*   for(i = 0; i < 6; ++i) { */
-  /*     b[i]=i; */
-  /*   } */
-  /*   ArrayTest.ArrayOps.matrixMultiply(a,b,x,n,m,o); */
-  /*   init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps.checkMatrixMultiply(a,b,x,n,m,o) == true); */
-	
-  /* } */
+    tracker.writeComment("End: Check initialization for int 32b - 7D");
+  }
+
+  {
+    tracker.writeComment("Start: Check initialization for real 64b - 1D");
+
+    var irarray: [0..TEST_SIZE - 1] real(64);
+    magicNumber = clearstack(magicNumber);
+    ArrayTest.ArrayOps_static.initRarray1Double(irarray, TEST_SIZE);
+    init_part(); run_part("Check rarray double 1", ArrayTest.ArrayOps_static.checkRarray1Double(irarray, TEST_SIZE) == true);
+
+    tracker.writeComment("End: Check initialization for real 64b - 1D");
+  }
+
+  {
+    tracker.writeComment("Start: Check initialization for complex with 64b components - 1D");
+
+    var irarray: [0..TEST_SIZE - 1] complex(128);
+    magicNumber = clearstack(magicNumber);
+    ArrayTest.ArrayOps_static.initRarray1Dcomplex(irarray, TEST_SIZE);
+    init_part(); run_part("Check rarray dcomplex 1", ArrayTest.ArrayOps_static.checkRarray1Dcomplex(irarray, TEST_SIZE) == true);
+
+    tracker.writeComment("End: Check initialization for complex with 64b components - 1D");
+  }
+
+  {
+    tracker.writeComment("Start: Check matrix multiplication");
+   
+    var n = 3, m = 3, o = 2;
+    var a: [0.. #9] int(32);
+    var b: [0.. #6] int(32);
+    var x: [0.. #6] int(32);
+
+    [(i) in [0..8]] a[i] = i;
+    [(i) in [0..5]] b[i] = i;
+
+    ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o);
+    init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);
+
+    tracker.writeComment("End: Check matrix multiplication");
+ }
+
   
   /* { */
   /*   magicNumber = clearstack(magicNumber); */
