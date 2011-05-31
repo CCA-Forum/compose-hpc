@@ -513,9 +513,21 @@ class Chapel:
             elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
                 # mode is always inout for an array
                 mode = sidl.inout
+                # get the type of the scalar element
                 convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) 
+                arg_name = convert_el_res[0]
+                # ensure access is local
+                error_msg = ('"Non-local access! here = " + here.id + ' + 
+                    '", {arg_name}.locale = " + ' + 
+                    '{arg_name}.locale.id').format(arg_name=arg_name)
+                pre_call.append(ir.Stmt(ir.If(
+                    ir.Infix_expr(ir.ne, "here.id", 
+                        "{arg_name}.locale.id".format(arg_name=arg_name)), 
+                    [ir.Stmt(ir.Call("halt", [error_msg]))]
+                )))
+                
                 # reference the lowest element of the array using the domain
-                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=convert_el_res[0])
+                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
                 call_expr_str = convert_el_res[0] + '(' + chpl_dom_var_name + '.low' + ')'
                 return (call_expr_str, convert_el_res[1])
 
