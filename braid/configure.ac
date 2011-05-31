@@ -51,14 +51,13 @@ AC_PROG_LEX
 AC_PROG_INSTALL
 AC_PROG_CPP
 AC_PROG_AWK
+AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_CHECK_PROG(PERL, perl, perl) # used as sed replacement in the testsuite
 export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${prefix}/lib/pkgconfig
-# obsolete? 
-# PKG_PROG_PKG_CONFIG
 ############################################################
 #
 # Babel

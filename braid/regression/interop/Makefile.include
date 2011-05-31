@@ -21,7 +21,8 @@ TEST_EXTENSIONS += .babel
 BABEL_LOG_COMPILER = sh 
 AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
 
+# This target will be mad prior to the tests. We use it to compile
+# regression/output from Babel.
 check_DATA = $(builddir)/regression/interop/output/libC/babel.make
-
 $(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
 	sh $< $(MAKE) $(MAKEFLAGS)
