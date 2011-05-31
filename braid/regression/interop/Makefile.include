@@ -1,9 +1,17 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
+BABEL_TESTS = \
+  regression/interop/args.babel \
+  regression/interop/arrays.babel \
+  regression/interop/strings.babel  
+
+EXTRA_DIST += $(BABEL_TESTS) \
+  regression/interop/args/runChapel/argstest.chpl \
+  regression/interop/arrays/runChapel/arraystest.chpl \
+  regression/interop/strings/runChapel/stringstest.chpl 
+
 if ENABLE_REGRESSION
-TESTS += regression/interop/args.babel \
-         regression/interop/arrays.babel \
-         regression/interop/strings.babel
+TESTS += $(BABEL_TESTS)
 # Hmm.. apparently, this is not the same as the above
 ## BABEL_TESTS = args arrays strings
 ## $(BABEL_TESTS:%=$(INTEROP_DIR)/%.babel)
@@ -12,3 +20,8 @@ endif
 TEST_EXTENSIONS += .babel
 BABEL_LOG_COMPILER = sh 
 AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
+
+check_DATA = $(builddir)/regression/interop/output/libC/babel.make
+
+$(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
+	sh $< $(MAKE) $(MAKEFLAGS)

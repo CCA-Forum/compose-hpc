@@ -63,7 +63,10 @@ clean-local: clean-braid
 	rm -rf doc/latex
 	rm -rf doc/man
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
-		cd $(builddir)/regression/interop && rm -rf $(BABEL_TESTS); \
+		cd $(builddir) && \
+                rm -rf $(BABEL_TESTS) \
+                       $(BABEL_TESTS:%.babel=%) \
+                       regression/interop/output; \
 	fi
 
 

@@ -1,0 +1,24 @@
+#!/bin/sh
+if [ $# -lt 1 ]; then 
+    echo "usage: $0 make [flags]"
+    exit 1
+fi
+
+BABEL=@BABEL_PREFIX@/bin/babel
+MAKE=$1
+shift
+MAKE="$MAKE -$*"
+echo "MAKE = $MAKE"
+cd regression/interop                                   ||exit 1
+
+echo "--copy over the tracker"
+cp -n -r @BABEL_SRCDIR@/regression/output .             ||exit 1
+chmod u+w -R output                                     ||exit 1
+
+if [ ! -e output/libC/Makefile ]; then
+    cd output/libC                                      ||exit 1
+    echo "--build tracker"
+    $BABEL ../output.sidl -sc --makefile		||exit 1
+    $MAKE                                               ||exit 1
+    cd -
+fi

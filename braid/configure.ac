@@ -55,14 +55,16 @@ AC_PROG_LN_S
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
+AC_CHECK_PROG(PERL, perl, perl) # used as sed replacement in the testsuite
 export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${prefix}/lib/pkgconfig
-PKG_PROG_PKG_CONFIG
+# obsolete? 
+# PKG_PROG_PKG_CONFIG
 ############################################################
 #
 # Babel
 #
 AC_MSG_CHECKING([for babel])
-PKG_CHECK_EXISTS([babel >= 2.0.0], 
+PKG_CHECK_MODULES(BABEL, [babel >= 2.0.0], 
     [AC_SUBST([HAVE_BABEL], 1)
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
@@ -88,7 +90,7 @@ AS_IF([test -x "${CHAPEL}"],
               ["`dirname \`dirname \\\`dirname ${CHAPEL}\\\`\``"])
      AC_SUBST([CHAPEL_VERSION], ["${CHAPEL_VERSION}"])],
     [AC_MSG_RESULT([no])
-     AC_MSG_NOTICE([Did not find Chapel!])
+     AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
       AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
 ############################################################
@@ -96,12 +98,12 @@ AS_IF([test -x "${CHAPEL}"],
 # SWI-Prolog (compile-time-only dependency)
 #
 AC_MSG_CHECKING([for swipl])
-PKG_CHECK_EXISTS([pl >= 5.8.0],
+PKG_CHECK_MODULES(SWIPL, [pl >= 5.8.0],
     [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG pl --variable prefix`])
      AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
      AC_MSG_RESULT([${SWIPL}])
     ],
-    [PKG_CHECK_EXISTS([swipl >= 5.8.0], 
+    [PKG_CHECK_MODULES(SWIPL, [swipl >= 5.8.0], 
         [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG swipl --variable prefix`])
          AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
 	],
@@ -112,7 +114,13 @@ Please remember to set PKG_CONFIG_PATH accordingly.])
         ])
     ])
 
-AC_CONFIG_FILES([Makefile braid/braid braid/config.py Doxyfile regression/interop/driver.sh])
+AC_CONFIG_FILES([Makefile 
+  braid/braid 
+  braid/config.py 
+  Doxyfile
+  regression/interop/build-tracker.sh
+  regression/interop/driver.sh
+])
 
 AC_OUTPUT
 

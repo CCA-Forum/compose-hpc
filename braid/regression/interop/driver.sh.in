@@ -37,32 +37,21 @@ echo "file = $last"
 #set -x
 echo "--set up environment"
 name=`basename $last .babel`
-babel=@BABEL_PREFIX@/bin/babel
+BABEL=@BABEL_PREFIX@/bin/babel
 braid="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
 sidl=@BABEL_SRCDIR@/regression/$name/$name.sidl
 cd regression/interop                                   ||exit 1
 
-echo "--copy over the tracker"
-# use -n so parallel make doesn't fail. 
-# But to update it we'll need to run `make clean'!
-cp -n -r @BABEL_SRCDIR@/regression/output .             ||exit 1
-if [ ! -e output/libC/Makefile ]; then
-    cd output/libC                                      ||exit 1
-    echo "--build tracker"
-    $babel ../output.sidl -sc --makefile		||exit 1
-    $MAKE                                               ||exit 1
-    cd -
-fi
-
 echo "--setup directory, copy over babel regression test"
 mkdir -p $name
 cd $name                                                ||exit 1
-cp -u -r ../@srcdir@/$name/runChapel .			||exit 1
-cp -u -r @BABEL_SRCDIR@/regression/$name/libC .		||exit 1
-
+cp -u -r \
+   ../@srcdir@/$name/runChapel \
+   @BABEL_SRCDIR@/regression/$name/libC .		||exit 1
+chmod u+w -R runChapel libC                             ||exit 1
 echo "--generate server"
 cd libC							||exit 1
-$babel $sidl -sc --makefile				||exit 1
+$BABEL $sidl -sc --makefile				||exit 1
 echo "--turn on debugging"
 perl -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0/" GNUmakefile	||exit 1
 $MAKE							||exit 1

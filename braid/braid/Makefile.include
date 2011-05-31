@@ -100,7 +100,7 @@ $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 ##	braid/braid $<
 
 $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
-	@echo "  GEN Generate the sidl parser tables"
+	@echo "  GEN  [sidl parser tables]"
 	@rm -f $@
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
@@ -117,8 +117,7 @@ braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
 braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
 
 braid/%.py: $(srcdir)/braid/%.def
-	$(AM_V_GEN)
-	@if [ -n "$(SWIPL)" ]; then \
+	$(AM_V_GEN)if [ -n "$(SWIPL)" ]; then \
           egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
 	  echo '#\verbatim' >>$@ && \
 	  egrep  -v '^%' $< | sed -e 's/\(.*\)/# \1/g' >>$@ && \
