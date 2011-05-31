@@ -1,12 +1,14 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
-testdir=$(srcdir)/regression/interop
 
 if ENABLE_REGRESSION
-TESTS += $(testdir)/args.babel \
-  $(testdir)/arrays.babel \
-  $(testdir)/strings.babel	
+TESTS += regression/interop/args.babel \
+         regression/interop/arrays.babel \
+         regression/interop/strings.babel
+# Hmm.. apparently, this is not the same as the above
+## BABEL_TESTS = args arrays strings
+## $(BABEL_TESTS:%=$(INTEROP_DIR)/%.babel)
 endif
 
 TEST_EXTENSIONS += .babel
-BABEL_LOG_COMPILER = sh $(builddir)/regression/interop/driver.sh 
-AM_BABEL_LOG_FLAGS = $(MAKE) -$(MAKEFLAGS)
+BABEL_LOG_COMPILER = sh 
+AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)

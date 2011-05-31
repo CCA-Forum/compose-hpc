@@ -17,6 +17,8 @@
 
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
+
 
 
 VPATH = @srcdir@
@@ -55,10 +57,9 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 # Most of the Python files contain doctest tests
 # see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
-@ENABLE_REGRESSION_TRUE@am__append_1 = $(PYTHON_SOURCES) $(SIDL_TESTS) \
-@ENABLE_REGRESSION_TRUE@	$(testdir)/args.babel \
-@ENABLE_REGRESSION_TRUE@	$(testdir)/arrays.babel \
-@ENABLE_REGRESSION_TRUE@	$(testdir)/strings.babel
+@ENABLE_REGRESSION_TRUE@am__append_1 = regression/interop/args.babel \
+@ENABLE_REGRESSION_TRUE@	regression/interop/arrays.babel \
+@ENABLE_REGRESSION_TRUE@	regression/interop/strings.babel
 @ENABLE_DOCUMENTATION_TRUE@am__append_2 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
@@ -472,7 +473,6 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
-
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_3)
 
@@ -490,6 +490,7 @@ BUILT_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py \
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
 bin_SCRIPTS = braid/braid
 TESTS = $(am__append_1)
+# Hmm.. apparently, this is not the same as the above
 TEST_EXTENSIONS = .py .sidl .babel
 EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/argparse-1.1/setup.py contrib/argparse-1.1/README.txt \
@@ -567,14 +568,13 @@ PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
 SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
 AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
-
-# TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
-testdir = $(srcdir)/regression/interop
-BABEL_LOG_COMPILER = sh $(builddir)/regression/interop/driver.sh 
-AM_BABEL_LOG_FLAGS = $(MAKE) -$(MAKEFLAGS)
+BABEL_LOG_COMPILER = sh 
+AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
 
 # Recursive make considered harmful
-DISTCHECK_CONFIGURE_FLAGS = --disable-documentation
+DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
+  PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
+
 info_TEXINFOS = doc/braid.texi
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -1602,7 +1602,7 @@ $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 
-braid/legal.py: $(srcdir)/../LICENSE
+braid/legal.py: $(top_srcdir)/COPYRIGHT
 	$(AM_V_GEN)
 	@echo "## @package legal">$@
 	@echo "# The BSD license.">>$@
@@ -1651,6 +1651,9 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
+	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
+		cd $(builddir)/regression/interop && rm -rf $(BABEL_TESTS); \
+	fi
 
 chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
 	@mkdir -p chpl

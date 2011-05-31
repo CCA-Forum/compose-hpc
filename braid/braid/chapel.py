@@ -1217,7 +1217,7 @@ def generate_client_makefile(sidl_file, classnames):
     """
     write_to('babel.make', """
 IORHDRS = {file}_IOR.h
-STUBHDRS = {file}.h
+STUBHDRS = {file}.h {file}_Stub.h {file}_cStub.h
 STUBSRCS = {file}_cStub.c 
 # this is handled by the use statement in the implementation instead:
 # {file}_Stub.chpl

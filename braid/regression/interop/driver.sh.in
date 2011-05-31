@@ -11,7 +11,7 @@ fi
 # $1..N-1 .... make makeflags
 # $N ......... file
 end=
-make=$1
+MAKE="$1"
 while [ -n "$1" ] ; do
   last=$1
   shift
@@ -19,14 +19,22 @@ while [ -n "$1" ] ; do
       end="true" # stop copying after the -- argument
   fi
   if [ -z "$end" ]; then
-      make="$make $1"
+      MAKE="$MAKE $1"
   fi
 done
 
-#echo "make = $make"
-#echo "file = $last"
-#set -x
+# End of argument handling
 
+# FIXME:
+#
+# On parallel make: Apparently my nice hack to pass through the jobs
+# pipe does not work too well. We therefore use -j1 to force each
+# testcase to build serially if make check is run with -jN.
+MAKE='make -j1'
+
+echo "MAKE = $MAKE"
+echo "file = $last"
+#set -x
 echo "--set up environment"
 name=`basename $last .babel`
 babel=@BABEL_PREFIX@/bin/babel
@@ -40,7 +48,7 @@ if [ ! -e output/libC/Makefile ]; then
     cd output/libC                                      ||exit 1
     echo "--build tracker"
     $babel ../output.sidl -sc --makefile		||exit 1
-    $make                                               ||exit 1
+    $MAKE                                               ||exit 1
     cd -
 fi
 
@@ -55,7 +63,7 @@ cd libC							||exit 1
 $babel $sidl -sc --makefile				||exit 1
 echo "--turn on debugging"
 perl -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0/" GNUmakefile	||exit 1
-$make							||exit 1
+$MAKE							||exit 1
 cd ..							||exit 1
 echo "--generate client"
 cd runChapel						||exit 1
@@ -66,7 +74,7 @@ IORHDRS += RegOut_IOR.h
 STUBHDRS += RegOut.h
 STUBSRCS += RegOut_cStub.c 
 EOF
-$make SERVER="../libC/libimpl.la ../../output/libC/libimpl.la" \
+$MAKE SERVER="../libC/libimpl.la ../../output/libC/libimpl.la" \
       IMPL="${name}test"                        	||exit 1
 echo "--run client"
 exec ./runChapel

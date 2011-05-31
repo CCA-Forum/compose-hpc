@@ -1,5 +1,4 @@
 ACLOCAL_AMFLAGS = -I m4
-
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON= 
 nobase_python_PYTHON= 
@@ -33,7 +32,9 @@ EXTRA_DIST= \
 include braid/Makefile.include
 include regression/interop/Makefile.include
 
-DISTCHECK_CONFIGURE_FLAGS=--disable-documentation
+DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
+  PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
+
 if ENABLE_DOCUMENTATION
 EXTRA_DIST+= \
 	doc/html/index.html \

@@ -77,15 +77,16 @@ SIDL_TESTS= \
 
 EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py
 
-## SIDL_TESTS=$(patsubst %.sidl,../regression/parser/%.sidl, $(SIDL_NAMES))
+##SIDL_TESTS=$(patsubst %.sidl,../regression/parser/%.sidl, $(SIDL_NAMES))
 
 #UNIT_TOKENS = $(patsubst %.py,%.unit, $(python_PYTHON))
 # Most of the Python files contain doctest tests
 # see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
 if ENABLE_REGRESSION
-TESTS += $(PYTHON_SOURCES) $(SIDL_TESTS)
+TESTS += #$(PYTHON_SOURCES) $(SIDL_TESTS)
 endif
+
 TEST_EXTENSIONS += .py .sidl
 PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
@@ -104,7 +105,7 @@ $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 	@cd braid && env PYTHONPATH=.:../$(PYTHONPATH):../$(BACKPORTS) $(PYTHON) ../$<
 
-braid/legal.py: $(srcdir)/../LICENSE
+braid/legal.py: $(top_srcdir)/COPYRIGHT
 	$(AM_V_GEN)
 	@echo "## @package legal">$@
 	@echo "# The BSD license.">>$@
