@@ -1,4 +1,4 @@
-                                                           -*- rst -*-
+                                                        -*- markdown -*-
                             ====================
                              BRAID INSTALLATION
                             ====================
@@ -27,7 +27,7 @@ PROCESS
 directory and you have the necessary software and environment, 
 simply type the following::
 
-   $ mkdir build && cd build && ../configure --prefix=<INSTALL_DIR> && make install
+    $ mkdir build && cd build && ../configure --prefix=<INSTALL_DIR> && make install
 
 
 Last updated:  25 May 2011
