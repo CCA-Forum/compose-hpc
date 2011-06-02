@@ -25,9 +25,10 @@ PROCESS
 
   Assuming you are currently at the root of the package
 directory and you have the necessary software and environment, 
+which includes making sure <INSTALL_DIR>/bin is in your environment,
 simply type the following::
 
     $ mkdir build && cd build && ../configure --prefix=<INSTALL_DIR> && make install
 
 
-Last updated:  25 May 2011
+Last updated:  01 June 2011
