@@ -1,4 +1,4 @@
-// Copyright (c) 2010, Lawrence Livermore National Security
+// Copyright (c) 2010-11, Lawrence Livermore National Security
 // Produced at the Lawrence Livermore National Laboratory.
 // Written by the Components Team <components@llnl.gov>
 // UCRL-CODE-2002-054
@@ -80,7 +80,8 @@ package knapsack version 1.0
      */
     void initialize(in array<int> w)
       throws
-        sidl.PreViolation, sidl.PostViolation, sidl.InvViolation;
+        sidl.PreViolation, sidl.PostViolation, sidl.InvViolation, 
+        kExcept, kBadWeightExcept;
       require 
         is_1d_array : (w != null) implies (dimen(w) == 1); 
         pos_weights : (w != null) implies all(w > 0);
@@ -92,7 +93,8 @@ package knapsack version 1.0
      */
     void addWeight(in int w)
       throws
-        sidl.PreViolation, sidl.PostViolation, sidl.InvViolation;
+        sidl.PreViolation, sidl.PostViolation, sidl.InvViolation,
+        kExcept, kBadWeightExcept;
       require 
         pos_weight : w > 0;
       ensure
@@ -104,7 +106,7 @@ package knapsack version 1.0
      */
     bool onlyPosWeights()
       throws
-        sidl.InvViolation;
+        sidl.InvViolation, kExcept;
       ensure
         side_effect_free:  is pure;
 
@@ -114,7 +116,7 @@ package knapsack version 1.0
      */
     bool hasWeights(in array<int> w)
       throws
-        sidl.PreViolation, sidl.InvViolation;
+        sidl.PreViolation, sidl.InvViolation, kBadWeightExcept;
       require 
         is_1d_array : (w != null) implies (dimen(w) == 1); 
         pos_weights : (w != null) implies all(w > 0);
@@ -127,7 +129,7 @@ package knapsack version 1.0
      */
     bool hasWeight(in int w)
       throws
-        sidl.PreViolation, sidl.InvViolation;
+        sidl.PreViolation, sidl.InvViolation, kExcept;
       require 
         pos_weight : w > 0;
       ensure

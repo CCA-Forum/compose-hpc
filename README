@@ -1,3 +1,40 @@
-PAUL: Annotation processor
-ROTE: Term rewriting
-BRAID: Code generation, SIDL parser
+                     COMPOSE-HPC README
+
+CONTENTS
+
+  Introduction
+  Dependencies
+  Overview for the Impatient
+
+
+INTRODUCTION
+
+  COMPOSE-HPC is a project dedicated to making tools of annotation
+languages, source-to-source code transformation and code generation
+more useful and accessible to the developers of scientific and 
+engineering software for high-performance computers.
+
+  Three tools are currently under development:
+
+    PAUL: Annotation processor
+    ROTE: Term rewriting
+    BRAID: Code generation, SIDL parser
+
+
+DEPENDENCIES
+
+  BRAID
+    Babel:          Version 1.x or higher (regression tests)
+    Java:           JVM 1.6 or higher
+    Make:           GNU make version 3.74 or higher
+    NumPy:          Version 1.0.4 or higher
+    Prolog:         Version 5.10.4 or higher
+    Python:         Version 2.6 or higher
+
+
+OVERVIEW FOR THE IMPATIENT
+
+  (Should provide an overview on how to get started with each tool.)
+
+
+Last Updated:  25 May 2011
