@@ -92,56 +92,62 @@
    * The client may access this with the functions below or using
    * the macros in the header file sidlArray.h.
    */
-# define SIDL_ARRAY(TYPE) \
-  _extern class sidl_##TYPE##__array { \
-     var d_metadata: sidl__array; \
-     var d_firstElement: opaque; \
-   };
-  SIDL_ARRAY(bool)	 
-  SIDL_ARRAY(char)	 
-  SIDL_ARRAY(dcomplex)
-  SIDL_ARRAY(double) 
-  SIDL_ARRAY(fcomplex)
-  SIDL_ARRAY(float)	 
-  SIDL_ARRAY(int)	 
-  SIDL_ARRAY(long)	 
-  SIDL_ARRAY(opaque) 
-  SIDL_ARRAY(string) 
-  SIDL_ARRAY(BaseInterface) 
-
-  /**
-   * Create an array that uses data memory from another source. This initial
-   * contents are determined by the data being borrowed.
-   */
-  _extern proc int_ptr(inout firstElement: int(32)): opaque;
-  _extern proc sidl_int__array_borrow(in firstElement: opaque,
-				      in dimen: int(32),
-				      inout lower: int(32),
-				      inout upper: int(32),
-				      inout stride: int(32)): sidl_int__array;
-
-  proc borrow_int_Array(inout a: [?dom_a]int(32), in firstElement: opaque) {
-    var rank = dom_a.rank;
-    var lower: [1..#rank] int(32);
-    var upper: [1..#rank] int(32);
-    var stride: [1..#rank] int(32);
-    for i in [1..#rank] {
-      var r: range = dom_a.dim(i);
-      lower[i] = r.low;
-      upper[i] = r.high-1;
-      stride[i] = r.stride;
-    }
-    if (here.id != a.locale.id) {
-      halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);
-    }
-
-    var ior = sidl_int__array_borrow(firstElement,//a(dom_a.low),
-				     dom_a.rank,
-				     lower[1], 
-				     upper[1], 
-				     stride[1]);
-    return new Array(int(32), sidl_int__array, ior);
+# define SIDL_ARRAY(C_TYPE, CHAPEL_TYPE)	                                        \
+  _extern class sidl_##C_TYPE##__array { 						\
+     var d_metadata: sidl__array; 							\
+     var d_firstElement: opaque; 							\
+   };                                                                                   \
+											\
+  /**											\
+   * Create an array that uses data memory from another source. This initial		\
+   * contents are determined by the data being borrowed.				\
+   *											\
+   * A word of WARNING: An array borrowed from Chapel will only work			\
+   * until the function calling sidl_*_array_borrow() returns. If you			\
+   * want to retain the array beyond that point you will need to run			\
+   * smartCopy().									\
+   */											\
+  _extern proc C_TYPE##_ptr(inout firstElement: CHAPEL_TYPE): opaque;			\
+  _extern proc sidl_##C_TYPE##__array_borrow(in firstElement: opaque,			\
+				      in dimen: int(32),				\
+				      inout lower: int(32),				\
+				      inout upper: int(32),				\
+				      inout stride: int(32)): sidl_##C_TYPE##__array;	\
+											\
+  proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
+    var rank = dom_a.rank;								\
+    var lower: [1..rank] int(32);							\
+    var upper: [1..rank] int(32);							\
+    var stride: [1..rank] int(32);							\
+    for i in [1..rank] {								\
+      var r: range = dom_a.dim(i);							\
+      lower[i] = r.low;									\
+      upper[i] = r.high-1;								\
+      stride[i] = r.stride;								\
+    }											\
+    if (here.id != a.locale.id) {							\
+      halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
+    }											\
+											\
+    var ior = sidl_##C_TYPE##__array_borrow(firstElement,				\
+				     dom_a.rank,					\
+				     lower[1],						\
+				     upper[1],						\
+				     stride[1]);					\
+    return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);				\
   }
+
+SIDL_ARRAY(bool,     bool)	 
+SIDL_ARRAY(char,     string)	 
+SIDL_ARRAY(dcomplex, complex(128))
+SIDL_ARRAY(double,   float(64))
+SIDL_ARRAY(fcomplex, complex(64))
+SIDL_ARRAY(float,    float(32))
+SIDL_ARRAY(int,      int(32))	 
+SIDL_ARRAY(long,     int(64)) 
+SIDL_ARRAY(opaque,   opaque)
+SIDL_ARRAY(string,   string)
+SIDL_ARRAY(BaseInterface, int(32)) 
 
   class Array {
     // Actual Chapel defintions
