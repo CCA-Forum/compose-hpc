@@ -88,46 +88,46 @@ tracker.setExpectations(-1);
   magicNumber = clearstack(magicNumber);
 }
   
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<bool> barray; */
-  /*   ArrayTest.ArrayOps_static.makeBool(9, barray); */
-  /*   init_part(); run_part("makeBool9", ArrayTest.ArrayOps_static.reverseBool(barray, false) == true); */
-  /*   init_part(); run_part("makeBool9", ArrayTest.ArrayOps_static.checkBool(barray) == true); */
-  /*   barray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  magicNumber = clearstack(magicNumber);
+  var barray: sidl.Array(bool, sidl_bool__array);
+  ArrayTest.ArrayOps_static.makeBool(9, barray);
+  init_part(); run_part("makeBool9", ArrayTest.ArrayOps_static.reverseBool(barray, false) == true);
+  init_part(); run_part("makeBool9", ArrayTest.ArrayOps_static.checkBool(barray) == true);
+  barray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
   
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<char> carray = ArrayTest.ArrayOps_static.createChar(TEST_SIZE); */
-  /*   init_part(); run_part("createChar", carray._not_nil()); */
-  /*   init_part(); run_part("createChar", ArrayTest.ArrayOps_static.checkChar(carray) == true); */
-  /*   init_part(); run_part("createChar", ArrayTest.ArrayOps_static.reverseChar(carray, true) == true); */
-  /*   carray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  magicNumber = clearstack(magicNumber);
+  var carray: sidl.Array(string, sidl_char__array) = ArrayTest.ArrayOps_static.createChar(TEST_SIZE);
+  init_part(); run_part("createChar", carray._not_nil());
+  init_part(); run_part("createChar", ArrayTest.ArrayOps_static.checkChar(carray) == true);
+  init_part(); run_part("createChar", ArrayTest.ArrayOps_static.reverseChar(carray, true) == true);
+  carray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<char> carray; */
-  /*   ArrayTest.ArrayOps_static.makeChar(218, carray); */
-  /*   init_part(); run_part("makeChar", ArrayTest.ArrayOps_static.checkChar(carray) == true); */
-  /*   init_part(); run_part("makeChar", ArrayTest.ArrayOps_static.reverseChar(carray, false) == true); */
-  /*   init_part(); run_part("makeChar", ArrayTest.ArrayOps_static.checkChar(carray) == false); */
-  /*   carray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
-  
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray = ArrayTest.ArrayOps_static.createInt(TEST_SIZE); */
-  /*   init_part(); run_part("createInt", iarray._not_nil()); */
-  /*   init_part(); run_part("createInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true); */
-  /*   init_part(); run_part("createInt", ArrayTest.ArrayOps_static.reverseInt(iarray, true) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var carray: sidl.Array(string, sidl_char__array);
+  ArrayTest.ArrayOps_static.makeChar(218, carray);
+  init_part(); run_part("makeChar", ArrayTest.ArrayOps_static.checkChar(carray) == true);
+  init_part(); run_part("makeChar", ArrayTest.ArrayOps_static.reverseChar(carray, false) == true);
+  init_part(); run_part("makeChar", ArrayTest.ArrayOps_static.checkChar(carray) == false);
+  carray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
+
+{
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.createInt(TEST_SIZE);
+  init_part(); run_part("createInt", iarray._not_nil());
+  init_part(); run_part("createInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
+  init_part(); run_part("createInt", ArrayTest.ArrayOps_static.reverseInt(iarray, true) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
 {
   magicNumber = clearstack(magicNumber);
@@ -156,131 +156,136 @@ tracker.setExpectations(-1);
   magicNumber = clearstack(magicNumber);
 }
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int64_t> larray = ArrayTest.ArrayOps_static.createLong(TEST_SIZE); */
-  /*   init_part(); run_part("createLong", larray._not_nil()); */
-  /*   init_part(); run_part("createLong", ArrayTest.ArrayOps_static.checkLong(larray) == true); */
-  /*   init_part(); run_part("createLong", ArrayTest.ArrayOps_static.reverseLong(larray, true) == true); */
-  /*   larray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var larray: sidl.Array(int(64), sidl_long__array) = ArrayTest.ArrayOps_static.createLong(TEST_SIZE);
+  init_part(); run_part("createLong", larray._not_nil());
+  init_part(); run_part("createLong", ArrayTest.ArrayOps_static.checkLong(larray) == true);
+  init_part(); run_part("createLong", ArrayTest.ArrayOps_static.reverseLong(larray, true) == true);
+  larray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int64_t> larray; */
-  /*   ArrayTest.ArrayOps_static.makeLong(218, larray); */
-  /*   init_part(); run_part("makeLong", ArrayTest.ArrayOps_static.checkLong(larray) == true); */
-  /*   init_part(); run_part("makeLong", ArrayTest.ArrayOps_static.reverseLong(larray, false) == true); */
-  /*   init_part(); run_part("makeLong", ArrayTest.ArrayOps_static.checkLong(larray) == false); */
-  /*   larray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var larray: sidl.Array(int(64), sidl_long__array);
+  ArrayTest.ArrayOps_static.makeLong(218, larray);
+  init_part(); run_part("makeLong", ArrayTest.ArrayOps_static.checkLong(larray) == true);
+  init_part(); run_part("makeLong", ArrayTest.ArrayOps_static.reverseLong(larray, false) == true);
+  init_part(); run_part("makeLong", ArrayTest.ArrayOps_static.checkLong(larray) == false);
+  larray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<string> sarray = ArrayTest.ArrayOps_static.createString(TEST_SIZE); */
-  /*   init_part(); run_part("createString", sarray._not_nil()); */
-  /*   init_part(); run_part("createString", ArrayTest.ArrayOps_static.checkString(sarray) == true); */
-  /*   init_part(); run_part("createString", ArrayTest.ArrayOps_static.reverseString(sarray, true) == true); */
-  /*   sarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  magicNumber = clearstack(magicNumber);
+  var sarray: sidl.Array(string, sidl_string__array);
+  sarray = ArrayTest.ArrayOps_static.createString(TEST_SIZE);
+  init_part(); run_part("createString", sarray._not_nil());
+  init_part(); run_part("createString", ArrayTest.ArrayOps_static.checkString(sarray) == true);
+  init_part(); run_part("createString", ArrayTest.ArrayOps_static.reverseString(sarray, true) == true);
+  sarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<string> sarray;  */
-  /*   ArrayTest.ArrayOps_static.makeString(218, sarray); */
-  /*   init_part(); run_part("makeString", ArrayTest.ArrayOps_static.checkString(sarray) == true); */
-  /*   init_part(); run_part("makeString", ArrayTest.ArrayOps_static.reverseString(sarray, false) == true); */
-  /*   init_part(); run_part("makeString", ArrayTest.ArrayOps_static.checkString(sarray) == false); */
-  /*   sarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  magicNumber = clearstack(magicNumber);
+  var sarray: sidl.Array(string, sidl_string__array);
+  ArrayTest.ArrayOps_static.makeString(218, sarray);
+  init_part(); run_part("makeString", ArrayTest.ArrayOps_static.checkString(sarray) == true);
+  init_part(); run_part("makeString", ArrayTest.ArrayOps_static.reverseString(sarray, false) == true);
+  init_part(); run_part("makeString", ArrayTest.ArrayOps_static.checkString(sarray) == false);
+  sarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<double> darray = ArrayTest.ArrayOps_static.createDouble(TEST_SIZE); */
-  /*   init_part(); run_part("createDouble", darray._not_nil()); */
-  /*   init_part(); run_part("createDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == true); */
-  /*   init_part(); run_part("createDouble", ArrayTest.ArrayOps_static.reverseDouble(darray, true) == true); */
-  /*   darray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var darray: sidl.Array(real(64), sidl_double__array);
+  darray = ArrayTest.ArrayOps_static.createDouble(TEST_SIZE);
+  init_part(); run_part("createDouble", darray._not_nil());
+  init_part(); run_part("createDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == true);
+  init_part(); run_part("createDouble", ArrayTest.ArrayOps_static.reverseDouble(darray, true) == true);
+  darray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<double> darray; */
-  /*   ArrayTest.ArrayOps_static.makeDouble(218, darray); */
-  /*   init_part(); run_part("makeDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == true); */
-  /*   init_part(); run_part("makeDouble", ArrayTest.ArrayOps_static.reverseDouble(darray, false) == true); */
-  /*   init_part(); run_part("makeDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == false); */
-  /*   darray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
-  
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<float> farray = ArrayTest.ArrayOps_static.createFloat(TEST_SIZE); */
-  /*   init_part(); run_part("createFloat", farray._not_nil()); */
-  /*   init_part(); run_part("createFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == true); */
-  /*   init_part(); run_part("createFloat", ArrayTest.ArrayOps_static.reverseFloat(farray, true) == true); */
-  /*   farray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  magicNumber = clearstack(magicNumber);
+  var darray: sidl.Array(real(64), sidl_double__array);
+  ArrayTest.ArrayOps_static.makeDouble(218, darray);
+  init_part(); run_part("makeDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == true);
+  init_part(); run_part("makeDouble", ArrayTest.ArrayOps_static.reverseDouble(darray, false) == true);
+  init_part(); run_part("makeDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == false);
+  darray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<float> farray;  */
-  /*   ArrayTest.ArrayOps_static.makeFloat(218, farray); */
-  /*   init_part(); run_part("makeFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == true); */
-  /*   init_part(); run_part("makeFloat", ArrayTest.ArrayOps_static.reverseFloat(farray, false) == true); */
-  /*   init_part(); run_part("makeFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == false); */
-  /*   farray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
-  
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::fcomplex> fcarray = ArrayTest.ArrayOps_static.createFcomplex(TEST_SIZE); */
-  /*   init_part(); run_part("createFcomplex", fcarray._not_nil()); */
-  /*   init_part(); run_part("createFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == true); */
-  /*   init_part(); run_part("createFcomplex", ArrayTest.ArrayOps_static.reverseFcomplex(fcarray, true) == true); */
-  /*   fcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var farray: sidl.Array(real(32), sidl_float__array);
+  farray = ArrayTest.ArrayOps_static.createFloat(TEST_SIZE);
+  init_part(); run_part("createFloat", farray._not_nil());
+  init_part(); run_part("createFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == true);
+  init_part(); run_part("createFloat", ArrayTest.ArrayOps_static.reverseFloat(farray, true) == true);
+  farray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::fcomplex> fcarray; */
-  /*   ArrayTest.ArrayOps_static.makeFcomplex(218, fcarray); */
-  /*   init_part(); run_part("makeFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == true); */
-  /*   init_part(); run_part("makeFcomplex", ArrayTest.ArrayOps_static.reverseFcomplex(fcarray, false) == true); */
-  /*   init_part(); run_part("makeFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == false); */
-  /*   fcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
-  
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::dcomplex> dcarray = ArrayTest.ArrayOps_static.createDcomplex(TEST_SIZE); */
-  /*   init_part(); run_part("createDcomplex", dcarray._not_nil()); */
-  /*   init_part(); run_part("createDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == true); */
-  /*   init_part(); run_part("createDcomplex", ArrayTest.ArrayOps_static.reverseDcomplex(dcarray, true) == true); */
-  /*   dcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var farray: sidl.Array(real(32), sidl_float__array);
+  ArrayTest.ArrayOps_static.makeFloat(218, farray);
+  init_part(); run_part("makeFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == true);
+  init_part(); run_part("makeFloat", ArrayTest.ArrayOps_static.reverseFloat(farray, false) == true);
+  init_part(); run_part("makeFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == false);
+  farray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::dcomplex> dcarray; */
-  /*   ArrayTest.ArrayOps_static.makeDcomplex(218, dcarray); */
-  /*   init_part(); run_part("makeDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == true); */
-  /*   init_part(); run_part("makeDcomplex", ArrayTest.ArrayOps_static.reverseDcomplex(dcarray, false) == true); */
-  /*   init_part(); run_part("makeDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == false); */
-  /*   dcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{
+  magicNumber = clearstack(magicNumber);
+  var fcarray: sidl.Array(complex(64), sidl_fcomplex__array);
+  fcarray = ArrayTest.ArrayOps_static.createFcomplex(TEST_SIZE);
+  init_part(); run_part("createFcomplex", fcarray._not_nil());
+  init_part(); run_part("createFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == true);
+  init_part(); run_part("createFcomplex", ArrayTest.ArrayOps_static.reverseFcomplex(fcarray, true) == true);
+  fcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
+
+{
+  magicNumber = clearstack(magicNumber);
+  var fcarray: sidl.Array(complex(64), sidl_fcomplex__array);
+  ArrayTest.ArrayOps_static.makeFcomplex(218, fcarray);
+  init_part(); run_part("makeFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == true);
+  init_part(); run_part("makeFcomplex", ArrayTest.ArrayOps_static.reverseFcomplex(fcarray, false) == true);
+  init_part(); run_part("makeFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == false);
+  fcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
+
+{
+  magicNumber = clearstack(magicNumber);
+  var dcarray: sidl.Array(complex(128), sidl_dcomplex__array);
+  dcarray = ArrayTest.ArrayOps_static.createDcomplex(TEST_SIZE);
+  init_part(); run_part("createDcomplex", dcarray._not_nil());
+  init_part(); run_part("createDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == true);
+  init_part(); run_part("createDcomplex", ArrayTest.ArrayOps_static.reverseDcomplex(dcarray, true) == true);
+  dcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
+
+{
+  magicNumber = clearstack(magicNumber);
+  var dcarray: sidl.Array(complex(128), sidl_dcomplex__array);
+  ArrayTest.ArrayOps_static.makeDcomplex(218, dcarray);
+  init_part(); run_part("makeDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == true);
+  init_part(); run_part("makeDcomplex", ArrayTest.ArrayOps_static.reverseDcomplex(dcarray, false) == true);
+  init_part(); run_part("makeDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == false);
+  dcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
   /* {  */
   /*   magicNumber = clearstack(magicNumber); */

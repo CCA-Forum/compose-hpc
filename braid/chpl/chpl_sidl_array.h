@@ -14,6 +14,12 @@
 #include <sidl_string_IOR.h>      
 #include <sidl_BaseInterface_IOR.h>
 
+struct sidl_string__array {
+  struct sidl__array   d_metadata;
+  char * *d_firstElement;
+};
+
+
 // Chapel-compatible typedef
 #define CHAPEL_TYPEDEF(T) \
   typedef struct T _##T; \
