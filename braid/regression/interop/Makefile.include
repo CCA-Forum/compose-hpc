@@ -19,7 +19,13 @@ endif
 
 TEST_EXTENSIONS += .babel
 BABEL_LOG_COMPILER = sh 
-AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
+# FIXME:
+#
+# On parallel make: Apparently my nice hack to pass through the jobs
+# pipe does not work too well. We therefore use -j1 to force each
+# testcase to build serially if make check is run with -jN.
+#AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
+AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 
 # This target will be mad prior to the tests. We use it to compile
 # regression/output from Babel.

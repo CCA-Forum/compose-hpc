@@ -87,20 +87,84 @@
    * </pre>
    */
 
-  /* _extern class SidlIntArrayIOR { */
-  /*   // wraps sidl_int__array */
-  /*   class sidl_array d_metadata; */
-  /*   opaque d_firstElement; */
-  /* } */
+  /**
+   * The data structure for multi-dimensional arrays for sidl int.
+   * The client may access this with the functions below or using
+   * the macros in the header file sidlArray.h.
+   */
+# define SIDL_ARRAY(TYPE) \
+  _extern class sidl_##TYPE##__array { \
+     var d_metadata: sidl__array; \
+     var d_firstElement: opaque; \
+   };
+  SIDL_ARRAY(bool)	 
+  SIDL_ARRAY(char)	 
+  SIDL_ARRAY(dcomplex)
+  SIDL_ARRAY(double) 
+  SIDL_ARRAY(fcomplex)
+  SIDL_ARRAY(float)	 
+  SIDL_ARRAY(int)	 
+  SIDL_ARRAY(long)	 
+  SIDL_ARRAY(opaque) 
+  SIDL_ARRAY(string) 
+  SIDL_ARRAY(BaseInterface) 
+
+  /**
+   * Create an array that uses data memory from another source. This initial
+   * contents are determined by the data being borrowed.
+   */
+  _extern proc int_ptr(inout firstElement: int(32)): opaque;
+  _extern proc sidl_int__array_borrow(in firstElement: opaque,
+				      in dimen: int(32),
+				      inout lower: int(32),
+				      inout upper: int(32),
+				      inout stride: int(32)): sidl_int__array;
+
+  proc borrow_int_Array(inout a: [?dom_a]int(32), in firstElement: opaque) {
+    var rank = dom_a.rank;
+    var lower: [1..#rank] int(32);
+    var upper: [1..#rank] int(32);
+    var stride: [1..#rank] int(32);
+    for i in [1..#rank] {
+      var r: range = dom_a.dim(i);
+      lower[i] = r.low;
+      upper[i] = r.high-1;
+      stride[i] = r.stride;
+    }
+    if (here.id != a.locale.id) {
+      halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);
+    }
+
+    var ior = sidl_int__array_borrow(firstElement,//a(dom_a.low),
+				     dom_a.rank,
+				     lower[1], 
+				     upper[1], 
+				     stride[1]);
+    return new Array(int(32), sidl_int__array, ior);
+  }
 
   class Array {
     // Actual Chapel defintions
-    type ScalarType;//, IORType;
-    var ior: sidl__array;
+    type ScalarType, IORtype;
+    var ior: IORtype;//sidl_TYPE__array;
+    //var borrowed: [?dom]ScalarType;
 
-    proc Array(in ior: sidl__array, type ScalarType) { 
+    proc Array(type ScalarType, type IORtype, in ior: IORtype) { 
       this.ior = ior;
     }    
+
+    /* proc Array(type ScalarType, type IORtype, inout borrow_from: [?dom]ScalarType) { */
+    /*   this.borrowed = borrow_from; */
+    /* }     */
+
+
+    /**
+     * always returns true, since there is no way to construct an
+     * unintialized Array for now.
+     */
+    proc _not_nil(): bool {
+      return true;
+    }
      
     /**
      * The relation operators available in the built-in quantifier operators.
@@ -116,8 +180,8 @@
      * Return the dimension of the array.
      */
     proc dim(): int(32) {
-      _extern proc sidlArrayDim(inout array: sidl__array: sidl__array): int(32);
-      return sidlArrayDim(ior);
+      _extern proc sidlArrayDim(inout array: sidl__array): int(32);
+      return sidlArrayDim(ior.d_metadata);
     }
     //#define sidlArrayDim(array) (((const struct sidl__array *)(array))->d_dimen)
 
@@ -129,7 +193,7 @@
      */
     proc sidlLower(in ind: int(32)): int(32) {
       _extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlLower(ior, ind);
+      return sidlLower(ior.d_metadata, ind);
     }
     //#define sidlLower(array,ind) (((const struct sidl__array *)(array))->d_lower[(ind)])
      
@@ -140,7 +204,7 @@
      */
     proc sidlUpper(in ind: int(32)): int(32) {
       _extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlLower(ior, ind);
+      return sidlLower(ior.d_metadata, ind);
     }
     //#define sidlUpper(array,ind) (((const struct sidl__array *)(array))->d_upper[(ind)])
      
@@ -470,6 +534,10 @@
      * you want to make a copy of a method argument because arrays passed
      * into methods aren't guaranteed to exist after the method call.
      */
+    proc smartCopy() {
+      _extern proc sidl__array_smartCopy(inout a: sidl__array);
+      sidl__array_smartCopy(ior.d_metadata);
+    }
     //struct sidl__array *
     //sidl__array_smartCopy(struct sidl__array *array);
      
@@ -479,8 +547,8 @@
      * Return true iff the array is destroyed
      */
     proc deleteRef() {
-      _extern proc sidl__array_deleteRef(in a: sidl.sidl__array);
-	sidl__array_deleteRef(ior);
+      _extern proc sidl__array_deleteRef(inout a: sidl.sidl__array);
+      sidl__array_deleteRef(ior.d_metadata);
     }
     //void
     //sidl__array_deleteRef(struct sidl__array* array);

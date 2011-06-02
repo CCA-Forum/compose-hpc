@@ -25,13 +25,6 @@ done
 
 # End of argument handling
 
-# FIXME:
-#
-# On parallel make: Apparently my nice hack to pass through the jobs
-# pipe does not work too well. We therefore use -j1 to force each
-# testcase to build serially if make check is run with -jN.
-MAKE='make -j1'
-
 echo "MAKE = $MAKE"
 echo "file = $last"
 #set -x

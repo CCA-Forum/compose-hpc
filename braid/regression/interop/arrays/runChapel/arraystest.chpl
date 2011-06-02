@@ -129,35 +129,32 @@ tracker.setExpectations(-1);
   /* }  */
 
 {
-   magicNumber = clearstack(magicNumber);
-   var iarray: sidl.Array(int(32));
-   ArrayTest.ArrayOps_static.makeInt(218, iarray);
-   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
-   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.reverseInt(iarray, false) == true);
-   init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == false);
-   iarray.deleteRef();
-   magicNumber = clearstack(magicNumber);
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  ArrayTest.ArrayOps_static.makeInt(218, iarray);
+  init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
+  init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.reverseInt(iarray, false) == true);
+  init_part(); run_part("makeInt", ArrayTest.ArrayOps_static.checkInt(iarray) == false);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
 }
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> borrowed; */
-  /*   int32_t elements[] = { */
-  /*     2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, */
-  /*     41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, */
-  /*     89, 97, 101, 103, 107, 109, 113, 127, 131 */
-  /*   }; */
-  /*   const int32_t lower[] = { 0 }; */
-  /*   const int32_t upper[] = { sizeof(elements)/sizeof(int32_t)-1 }; */
-  /*   const int32_t stride[] = { 1 }; */
-  /*   init_part(); run_part("borrowed_int", !borrowed); */
-  /*   borrowed.borrow(elements, 1, lower, upper, stride); */
-  /*   init_part(); run_part("borrowed_int", borrowed._not_nil()); */
-  /*   init_part(); run_part("borrowed int", ArrayTest.ArrayOps.checkInt(borrowed) == true); */
-  /*   borrowed.smartCopy(); */
-  /*   init_part(); run_part("borrowed int", ArrayTest.ArrayOps.checkInt(borrowed) == true); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  magicNumber = clearstack(magicNumber);
+  var borrowed: sidl.Array(int(32), sidl_int__array);
+  var elements: [0..32] int(32) = 
+    (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+     41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
+     89, 97, 101, 103, 107, 109, 113, 127, 131);
+  //init_part(); run_part("borrowed_int", !borrowed);
+  borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
+  init_part(); run_part("borrowed_int", borrowed._not_nil());
+  init_part(); run_part("borrowed int", ArrayTest.ArrayOps_static.checkInt(borrowed) == true);
+  borrowed.smartCopy();
+  writeln(elements);
+  init_part(); run_part("borrowed int", ArrayTest.ArrayOps_static.checkInt(borrowed) == true);
+  magicNumber = clearstack(magicNumber);
+}
 
   /* { */
   /*   magicNumber = clearstack(magicNumber); */

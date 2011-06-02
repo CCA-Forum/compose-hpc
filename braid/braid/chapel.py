@@ -493,7 +493,11 @@ class Chapel:
                 return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                ctype = ir.Typedef_type('sidl__array')
+                if typ[1][0] == ir.scoped_id:
+                    t = 'BaseInterface'
+                else:
+                    t = typ[1][1]
+                ctype = ir.Typedef_type('sidl_%s__array'%t)
                 if mode <> sidl.out:
                     cname = name+'.ior'
 
@@ -503,8 +507,9 @@ class Chapel:
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                     if mode == sidl.inout:
                         pre_call.append(ir.Stmt(ir.Assignment(cname, name+'.ior')))
-                        
-                    conv = (ir.new, 'sidl.Array', [cname, typ[1]])
+
+                    conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, cname])
+                    
                     if name == 'retval':
                         return_expr.append(conv)
                     else:
@@ -1178,7 +1183,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return gen(ir.pt_void)+'/*FIXME*/'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                return 'sidl.Array(%s)'%gen(Scalar_type)
+                if Scalar_type[0] == ir.scoped_id:
+                    ctype = 'BaseInterface'
+                else:
+                    ctype = Scalar_type[1]
+                return 'sidl.Array(%s, sidl_%s__array)'%(gen(Scalar_type), ctype)
+                scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
