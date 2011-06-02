@@ -1,0 +1,27 @@
+                             BRAID INSTALLATION
+
+
+CONTENTS
+
+  Requirements
+  Process
+
+
+REQUIREMENTS
+
+  Braid is dependent on the installation of following software packages:
+
+  o  Languages
+  o  Make
+
+
+PROCESS
+
+  Assuming you are currently at the root of the package
+directory and you have the necessary software and environment, 
+simply type the following:
+
+   $ 
+
+
+Last updated:  25 May 2011
