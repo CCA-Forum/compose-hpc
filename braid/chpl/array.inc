@@ -169,6 +169,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * unintialized Array for now.
      */
     proc _not_nil(): bool {
+      //writeln(ior.d_metadata);
       return true;
     }
      
@@ -541,20 +542,20 @@ SIDL_ARRAY(BaseInterface, int(32))
      * into methods aren't guaranteed to exist after the method call.
      */
     proc smartCopy() {
-      _extern proc sidl__array_smartCopy(inout a: sidl__array);
-      sidl__array_smartCopy(ior.d_metadata);
+      _extern proc chpl_sidl__array_smartCopy(inout a: sidl__array);
+      chpl_sidl__array_smartCopy(ior.d_metadata);
     }
     //struct sidl__array *
     //sidl__array_smartCopy(struct sidl__array *array);
      
     /**
-     * Decrement the arrays internal reference count by one. If the reference
+     * Decrement the array's internal reference count by one. If the reference
      * count goes to zero, destroy the array.
      * Return true iff the array is destroyed
      */
     proc deleteRef() {
-      _extern proc sidl__array_deleteRef(inout a: sidl.sidl__array);
-      sidl__array_deleteRef(ior.d_metadata);
+      _extern proc chpl_sidl__array_deleteRef(inout a: sidl__array);
+      chpl_sidl__array_deleteRef(ior.d_metadata);
     }
     //void
     //sidl__array_deleteRef(struct sidl__array* array);

@@ -7,4 +7,3 @@ and various Unix systems.
 
 ------------------------------------------------------------
 
-* On 64-bit systems pointers sometimes get sign-extended, which triggers a segfault in arraytests.chpl.

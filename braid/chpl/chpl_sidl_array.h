@@ -44,4 +44,6 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
 
 // Identity function. We use it to cast * -> opaque
 #define int_ptr(A) A
+#define chpl_sidl__array_smartCopy(A) sidl__array_smartCopy((struct sidl__array *)(A))
+#define chpl_sidl__array_deleteRef(A) sidl__array_deleteRef((struct sidl__array *)(A))
 #endif
