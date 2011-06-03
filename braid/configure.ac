@@ -101,10 +101,10 @@ AS_IF([test -x "${CHAPEL}"],
                    ["`dirname \`dirname \\\`dirname $CHAPEL\\\`\``"])
           AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])],
 	 [AC_MSG_NOTICE([Chapel version < 1.3 is too old])
-          AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
+          AC_SUBST([CHAPEL], [])])
     ],
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
-      AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
+     AC_SUBST([CHAPEL], [])])
 
 ############################################################
 #
