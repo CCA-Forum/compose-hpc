@@ -3,7 +3,7 @@
 
 module sidl {
   // FIXME: autogenerate this from sidl.sidl
-  _extern class sidl_BaseInterface__object {};
+  _extern record sidl_BaseInterface__object {};
 
 # include <array.inc>
 }

@@ -1274,8 +1274,8 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return '_'.join(Names)
 
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
-                return gen((ir.pointer_type, 
-                            (ir.struct, gen((ir.scoped_id, Names, Ext)), Items, DocComment)))
+                return gen(#(ir.pointer_type, 
+                            (ir.struct, gen((ir.scoped_id, Names, Ext)), Items, DocComment))
 
             elif (ir.struct, Name, _, DocComment): 
                 return "struct %s"%gen(Name)

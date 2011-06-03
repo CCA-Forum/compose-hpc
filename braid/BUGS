@@ -1,0 +1,10 @@
+BUGS:                                            -*- org -*-
+
+This file lists known bugs and non-bugs that
+often trip people up.  Most of these bugs are
+the result of incompatibilities among compilers
+and various Unix systems.
+
+------------------------------------------------------------
+
+* On 64-bit systems pointers sometimes get sign-extended, which triggers a segfault in arraytests.chpl.

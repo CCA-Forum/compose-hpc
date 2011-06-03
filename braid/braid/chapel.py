@@ -73,7 +73,7 @@ def ir_babel_exception_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir_babel_object_type(['sidl'], 'BaseInterface')
+    return ir.Pointer_type(ir_babel_object_type(['sidl'], 'BaseInterface'))
 
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
@@ -218,13 +218,15 @@ class Chapel:
                     '#define _CHPL_SIDL_BASETYPES',
                     'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
                     'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
+                    '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
+                    %(qname, qname, qname),
                     '#endif'
                     ]
                 write_to(Name+'_Stub.h', typedefs.dot_h(Name+'_Stub.h'))
                 chpl_defs = ci.chpl_stub
                 ci.chpl_stub = ChapelFile()
                 ci.chpl_stub.new_def('use sidl;')
-                ci.chpl_stub.new_def('_extern class %s__object {};'%qname)
+                ci.chpl_stub.new_def('_extern record %s__object {};'%qname)
                 ci.chpl_stub.new_def('_extern proc %s__createObject('%qname+
                                      'd_data: int, '+
                                      'inout ex: sidl_BaseInterface__object)'+
@@ -465,6 +467,7 @@ class Chapel:
 
             if is_obj_type(symbol_table, typ):
                 ctype = ior_type(symbol_table, typ)
+
                 if mode <> sidl.out:
                     cname = name+'.ior'
 
@@ -537,6 +540,12 @@ class Chapel:
                 return (call_expr_str, convert_el_res[1])
 
             return cname, (arg, attrs, mode, ctype, name)
+
+        def obj_by_value((arg, attrs, mode, typ, name)):
+            if is_obj_type(symbol_table, typ):
+                return (arg, attrs, sidl.in_, typ, name)
+            else:
+                return (arg, attrs, mode, typ, name)
 
         # Chapel stub
         (Method, Type, (_,  Name, Attr), Attrs, Args,
@@ -623,7 +632,10 @@ class Chapel:
             # FIXME can we reuse cdecl for this?
             impl_decl = ir.Fn_decl([], ctype,
                                    callee, cdecl_args, DocComment)
-            ci.chpl_static_stub.new_def('_extern '+chpl_gen(impl_decl)+';')
+            extern_decl = ir.Fn_decl([], ctype,
+                                   callee, map(obj_by_value, cdecl_args), DocComment)
+            ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
+            ci.chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
             chpl_gen(defn, ci.chpl_static_stub)
         else:
             chpl_gen(defn, ci.chpl_stub)
@@ -749,17 +761,24 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
             
         # SELF
         # cf. babel_stub_args
-        elif name == 'self':
-            typ = typ[1]
-            #call_name = '*self'
-        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # ex
-            typ = typ[1]
+        #elif name == 'self':
+        #    typ = typ[1]
+        #    #call_name = '*self'
+        #elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # ex
+        #    typ = typ[1]
 
         # ARRAYS
         elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
             import pdb; pdb.set_trace()
 
         return call_name, (arg, attrs, mode, typ, name)
+
+    def obj_by_value((arg, attrs, mode, typ, name)):
+        if typ[0] == ir.struct and name == 'self':
+            return (arg, attrs, sidl.in_, typ, name)
+        else:
+            return (arg, attrs, mode, typ, name)
+
 
     _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
@@ -798,7 +817,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
                       pre_call+body+post_call, DocComment)], scope.cstub)
     
     # Chapel _extern declaration
-    chplstub_decl = cstub_decl
+    chplstub_decl = ir.Fn_decl([], ctype, sname, map(obj_by_value, cstub_decl_args), DocComment)
     scope.get_toplevel().new_header_def('_extern '+chpl_gen(chplstub_decl))
 
     return drop(retval_arg)
@@ -816,7 +835,7 @@ def ior_type(symbol_table, t):
     """
     if (t[0] == sidl.scoped_id and
         symbol_table[t[1]][0] == sidl.class_):
-        return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
+        return ir.Pointer_type(ir_babel_object_type(*symbol_table.get_full_name(t[1])))
 
     else: return t
 
@@ -907,7 +926,7 @@ class EPV:
                         Attrs, Args, Except, From, Requires, Ensures, DocComment)):
             typ = lower_ir(self.symbol_table, Type)
             name = 'f_'+Name
-            args = babel_args(Attrs, Args, self.symbol_table, self.name)
+            args = babel_epv_args(Attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(Attrs, typ, name, args, DocComment)
 
         if self.finalized:
@@ -938,7 +957,7 @@ class EPV:
 
 
 
-def babel_args(attrs, args, symbol_table, class_name):
+def babel_epv_args(attrs, args, symbol_table, class_name):
     """
     \return a SIDL -> Ir lowered version of [self]+args+[*ex]
     """
@@ -946,8 +965,8 @@ def babel_args(attrs, args, symbol_table, class_name):
         arg_self = []
     else:
         arg_self = \
-            [ir.Arg([], sidl.in_,
-                    ir_babel_object_type(symbol_table.prefix, class_name),
+            [ir.Arg([], ir.in_, ir.Pointer_type(
+                    ir_babel_object_type(symbol_table.prefix, class_name)),
                     'self')]
     arg_ex = \
         [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
@@ -961,10 +980,10 @@ def babel_stub_args(attrs, args, symbol_table, class_name):
         arg_self = []
     else:
         arg_self = [
-            ir.Arg([], sidl.in_, ir.Pointer_type(
-                ir_babel_object_type(symbol_table.prefix, class_name)), 'self')]
+            ir.Arg([], sidl.inout, 
+                ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir.Pointer_type(ir_babel_exception_type()), 'ex')]
+        [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+args+arg_ex
 
 
