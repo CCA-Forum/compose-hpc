@@ -50,7 +50,7 @@
   /*   int32_t (*d_arraytype)(void); */
   /* }; */
    
-  _extern class sidl__array {
+  _extern record sidl__array {
     /* int32_t                         *d_lower; */
     /* int32_t                         *d_upper; */
     /* int32_t                         *d_stride; */

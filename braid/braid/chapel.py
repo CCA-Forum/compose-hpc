@@ -601,9 +601,16 @@ class Chapel:
             Type = ir.pt_void
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
-            if return_expr:
-                call = [ir.Stmt(ir.Assignment("_IOR_retval", ir.Call(callee, call_args)))]
-                return_stmt = [ir.Stmt(ir.Return(return_expr[0]))]
+            if return_expr or post_call:
+                rvar = '_IOR_retval'
+                if not return_expr:
+                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
+                    rx = rvar
+                else:
+                    rx = return_expr[0]
+                    
+                call = [ir.Stmt(ir.Assignment(rvar, ir.Call(callee, call_args)))]
+                return_stmt = [ir.Stmt(ir.Return(rx))]
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
