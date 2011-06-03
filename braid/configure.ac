@@ -1,4 +1,4 @@
-AC_PREREQ(2.64)
+AC_PREREQ(2.65)
 AC_INIT([Braid],[0.2.1],[components@llnl.gov],
         [braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
@@ -18,9 +18,6 @@ AM_MAINTAINER_MODE
 dnl AC_CONFIG_HEADERS(runtime/sidl/ignore_me.h)
 AC_DEFINE([BRAID_VERSION_HEX],[0x00021000],
 	[Hexified form of release number: 2 hex digits each for major, minor, bugfix, and alpha/beta/candidate/distributed ])
-
-LLNL_CHECK_AUTOMAKE([1.11])
-LLNL_CHECK_AUTOCONF([2.64])
 
 ############################################################
 #
@@ -56,22 +53,37 @@ AC_PROG_LN_S
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
-AC_CHECK_PROG(PERL, perl, perl) # used as sed replacement in the testsuite
+AC_MSG_CHECKING([for perl])
+AX_WITH_PROG(PERL, perl) # used as sed replacement in the testsuite
+AS_IF([test -x "$PERL"], [], AC_MSG_ERROR([perl is missing]))
+
+
+# DOXYGEN
+AX_WITH_PROG(DOXYGEN, doxygen) # used as sed replacement in the testsuite
+AS_IF([test -x "$DOXYGEN"], 
+      [DOXYGEN_VERSION=`$DOXYGEN --version`
+       AX_COMPARE_VERSION([$DOXYGEN_VERSION], ge, [1.6.0], 
+           [],
+           [AC_SUBST([DOXYGEN], [])
+	    AM_CONDITIONAL(ENABLE_DOCUMENTATION, false)
+            AC_MSG_NOTICE([doxygen < 1.6 is too old])])
+      ], 
+      AC_MSG_NOTICE([doxygen is missing]))
+
+
 export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${prefix}/lib/pkgconfig
 ############################################################
 #
 # Babel
 #
-AC_MSG_CHECKING([for babel])
 PKG_CHECK_MODULES(BABEL, [babel >= 2.0.0], 
     [AC_SUBST([HAVE_BABEL], 1)
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
      AC_SUBST([BABEL_SRCDIR], 
               [`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`])
-     AC_MSG_RESULT([$BABEL_PREFIX/bin/babel])],
-     [AC_MSG_RESULT([no])
-      AC_MSG_NOTICE([Did not find Babel version 2 or later! 
+     AC_MSG_RESULT([using $BABEL_PREFIX/bin/babel])],
+     [AC_MSG_NOTICE([Did not find Babel version 2 or later! 
 Please remember to set PKG_CONFIG_PATH accordingly.])
       AC_SUBST([HAVE_BABEL], 0)])
 
@@ -79,39 +91,43 @@ Please remember to set PKG_CONFIG_PATH accordingly.])
 #
 # Chapel
 #
-AC_MSG_CHECKING([for chapel])
-CHAPEL=`which chpl`
+AX_WITH_PROG(CHAPEL, chpl)
 AS_IF([test -x "${CHAPEL}"],
     [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
-     AC_MSG_RESULT([${CHAPEL} (version ${CHAPEL_VERSION})])
-     AC_SUBST([CHAPEL], ["${CHAPEL}"])
-     AC_SUBST([CHAPEL_ROOT], 
-              ["`dirname \`dirname \\\`dirname ${CHAPEL}\\\`\``"])
-     AC_SUBST([CHAPEL_VERSION], ["${CHAPEL_VERSION}"])],
-    [AC_MSG_RESULT([no])
-     AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
+     AC_MSG_RESULT([using $CHAPEL (version $CHAPEL_VERSION)])
+     AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.3.0], 
+         [AC_SUBST([CHAPEL], ["$CHAPEL"])
+          AC_SUBST([CHAPEL_ROOT], 
+                   ["`dirname \`dirname \\\`dirname $CHAPEL\\\`\``"])
+          AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])],
+	 [AC_MSG_NOTICE([Chapel version < 1.3 is too old])
+          AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
+    ],
+    [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
       AC_SUBST([CHAPEL], ['echo "**ERROR: No Chapel compiler" ; false'])])
 
 ############################################################
 #
 # SWI-Prolog (compile-time-only dependency)
 #
-AC_MSG_CHECKING([for swipl])
-PKG_CHECK_MODULES(SWIPL, [pl >= 5.8.0],
+PKG_CHECK_MODULES(PL, [pl >= 5.8.0],
     [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG pl --variable prefix`])
      AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
-     AC_MSG_RESULT([${SWIPL}])
+     AC_MSG_RESULT([using ${SWIPL}])
     ],
-    [PKG_CHECK_MODULES(SWIPL, [swipl >= 5.8.0], 
+    [# alternate pkg-config name
+     PKG_CHECK_MODULES(SWIPL, [swipl >= 5.8.0], 
         [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG swipl --variable prefix`])
          AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
 	],
-	[AC_MSG_RESULT([no])
-         AC_MSG_NOTICE([Did not find SWI-Prolog version 5.8 or later! 
+	[AC_MSG_NOTICE([Did not find SWI-Prolog version 5.8 or later! 
 Please remember to set PKG_CONFIG_PATH accordingly.])
          AC_SUBST([SWIPL], [""])
         ])
     ])
+
+AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION, 
+               [test $HAVE_BABEL -eq 1 && test -n $CHAPEL_VERSION])
 
 AC_CONFIG_FILES([Makefile 
   braid/braid 

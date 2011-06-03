@@ -33,8 +33,10 @@ DEPENDENCIES
 
     Build-only:
     Make:           GNU make version 3.74 or higher
-    SWI-Prolog:     Version 5.10.4 or higher
-    Doxygen:        Version 1.6 or higher
+    SWI-Prolog:     Version 5.10.4 or higher 
+                    (only needed if you intend to modify [ir,sidl].def)
+    Doxygen:        Version 1.6 or higher 
+                    (disable with ./configure --disable-documentation)
 
 
     If you want to run the regression tests, you will also need:

@@ -113,10 +113,12 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 	@cat $< >>$@
 	@echo "'''">>$@
 
-braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
-braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
+# We keep this file in srcdir because we only regenerate them if the
+# user has swipl installed
+$(srcdir)/braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
+$(srcdir)/braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
 
-braid/%.py: $(srcdir)/braid/%.def
+$(srcdir)/braid/%.py: $(srcdir)/braid/%.def
 	$(AM_V_GEN)if [ -n "$(SWIPL)" ]; then \
           egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
 	  echo '#\verbatim' >>$@ && \

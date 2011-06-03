@@ -47,8 +47,8 @@ endif
 .PHONY: doc
 doc:
 	@echo "  GEN [doxygen documentation]"
-	@doxygen >/dev/null || echo "Doxygen not found; SKIPPING"
-	$(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null
+	($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
+        || echo "Doxygen not found; SKIPPING"
 
 doc/html/index.html:
 	$(MAKE) doc

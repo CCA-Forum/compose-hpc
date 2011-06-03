@@ -49,7 +49,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
 	$(top_srcdir)/configure \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
-	$(top_srcdir)/regression/interop/driver.sh.in \
+	$(top_srcdir)/regression/interop/driver.sh.in INSTALL \
 	config/config.guess config/config.sub config/install-sh \
 	config/ltmain.sh config/missing config/py-compile \
 	config/ylwrap scanner.c
@@ -58,9 +58,11 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 # Most of the Python files contain doctest tests
 # see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
-@ENABLE_REGRESSION_TRUE@am__append_1 = $(PYTHON_SOURCES) $(SIDL_TESTS) \
-@ENABLE_REGRESSION_TRUE@	$(BABEL_TESTS)
-@ENABLE_DOCUMENTATION_TRUE@am__append_2 = \
+@ENABLE_REGRESSION_TRUE@am__append_1 = $(PYTHON_SOURCES) $(SIDL_TESTS)
+@ENABLE_INTEROP_REGRESSION_TRUE@am__append_2 = $(BABEL_TESTS)
+# Hmm.. apparently, this is not the same as the above
+@ENABLE_INTEROP_REGRESSION_TRUE@am__append_3 = .babel
+@ENABLE_DOCUMENTATION_TRUE@am__append_4 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/*.*        \
@@ -68,13 +70,12 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 
 
 # add Backports
-@PYTHON_VERSION_2_6_TRUE@am__append_3 = contrib/argparse-1.1/argparse.py
+@PYTHON_VERSION_2_6_TRUE@am__append_5 = contrib/argparse-1.1/argparse.py
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/cca_diagnose.m4 \
-	$(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/llnl_check_autoconf.m4 \
-	$(top_srcdir)/m4/llnl_check_automake.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
+	$(top_srcdir)/m4/ax_with_prog.m4 \
+	$(top_srcdir)/m4/cca_diagnose.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/llnl_confirm_babel_python_support.m4 \
 	$(top_srcdir)/m4/llnl_enable_regression.m4 \
 	$(top_srcdir)/m4/llnl_libxml.m4 \
@@ -344,6 +345,7 @@ CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DLLTOOL = @DLLTOOL@
+DOXYGEN = @DOXYGEN@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -393,6 +395,8 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
 PKG_CONFIG = @PKG_CONFIG@
+PL_CFLAGS = @PL_CFLAGS@
+PL_LIBS = @PL_LIBS@
 PYTHON = @PYTHON@
 PYTHONINC = @PYTHONINC@
 PYTHONLIB = @PYTHONLIB@
@@ -477,7 +481,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
-python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_3)
+python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_5)
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_SOURCES)
@@ -492,9 +496,8 @@ BUILT_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py \
 	braid/legal.py chpl/sidl.chpl
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
 bin_SCRIPTS = braid/braid
-TESTS = $(am__append_1)
-# Hmm.. apparently, this is not the same as the above
-TEST_EXTENSIONS = .py .sidl .babel
+TESTS = $(am__append_1) $(am__append_2)
+TEST_EXTENSIONS = .py .sidl $(am__append_3)
 EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/argparse-1.1/setup.py contrib/argparse-1.1/README.txt \
 	contrib/argparse-1.1/PKG-INFO contrib/argparse-1.1/NEWS.txt \
@@ -507,7 +510,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	regression/interop/args/runChapel/argstest.chpl \
 	regression/interop/arrays/runChapel/arraystest.chpl \
 	regression/interop/strings/runChapel/stringstest.chpl \
-	$(am__append_2) chpl/sidl.inc chpl/array.inc
+	$(am__append_4) chpl/sidl.inc chpl/array.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -580,18 +583,18 @@ BABEL_TESTS = \
   regression/interop/arrays.babel \
   regression/interop/strings.babel  
 
-BABEL_LOG_COMPILER = sh 
+@ENABLE_INTEROP_REGRESSION_TRUE@BABEL_LOG_COMPILER = sh 
 # FIXME:
 #
 # On parallel make: Apparently my nice hack to pass through the jobs
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
 #AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
+@ENABLE_INTEROP_REGRESSION_TRUE@AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 
 # This target will be mad prior to the tests. We use it to compile
 # regression/output from Babel.
-check_DATA = $(builddir)/regression/interop/output/libC/babel.make
+@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/babel.make
 
 # Recursive make considered harmful
 DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
@@ -1640,10 +1643,12 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 	@cat $< >>$@
 	@echo "'''">>$@
 
-braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
-braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
+# We keep this file in srcdir because we only regenerate them if the
+# user has swipl installed
+$(srcdir)/braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
+$(srcdir)/braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
 
-braid/%.py: $(srcdir)/braid/%.def
+$(srcdir)/braid/%.py: $(srcdir)/braid/%.def
 	$(AM_V_GEN)if [ -n "$(SWIPL)" ]; then \
           egrep '^%#' $< | sed -e 's/^%#%/##/g' -e 's/^%//g' >$@ && \
 	  echo '#\verbatim' >>$@ && \
@@ -1662,15 +1667,15 @@ clean-braid:
 # This can be done more nicely... Problem is, we do not want to force
 # the dependency on swipl on the users
 	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi
-$(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
-	sh $< $(MAKE) $(MAKEFLAGS)
+@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
+@ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $(MAKE) $(MAKEFLAGS)
 @ENABLE_DOCUMENTATION_TRUE@braid/braid: $(BUILT_SOURCES) doc/html/index.html
 
 .PHONY: doc
 doc:
 	@echo "  GEN [doxygen documentation]"
-	@doxygen >/dev/null || echo "Doxygen not found; SKIPPING"
-	$(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null
+	($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
+        || echo "Doxygen not found; SKIPPING"
 
 doc/html/index.html:
 	$(MAKE) doc

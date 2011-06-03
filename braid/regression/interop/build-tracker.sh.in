@@ -12,7 +12,7 @@ echo "MAKE = $MAKE"
 cd regression/interop                                   ||exit 1
 
 echo "--copy over the tracker"
-cp -n -r @BABEL_SRCDIR@/regression/output .             ||exit 1
+cp -u -r @BABEL_SRCDIR@/regression/output .             ||exit 1
 chmod u+w -R output                                     ||exit 1
 
 if [ ! -e output/libC/Makefile ]; then
