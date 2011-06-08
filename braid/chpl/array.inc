@@ -211,7 +211,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     proc sidlUpper(in ind: int(32)): int(32) {
       _extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlLower(ior.d_metadata, ind);
+      return sidlUpper(ior.d_metadata, ind);
     }
     //#define sidlUpper(array,ind) (((const struct sidl__array *)(array))->d_upper[(ind)])
      
