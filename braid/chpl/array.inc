@@ -218,14 +218,21 @@ SIDL_ARRAY(BaseInterface, int(32))
     /**
      * Macro to return the number of elements in dimension ind of an array.
      */
-    //#define sidlLength(array,ind) (sidlUpper((array),(ind)) - \
-    //                               sidlLower((array),(ind)) + 1)
+    proc sidlLength(in ind: int(32)): int(32) {
+      _extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
+      return sidlLength(ior.d_metadata, ind);
+    }
+    //#define sidlLength(array,ind) (sidlUpper((array),(ind)) - sidlLower((array),(ind)) + 1)
      
     /**
      * Macro to return the stride between elements in a particular dimension.
      * To move from the address of element i to element i + 1 in the dimension
      * ind, add sidlStride(array,ind).
      */
+    proc sidlStride(in ind: int(32)): int(32) {
+      _extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
+      return sidlStride(ior.d_metadata, ind);
+    }
     //#define sidlStride(array,ind) (((const struct sidl__array *)(array))->d_stride[(ind)])
      
     /**
@@ -233,8 +240,11 @@ SIDL_ARRAY(BaseInterface, int(32))
      * This macro makes multiple references to array and ind, so you should
      * not use ++ or -- on arguments to this macro.
      */
-    //#define sidlArrayDimCalc(array, ind, var) \
-    //  (sidlStride(array,ind)*((var) - sidlLower(array,ind)))
+    proc sidlArrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
+      _extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
+      return sidlArrayDimCalc(ior.d_metadata, ind, v);
+    }
+    //#define sidlArrayDimCalc(array, ind, var) (sidlStride(array,ind)*((var) - sidlLower(array,ind)))
      
      
     /**
