@@ -29,7 +29,7 @@ echo "MAKE = $MAKE"
 echo "file = $last"
 #set -x
 echo "--set up environment"
-name=`basename $last .babel`
+name=`basename $last test.chpl`
 BABEL=@BABEL_PREFIX@/bin/babel
 braid="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
 sidl=@BABEL_SRCDIR@/regression/$name/$name.sidl

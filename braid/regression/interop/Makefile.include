@@ -1,14 +1,12 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
 BABEL_TESTS = \
-  regression/interop/args.babel \
-  regression/interop/arrays.babel \
-  regression/interop/strings.babel  
-
-EXTRA_DIST += $(BABEL_TESTS) \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
+  regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl 
+
+EXTRA_DIST += $(BABEL_TESTS)
 
 if ENABLE_INTEROP_REGRESSION
 TESTS += $(BABEL_TESTS)
@@ -16,17 +14,17 @@ TESTS += $(BABEL_TESTS)
 ## BABEL_TESTS = args arrays strings
 ## $(BABEL_TESTS:%=$(INTEROP_DIR)/%.babel)
 
-TEST_EXTENSIONS += .babel
-BABEL_LOG_COMPILER = sh 
+TEST_EXTENSIONS += .chpl
+CHPL_LOG_COMPILER = sh 
 # FIXME:
 #
 # On parallel make: Apparently my nice hack to pass through the jobs
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
 #AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
+AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 
-# This target will be mad prior to the tests. We use it to compile
+# This target will be made prior to the tests. We use it to compile
 # regression/output from Babel.
 check_DATA = $(builddir)/regression/interop/output/libC/babel.make
 $(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
