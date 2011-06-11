@@ -24,7 +24,7 @@
 #
 from codegen import accepts, returns
 from patmat import matcher, match, member, unify, expect, Variable
-import sidl, types
+import sidl, types, sys
 
 def resolve(ast, verbose=True):
     """
@@ -56,7 +56,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
     """
 
     def gen(node):
-        return build_symbol_table(node, symbol_table)
+        return build_symbol_table(node, symbol_table, verbose)
 
     with match(node):
         if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
@@ -85,7 +85,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
             symbol_table[Name] = SymbolTable(symbol_table,
                                              symbol_table.prefix+[Name])
-            build_symbol_table(UserTypes, symbol_table[[Name]])
+            build_symbol_table(UserTypes, symbol_table[[Name]], verbose)
 
         elif (sidl.user_type, Attrs, Cipse):
             gen(Cipse)
@@ -103,7 +103,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
         else:
             raise Exception("match error")
-
+        
     return symbol_table
 
 @matcher(globals(), debug=False)
@@ -116,7 +116,7 @@ def resolve_symbols(node, symbol_table, verbose=True):
     """
 
     def res(node):
-        return resolve_symbols(node, symbol_table)
+        return resolve_symbols(node, symbol_table, verbose)
 
     # if node <> []:
     #     print node[0], symbol_table
@@ -129,10 +129,13 @@ def resolve_symbols(node, symbol_table, verbose=True):
 
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
-                print "Resolving symbols for package %s" \
+                print "Building symbols for package %s" \
                       %'.'.join(symbol_table.prefix+[Name])
+                sys.stdout.flush()
+
             return (sidl.package, Name, Version,
-                    resolve_symbols(UserTypes, symbol_table._symbol[Name]), DocComment)
+                    resolve_symbols(UserTypes, symbol_table._symbol[Name],
+                                    verbose), DocComment)
 
         else:
             if (isinstance(node, list)):
@@ -141,6 +144,7 @@ def resolve_symbols(node, symbol_table, verbose=True):
                 return tuple(map(res, node))
             else:
                 return node
+            
 
 @matcher(globals(), debug=False)
 def consolidate_packages(node):

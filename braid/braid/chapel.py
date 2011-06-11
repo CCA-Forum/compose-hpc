@@ -124,6 +124,7 @@ class Chapel:
         self.sidl_file = filename
         self.create_makefile = create_makefile
         self.verbose = verbose
+        self.classes = []
 
     def generate_client(self):
         """
@@ -133,7 +134,8 @@ class Chapel:
         """
         try:
             self.generate_client1(self.sidl_ast, None, self.symbol_table)
-
+            if self.create_makefile:
+                generate_client_makefile(self.sidl_file, self.classes)
         except:
             # Invoke the post-mortem debugger
             import pdb, sys
@@ -148,6 +150,7 @@ class Chapel:
         """
         try:
             self.generate_server1(self.sidl_ast, None, self.symbol_table)
+            self.generate_server_makefile(self.classes)
 
         except:
             # Invoke the post-mortem debugger
@@ -261,8 +264,13 @@ class Chapel:
                 self.pkg_chpl_stub.new_def(ci.chpl_stub)
 
                 # Makefile
-                if self.create_makefile:
-                    generate_client_makefile(self.sidl_file, Name)
+                self.classes.append(Name)
+
+            elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
+                # do nothing for now / although the interface should
+                # be used for correctness checks, we probably don't
+                # need to emit any code for it, do we?
+                pass
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
@@ -548,10 +556,15 @@ class Chapel:
                 return (arg, attrs, mode, typ, name)
 
         # Chapel stub
-        (Method, Type, (_,  Name, Attr), Attrs, Args,
+        (Method, Type, (_,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
+        abstract = list(member(sidl.abstract, Attrs))
         static = list(member(sidl.static, Attrs))
+
+        if abstract:
+            # nothing to be done for an abstract function
+            return
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
@@ -563,7 +576,7 @@ class Chapel:
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
         cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
-        cdecl = ir.Fn_decl([], ctype, Name, cdecl_args, DocComment)
+        cdecl = ir.Fn_decl([], ctype, Name+Extension, cdecl_args, DocComment)
 
         if static:
             extern_self = []
@@ -603,7 +616,7 @@ class Chapel:
                 ir.Deref(ir.Get_struct_item(obj_type,
                                             ir.Deref('self'),
                                             ir.Struct_item(epv_type, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name)))
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension)))
 
 
         if Type == sidl.void:
@@ -661,7 +674,7 @@ static const unsigned char chpl_char_lut[512] = {
 };
 '''
 
-def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
+def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     """
     Generate the stub for a specific method in C (cStub).
 
@@ -782,7 +795,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs)):
 
     _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
-    sname = Name+'_stub'
+    sname = '_'.join(prefix+[Name, 'stub'])
 
     retval_arg = []
     pre_call = []
@@ -925,7 +938,7 @@ class EPV:
                         (Method_name, Name, Extension),
                         Attrs, Args, Except, From, Requires, Ensures, DocComment)):
             typ = lower_ir(self.symbol_table, Type)
-            name = 'f_'+Name
+            name = 'f_'+Name+Extension
             args = babel_epv_args(Attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(Attrs, typ, name, args, DocComment)
 
@@ -1142,13 +1155,6 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             return val
 
         with match(node):
-            # if (sidl.method, 'void', Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-            #     new_def('%sproc %s(%s)'%(gen_comment(DocComment), gen(Name), gen_comma_sep(Args)))
-
-            # elif (sidl.method, Type, Name, Attrs, Args, Except, From, Requires, Ensures, DocComment):
-            #     new_def('%sproc %s(%s): %s'%(gen_comment(DocComment),
-            #                                 gen(Name), gen_comma_sep(Args), gen(Type)))
-
             if (ir.fn_defn, Attrs, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s) {'%
                           (gen_comment(DocComment), 
@@ -1173,11 +1179,13 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 new_def('proc %s(%s): %s'%
                         (gen(Name), gen_comma_sep(Args), gen(Type)))
 
-            elif (ir.call, (ir.deref, (ir.get_struct_item, _, _, (ir.struct_item, _, Name))), Args):
+            elif (ir.call, (ir.deref, (ir.get_struct_item, S, _, (ir.struct_item, _, Name))), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
-                retval_arg = generate_method_stub(scope, node)
-                stubname = re.sub('^f_', '', Name+'_stub')
+                _, (_, ids, _), _, _ = S
+                prefix = ids[:-1]
+                retval_arg = generate_method_stub(scope, node, prefix)
+                stubname = '_'.join(prefix+[re.sub('^f_', '', Name),'stub'])
                 if retval_arg:
                     scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
                     scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
@@ -1259,18 +1267,18 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 raise Exception('match error')
         return scope
 
-def generate_client_makefile(sidl_file, classnames):
+def generate_client_makefile(sidl_file, classes):
     """
     FIXME: make this a file copy from $prefix/share
            make this work for more than one class
     """
-    write_to('babel.make', """
-IORHDRS = {file}_IOR.h
-STUBHDRS = {file}.h {file}_Stub.h {file}_cStub.h
-STUBSRCS = {file}_cStub.c 
+    files = 'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
+    files+= 'STUBHDRS = '+' '.join(['{c}.h {c}_Stub.h {c}_cStub.h'.format(c=c)
+                                    for c in classes])+'\n'
+    files+= 'STUBSRCS = '+' '.join([c+'_cStub.c' for c in classes])+'\n'
 # this is handled by the use statement in the implementation instead:
 # {file}_Stub.chpl
-""".format(file=classnames))
+    write_to('babel.make', files)
     generate_client_server_makefile(sidl_file)
 
 
