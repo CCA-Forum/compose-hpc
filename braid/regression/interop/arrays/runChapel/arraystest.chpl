@@ -779,7 +779,7 @@ tracker.setExpectations(-1);
     writeln("array dim(0) = ", iarray.length(0));
 
     var opData: opaque = iarray.first();
-    var ibarray = sidl.createBorrowedArray(int(32), int(32), opData, iarray.length(0));
+    var ibarray = sidl.createBorrowedArray1d(iarray);
     
     init_part(); run_part("Check ibarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(ibarray, TEST_SIZE) == true);
     
