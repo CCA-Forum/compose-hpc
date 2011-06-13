@@ -776,50 +776,57 @@ tracker.setExpectations(-1);
     init_part(); run_part("createInt-not nil", iarray != nil);
     init_part(); run_part("createInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
 
-    writeln("array dim(0) = ", iarray.length(0));
-
     var opData: opaque = iarray.first();
-    var ibarray = sidl.createBorrowedArray(int(32), int(32), opData, iarray.length(0));
+    var ibarray = sidl.createBorrowedArray1d(iarray);
     
     init_part(); run_part("Check ibarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(ibarray, TEST_SIZE) == true);
     
     tracker.writeComment("End: Check initialization for borrowed array int 32b - 1D");
   }
 
-  /* { */
-  /*   int32_t* irarray = NULL; */
-  /*   int32_t n,m,o; */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray = ArrayTest.ArrayOps_static.create3Int();//iarray = ArrayTest.ArrayOps_static.create3Int(); */
-  /*   init_part(); run_part("create3Int", ArrayTest.ArrayOps_static.check3Int(iarray) == true); */
-  /*   iarray.ensure(3,sidl::column_major_order); */
-  /*   irarray = iarray.first();//->d_firstElement; */
-  /*   n = iarray.length(0); */
-  /*   m = iarray.length(1); */
-  /*   o = iarray.length(2); */
-  /*   init_part(); run_part("Check rarray int 3", ArrayTest.ArrayOps_static.checkRarray3Int(irarray, n,m,o) == true); */
- 
-  /* } */
+  {
+    tracker.writeComment("Start: Check initialization for borrowed array int 32b - 3D");
 
-  /*   { */
-  /*   int32_t* irarray = NULL; */
-  /*   int32_t n,m,o,p,q,r,s; */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray = ArrayTest.ArrayOps_static.create7Int();//iarray = ArrayTest.ArrayOps_static.create7Int(); */
-  /*   init_part(); run_part("create3Int", ArrayTest.ArrayOps_static.check7Int(iarray) == true); */
-  /*   iarray.ensure(7,sidl::column_major_order); */
-  /*   irarray = iarray.first();//->d_firstElement; */
-  /*   n = iarray.length(0); */
-  /*   m = iarray.length(1); */
-  /*   o = iarray.length(2); */
-  /*   p = iarray.length(3); */
-  /*   q = iarray.length(4); */
-  /*   r = iarray.length(5); */
-  /*   s = iarray.length(6); */
-  /*   init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps_static.checkRarray7Int(irarray, n,m,o,p,q,r,s) == true); */
+    magicNumber = clearstack(magicNumber);
+    var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.create3Int();
 
-  /* } */
+    init_part(); run_part("create3Int-not nil", iarray != nil);
+    init_part(); run_part("create3Int", ArrayTest.ArrayOps_static.check3Int(iarray) == true);
 
+    // iarray.ensureOrdering(3, sidl.sidl_array_ordering.column_major_order);
+
+    var opData: opaque = iarray.first();
+    var ibarray = sidl.createBorrowedArray3d(iarray);
+    var m = iarray.length(0), n = iarray.length(1), o = iarray.length(2);
+    
+    init_part(); run_part("Check ibarray int 3", 
+        ArrayTest.ArrayOps_static.checkRarray3Int(ibarray, m, n, o) == true);
+    
+    tracker.writeComment("End: Check initialization for borrowed array int 32b - 3D");
+  }
+
+  {
+    tracker.writeComment("Start: Check initialization for borrowed array int 32b - 7D");
+
+    magicNumber = clearstack(magicNumber);
+    var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.create7Int();
+
+    init_part(); run_part("create7Int-not nil", iarray != nil);
+    init_part(); run_part("create7Int", ArrayTest.ArrayOps_static.check7Int(iarray) == true);
+
+    // iarray.ensureOrdering(7, sidl.sidl_array_ordering.column_major_order);
+
+    var opData: opaque = iarray.first();
+    var ibarray = sidl.createBorrowedArray7d(iarray);
+    var m = iarray.length(0), n = iarray.length(1), o = iarray.length(2),
+      p = iarray.length(3), q = iarray.length(4), r = iarray.length(5), 
+      s = iarray.length(6);
+    
+    init_part(); run_part("Check ibarray int 7", 
+        ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, m, n, o, p, q, r, s) == true);
+    
+    tracker.writeComment("End: Check initialization for borrowed array int 32b - 7D");
+  }
 
   {
     tracker.writeComment("Start: Check initialization for int 32b - 1D");

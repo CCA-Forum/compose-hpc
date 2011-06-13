@@ -398,18 +398,47 @@ proc chpl__initCopy(a: []) where
 pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntType, 
         bData: opaque, arraySize: int(32)...?arrayRank) {
   
-  writeln("creating dom");
   type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, arrayIndexType, false);
   var locDom: locDomType;
   locDom._value.initIndices((...arraySize));
   
-  writeln("creating arr");
   type locArrType = chpl__buildArrayRuntimeType(locDom, arrayElmntType);
   var locArr: locArrType;  
   locArr._value.initializeData(bData);
 
-  writeln("returning array");
   return locArr;
+}
+
+pragma "inline" proc createBorrowedArray1d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0));  
+}
+pragma "inline" proc createBorrowedArray2d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1));  
+}
+pragma "inline" proc createBorrowedArray3d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1), sa.length(2));  
+}
+pragma "inline" proc createBorrowedArray4d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3));  
+}
+pragma "inline" proc createBorrowedArray5d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
+            sa.length(4));  
+}
+pragma "inline" proc createBorrowedArray6d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
+            sa.length(4), sa.length(5));  
+}
+pragma "inline" proc createBorrowedArray7d(sa: sidl.Array) {
+  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
+            sa.length(4), sa.length(5), sa.length(6));  
 }
 
 proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque, 
