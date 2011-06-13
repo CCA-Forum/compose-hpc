@@ -9,11 +9,14 @@ use DefaultRectangular;
 pragma "data class"
 class _borrowedData {
   type eltType;
+  var opData: opaque;
+
   proc ~_borrowedData() {
     // Nothing to free, no data owned!
   }
   pragma "inline" proc init(opaqueData: opaque) {
     // Just copy over the reference to the data
+    this.opData = opaqueData;
     __primitive("ref_borrow", this, "_data", opaqueData);
   }
   pragma "inline" proc this(i: integral) var {
@@ -38,6 +41,11 @@ class _borrowedData {
 ///////////////////////////////////////////////////////////////////////////
 
 class BorrowedDist: BaseDist {
+
+  proc dsiClone() return this;
+
+  proc dsiAssign(other: this.type) { }
+
   proc dsiNewRectangularDom(param rank: int, type idxType, param stridable: bool)
     return new BorrowedRectangularDom(rank, idxType, stridable, this);
 }
@@ -47,6 +55,7 @@ class BorrowedDist: BaseDist {
 // delegates almost all its methods to the standard DefaultRectangularDom 
 // Main method that has changed:
 // - dsiBuildArray()
+// - ranges()
 ///////////////////////////////////////////////////////////////////////////
 
 class BorrowedRectangularDom: BaseRectangularDom {
@@ -72,6 +81,10 @@ class BorrowedRectangularDom: BaseRectangularDom {
       myRanges(i) = 0..(theLimits(i) - 1);
     }
     dsiSetIndices(myRanges);
+  }
+
+  proc ranges(idx) {
+    return rectDom.ranges(idx);
   }
 
   proc dsiClear() { this.rectDom.dsiClear(); }
@@ -118,7 +131,7 @@ class BorrowedRectangularDom: BaseRectangularDom {
   // homogeneous tuples are implemented as C vectors.
   proc dsiDim(param d : int) { return this.rectDom.dsiDim(d); }
 
-  proc dsiNumIndices { return this.rectDom.dsiNumIndices(); }
+  proc dsiNumIndices { return this.rectDom.dsiNumIndices; }
 
   proc dsiLow { return this.rectDom.dsiLow; }
 
@@ -338,23 +351,69 @@ proc BorrowedRectangularDom.dsiSerialWrite(f: Writer) {
   f.write("]");
 }
 
+proc BorrowedRectangularArr.dsiSerialWrite(f: Writer) {
+  proc recursiveArrayWriter(in idx: rank*idxType, dim=1, in last=false) {
+    var makeStridePositive = if dom.ranges(dim).stride > 0 then 1 else -1;
+    if dim == rank {
+      var first = true;
+      if debugDefaultDist then f.writeln(dom.ranges(dim));
+      for j in dom.ranges(dim) by makeStridePositive {
+        if first then first = false; else f.write(" ");
+        idx(dim) = j;
+        f.write(dsiAccess(idx));
+      }
+    } else {
+      for j in dom.ranges(dim) by makeStridePositive {
+        var lastIdx =  dom.ranges(dim).last;
+        idx(dim) = j;
+        recursiveArrayWriter(idx, dim=dim+1,
+                             last=(last || dim == 1) && (j == lastIdx));
+      }
+    }
+    if !last && dim != 1 then
+      f.writeln();
+  }
+  const zeroTup: rank*idxType;
+  recursiveArrayWriter(zeroTup);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // Utility functions to create borrowed arrays
 ///////////////////////////////////////////////////////////////////////////
 
-var defaultBorrowedDistr = new BorrowedDist();
+var defaultBorrowedDistr = _newDistribution(new BorrowedDist());
 
-proc createBorrowedArray(type arrayIndexType, type arrayElmntType, 
+// Define custom copy method for borrowed arrays
+proc chpl__initCopy(a: []) where 
+    a._dom._value.type == BorrowedRectangularDom(a._value.rank, a._value.idxType, a._value.stridable) {
+
+  var b : [a._dom] a.eltType;
+  b._value.initializeData(a._value.bData.opData);
+
+  return b;
+}
+
+pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntType, 
         bData: opaque, arraySize: int(32)...?arrayRank) {
-  var bDom = defaultBorrowedDistr.dsiNewRectangularDom(arrayRank, arrayIndexType, false);
-  bDom.initIndices((...arraySize));
-  var bArr = bDom.dsiBuildArray(arrayElmntType);
-  bArr.initializeData(bData);
-  return bArr;
+  
+  writeln("creating dom");
+  type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, arrayIndexType, false);
+  var locDom: locDomType;
+  locDom._value.initIndices((...arraySize));
+  
+  writeln("creating arr");
+  type locArrType = chpl__buildArrayRuntimeType(locDom, arrayElmntType);
+  var locArr: locArrType;  
+  locArr._value.initializeData(bData);
+
+  writeln("returning array");
+  return locArr;
 }
 
 proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque, 
         arraySize ...?arrayRank) where bArr.rank == arrayRank {
+
   var bDom = bArr.getBaseDom();
   // if (bDom.rank != arrayRank) {
   //   halt("Expected rank=", bDom.rank, " found=", arrayRank);  
