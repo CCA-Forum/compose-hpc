@@ -766,17 +766,24 @@ tracker.setExpectations(-1);
   /* 	     ArrayTest.ArrayOps_static.check2Int(iarray) == true); */
 
   /* } */
+
   {
-    /* int32_t* irarray = NULL; */
-    /* magicNumber = clearstack(magicNumber); */
-    /* sidl::array<int32_t> iarray = ArrayTest.ArrayOps_static.createInt(TEST_SIZE); */
+    tracker.writeComment("Start: Check initialization for borrowed array int 32b - 1D");
 
-    /* init_part(); run_part("createInt", iarray); */
-    /* init_part(); run_part("createInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true); */
+    magicNumber = clearstack(magicNumber);
+    var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.createInt(TEST_SIZE);
 
-    /* irarray = iarray.first();//->d_firstElement; */
-    /* init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE) == true); */
+    init_part(); run_part("createInt-not nil", iarray != nil);
+    init_part(); run_part("createInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
+
+    writeln("array dim(0) = ", iarray.length(0));
+
+    var opData: opaque = iarray.first();
+    var ibarray = sidl.createBorrowedArray(int(32), int(32), opData, iarray.length(0));
     
+    init_part(); run_part("Check ibarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(ibarray, TEST_SIZE) == true);
+    
+    tracker.writeComment("End: Check initialization for borrowed array int 32b - 1D");
   }
 
   /* { */
