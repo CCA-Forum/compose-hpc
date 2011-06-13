@@ -184,6 +184,13 @@ SIDL_ARRAY(BaseInterface, int(32))
     /* #define RELATION_OP_GREATER_EQUAL 5 */
      
     /**
+     * Return pointer to first element of the underlying array
+     */
+    proc first(): opaque {
+      return ior.d_firstElement;
+    }
+    
+    /**
      * Return the dimension of the array.
      */
     proc dim(): int(32) {
@@ -198,7 +205,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be greater than or equal to
      * sidlLower(array,ind). 
      */
-    proc sidlLower(in ind: int(32)): int(32) {
+    proc lower(in ind: int(32)): int(32) {
       _extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(ior.d_metadata, ind);
     }
@@ -209,7 +216,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be less than or equal to
      * sidlUpper(array,ind). 
      */
-    proc sidlUpper(in ind: int(32)): int(32) {
+    proc upper(in ind: int(32)): int(32) {
       _extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlUpper(ior.d_metadata, ind);
     }
@@ -218,7 +225,7 @@ SIDL_ARRAY(BaseInterface, int(32))
     /**
      * Macro to return the number of elements in dimension ind of an array.
      */
-    proc sidlLength(in ind: int(32)): int(32) {
+    proc length(in ind: int(32)): int(32) {
       _extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLength(ior.d_metadata, ind);
     }
@@ -229,7 +236,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * To move from the address of element i to element i + 1 in the dimension
      * ind, add sidlStride(array,ind).
      */
-    proc sidlStride(in ind: int(32)): int(32) {
+    proc stride(in ind: int(32)): int(32) {
       _extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlStride(ior.d_metadata, ind);
     }
@@ -240,7 +247,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * This macro makes multiple references to array and ind, so you should
      * not use ++ or -- on arguments to this macro.
      */
-    proc sidlArrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
+    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
       _extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
       return sidlArrayDimCalc(ior.d_metadata, ind, v);
     }
