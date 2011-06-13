@@ -29,9 +29,9 @@ echo "MAKE = $MAKE"
 echo "file = $last"
 #set -x
 echo "--set up environment"
-name=`basename $last .babel`
+name=`basename $last test.chpl`
 BABEL=@BABEL_PREFIX@/bin/babel
-braid="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
+BRAID="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
 sidl=@BABEL_SRCDIR@/regression/$name/$name.sidl
 cd regression/interop                                   ||exit 1
 
@@ -51,8 +51,8 @@ $MAKE							||exit 1
 cd ..							||exit 1
 echo "--generate client"
 cd runChapel						||exit 1
-$braid $sidl -cchapel --makefile			||exit 1
-$braid ../../output/output.sidl -cchapel                ||exit 1
+$BRAID $sidl -cchapel --makefile			||exit 1
+$BRAID ../../output/output.sidl -cchapel                ||exit 1
 cat >>babel.make <<EOF
 IORHDRS += RegOut_IOR.h
 STUBHDRS += RegOut.h

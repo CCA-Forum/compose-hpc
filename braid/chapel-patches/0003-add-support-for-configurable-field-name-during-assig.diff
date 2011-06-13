@@ -1,0 +1,64 @@
+From 3636aee51d318f13890d339ddcc7209ceefa977d Mon Sep 17 00:00:00 2001
+From: Shams Imam <imam1@llnl.gov>
+Date: Fri, 10 Jun 2011 11:27:39 -0700
+Subject: [PATCH 3/4] -- add support for configurable field name during assignment
+
+---
+ chapel-1.3.0/chapel/compiler/AST/expr.cpp    |   23 ++++++++++++++++++++---
+ chapel-1.3.0/chapel/runtime/include/chplrt.h |    4 ++--
+ 2 files changed, 22 insertions(+), 5 deletions(-)
+
+diff --git a/chapel-1.3.0/chapel/compiler/AST/expr.cpp b/chapel-1.3.0/chapel/compiler/AST/expr.cpp
+index d89328c..aec502a 100644
+--- a/chapel-1.3.0/chapel/compiler/AST/expr.cpp
++++ b/chapel-1.3.0/chapel/compiler/AST/expr.cpp
+@@ -768,9 +768,26 @@ void CallExpr::codegen(FILE* outfile) {
+       }
+       break;
+     case PRIM_REF_BORROW:
+-      gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A)", get(1),
+-          getDataClassType(get(1)->typeInfo()->symbol),
+-          get(2), get(3), get(4));
++      { 
++        // Ensure we have a string constant as the second argument   
++        SymExpr* fieldNameSym = toSymExpr(get(2));
++        if (fieldNameSym == NULL) {
++          USR_FATAL(fieldNameSym, "Expected string expr as second argument to ref_borrow");
++        }
++        VarSymbol* fieldNameVarSym = toVarSymbol(fieldNameSym->var);
++        if (fieldNameVarSym == NULL || fieldNameVarSym->immediate == NULL ||
++            fieldNameVarSym->immediate->const_kind != CONST_KIND_STRING) {
++          USR_FATAL(fieldNameVarSym, "Expected string constant as second argument to ref_borrow");
++        }
++        // Now a little hack to ensure we do not output quotes for the field
++        VarSymbol* fieldNameVarSymCopy = fieldNameVarSym->copy();
++        fieldNameVarSymCopy->cname = fieldNameVarSym->immediate->v_string;
++        fieldNameVarSymCopy->immediate == NULL;
++        gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A, %A)", get(1),
++            getDataClassType(get(1)->typeInfo()->symbol),
++            fieldNameVarSymCopy, 
++            get(3), get(4), get(5));
++      }
+       break;  
+     case PRIM_GPU_ALLOC:
+       if (get(1)->typeInfo()->symbol->hasFlag(FLAG_WIDE_CLASS)) {
+diff --git a/chapel-1.3.0/chapel/runtime/include/chplrt.h b/chapel-1.3.0/chapel/runtime/include/chplrt.h
+index 68f5242..576331e 100644
+--- a/chapel-1.3.0/chapel/runtime/include/chplrt.h
++++ b/chapel-1.3.0/chapel/runtime/include/chplrt.h
+@@ -40,10 +40,10 @@ extern int chpl_threads_initialized;
+       chpl_error("attempt to dereference nil", lineno, filename);      \
+   } while (0)
+ 
+-#define _REF_BORROW(x, type, data, lineno, filename)     \
++#define _REF_BORROW(x, type, fieldname, data, lineno, filename)     \
+   if (data == nil)                                                  \
+       chpl_error("data vector is nil", lineno, filename);           \
+-  (x)->_data = (type*) data
++  (x)->fieldname = (type*) data
+ 
+ #define _ARRAY_GET(x, i) (&((x)->_data[i]))
+ #define _ARRAY_GET_VALUE(x, i) ((x)->_data[i])
+-- 
+1.6.6.1
+

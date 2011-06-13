@@ -61,7 +61,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @ENABLE_REGRESSION_TRUE@am__append_1 = $(PYTHON_SOURCES) $(SIDL_TESTS)
 @ENABLE_INTEROP_REGRESSION_TRUE@am__append_2 = $(BABEL_TESTS)
 # Hmm.. apparently, this is not the same as the above
-@ENABLE_INTEROP_REGRESSION_TRUE@am__append_3 = .babel
+@ENABLE_INTEROP_REGRESSION_TRUE@am__append_3 = .chpl
 @ENABLE_DOCUMENTATION_TRUE@am__append_4 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
@@ -306,9 +306,9 @@ PY_LOG_COMPILE = $(PY_LOG_COMPILER) $(AM_PY_LOG_FLAGS) $(PY_LOG_FLAGS)
 am__test_logs4 = $(am__test_logs3:.sidl.log=.log)
 SIDL_LOG_COMPILE = $(SIDL_LOG_COMPILER) $(AM_SIDL_LOG_FLAGS) \
 	$(SIDL_LOG_FLAGS)
-TEST_LOGS = $(am__test_logs4:.babel.log=.log)
-BABEL_LOG_COMPILE = $(BABEL_LOG_COMPILER) $(AM_BABEL_LOG_FLAGS) \
-	$(BABEL_LOG_FLAGS)
+TEST_LOGS = $(am__test_logs4:.chpl.log=.log)
+CHPL_LOG_COMPILE = $(CHPL_LOG_COMPILER) $(AM_CHPL_LOG_FLAGS) \
+	$(CHPL_LOG_FLAGS)
 TEST_LOGS_TMP = $(TEST_LOGS:.log=.log-t)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -506,11 +506,8 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/ply/README contrib/ply/__init__.py contrib/ply/cpp.py \
 	contrib/ply/ctokens.py contrib/ply/lex.py contrib/ply/yacc.py \
 	$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py \
-	braid/sidl.py $(BABEL_TESTS) \
-	regression/interop/args/runChapel/argstest.chpl \
-	regression/interop/arrays/runChapel/arraystest.chpl \
-	regression/interop/strings/runChapel/stringstest.chpl \
-	$(am__append_4) chpl/sidl.inc chpl/array.inc
+	braid/sidl.py $(BABEL_TESTS) $(am__append_4) chpl/sidl.inc \
+	chpl/array.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -579,20 +576,21 @@ AM_PY_LOG_FLAGS = -m doctest
 SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
 AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
 BABEL_TESTS = \
-  regression/interop/args.babel \
-  regression/interop/arrays.babel \
-  regression/interop/strings.babel  
+  regression/interop/args/runChapel/argstest.chpl \
+  regression/interop/arrays/runChapel/arraystest.chpl \
+  regression/interop/inherit/runChapel/inherittest.chpl \
+  regression/interop/strings/runChapel/stringstest.chpl 
 
-@ENABLE_INTEROP_REGRESSION_TRUE@BABEL_LOG_COMPILER = sh 
+@ENABLE_INTEROP_REGRESSION_TRUE@CHPL_LOG_COMPILER = sh 
 # FIXME:
 #
 # On parallel make: Apparently my nice hack to pass through the jobs
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
 #AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-@ENABLE_INTEROP_REGRESSION_TRUE@AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
+@ENABLE_INTEROP_REGRESSION_TRUE@AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 
-# This target will be mad prior to the tests. We use it to compile
+# This target will be made prior to the tests. We use it to compile
 # regression/output from Babel.
 @ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/babel.make
 
@@ -605,7 +603,7 @@ all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .babel .babel$(EXEEXT) .c .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sidl .sidl$(EXEEXT)
+.SUFFIXES: .c .chpl .chpl$(EXEEXT) .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sidl .sidl$(EXEEXT)
 am--refresh:
 	@:
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(am__configure_deps)
@@ -1232,10 +1230,10 @@ recheck recheck-html:
 	@p='$<'; $(am__check_pre) $(SIDL_LOG_COMPILE) "$$tst" $(am__check_post)
 @am__EXEEXT_TRUE@.sidl$(EXEEXT).log:
 @am__EXEEXT_TRUE@	@p='$<'; $(am__check_pre) $(SIDL_LOG_COMPILE) "$$tst" $(am__check_post)
-.babel.log:
-	@p='$<'; $(am__check_pre) $(BABEL_LOG_COMPILE) "$$tst" $(am__check_post)
-@am__EXEEXT_TRUE@.babel$(EXEEXT).log:
-@am__EXEEXT_TRUE@	@p='$<'; $(am__check_pre) $(BABEL_LOG_COMPILE) "$$tst" $(am__check_post)
+.chpl.log:
+	@p='$<'; $(am__check_pre) $(CHPL_LOG_COMPILE) "$$tst" $(am__check_post)
+@am__EXEEXT_TRUE@.chpl$(EXEEXT).log:
+@am__EXEEXT_TRUE@	@p='$<'; $(am__check_pre) $(CHPL_LOG_COMPILE) "$$tst" $(am__check_post)
 
 distdir: $(DISTFILES)
 	$(am__remove_distdir)

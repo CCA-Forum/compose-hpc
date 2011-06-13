@@ -149,6 +149,22 @@ SIDL_ARRAY(opaque,   opaque)
 SIDL_ARRAY(string,   string)
 SIDL_ARRAY(BaseInterface, int(32)) 
 
+
+  // Not a good idea at all: better re-wrap it in a new borrowedArray
+  // after we return from an external call.
+
+//  // These variables shall alias with the (struct sidl_array)
+//  // d_metadata member of struct sidl_<TYPE>__array
+// d_lower :opaque; 
+// d_upper :opaque; 
+// d_stride:opaque;
+// d_vtable:opaque;
+// d_dimen:    int(32);
+// d_refcount: int(32);
+//  // This pointer shall alias with the d_firstElement pointer of struct sidl_<TYPE>__array
+//  int* _data;
+//}
+
   class Array {
     // Actual Chapel defintions
     type ScalarType, IORtype;
