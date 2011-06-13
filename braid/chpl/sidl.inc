@@ -6,4 +6,8 @@ module sidl {
   _extern record sidl_BaseInterface__object {};
 
 # include <array.inc>
+
+// Start: Borrowed Array related items  
+# include <barray.inc>
+// End: Borrowed Array related items  
 }
