@@ -980,14 +980,18 @@ tracker.setExpectations(-1);
  }
 
   
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<string> sarray = ArrayTest.ArrayOps_static.create2String(12,13); */
-  /*   init_part(); run_part("createString", sarray._not_nil()); */
-  /*   init_part(); run_part("createString", ArrayTest.ArrayOps_static.check2String(sarray) == true); */
-  /*   sarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+ {
+   tracker.writeComment("Start: Check create2String");
+
+   magicNumber = clearstack(magicNumber);
+   var sarray: sidl.Array(string, sidl_string__array) = ArrayTest.ArrayOps_static.create2String(12,13);
+   init_part(); run_part("createString", sarray._not_nil());
+   init_part(); run_part("createString", ArrayTest.ArrayOps_static.check2String(sarray) == true);
+   sarray.deleteRef();
+   magicNumber = clearstack(magicNumber);
+
+   tracker.writeComment("End: Check create2String");
+ }
 
 
 tracker.close();
