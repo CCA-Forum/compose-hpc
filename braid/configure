@@ -627,6 +627,7 @@ PL_CFLAGS
 CHAPEL_VERSION
 CHAPEL_ROOT
 CHAPEL
+BABEL_VERSION
 BABEL_SRCDIR
 SIDL_PATH
 BABEL_PREFIX
@@ -14264,6 +14265,8 @@ $as_echo "yes" >&6; }
      SIDL_PATH="$BABEL_PREFIX/share"
 
      BABEL_SRCDIR=`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`
+
+     BABEL_VERSION=`$BABEL_PREFIX/bin/babel-config --query-var=VERSION`
 
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: using $BABEL_PREFIX/bin/babel" >&5
 $as_echo "using $BABEL_PREFIX/bin/babel" >&6; }

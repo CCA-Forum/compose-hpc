@@ -1377,9 +1377,9 @@ else
   MODFLAG=-module
 endif
 
-all : lib$(LIBNAME).la $(SCLFILE) runChapel
+all : lib$(LIBNAME).la $(SCLFILE) $(OUTFILE)
 
-runChapel: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
+$(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) -o $@
 
