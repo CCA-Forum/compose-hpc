@@ -45,6 +45,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(nobase_include_HEADERS) $(nobase_python_PYTHON) \
 	$(noinst_PYTHON) $(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/braid/Makefile.include \
+	$(srcdir)/chapel-patches/Makefile.include \
 	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
@@ -507,8 +508,12 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/ply/README contrib/ply/__init__.py contrib/ply/cpp.py \
 	contrib/ply/ctokens.py contrib/ply/lex.py contrib/ply/yacc.py \
 	$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py \
-	braid/sidl.py $(BABEL_TESTS) $(am__append_4) chpl/sidl.inc \
-	chpl/array.inc chapel-patches/*.diff
+	braid/sidl.py $(BABEL_TESTS) \
+	chapel-patches/0002-add-support-for-reference-copying-borrowing-from-dat.diff \
+	chapel-patches/0003-add-example-for-borrowed-array.diff \
+	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
+	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
+	$(am__append_4) chpl/sidl.inc chpl/array.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -608,7 +613,7 @@ all: $(BUILT_SOURCES)
 .SUFFIXES: .c .chpl .chpl$(EXEEXT) .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sidl .sidl$(EXEEXT)
 am--refresh:
 	@:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/chapel-patches/Makefile.include $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -1692,8 +1697,10 @@ clean-local: clean-braid
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
-                       $(BABEL_TESTS:%.babel=%) \
-                       regression/interop/output; \
+                       regression/interop/output && \
+		for f in `echo $(BABEL_TESTS)|sed 's/ /\\n/g'`; do \
+	            rm -rf `dirname \`dirname $$f\``; \
+		done; \
 	fi
 
 chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
