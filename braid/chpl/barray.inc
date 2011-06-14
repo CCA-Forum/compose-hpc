@@ -269,7 +269,7 @@ class BorrowedRectangularArr: BaseArr {
     // Do not initialize data here, user will explicitly init the data
   }
 
-  proc initializeData(opData: opaque) { 
+  proc borrow(opData: opaque) { 
     this.bData = new _borrowedData(eltType);
     this.bData.init(opData); 
   }
@@ -389,7 +389,7 @@ proc chpl__initCopy(a: []) where
     a._dom._value.type == BorrowedRectangularDom(a._value.rank, a._value.idxType, a._value.stridable) {
 
   var b : [a._dom] a.eltType;
-  b._value.initializeData(a._value.bData.opData);
+  b._value.borrow(a._value.bData.opData);
 
   return b;
 }
@@ -403,7 +403,7 @@ pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntTyp
   
   type locArrType = chpl__buildArrayRuntimeType(locDom, arrayElmntType);
   var locArr: locArrType;  
-  locArr._value.initializeData(bData);
+  locArr._value.borrow(bData);
 
   return locArr;
 }
@@ -466,7 +466,7 @@ proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque,
 
   var bDom = bArr.getBaseDom();
   bDom.initIndices((...arraySize));
-  bArr.initializeData(bData);
+  bArr.borrow(bData);
   return bArr;
 }
 
