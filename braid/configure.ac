@@ -136,7 +136,7 @@ AC_CONFIG_FILES([Makefile
   patch-chapel-compiler.sh
   regression/interop/build-tracker.sh
   regression/interop/driver.sh
-])
+], [chmod +x patch-chapel-compiler.sh])
 
 AC_OUTPUT
 

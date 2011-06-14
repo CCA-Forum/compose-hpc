@@ -1,0 +1,71 @@
+From 76d75f046f898c7da6ef87c16d800ead64b1229e Mon Sep 17 00:00:00 2001
+From: Shams Imam <imam1@llnl.gov>
+Date: Thu, 9 Jun 2011 16:32:45 -0700
+Subject: [PATCH 2/5] -- add support for reference copying/borrowing from data classes
+
+---
+ chapel-1.3.0/chapel/compiler/AST/expr.cpp        |    5 +++++
+ chapel-1.3.0/chapel/compiler/AST/primitive.cpp   |    1 +
+ chapel-1.3.0/chapel/compiler/include/primitive.h |    1 +
+ chapel-1.3.0/chapel/runtime/include/chplrt.h     |    5 +++++
+ 4 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/chapel-1.3.0/chapel/compiler/AST/expr.cpp b/chapel-1.3.0/chapel/compiler/AST/expr.cpp
+index 5ef1e99..d89328c 100644
+--- a/chapel-1.3.0/chapel/compiler/AST/expr.cpp
++++ b/chapel-1.3.0/chapel/compiler/AST/expr.cpp
+@@ -767,6 +767,11 @@ void CallExpr::codegen(FILE* outfile) {
+             get(3), get(4), get(5));
+       }
+       break;
++    case PRIM_REF_BORROW:
++      gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A)", get(1),
++          getDataClassType(get(1)->typeInfo()->symbol),
++          get(2), get(3), get(4));
++      break;  
+     case PRIM_GPU_ALLOC:
+       if (get(1)->typeInfo()->symbol->hasFlag(FLAG_WIDE_CLASS)) {
+         gen(outfile, "_GPU_ALLOC(%A, %A, %A)", get(1),
+diff --git a/chapel-1.3.0/chapel/compiler/AST/primitive.cpp b/chapel-1.3.0/chapel/compiler/AST/primitive.cpp
+index bf3b66a..d518e05 100644
+--- a/chapel-1.3.0/chapel/compiler/AST/primitive.cpp
++++ b/chapel-1.3.0/chapel/compiler/AST/primitive.cpp
+@@ -437,6 +437,7 @@ initPrimitive() {
+   prim_def(PRIM_CAPTURE_FN, "capture fn", returnInfoVoid);
+   prim_def(PRIM_CREATE_FN_TYPE, "create fn type", returnInfoVoid);
+ 
++  prim_def(PRIM_REF_BORROW, "ref_borrow", returnInfoVoid, true, true);
+   prim_def(PRIM_ARRAY_ALLOC, "array_alloc", returnInfoVoid, true, true);
+   prim_def(PRIM_ARRAY_FREE, "array_free", returnInfoVoid, true, true);
+   prim_def(PRIM_ARRAY_FREE_ELTS, "array_free_elts", returnInfoVoid, true);
+diff --git a/chapel-1.3.0/chapel/compiler/include/primitive.h b/chapel-1.3.0/chapel/compiler/include/primitive.h
+index f9e799e..810724b 100644
+--- a/chapel-1.3.0/chapel/compiler/include/primitive.h
++++ b/chapel-1.3.0/chapel/compiler/include/primitive.h
+@@ -125,6 +125,7 @@ enum PrimitiveTag {
+   PRIM_ARRAY_FREE,
+   PRIM_ARRAY_FREE_ELTS,
+   PRIM_ARRAY_ALLOC,
++  PRIM_REF_BORROW,
+ 
+   PRIM_GPU_GET_ARRAY,
+   PRIM_GPU_GET_VALUE,
+diff --git a/chapel-1.3.0/chapel/runtime/include/chplrt.h b/chapel-1.3.0/chapel/runtime/include/chplrt.h
+index 2391c7e..68f5242 100644
+--- a/chapel-1.3.0/chapel/runtime/include/chplrt.h
++++ b/chapel-1.3.0/chapel/runtime/include/chplrt.h
+@@ -40,6 +40,11 @@ extern int chpl_threads_initialized;
+       chpl_error("attempt to dereference nil", lineno, filename);      \
+   } while (0)
+ 
++#define _REF_BORROW(x, type, data, lineno, filename)     \
++  if (data == nil)                                                  \
++      chpl_error("data vector is nil", lineno, filename);           \
++  (x)->_data = (type*) data
++
+ #define _ARRAY_GET(x, i) (&((x)->_data[i]))
+ #define _ARRAY_GET_VALUE(x, i) ((x)->_data[i])
+ #define _ARRAY_SET(x, i, v) ((x)->_data[i] = v)
+-- 
+1.6.6.1
+
