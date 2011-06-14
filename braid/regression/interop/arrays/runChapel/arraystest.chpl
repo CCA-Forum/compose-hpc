@@ -294,8 +294,7 @@ tracker.setExpectations(-1);
   init_part(); run_part("create2Int", ArrayTest.ArrayOps_static.check2Int(iarray) == true);
   iarray.deleteRef();
   magicNumber = clearstack(magicNumber);
-} 
-
+}
 { 
   magicNumber = clearstack(magicNumber);
   var darray: sidl.Array(real(64), sidl_double__array);
@@ -303,8 +302,7 @@ tracker.setExpectations(-1);
   init_part(); run_part("create2Double", ArrayTest.ArrayOps_static.check2Double(darray) == true);
   darray.deleteRef();
   magicNumber = clearstack(magicNumber);
-} 
-
+}
 { 
   magicNumber = clearstack(magicNumber);
   var farray: sidl.Array(real(32), sidl_float__array);
@@ -313,7 +311,6 @@ tracker.setExpectations(-1);
   farray.deleteRef();
   magicNumber = clearstack(magicNumber);
 }
-
 { 
   magicNumber = clearstack(magicNumber);
   var dcarray: sidl.Array(complex(128), sidl_dcomplex__array);
@@ -322,7 +319,6 @@ tracker.setExpectations(-1);
   dcarray.deleteRef();
   magicNumber = clearstack(magicNumber);
 }
-
 { 
   magicNumber = clearstack(magicNumber);
   var dcarray: sidl.Array(complex(64), sidl_fcomplex__array);
@@ -378,86 +374,123 @@ tracker.setExpectations(-1);
   magicNumber = clearstack(magicNumber);
 }
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<bool> barray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutBool(barray, 218); */
-  /*   init_part(); run_part("makeInOutBool", ArrayTest.ArrayOps_static.checkBool(barray) == true); */
-  /*   barray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{
+  tracker.writeComment("Start: Check makeInOutBool");
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<char> carray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutChar(carray, 218); */
-  /*   init_part(); run_part("makeInOutChar", ArrayTest.ArrayOps_static.checkChar(carray) == true); */
-  /*   carray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var barray = new sidl.Array(bool, sidl_bool__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutBool(barray, 218);
+  init_part(); run_part("makeInOutBool", ArrayTest.ArrayOps_static.checkBool(barray) == true);
+  barray.deleteRef();
+  magicNumber = clearstack(magicNumber);
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutInt(iarray, 218); */
-  /*   init_part(); run_part("makeInOutInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  tracker.writeComment("End: Check makeInOutBool");
+}
+{
+  tracker.writeComment("Start: Check makeInOutChar");
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int64_t> larray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutLong(larray, 218); */
-  /*   init_part(); run_part("makeInOutLong", ArrayTest.ArrayOps_static.checkLong(larray) == true); */
-  /*   larray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var carray = new sidl.Array(string, sidl_char__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutChar(carray, 218);
+  init_part(); run_part("makeInOutChar", ArrayTest.ArrayOps_static.checkChar(carray) == true);
+  carray.deleteRef();
+  magicNumber = clearstack(magicNumber);
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<string> sarray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutString(sarray, 218); */
-  /*   init_part(); run_part("makeInOutString", ArrayTest.ArrayOps_static.checkString(sarray) == true); */
-  /*   sarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  tracker.writeComment("End: Check makeInOutChar");
+}
+{
+  tracker.writeComment("Start: Check makeInOutInt");
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<double> darray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutDouble(darray, 218); */
-  /*   init_part(); run_part("makeInOutDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == true); */
-  /*   darray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var iarray = new sidl.Array(int(32), sidl_int__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutInt(iarray, 218);
+  init_part(); run_part("makeInOutInt", ArrayTest.ArrayOps_static.checkInt(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<float> farray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutFloat(farray, 218); */
-  /*   init_part(); run_part("makeInOutFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == true); */
-  /*   farray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  tracker.writeComment("End: Check makeInOutInt");
+}
+{
+  tracker.writeComment("Start: Check makeInOutLong");
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::dcomplex> dcarray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutDcomplex(dcarray, 218); */
-  /*   init_part(); run_part("makeInOutDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == true); */
-  /*   dcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var larray = new sidl.Array(int(64), sidl_long__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutLong(larray, 218);
+  init_part(); run_part("makeInOutLong", ArrayTest.ArrayOps_static.checkLong(larray) == true);
+  larray.deleteRef();
+  magicNumber = clearstack(magicNumber);
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::fcomplex> fcarray; */
-  /*   ArrayTest.ArrayOps_static.makeInOutFcomplex(fcarray, 218); */
-  /*   init_part(); run_part("makeInOutFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == true); */
-  /*   fcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+  tracker.writeComment("End: Check makeInOutLong");
+}
+{
+  tracker.writeComment("Start: Check makeInOutString");
+
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var sarray = new sidl.Array(string, sidl_string__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutString(sarray, 218);
+  init_part(); run_part("makeInOutString", ArrayTest.ArrayOps_static.checkString(sarray) == true);
+  sarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check makeInOutString");
+}
+{
+  tracker.writeComment("Start: Check makeInOutDouble");
+
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var darray = new sidl.Array(real(64), sidl_double__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutDouble(darray, 218);
+  init_part(); run_part("makeInOutDouble", ArrayTest.ArrayOps_static.checkDouble(darray) == true);
+  darray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check makeInOutDouble");
+}
+{
+  tracker.writeComment("Start: Check makeInOutFloat");
+
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var farray = new sidl.Array(real(32), sidl_float__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutFloat(farray, 218);
+  init_part(); run_part("makeInOutFloat", ArrayTest.ArrayOps_static.checkFloat(farray) == true);
+  farray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check makeInOutFloat");
+}
+{
+  tracker.writeComment("Start: Check makeInOutDcomplex");
+
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var dcarray = new sidl.Array(complex(128), sidl_dcomplex__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutDcomplex(dcarray, 218);
+  init_part(); run_part("makeInOutDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray) == true);
+  dcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check makeInOutDcomplex");
+}
+{
+  tracker.writeComment("Start: Check makeInOutFcomplex");
+
+  magicNumber = clearstack(magicNumber);
+  // Explicitly instantiate before passing to function
+  var fcarray = new sidl.Array(complex(64), sidl_fcomplex__array, nil);
+  ArrayTest.ArrayOps_static.makeInOutFcomplex(fcarray, 218);
+  init_part(); run_part("makeInOutFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray) == true);
+  fcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check makeInOutFcomplex");
+}
 
   /* { */
   /*   magicNumber = clearstack(magicNumber); */
