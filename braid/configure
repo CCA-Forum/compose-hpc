@@ -14727,7 +14727,7 @@ else
 fi
 
 
-ac_config_files="$ac_config_files Makefile braid/braid braid/config.py Doxyfile regression/interop/build-tracker.sh regression/interop/driver.sh"
+ac_config_files="$ac_config_files Makefile braid/braid braid/config.py Doxyfile patch-chapel-compiler.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
 
 
 cat >confcache <<\_ACEOF
@@ -15789,6 +15789,7 @@ do
     "braid/braid") CONFIG_FILES="$CONFIG_FILES braid/braid" ;;
     "braid/config.py") CONFIG_FILES="$CONFIG_FILES braid/config.py" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
+    "patch-chapel-compiler.sh") CONFIG_FILES="$CONFIG_FILES patch-chapel-compiler.sh" ;;
     "regression/interop/build-tracker.sh") CONFIG_FILES="$CONFIG_FILES regression/interop/build-tracker.sh" ;;
     "regression/interop/driver.sh") CONFIG_FILES="$CONFIG_FILES regression/interop/driver.sh" ;;
 

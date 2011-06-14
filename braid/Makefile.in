@@ -45,6 +45,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(nobase_include_HEADERS) $(nobase_python_PYTHON) \
 	$(noinst_PYTHON) $(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/braid/Makefile.include \
+	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
 	$(top_srcdir)/configure \
@@ -94,7 +95,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES = braid/braid braid/config.py Doxyfile \
-	regression/interop/build-tracker.sh \
+	patch-chapel-compiler.sh regression/interop/build-tracker.sh \
 	regression/interop/driver.sh
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -133,7 +134,7 @@ braid_scanner_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(braid_scanner_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
 am__dirstamp = $(am__leading_dot)dirstamp
-SCRIPTS = $(bin_SCRIPTS)
+SCRIPTS = $(bin_SCRIPTS) $(noinst_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
 am__depfiles_maybe =
@@ -507,7 +508,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/ply/ctokens.py contrib/ply/lex.py contrib/ply/yacc.py \
 	$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py \
 	braid/sidl.py $(BABEL_TESTS) $(am__append_4) chpl/sidl.inc \
-	chpl/array.inc
+	chpl/array.inc chapel-patches/*.diff
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -599,6 +600,7 @@ DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
   PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
 
 info_TEXINFOS = doc/braid.texi
+noinst_SCRIPTS = patch-chapel-compiler.sh.in
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -643,6 +645,8 @@ braid/braid: $(top_builddir)/config.status $(top_srcdir)/braid/braid.in
 braid/config.py: $(top_builddir)/config.status $(top_srcdir)/braid/config.py.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+patch-chapel-compiler.sh: $(top_builddir)/config.status $(srcdir)/patch-chapel-compiler.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 regression/interop/build-tracker.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/build-tracker.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
