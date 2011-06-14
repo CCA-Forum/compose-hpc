@@ -1,7 +1,7 @@
 From 3636aee51d318f13890d339ddcc7209ceefa977d Mon Sep 17 00:00:00 2001
 From: Shams Imam <imam1@llnl.gov>
 Date: Fri, 10 Jun 2011 11:27:39 -0700
-Subject: [PATCH 3/4] -- add support for configurable field name during assignment
+Subject: [PATCH 4/5] -- add support for configurable field name during assignment
 
 ---
  chapel-1.3.0/chapel/compiler/AST/expr.cpp    |   23 ++++++++++++++++++++---

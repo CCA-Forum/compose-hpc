@@ -49,10 +49,18 @@ fi
 # apply the patches
 pushd @CHAPEL_ROOT@ || exit 1
 for p in `ls -1 $lsflags "$base/@top_srcdir@/chapel-patches"`; do
-    echo "**applying patch" `basename $p`
-    patch $flags -p3 -u < "$base/@top_srcdir@/chapel-patches/$p" || exit 1
+    echo "[" `basename $p` "]"
+    patch $flags -p3 -u < "$base/@top_srcdir@/chapel-patches/$p" || echo "**ERROR"
 done
+
+# we have to manually remove these files which have been created by the patches
+if [ "x$1" == "x--undo" ]; then
+    rm -f examples/borrowed/borrowed_array.chpl examples/borrowed/borrowed_data.h
+fi
+
 popd
+echo "**clean"
+make -C @CHAPEL_ROOT@ clean
 echo "**compiling"
 make -C @CHAPEL_ROOT@
 

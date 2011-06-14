@@ -16852,6 +16852,13 @@ fi
   chmod +x "$ofile"
 
  ;;
+    "Makefile":F) chmod +x patch-chapel-compiler.sh ;;
+    "braid/braid":F) chmod +x patch-chapel-compiler.sh ;;
+    "braid/config.py":F) chmod +x patch-chapel-compiler.sh ;;
+    "Doxyfile":F) chmod +x patch-chapel-compiler.sh ;;
+    "patch-chapel-compiler.sh":F) chmod +x patch-chapel-compiler.sh ;;
+    "regression/interop/build-tracker.sh":F) chmod +x patch-chapel-compiler.sh ;;
+    "regression/interop/driver.sh":F) chmod +x patch-chapel-compiler.sh ;;
 
   esac
 done # for ac_tag
