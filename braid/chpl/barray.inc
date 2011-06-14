@@ -1,3 +1,4 @@
+// -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 use DSIUtil;
 use DefaultRectangular;
 

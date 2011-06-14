@@ -133,6 +133,7 @@ AC_CONFIG_FILES([Makefile
   braid/braid 
   braid/config.py 
   Doxyfile
+  patch-chapel-compiler.sh
   regression/interop/build-tracker.sh
   regression/interop/driver.sh
 ])
