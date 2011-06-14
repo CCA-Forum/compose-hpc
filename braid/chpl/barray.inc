@@ -409,32 +409,53 @@ pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntTyp
 }
 
 pragma "inline" proc createBorrowedArray1d(sa: sidl.Array) {
+  if (sa.dim() != 1) {
+    halt("input array is not of rank 1");
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0));  
 }
 pragma "inline" proc createBorrowedArray2d(sa: sidl.Array) {
+  if (sa.dim() != 2) {
+    halt("input array is not of rank 2");  
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1));  
 }
 pragma "inline" proc createBorrowedArray3d(sa: sidl.Array) {
+  if (sa.dim() != 3) {
+    halt("input array is not of rank 3");
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2));  
 }
 pragma "inline" proc createBorrowedArray4d(sa: sidl.Array) {
+  if (sa.dim() != 4) {
+    halt("input array is not of rank 4");
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3));  
 }
 pragma "inline" proc createBorrowedArray5d(sa: sidl.Array) {
+  if (sa.dim() != 5) {
+    halt("input array is not of rank 5");
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
             sa.length(4));  
 }
 pragma "inline" proc createBorrowedArray6d(sa: sidl.Array) {
+  if (sa.dim() != 6) {
+    halt("input array is not of rank 6");
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
             sa.length(4), sa.length(5));  
 }
 pragma "inline" proc createBorrowedArray7d(sa: sidl.Array) {
+  if (sa.dim() != 7) {
+    halt("input array is not of rank 7");
+  }
   return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
             sa.length(4), sa.length(5), sa.length(6));  
@@ -444,9 +465,6 @@ proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque,
         arraySize ...?arrayRank) where bArr.rank == arrayRank {
 
   var bDom = bArr.getBaseDom();
-  // if (bDom.rank != arrayRank) {
-  //   halt("Expected rank=", bDom.rank, " found=", arrayRank);  
-  // }
   bDom.initIndices((...arraySize));
   bArr.initializeData(bData);
   return bArr;
