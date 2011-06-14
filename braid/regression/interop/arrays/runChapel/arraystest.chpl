@@ -287,96 +287,96 @@ tracker.setExpectations(-1);
   magicNumber = clearstack(magicNumber);
 }
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   iarray = ArrayTest.ArrayOps_static.create2Int(TEST_DIM1,TEST_DIM2); */
-  /*   init_part(); run_part("create2Int", ArrayTest.ArrayOps_static.check2Int(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  iarray = ArrayTest.ArrayOps_static.create2Int(TEST_DIM1, TEST_DIM2);
+  init_part(); run_part("create2Int", ArrayTest.ArrayOps_static.check2Int(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+} 
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<double> darray; */
-  /*   darray = ArrayTest.ArrayOps_static.create2Double(TEST_DIM1,TEST_DIM2); */
-  /*   init_part(); run_part("create2Double", ArrayTest.ArrayOps_static.check2Double(darray) == true); */
-  /*   darray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var darray: sidl.Array(real(64), sidl_double__array);
+  darray = ArrayTest.ArrayOps_static.create2Double(TEST_DIM1, TEST_DIM2);
+  init_part(); run_part("create2Double", ArrayTest.ArrayOps_static.check2Double(darray) == true);
+  darray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+} 
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<float> farray; */
-  /*   farray = ArrayTest.ArrayOps_static.create2Float(TEST_DIM1,TEST_DIM2); */
-  /*   init_part(); run_part("create2Float", ArrayTest.ArrayOps_static.check2Float(farray) == true); */
-  /*   farray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var farray: sidl.Array(real(32), sidl_float__array);
+  farray = ArrayTest.ArrayOps_static.create2Float(TEST_DIM1, TEST_DIM2);
+  init_part(); run_part("create2Float", ArrayTest.ArrayOps_static.check2Float(farray) == true);
+  farray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::dcomplex> dcarray; */
-  /*   dcarray = ArrayTest.ArrayOps_static.create2Dcomplex(TEST_DIM1,TEST_DIM2); */
-  /*   init_part(); run_part("create2Dcomplex", ArrayTest.ArrayOps_static.check2Dcomplex(dcarray) == true); */
-  /*   dcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var dcarray: sidl.Array(complex(128), sidl_dcomplex__array);
+  dcarray = ArrayTest.ArrayOps_static.create2Dcomplex(TEST_DIM1, TEST_DIM2);
+  init_part(); run_part("create2Dcomplex", ArrayTest.ArrayOps_static.check2Dcomplex(dcarray) == true);
+  dcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* {  */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<sidl::fcomplex> fcarray; */
-  /*   fcarray = ArrayTest.ArrayOps_static.create2Fcomplex(TEST_DIM1,TEST_DIM2); */
-  /*   init_part(); run_part("create2Fcomplex", ArrayTest.ArrayOps_static.check2Fcomplex(fcarray) == true); */
-  /*   fcarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* }  */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var dcarray: sidl.Array(complex(64), sidl_fcomplex__array);
+  dcarray = ArrayTest.ArrayOps_static.create2Fcomplex(TEST_DIM1, TEST_DIM2);
+  init_part(); run_part("create2Fcomplex", ArrayTest.ArrayOps_static.check2Fcomplex(dcarray) == true);
+  dcarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   iarray = ArrayTest.ArrayOps_static.create3Int(); */
-  /*   init_part(); run_part("create3Int", ArrayTest.ArrayOps_static.check3Int(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+ 
+{ 
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  iarray = ArrayTest.ArrayOps_static.create3Int();
+  init_part(); run_part("create3Int", ArrayTest.ArrayOps_static.check3Int(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+} 
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   iarray = ArrayTest.ArrayOps_static.create4Int(); */
-  /*   init_part(); run_part("create4Int", ArrayTest.ArrayOps_static.check4Int(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  iarray = ArrayTest.ArrayOps_static.create4Int();
+  init_part(); run_part("create4Int", ArrayTest.ArrayOps_static.check4Int(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   iarray = ArrayTest.ArrayOps_static.create5Int(); */
-  /*   init_part(); run_part("create5Int", ArrayTest.ArrayOps_static.check5Int(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  iarray = ArrayTest.ArrayOps_static.create5Int();
+  init_part(); run_part("create5Int", ArrayTest.ArrayOps_static.check5Int(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   iarray = ArrayTest.ArrayOps_static.create6Int(); */
-  /*   init_part(); run_part("create6Int", ArrayTest.ArrayOps_static.check6Int(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  iarray = ArrayTest.ArrayOps_static.create6Int();
+  init_part(); run_part("create6Int", ArrayTest.ArrayOps_static.check6Int(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
-  /* { */
-  /*   magicNumber = clearstack(magicNumber); */
-  /*   sidl::array<int32_t> iarray; */
-  /*   iarray = ArrayTest.ArrayOps_static.create7Int(); */
-  /*   init_part(); run_part("create7Int", ArrayTest.ArrayOps_static.check7Int(iarray) == true); */
-  /*   iarray.deleteRef(); */
-  /*   magicNumber = clearstack(magicNumber); */
-  /* } */
+{ 
+  magicNumber = clearstack(magicNumber);
+  var iarray: sidl.Array(int(32), sidl_int__array);
+  iarray = ArrayTest.ArrayOps_static.create7Int();
+  init_part(); run_part("create7Int", ArrayTest.ArrayOps_static.check7Int(iarray) == true);
+  iarray.deleteRef();
+  magicNumber = clearstack(magicNumber);
+}
 
   /* { */
   /*   magicNumber = clearstack(magicNumber); */
