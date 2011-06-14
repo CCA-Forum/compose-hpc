@@ -1381,7 +1381,7 @@ all : lib$(LIBNAME).la $(SCLFILE) $(OUTFILE)
 
 $(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) -o $@
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
 
 CC=`babel-config --query-var=CC`

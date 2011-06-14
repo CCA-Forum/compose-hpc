@@ -50,6 +50,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
 	$(top_srcdir)/configure \
+	$(top_srcdir)/regression/interop/build-server.sh.in \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
 	$(top_srcdir)/regression/interop/driver.sh.in INSTALL \
 	config/config.guess config/config.sub config/install-sh \
@@ -96,7 +97,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES = braid/braid braid/config.py Doxyfile \
-	patch-chapel-compiler.sh regression/interop/build-tracker.sh \
+	patch-chapel-compiler.sh regression/interop/build-server.sh \
+	regression/interop/build-tracker.sh \
 	regression/interop/driver.sh
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -588,6 +590,9 @@ BABEL_TESTS = \
   regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl 
 
+BABEL_TESTNAMES = \
+  args arrays inherit strings
+
 @ENABLE_INTEROP_REGRESSION_TRUE@CHPL_LOG_COMPILER = sh 
 # FIXME:
 #
@@ -598,8 +603,17 @@ BABEL_TESTS = \
 @ENABLE_INTEROP_REGRESSION_TRUE@AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 
 # This target will be made prior to the tests. We use it to compile
-# regression/output from Babel.
-@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/babel.make
+# regression/output and all the server libraries that are copied over
+# from Babel
+@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+
 
 # Recursive make considered harmful
 DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
@@ -653,6 +667,8 @@ braid/config.py: $(top_builddir)/config.status $(top_srcdir)/braid/config.py.in
 Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 patch-chapel-compiler.sh: $(top_builddir)/config.status $(srcdir)/patch-chapel-compiler.sh.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+regression/interop/build-server.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/build-server.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 regression/interop/build-tracker.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/build-tracker.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -1675,8 +1691,15 @@ clean-braid:
 # This can be done more nicely... Problem is, we do not want to force
 # the dependency on swipl on the users
 	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi
-@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
+
+@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/output/libC/GNUmakefile: $(builddir)/regression/interop/build-tracker.sh
 @ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $(MAKE) $(MAKEFLAGS)
+
+@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/build-server.sh
+@ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
+@ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $@ $(MAKE) $(MAKEFLAGS)
 @ENABLE_DOCUMENTATION_TRUE@braid/braid: $(BUILT_SOURCES) doc/html/index.html
 
 .PHONY: doc

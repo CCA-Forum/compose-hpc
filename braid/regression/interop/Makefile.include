@@ -6,6 +6,9 @@ BABEL_TESTS = \
   regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl 
 
+BABEL_TESTNAMES = \
+  args arrays inherit strings
+
 EXTRA_DIST += $(BABEL_TESTS)
 
 if ENABLE_INTEROP_REGRESSION
@@ -25,9 +28,24 @@ CHPL_LOG_COMPILER = sh
 AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 
 # This target will be made prior to the tests. We use it to compile
-# regression/output from Babel.
-check_DATA = $(builddir)/regression/interop/output/libC/babel.make
-$(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
+# regression/output and all the server libraries that are copied over
+# from Babel
+check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la) \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la) \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la) \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la) \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la) \
+	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+
+$(builddir)/regression/interop/output/libC/GNUmakefile: $(builddir)/regression/interop/build-tracker.sh
 	sh $< $(MAKE) $(MAKEFLAGS)
+
+$(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/build-server.sh
+	sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+$(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
+	sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 endif
