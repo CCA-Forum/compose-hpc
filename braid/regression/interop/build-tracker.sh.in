@@ -19,6 +19,6 @@ if [ ! -e output/libC/Makefile ]; then
     cd output/libC                                      ||exit 1
     echo "--build tracker"
     $BABEL ../output.sidl -sc --makefile		||exit 1
-    $MAKE                                               ||exit 1
+    $MAKE >/dev/null                                    ||exit 1
     cd -
 fi
