@@ -60,7 +60,7 @@
 	 | sign_extend(Bits, Expr)
 	 ),
   Var_decl = ( var_decl(Type, Id)
-	     | var_decl(Type, Id, Expr)
+	     | var_decl_init(Type, Id, Expr)
 	     ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
