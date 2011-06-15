@@ -50,7 +50,6 @@
   If = if(Expr, Body),
   Body = [Stmt],
   Expr = ( Literal
-	 | call(Expr, [Expr])	 
 	 | new(Type, [Arg])
          | Var_decl
          | Var_defn
@@ -61,8 +60,9 @@
 	 | prefix_expr(Un_op, Expr)
 	 | sign_extend(Bits, Expr)
 	 ),
-  Var_decl = var_decl(Type, Id),
-  Var_defn = var_defn(Type, Id),
+  Var_decl = ( var_decl(Type, Id)
+	     | var_decl(Type, Id, Expr)
+	     ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
@@ -76,6 +76,7 @@
 	       | Pointer_expr
 	       | Deref
 	       | get_struct_item(Struct, Expr, Struct_item)
+	       | call(Expr, [Expr])	 
 	       ),
   Pointer_expr = pointer_expr(VarRefExpr),
   Deref = deref(VarRefExpr),

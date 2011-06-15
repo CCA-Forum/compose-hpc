@@ -561,6 +561,7 @@ class Chapel:
 
         abstract = list(member(sidl.abstract, Attrs))
         static = list(member(sidl.static, Attrs))
+        final = list(member(sidl.static, Attrs))
 
         if abstract:
             # nothing to be done for an abstract function
@@ -1252,6 +1253,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.var_decl, Type, Name): 
                 return 'var %s:%s'%(gen(Name), gen(Type))
+
+            elif (ir.var_decl, (ir.typedef_type, "inferred_type"), Name, Initializer): 
+                return 'var %s = %s'%(gen(Name), gen(Initializer))
+
+            elif (ir.var_decl, Type, Name, Initializer): 
+                return 'var %s:%s = %s'%(gen(Name), gen(Type), gen(Initializer))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
 
