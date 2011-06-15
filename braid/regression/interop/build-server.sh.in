@@ -1,0 +1,37 @@
+#!/bin/sh
+if [ $# -lt 2 ]; then 
+    echo "usage: $0 testcase make [flags]"
+    exit 1
+fi
+
+BABEL=@BABEL_PREFIX@/bin/babel
+arg=$1
+shift
+MAKE=$1
+shift
+MAKE="$MAKE -$*"
+cd regression/interop                                   ||exit 1
+
+TESTCASE=`basename \`dirname \\\`dirname $arg\\\`\``
+language=`echo \`basename \\\`dirname $arg\\\`\` |sed 's/lib//g'`
+sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
+#echo "MAKE = $MAKE"
+#echo "TESTCASE = $TESTCASE"
+#echo "language = $language"
+
+echo "--setup directory, copy over babel regression test [ $TESTCASE / $language ]"
+mkdir -p $TESTCASE
+cd $TESTCASE                                            ||exit 1
+cp -u -r \
+   @BABEL_SRCDIR@/regression/$TESTCASE/lib$language .   ||exit 1
+chmod u+w -R lib*                                       ||exit 1
+
+echo "--generate server [ $TESTCASE / $language ]"
+cd lib$language                                         ||exit 1
+$BABEL $sidl -s$language --makefile                     ||exit 1
+# turn on debugging
+@PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1
+cd ..						        ||exit 1
+
+echo "--compile server [ $TESTCASE / $language ]"
+exec $MAKE all -C lib$language >/dev/null
