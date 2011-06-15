@@ -1065,7 +1065,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         }
 
     un_op = { 
-        'log_not': 'not',
+        'log_not': '!',
         'bit_not': '~'
         }
 
