@@ -511,6 +511,10 @@ nobase_pyexec_LTLIBRARIES = braid/scanner.la
 bin_SCRIPTS = braid/braid
 TESTS = $(am__append_1) $(am__append_2)
 TEST_EXTENSIONS = .py .sidl $(am__append_3)
+
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
+# Generate this list with
+# ls -1 chapel-patches/*.diff
 EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/argparse-1.1/setup.py contrib/argparse-1.1/README.txt \
 	contrib/argparse-1.1/PKG-INFO contrib/argparse-1.1/NEWS.txt \
@@ -1703,7 +1707,6 @@ clean-braid:
 @ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $(MAKE) $(MAKEFLAGS)
 
 @ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/build-server.sh
-@ENABLE_INTEROP_REGRESSION_TRUE@	grep $(BABEL_SUPPORTED_LANGUAGES)
 @ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 @ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh

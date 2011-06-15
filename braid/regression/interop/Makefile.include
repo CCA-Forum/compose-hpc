@@ -63,7 +63,6 @@ $(builddir)/regression/interop/output/libC/GNUmakefile: $(builddir)/regression/i
 	sh $< $(MAKE) $(MAKEFLAGS)
 
 $(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/build-server.sh
-	grep $(BABEL_SUPPORTED_LANGUAGES)
 	sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 $(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
