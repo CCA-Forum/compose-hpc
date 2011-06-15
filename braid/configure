@@ -624,9 +624,25 @@ SWIPL_LIBS
 SWIPL_CFLAGS
 PL_LIBS
 PL_CFLAGS
+CHAPEL_COMM
 CHAPEL_VERSION
 CHAPEL_ROOT
 CHAPEL
+BABEL_LANG_PYTHON_FALSE
+BABEL_LANG_PYTHON_TRUE
+BABEL_LANG_JAVA_FALSE
+BABEL_LANG_JAVA_TRUE
+BABEL_LANG_F03_FALSE
+BABEL_LANG_F03_TRUE
+BABEL_LANG_F90_FALSE
+BABEL_LANG_F90_TRUE
+BABEL_LANG_F77_FALSE
+BABEL_LANG_F77_TRUE
+BABEL_LANG_CXX_FALSE
+BABEL_LANG_CXX_TRUE
+BABEL_LANG_C_FALSE
+BABEL_LANG_C_TRUE
+BABEL_SUPPORTED_LANGUAGES
 BABEL_VERSION
 BABEL_SRCDIR
 SIDL_PATH
@@ -14268,6 +14284,65 @@ $as_echo "yes" >&6; }
 
      BABEL_VERSION=`$BABEL_PREFIX/bin/babel-config --query-var=VERSION`
 
+     BABEL_LANGS=`$BABEL_PREFIX/bin/babel-config --query-var=BABEL_SUPPORTED_LANGUAGES`
+     BABEL_SUPPORTED_LANGUAGES=$BABEL_LANGS
+
+      if echo $BABEL_LANGS |grep -q c; then
+  BABEL_LANG_C_TRUE=
+  BABEL_LANG_C_FALSE='#'
+else
+  BABEL_LANG_C_TRUE='#'
+  BABEL_LANG_C_FALSE=
+fi
+
+      if echo $BABEL_LANGS |grep -q cxx; then
+  BABEL_LANG_CXX_TRUE=
+  BABEL_LANG_CXX_FALSE='#'
+else
+  BABEL_LANG_CXX_TRUE='#'
+  BABEL_LANG_CXX_FALSE=
+fi
+
+      if echo $BABEL_LANGS |grep -q f77; then
+  BABEL_LANG_F77_TRUE=
+  BABEL_LANG_F77_FALSE='#'
+else
+  BABEL_LANG_F77_TRUE='#'
+  BABEL_LANG_F77_FALSE=
+fi
+
+      if echo $BABEL_LANGS |grep -q f90; then
+  BABEL_LANG_F90_TRUE=
+  BABEL_LANG_F90_FALSE='#'
+else
+  BABEL_LANG_F90_TRUE='#'
+  BABEL_LANG_F90_FALSE=
+fi
+
+      if echo $BABEL_LANGS |grep -q f03; then
+  BABEL_LANG_F03_TRUE=
+  BABEL_LANG_F03_FALSE='#'
+else
+  BABEL_LANG_F03_TRUE='#'
+  BABEL_LANG_F03_FALSE=
+fi
+
+      if echo $BABEL_LANGS |grep -q java; then
+  BABEL_LANG_JAVA_TRUE=
+  BABEL_LANG_JAVA_FALSE='#'
+else
+  BABEL_LANG_JAVA_TRUE='#'
+  BABEL_LANG_JAVA_FALSE=
+fi
+
+      if echo $BABEL_LANGS |grep -q python; then
+  BABEL_LANG_PYTHON_TRUE=
+  BABEL_LANG_PYTHON_FALSE='#'
+else
+  BABEL_LANG_PYTHON_TRUE='#'
+  BABEL_LANG_PYTHON_FALSE=
+fi
+
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: using $BABEL_PREFIX/bin/babel" >&5
 $as_echo "using $BABEL_PREFIX/bin/babel" >&6; }
 fi
@@ -14447,7 +14522,8 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
     if test "$ax_compare_version" = "true" ; then
     CHAPEL="$CHAPEL"
 
-          CHAPEL_ROOT="`dirname \`dirname \\\`dirname $CHAPEL\\\`\``"
+ 	  CHAPEL_ROOT=`dirname \`dirname \\\`dirname $CHAPEL\\\`\``
+          CHAPEL_ROOT=$CHAPEL_ROOT
 
           CHAPEL_VERSION="$CHAPEL_VERSION"
 
@@ -14456,6 +14532,18 @@ $as_echo "$as_me: Chapel version < 1.3 is too old" >&6;}
 
   fi
 
+     if test -n "$CHPL_COMM" ; then :
+  CHAPEL_COMM=$CHPL_COMM
+
+           { $as_echo "$as_me:${as_lineno-$LINENO}: Chapel: CHPL_COMM=$CHPL_COMM" >&5
+$as_echo "$as_me: Chapel: CHPL_COMM=$CHPL_COMM" >&6;}
+else
+  CHAPEL_COMM="none"
+
+           { $as_echo "$as_me:${as_lineno-$LINENO}: The environment variable CHPL_COMM was not set, defaulting to \"none\". Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&5
+$as_echo "$as_me: The environment variable CHPL_COMM was not set, defaulting to \"none\". Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&6;}
+
+fi
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find Chapel compiler in PATH!" >&5
@@ -14920,6 +15008,34 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_DOCUMENTATION_TRUE}" && test -z "${ENABLE_DOCUMENTATION_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_DOCUMENTATION\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_C_TRUE}" && test -z "${BABEL_LANG_C_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_C\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_CXX_TRUE}" && test -z "${BABEL_LANG_CXX_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_CXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_F77_TRUE}" && test -z "${BABEL_LANG_F77_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_F77\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_F90_TRUE}" && test -z "${BABEL_LANG_F90_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_F90\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_F03_TRUE}" && test -z "${BABEL_LANG_F03_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_F03\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_JAVA_TRUE}" && test -z "${BABEL_LANG_JAVA_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_JAVA\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_PYTHON_TRUE}" && test -z "${BABEL_LANG_PYTHON_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_PYTHON\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_INTEROP_REGRESSION_TRUE}" && test -z "${ENABLE_INTEROP_REGRESSION_FALSE}"; then

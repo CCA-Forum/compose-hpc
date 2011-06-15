@@ -37,7 +37,7 @@
 %%# Prefix an underscore to suppress singleton warnings.
 [
   _File = [ (Fn_decl | Fn_defn
-	  | Var_decl | Var_defn
+	  | Var_decl
 	  | Import
 	  | type_decl(Type)
 	  ) ],
@@ -52,7 +52,6 @@
   Expr = ( Literal
 	 | new(Type, [Arg])
          | Var_decl
-         | Var_defn
 	 | VarRefExpr
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
          | assignment(VarRefExpr, Expr)

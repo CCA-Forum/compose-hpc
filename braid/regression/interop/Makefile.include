@@ -30,19 +30,40 @@ AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
 # This target will be made prior to the tests. We use it to compile
 # regression/output and all the server libraries that are copied over
 # from Babel
-check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la) \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la) \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la) \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la) \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la) \
-	     $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+if BABEL_LANG_C # can't do much without C
+check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile
+check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la)
+
+if BABEL_LANG_CXX
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la)
+endif
+
+if BABEL_LANG_F77
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la)
+endif
+
+if BABEL_LANG_F90
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
+endif
+
+if BABEL_LANG_F03
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
+endif
+
+if BABEL_LANG_JAVA
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
+endif
+
+if BABEL_LANG_PYTHON
+check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+endif
+endif
 
 $(builddir)/regression/interop/output/libC/GNUmakefile: $(builddir)/regression/interop/build-tracker.sh
 	sh $< $(MAKE) $(MAKEFLAGS)
 
 $(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/build-server.sh
+	grep $(BABEL_SUPPORTED_LANGUAGES)
 	sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 $(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
