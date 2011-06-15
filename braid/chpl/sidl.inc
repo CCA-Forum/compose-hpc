@@ -10,4 +10,8 @@ module sidl {
 // Start: Borrowed Array related items  
 # include <barray.inc>
 // End: Borrowed Array related items  
+
+// Start: Distributed Array related items  
+# include <darray.inc>
+// End: Distributed Array related items  
 }

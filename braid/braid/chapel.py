@@ -33,6 +33,7 @@ from codegen import (
 )
 
 chpl_dom_var_template = '_babel_dom_{arg_name}'
+chpl_local_var_template = '_babel_local_{arg_name}'
 
 def drop(lst):
     """
@@ -528,23 +529,33 @@ class Chapel:
 
             elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
                 # mode is always inout for an array
+                original_mode = mode
                 mode = sidl.inout
                 # get the type of the scalar element
                 convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) 
                 arg_name = convert_el_res[0]
-                # ensure access is local
-                error_msg = ('"Non-local access! here = " + here.id + ' + 
-                    '", {arg_name}.locale = " + ' + 
-                    '{arg_name}.locale.id').format(arg_name=arg_name)
+                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
+                chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
+                
+                # ensure domain is rectangular
+                err_non_rect = ('"{arg_name}.domain is not rectangular"').format(arg_name=arg_name)
                 pre_call.append(ir.Stmt(ir.If(
-                    ir.Infix_expr(ir.ne, "here.id", 
-                        "{arg_name}.locale.id".format(arg_name=arg_name)), 
-                    [ir.Stmt(ir.Call("halt", [error_msg]))]
+                    ir.Infix_expr(ir.ne, "true", ir.Call("isRectangularDom", [chpl_dom_var_name])), 
+                    [ir.Stmt(ir.Call("halt", [err_non_rect]))]
                 )))
+                # ensure we are working with a 'local' array
+                # FIXME Hack to define a variable without explicitly specifying type
+                # should we change the IR to support this?
+                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name, 
+                    ir.Call("ensureLocalArray", [arg_name])))
+                )
+                if original_mode <> sidl.in_:
+                    # emit code to copy back elements into non-local array
+                    post_call.append(ir.Stmt(ir.Call('syncNonLocalArray', 
+                        [chpl_local_var_name, arg_name])))
                 
                 # reference the lowest element of the array using the domain
-                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
-                call_expr_str = convert_el_res[0] + '(' + chpl_dom_var_name + '.low' + ')'
+                call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
                 return (call_expr_str, convert_el_res[1])
 
             return cname, (arg, attrs, mode, ctype, name)
@@ -1250,7 +1261,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
                 return '_'.join(Names)
 
-            elif (ir.var_decl, Type, Name): 
+            elif (ir.var_decl, Type, Name):
                 return 'var %s:%s'%(gen(Name), gen(Type))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
