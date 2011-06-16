@@ -117,6 +117,8 @@ for libdir in `ls -1 -d ../lib*`; do
 	      SIDL_DLL_PATH="../libPython/libImpl.scl;../libPython/libImplPy.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
 	      echo "FIXME" ./runChapel2$language || exit 1 ;;
       *)  
+	  if [ x"@CHPL_COMM@" == x"gasnet" ] 
+
 	  env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
 	      ./runChapel2$language || exit 1 ;;
   esac

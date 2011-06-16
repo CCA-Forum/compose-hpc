@@ -1257,7 +1257,7 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return "(*%s)->%s"%(gen(StructName),gen(Item))
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
-                return gen(StructName)+'->'+gen(Item)
+                return "%s->%s"%(gen(StructName), gen(Item))
 
             elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'->'+gen(Item)+' = '+gen(Value)

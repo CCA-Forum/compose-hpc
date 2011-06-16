@@ -52,7 +52,7 @@
 # 	 | sign_extend(Bits, Expr)
 # 	 ),
 #   Var_decl = ( var_decl(Type, Id)
-# 	     | var_decl(Type, Id, Expr)
+# 	     | var_decl_init(Type, Id, Expr)
 # 	     ),
 #   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 # 	   |plus|minus|times|divide|modulo|rem|pow),
@@ -184,6 +184,7 @@ true = 'true'
 type_decl = 'type_decl'
 typedef_type = 'typedef_type'
 var_decl = 'var_decl'
+var_decl_init = 'var_decl_init'
 void = 'void'
 while_ = 'while'
 
@@ -211,7 +212,7 @@ def Import(*args):
         raise Exception("Grammar Error")
     return tuple(['import']+list(args))
 
-# skipping \c Var_decl= (\c Var_decl|\c Var_decl)
+# skipping \c Var_decl= (\c Var_decl|\c Var_decl_init)
 def Fn_defn(*args):
     """
     Construct a "fn_defn" node. Valid arguments are 
@@ -410,7 +411,7 @@ def Goto(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == var_decl:
         pass
-    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
         pass
     elif isinstance(args[0], PythonTypes.StringType):
         pass
@@ -471,7 +472,7 @@ def If(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == var_decl:
         pass
-    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
         pass
     elif isinstance(args[0], PythonTypes.StringType):
         pass
@@ -547,7 +548,7 @@ def Return(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == var_decl:
         pass
-    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
         pass
     elif isinstance(args[0], PythonTypes.StringType):
         pass
@@ -607,7 +608,7 @@ def While(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == var_decl:
         pass
-    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
         pass
     elif isinstance(args[0], PythonTypes.StringType):
         pass
@@ -699,7 +700,7 @@ def Do_while(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -1244,7 +1245,7 @@ def Stmt(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == var_decl:
         pass
-    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
         pass
     elif isinstance(args[0], PythonTypes.StringType):
         pass
@@ -1355,7 +1356,7 @@ def Set_struct_item(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -1409,7 +1410,7 @@ def Set_struct_item(*args):
         pass
     elif isinstance(args[3], tuple) and args[3][0] == var_decl:
         pass
-    elif isinstance(args[3], tuple) and args[3][0] == var_decl:
+    elif isinstance(args[3], tuple) and args[3][0] == var_decl_init:
         pass
     elif isinstance(args[3], PythonTypes.StringType):
         pass
@@ -1484,7 +1485,7 @@ def Assignment(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -1585,7 +1586,7 @@ def Infix_expr(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -1632,7 +1633,7 @@ def Infix_expr(*args):
         pass
     elif isinstance(args[2], tuple) and args[2][0] == var_decl:
         pass
-    elif isinstance(args[2], tuple) and args[2][0] == var_decl:
+    elif isinstance(args[2], tuple) and args[2][0] == var_decl_init:
         pass
     elif isinstance(args[2], PythonTypes.StringType):
         pass
@@ -1703,7 +1704,7 @@ def Prefix_expr(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -1770,7 +1771,7 @@ def Sign_extend(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -1836,13 +1837,13 @@ def Var_decl(*args):
         raise Exception("Grammar Error")
     return tuple(['var_decl']+list(args))
 
-def Var_decl(*args):
+def Var_decl_init(*args):
     """
-    Construct a "var_decl" node. Valid arguments are 
+    Construct a "var_decl_init" node. Valid arguments are 
     (\c Type(), \c Id(), \c Expr())
-    \return (\c "Var_decl", \c Type(), \c Id(), \c Expr())
+    \return (\c "Var_decl_init", \c Type(), \c Id(), \c Expr())
     """
-    f = Var_decl
+    f = Var_decl_init
     if len(args) <> 3:
         print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
@@ -1891,7 +1892,7 @@ def Var_decl(*args):
         pass
     elif isinstance(args[2], tuple) and args[2][0] == var_decl:
         pass
-    elif isinstance(args[2], tuple) and args[2][0] == var_decl:
+    elif isinstance(args[2], tuple) and args[2][0] == var_decl_init:
         pass
     elif isinstance(args[2], PythonTypes.StringType):
         pass
@@ -1918,7 +1919,7 @@ def Var_decl(*args):
         print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    return tuple(['var_decl']+list(args))
+    return tuple(['var_decl_init']+list(args))
 
 def Enumerator(*args):
     """
@@ -2005,7 +2006,7 @@ def Get_struct_item(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == var_decl:
         pass
-    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
         pass
     elif isinstance(args[1], PythonTypes.StringType):
         pass
@@ -2072,7 +2073,7 @@ def Call(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == var_decl:
         pass
-    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
         pass
     elif isinstance(args[0], PythonTypes.StringType):
         pass
@@ -2121,7 +2122,7 @@ def Call(*args):
                 pass
             elif isinstance(a, tuple) and a[0] == var_decl:
                 pass
-            elif isinstance(a, tuple) and a[0] == var_decl:
+            elif isinstance(a, tuple) and a[0] == var_decl_init:
                 pass
             elif isinstance(a, PythonTypes.StringType):
                 pass
