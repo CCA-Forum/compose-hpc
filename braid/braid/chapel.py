@@ -1265,6 +1265,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.var_decl, Type, Name):
                 return 'var %s:%s'%(gen(Name), gen(Type))
 
+            elif (ir.var_decl_init, (ir.typedef_type, "inferred_type"), Name, Initializer): 
+                return 'var %s = %s'%(gen(Name), gen(Initializer))
+
+            elif (ir.var_decl_init, Type, Name, Initializer): 
+                return 'var %s:%s = %s'%(gen(Name), gen(Type), gen(Initializer))
+
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
 
             elif (sidl.custom_attribute, Id):       return gen(Id)
@@ -1365,21 +1371,41 @@ CHAPEL="""+config.CHAPEL+r"""
 CHAPEL_ROOT="""+config.CHAPEL_ROOT+r"""
 CHAPEL_MAKE_MEM=default
 CHAPEL_MAKE_COMM=none
+# CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
 CHAPEL_MAKE_COMPILER=gnu
 CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
+
+CHAPEL_MAKE_COMPILER=gnux
 CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 CHPL=chpl
 CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
+GASNET_LDFLAGS=-L$(CHAPEL_ROOT)/third-party/gasnet/install/linux32-gnu/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp     -lpthread
+LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lm
 
 # build flags when gasnet is enabled
 # GASNET
 # CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
-# /nfs/apps/gcc/4.3.2/bin/g++     -o ./c-source/a.out.tmp -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads ./c-source/a.out.tmp.o $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o  -lchpl -lm  -lpthread -L$(CHAPEL_ROOT)/third-party/gasnet/install/linux32-gnu/seg-everything/nodbg/lib   -lgasnet-udp-par -lamudp     -lpthread -L/nfs/apps/gcc/4.3.2/lib/gcc/i686-pc-linux-gnu/4.3.2 -lgcc -lm 
-# gcc -std=c99  -c -o ./c-source/a.out.tmp_launcher.o -I$(CHAPEL_ROOT)/runtime/include/linux32 -I$(CHAPEL_ROOT)/runtime/include -I. ./c-source/config.c
-# gcc   -o ./c-source/a.out.tmp_launcher -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun ./c-source/a.out.tmp_launcher.o $(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o -lchpllaunch -lm
+# /nfs/apps/gcc/4.3.2/bin/g++
+#    -o ./c-source/a.out.tmp
+#    -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads
+#    ./c-source/a.out.tmp.o
+#    $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o
+#    -lchpl -lm  -lpthread
+#    -L$(CHAPEL_ROOT)/third-party/gasnet/install/linux32-gnu/seg-everything/nodbg/lib
+#    -lgasnet-udp-par -lamudp     -lpthread
+#    -L/nfs/apps/gcc/4.3.2/lib/gcc/i686-pc-linux-gnu/4.3.2 -lgcc -lm
+#
+# gcc -std=c99  -c -o ./c-source/a.out.tmp_launcher.o
+#    -I$(CHAPEL_ROOT)/runtime/include/linux32 -I$(CHAPEL_ROOT)/runtime/include -I.
+#    ./c-source/config.c
+# gcc   -o ./c-source/a.out.tmp_launcher
+#    -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun
+#    ./c-source/a.out.tmp_launcher.o
+#   $(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o -lchpllaunch -lm
+
 # NONE
 # CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
 # gcc   -o ./c-source/a.out.tmp -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads ./c-source/a.out.tmp.o $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o  -lchpl -lm  -lpthread
@@ -1401,12 +1427,28 @@ else
   MODFLAG=-module
 endif
 
-all : lib$(LIBNAME).la $(SCLFILE) $(OUTFILE)
+ifeq ($(CHAPEL_MAKE_COMM),gasnet)
+
+all: lib$(LIBNAME).la $(SCLFILE) $(OUTFILE) $(OUTFILE)_launcher
+
+$(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
+	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
+          $(CHPL_LDFLAGS) $(GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
+
+$(OUTFILE)_launcher: 
+	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
+          $(CHPL_LDFLAGS) $(LAUNCHER_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
+
+else
+
+all: lib$(LIBNAME).la $(SCLFILE) $(OUTFILE)
 
 $(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
-
+endif
 
 CC=`babel-config --query-var=CC`
 INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include -I$(SIDL_RUNTIME)/chpl
