@@ -1165,8 +1165,11 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.call, (ir.deref, Name), Args): 
                 return '(*%s)(%s)' % (gen(Name), gen_comma_sep(Args))
 
-            elif (ir.call, Name, Args): 
-                return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
+            elif (ir.call, Name, Args):
+                if isinstance(Name, tuple):
+                    return '(%s)(%s)' % (gen(Name), gen_comma_sep(Args))
+                else:
+                    return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
             # FIXME should we use scoped_id instead of typedecl?
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 

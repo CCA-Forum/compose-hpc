@@ -2218,6 +2218,7 @@ pt_fcomplex = Primitive_type(fcomplex)
 pt_dcomplex = Primitive_type(dcomplex)
 pt_string   = Primitive_type(string)
 pt_void     = Primitive_type(void)
+void_ptr    = Pointer_type(pt_void)
  ## const char*
 const_str = Pointer_type(Const(Primitive_type(char)))
  

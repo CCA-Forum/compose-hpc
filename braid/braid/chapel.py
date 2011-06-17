@@ -105,7 +105,7 @@ class Chapel:
         def __init__(self, name, symbol_table):
             self.impl = ChapelFile()
             self.chpl_stub = ChapelFile(relative_indent=4)
-            self.chpl_static_stub = ChapelFile(relative_indent=4)            
+            self.chpl_static_stub = ChapelFile(self.chpl_stub)            
             self.skel = CFile()
             self.epv = EPV(name, symbol_table)
             self.ior = CFile()
@@ -397,6 +397,12 @@ class Chapel:
                             args, [], [], [], [], 
                             'Implicit built-in method: '+name))
 
+        def static_builtin(t, name, args):
+            data.epv.add_method(
+                sidl.Method(t, sidl.Method_name(name, ''), [sidl.static],
+                            args, [], [], [], [], 
+                            'Implicit built-in method: '+name))
+
         def inarg(t, name):
             return sidl.Arg([], sidl.in_, t, name)
 
@@ -416,7 +422,7 @@ class Chapel:
         builtin(sidl.pt_bool, "_isRemote", [])
         builtin(sidl.void, '_setHooks', 
                 [inarg(sidl.pt_bool, 'enable')])
-        builtin(sidl.void, '_set_contracts ', [
+        builtin(sidl.void, '_set_contracts', [
                 inarg(sidl.pt_bool, 'enable'),
                 inarg(sidl.pt_string, 'enfFilename'),
                 inarg(sidl.pt_bool, 'resetCounters')],
@@ -437,6 +443,17 @@ class Chapel:
                 [inarg(sidl.pt_string, 'type')])
         builtin(babel_object_type(['sidl'], 'ClassInfo'), '_getClassInfo', [])
 
+        static_builtin(sidl.void, '_setHooks_static', 
+                [inarg(sidl.pt_bool, 'enable')])
+        static_builtin(sidl.void, '_set_contracts_static', [
+                inarg(sidl.pt_bool, 'enable'),
+                inarg(sidl.pt_string, 'enfFilename'),
+                inarg(sidl.pt_bool, 'resetCounters')],
+                )
+        static_builtin(sidl.void, '_dump_stats_static', 
+                [inarg(sidl.pt_string, 'filename'),
+                 inarg(sidl.pt_string, 'prefix')])
+
         # cstats
         prefix = data.epv.symbol_table.prefix
         data.cstats = \
@@ -454,6 +471,29 @@ class Chapel:
                        ir.Struct_item(ir.Pointer_type(ir.pt_void), "d_data")
                        ],
                        'The class object structure')
+        data.external = \
+            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_external'], ''),
+                      [ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
+                                                       ir.Pointer_type(data.obj),
+                                                       "createObject", [
+                                                           ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
+                                                           ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')],
+                                                       "")),
+                                                       "createObject"),
+                       # FIXME: only if contains static methods
+                       ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
+                                                       ir.Pointer_type(unscope(data.epv.get_sepv_type())),
+                                                       "getStaticEPV", [], "")),
+                                                       "getStaticEPV"),
+
+                       ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
+                                                       ir.Struct('sidl_BaseClass__epv', [],''),
+                                                       "getSuperEPV", [], "")),
+                                                       "getSuperEPV"),
+                       ir.Struct_item(ir.pt_int, "d_ior_major_version"),
+                       ir.Struct_item(ir.pt_int, "d_ior_minor_version")
+                       ],
+                       'The static class object structure')
 
     @matcher(globals(), debug=False)
     def generate_client_method(self, symbol_table, method, ci):
@@ -570,6 +610,8 @@ class Chapel:
         (Method, Type, (_,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
+        ci.epv.add_method(method)
+
         abstract = list(member(sidl.abstract, Attrs))
         static = list(member(sidl.static, Attrs))
         final = list(member(sidl.static, Attrs))
@@ -588,37 +630,41 @@ class Chapel:
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
         cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
-        cdecl = ir.Fn_decl([], ctype, Name+Extension, cdecl_args, DocComment)
+        cdecl = ir.Fn_decl(Attrs, ctype, Name+Extension, cdecl_args, DocComment)
 
         if static:
             extern_self = []
             call_self = []
         else:
-            ci.epv.add_method(method)
             extern_self = [ir.Arg([], ir.inout, ir_babel_object_type(
                 symbol_table.prefix, ci.epv.name), 'self')]
             call_self = ["self"]
 
         call_args = call_self + call_args + ['ex']
 
-        if static:
-            # FIXME:
-            # here we assume that static implies final -- is this true?
-
+        #if final:
             # final : Final methods are the opposite of virtual. While
             # they may still be inherited by child classes, they
             # cannot be overridden.
-
+            
+            # static call
+            #The problem with this is that e.g. C++ symbols usere different names
+            #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
+        #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+        if static:
             # static : Static methods are sometimes called "class
             # methods" because they are part of a class, but do not
             # depend on an object instance. In non-OO languages, this
             # means that the typical first argument of an instance is
             # removed. In OO languages, these are mapped directly to
             # an Java or C++ static method.
+            epv_type = ci.epv.get_type()
+            obj_type = ci.obj
+            callee = ir.Get_struct_item(
+                epv_type,
+                ir.Deref(ir.Call('_getSEPV', [])),
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension))
             
-            # static call
-            callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
-
         else:
             # dynamic virtual method call
             epv_type = ci.epv.get_type()
@@ -653,14 +699,15 @@ class Chapel:
                 DocComment)
 
         if static:
-            # FIXME static functions still _may_ have a cstub
-            # FIXME can we reuse cdecl for this?
-            impl_decl = ir.Fn_decl([], ctype,
-                                   callee, cdecl_args, DocComment)
-            extern_decl = ir.Fn_decl([], ctype,
-                                   callee, map(obj_by_value, cdecl_args), DocComment)
-            ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
-            ci.chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
+            # # FIXME final functions still _may_ have a cstub
+            # # FIXME can we reuse cdecl for this?
+            # # see the __attribute__ hack below
+            # impl_decl = ir.Fn_decl([], ctype,
+            #                        callee, cdecl_args, DocComment)
+            # extern_decl = ir.Fn_decl([], ctype,
+            #                          callee, map(obj_by_value, cdecl_args), DocComment)
+            # ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
+            # ci.chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
             chpl_gen(defn, ci.chpl_static_stub)
         else:
             chpl_gen(defn, ci.chpl_stub)
@@ -676,7 +723,9 @@ class Chapel:
         ci.ior.genh(ir.Import('chpl_sidl_array'))
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
+        ci.ior.gen(ir.Type_decl(ci.external))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_sepv_ir()))
 
 
 char_lut = '''
@@ -685,6 +734,41 @@ static const unsigned char chpl_char_lut[512] = {
   '''+' '.join(['%d, 0,'%i for i in range(0, 256)])+'''
 };
 '''
+
+def externals(prefix):
+    return '''
+// Hold pointer to IOR functions.
+static const struct {a}__external *_externals = NULL;
+
+// Lookup the symbol to get the IOR functions.
+static const struct {a}__external* _loadIOR(void)
+
+// Return pointer to internal IOR functions.
+{{
+#ifdef SIDL_STATIC_LIBRARY
+  _externals = {a}__externals();
+#else
+  _externals = (struct {a}__external*)sidl_dynamicLoadIOR(
+    "ArrayTest.ArrayOps","{a}__externals") ;
+  sidl_checkIORVersion("{b}", _externals->d_ior_major_version, 
+    _externals->d_ior_minor_version, 2, 0);
+#endif
+  return _externals;
+}}
+
+#define _getExternals() (_externals ? _externals : _loadIOR())
+
+// Hold pointer to static entry point vector
+static const struct {a}__sepv *_sepv = NULL;
+
+// Return pointer to static functions.
+#define _getSEPV() (_sepv ? _sepv : (_sepv = (*(_getExternals()->getStaticEPV))()))
+
+// Reset point to static functions.
+#define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
+
+'''.format(a='_'.join(prefix), b='.'.join(prefix))
+
 
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     """
@@ -805,7 +889,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
             return (arg, attrs, mode, typ, name)
 
 
-    _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
+    if VCallExpr[0] == ir.deref:
+        _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
+    else:
+        _, _ , _, (_, (_, impl_decl), _) = VCallExpr
+
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
     sname = '_'.join(prefix+[Name, 'stub'])
 
@@ -818,8 +906,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
     cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
 
-
-    static = list(member(sidl.static, Attrs))        
+    static = list(member(sidl.static, Attrs))
+    if static:
+        scope.cstub.optional.add(externals(prefix))
 
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
@@ -932,12 +1021,17 @@ def lower_type_ir(symbol_table, sidl_type):
         else:
             raise Exception("Not implemented")
 
+def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
+    return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
+
 class EPV:
     """
     Babel entry point vector for virtual method calls.
+    Also contains the SEPV which is used for all static functions.
     """
     def __init__(self, name, symbol_table):
         self.methods = []
+        self.static_methods = []
         self.name = name
         self.symbol_table = symbol_table
         self.finalized = False
@@ -950,21 +1044,25 @@ class EPV:
                         (Method_name, Name, Extension),
                         Attrs, Args, Except, From, Requires, Ensures, DocComment)):
             typ = lower_ir(self.symbol_table, Type)
+            if typ[0] == ir.struct:
+                typ = ir.Pointer_type(typ)
             name = 'f_'+Name+Extension
             args = babel_epv_args(Attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(Attrs, typ, name, args, DocComment)
 
         if self.finalized:
             import pdb; pdb.set_trace()
-        self.methods.append(to_fn_decl(method))
+
+        if list(member(sidl.static, method[3])):
+            self.static_methods.append(to_fn_decl(method))
+        else:
+            self.methods.append(to_fn_decl(method))
         return self
 
     def get_ir(self):
         """
         return an s-expression of the EPV declaration
         """
-        def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
-            return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
 
         self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
@@ -973,12 +1071,32 @@ class EPV:
              for itype, iname in map(get_type_name, self.methods)],
                          'Entry Point Vector (EPV)')
 
+    def get_sepv_ir(self):
+        """
+        return an s-expression of the SEPV declaration
+        """
+
+        self.finalized = True
+        name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_sepv'], '')
+        return ir.Struct(name,
+            [ir.Struct_item(itype, iname)
+             for itype, iname in map(get_type_name, self.static_methods)],
+                         'Static Entry Point Vector (SEPV)')
+
+
     def get_type(self):
         """
         return an s-expression of the EPV's type
         """
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
         return ir.Struct(name, [], 'Entry Point Vector (EPV)')
+
+    def get_sepv_type(self):
+        """
+        return an s-expression of the SEPV's type
+        """
+        name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_sepv'], '')
+        return ir.Struct(name, [], 'Static Entry Point Vector (SEPV)')
 
 
 
@@ -1205,6 +1323,20 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 else:
                     return gen(ir.Call(stubname, Args))
 
+            elif (ir.call, (ir.get_struct_item, S, _, (ir.struct_item, _, Name)), Args):
+                # We can't do a function pointer call in Chapel
+                # Emit a C stub for that
+                _, (_, ids, _), _, _ = S
+                prefix = ids[:-1]
+                retval_arg = generate_method_stub(scope, node, prefix)
+                stubname = '_'.join(prefix+[re.sub('^f_', '', Name),'stub'])
+                if retval_arg:
+                    scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
+                    scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
+                    return '_retval'
+                else:
+                    return gen(ir.Call(stubname, Args))
+
             elif (ir.new, Type, Args):
                 return 'new %s(%s)'%(gen(Type), gen_comma_sep(Args))
 
@@ -1370,8 +1502,8 @@ INCLDIR=$(PREFIX)/include
 CHAPEL="""+config.CHAPEL+r"""
 CHAPEL_ROOT="""+config.CHAPEL_ROOT+r"""
 CHAPEL_MAKE_MEM=default
-CHAPEL_MAKE_COMM=none
-# CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
+# CHAPEL_MAKE_COMM=none
+CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
 CHAPEL_MAKE_COMPILER=gnu
 CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
 
