@@ -43,7 +43,16 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
   sidlArrayElem1(array,ind1) = val
 
 // Identity function. We use it to cast * -> opaque
-#define int_ptr(A) A
+#define bool_ptr(A) A     
+#define char_ptr(A) A     
+#define dcomplex_ptr(A) A 
+#define double_ptr(A) A   
+#define fcomplex_ptr(A) A 
+#define float_ptr(A) A    
+#define int_ptr(A) A      
+#define long_ptr(A) A     
+#define opaque_ptr(A) A   
+#define string_ptr(A) A   
 #define chpl_sidl__array_smartCopy(A) sidl__array_smartCopy((struct sidl__array *)(A))
 #define chpl_sidl__array_deleteRef(A) sidl__array_deleteRef((struct sidl__array *)(A))
 #endif

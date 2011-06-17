@@ -504,6 +504,23 @@ class Chapel:
         \param ci            a ClassInfo object
         """
 
+        def drop_rarray_ext_args(args):
+            """
+            Now here it's becoming funny: Since R-arrays are wrapped inside
+            SIDL-Arrays in the IOR, convention says that we should remove all
+            redundant arguments that can be derived from the SIDL-array's
+            metadata.
+         
+            @BUGS: does not yet deal with nested expressions.
+            """
+            names = set()
+            for (arg, attrs, mode, typ, name) in args:
+                if typ[0] == sidl.rarray:
+                    names.update(typ[3])
+         
+            return filter(lambda a: a[4] not in names, args)
+
+
         def low(sidl_term):
             return lower_ir(symbol_table, sidl_term)
 
@@ -570,10 +587,12 @@ class Chapel:
             elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
                 # mode is always inout for an array
                 original_mode = mode
-                mode = sidl.inout
+                #mode = sidl.inout
                 # get the type of the scalar element
-                convert_el_res = convert_arg((arg, attrs, mode, typ[1], name)) 
-                arg_name = convert_el_res[0]
+                #convert_el_res = convert_arg((arg, attrs, mode, typ[1], name))
+                #print convert_el_res
+                ctype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
+                arg_name = name# convert_el_res[0]
                 chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
                 chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
                 
@@ -593,10 +612,53 @@ class Chapel:
                     # emit code to copy back elements into non-local array
                     post_call.append(ir.Stmt(ir.Call('syncNonLocalArray', 
                         [chpl_local_var_name, arg_name])))
+                    
+                # Babel is strange when it comes to Rarrays. The
+                # convention is to wrap Rarrays inside of a SIDL-Array
+                # in the Stub and to unpack it in the
+                # Skeleton. However, in some languages (C, C++) we
+                # could just directly call the Impl and save all that
+                # wrapper code.
+                #
+                # I found out the the reason behind this is that
+                # r-arrays were never meant to be a performance
+                # enhancement, but syntactic sugar around the SIDL
+                # array implementation to offer a more native
+                # interface.
+                #
+                # TODO: Change the IOR in Babel to use the r-array
+                # calling convention.  This will complicate the
+                # Python/Fortran/Java backends but simplify the C/C++
+                # ones.
+                sidl_wrapping = (ir.stmt, """
+            var {a}rank = _babel_dom_{arg}.rank;
+            var {a}lower: [1..{a}rank] int(32);
+            var {a}upper: [1..{a}rank] int(32);
+            var {a}stride: [1..{a}rank] int(32);
+            for i in [1..{a}rank] {{
+              var r: range = _babel_dom_{arg}.dim(i);
+              {a}lower[i] = r.low;
+              {a}upper[i] = r.high-1;
+              {a}stride[i] = r.stride;
+            }}
+            writeln({a}rank);
+            var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
+                {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
+                {a}rank,
+                {a}lower[1],
+                {a}upper[1],
+                {a}stride[1])""".format(a='_babel_%s_'%arg_name,
+                                         arg=arg_name,
+                                         ctype=ctype[1],
+                                         stype=typ[1][1]))
                 
+                pre_call.append(sidl_wrapping)
+                post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp);'))
                 # reference the lowest element of the array using the domain
-                call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
-                return (call_expr_str, convert_el_res[1])
+                #call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
+                #return (call_expr_str, convert_el_res[1])
+                return '_babel_wrapped_local_'+arg_name, (arg, attrs, mode, ctype, name)
+                
 
             return cname, (arg, attrs, mode, ctype, name)
 
@@ -607,10 +669,13 @@ class Chapel:
                 return (arg, attrs, mode, typ, name)
 
         # Chapel stub
-        (Method, Type, (_,  Name, Extension), Attrs, Args,
+        (Method, Type, (MName,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
-        ci.epv.add_method(method)
+        ior_args = drop_rarray_ext_args(Args)
+
+        ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
+                           Except, From, Requires, Ensures, DocComment))
 
         abstract = list(member(sidl.abstract, Attrs))
         static = list(member(sidl.static, Attrs))
@@ -622,7 +687,7 @@ class Chapel:
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
-        call_args, cdecl_args = unzip(map(convert_arg, Args))
+        call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
         return_stmt = []
 
@@ -768,7 +833,6 @@ static const struct {a}__sepv *_sepv = NULL;
 #define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
 '''.format(a='_'.join(prefix), b='.'.join(prefix))
-
 
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     """
@@ -1004,7 +1068,10 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (sidl.enumerator, _):               return sidl_type # identical
         elif (sidl.enumerator, _, _):            return sidl_type
         elif (sidl.rarray, Scalar_type, Dimension, Extents):
-            return ir.Pointer_type(lower_type_ir(symbol_table, Scalar_type)) # FIXME
+            # Direct-call version (r-array IOR)
+            # return ir.Pointer_type(lower_type_ir(symbol_table, Scalar_type)) # FIXME
+            # SIDL IOR version
+            return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
 
         elif (sidl.array, [], [], []):
             return ir.Pointer_type(ir.pt_void)
@@ -1518,7 +1585,7 @@ CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 CHPL=chpl
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all -Wstrict-aliasing
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
 GASNET_LDFLAGS=-L$(CHAPEL_ROOT)/third-party/gasnet/install/linux32-gnu/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp     -lpthread
 LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lm
