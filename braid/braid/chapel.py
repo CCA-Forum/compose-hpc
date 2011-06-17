@@ -1010,7 +1010,13 @@ def lower_type_ir(symbol_table, sidl_type):
             return ir.Pointer_type(ir.pt_void)
 
         elif (sidl.array, Scalar_type, Dimension, Orientation):
-            return ir.Typedef_type('sidl__array')
+            #return ir.Typedef_type('sidl__array')
+            if Scalar_type[0] == ir.scoped_id:
+                t = 'BaseInterface'
+            else:
+                t = Scalar_type[1]
+            return ir.Typedef_type('sidl_%s__array'%t)
+
 
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
