@@ -115,7 +115,8 @@ AS_IF([test -x "${CHAPEL}"],
           [AC_SUBST([CHAPEL_COMM], [$CHPL_COMM])
            AC_MSG_NOTICE([Chapel: CHPL_COMM=$CHPL_COMM])],
 	  [AC_SUBST([CHAPEL_COMM], ["none"])
-           AC_MSG_NOTICE([The environment variable CHPL_COMM was not set, defaulting to "none". Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
+           AC_MSG_NOTICE([The environment variable CHPL_COMM was not set, defaulting to "none".
+Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
 	  ])
     ],
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
@@ -136,7 +137,9 @@ PKG_CHECK_MODULES(PL, [pl >= 5.8.0],
          AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
 	],
 	[AC_MSG_NOTICE([Did not find SWI-Prolog version 5.8 or later! 
-Please remember to set PKG_CONFIG_PATH accordingly.])
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed 
+      unless you intend to modyfy the IR grammar.])
          AC_SUBST([SWIPL], [""])
         ])
     ])

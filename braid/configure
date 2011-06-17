@@ -14540,8 +14540,10 @@ $as_echo "$as_me: Chapel: CHPL_COMM=$CHPL_COMM" >&6;}
 else
   CHAPEL_COMM="none"
 
-           { $as_echo "$as_me:${as_lineno-$LINENO}: The environment variable CHPL_COMM was not set, defaulting to \"none\". Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&5
-$as_echo "$as_me: The environment variable CHPL_COMM was not set, defaulting to \"none\". Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&6;}
+           { $as_echo "$as_me:${as_lineno-$LINENO}: The environment variable CHPL_COMM was not set, defaulting to \"none\".
+Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&5
+$as_echo "$as_me: The environment variable CHPL_COMM was not set, defaulting to \"none\".
+Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&6;}
 
 fi
 
@@ -14679,17 +14681,25 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
                 { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&5
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&6;}
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&6;}
          SWIPL=""
 
 
 elif test $pkg_failed = untried; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&5
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&6;}
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&6;}
          SWIPL=""
 
 
@@ -14769,17 +14779,25 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
                 { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&5
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&6;}
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&6;}
          SWIPL=""
 
 
 elif test $pkg_failed = untried; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&5
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
-Please remember to set PKG_CONFIG_PATH accordingly." >&6;}
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed
+      unless you intend to modyfy the IR grammar." >&6;}
          SWIPL=""
 
 

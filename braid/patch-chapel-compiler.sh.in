@@ -48,7 +48,7 @@ fi
 
 # apply the patches
 pushd @CHAPEL_ROOT@ || exit 1
-for p in `ls -1 $lsflags "$base/@top_srcdir@/chapel-patches/*.diff"`; do
+for p in `ls -1 $lsflags $base/@top_srcdir@/chapel-patches/ |grep diff`; do
     echo "[" `basename $p` "]"
     patch $flags -p3 -u < "$base/@top_srcdir@/chapel-patches/$p" || echo "**ERROR"
 done
