@@ -57,6 +57,7 @@ proc syncNonLocalArray(in src:[], inout target: [?targetDom])
     fillRectangularArray(src, target);
   } else {
     // No-op
+    target = src;
   }
 }
 

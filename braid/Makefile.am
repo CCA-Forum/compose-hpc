@@ -87,7 +87,7 @@ nobase_include_HEADERS += \
   chpl/sidl.chpl
 
 BUILT_SOURCES += chpl/sidl.chpl
-EXTRA_DIST += chpl/sidl.inc chpl/array.inc
+EXTRA_DIST += chpl/sidl.inc chpl/array.inc chpl/barray.inc chpl/darray.inc
 
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 

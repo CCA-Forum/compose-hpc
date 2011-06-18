@@ -641,7 +641,6 @@ class Chapel:
               {a}upper[i] = r.high-1;
               {a}stride[i] = r.stride;
             }}
-            writeln({a}rank);
             var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
                 {a}rank,
@@ -653,7 +652,8 @@ class Chapel:
                                          stype=typ[1][1]))
                 
                 pre_call.append(sidl_wrapping)
-                post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp);'))
+                post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp)'))
+
                 # reference the lowest element of the array using the domain
                 #call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
                 #return (call_expr_str, convert_el_res[1])

@@ -528,7 +528,8 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
-	$(am__append_10) chpl/sidl.inc chpl/array.inc
+	$(am__append_10) chpl/sidl.inc chpl/array.inc chpl/barray.inc \
+	chpl/darray.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff

@@ -910,7 +910,6 @@ tracker.setExpectations(-1);
     magicNumber = clearstack(magicNumber);
     ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE);
     init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE) == true);
-
     tracker.writeComment("End: Check initialization for int 32b - 1D");
   }
 
