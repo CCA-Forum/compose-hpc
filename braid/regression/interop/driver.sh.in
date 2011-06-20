@@ -100,27 +100,31 @@ for libdir in `ls -1 -d ../lib*`; do
 done
 
 echo "--run client"
-
 for libdir in `ls -1 -d ../lib*`; do
   language=`echo $libdir|sed 's/^...lib//g'`
   echo "TEST_BEGIN Chapel->$language"
+
+  RUN_CHPL_COMMAND="./runChapel2${language}"
+  if [ x"${CHPL_COMM}" == x"gasnet" ]; then
+    echo "${CHPL_COMM} mode enabled, will use 4 locales"
+    RUN_CHPL_COMMAND="./runChapel2${language} -nl 4"
+  fi
+
   case "$language" in
       *Java)
 	  env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
 	      CLASSPATH="../libJava:@BABEL_PREFIX@/lib/sidl-@BABEL_VERSION@.jar:@BABEL_PREFIX@/lib/sidlstub_@BABEL_VERSION@.jar:." \
 	      SIDL_DLL_PATH="../libJava/libimpl.scl;@BABEL_PREFIX@/lib/libsidlstub_java.scl;@BABEL_PREFIX@/lib/libsidl.scl;../../../runtime/sidlx/libsidlx.scl;../../output/libC/libOutput.scl" \
-	      ./runChapel2$language || exit 1 ;;
+	      ${RUN_CHPL_COMMAND} || exit 1 ;;
       *Python)
 	  env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
 	      RUNTIME_PYTHON=`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='$exec_prefix',plat_specific=1) + ':' + get_python_lib(prefix='$exec_prefix')"` \
 	      PYTHONPATH="../libPython:${RUNTIME_PYTHON}:$PYTHONPATH" \
 	      SIDL_DLL_PATH="../libPython/libImpl.scl;../libPython/libImplPy.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
-	      echo "FIXME" ./runChapel2$language || exit 1 ;;
+	      echo "FIXME" ${RUN_CHPL_COMMAND} || exit 1 ;;
       *)  
-	  # if [ x"@CHPL_COMM@" == x"gasnet" ] 
-
 	  env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-	      ./runChapel2$language || exit 1 ;;
+	      ${RUN_CHPL_COMMAND} || exit 1 ;;
   esac
 done
 
