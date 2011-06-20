@@ -1580,8 +1580,12 @@ CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
 CHAPEL_MAKE_COMPILER=gnu
 CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
-# CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-udp
+
+ifeq ($(CHAPEL_MAKE_COMM),gasnet)
 CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-gasnet-nodbg/substrate-udp
+else
+CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
+endif
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 # CHPL=chpl
 CHPL=chpl --print-commands --print-passes
