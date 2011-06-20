@@ -100,7 +100,7 @@ for libdir in `ls -1 -d ../lib*`; do
 
   # generate wrapper scripts
   case "$language" in
-      *Java)
+      Java)
 	  cat >runChapel2Java.sh <<EOF
 env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}:$libdir" \
     CLASSPATH="../libJava:@BABEL_PREFIX@/lib/sidl-@BABEL_VERSION@.jar:@BABEL_PREFIX@/lib/sidlstub_@BABEL_VERSION@.jar:.:$libdir" \
@@ -108,23 +108,23 @@ env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRAR
       ./runChapel2$language 
 EOF
 	  ;;
-      *Python)
+      Python)
 	  cat >runChapel2Python.sh <<EOF
 env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-    RUNTIME_PYTHON=`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='$exec_prefix',plat_specific=1) + ':' + get_python_lib(prefix='$exec_prefix')"` \
-    PYTHONPATH="../libPython:${RUNTIME_PYTHON}:$PYTHONPATH" \
-    SIDL_DLL_PATH="../libPython/libImpl.scl;../libPython/libImplPy.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
+    PYTHONPATH="../libPython:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')"`:$PYTHONPATH" \
+    SIDL_DLL_PATH="../libPython/libimpl.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
     ./runChapel2$language
 EOF
 	  ;;
       *)
 	  cat >runChapel2$language.sh <<EOF
 env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-    SIDL_DLL_PATH="../libPython/libImpl.scl;../libPython/libImplPy.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
+    SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
     ./runChapel2$language
 EOF
 	  ;;
   esac
+  chmod u+x runChapel2$language.sh
 done
 
 echo "--run client"
