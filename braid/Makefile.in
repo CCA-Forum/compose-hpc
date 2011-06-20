@@ -635,7 +635,7 @@ BABEL_TESTNAMES = \
 @ENABLE_INTEROP_REGRESSION_TRUE@		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
 @ENABLE_INTEROP_REGRESSION_TRUE@		-d -k$(PACKAGE) #-c$(host)
 
-@ENABLE_INTEROP_REGRESSION_TRUE@STATIC_TESTS := $(filter-out %.testresult, $(shell echo $(builddir)/regression/interop/*/run*/run*))
+@ENABLE_INTEROP_REGRESSION_TRUE@STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
 @ENABLE_INTEROP_REGRESSION_TRUE@ALLTESTS = $(STATIC_TESTS)
 
 # Recursive make considered harmful
@@ -1733,7 +1733,6 @@ clean-braid:
 @ENABLE_INTEROP_REGRESSION_TRUE@        else  \
 @ENABLE_INTEROP_REGRESSION_TRUE@            session_name="default_$$CHECK_COMMAND"; \
 @ENABLE_INTEROP_REGRESSION_TRUE@        fi; \
-@ENABLE_INTEROP_REGRESSION_TRUE@	echo "" $(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" \$$\(ALLTESTS\) ;\
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
 
 @ENABLE_INTEROP_REGRESSION_TRUE@run-gantlet-gui: # check
@@ -1745,7 +1744,6 @@ clean-braid:
 @ENABLE_INTEROP_REGRESSION_TRUE@        else  \
 @ENABLE_INTEROP_REGRESSION_TRUE@            session_name="default_$$CHECK_COMMAND"; \
 @ENABLE_INTEROP_REGRESSION_TRUE@        fi; \
-@ENABLE_INTEROP_REGRESSION_TRUE@	echo "" $(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" \$$\(ALLTESTS\) ;\
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
 
 # ----------------------------------------------------------------------

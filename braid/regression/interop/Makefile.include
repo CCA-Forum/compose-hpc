@@ -77,7 +77,7 @@ RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
 		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
 		-d -k$(PACKAGE) #-c$(host)
 
-STATIC_TESTS := $(filter-out %.testresult, $(shell echo $(builddir)/regression/interop/*/run*/run*))
+STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
 ALLTESTS = $(STATIC_TESTS)
 
 run-gantlet: # check
@@ -89,7 +89,6 @@ run-gantlet: # check
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	echo "" $(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" \$$\(ALLTESTS\) ;\
 	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
 
 run-gantlet-gui: # check
@@ -101,7 +100,6 @@ run-gantlet-gui: # check
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	echo "" $(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" \$$\(ALLTESTS\) ;\
 	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
 
 
