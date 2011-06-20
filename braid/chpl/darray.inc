@@ -75,8 +75,12 @@ proc copyRectangularArray(in a: [])  var
 
   var bDom: domain(rank=arrayRank, idxType=indexType);
   var myRanges : arrayRank * range(indexType);
-  for param i in 1..arrayRank do {
-    myRanges(i) = a.domain.low(i)..a.domain.high(i);
+  if (arrayRank == 1) {
+    myRanges(1) = a.domain.low..a.domain.high;  
+  } else {
+    for param i in 1..arrayRank do {
+      myRanges(i) = a.domain.low(i)..a.domain.high(i);
+    }
   }
   bDom._value.dsiSetIndices(myRanges);
 
