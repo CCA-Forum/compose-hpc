@@ -68,4 +68,43 @@ $(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/buil
 $(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
 	sh $< $@ $(MAKE) $(MAKEFLAGS)
 
+
+# ----------------------------------------------------------------------
+# This is an alternate way of invoking the regression tests via gantlet
+# End-users should use `make check' instead.
+# This prints better statistics about broken tests
+RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
+		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
+		-d -k$(PACKAGE) #-c$(host)
+
+STATIC_TESTS := $(filter-out %.testresult, $(shell echo $(builddir)/regression/interop/*/run*/run*))
+ALLTESTS = $(STATIC_TESTS)
+
+run-gantlet: # check
+	if test "X$$PROFILE_NAME" = X; then \
+	    PROFILE_NAME="$(host)"; \
+        fi; \
+	if test "X$(SESSION)" != X; then \
+	    session_name="$(SESSION)"; \
+        else  \
+            session_name="default_$$CHECK_COMMAND"; \
+        fi; \
+	echo "" $(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" \$$\(ALLTESTS\) ;\
+	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
+
+run-gantlet-gui: # check
+	if test "X$$PROFILE_NAME" = X; then \
+	    PROFILE_NAME="$(host)"; \
+        fi; \
+	if test "X$(SESSION)" != X; then \
+	    session_name="$(SESSION)"; \
+        else  \
+            session_name="default_$$CHECK_COMMAND"; \
+        fi; \
+	echo "" $(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" \$$\(ALLTESTS\) ;\
+	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
+
+
+# ----------------------------------------------------------------------
+
 endif

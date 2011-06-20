@@ -6,6 +6,8 @@
 use Strings;
 use synch;
 
+config var bindir = "gantlet compatibility";
+
 var part_no: int = 0;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance();
 

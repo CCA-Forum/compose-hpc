@@ -115,7 +115,7 @@ for libdir in `ls -1 -d ../lib*`; do
 	      RUNTIME_PYTHON=`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='$exec_prefix',plat_specific=1) + ':' + get_python_lib(prefix='$exec_prefix')"` \
 	      PYTHONPATH="../libPython:${RUNTIME_PYTHON}:$PYTHONPATH" \
 	      SIDL_DLL_PATH="../libPython/libImpl.scl;../libPython/libImplPy.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
-	      echo "FIXME" ./runChapel2$language || exit 1 ;;
+	      ./runChapel2$language || exit 1 ;;
       *)  
 	  # if [ x"@CHPL_COMM@" == x"gasnet" ] 
 

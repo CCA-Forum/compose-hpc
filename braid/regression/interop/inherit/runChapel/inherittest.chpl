@@ -7,6 +7,8 @@ use Inherit;
 use synch;
 use sidl;
 
+config var bindir = "gantlet compatibility";
+
 var part_no: int = 0;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance();
 var magicNumber = 13;
