@@ -15,16 +15,45 @@ module sidl {
 // FIXME Enable the include for darray.inc when we can support gasnet compilation
 // # include <darray.inc>
 
-pragma "inline"
+  
+_extern proc getOpaqueData(inout inData): opaque;
+
+//pragma "inline"
 proc ensureLocalArray(inout a:[?aDom]) var 
     where isRectangularDom(aDom) {
-
-  var res = a;  
+  // Create the borrowed domain  
+  type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, a.rank, aDom._value.idxType, false);
+  var locDom: locDomType;
+  
+  // compute and fill b-array dimension lengths
+  var dimRanges: a.rank * range(aDom._value.idxType, BoundedRangeType.bounded, false);
+  if (a.rank == 1) {
+    dimRanges(1) = aDom.low..aDom.high;    
+  } else {
+    for param i in 1..a.rank do {
+      dimRanges(i) = aDom.low(i)..aDom.high(i);
+    }
+  }
+  locDom._value.dsiSetIndices(dimRanges);
+  
+  // create the borrowed array
+  type locArrType = chpl__buildArrayRuntimeType(locDom, a.eltType);
+  var locArr: locArrType;    
+  
+  // borrow data 
   if (here.id != aDom.locale.id) {
-    // make a local copy of the array
-    res = copyRectangularArray(a);
-  } 
-  return res;
+    // make a local copy of the non-local/distributed array
+    var rArray = copyRectangularArray(a);
+    // then borrow over the data
+    var opData: opaque = getOpaqueData(rArray(rArray.domain.low));
+    locArr._value.borrow(opData);
+  } else {
+    // directly borrow the data for a local array
+    var opData: opaque = getOpaqueData(a(aDom.low));
+    locArr._value.borrow(opData);
+  }
+  
+  return locArr;
 }
 
 pragma "inline"

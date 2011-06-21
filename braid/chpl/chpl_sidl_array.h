@@ -55,4 +55,6 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
 #define string_ptr(A) A   
 #define chpl_sidl__array_smartCopy(A) sidl__array_smartCopy((struct sidl__array *)(A))
 #define chpl_sidl__array_deleteRef(A) sidl__array_deleteRef((struct sidl__array *)(A))
+        
+#define getOpaqueData(inData) ((void*)inData)
 #endif
