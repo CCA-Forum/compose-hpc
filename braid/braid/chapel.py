@@ -677,9 +677,9 @@ class Chapel:
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
                            Except, From, Requires, Ensures, DocComment))
 
-        abstract = list(member(sidl.abstract, Attrs))
-        static = list(member(sidl.static, Attrs))
-        final = list(member(sidl.static, Attrs))
+        abstract = member_chk(sidl.abstract, Attrs)
+        static = member_chk(sidl.static, Attrs)
+        final = member_chk(sidl.static, Attrs)
 
         if abstract:
             # nothing to be done for an abstract function
@@ -970,7 +970,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
     cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
 
-    static = list(member(sidl.static, Attrs))
+    static = member_chk(sidl.static, Attrs)
     if static:
         scope.cstub.optional.add(externals(prefix))
 
@@ -1126,9 +1126,9 @@ class EPV:
         if self.finalized:
             import pdb; pdb.set_trace()
 
-        if list(member(sidl.abstract, method[3])):
+        if member_chk(sidl.abstract, method[3]):
             pass
-        elif list(member(sidl.static, method[3])):
+        elif member_chk(sidl.static, method[3]):
             self.static_methods.append(to_fn_decl(method))
         else:
             self.methods.append(to_fn_decl(method))
@@ -1179,7 +1179,7 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
     """
     \return a SIDL -> Ir lowered version of [self]+args+[*ex]
     """
-    if list(member(sidl.static, attrs)):
+    if member_chk(sidl.static, attrs):
         arg_self = []
     else:
         arg_self = \
@@ -1194,7 +1194,7 @@ def babel_stub_args(attrs, args, symbol_table, class_name):
     """
     \return a SIDL -> [*self]+args+[*ex]
     """
-    if list(member(sidl.static, attrs)):
+    if member_chk(sidl.static, attrs):
         arg_self = []
     else:
         arg_self = [
