@@ -7,7 +7,11 @@ fi
 BABEL=@BABEL_PREFIX@/bin/babel
 MAKE=$1
 shift
-MAKE="$MAKE -$*"
+if echo "$1" | grep -q '^-'; then
+    MAKE="$MAKE $*"
+else
+    MAKE="$MAKE -$*"
+fi
 echo "MAKE = $MAKE"
 cd regression/interop                                   ||exit 1
 
