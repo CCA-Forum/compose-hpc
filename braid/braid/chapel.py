@@ -1126,7 +1126,9 @@ class EPV:
         if self.finalized:
             import pdb; pdb.set_trace()
 
-        if list(member(sidl.static, method[3])):
+        if list(member(sidl.abstract, method[3])):
+            pass
+        elif list(member(sidl.static, method[3])):
             self.static_methods.append(to_fn_decl(method))
         else:
             self.methods.append(to_fn_decl(method))
