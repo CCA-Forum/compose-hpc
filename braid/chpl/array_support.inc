@@ -12,7 +12,7 @@ proc getArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
 }
 
 //pragma "inline"
-proc ensureLocalArray(inout a:[?aDom],
+proc ensureLocalArray(inout a:[?aDom], aData: opaque,
     in mode: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order) var 
     where isRectangularDom(aDom) {
   writeln("ensureLocalArray() starts...");
@@ -44,7 +44,7 @@ proc ensureLocalArray(inout a:[?aDom],
   // borrow data
   if (here.id == aDom.locale.id && (arrayRank == 1 || arrayOrderMatch)) {
     // directly borrow the data for a local array in the correct mode
-    var opData: opaque = getOpaqueData(a(aDom.low));
+    var opData: opaque = aData;
     write("fillRectangularArray() borrow data from (1): ");   
     printAddress(opData);
     locArr._value.borrow(opData); 
