@@ -32,15 +32,17 @@ pragma "inline"
 proc ensureLocalArray(inout a:[?aDom]) var 
     where isRectangularDom(aDom) {
 
+  var res = a;
   if (isDistributedDomain(aDom)) {
     // make local copy of the distributed array
-    return copyRectangularArray(a);
+    res = copyRectangularArray(a);
   } else if (here.id != aDom.locale.id) {
     // make a local copy of the array
-    return copyRectangularArray(a);
+    res = copyRectangularArray(a);
   } else {
-    return a;
+    // do nothing
   }
+  return res;
 }
 
 /**
@@ -75,8 +77,12 @@ proc copyRectangularArray(in a: [])  var
 
   var bDom: domain(rank=arrayRank, idxType=indexType);
   var myRanges : arrayRank * range(indexType);
-  for param i in 1..arrayRank do {
-    myRanges(i) = a.domain.low(i)..a.domain.high(i);
+  if (arrayRank == 1) {
+    myRanges(1) = a.domain.low..a.domain.high;  
+  } else {
+    for param i in 1..arrayRank do {
+      myRanges(i) = a.domain.low(i)..a.domain.high(i);
+    }
   }
   bDom._value.dsiSetIndices(myRanges);
 

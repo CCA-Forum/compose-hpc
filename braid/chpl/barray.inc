@@ -172,6 +172,7 @@ class BorrowedRectangularDom: BaseRectangularDom {
 // - dsiRankChange()
 // - dsiReallocate()
 // - dsiLocalSlice()
+// - setArrayOrdering()
 ///////////////////////////////////////////////////////////////////////////
 
 class BorrowedRectangularArr: BaseArr {
@@ -189,10 +190,15 @@ class BorrowedRectangularArr: BaseArr {
   var factoredOffs: idxType;
   var bData : _borrowedData(eltType);
   var noinit: bool = false;
+  var arrayOrdering: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order;
 
   proc canCopyFromDevice param return true;
 
   // end class definition here, then defined secondary methods below
+  
+  proc setArrayOrdering(in newOrdering: sidl_array_ordering) {
+    arrayOrdering = newOrdering;
+  }
 
   // can the compiler create this automatically?
   proc dsiGetBaseDom() { return dom; }
@@ -413,53 +419,81 @@ pragma "inline" proc createBorrowedArray1d(sa: sidl.Array) {
   if (sa.dim() != 1) {
     halt("input array is not of rank 1");
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0));  
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0)); 
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 pragma "inline" proc createBorrowedArray2d(sa: sidl.Array) {
   if (sa.dim() != 2) {
     halt("input array is not of rank 2");  
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1));  
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1)); 
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 pragma "inline" proc createBorrowedArray3d(sa: sidl.Array) {
   if (sa.dim() != 3) {
     halt("input array is not of rank 3");
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1), sa.length(2));  
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+            sa.length(0), sa.length(1), sa.length(2));
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 pragma "inline" proc createBorrowedArray4d(sa: sidl.Array) {
   if (sa.dim() != 4) {
     halt("input array is not of rank 4");
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3));  
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 pragma "inline" proc createBorrowedArray5d(sa: sidl.Array) {
   if (sa.dim() != 5) {
     halt("input array is not of rank 5");
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
             sa.length(4));  
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 pragma "inline" proc createBorrowedArray6d(sa: sidl.Array) {
   if (sa.dim() != 6) {
     halt("input array is not of rank 6");
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
-            sa.length(4), sa.length(5));  
+            sa.length(4), sa.length(5));
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 pragma "inline" proc createBorrowedArray7d(sa: sidl.Array) {
   if (sa.dim() != 7) {
     halt("input array is not of rank 7");
   }
-  return createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
             sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
             sa.length(4), sa.length(5), sa.length(6));  
+  if (sa.isColumnOrder()) {
+    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
+  }
+  return bArr;
 }
 
 proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque, 
@@ -469,6 +503,14 @@ proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque,
   bDom.initIndices((...arraySize));
   bArr.borrow(bData);
   return bArr;
+}
+
+proc isBorrowedArray(in a: [?aDom]): bool {
+  var aDomain = aDom._value;
+  if (aDomain.type == BorrowedRectangularDom(aDom.rank, aDomain.idxType, aDomain.stridable)) {
+    return true;  
+  }
+  return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////

@@ -32,6 +32,7 @@ from codegen import (
     sep_by
 )
 
+chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 
@@ -593,6 +594,7 @@ class Chapel:
                 #print convert_el_res
                 ctype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
                 arg_name = name# convert_el_res[0]
+                chpl_data_var_name = chpl_data_var_template.format(arg_name=arg_name)
                 chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
                 chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
                 
@@ -605,9 +607,15 @@ class Chapel:
                 # ensure we are working with a 'local' array
                 # FIXME Hack to define a variable without explicitly specifying type
                 # should we change the IR to support this?
-                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name, 
-                    ir.Call("ensureLocalArray", [arg_name])))
+                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_data_var_name,
+                    ir.Call("getOpaqueData", [ir.Call(arg_name, [chpl_dom_var_name + ".low"])])))
                 )
+                # pre_call.append(ir.Stmt(ir.Call("printAddress", [chpl_data_var_name])))
+                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name,
+                    ir.Call("ensureLocalArray", [arg_name, chpl_data_var_name])))
+                )
+                pre_call.append(ir.Stmt(ir.Call("checkArraysAreEqual", [arg_name, chpl_local_var_name])))
+
                 if original_mode <> sidl.in_:
                     # emit code to copy back elements into non-local array
                     post_call.append(ir.Stmt(ir.Call('syncNonLocalArray', 
@@ -638,9 +646,10 @@ class Chapel:
             for i in [1..{a}rank] {{
               var r: range = _babel_dom_{arg}.dim(i);
               {a}lower[i] = r.low;
-              {a}upper[i] = r.high-1;
+              {a}upper[i] = r.high;
               {a}stride[i] = r.stride;
             }}
+            
             var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
                 {a}rank,
@@ -1748,3 +1757,4 @@ install-headers : $(IORHDRS) $(STUBHDRS)
 
 .PHONY: all clean realclean install install-libs install-headers install-scl
 """)
+

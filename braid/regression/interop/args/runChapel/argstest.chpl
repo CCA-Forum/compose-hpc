@@ -15,6 +15,14 @@ proc init_part()
 
 proc run_part(result: bool)
 {
+  run_part("", result);
+}
+
+proc run_part(msg: string, result: bool)
+{
+  if (msg.length > 0) {
+    tracker.writeComment(msg);
+  }
   var r: ResultType;
   if (result) then
     r = ResultType.PASS;
@@ -69,32 +77,36 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
 
 {
   // bool 
+  tracker.writeComment("Start: Testing bool");
   var b_out: bool;
   var b_inout: bool = true;
   var obj: Args.Basic = new Args.Basic();
 
-  init_part(); run_part( obj.returnbackbool( ) == true );
-  init_part(); run_part( obj.passinbool( true ) == true );
-  init_part(); run_part( obj.passoutbool( b_out ) == true && b_out == true );
-  init_part(); run_part( obj.passinoutbool( b_inout ) == true && b_inout == false );
-  init_part(); run_part( obj.passeverywherebool( true, b_out, b_inout ) == true &&
+  init_part(); run_part( "returnbackbool", obj.returnbackbool( ) == true );
+  init_part(); run_part( "passinbool", obj.passinbool( true ) == true );
+  init_part(); run_part( "passoutbool", obj.passoutbool( b_out ) == true && b_out == true );
+  init_part(); run_part( "passinoutbool", obj.passinoutbool( b_inout ) == true && b_inout == false );
+  init_part(); run_part( "passeverywherebool", obj.passeverywherebool( true, b_out, b_inout ) == true &&
 			 b_out == true && b_inout == true );    
   delete obj;
+  tracker.writeComment("End: Testing bool");
 }
 
 { 
   // char
   tracker.writeComment("Start: Testing char (string in chapel)");
-  var c_out: string;
+  var c_out: string = 'DUMMY';
   var c_inout: string = 'A';
   var obj: Args.Basic = new Args.Basic();
  
-  init_part(); run_part( obj.returnbackchar( ) == '3' );
-  init_part(); run_part( obj.passinchar( '3' ) == true );
-  init_part(); run_part( obj.passoutchar( c_out ) == true && c_out == '3' );
-  init_part(); run_part( obj.passinoutchar( c_inout ) == true && c_inout == 'a' );
-  init_part(); run_part( obj.passeverywherechar( '3', c_out, c_inout ) == '3' &&
+  local {
+  init_part(); run_part( "returnbackchar", obj.returnbackchar( ) == '3' );
+  init_part(); run_part( "passinchar", obj.passinchar( '3' ) == true );
+  init_part(); run_part( "passoutchar", obj.passoutchar( c_out ) == true && c_out == '3' );
+  init_part(); run_part( "passinoutchar", obj.passinoutchar( c_inout ) == true && c_inout == 'a' );
+  init_part(); run_part( "passeverywherechar", obj.passeverywherechar( '3', c_out, c_inout ) == '3' &&
 			 c_out == '3' && c_inout == 'A' );
+  }
   delete obj;
   tracker.writeComment("End: Testing char (string in chapel)");
 }
@@ -268,31 +280,6 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
 	      assertEquals(POS_VALUE_C128, c64_inout)); 
   
   tracker.writeComment("End: Testing complex with 64-bit components");
-}  
-
-
-  /* { // dcomplex  */
-  /*   complex<double> retval; */
-  /*   complex<double> in( 3.14, 3.14 ); */
-  /*   complex<double> out; */
-  /*   complex<double> inout( 3.14, 3.14 ); */
-  /*   var obj: Args.Basic = new Args.Basic(); */
- 
-  /*   tracker.writeComment("retval = obj.returnback( );"); */
-  /*   retval = obj.returnbackdcomplex( ); */
-  /*   init_part(); run_part( retval.real() == 3.14 && retval.imag() == 3.14); */
-  /*   init_part(); run_part( obj.passindcomplex( in ) == true ); */
-  /*   init_part(); run_part( obj.passoutdcomplex( out ) == true &&  */
-  /* 	      out.real() == 3.14 && out.imag() == 3.14 ); */
-  /*   init_part(); run_part( obj.passinoutdcomplex( inout ) == true &&  */
-  /* 	      inout.real() == 3.14 && inout.imag() == -3.14 ); */
-  /*   tracker.writeComment("retval = obj.passeverywheredcomplex( in, out, inout );"); */
-  /*   retval = obj.passeverywheredcomplex( in, out, inout ); */
-  /*   init_part(); run_part( retval.real() == 3.14 && retval.imag() == 3.14 && */
-  /* 	      out.real() == 3.14 && out.imag() == 3.14 &&  */
-  /* 	      inout.real() == 3.14 && inout.imag() == 3.14 ); */
-
-  /* } */
-  /*   } */
+} 
 
 tracker.close();
