@@ -987,7 +987,15 @@ tracker.setExpectations(-1);
     [(i) in [0..8]] a[i / m, i % m] = i;
     [(i) in [0..5]] b[i / o, i % o] = i;
 
+    writeln("A:"); writeln(a);
+    writeln("B:"); writeln(b);
+
+    tracker.writeComment("matrixMultiply()");
     ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o);
+
+    writeln("X:"); writeln(x);
+
+    tracker.writeComment("checkMatrixMultiply()");
     init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);
 
     tracker.writeComment("End: Check matrix multiplication");
