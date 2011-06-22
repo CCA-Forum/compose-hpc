@@ -13,6 +13,7 @@
 #include <sidl_opaque_IOR.h>      
 #include <sidl_string_IOR.h>      
 #include <sidl_BaseInterface_IOR.h>
+#include <stdlib.h> 
 
 struct sidl_string__array {
   struct sidl__array   d_metadata;
@@ -60,5 +61,12 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
         
 #define getOpaqueData(inData) ((void*)inData)
 #define isSameOpaqueData(in1, in2) (getOpaqueData(in1) == getOpaqueData(in2))
-#define printAddress(aPtr) printf("%p\n", (void *)(aPtr))        
+#define printAddress(aPtr) printf("%p\n", (void *)(aPtr)) 
+        
+// void* allocateData(int typeSize, int numElements) 
+#define allocateData(typeSize, numElements) (calloc(numElements, typeSize))        
+
+// void deallocateData(void* bData) 
+#define deallocateData(bData) (free(bData))
+        
 #endif
