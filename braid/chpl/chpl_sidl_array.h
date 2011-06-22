@@ -55,6 +55,10 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
 #define string_ptr(A) A   
 #define chpl_sidl__array_smartCopy(A) sidl__array_smartCopy((struct sidl__array *)(A))
 #define chpl_sidl__array_deleteRef(A) sidl__array_deleteRef((struct sidl__array *)(A))
+#define chpl_sidl__array_isColumnOrder(A) sidl__array_isColumnOrder((const struct sidl__array *)(A))
+#define chpl_sidl__array_isRowOrder(A) sidl__array_isRowOrder((const struct sidl__array *)(A))
         
 #define getOpaqueData(inData) ((void*)inData)
+#define isSameOpaqueData(in1, in2) (getOpaqueData(in1) == getOpaqueData(in2))
+#define printAddress(aPtr) printf("%p\n", (void *)(aPtr))        
 #endif
