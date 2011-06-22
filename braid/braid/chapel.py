@@ -607,15 +607,15 @@ class Chapel:
                 # ensure we are working with a 'local' array
                 # FIXME Hack to define a variable without explicitly specifying type
                 # should we change the IR to support this?
-                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_data_var_name, 
+                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_data_var_name,
                     ir.Call("getOpaqueData", [ir.Call(arg_name, [chpl_dom_var_name + ".low"])])))
                 )
-                pre_call.append(ir.Stmt(ir.Call("printAddress", [chpl_data_var_name])))
-                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name, 
+                # pre_call.append(ir.Stmt(ir.Call("printAddress", [chpl_data_var_name])))
+                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name,
                     ir.Call("ensureLocalArray", [arg_name, chpl_data_var_name])))
                 )
                 pre_call.append(ir.Stmt(ir.Call("checkArraysAreEqual", [arg_name, chpl_local_var_name])))
-                
+
                 if original_mode <> sidl.in_:
                     # emit code to copy back elements into non-local array
                     post_call.append(ir.Stmt(ir.Call('syncNonLocalArray', 
@@ -646,9 +646,10 @@ class Chapel:
             for i in [1..{a}rank] {{
               var r: range = _babel_dom_{arg}.dim(i);
               {a}lower[i] = r.low;
-              {a}upper[i] = r.high-1;
+              {a}upper[i] = r.high;
               {a}stride[i] = r.stride;
             }}
+            
             var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
                 {a}rank,
@@ -1596,7 +1597,7 @@ CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE
 endif
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 # CHPL=chpl
-CHPL=chpl --print-commands
+CHPL=chpl
 
 CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
 
