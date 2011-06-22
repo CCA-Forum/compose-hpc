@@ -130,7 +130,7 @@
     for i in [1..rank] {								\
       var r: range = dom_a.dim(i);							\
       lower[i] = r.low;									\
-      upper[i] = r.high-1;								\
+      upper[i] = r.high;								\
       stride[i] = r.stride;								\
     }											\
     if (here.id != a.locale.id) {							\

@@ -25,7 +25,7 @@
 #
 
 import config, ir, os, re, sidl, types
-from patmat import matcher, match, member, unify, expect, Variable, unzip
+from patmat import *
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
     SourceFile, CFile, Scope, generator, accepts,
