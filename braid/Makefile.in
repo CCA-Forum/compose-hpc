@@ -50,6 +50,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
 	$(top_srcdir)/configure \
+	$(top_srcdir)/regression/interop/build-client.sh.in \
 	$(top_srcdir)/regression/interop/build-server.sh.in \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
 	$(top_srcdir)/regression/interop/driver.sh.in INSTALL \
@@ -65,13 +66,19 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @ENABLE_INTEROP_REGRESSION_TRUE@am__append_2 = $(BABEL_TESTS)
 # Hmm.. apparently, this is not the same as the above
 @ENABLE_INTEROP_REGRESSION_TRUE@am__append_3 = .chpl
-@BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_4 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_5 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_6 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_7 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_8 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_9 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
-@ENABLE_DOCUMENTATION_TRUE@am__append_10 = \
+@BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_4 = Cxx
+@BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_5 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_6 = F77
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_7 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_8 = F90
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_9 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_10 = F03
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_11 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_12 = Java
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_13 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_14 = Python
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+@ENABLE_DOCUMENTATION_TRUE@am__append_16 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/*.*        \
@@ -79,7 +86,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 
 
 # add Backports
-@PYTHON_VERSION_2_6_TRUE@am__append_11 = contrib/argparse-1.1/argparse.py
+@PYTHON_VERSION_2_6_TRUE@am__append_17 = contrib/argparse-1.1/argparse.py
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
@@ -103,7 +110,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES = braid/braid braid/config.py Doxyfile \
-	patch-chapel-compiler.sh regression/interop/build-server.sh \
+	patch-chapel-compiler.sh regression/interop/build-client.sh \
+	regression/interop/build-server.sh \
 	regression/interop/build-tracker.sh \
 	regression/interop/driver.sh
 CONFIG_CLEAN_VPATH_FILES =
@@ -494,7 +502,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
-python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_11)
+python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_17)
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_SOURCES)
@@ -528,7 +536,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
-	$(am__append_10) chpl/sidl.inc chpl/array.inc chpl/barray.inc \
+	$(am__append_16) chpl/sidl.inc chpl/array.inc chpl/barray.inc \
 	chpl/darray.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
@@ -597,10 +605,12 @@ PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
 SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
 AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
+
+# These are gently ordered by number of generated files to speedup parallel builds
 BABEL_TESTS = \
+  regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
-  regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl 
 
 BABEL_TESTNAMES = \
@@ -613,19 +623,38 @@ BABEL_TESTNAMES = \
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
 #AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-@ENABLE_INTEROP_REGRESSION_TRUE@AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
+@ENABLE_INTEROP_REGRESSION_TRUE@AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh
 
 # This target will be made prior to the tests. We use it to compile
 # regression/output and all the server libraries that are copied over
 # from Babel
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_4) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_5) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_6) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_7) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_9) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_11) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_13) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@languages = C \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_4) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_6) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_8) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_9)
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_10) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_12) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_14)
+
+# ----------------------------------------------------------------------
+# This is an alternate way of invoking the regression tests via gantlet
+# End-users should use `make check' instead.
+# This prints better statistics about broken tests
+@ENABLE_INTEROP_REGRESSION_TRUE@RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
+@ENABLE_INTEROP_REGRESSION_TRUE@		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
+@ENABLE_INTEROP_REGRESSION_TRUE@		-d -k$(PACKAGE) #-c$(host)
+
+@ENABLE_INTEROP_REGRESSION_TRUE@STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
+@ENABLE_INTEROP_REGRESSION_TRUE@ALLTESTS = $(STATIC_TESTS)
 
 # Recursive make considered harmful
 DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
@@ -679,6 +708,8 @@ braid/config.py: $(top_builddir)/config.status $(top_srcdir)/braid/config.py.in
 Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 patch-chapel-compiler.sh: $(top_builddir)/config.status $(srcdir)/patch-chapel-compiler.sh.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+regression/interop/build-client.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/build-client.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 regression/interop/build-server.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/build-server.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -1712,6 +1743,36 @@ clean-braid:
 
 @ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
 @ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+# FIXME If we should encounter a race condition with this rule, it is
+# because libimpl.la is not the last file to be built by
+# build-server.sh
+@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile
+@ENABLE_INTEROP_REGRESSION_TRUE@	sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+@ENABLE_INTEROP_REGRESSION_TRUE@run-gantlet: $(check_DATA)
+@ENABLE_INTEROP_REGRESSION_TRUE@	if test "X$$PROFILE_NAME" = X; then \
+@ENABLE_INTEROP_REGRESSION_TRUE@	    PROFILE_NAME="$(host)"; \
+@ENABLE_INTEROP_REGRESSION_TRUE@        fi; \
+@ENABLE_INTEROP_REGRESSION_TRUE@	if test "X$(SESSION)" != X; then \
+@ENABLE_INTEROP_REGRESSION_TRUE@	    session_name="$(SESSION)"; \
+@ENABLE_INTEROP_REGRESSION_TRUE@        else  \
+@ENABLE_INTEROP_REGRESSION_TRUE@            session_name="default_$$CHECK_COMMAND"; \
+@ENABLE_INTEROP_REGRESSION_TRUE@        fi; \
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
+
+@ENABLE_INTEROP_REGRESSION_TRUE@run-gantlet-gui: $(check_DATA)
+@ENABLE_INTEROP_REGRESSION_TRUE@	if test "X$$PROFILE_NAME" = X; then \
+@ENABLE_INTEROP_REGRESSION_TRUE@	    PROFILE_NAME="$(host)"; \
+@ENABLE_INTEROP_REGRESSION_TRUE@        fi; \
+@ENABLE_INTEROP_REGRESSION_TRUE@	if test "X$(SESSION)" != X; then \
+@ENABLE_INTEROP_REGRESSION_TRUE@	    session_name="$(SESSION)"; \
+@ENABLE_INTEROP_REGRESSION_TRUE@        else  \
+@ENABLE_INTEROP_REGRESSION_TRUE@            session_name="default_$$CHECK_COMMAND"; \
+@ENABLE_INTEROP_REGRESSION_TRUE@        fi; \
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
+
+# ----------------------------------------------------------------------
 @ENABLE_DOCUMENTATION_TRUE@braid/braid: $(BUILT_SOURCES) doc/html/index.html
 
 .PHONY: doc

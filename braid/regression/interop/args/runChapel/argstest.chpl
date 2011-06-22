@@ -1,6 +1,8 @@
 use Args;
 use synch;
 
+config var bindir = "gantlet compatibility";
+
 var part_no: int = 0;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance();
 
@@ -228,7 +230,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
 
   var obj: Args.Basic = new Args.Basic(); 
 
-  writeln("retval = " + obj.returnbackfcomplex()); 
+  //writeln("retval = " + obj.returnbackfcomplex()); 
   
   retval = obj.returnbackfcomplex( );  
   init_part(); run_part(assertEquals(POS_VALUE_C64, retval)); 
@@ -261,7 +263,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
 
   var obj: Args.Basic = new Args.Basic(); 
 
-  writeln("retval = " + obj.returnbackdcomplex()); 
+  //writeln("retval = " + obj.returnbackdcomplex()); 
   
   retval = obj.returnbackdcomplex( );  
   init_part(); run_part(assertEquals(POS_VALUE_C128, retval)); 

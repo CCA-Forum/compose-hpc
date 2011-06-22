@@ -9,15 +9,19 @@ arg=$1
 shift
 MAKE=$1
 shift
-MAKE="$MAKE -$*"
+if echo "$1" | grep -q '^-'; then
+    MAKE="$MAKE $*"
+else
+    MAKE="$MAKE -$*"
+fi
 cd regression/interop                                   ||exit 1
 
 TESTCASE=`basename \`dirname \\\`dirname $arg\\\`\``
 language=`echo \`basename \\\`dirname $arg\\\`\` |sed 's/lib//g'`
 sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
-#echo "MAKE = $MAKE"
-#echo "TESTCASE = $TESTCASE"
-#echo "language = $language"
+echo "MAKE = $MAKE"
+echo "TESTCASE = $TESTCASE"
+echo "language = $language"
 
 echo "--setup directory, copy over babel regression test [ $TESTCASE / $language ]"
 mkdir -p $TESTCASE

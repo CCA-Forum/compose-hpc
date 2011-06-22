@@ -14836,7 +14836,7 @@ else
 fi
 
 
-ac_config_files="$ac_config_files Makefile braid/braid braid/config.py Doxyfile patch-chapel-compiler.sh regression/interop/build-server.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
+ac_config_files="$ac_config_files Makefile braid/braid braid/config.py Doxyfile patch-chapel-compiler.sh regression/interop/build-client.sh regression/interop/build-server.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
 
 
 cat >confcache <<\_ACEOF
@@ -15927,6 +15927,7 @@ do
     "braid/config.py") CONFIG_FILES="$CONFIG_FILES braid/config.py" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
     "patch-chapel-compiler.sh") CONFIG_FILES="$CONFIG_FILES patch-chapel-compiler.sh" ;;
+    "regression/interop/build-client.sh") CONFIG_FILES="$CONFIG_FILES regression/interop/build-client.sh" ;;
     "regression/interop/build-server.sh") CONFIG_FILES="$CONFIG_FILES regression/interop/build-server.sh" ;;
     "regression/interop/build-tracker.sh") CONFIG_FILES="$CONFIG_FILES regression/interop/build-tracker.sh" ;;
     "regression/interop/driver.sh") CONFIG_FILES="$CONFIG_FILES regression/interop/driver.sh" ;;
@@ -16995,6 +16996,7 @@ fi
     "braid/config.py":F) chmod +x patch-chapel-compiler.sh ;;
     "Doxyfile":F) chmod +x patch-chapel-compiler.sh ;;
     "patch-chapel-compiler.sh":F) chmod +x patch-chapel-compiler.sh ;;
+    "regression/interop/build-client.sh":F) chmod +x patch-chapel-compiler.sh ;;
     "regression/interop/build-server.sh":F) chmod +x patch-chapel-compiler.sh ;;
     "regression/interop/build-tracker.sh":F) chmod +x patch-chapel-compiler.sh ;;
     "regression/interop/driver.sh":F) chmod +x patch-chapel-compiler.sh ;;
