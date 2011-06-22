@@ -853,7 +853,7 @@ tracker.setExpectations(-1);
 
     var opData: opaque = iarray.first();
     var ibarray = sidl.createBorrowedArray1d(iarray);
-    
+
     init_part(); run_part("Check ibarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(ibarray, TEST_SIZE) == true);
     
     tracker.writeComment("End: Check initialization for borrowed array int 32b - 1D");
@@ -865,15 +865,21 @@ tracker.setExpectations(-1);
     magicNumber = clearstack(magicNumber);
     var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.create3Int();
 
+    tracker.writeComment("check not nil");
     init_part(); run_part("create3Int-not nil", iarray != nil);
+    
+    tracker.writeComment("check3Int");
     init_part(); run_part("create3Int", ArrayTest.ArrayOps_static.check3Int(iarray) == true);
 
-    // iarray.ensureOrdering(3, sidl.sidl_array_ordering.column_major_order);
+    tracker.writeComment("ensureOrdering");
+    //iarray.ensureOrdering(3, sidl.sidl_array_ordering.sidl_column_major_order);
 
+    tracker.writeComment("createBorrowedArray3d");
     var opData: opaque = iarray.first();
     var ibarray = sidl.createBorrowedArray3d(iarray);
     var m = iarray.length(0), n = iarray.length(1), o = iarray.length(2);
     
+    tracker.writeComment("checkRarray3Int");
     init_part(); run_part("Check ibarray int 3", 
         ArrayTest.ArrayOps_static.checkRarray3Int(ibarray, m, n, o) == true);
     
@@ -886,29 +892,38 @@ tracker.setExpectations(-1);
     magicNumber = clearstack(magicNumber);
     var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.create7Int();
 
+    tracker.writeComment("check not nil");
     init_part(); run_part("create7Int-not nil", iarray != nil);
+
+    tracker.writeComment("check7Int");
     init_part(); run_part("create7Int", ArrayTest.ArrayOps_static.check7Int(iarray) == true);
 
-    // iarray.ensureOrdering(7, sidl.sidl_array_ordering.column_major_order);
+    tracker.writeComment("ensureOrdering");
+    //iarray.ensureOrdering(7, sidl.sidl_array_ordering.sidl_column_major_order);
 
+    tracker.writeComment("createBorrowedArray7d");
     var opData: opaque = iarray.first();
     var ibarray = sidl.createBorrowedArray7d(iarray);
     var m = iarray.length(0), n = iarray.length(1), o = iarray.length(2),
       p = iarray.length(3), q = iarray.length(4), r = iarray.length(5), 
       s = iarray.length(6);
     
+    writeln("checkRarray7Int");   
     init_part(); run_part("Check ibarray int 7", 
         ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, m, n, o, p, q, r, s) == true);
-    
+
     tracker.writeComment("End: Check initialization for borrowed array int 32b - 7D");
   }
 
   {
     tracker.writeComment("Start: Check initialization for int 32b - 1D");
 
+    writeln("create rarray");   
     var irarray: [0..TEST_SIZE - 1] int(32);
     magicNumber = clearstack(magicNumber);
+    writeln("initRarray1Int");   
     ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE);
+    writeln("checkRarray1Int");   
     init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE) == true);
     tracker.writeComment("End: Check initialization for int 32b - 1D");
   }
@@ -965,12 +980,12 @@ tracker.setExpectations(-1);
     tracker.writeComment("Start: Check matrix multiplication");
    
     var n = 3, m = 3, o = 2;
-    var a: [0.. #9] int(32);
-    var b: [0.. #6] int(32);
-    var x: [0.. #6] int(32);
+    var a: [0.. #n, 0.. #m] int(32);
+    var b: [0.. #m, 0.. #o] int(32);
+    var x: [0.. #n, 0.. #o] int(32);
 
-    [(i) in [0..8]] a[i] = i;
-    [(i) in [0..5]] b[i] = i;
+    [(i) in [0..8]] a[i / m, i % m] = i;
+    [(i) in [0..5]] b[i / o, i % o] = i;
 
     ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o);
     init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);
