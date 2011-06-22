@@ -608,6 +608,8 @@ class Chapel:
                 pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name, 
                     ir.Call("ensureLocalArray", [arg_name])))
                 )
+                pre_call.append(ir.Stmt(ir.Call("checkArraysAreEqual", [arg_name, chpl_local_var_name])))
+                
                 if original_mode <> sidl.in_:
                     # emit code to copy back elements into non-local array
                     post_call.append(ir.Stmt(ir.Call('syncNonLocalArray', 
@@ -1588,7 +1590,7 @@ CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE
 endif
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 # CHPL=chpl
-CHPL=chpl --print-commands --print-passes
+CHPL=chpl --print-commands
 
 CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
 
