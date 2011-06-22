@@ -647,6 +647,10 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return a true value iff the array is a contiguous column-major ordered
      * array.  A NULL array argument causes 0 to be returned.
      */
+    proc isColumnOrder() {
+      _extern proc chpl_sidl__array_isColumnOrder(inout a: sidl__array): bool;
+      return chpl_sidl__array_isColumnOrder(ior.d_metadata);
+    }
     //sidl_bool
     //sidl__array_isColumnOrder(const struct sidl__array* array);
 
@@ -654,6 +658,10 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return a true value iff the array is a contiguous row-major ordered
      * array.  A NULL array argument causes 0 to be returned.
      */
+    proc isRowOrder() {
+      _extern proc chpl_sidl__array_isRowOrder(inout a: sidl__array): bool;
+      return chpl_sidl__array_isRowOrder(ior.d_metadata);
+    }
     //sidl_bool
     //sidl__array_isRowOrder(const struct sidl__array* array);
 
