@@ -127,13 +127,15 @@
     var lower: [1..rank] int(32);							\
     var upper: [1..rank] int(32);							\
     var stride: [1..rank] int(32);                                                      \
-    var loopStride = 1;                                                                 \
+    var loop_stride = 1;                                                                \
     for i in [1..rank] {								\
       var r: range = dom_a.dim(i);							\
       lower[i] = r.low;									\
       upper[i] = r.high;								\
-      stride[i] = loopStride;	                                                        \
-      loopStride = loopStride * (r.high - r.low + 1);                                   \
+      var s_index = rank - i + 1;						        \
+      stride[s_index] = loop_stride; /* row-major order */                              \
+      var rs = dom_a.dim(s_index);						        \
+      loop_stride = loop_stride * (rs.high - rs.low + 1);                               \
     }											\
     if (here.id != a.locale.id) {							\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
