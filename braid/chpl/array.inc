@@ -126,12 +126,14 @@
     var rank = dom_a.rank;								\
     var lower: [1..rank] int(32);							\
     var upper: [1..rank] int(32);							\
-    var stride: [1..rank] int(32);							\
+    var stride: [1..rank] int(32);                                                      \
+    var loopStride = 1;                                                                 \
     for i in [1..rank] {								\
       var r: range = dom_a.dim(i);							\
       lower[i] = r.low;									\
-      upper[i] = r.high-1;								\
-      stride[i] = r.stride;								\
+      upper[i] = r.high;								\
+      stride[i] = loopStride;	                                                        \
+      loopStride = loopStride * (r.high - r.low + 1);                                   \
     }											\
     if (here.id != a.locale.id) {							\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\

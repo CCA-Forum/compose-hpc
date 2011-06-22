@@ -643,11 +643,13 @@ class Chapel:
             var {a}lower: [1..{a}rank] int(32);
             var {a}upper: [1..{a}rank] int(32);
             var {a}stride: [1..{a}rank] int(32);
+            var loop{a}Stride = 1;
             for i in [1..{a}rank] {{
               var r: range = _babel_dom_{arg}.dim(i);
               {a}lower[i] = r.low;
               {a}upper[i] = r.high;
-              {a}stride[i] = r.stride;
+              {a}stride[i] = loop{a}Stride;
+              loop{a}Stride = loop{a}Stride * (r.high - r.low + 1);
             }}
             
             var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
