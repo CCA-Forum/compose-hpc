@@ -2,10 +2,6 @@
 
 _extern proc getOpaqueData(inout inData): opaque;
 
-_extern proc printAddress(opData: opaque);
-
-param debug = false;
-
 //pragma "inline"
 proc getArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   var aDomain = aDom._value;
@@ -30,8 +26,7 @@ proc getSidlArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
 //pragma "inline"
 proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
     where isRectangularDom(aDom) {
-  if (debug) { writeln("ensureLocalArray() starts..."); }
-
+  
   param arrayRank = a.rank;
   var arrayOrder = getSidlArrayOrderMode(a);
   var arrayOrderMatch = (getArrayOrderMode(a) == arrayOrder);
@@ -44,11 +39,9 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
   var dimRanges: arrayRank * range(aDom._value.idxType, BoundedRangeType.bounded, false);
   if (arrayRank == 1) {
     dimRanges(1) = aDom.low..aDom.high;
-    if (debug) { writeln("ensureLocalArray() 1. dimRanges(1)=", dimRanges(1)); }
   } else {
     for param i in 1..arrayRank do {
       dimRanges(i) = aDom.low(i)..aDom.high(i);
-      if (debug) { writeln("ensureLocalArray() 2. dimRanges(", i, ")=", dimRanges(i)); }
     }
   }
   locDom._value.dsiSetIndices(dimRanges);
@@ -62,45 +55,29 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
   if (here.id == aDom.locale.id && (arrayRank == 1 || arrayOrderMatch)) {
     // directly borrow the data for a local array in the correct mode
     var opData: opaque = aData;
-    if (debug) { write("fillRectangularArray() borrow data from (1): "); }
-    if (debug) { printAddress(opData); }
     locArr._value.borrow(opData);
     locArr._value.setDataOwner(false);
   } else {
     // make a local copy of the non-local/distributed array in correct mode
     // self allocate the data, set as owner and then make element-wise copy
     var opData: opaque = allocateData(numBits(locArr.eltType), a.numElements);
-    if (debug) { write("fillRectangularArray() borrow data from (2): "); }
-    if (debug) { printAddress(opData); }
     locArr._value.borrow(opData);
     locArr._value.setDataOwner(true);
     [i in aDom] locArr(i) = a(i);
   }
-  if (debug) { write("ensureLocalArray() locArr data: "); }
-  if (debug) { printAddress(getOpaqueData(locArr(locArr.domain.low))); }
-
-  if (debug) { writeln("ensureLocalArray() input domain: ", aDom); }
-  if (debug) { writeln("ensureLocalArray() output domain: ", locDom); }
-  if (debug) { writeln("ensureLocalArray() returns."); }
   return locArr;
 }
 
 //pragma "inline"
 proc syncNonLocalArray(inout src:[], inout target: [?targetDom])
     where isRectangularDom(targetDom) {
-  if (true || debug) { writeln("syncNonLocalArray() starts..."); }
-
-  if (true || debug) { writeln("syncNonLocalArray.1.src: ", typeToString(src.type)); writeln(src); }
-  if (true || debug) { writeln("syncNonLocalArray.1.target: ", typeToString(target.type)); writeln(target); }
 
   _extern proc isSameOpaqueData(a: opaque, b: opaque): bool;
 
   var arrayCopyReqd = false;
   if (here.id != targetDom.locale.id) {
-    if (true || debug) { writeln("syncNonLocalArray() case-1."); }
     arrayCopyReqd = true;
   } else if (getArrayOrderMode(src) != getArrayOrderMode(target)) {
-    if (true || debug) { writeln("syncNonLocalArray() case-2."); }
     arrayCopyReqd = true;
   } else {
     // target is a local array
@@ -108,15 +85,12 @@ proc syncNonLocalArray(inout src:[], inout target: [?targetDom])
     var opData2: opaque = getOpaqueData(target(target.domain.low));
     // If data references are not the same, we need to copy them over
     if (!isSameOpaqueData(opData1, opData2)) {
-      if (true || debug) { writeln("syncNonLocalArray() case-3."); }
       arrayCopyReqd = true;
     }
   }
   if (arrayCopyReqd) {
     [i in src.domain] target(i) = src(i);
   }
-  if (true || debug) { writeln("syncNonLocalArray.2.target: "); writeln(target); }
-  if (true || debug) { writeln("syncNonLocalArray() ends."); }
 }
 
 proc checkArraysAreEqual(in srcArray: [], inout destArray: []) {

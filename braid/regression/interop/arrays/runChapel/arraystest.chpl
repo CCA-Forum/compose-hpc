@@ -919,7 +919,6 @@ tracker.setExpectations(-1);
       p = iarray.length(3), q = iarray.length(4), r = iarray.length(5), 
       s = iarray.length(6);
     
-    writeln("checkRarray7Int");   
     init_part(); run_part("Check ibarray int 7", 
         ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, m, n, o, p, q, r, s) == true);
 
@@ -929,12 +928,9 @@ tracker.setExpectations(-1);
   {
     tracker.writeComment("Start: Check initialization for int 32b - 1D");
 
-    writeln("create rarray");   
     var irarray: [0.. #TEST_SIZE] int(32);
     magicNumber = clearstack(magicNumber);
-    writeln("initRarray1Int");   
     ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE);
-    writeln("checkRarray1Int");   
     init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE) == true);
     tracker.writeComment("End: Check initialization for int 32b - 1D");
   }
@@ -998,13 +994,8 @@ tracker.setExpectations(-1);
     [(i) in [0..8]] a[i / m, i % m] = i;
     [(i) in [0..5]] b[i / o, i % o] = i;
 
-    writeln("A:"); writeln(a);
-    writeln("B:"); writeln(b);
-
     tracker.writeComment("matrixMultiply()");
     ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o);
-
-    writeln("X:"); writeln(x);
 
     tracker.writeComment("checkMatrixMultiply()");
     init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);
