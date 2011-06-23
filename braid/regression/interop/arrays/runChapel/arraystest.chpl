@@ -143,19 +143,28 @@ tracker.setExpectations(-1);
 }
 
 {
+  tracker.writeComment("Start: Check sidl.borrow_int_Array");
+
   magicNumber = clearstack(magicNumber);
   var borrowed: sidl.Array(int(32), sidl_int__array);
-  var elements: [0..32] int(32) = 
+  var elements: [0..31] int(32) =
     (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
      41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
      89, 97, 101, 103, 107, 109, 113, 127, 131);
   //init_part(); run_part("borrowed_int", !borrowed);
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
-  init_part(); run_part("borrowed_int", borrowed._not_nil());
-  init_part(); run_part("borrowed int", ArrayTest.ArrayOps_static.checkInt(borrowed) == true);
+  init_part(); run_part("borrowed_int: not-nil", borrowed._not_nil());
+
+  var resCheckInt1 = ArrayTest.ArrayOps_static.checkInt(borrowed);
+  init_part(); run_part("borrowed int: checkInt() before copy", resCheckInt1 == true);
+
   borrowed.smartCopy();
-  init_part(); run_part("borrowed int", ArrayTest.ArrayOps_static.checkInt(borrowed) == true);
+  var resCheckInt2 = ArrayTest.ArrayOps_static.checkInt(borrowed);
+  init_part(); run_part("borrowed int: checkInt() after copy", resCheckInt2 == true);
+
   magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check sidl.borrow_int_Array");
 }
 
 {
@@ -910,7 +919,6 @@ tracker.setExpectations(-1);
       p = iarray.length(3), q = iarray.length(4), r = iarray.length(5), 
       s = iarray.length(6);
     
-    writeln("checkRarray7Int");   
     init_part(); run_part("Check ibarray int 7", 
         ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, m, n, o, p, q, r, s) == true);
 
@@ -920,12 +928,9 @@ tracker.setExpectations(-1);
   {
     tracker.writeComment("Start: Check initialization for int 32b - 1D");
 
-    writeln("create rarray");   
-    var irarray: [0..TEST_SIZE - 1] int(32);
+    var irarray: [0.. #TEST_SIZE] int(32);
     magicNumber = clearstack(magicNumber);
-    writeln("initRarray1Int");   
     ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE);
-    writeln("checkRarray1Int");   
     init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE) == true);
     tracker.writeComment("End: Check initialization for int 32b - 1D");
   }
@@ -959,7 +964,7 @@ tracker.setExpectations(-1);
   {
     tracker.writeComment("Start: Check initialization for real 64b - 1D");
 
-    var irarray: [0..TEST_SIZE - 1] real(64);
+    var irarray: [0.. #TEST_SIZE] real(64);
     magicNumber = clearstack(magicNumber);
     ArrayTest.ArrayOps_static.initRarray1Double(irarray, TEST_SIZE);
     init_part(); run_part("Check rarray double 1", ArrayTest.ArrayOps_static.checkRarray1Double(irarray, TEST_SIZE) == true);
@@ -970,7 +975,7 @@ tracker.setExpectations(-1);
   {
     tracker.writeComment("Start: Check initialization for complex with 64b components - 1D");
 
-    var irarray: [0..TEST_SIZE - 1] complex(128);
+    var irarray: [0.. #TEST_SIZE] complex(128);
     magicNumber = clearstack(magicNumber);
     ArrayTest.ArrayOps_static.initRarray1Dcomplex(irarray, TEST_SIZE);
     init_part(); run_part("Check rarray dcomplex 1", ArrayTest.ArrayOps_static.checkRarray1Dcomplex(irarray, TEST_SIZE) == true);
@@ -989,13 +994,8 @@ tracker.setExpectations(-1);
     [(i) in [0..8]] a[i / m, i % m] = i;
     [(i) in [0..5]] b[i / o, i % o] = i;
 
-    writeln("A:"); writeln(a);
-    writeln("B:"); writeln(b);
-
     tracker.writeComment("matrixMultiply()");
     ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o);
-
-    writeln("X:"); writeln(x);
 
     tracker.writeComment("checkMatrixMultiply()");
     init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);

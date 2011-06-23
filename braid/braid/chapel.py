@@ -618,8 +618,16 @@ class Chapel:
 
                 if original_mode <> sidl.in_:
                     # emit code to copy back elements into non-local array
-                    post_call.append(ir.Stmt(ir.Call('syncNonLocalArray', 
-                        [chpl_local_var_name, arg_name])))
+                    chpl_wrapper_ior_name = "_babel_wrapped_local_{arg}".format(arg=arg_name)
+                    chpl_wrapper_sarray_name = "_babel_wrapped_local_{arg}_sarray".format(arg=arg_name)
+                    chpl_wrapper_barray_name = "_babel_wrapped_local_{arg}_barray".format(arg=arg_name)
+                    post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_sarray_name,
+                        ir.Call("new Array", ["{arg}.eltType".format(arg=arg_name),
+                                 ctype[1], chpl_wrapper_ior_name]))))
+                    post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_barray_name,
+                        ir.Call("createBorrowedArray{dim}d".format(dim=typ[2]), [chpl_wrapper_sarray_name]))))
+                    post_call.append(ir.Stmt(ir.Call('syncNonLocalArray',
+                        [chpl_wrapper_barray_name, arg_name])))
                     
                 # Babel is strange when it comes to Rarrays. The
                 # convention is to wrap Rarrays inside of a SIDL-Array
@@ -640,15 +648,11 @@ class Chapel:
                 # ones.
                 sidl_wrapping = (ir.stmt, """
             var {a}rank = _babel_dom_{arg}.rank;
-            var {a}lower: [1..{a}rank] int(32);
-            var {a}upper: [1..{a}rank] int(32);
-            var {a}stride: [1..{a}rank] int(32);
-            for i in [1..{a}rank] {{
-              var r: range = _babel_dom_{arg}.dim(i);
-              {a}lower[i] = r.low;
-              {a}upper[i] = r.high;
-              {a}stride[i] = r.stride;
-            }}
+
+            var {a}lus = computeLowerUpperAndStride(_babel_local_{arg});
+            var {a}lower = {a}lus(0);
+            var {a}upper = {a}lus(1);
+            var {a}stride = {a}lus(2);
             
             var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),

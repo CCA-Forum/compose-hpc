@@ -124,16 +124,11 @@
                                                                                         \
   proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank;								\
-    var lower: [1..rank] int(32);							\
-    var upper: [1..rank] int(32);							\
-    var stride: [1..rank] int(32);							\
-    for i in [1..rank] {								\
-      var r: range = dom_a.dim(i);							\
-      lower[i] = r.low;									\
-      upper[i] = r.high;								\
-      stride[i] = r.stride;								\
-    }											\
-    if (here.id != a.locale.id) {							\
+    var lus = computeLowerUpperAndStride(a);					        \
+    var lower = lus(0);			          	         			\
+    var upper = lus(1);		        	          				\
+    var stride = lus(2);								\
+    if (here.id != a.locale.id) {                  					\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
     }											\
                                                                                         \
@@ -229,6 +224,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be greater than or equal to
      * sidlLower(array,ind).
      */
+
     proc lower(in ind: int(32)): int(32) {
       _extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(ior.d_metadata, ind);

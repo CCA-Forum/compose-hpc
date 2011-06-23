@@ -2,27 +2,34 @@
 
 _extern proc getOpaqueData(inout inData): opaque;
 
-_extern proc printAddress(opData: opaque);
-
-param debug = false;
-
 //pragma "inline"
 proc getArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   var aDomain = aDom._value;
   if (aDomain.type == BorrowedRectangularDom(aDom.rank, aDomain.idxType, aDomain.stridable)) {
     return a._value.arrayOrdering;
   }
+  // Default ordering for chapel arrays is row-major
   return sidl_array_ordering.sidl_row_major_order;
 }
 
 //pragma "inline"
-proc ensureLocalArray(inout a:[?aDom], aData: opaque,
-    in mode: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order) var
-    where isRectangularDom(aDom) {
-  if (debug) { writeln("ensureLocalArray() starts..."); }
+proc getSidlArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
+  var aDomain = aDom._value;
+  if (aDomain.type == BorrowedRectangularDom(aDom.rank, aDomain.idxType, aDomain.stridable)) {
+    // Borrowed arrays have inherited their mode
+    return a._value.arrayOrdering;
+  }
+  // Default ordering for rarrays is column-major
+  return sidl_array_ordering.sidl_column_major_order;
+}
 
+//pragma "inline"
+proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
+    where isRectangularDom(aDom) {
+  
   param arrayRank = a.rank;
-  var arrayOrderMatch = (getArrayOrderMode(a) == mode);
+  var arrayOrder = getSidlArrayOrderMode(a);
+  var arrayOrderMatch = (getArrayOrderMode(a) == arrayOrder);
 
   // Create the borrowed domain
   type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, aDom._value.idxType, false);
@@ -32,118 +39,58 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque,
   var dimRanges: arrayRank * range(aDom._value.idxType, BoundedRangeType.bounded, false);
   if (arrayRank == 1) {
     dimRanges(1) = aDom.low..aDom.high;
-    if (debug) { writeln("ensureLocalArray() 1. dimRanges(1)=", dimRanges(1)); }
   } else {
     for param i in 1..arrayRank do {
       dimRanges(i) = aDom.low(i)..aDom.high(i);
-      if (debug) { writeln("ensureLocalArray() 2. dimRanges(", i, ")=", dimRanges(i)); }
     }
   }
   locDom._value.dsiSetIndices(dimRanges);
 
-  // create the borrowed array
+  // create the borrowed array in expected sidl mode
   type locArrType = chpl__buildArrayRuntimeType(locDom, a.eltType);
   var locArr: locArrType;
-
+  locArr._value.setArrayOrdering(arrayOrder);
+  
   // borrow data
   if (here.id == aDom.locale.id && (arrayRank == 1 || arrayOrderMatch)) {
     // directly borrow the data for a local array in the correct mode
     var opData: opaque = aData;
-    if (debug) { write("fillRectangularArray() borrow data from (1): "); }
-    if (debug) { printAddress(opData); }
     locArr._value.borrow(opData);
+    locArr._value.setDataOwner(false);
   } else {
     // make a local copy of the non-local/distributed array in correct mode
-    var rArray = copyRectangularArray(a, !arrayOrderMatch);
-    // then borrow over the data
-    var opData: opaque = getOpaqueData(rArray(rArray.domain.low));
-    if (debug) { write("fillRectangularArray() borrow data from (2): "); }
-    if (debug) { printAddress(opData); }
+    // self allocate the data, set as owner and then make element-wise copy
+    var opData: opaque = allocateData(numBits(locArr.eltType), a.numElements);
     locArr._value.borrow(opData);
+    locArr._value.setDataOwner(true);
+    [i in aDom] locArr(i) = a(i);
   }
-  if (debug) { write("ensureLocalArray() locArr data: "); }
-  if (debug) { printAddress(getOpaqueData(locArr(locArr.domain.low))); }
-
-  locArr._value.setArrayOrdering(mode);
-
-  if (debug) { writeln("ensureLocalArray() input domain: ", aDom); }
-  if (debug) { writeln("ensureLocalArray() output domain: ", locDom); }
-  if (debug) { writeln("ensureLocalArray() returns."); }
   return locArr;
 }
 
 //pragma "inline"
 proc syncNonLocalArray(inout src:[], inout target: [?targetDom])
     where isRectangularDom(targetDom) {
-  if (debug) { writeln("syncNonLocalArray() starts..."); }
-
-  if (debug) { writeln("syncNonLocalArray.1.src: "); writeln(src); }
-  if (debug) { writeln("syncNonLocalArray.1.target: "); writeln(target); }
 
   _extern proc isSameOpaqueData(a: opaque, b: opaque): bool;
 
-  var invertRepresentation = getArrayOrderMode(src) != getArrayOrderMode(target);
+  var arrayCopyReqd = false;
   if (here.id != targetDom.locale.id) {
-    if (debug) { writeln("syncNonLocalArray() case-1."); }
-    // sync data into non-local array
-    fillRectangularArray(src, target, invertRepresentation);
+    arrayCopyReqd = true;
+  } else if (getArrayOrderMode(src) != getArrayOrderMode(target)) {
+    arrayCopyReqd = true;
   } else {
     // target is a local array
     var opData1: opaque = getOpaqueData(src(src.domain.low));
     var opData2: opaque = getOpaqueData(target(target.domain.low));
     // If data references are not the same, we need to copy them over
     if (!isSameOpaqueData(opData1, opData2)) {
-      if (debug) { writeln("syncNonLocalArray() case-2."); }
-      // local array, but we need to copy back
-      fillRectangularArray(src, target, invertRepresentation);
+      arrayCopyReqd = true;
     }
   }
-  if (debug) { writeln("syncNonLocalArray.2.target: "); writeln(target); }
-  if (debug) { writeln("syncNonLocalArray() ends."); }
-}
-
-// pragma "inline"
-proc copyRectangularArray(in origArr: [],
-    in invertRepresentation: bool = false)  var
-    where isRectangularDom(origArr.domain) {
-
-  if (debug) { writeln("copyRectangularArray() starts..."); }
-  type indexType = origArr._value.idxType;
-  param arrayRank = origArr.rank;
-  var origArrDom = origArr.domain;
-
-  var copyDom: domain(rank=arrayRank, idxType=indexType);
-  var myRanges : arrayRank * range(indexType);
-  if (arrayRank == 1) {
-    myRanges(1) = origArrDom.low..origArrDom.high;
-  } else {
-    for param i in 1..arrayRank do {
-      var loopRange = origArrDom.low(i)..origArrDom.high(i);
-      myRanges(i) = loopRange;
-    }
+  if (arrayCopyReqd) {
+    [i in src.domain] target(i) = src(i);
   }
-  copyDom._value.dsiSetIndices(myRanges);
-
-  var copyArr: [copyDom] origArr.eltType;
-  fillRectangularArray(origArr, copyArr, invertRepresentation);
-
-  if (debug) { writeln("copyRectangularArray() ends."); }
-  return copyArr;
-}
-
-pragma "inline"
-proc fillRectangularArray(in srcArray: [], inout destRectArray: [],
-    in invertRepresentation: bool = false)
-    where isRectangularDom(destRectArray.domain) {
-  if (debug) { writeln("fillRectangularArray() starts..."); }
-  var srcArrDom = srcArray.domain;
-  // FIXME!
-  //if (invertRepresentation && srcArray.rank != 1) {
-  //  halt("Array ordering conversion not yet supported!");
-  //} else {
-    [i in srcArrDom] destRectArray(i) = srcArray(i);
-  //}
-  if (debug) { writeln("fillRectangularArray() ends."); }
 }
 
 proc checkArraysAreEqual(in srcArray: [], inout destArray: []) {
@@ -154,4 +101,36 @@ proc checkArraysAreEqual(in srcArray: [], inout destArray: []) {
       writeln("ERROR: At index ", i, " expected: ", srcValue, ", but found ", destValue);
     }
   }
+}
+
+proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
+
+  param arrayRank = srcArray.rank;
+  var result: [0..2][1..arrayRank] int(32);
+  var arrayOrderMode = getArrayOrderMode(srcArray);
+
+  for i in [1..arrayRank] {
+    var r: range = srcDom.dim(i);
+    result[0][i] = r.low;
+    result[1][i] = r.high;
+  }
+
+  if (arrayOrderMode == sidl_array_ordering.sidl_column_major_order) {
+    var loopStride = 1;
+    for i in [1..arrayRank] {
+      result[2][i] = loopStride;
+      var rs: range = srcDom.dim(i);
+      loopStride = loopStride * (rs.high - rs.low + 1);
+    }
+  } else {
+    var loopStride = 1;
+    for i in [1..arrayRank] {
+      var stride_idx = arrayRank - i + 1;
+      result[2][stride_idx] = loopStride;
+      var rs: range = srcDom.dim(stride_idx);
+      loopStride = loopStride * (rs.high - rs.low + 1);
+    }
+  }
+
+  return result;
 }
