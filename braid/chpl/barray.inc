@@ -11,9 +11,14 @@ pragma "data class"
 class _borrowedData {
   type eltType;
   var opData: opaque;
+  var owner: bool;
 
   proc ~_borrowedData() {
     // Nothing to free, no data owned!
+    // Owner though needs to free allocated data
+    if (owner) {
+      deallocateData(opData);
+    }
   }
   pragma "inline" proc init(opaqueData: opaque) {
     // Just copy over the reference to the data
@@ -30,11 +35,11 @@ class _borrowedData {
  * Sample signatures of methods to allocate memory externally.
  *
  * _extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
- * 
+ *
  * _extern proc deallocateData(bData: opaque);
- * 
+ *
  * _extern proc getBorrowedData(): opaque;
- * 
+ *
  */
 
 ///////////////////////////////////////////////////////////////////////////
@@ -53,7 +58,7 @@ class BorrowedDist: BaseDist {
 
 ///////////////////////////////////////////////////////////////////////////
 // BorrowedRectangular domain to create the borrowed array
-// delegates almost all its methods to the standard DefaultRectangularDom 
+// delegates almost all its methods to the standard DefaultRectangularDom
 // Main method that has changed:
 // - dsiBuildArray()
 // - ranges()
@@ -63,7 +68,7 @@ class BorrowedRectangularDom: BaseRectangularDom {
   param rank : int;
   type idxType;
   param stridable: bool;
-  
+
   var dist: BorrowedDist;
   // var ranges: rank*range(idxType,BoundedRangeType.bounded,stridable);
   var rectDom: DefaultRectangularDom(rank, idxType, stridable);
@@ -89,7 +94,7 @@ class BorrowedRectangularDom: BaseRectangularDom {
   }
 
   proc dsiClear() { this.rectDom.dsiClear(); }
-  
+
   // function and iterator versions, also for setIndices
   proc dsiGetIndices() { return this.rectDom.dsiGetIndices(); }
 
@@ -162,7 +167,7 @@ class BorrowedRectangularDom: BaseRectangularDom {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// BorrowedRectangular array that can refer to externally allocated memory 
+// BorrowedRectangular array that can refer to externally allocated memory
 // based on DefaultRectangularArr, notable method changes are:
 // - this()
 // - dsiDestroyData()
@@ -173,6 +178,8 @@ class BorrowedRectangularDom: BaseRectangularDom {
 // - dsiReallocate()
 // - dsiLocalSlice()
 // - setArrayOrdering()
+// - computeForArrayOrdering()
+// - setDataOwner()
 ///////////////////////////////////////////////////////////////////////////
 
 class BorrowedRectangularArr: BaseArr {
@@ -195,16 +202,58 @@ class BorrowedRectangularArr: BaseArr {
   proc canCopyFromDevice param return true;
 
   // end class definition here, then defined secondary methods below
-  
+
   proc setArrayOrdering(in newOrdering: sidl_array_ordering) {
-    arrayOrdering = newOrdering;
+    if (arrayOrdering != newOrdering) {
+      arrayOrdering = newOrdering;
+      computeForArrayOrdering();
+    }
+  }
+
+  proc setDataOwner(owner: bool) {
+    bData.owner = owner;
+  }
+
+  proc computeForArrayOrdering() {
+    if (arrayOrdering == sidl_array_ordering.sidl_column_major_order) {
+      // Handle column-major ordering blocks
+      blk(1) = 1:idxType;
+      for param dim in 2..rank do
+        blk(dim) = blk(dim - 1) * dom.dsiDim(dim - 1).length;
+    } else {
+      // Default is assumed to be row-major ordering
+      // Compute the block size for row-major ordering
+      blk(rank) = 1:idxType;
+      for param dim in 1..rank-1 by -1 do
+        blk(dim) = blk(dim + 1) * dom.dsiDim(dim + 1).length;
+    }
+    computeFactoredOffs();
   }
 
   // can the compiler create this automatically?
   proc dsiGetBaseDom() { return dom; }
 
   proc dsiDestroyData() {
-    // Nothing to do
+    if (!bData.owner) {
+      // Not the owner, not responsible for deleting the data
+      return;
+    }
+    if dom.dsiNumIndices > 0 {
+      pragma "no copy" pragma "no auto destroy" var dr = bData;
+      pragma "no copy" pragma "no auto destroy" var dv = __primitive("get ref", dr);
+      pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, 0);
+      pragma "no copy" pragma "no auto destroy" var ev = __primitive("get ref", er);
+      if (chpl__maybeAutoDestroyed(ev)) {
+        for i in 0..dom.dsiNumIndices-1 {
+          pragma "no copy" pragma "no auto destroy" var dr = bData;
+          pragma "no copy" pragma "no auto destroy" var dv = __primitive("get ref", dr);
+          pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, i);
+          pragma "no copy" pragma "no auto destroy" var ev = __primitive("get ref", er);
+          chpl__autoDestroy(ev);
+        }
+      }
+    }
+    delete bData;
   }
 
   iter these() var {
@@ -259,7 +308,7 @@ class BorrowedRectangularArr: BaseArr {
       factoredOffs = factoredOffs + blk(i) * off(i);
     }
   }
-  
+
   // change name to setup and call after constructor call sites
   // we want to get rid of all initialize functions everywhere
   proc initialize() {
@@ -268,17 +317,14 @@ class BorrowedRectangularArr: BaseArr {
       off(dim) = dom.dsiDim(dim).alignedLow;
       str(dim) = dom.dsiDim(dim).stride;
     }
-    blk(rank) = 1:idxType;
-    for param dim in 1..rank-1 by -1 do
-      blk(dim) = blk(dim+1) * dom.dsiDim(dim+1).length;
-    computeFactoredOffs();
-    var size = blk(1) * dom.dsiDim(1).length;
+    // Compute the block size for row-major ordering
+    computeForArrayOrdering();
     // Do not initialize data here, user will explicitly init the data
   }
 
-  proc borrow(opData: opaque) { 
+  proc borrow(opData: opaque) {
     this.bData = new _borrowedData(eltType);
-    this.bData.init(opData); 
+    this.bData.init(opData);
   }
 
   pragma "inline"
@@ -392,111 +438,106 @@ proc BorrowedRectangularArr.dsiSerialWrite(f: Writer) {
 var defaultBorrowedDistr = _newDistribution(new BorrowedDist());
 
 // Define custom copy method for borrowed arrays
-proc chpl__initCopy(a: []) where 
+proc chpl__initCopy(a: []) where
     a._dom._value.type == BorrowedRectangularDom(a._value.rank, a._value.idxType, a._value.stridable) {
 
   var b : [a._dom] a.eltType;
+  b._value.setArrayOrdering(a._value.arrayOrdering);
   b._value.borrow(a._value.bData.opData);
 
   return b;
 }
 
-pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntType, 
-        bData: opaque, arraySize: int(32)...?arrayRank) {
-  
+pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntType,
+        bData: opaque, arrayOrdering: sidl_array_ordering, arraySize: int(32)...?arrayRank) {
+
   type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, arrayIndexType, false);
   var locDom: locDomType;
   locDom._value.initIndices((...arraySize));
-  
+
   type locArrType = chpl__buildArrayRuntimeType(locDom, arrayElmntType);
-  var locArr: locArrType;  
+  var locArr: locArrType;
+  locArr._value.setArrayOrdering(arrayOrdering);
   locArr._value.borrow(bData);
 
   return locArr;
 }
 
+pragma "inline" proc getArrayOrdering(sa: sidl.Array) {
+  var arrayOrdering: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order;
+  if (sa.isColumnOrder()) {
+    arrayOrdering = sidl_array_ordering.sidl_column_major_order;
+  }
+  return arrayOrdering;
+}
 pragma "inline" proc createBorrowedArray1d(sa: sidl.Array) {
   if (sa.dim() != 1) {
     halt("input array is not of rank 1");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0)); 
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+            sa.length(0));
   return bArr;
 }
 pragma "inline" proc createBorrowedArray2d(sa: sidl.Array) {
   if (sa.dim() != 2) {
-    halt("input array is not of rank 2");  
+    halt("input array is not of rank 2");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1)); 
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+            sa.length(0), sa.length(1));
   return bArr;
 }
 pragma "inline" proc createBorrowedArray3d(sa: sidl.Array) {
   if (sa.dim() != 3) {
     halt("input array is not of rank 3");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1), sa.length(2));
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
   return bArr;
 }
 pragma "inline" proc createBorrowedArray4d(sa: sidl.Array) {
   if (sa.dim() != 4) {
     halt("input array is not of rank 4");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1), sa.length(2), sa.length(3));  
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3));
   return bArr;
 }
 pragma "inline" proc createBorrowedArray5d(sa: sidl.Array) {
   if (sa.dim() != 5) {
     halt("input array is not of rank 5");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
-            sa.length(4));  
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3),
+            sa.length(4));
   return bArr;
 }
 pragma "inline" proc createBorrowedArray6d(sa: sidl.Array) {
   if (sa.dim() != 6) {
     halt("input array is not of rank 6");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3),
             sa.length(4), sa.length(5));
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
   return bArr;
 }
 pragma "inline" proc createBorrowedArray7d(sa: sidl.Array) {
   if (sa.dim() != 7) {
     halt("input array is not of rank 7");
   }
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), 
-            sa.length(0), sa.length(1), sa.length(2), sa.length(3), 
-            sa.length(4), sa.length(5), sa.length(6));  
-  if (sa.isColumnOrder()) {
-    bArr._value.setArrayOrdering(sidl_array_ordering.sidl_column_major_order);
-  }
+  var arrayOrdering = getArrayOrdering(sa);
+  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+            sa.length(0), sa.length(1), sa.length(2), sa.length(3),
+            sa.length(4), sa.length(5), sa.length(6));
   return bArr;
 }
 
-proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque, 
+proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque,
         arraySize ...?arrayRank) where bArr.rank == arrayRank {
 
   var bDom = bArr.getBaseDom();
@@ -508,7 +549,7 @@ proc resetBorrowedArray(bArr: BorrowedRectangularArr, bData: opaque,
 proc isBorrowedArray(in a: [?aDom]): bool {
   var aDomain = aDom._value;
   if (aDomain.type == BorrowedRectangularDom(aDom.rank, aDomain.idxType, aDomain.stridable)) {
-    return true;  
+    return true;
   }
   return false;
 }
@@ -516,30 +557,32 @@ proc isBorrowedArray(in a: [?aDom]): bool {
 ///////////////////////////////////////////////////////////////////////////
 // Start example use of borrowed array
 ///////////////////////////////////////////////////////////////////////////
-// 
+//
 // _extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
-// 
+//
 // type arrayIndexType = int(32);
 // type arrayElmntType = real(64);
 // var arraySize1d = 10;
-// 
+//
 // var bData1d: opaque;
 // local { bData1d = allocateData(numBits(arrayElmntType), arraySize1d); }
-// 
-// var bArr1d = createBorrowedArray(arrayIndexType, arrayElmntType, bData1d, arraySize1d);
+//
+// var bArr1d = createBorrowedArray(arrayIndexType, arrayElmntType, bData1d,
+//       sidl_array_ordering.sidl_row_major_order, arraySize1d);
 // [i in 0.. #arraySize1d by 2] { bArr1d(i) = i; }
 // [i in 0.. #arraySize1d] { writeln("bArr1d(", i, ") = ", bArr1d(i)); }
-// 
+//
 // var arraySize2di = 3;
 // var arraySize2dj = 5;
-// 
+//
 // var bData2d: opaque;
 // local { bData2d = allocateData(numBits(arrayElmntType), arraySize2di * arraySize2dj); }
-// 
-// var bArr2d = createBorrowedArray(arrayIndexType, arrayElmntType, bData2d, arraySize2di, arraySize2dj);
+//
+// var bArr2d = createBorrowedArray(arrayIndexType, arrayElmntType, bData2d,
+//       sidl_array_ordering.sidl_column_major_order, arraySize2di, arraySize2dj);
 // [(i, j) in [0.. #arraySize2di, 0.. #arraySize2dj by 2]] { bArr2d(i, j) = (10 * i) + j; }
 // [(i, j) in [0.. #arraySize2di, 0.. #arraySize2dj]] { writeln("bArr2d(", i, ", ", j, ") = ", bArr2d(i, j)); }
-// 
+//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
