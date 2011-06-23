@@ -1,3 +1,4 @@
+// -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 // TODO Remove all debug prints when done
 
 _extern proc getOpaqueData(inout inData): opaque;
@@ -58,7 +59,8 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
     locArr._value.borrow(opData);
     locArr._value.setDataOwner(false);
   } else {
-    // make a local copy of the non-local/distributed array in correct mode
+    // make a local copy of the non-local/distributed array in correct
+    // order (we expect column-major)
     // self allocate the data, set as owner and then make element-wise copy
     var opData: opaque = allocateData(numBits(locArr.eltType), a.numElements);
     locArr._value.borrow(opData);
