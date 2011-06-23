@@ -648,19 +648,11 @@ class Chapel:
                 # ones.
                 sidl_wrapping = (ir.stmt, """
             var {a}rank = _babel_dom_{arg}.rank;
-            var {a}lower: [1..{a}rank] int(32);
-            var {a}upper: [1..{a}rank] int(32);
-            var {a}stride: [1..{a}rank] int(32);
-            var loop{a}_stride = 1;
-            for i in [1..{a}rank] {{
-              var r: range = _babel_dom_{arg}.dim(i);
-              {a}lower[i] = r.low;
-              {a}upper[i] = r.high;
-              var {a}_stride_idx = {a}rank - i + 1;
-              {a}stride[{a}_stride_idx] = loop{a}_stride; // row-major order
-              var rs: range = _babel_dom_{arg}.dim({a}_stride_idx);
-              loop{a}_stride = loop{a}_stride * (rs.high - rs.low + 1);
-            }}
+
+            var {a}lus = computeLowerUpperAndStride(_babel_local_{arg});
+            var {a}lower = {a}lus(0);
+            var {a}upper = {a}lus(1);
+            var {a}stride = {a}lus(2);
             
             var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),

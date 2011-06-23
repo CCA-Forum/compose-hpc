@@ -6,6 +6,9 @@ use DefaultRectangular;
 // The generic borrowed data class
 ///////////////////////////////////////////////////////////////////////////
 
+_extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
+_extern proc deallocateData(opData: opaque): opaque;
+
 // dynamic data block class
 pragma "data class"
 class _borrowedData {
@@ -443,7 +446,17 @@ proc chpl__initCopy(a: []) where
 
   var b : [a._dom] a.eltType;
   b._value.setArrayOrdering(a._value.arrayOrdering);
-  b._value.borrow(a._value.bData.opData);
+  if (a._value.bData.owner) {
+    // Allocate data and make element-wise copy
+    var opData: opaque = allocateData(numBits(a.eltType), a.numElements);
+    b._value.borrow(opData);
+    b._value.setDataOwner(true);
+    [i in a.domain] b(i) = a(i);
+  } else {
+    // free to borrow data from non-owning array
+    b._value.borrow(a._value.bData.opData);
+    b._value.setDataOwner(false);
+  }
 
   return b;
 }

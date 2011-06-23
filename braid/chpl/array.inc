@@ -124,19 +124,10 @@
                                                                                         \
   proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank;								\
-    var lower: [1..rank] int(32);							\
-    var upper: [1..rank] int(32);							\
-    var stride: [1..rank] int(32);                                                      \
-    var loop_stride = 1;                                                                \
-    for i in [1..rank] {								\
-      var r: range = dom_a.dim(i);							\
-      lower[i] = r.low;									\
-      upper[i] = r.high;								\
-      var s_index = rank - i + 1;						        \
-      stride[s_index] = loop_stride; /* row-major order */                              \
-      var rs = dom_a.dim(s_index);						        \
-      loop_stride = loop_stride * (rs.high - rs.low + 1);                               \
-    }											\
+    var lus = computeLowerUpperAndStride(a);					        \
+    var lower = lus(0);			          	         			\
+    var upper = lus(1);		        	          				\
+    var stride = lus(2);											\
     if (here.id != a.locale.id) {							\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
     }											\

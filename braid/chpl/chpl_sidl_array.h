@@ -64,9 +64,9 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
 #define printAddress(aPtr) printf("%p\n", (void *)(aPtr)) 
         
 // void* allocateData(int typeSize, int numElements) 
-#define allocateData(typeSize, numElements) (calloc(numElements, typeSize))        
+#define allocateData(typeSize, numElements) (chpl_malloc(numElements, typeSize, CHPL_RT_MD_ARRAY_ELEMENTS, 67, "chpl_sidl_array.h"))
 
 // void deallocateData(void* bData) 
-#define deallocateData(bData) (free(bData))
+#define deallocateData(bData) (chpl_free(bData, 70, "chpl_sidl_array.h"))
         
 #endif
