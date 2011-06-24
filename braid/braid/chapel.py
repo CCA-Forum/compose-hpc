@@ -539,12 +539,9 @@ class Chapel:
                 chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
                 chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
                 
-                # ensure domain is rectangular
-                err_non_rect = ('"{arg_name}.domain is not rectangular"').format(arg_name=arg_name)
-                pre_call.append(ir.Stmt(ir.If(
-                    ir.Infix_expr(ir.ne, "true", ir.Call("isRectangularDom", [chpl_dom_var_name])), 
-                    [ir.Stmt(ir.Call("halt", [err_non_rect]))]
-                )))
+                # sanity check on input arra:yensure domain is rectangular
+                pre_call.append(ir.Stmt(ir.Call("performSanityCheck",
+                    [chpl_dom_var_name, '"{arg_name}"'.format(arg_name=arg_name)])))
                 # ensure we are working with a 'local' array
                 # FIXME Hack to define a variable without explicitly specifying type
                 # should we change the IR to support this?

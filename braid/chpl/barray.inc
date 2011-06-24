@@ -446,6 +446,7 @@ proc chpl__initCopy(a: []) where
 
   var b : [a._dom] a.eltType;
   b._value.setArrayOrdering(a._value.arrayOrdering);
+  // FIXME: Use reference counting instead of allocating new memory
   if (a._value.bData.owner) {
     // Allocate data and make element-wise copy
     var opData: opaque = allocateData(numBits(a.eltType), a.numElements);

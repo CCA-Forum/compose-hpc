@@ -3,6 +3,15 @@
 
 _extern proc getOpaqueData(inout inData): opaque;
 
+proc performSanityCheck(aDom: domain, varName: string) {
+  if (!isRectangularDom(aDom)) {
+    halt(varName, ".domain is not rectangular");
+  }
+  if (aDom._value.stridable) {
+    halt(varName, ".domain is stridable. Stridable domains are not supported.");
+  }
+}
+
 //pragma "inline"
 proc getArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   var aDomain = aDom._value;
