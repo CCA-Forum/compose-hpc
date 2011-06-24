@@ -3,7 +3,7 @@ echo "Compiling Braid -> Babel tests."
 echo "Expecting Babel sources in @BABEL_SRCDIR@"
 
 if [ $# -lt 3 ]; then 
-    echo "usage: $0 make [flags] -- {test}.babel"
+    echo "usage: $0 {test}.chpl make [flags]"
     exit 1
 fi
 

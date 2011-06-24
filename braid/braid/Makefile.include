@@ -16,6 +16,7 @@ PYTHON_SOURCES = \
 	braid/chapel.py \
 	braid/codegen.py \
 	braid/config.py \
+	braid/ior_template.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
