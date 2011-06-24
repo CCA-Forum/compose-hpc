@@ -40,9 +40,9 @@ cd runChapel						||exit 1
 $BRAID $sidl -cchapel --makefile			||exit 1
 $BRAID ../../output/output.sidl -cchapel                ||exit 1
 cat >>babel.make <<EOF
-IORHDRS += RegOut_IOR.h
-STUBHDRS += RegOut.h
-STUBSRCS += RegOut_cStub.c 
+IORHDRS += synch_RegOut_IOR.h
+STUBHDRS += synch_RegOut.h
+STUBSRCS += synch_RegOut_cStub.c 
 EOF
 for libdir in `ls -1 -d ../lib*`; do
   language=`echo $libdir|sed 's/^...lib//g'`

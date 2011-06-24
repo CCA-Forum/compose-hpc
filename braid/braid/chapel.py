@@ -148,6 +148,7 @@ class Chapel:
         self.create_makefile = create_makefile
         self.verbose = verbose
         self.classes = []
+        self.pkgs = []
 
     def generate_client(self):
         """
@@ -174,7 +175,7 @@ class Chapel:
         try:
             self.generate_server1(self.sidl_ast, None, self.symbol_table)
             if self.create_makefile:
-                generate_server_makefile(self.sidl_file, self.classes)
+                generate_server_makefile(self.sidl_file, self.pkgs, self.classes)
 
         except:
             # Invoke the post-mortem debugger
@@ -233,22 +234,7 @@ class Chapel:
                 # Chapel supports C structs via the _extern keyword,
                 # but they must be typedef'ed in a header file that
                 # must be passed to the chpl compiler.
-                typedefs = CFile();
-                typedefs._header = [
-                    '// Package header (enums, etc...)',
-                    '#include <stdint.h>',
-                    '#include <%s.h>' % '_'.join(symbol_table.prefix),
-                    '#include <%s_IOR.h>'%Name,
-                    'typedef struct %s__object _%s__object;'%(qname, qname),
-                    'typedef _%s__object* %s__object;'%(qname, qname),
-                    '#ifndef _CHPL_SIDL_BASETYPES',
-                    '#define _CHPL_SIDL_BASETYPES',
-                    'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
-                    'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-                    '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
-                    %(qname, qname, qname),
-                    '#endif'
-                    ]
+                typedefs = self.class_typedefs(qname, symbol_table)
                 write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
                 chpl_defs = ci.chpl_stub
                 ci.chpl_stub = ChapelFile()
@@ -313,6 +299,10 @@ class Chapel:
                 for enum in self.pkg_enums:
                     pkg_h.gen(ir.Type_decl(enum))
                 write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
+
+                # Makefile
+                self.pkgs.append(qname)
+
 
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
@@ -443,6 +433,26 @@ class Chapel:
                        ir.Struct_item(ir.pt_int, "d_ior_minor_version")
                        ],
                        'The static class object structure')
+
+    def class_typedefs(self, qname, symbol_table):
+        typedefs = CFile();
+        typedefs._header = [
+            '// Package header (enums, etc...)',
+            '#include <stdint.h>',
+            '#include <%s.h>' % '_'.join(symbol_table.prefix),
+            '#include <%s_IOR.h>'%qname,
+            'typedef struct %s__object _%s__object;'%(qname, qname),
+            'typedef _%s__object* %s__object;'%(qname, qname),
+            '#ifndef _CHPL_SIDL_BASETYPES',
+            '#define _CHPL_SIDL_BASETYPES',
+            'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
+            'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
+            '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
+            %(qname, qname, qname),
+            '#endif'
+            ]
+        return typedefs
+
 
     @matcher(globals(), debug=False)
     def generate_client_method(self, symbol_table, method, ci):
@@ -744,7 +754,7 @@ class Chapel:
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__fini',
             babel_epv_args([], [], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
-        ci.ior._defs.append(ior_template.text.format(
+        ci.ior.new_def(ior_template.text.format(
             Class = cname, Class_low = str.lower(cname)))
 
     
@@ -789,16 +799,46 @@ class Chapel:
 
                 # Skeleton (in Chapel)
                 skel = ci.chpl_skel
+                self.pkg_chpl_skel.gen(ir.Import('.'.join(symbol_table.prefix)))
+
+                typedefs = self.class_typedefs(qname, symbol_table)
+                write_to(qname+'_Skel.h', typedefs.dot_h(qname+'_Skel.h'))
+
+                self.pkg_chpl_skel.new_def('use sidl;')
+                objname = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name]) + '_Impl'
+
+                self.pkg_chpl_skel.new_def('_extern record %s__object { var d_data: %s; };'
+                                           %(qname,objname))
+                self.pkg_chpl_skel.new_def('_extern proc %s__createObject('%qname+
+                                     'd_data: int, '+
+                                     'inout ex: sidl_BaseInterface__object)'+
+                                     ': %s__object;'%qname)
                 self.pkg_chpl_skel.new_def(ci.chpl_skel)
+
 
                 # Skeleton (in C)
                 cskel = ci.chpl_skel.cstub
                 cskel.gen(ir.Import('stdint'))                
-                ci.skel.gen(ir.Import(qname+'_Skel'))
+                cskel.gen(ir.Import(qname+'_Skel'))
+                cskel.gen(ir.Import(qname+'_IOR'))
+                cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
+                                       [ir.Stmt(ir.Call('_load', []))], ''))
+                epv_t = ci.epv.get_ir()
+                cskel.gen(ir.Fn_decl([], ir.pt_void, 'ctor', [], ''))
+                cskel.gen(ir.Fn_decl([], ir.pt_void, 'dtor', [], ''))
+                cskel.gen(ir.Fn_defn(
+                    [], ir.pt_void, qname+'__set_epv',
+                    [ir.Arg([], ir.out, epv_t, 'epv'),
+                     ir.Arg([], ir.out, epv_t, 'pre_epv'),
+                     ir.Arg([], ir.out, epv_t, 'post_epv')],
+                    [ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor', 'ctor'),
+                     ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor2', '0'),
+                     ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__dtor', 'dtor')], ''))
+                
                 # Skel Header
-                write_to(qname+'_Skel.h', ci.skel.dot_h(qname+'_Skel.h'))
+                write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
                 # Skel C-file
-                write_to(qname+'_Skel.c', ci.skel.dot_c())
+                write_to(qname+'_Skel.c', cskel.dot_c())
 
                 # Impl
                 print "FIXME: update the impl file between the splicer blocks"
@@ -810,10 +850,10 @@ class Chapel:
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
                 self.pkg_chpl_skel = ChapelFile()
-                self.pkg_chpl_skel.main_area._defs.append('proc __defeat_dce(){\n')
+                self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
                 self.pkg_enums = []
                 self.generate_server1(UserTypes, data, symbol_table[[Name]])
-                self.pkg_chpl_skel.main_area._defs.append('}\n')
+                self.pkg_chpl_skel.main_area.new_def('}\n')
                 qname = '_'.join(symbol_table.prefix+[Name])                
                 write_to(qname+'_Skel.chpl', str(self.pkg_chpl_skel))
 
@@ -821,6 +861,9 @@ class Chapel:
                 for enum in self.pkg_enums:
                     pkg_h.gen(ir.Type_decl(enum))
                 write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
+
+                # Makefile
+                self.pkgs.append(qname)
 
             elif (sidl.user_type, Attrs, Cipse):
                 gen(Cipse)
@@ -883,7 +926,14 @@ class Chapel:
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
         return_stmt = []
-        callee = Name
+        #callee = ''.join(['.'.join(ci.epv.symbol_table.prefix+
+        #                   [ci.epv.name]), '_Impl',
+        #                  '_static' if static else '',
+        #                  '.', Name, '_impl'])
+        callee = Name+'_impl'
+
+        if not static:
+            call_args = ['self->d_data']+call_args
 
         if Type == sidl.void:
             Type = ir.pt_void
@@ -902,21 +952,29 @@ class Chapel:
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
-        defn = (ir.fn_defn, [], Type, Name, Args,
+        defn = (ir.fn_defn, [], Type, Name,
+                babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
                 pre_call+call+post_call+return_stmt,
                 DocComment)
-        chpl_gen(defn, ci.chpl_skel)
+        chpldecl = (ir.fn_decl, [], Type, callee,
+                [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
+                DocComment)
+        c_gen(chpldecl, ci.chpl_skel.cstub)
+        c_gen(defn, ci.chpl_skel.cstub)
 
-        # create dummy call to bypass dead code elimination
-        def argvardecl((arg, attrs, mode, typ, name)):
-            return ir.Var_decl(typ, name)
-        argdecls = map(argvardecl, Args)
-        def get_arg_name((arg, attrs, mode, typ, name)):
-            return name
-        dcall = ir.Call(Name, map(get_arg_name, Args))
-        ci.chpl_skel.main_area._defs.append('{\n')
-        chpl_gen(argdecls+[dcall], ci.chpl_skel.main_area)
-        ci.chpl_skel.main_area._defs.append('}\n')
+        ## create dummy call to bypass dead code elimination
+        #def argvardecl((arg, attrs, mode, typ, name)):
+        #    return ir.Var_decl(typ, name)
+        #argdecls = map(argvardecl, Args)
+        #def get_arg_name((arg, attrs, mode, typ, name)):
+        #    return name
+        #dcall = ir.Call(Name, [] if static else ['obj']+map(get_arg_name, Args)+['ex'])
+        #ci.chpl_skel.main_area.new_def('{\n')
+        #ci.chpl_skel.main_area.new_def('var obj: %s__object;\n'%
+        #                               '_'.join(ci.epv.symbol_table.prefix+[ci.epv.name]))
+        #ci.chpl_skel.main_area.new_def('var ex: sidl_BaseInterface__object;\n')
+        #chpl_gen(argdecls+[dcall], ci.chpl_skel.main_area)
+        #ci.chpl_skel.main_area.new_def('}\n')
 
 
 
@@ -1289,14 +1347,14 @@ class EPV:
 
     def get_type(self):
         """
-        return an s-expression of the EPV's type
+        return an s-expression of the EPV's (incomplete) type
         """
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_epv'], '')
         return ir.Struct(name, [], 'Entry Point Vector (EPV)')
 
     def get_sepv_type(self):
         """
-        return an s-expression of the SEPV's type
+        return an s-expression of the SEPV's (incomplete) type
         """
         name = ir.Scoped_id(self.symbol_table.prefix+[self.name,'_sepv'], '')
         return ir.Struct(name, [], 'Static Entry Point Vector (SEPV)')
@@ -1627,6 +1685,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return 'var %s:%s = %s'%(gen(Name), gen(Type), gen(Initializer))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
+            elif (ir.import_, Name): new_def('use %s;'%Name)
 
             elif (sidl.custom_attribute, Id):       return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id)
@@ -1655,7 +1714,7 @@ def generate_client_makefile(sidl_file, classes):
     generate_client_server_makefile(sidl_file)
 
 
-def generate_server_makefile(sidl_file, classes):
+def generate_server_makefile(sidl_file, pkgs, classes):
     """
     FIXME: make this a file copy from $prefix/share
            make this work for more than one class
@@ -1668,7 +1727,7 @@ IORSRCS = {iorsrcs}
 SKELSRCS = {skelsrcs}
 STUBHDRS = #FIXME {stubhdrs}
 STUBSRCS = {stubsrcs}
-""".format(impls=' '.join([c+'_Impl.chpl'  for c in classes]),
+""".format(impls=' '.join([p+'.chpl'       for p in pkgs]),
            iorhdrs=' '.join([c+'_IOR.h'    for c in classes]),
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
            skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),
@@ -1745,7 +1804,7 @@ endif
 CHPL=chpl
 # CHPL=chpl --print-commands --print-passes
 
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
 
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
 
@@ -1859,11 +1918,22 @@ endif
 .c.lo:
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
+ifeq ($(IMPLSRCS),)
 .chpl.lo:
 	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
+else
+.chpl.lo:
+	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
+	perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
+	babel-libtool --mode=compile --tag=CC $(CC) \
+            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
+            $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
+endif
+
 
 clean :
 	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo

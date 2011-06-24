@@ -29,7 +29,7 @@ nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES)
 BUILT_SOURCES += braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
 GRAMMARS = braid/ir.def braid/sidl.def
 
-bin_SCRIPTS += braid/braid
+bin_SCRIPTS += braid/braid braid/headerize
 
 nobase_pyexec_LTLIBRARIES += braid/scanner.la
 braid_scanner_la_SOURCES = braid/scanner.l

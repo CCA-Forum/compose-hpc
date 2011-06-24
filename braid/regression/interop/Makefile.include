@@ -67,7 +67,7 @@ if BABEL_LANG_PYTHON
 endif
 
 #check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
-check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
+#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 endif

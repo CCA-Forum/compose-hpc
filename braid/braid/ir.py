@@ -2227,3 +2227,23 @@ def Plus(A, B):
     same as Infix_expr(ir.plus, A, B)
     """
     return Infix_expr(plus, A, B)
+def Get_struct_item_stmt(struct, sname, iname):
+    """
+    Convenience replacement function for Get_struct_item().
+    Accepts just the name of the item and looks up the type from \c struct.
+    """
+    for item in struct[2]:
+        (_, _, id) = item
+        if id == iname:
+            return Stmt(Get_struct_item(struct, sname, item))
+    raise Exception('lookup failed')
+def Set_struct_item_stmt(struct, sname, iname, expr):
+    """
+    Convenience replacement function for Set_struct_item().
+    Accepts just the name of the item and looks up the type from \c struct.
+    """
+    for item in struct[2]:
+        (_, _, id) = item
+        if id == iname:
+            return Stmt(Set_struct_item(struct, sname, item, expr))
+    raise Exception('lookup failed')

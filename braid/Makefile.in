@@ -516,7 +516,7 @@ nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl
 BUILT_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py \
 	braid/legal.py chpl/sidl.chpl
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
-bin_SCRIPTS = braid/braid
+bin_SCRIPTS = braid/braid braid/headerize
 TESTS = $(am__append_1) $(am__append_2)
 TEST_EXTENSIONS = .py .sidl $(am__append_3)
 
@@ -631,6 +631,7 @@ BABEL_TESTNAMES = \
 # from Babel
 
 #check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
+#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_5) \
@@ -639,7 +640,6 @@ BABEL_TESTNAMES = \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_11) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_13) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/regression/interop/args/libChapel/libimpl.la \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@languages = C \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_4) \
