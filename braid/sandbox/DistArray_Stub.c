@@ -6,7 +6,7 @@ BlockDistArrayChpl createBlockDistArray2d_int_Skel(
 
 int getFromDistArray2d_int_Skel(BlockDistArrayChpl actualArr, int id1, int id2);
 
-void setFromDistArray2d_int_Skel(BlockDistArrayChpl actualArr, int newVal, int id1, int id2);
+void setIntoDistArray2d_int_Skel(BlockDistArrayChpl actualArr, int newVal, int id1, int id2);
 
 
 void createBlockDistArray2d_int_Stub(
