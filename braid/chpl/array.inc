@@ -127,8 +127,8 @@
     var lus = computeLowerUpperAndStride(a);					        \
     var lower = lus(0);			          	         			\
     var upper = lus(1);		        	          				\
-    var stride = lus(2);											\
-    if (here.id != a.locale.id) {							\
+    var stride = lus(2);								\
+    if (here.id != a.locale.id) {                  					\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
     }											\
                                                                                         \
@@ -224,6 +224,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be greater than or equal to
      * sidlLower(array,ind).
      */
+
     proc lower(in ind: int(32)): int(32) {
       _extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(ior.d_metadata, ind);

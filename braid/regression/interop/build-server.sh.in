@@ -26,9 +26,18 @@ echo "language = $language"
 echo "--setup directory, copy over babel regression test [ $TESTCASE / $language ]"
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
-cp -u -r \
+
+if [ x"$language" = x"Chapel" ]; then
+  # copy from Braid srcdir
+  cp -u -r \
+   ../@top_srcdir@/regression/interop/$TESTCASE/libChapel .||exit 1
+  BABEL="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
+else
+ # copy from Babel srcdir
+  cp -u -r \
    @BABEL_SRCDIR@/regression/$TESTCASE/lib$language .   ||exit 1
-chmod u+w -R lib*                                       ||exit 1
+  chmod -R u+w lib$language                             ||exit 1
+fi
 
 echo "--generate server [ $TESTCASE / $language ]"
 cd lib$language                                         ||exit 1
@@ -38,4 +47,8 @@ $BABEL $sidl -s$language --makefile                     ||exit 1
 cd ..						        ||exit 1
 
 echo "--compile server [ $TESTCASE / $language ]"
-exec $MAKE all -C lib$language >/dev/null
+if [ x"$language" = x"Chapel" ]; then
+    exec $MAKE all -C lib$language # verbose
+else
+    exec $MAKE all -C lib$language >/dev/null
+fi

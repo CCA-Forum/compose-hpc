@@ -16,6 +16,7 @@ PYTHON_SOURCES = \
 	braid/chapel.py \
 	braid/codegen.py \
 	braid/config.py \
+	braid/ior_template.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
@@ -28,7 +29,7 @@ nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES)
 BUILT_SOURCES += braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
 GRAMMARS = braid/ir.def braid/sidl.def
 
-bin_SCRIPTS += braid/braid
+bin_SCRIPTS += braid/braid braid/headerize
 
 nobase_pyexec_LTLIBRARIES += braid/scanner.la
 braid_scanner_la_SOURCES = braid/scanner.l

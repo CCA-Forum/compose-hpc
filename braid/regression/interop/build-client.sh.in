@@ -3,7 +3,7 @@ echo "Compiling Braid -> Babel tests."
 echo "Expecting Babel sources in @BABEL_SRCDIR@"
 
 if [ $# -lt 3 ]; then 
-    echo "usage: $0 make [flags] -- {test}.babel"
+    echo "usage: $0 {test}.chpl make [flags]"
     exit 1
 fi
 
@@ -40,9 +40,9 @@ cd runChapel						||exit 1
 $BRAID $sidl -cchapel --makefile			||exit 1
 $BRAID ../../output/output.sidl -cchapel                ||exit 1
 cat >>babel.make <<EOF
-IORHDRS += RegOut_IOR.h
-STUBHDRS += RegOut.h
-STUBSRCS += RegOut_cStub.c 
+IORHDRS += synch_RegOut_IOR.h
+STUBHDRS += synch_RegOut.h
+STUBSRCS += synch_RegOut_cStub.c 
 EOF
 for libdir in `ls -1 -d ../lib*`; do
   language=`echo $libdir|sed 's/^...lib//g'`
