@@ -607,12 +607,10 @@ class Chapel:
                 pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_data_var_name,
                     ir.Call("getOpaqueData", [ir.Call(arg_name, [chpl_dom_var_name + ".low"])])))
                 )
-                # pre_call.append(ir.Stmt(ir.Call("printAddress", [chpl_data_var_name])))
                 pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name,
                     ir.Call("ensureLocalArray", [arg_name, chpl_data_var_name])))
                 )
-                pre_call.append(ir.Stmt(ir.Call("checkArraysAreEqual", [arg_name, chpl_local_var_name])))
-
+                
                 if original_mode <> sidl.in_:
                     # emit code to copy back elements into non-local array
                     chpl_wrapper_ior_name = "_babel_wrapped_local_{arg}".format(arg=arg_name)
