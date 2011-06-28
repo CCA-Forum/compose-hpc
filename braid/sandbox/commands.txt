@@ -1,0 +1,50 @@
+
+chpl --savec ./csource DistArray_Stub.h DistArray_Stub.c DistArray_Client.c DistArray.chpl
+
+
+// Only generate the C-files
+chpl --savec ./csource DistArray.chpl --make true 
+
+// Chapel compiler commands
+gcc 
+	-c 
+	-o csource/DistArray_Client.c.o 
+	-std=c99 
+	-DCHPL_TASKS_H=\"tasks-fifo.h\" 
+	-DCHPL_THREADS_H=\"threads-pthreads.h\"   
+	DistArray_Client.c
+
+gcc 
+	-std=c99 
+	-DCHPL_TASKS_H=\"tasks-fifo.h\" 
+	-DCHPL_THREADS_H=\"threads-pthreads.h\"   
+	-c 
+	-o ./csource/a.out.tmp.o 
+	-I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/tasks/fifo 
+	-I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/threads/pthreads 
+	-I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/comm/none 
+	-I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/comp-gnu 
+	-I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/linux32 
+	-I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include 
+	-I. 
+	./csource/_main.c 
+
+Modified build command for DistArray_Client.c when using chpl__header 
+
+chpl --savec ./csource DistArray_Client.h DistArray.chpl --make true 
+
+/nfs/apps/gcc/4.3.2/bin/gcc -c -o DistArray_Stub.c.o -I. -I./csource DistArray_Stub.c
+
+/nfs/apps/gcc/4.3.2/bin/gcc -c -o DistArray_Client.c.o -I. -I./csource DistArray_Client.c
+
+/nfs/apps/gcc/4.3.2/bin/gcc -std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\"   -c -o ./csource/a.out.tmp.o -I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/tasks/fifo -I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/threads/pthreads -I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/comm/none -I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/comp-gnu -I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include/linux32 -I/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/runtime/include -I. ./csource/_main.c 
+
+/nfs/apps/gcc/4.3.2/bin/gcc   -o ./csource/a.out.tmp -L/home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/lib/linux32/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads ./csource/a.out.tmp.o /home/imam1/dev/chapel/git-repo/chapel-1.3.0/chapel/lib/linux32/gnu/comm-none/substrate-none/tasks-fifo/threads-pthreads/main.o DistArray_Stub.c.o DistArray_Client.c.o -lchpl -lm  -lpthread
+
+cp ./csource/a.out.tmp a.out
+
+
+
+
+
+chpl --savec ./csource DistArray_Client.h Dummy_Client.c DistArray.chpl --make true 
