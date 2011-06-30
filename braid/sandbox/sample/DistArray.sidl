@@ -1,0 +1,28 @@
+
+
+package distarray version 0.1 {
+
+  // naming scheme is <Distr-type>DistArray<rank>d<Type>
+  class BlockDistArray2dInt {
+    
+    void initArray(
+          in int lo1, in int hi1, 
+          in int lo2, in int hi2, 
+          in int blk1, in int blk2 
+    );
+    
+    int getDimension();
+    
+    int getLower(in int dim);
+    
+    int getHigher(in int dim);
+    
+    void getFromArray(in int idx1, in int idx2);
+    
+    void setIntoArray(in int newVal, in int idx1, in int idx2);
+    
+  }
+}
+
+
+
