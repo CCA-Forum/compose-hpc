@@ -1,0 +1,16 @@
+
+# ignore .pyc files from braid directory
+braid/braid.pyc
+braid/chapel.pyc
+braid/codegen.pyc
+braid/ir.pyc
+braid/patmat.pyc
+braid/sidl.pyc
+braid/sidl_oop.pyc
+braid/sidl_parser.pyc
+braid/sidl_symbols.pyc
+braid/sidl_token.pyc
+braid/splicer.pyc
+
+
+
