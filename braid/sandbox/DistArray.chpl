@@ -28,7 +28,7 @@ class DistArray {
 
 // Start: Methods that will reside in the Skeleton file
 
-proc createBlockDistArray2d_int_Skel(
+proc createBlockDistArray2d_int_Skel( // _Impl
       lo1: int, hi1: int, 
       lo2: int, hi2: int, 
       blk1: int, blk2: int) {

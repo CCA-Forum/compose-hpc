@@ -2,7 +2,7 @@
 #include "DistArray_Stub.h"
 #include "DistArray_Client.h"
 
-void main_server() {
+void main_server() { // main_program
 
   printf("=========================================== \n");
   printf("   DistArray_Client:Inside main_server() \n");

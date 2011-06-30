@@ -9,7 +9,7 @@ int getFromDistArray2d_int_Skel(BlockDistArrayChpl actualArr, int id1, int id2);
 void setIntoDistArray2d_int_Skel(BlockDistArrayChpl actualArr, int newVal, int id1, int id2);
 
 
-void createBlockDistArray2d_int_Stub(
+void createBlockDistArray2d_int_Stub( // _Skel
       BlockDistArray2d *wrapperToFill,
       int lo1, int hi1, 
       int lo2, int hi2, 
