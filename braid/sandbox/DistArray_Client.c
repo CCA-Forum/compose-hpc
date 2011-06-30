@@ -13,14 +13,24 @@ void main_server() {
   printf("DistArray_Client:createBlockDistArray2d_int_Stub \n");
   createBlockDistArray2d_int_Stub(&distArrayWrapper, 1, 4, 1, 4, 2, 2);
    
-  printf("DistArray_Client:getFromDistArray2d_int_Stub(*, 1, 1) \n");
-  int res1 = getFromDistArray2d_int_Stub(&distArrayWrapper, 1, 1);
-  printf("1. res = %d \n", res1); 
+  for (int i = 1; i <= 4; i++) {
+    for (int j = 1; j <= 4; j++) {
+      int res2 = getFromDistArray2d_int_Stub(&distArrayWrapper, i, j);
+      printf("DistArray_Client: array(%d, %d) = %d \n", i, j, res2);
+    }
+  }
 
-  printf("DistArray_Client:setIntoDistArray2d_int_Stub(*, 1, 1) \n");
-  setIntoDistArray2d_int_Stub(&distArrayWrapper, 628, 1, 1);
+  for (int i = 1; i <= 4; i++) {
+    for (int j = 1; j <= 4; j++) {
+      printf("DistArray_Client:setIntoDistArray2d_int_Stub(*, %d, %d) \n", i, j);
+      setIntoDistArray2d_int_Stub(&distArrayWrapper, 10 * i + j, i, j);
+    }
+  }
   
-  printf("DistArray_Client:getFromDistArray2d_int_Stub(*, 1, 1) \n");
-  int res2 = getFromDistArray2d_int_Stub(&distArrayWrapper, 1, 1);
-  printf("2. res = %d \n", res2); 
+  for (int i = 1; i <= 4; i++) {
+    for (int j = 1; j <= 4; j++) {
+      int res2 = getFromDistArray2d_int_Stub(&distArrayWrapper, i, j);
+      printf("DistArray_Client: array(%d, %d) = %d \n", i, j, res2);
+    }
+  }
 }

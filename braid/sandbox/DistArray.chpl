@@ -26,7 +26,7 @@ class DistArray {
 
 ///////////////////////////////////////////
 
-// Start: Methods that will reside in the Skeleteon file
+// Start: Methods that will reside in the Skeleton file
 
 proc createBlockDistArray2d_int_Skel(
       lo1: int, hi1: int, 
@@ -35,6 +35,8 @@ proc createBlockDistArray2d_int_Skel(
   var myBlockedDomLiteral = 
     [lo1..hi1, lo2..hi2] dmapped Block([1..blk1, 1..blk2]);
   var myArray: [myBlockedDomLiteral] int(32);
+  forall ba in myArray do
+    ba = here.id;
   var distArray = new DistArray(myArray.eltType, myArray.rank, myArray);
   return distArray;
 }
@@ -47,7 +49,7 @@ proc setIntoDistArray2d_int_Skel(distArray, newVal: int(32), ind: int(32)... ?k)
   distArray.set(newVal, (...ind));
 }
 
-// End: Methods that will reside in the Skeleteon file
+// End: Methods that will reside in the Skeleton file
 
 ///////////////////////////////////////////
 
