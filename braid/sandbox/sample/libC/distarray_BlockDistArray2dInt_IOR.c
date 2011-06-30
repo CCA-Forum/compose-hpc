@@ -363,6 +363,7 @@ distarray_BlockDistArray2dInt_getFromArray__exec(
   /* stack space for arguments */
   int32_t idx1 = 0;
   int32_t idx2 = 0;
+  int32_t _retval = 0;
   sidl_BaseInterface _throwaway_exception = NULL;
   sidl_BaseInterface _ex3   = NULL;
   sidl_BaseException _SIDLex = NULL;
@@ -371,13 +372,14 @@ distarray_BlockDistArray2dInt_getFromArray__exec(
   sidl_rmi_Call_unpackInt( inArgs, "idx2", &idx2, _ex);SIDL_CHECK(*_ex);
 
   /* make the call */
-  (self->d_epv->f_getFromArray)(
+  _retval = (self->d_epv->f_getFromArray)(
     self,
     idx1,
     idx2,
     _ex);  SIDL_CHECK(*_ex);
 
   /* pack return value */
+  sidl_rmi_Return_packInt( outArgs, "_retval", _retval, _ex);SIDL_CHECK(*_ex);
   /* pack out and inout argments */
   /* clean-up dangling references */
   EXIT:

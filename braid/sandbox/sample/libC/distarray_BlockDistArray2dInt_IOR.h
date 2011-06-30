@@ -156,7 +156,7 @@ struct distarray_BlockDistArray2dInt__epv {
     /* in */ struct distarray_BlockDistArray2dInt__object* self,
     /* in */ int32_t dim,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_getFromArray)(
+  int32_t (*f_getFromArray)(
     /* in */ struct distarray_BlockDistArray2dInt__object* self,
     /* in */ int32_t idx1,
     /* in */ int32_t idx2,
@@ -239,6 +239,7 @@ struct distarray_BlockDistArray2dInt__post_epv {
     /* in */ struct distarray_BlockDistArray2dInt__object* self,
     /* in */ int32_t idx1,
     /* in */ int32_t idx2,
+    /* in */ int32_t _retval,
     /* out */ struct sidl_BaseInterface__object **_ex);
   void (*f_setIntoArray_post)(
     /* in */ struct distarray_BlockDistArray2dInt__object* self,

@@ -217,7 +217,7 @@ distarray_BlockDistArray2dInt_getHigher(
  * Method:  getFromArray[]
  */
 DISTARRAY_BLOCKDISTARRAY2DINT_INLINE_DECL
-void
+int32_t
 distarray_BlockDistArray2dInt_getFromArray(
   /* in */ distarray_BlockDistArray2dInt self,
   /* in */ int32_t idx1,
@@ -225,11 +225,13 @@ distarray_BlockDistArray2dInt_getFromArray(
   /* out */ sidl_BaseInterface *_ex)
 #ifdef DISTARRAY_BLOCKDISTARRAY2DINT_INLINE_DECL
 {
-  (*self->d_epv->f_getFromArray)(
+  int32_t _result;
+  _result = (*self->d_epv->f_getFromArray)(
     self,
     idx1,
     idx2,
     _ex);
+  return _result;
 }
 #else
 ;

@@ -26,7 +26,7 @@
 #endif
 
 /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._includes) */
-/* insert code here (includes and arbitrary code) */
+#include <stdio.h>
 /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._includes) */
 
 #define SIDL_IOR_MAJOR_VERSION 2
@@ -48,7 +48,7 @@ impl_distarray_BlockDistArray2dInt__load(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._load) */
-    /* insert code here (static class initializer) */
+	printf("impl_distarray_BlockDistArray2dInt__load()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._load) */
   }
 }
@@ -70,6 +70,7 @@ impl_distarray_BlockDistArray2dInt__ctor(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._ctor) */
+	printf("impl_distarray_BlockDistArray2dInt__ctor()\n");
     /*
      * // boilerplate constructor
      * struct distarray_BlockDistArray2dInt__data *dptr = (struct distarray_BlockDistArray2dInt__data*)malloc(sizeof(struct distarray_BlockDistArray2dInt__data));
@@ -111,6 +112,7 @@ impl_distarray_BlockDistArray2dInt__ctor2(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._ctor2) */
+	printf("impl_distarray_BlockDistArray2dInt__ctor2()\n");
     /* insert code here (special constructor) */
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._ctor2) */
   }
@@ -133,6 +135,7 @@ impl_distarray_BlockDistArray2dInt__dtor(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._dtor) */
+	printf("impl_distarray_BlockDistArray2dInt__dtor()\n");
     /*
      * // boilerplate destructor
      * struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
@@ -171,7 +174,7 @@ impl_distarray_BlockDistArray2dInt_initArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.initArray) */
-    /* insert code here (initArray) */
+	printf("impl_distarray_BlockDistArray2dInt_initArray()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.initArray) */
   }
 }
@@ -194,7 +197,7 @@ impl_distarray_BlockDistArray2dInt_getDimension(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getDimension) */
-    /* insert code here (getDimension) */
+	printf("impl_distarray_BlockDistArray2dInt_getDimension()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getDimension) */
   }
 }
@@ -218,7 +221,7 @@ impl_distarray_BlockDistArray2dInt_getLower(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getLower) */
-    /* insert code here (getLower) */
+	printf("impl_distarray_BlockDistArray2dInt_getLower()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getLower) */
   }
 }
@@ -242,7 +245,7 @@ impl_distarray_BlockDistArray2dInt_getHigher(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getHigher) */
-    /* insert code here (getHigher) */
+	printf("impl_distarray_BlockDistArray2dInt_getHigher()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getHigher) */
   }
 }
@@ -257,7 +260,7 @@ impl_distarray_BlockDistArray2dInt_getHigher(
 #ifdef __cplusplus
 extern "C"
 #endif
-void
+int32_t
 impl_distarray_BlockDistArray2dInt_getFromArray(
   /* in */ distarray_BlockDistArray2dInt self,
   /* in */ int32_t idx1,
@@ -267,7 +270,7 @@ impl_distarray_BlockDistArray2dInt_getFromArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getFromArray) */
-    /* insert code here (getFromArray) */
+	printf("impl_distarray_BlockDistArray2dInt_getFromArray()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getFromArray) */
   }
 }
@@ -293,7 +296,7 @@ impl_distarray_BlockDistArray2dInt_setIntoArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.setIntoArray) */
-    /* insert code here (setIntoArray) */
+	printf("impl_distarray_BlockDistArray2dInt_setIntoArray()\n");
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.setIntoArray) */
   }
 }

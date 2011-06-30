@@ -80,7 +80,7 @@ impl_distarray_BlockDistArray2dInt_getHigher(
   /* out */ sidl_BaseInterface *_ex);
 
 extern
-void
+int32_t
 impl_distarray_BlockDistArray2dInt_getFromArray(
   /* in */ distarray_BlockDistArray2dInt self,
   /* in */ int32_t idx1,

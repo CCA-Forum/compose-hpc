@@ -1413,7 +1413,7 @@ remote_distarray_BlockDistArray2dInt_getHigher(
 }
 
 /* REMOTE METHOD STUB:getFromArray */
-static void
+static int32_t
 remote_distarray_BlockDistArray2dInt_getFromArray(
   /* in */ struct distarray_BlockDistArray2dInt__object*self ,
   /* in */ int32_t idx1,
@@ -1427,6 +1427,7 @@ remote_distarray_BlockDistArray2dInt_getFromArray(
     struct sidl_BaseInterface__object* _throwaway = NULL;
     sidl_BaseException _be = NULL;
     sidl_rmi_Response _rsvp = NULL;
+    int32_t _retval = 0;
     struct sidl_rmi_InstanceHandle__object * _conn = ((struct 
       distarray_BlockDistArray2dInt__remote*)self->d_data)->d_ih;
     sidl_rmi_Invocation _inv = sidl_rmi_InstanceHandle_createInvocation( _conn, 
@@ -1450,13 +1451,17 @@ remote_distarray_BlockDistArray2dInt_getFromArray(
       goto EXIT;
     }
 
+    /* extract return value */
+    sidl_rmi_Response_unpackInt( _rsvp, "_retval", &_retval, _ex);SIDL_CHECK(
+      *_ex);
+
     /* unpack out and inout arguments */
 
     /* cleanup and return */
     EXIT:
     if(_inv) { sidl_rmi_Invocation_deleteRef(_inv, &_throwaway); }
     if(_rsvp) { sidl_rmi_Response_deleteRef(_rsvp, &_throwaway); }
-    return;
+    return _retval;
   }
 }
 
