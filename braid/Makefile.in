@@ -531,7 +531,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	contrib/ply/README contrib/ply/__init__.py contrib/ply/cpp.py \
 	contrib/ply/ctokens.py contrib/ply/lex.py contrib/ply/yacc.py \
 	$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py \
-	braid/sidl.py $(BABEL_TESTS) \
+	braid/sidl.py braid/headerize $(BABEL_TESTS) \
 	chapel-patches/0002-add-support-for-reference-copying-borrowing-from-dat.diff \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
