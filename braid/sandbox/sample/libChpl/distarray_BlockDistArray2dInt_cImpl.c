@@ -27,6 +27,8 @@
 
 /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._includes) */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._includes) */
 
 #define SIDL_IOR_MAJOR_VERSION 2
@@ -71,24 +73,21 @@ impl_distarray_BlockDistArray2dInt__ctor(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._ctor) */
 	printf("impl_distarray_BlockDistArray2dInt__ctor()\n");
-    /*
-     * // boilerplate constructor
-     * struct distarray_BlockDistArray2dInt__data *dptr = (struct distarray_BlockDistArray2dInt__data*)malloc(sizeof(struct distarray_BlockDistArray2dInt__data));
-     * if (dptr) {
-     *   memset(dptr, 0, sizeof(struct distarray_BlockDistArray2dInt__data));
-     *   // initialize elements of dptr here
-     * distarray_BlockDistArray2dInt__set_data(self, dptr);
-     * } else {
-     *   sidl_MemAllocException ex = sidl_MemAllocException_getSingletonException(_ex);
-     *   SIDL_CHECK(*_ex);
-     *   sidl_MemAllocException_setNote(ex, "Out of memory.", _ex); SIDL_CHECK(*_ex);
-     *   sidl_MemAllocException_add(ex, __FILE__, __LINE__, "distarray.BlockDistArray2dInt._ctor", _ex);
-     *   SIDL_CHECK(*_ex);
-     *   *_ex = (sidl_BaseInterface)ex;
-     * }
-     * EXIT:;
-     */
-
+	// boilerplate constructor
+	struct distarray_BlockDistArray2dInt__data *dptr = (struct distarray_BlockDistArray2dInt__data*)malloc(sizeof(struct distarray_BlockDistArray2dInt__data));
+	if (dptr) {
+	  memset(dptr, 0, sizeof(struct distarray_BlockDistArray2dInt__data));
+	  // initialize elements of dptr here
+	  distarray_BlockDistArray2dInt__set_data(self, dptr);
+	} else {
+	  sidl_MemAllocException ex = sidl_MemAllocException_getSingletonException(_ex);
+	  SIDL_CHECK(*_ex);
+	  sidl_MemAllocException_setNote(ex, "Out of memory.", _ex); SIDL_CHECK(*_ex);
+	  sidl_MemAllocException_add(ex, __FILE__, __LINE__, "distarray.BlockDistArray2dInt._ctor", _ex);
+	  SIDL_CHECK(*_ex);
+	  *_ex = (sidl_BaseInterface)ex;
+	}
+	EXIT:;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._ctor) */
   }
 }
@@ -136,16 +135,16 @@ impl_distarray_BlockDistArray2dInt__dtor(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._dtor) */
 	printf("impl_distarray_BlockDistArray2dInt__dtor()\n");
-    /*
-     * // boilerplate destructor
-     * struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
-     * if (dptr) {
-     *   // free contained in dtor before next line
-     *   free(dptr);
-     *   distarray_BlockDistArray2dInt__set_data(self, NULL);
-     * }
-     */
-
+    // boilerplate destructor
+    struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+    if (dptr) {
+      // TODO Need to callback chapel to free the data?
+      if (dptr->lower) free(dptr->lower);
+      if (dptr->higher) free(dptr->higher);
+      // free contained in dtor before next line
+      free(dptr);
+      distarray_BlockDistArray2dInt__set_data(self, NULL);
+    }
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._dtor) */
   }
 }
@@ -156,6 +155,18 @@ impl_distarray_BlockDistArray2dInt__dtor(
 
 #undef __FUNC__
 #define __FUNC__ "impl_distarray_BlockDistArray2dInt_initArray"
+
+#ifdef __cplusplus
+extern "C"
+#endif
+extern
+BlockDistArray2dIntChpl impl_distarray_BlockDistArray2dInt_initArray_chpl(
+		/* in */ int32_t lo1,
+		/* in */ int32_t hi1,
+		/* in */ int32_t lo2,
+		/* in */ int32_t hi2,
+		/* in */ int32_t blk1,
+		/* in */ int32_t blk2);
 
 #ifdef __cplusplus
 extern "C"
@@ -175,6 +186,18 @@ impl_distarray_BlockDistArray2dInt_initArray(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.initArray) */
 	printf("impl_distarray_BlockDistArray2dInt_initArray()\n");
+	BlockDistArray2dIntChpl distArray = impl_distarray_BlockDistArray2dInt_initArray_chpl(lo1, hi1, lo2, hi2, blk1, blk2);
+	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+	dptr->chpl_data = distArray;
+	// TODO Store inside metadata struct instead
+	int dimValue = 2;
+	dptr->dimension = dimValue;
+	dptr->lower = (int32_t*)malloc(sizeof(int32_t) * dimValue);
+	dptr->lower[0] = lo1;
+	dptr->lower[1] = lo2;
+	dptr->higher = (int32_t*)malloc(sizeof(int32_t) * dimValue);
+	dptr->higher[0] = hi1;
+	dptr->higher[1] = hi2;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.initArray) */
   }
 }
@@ -185,6 +208,7 @@ impl_distarray_BlockDistArray2dInt_initArray(
 
 #undef __FUNC__
 #define __FUNC__ "impl_distarray_BlockDistArray2dInt_getDimension"
+
 
 #ifdef __cplusplus
 extern "C"
@@ -198,6 +222,8 @@ impl_distarray_BlockDistArray2dInt_getDimension(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getDimension) */
 	printf("impl_distarray_BlockDistArray2dInt_getDimension()\n");
+	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+	return dptr->dimension;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getDimension) */
   }
 }
@@ -208,6 +234,7 @@ impl_distarray_BlockDistArray2dInt_getDimension(
 
 #undef __FUNC__
 #define __FUNC__ "impl_distarray_BlockDistArray2dInt_getLower"
+
 
 #ifdef __cplusplus
 extern "C"
@@ -222,6 +249,8 @@ impl_distarray_BlockDistArray2dInt_getLower(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getLower) */
 	printf("impl_distarray_BlockDistArray2dInt_getLower()\n");
+	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+	return dptr->lower[dim];
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getLower) */
   }
 }
@@ -232,6 +261,7 @@ impl_distarray_BlockDistArray2dInt_getLower(
 
 #undef __FUNC__
 #define __FUNC__ "impl_distarray_BlockDistArray2dInt_getHigher"
+
 
 #ifdef __cplusplus
 extern "C"
@@ -246,6 +276,8 @@ impl_distarray_BlockDistArray2dInt_getHigher(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getHigher) */
 	printf("impl_distarray_BlockDistArray2dInt_getHigher()\n");
+	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+	return dptr->higher[dim];
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getHigher) */
   }
 }
@@ -256,6 +288,16 @@ impl_distarray_BlockDistArray2dInt_getHigher(
 
 #undef __FUNC__
 #define __FUNC__ "impl_distarray_BlockDistArray2dInt_getFromArray"
+
+#ifdef __cplusplus
+extern "C"
+#endif
+extern
+int32_t
+impl_distarray_BlockDistArray2dInt_getFromArray_chpl(
+		BlockDistArray2dIntChpl distArray,
+		/* in */ int32_t idx1,
+		/* in */ int32_t idx2);
 
 #ifdef __cplusplus
 extern "C"
@@ -271,6 +313,8 @@ impl_distarray_BlockDistArray2dInt_getFromArray(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getFromArray) */
 	printf("impl_distarray_BlockDistArray2dInt_getFromArray()\n");
+	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+	return impl_distarray_BlockDistArray2dInt_getFromArray_chpl(dptr->chpl_data, idx1, idx2);
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getFromArray) */
   }
 }
@@ -281,6 +325,17 @@ impl_distarray_BlockDistArray2dInt_getFromArray(
 
 #undef __FUNC__
 #define __FUNC__ "impl_distarray_BlockDistArray2dInt_setIntoArray"
+
+#ifdef __cplusplus
+extern "C"
+#endif
+extern
+int32_t
+impl_distarray_BlockDistArray2dInt_setIntoArray_chpl(
+		BlockDistArray2dIntChpl distArray,
+		/* in */ int32_t newVal,
+		/* in */ int32_t idx1,
+		/* in */ int32_t idx2);
 
 #ifdef __cplusplus
 extern "C"
@@ -297,6 +352,8 @@ impl_distarray_BlockDistArray2dInt_setIntoArray(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.setIntoArray) */
 	printf("impl_distarray_BlockDistArray2dInt_setIntoArray()\n");
+	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
+	impl_distarray_BlockDistArray2dInt_setIntoArray_chpl(dptr->chpl_data, newVal, idx1, idx2);
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.setIntoArray) */
   }
 }
