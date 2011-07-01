@@ -31,7 +31,20 @@
 #include "sidl_RuntimeException.h"
 #endif
 /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._hincludes) */
-/* insert code here (include files) */
+
+/**
+ * START: Chapel implementation specific declarations
+ */
+
+// Make forward references of external structs
+struct __DistArray_int32_t_2__array_BlockArr_int32_t_2_int32_t_F_BlockArr_int32_t_2_int32_t_F;
+
+typedef struct __DistArray_int32_t_2__array_BlockArr_int32_t_2_int32_t_F_BlockArr_int32_t_2_int32_t_F* BlockDistArray2dIntChpl;
+
+/**
+ * END: Chapel implementation specific declarations
+ */
+
 /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._hincludes) */
 
 /*
@@ -41,7 +54,11 @@
 struct distarray_BlockDistArray2dInt__data {
   /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._data) */
   /* insert code here (private data members) */
-  int ignore; /* dummy to force non-empty struct; remove if you add data */
+  // TODO Reuse existing struct from babel for metadata?
+  int dimension;
+  int* lower;
+  int* higher;
+  BlockDistArray2dIntChpl chpl_data;
   /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._data) */
 };
 

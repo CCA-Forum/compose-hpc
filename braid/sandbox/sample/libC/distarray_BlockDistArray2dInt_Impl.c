@@ -71,23 +71,22 @@ impl_distarray_BlockDistArray2dInt__ctor(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._ctor) */
 	printf("impl_distarray_BlockDistArray2dInt__ctor()\n");
-    /*
-     * // boilerplate constructor
-     * struct distarray_BlockDistArray2dInt__data *dptr = (struct distarray_BlockDistArray2dInt__data*)malloc(sizeof(struct distarray_BlockDistArray2dInt__data));
-     * if (dptr) {
-     *   memset(dptr, 0, sizeof(struct distarray_BlockDistArray2dInt__data));
-     *   // initialize elements of dptr here
-     * distarray_BlockDistArray2dInt__set_data(self, dptr);
-     * } else {
-     *   sidl_MemAllocException ex = sidl_MemAllocException_getSingletonException(_ex);
-     *   SIDL_CHECK(*_ex);
-     *   sidl_MemAllocException_setNote(ex, "Out of memory.", _ex); SIDL_CHECK(*_ex);
-     *   sidl_MemAllocException_add(ex, __FILE__, __LINE__, "distarray.BlockDistArray2dInt._ctor", _ex);
-     *   SIDL_CHECK(*_ex);
-     *   *_ex = (sidl_BaseInterface)ex;
-     * }
-     * EXIT:;
-     */
+
+    // boilerplate constructor
+    struct distarray_BlockDistArray2dInt__data *dptr = (struct distarray_BlockDistArray2dInt__data*)malloc(sizeof(struct distarray_BlockDistArray2dInt__data));
+    if (dptr) {
+      memset(dptr, 0, sizeof(struct distarray_BlockDistArray2dInt__data));
+      // initialize elements of dptr here
+      distarray_BlockDistArray2dInt__set_data(self, dptr);
+    } else {
+      sidl_MemAllocException ex = sidl_MemAllocException_getSingletonException(_ex);
+      SIDL_CHECK(*_ex);
+      sidl_MemAllocException_setNote(ex, "Out of memory.", _ex); SIDL_CHECK(*_ex);
+      sidl_MemAllocException_add(ex, __FILE__, __LINE__, "distarray.BlockDistArray2dInt._ctor", _ex);
+      SIDL_CHECK(*_ex);
+      *_ex = (sidl_BaseInterface)ex;
+    }
+    EXIT:;
 
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._ctor) */
   }
@@ -175,7 +174,8 @@ impl_distarray_BlockDistArray2dInt_initArray(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.initArray) */
 	printf("impl_distarray_BlockDistArray2dInt_initArray()\n");
-    /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.initArray) */
+	// TODO Make call into chpl method
+	/* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.initArray) */
   }
 }
 
@@ -198,6 +198,8 @@ impl_distarray_BlockDistArray2dInt_getDimension(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getDimension) */
 	printf("impl_distarray_BlockDistArray2dInt_getDimension()\n");
+	// TODO Make call into chpl method
+	return 0;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getDimension) */
   }
 }
@@ -222,6 +224,9 @@ impl_distarray_BlockDistArray2dInt_getLower(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getLower) */
 	printf("impl_distarray_BlockDistArray2dInt_getLower()\n");
+	// TODO Make call into chpl method
+	// TODO Make call into chpl method
+		return 0;return 0;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getLower) */
   }
 }
@@ -246,6 +251,8 @@ impl_distarray_BlockDistArray2dInt_getHigher(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getHigher) */
 	printf("impl_distarray_BlockDistArray2dInt_getHigher()\n");
+	// TODO Make call into chpl method
+    return 0;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getHigher) */
   }
 }
@@ -271,6 +278,8 @@ impl_distarray_BlockDistArray2dInt_getFromArray(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getFromArray) */
 	printf("impl_distarray_BlockDistArray2dInt_getFromArray()\n");
+	// TODO Make call into chpl method
+	return 0;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getFromArray) */
   }
 }
@@ -297,7 +306,7 @@ impl_distarray_BlockDistArray2dInt_setIntoArray(
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.setIntoArray) */
 	printf("impl_distarray_BlockDistArray2dInt_setIntoArray()\n");
-    /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.setIntoArray) */
+	/* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.setIntoArray) */
   }
 }
 /* Babel internal methods, Users should not edit below this line. */
