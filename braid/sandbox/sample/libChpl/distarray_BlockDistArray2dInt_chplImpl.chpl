@@ -41,15 +41,15 @@ proc impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
 	halt("The number of blocks in each dimension do not match: ", N1, " and ", N2, " blocks in each dim.");
   }
   
-  writeln("   Correcting alignment...");
+  // writeln("A.distArr: "); writeln(A.distArr);
+  // writeln("B.distArr: "); writeln(B.distArr);  
+  
   // Initial alignment: shift block-column i of B UP by i block-units, block-row i of A LEFT by i block-units
   for i in [1..(N1 - 1)] do {
 	var loopLowA = lo1 + (i * blk1);
 	var loopLowB = lo2 + (i * blk2);
-	writeln("   i = ", i, ", loopLowA = ", loopLowA, ", loopLowB = ", loopLowB);
-	writeln("   distarray_BlockDistArray2dInt_shiftLeft()...");
+	// writeln("   i = ", i, ", loopLowA = ", loopLowA, ", loopLowB = ", loopLowB);
 	distarray_BlockDistArray2dInt_shiftLeft(A, loopLowA, loopLowA + blk1 - 1, lo2, hi2, blk1, blk2);
-	writeln("   distarray_BlockDistArray2dInt_shiftUp()...");
 	distarray_BlockDistArray2dInt_shiftUp(B, lo1, hi1, loopLowB, loopLowB + blk2 - 1, blk1, blk2);
   }
 
@@ -77,7 +77,7 @@ proc impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
     }
   }
 	
-  writeln("C.distArr: "); writeln(C.distArr);
+  // writeln("C.distArr: "); writeln(C.distArr);
   // C stores the result	
 }
 //**/
