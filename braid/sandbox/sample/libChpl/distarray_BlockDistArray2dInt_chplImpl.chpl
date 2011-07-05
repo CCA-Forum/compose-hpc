@@ -40,7 +40,7 @@ proc impl_distarray_BlockDistArray2dInt_multiply_cannon(
   if (N1 != N2) {
 	halt("The number of blocks in each dimension do not match: ", N1, " and ", N2, " blocks in eahc dim.");
   }
-	  
+    
   // Initial alignment: shift block-column i of B UP by i block-units, block-row i of A LEFT by i block-units
   for i in [1..(N1 - 1)] do {
 	var loopLowA = lo1 + (i * blk1);
@@ -54,14 +54,16 @@ proc impl_distarray_BlockDistArray2dInt_multiply_cannon(
 	// TODO Need to parallelize this
 	//   perform local multiplication to store items in C
     for (b1, b2) in [0.. #N1, 0.. #N2] do {
-      var loopLo1 = lo1 + (b1 * blk1);
-      var loopLo2 = lo2 + (b2 * blk2);
-      var loopHi1 = loopLo1 + blk1 - 1;
-      var loopHi2 = loopLo2 + blk2 - 1;
+      on Locales((b1 * N1 + b2) % numLocales) do {	
+        var loopLo1 = lo1 + (b1 * blk1);
+        var loopLo2 = lo2 + (b2 * blk2);
+        var loopHi1 = loopLo1 + blk1 - 1;
+        var loopHi2 = loopLo2 + blk2 - 1;
       
-      for (i1, j1) in [loopLo1..loopHi1, loopLo2..loopHi2] do
-    	for (k1, k2) in (loopLo1..loopHi1, loopLo2..loopHi2) do // zipper iteration
-    	  C.distArr(i1, j1) += A.distArr(i1, k2) * B.distArr(k1, j1);
+        for (i1, j1) in [loopLo1..loopHi1, loopLo2..loopHi2] do
+    	  for (k1, k2) in (loopLo1..loopHi1, loopLo2..loopHi2) do // zipper iteration
+    	    C.distArr(i1, j1) += A.distArr(i1, k2) * B.distArr(k1, j1);
+      }
     }
     if (i != N1) {
 	  //   shift entire A LEFT by one block-unit
@@ -133,22 +135,20 @@ proc main_dummy_calls() {
   
   for (i,j) in [1..4, 1..6] do 
 	distArray.distArr(i, j) = 10 * i + j;  
-  writeln("Before Shift-Left:"); writeln(distArray.distArr);
+  // writeln("Before Shift-Left:"); writeln(distArray.distArr);
   distarray_BlockDistArray2dInt_shiftLeft(distArray, 1, 4, 1, 6, 2, 3);
-  writeln("After Shift-Left:"); writeln(distArray.distArr);
+  // writeln("After Shift-Left:"); writeln(distArray.distArr);
   
   for (i,j) in [1..4, 1..6] do 
   	distArray.distArr(i, j) = 10 * i + j;  
-    writeln("Before Shift-Up:"); writeln(distArray.distArr);
-    distarray_BlockDistArray2dInt_shiftUp(distArray, 1, 4, 1, 6, 2, 3);
-    writeln("After Shift-Up:"); writeln(distArray.distArr);
+  // writeln("Before Shift-Up:"); writeln(distArray.distArr);
+  distarray_BlockDistArray2dInt_shiftUp(distArray, 1, 4, 1, 6, 2, 3);
+  // writeln("After Shift-Up:"); writeln(distArray.distArr);
     
   var A = impl_distarray_BlockDistArray2dInt_initArray_chpl(1, 4, 1, 4, 2, 2);
-  for (i,j) in [1..4, 1..4] do 
-    A.distArr(i, j) = 10 * i + j; 
+  for (i,j) in [1..4, 1..4] do A.distArr(i, j) = 10 * i + j; 
   var B = impl_distarray_BlockDistArray2dInt_initArray_chpl(1, 4, 1, 4, 2, 2);
-  for (i,j) in [1..4, 1..4] do 
-    B.distArr(i, j) = 10 * j + i; 
+  for (i,j) in [1..4, 1..4] do B.distArr(i, j) = 10 * j + i; 
   var C = impl_distarray_BlockDistArray2dInt_initArray_chpl(1, 4, 1, 4, 2, 2);
   C.distArr = 0;
   
