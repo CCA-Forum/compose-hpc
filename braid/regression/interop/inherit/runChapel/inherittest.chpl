@@ -57,12 +57,12 @@ proc clearstack(magicNumber: int): int
   init_part("c.c()"); run_part(c.c(), "C.c");
 }
 
-/*   {  */
-/*     Inherit::D d = makeDObject(); */
-/*     tracker.writeComment("Class D: inheritance of interface A"); */
-/*     INHERITTEST(d.a(), "D.a"); */
-/*     INHERITTEST(d.d(), "D.d"); */
-
+  {
+    var d = new Inherit.D();
+    tracker.writeComment("Class D: inheritance of interface A");
+    init_part("d.a()"); run_part(d.a(), "D.a");
+    init_part("d.d()"); run_part(d.d(), "D.d");
+  }
 
 /*     tracker.writeComment("Class D: via interface A"); */
 /*     Inherit::A a(d); */
@@ -72,7 +72,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(a.a(), "D.a"); */
+/*       init_part("a.a()"); run_part(a.a(), "D.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class D2: via interface A"); */
@@ -83,7 +83,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(d2.d(), "D.d"); */
+/*       init_part("d2.d()"); run_part(d2.d(), "D.d"); */
 /*     } */
 
 /*   } */
@@ -91,8 +91,8 @@ proc clearstack(magicNumber: int): int
 /*   {  */
 /*     Inherit::E e = makeEObject();  */
 /*     tracker.writeComment("Class E: inheritance of class C"); */
-/*     INHERITTEST(e.c(), "C.c"); */
-/*     INHERITTEST(e.e(), "E.e"); */
+/*     init_part("e.c()"); run_part(e.c(), "C.c"); */
+/*     init_part("e.e()"); run_part(e.e(), "E.e"); */
 
 /*     tracker.writeComment("Class E: via class C (C.c not overridden)"); */
 /*     tracker.startPart(++part_no); */
@@ -102,15 +102,15 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(c.c(), "C.c"); */
+/*       init_part("c.c()"); run_part(c.c(), "C.c"); */
 /*     } */
 /*   } */
 
 /*   {  */
 /*     Inherit::E2 e2 = makeE2Object();  */
 /*     tracker.writeComment("Class E2: inheritance of class C"); */
-/*     INHERITTEST(e2.c(), "E2.c"); */
-/*     INHERITTEST(e2.e(), "E2.e"); */
+/*     init_part("e2.c()"); run_part(e2.c(), "E2.c"); */
+/*     init_part("e2.e()"); run_part(e2.e(), "E2.e"); */
 
 /*     tracker.writeComment("Class E2: via class C (C.c overridden)"); */
 /*     tracker.startPart(++part_no); */
@@ -120,19 +120,19 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(c.c(), "E2.c"); */
+/*       init_part("c.c()"); run_part(c.c(), "E2.c"); */
 /*     } */
 
-/*     INHERITTEST(Inherit::E2::m(), "E2.m"); */
+/*     init_part("Inherit::E2::m()"); run_part(Inherit::E2::m(), "E2.m"); */
 /*   } */
 
 /*   {  */
 /*     Inherit::F f = makeFObject(); */
 /*     tracker.writeComment("Class F: Multiple inheritance (no overriding)"); */
-/*     INHERITTEST(f.a(), "F.a"); */
-/*     INHERITTEST(f.b(), "F.b"); */
-/*     INHERITTEST(f.c(), "C.c"); */
-/*     INHERITTEST(f.f(), "F.f"); */
+/*     init_part("f.a()"); run_part(f.a(), "F.a"); */
+/*     init_part("f.b()"); run_part(f.b(), "F.b"); */
+/*     init_part("f.c()"); run_part(f.c(), "C.c"); */
+/*     init_part("f.f()"); run_part(f.f(), "F.f"); */
     
 /*     tracker.writeComment("Class F: via interface A") ; */
 /*     tracker.startPart(++part_no); */
@@ -142,7 +142,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(a.a(), "F.a"); */
+/*       init_part("a.a()"); run_part(a.a(), "F.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class F: via interface B"); */
@@ -153,7 +153,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(b.b(), "F.b"); */
+/*       init_part("b.b()"); run_part(b.b(), "F.b"); */
 /*     } */
 
 
@@ -165,17 +165,17 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(c.c(), "C.c"); */
+/*       init_part("c.c()"); run_part(c.c(), "C.c"); */
 /*     }  */
 /*   } */
 
 /*   {  */
 /*     Inherit::F2 f2 = makeF2Object(); */
 /*     tracker.writeComment("Class F2: Multiple inheritance (overrides C.c)"); */
-/*     INHERITTEST(f2.a(), "F2.a"); */
-/*     INHERITTEST(f2.b(), "F2.b"); */
-/*     INHERITTEST(f2.c(), "F2.c"); */
-/*     INHERITTEST(f2.f(), "F2.f"); */
+/*     init_part("f2.a()"); run_part(f2.a(), "F2.a"); */
+/*     init_part("f2.b()"); run_part(f2.b(), "F2.b"); */
+/*     init_part("f2.c()"); run_part(f2.c(), "F2.c"); */
+/*     init_part("f2.f()"); run_part(f2.f(), "F2.f"); */
     
 /*     tracker.writeComment("Class F2: via interface A"); */
 /*     tracker.startPart(++part_no); */
@@ -185,7 +185,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(a.a(), "F2.a"); */
+/*       init_part("a.a()"); run_part(a.a(), "F2.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class F2: via interface B"); */
@@ -196,7 +196,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(b.b(), "F2.b"); */
+/*       init_part("b.b()"); run_part(b.b(), "F2.b"); */
 /*     } */
 
 /*     tracker.writeComment("Class F2: via class C (overloads C.c)") ; */
@@ -207,7 +207,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(c.c(), "F2.c"); */
+/*       init_part("c.c()"); run_part(c.c(), "F2.c"); */
 /*     }  */
 /*   } */
 
@@ -215,9 +215,9 @@ proc clearstack(magicNumber: int): int
 /*     Inherit::G g = makeGObject(); */
 
 /*     tracker.writeComment("Class G: indirect multiple inheritance ( no overloads)"); */
-/*     INHERITTEST(g.a(), "D.a"); */
-/*     INHERITTEST(g.d(), "D.d"); */
-/*     INHERITTEST(g.g(), "G.g"); */
+/*     init_part("g.a()"); run_part(g.a(), "D.a"); */
+/*     init_part("g.d()"); run_part(g.d(), "D.d"); */
+/*     init_part("g.g()"); run_part(g.g(), "G.g"); */
 
     
 /*     tracker.writeComment("Class G: via interface A"); */
@@ -228,7 +228,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(a.a(), "D.a"); */
+/*       init_part("a.a()"); run_part(a.a(), "D.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class G: via class D"); */
@@ -239,8 +239,8 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(d.a(), "D.a"); */
-/*       INHERITTEST(d.d(), "D.d"); */
+/*       init_part("d.a()"); run_part(d.a(), "D.a"); */
+/*       init_part("d.d()"); run_part(d.d(), "D.d"); */
 /*     } */
 
 /*   } */
@@ -249,9 +249,9 @@ proc clearstack(magicNumber: int): int
 /*     Inherit::G2 g2 = makeG2Object(); */
 
 /*     tracker.writeComment("Class G2: indirect multiple inheritance (overloads)"); */
-/*     INHERITTEST(g2.a(), "G2.a"); */
-/*     INHERITTEST(g2.d(), "G2.d"); */
-/*     INHERITTEST(g2.g(), "G2.g"); */
+/*     init_part("g2.a()"); run_part(g2.a(), "G2.a"); */
+/*     init_part("g2.d()"); run_part(g2.d(), "G2.d"); */
+/*     init_part("g2.g()"); run_part(g2.g(), "G2.g"); */
 
     
 /*     tracker.writeComment("Class G2: via interface A"); */
@@ -262,7 +262,7 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(a.a(), "G2.a"); */
+/*       init_part("a.a()"); run_part(a.a(), "G2.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class G2: via class D"); */
@@ -273,8 +273,8 @@ proc clearstack(magicNumber: int): int
 /*       tracker.endPart(part_no, synch::ResultType_FAIL); */
 /*     } else {  */
 /*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       INHERITTEST(d.a(), "G2.a"); */
-/*       INHERITTEST(d.d(), "G2.d"); */
+/*       init_part("d.a()"); run_part(d.a(), "G2.a"); */
+/*       init_part("d.d()"); run_part(d.d(), "G2.d"); */
 /*     } */
 
 /*   } */
@@ -282,67 +282,67 @@ proc clearstack(magicNumber: int): int
 /*   { */
 /*     Inherit::I i = makeIObject(); */
 /*     tracker.writeComment("Class I: implements abstract class H that implements A"); */
-/*     INHERITTEST(i.a(), "I.a"); */
-/*     INHERITTEST(i.h(), "I.h"); */
+/*     init_part("i.a()"); run_part(i.a(), "I.a"); */
+/*     init_part("i.h()"); run_part(i.h(), "I.h"); */
     
 /*     tracker.writeComment("Class I: via interface A"); */
 /*     Inherit::A a = i; */
-/*     INHERITTEST(a.a(), "I.a"); */
+/*     init_part("a.a()"); run_part(a.a(), "I.a"); */
     
 /*     tracker.writeComment("Class I: via abstract class H"); */
 /*     Inherit::H h = i; */
-/*     INHERITTEST(h.a(), "I.a"); */
-/*     INHERITTEST(h.h(), "I.h"); */
+/*     init_part("h.a()"); run_part(h.a(), "I.a"); */
+/*     init_part("h.h()"); run_part(h.h(), "I.h"); */
 /*   } */
 
 /*   { */
 /*     Inherit::J j = makeJObject(); */
 /*     tracker.writeComment("\nClass J: implements A and B, extends E. Calls super of E and C\n"); */
-/*     INHERITTEST(j.a(), "J.a"); */
-/*     INHERITTEST(j.b(), "J.b"); */
-/*     INHERITTEST(j.j(), "J.j"); */
-/*     INHERITTEST(j.c(), "J.E2.c"); */
-/*     INHERITTEST(j.e(), "J.E2.e"); */
+/*     init_part("j.a()"); run_part(j.a(), "J.a"); */
+/*     init_part("j.b()"); run_part(j.b(), "J.b"); */
+/*     init_part("j.j()"); run_part(j.j(), "J.j"); */
+/*     init_part("j.c()"); run_part(j.c(), "J.E2.c"); */
+/*     init_part("j.e()"); run_part(j.e(), "J.E2.e"); */
     
-/*     INHERITTEST(Inherit::J::m(), "E2.m"); */
+/*     init_part("Inherit::J::m()"); run_part(Inherit::J::m(), "E2.m"); */
 /*   } */
 
 /*   { */
 /*     Inherit::K k = makeKObject(); */
 /*     tracker.writeComment("Class K: implements A2, extends H."); */
-/*     INHERITTEST(k.a(), "K.a"); */
-/*     INHERITTEST(k.a(0), "K.a2"); */
-/*     INHERITTEST(k.h(), "K.h"); */
-/*     INHERITTEST(k.k(), "K.k"); */
+/*     init_part("k.a()"); run_part(k.a(), "K.a"); */
+/*     init_part("k.a(0)"); run_part(k.a(0), "K.a2"); */
+/*     init_part("k.h()"); run_part(k.h(), "K.h"); */
+/*     init_part("k.k()"); run_part(k.k(), "K.k"); */
     
 /*     tracker.writeComment("Class K: via interface A"); */
 /*     Inherit::A a = k; */
-/*     INHERITTEST(a.a(), "K.a"); */
+/*     init_part("a.a()"); run_part(a.a(), "K.a"); */
    
 /*     tracker.writeComment("Class K: via interface A2"); */
 /*     Inherit::A2 a2 = k; */
-/*     INHERITTEST(a2.a(0), "K.a2"); */
+/*     init_part("a2.a(0)"); run_part(a2.a(0), "K.a2"); */
     
 /*     tracker.writeComment("Class K: via abstract class H"); */
 /*     Inherit::H h = k; */
-/*     INHERITTEST(h.a(), "K.a"); */
-/*     INHERITTEST(h.h(), "K.h"); */
+/*     init_part("h.a()"); run_part(h.a(), "K.a"); */
+/*     init_part("h.h()"); run_part(h.h(), "K.h"); */
 /*   } */
 
 /*   { */
 /*     Inherit::L l = makeLObject(); */
 /*     tracker.writeComment("Class L: implements A, A2."); */
-/*     INHERITTEST(l.a(), "L.a"); */
-/*     INHERITTEST(l.a(0), "L.a2"); */
-/*     INHERITTEST(l.l(), "L.l"); */
+/*     init_part("l.a()"); run_part(l.a(), "L.a"); */
+/*     init_part("l.a(0)"); run_part(l.a(0), "L.a2"); */
+/*     init_part("l.l()"); run_part(l.l(), "L.l"); */
     
 /*     tracker.writeComment("Class L: via interface A"); */
 /*     Inherit::A a = l; */
-/*     INHERITTEST(a.a(), "L.a"); */
+/*     init_part("a.a()"); run_part(a.a(), "L.a"); */
    
 /*     tracker.writeComment("Class L: via interface A2"); */
 /*     Inherit::A2 a2 = l; */
-/*     INHERITTEST(a2.a(0), "L.a2"); */
+/*     init_part("a2.a(0)"); run_part(a2.a(0), "L.a2"); */
     
 /*   } */
 
