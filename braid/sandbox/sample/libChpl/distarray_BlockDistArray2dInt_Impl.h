@@ -55,9 +55,10 @@ struct distarray_BlockDistArray2dInt__data {
   /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt._data) */
   /* insert code here (private data members) */
   // TODO Reuse existing struct from babel for metadata?
-  int dimension;
-  int* lower;
-  int* higher;
+  int32_t dimension; // store the rank / dimension
+  int32_t* lower;  // store the lower index [inclusive] value in each dimension
+  int32_t* higher; // store the higher index [inclusive] value in each dimension
+  int32_t* blocks; // store the number of blocks in each dimension
   BlockDistArray2dIntChpl chpl_data;
   /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt._data) */
 };

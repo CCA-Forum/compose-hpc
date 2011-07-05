@@ -141,6 +141,7 @@ impl_distarray_BlockDistArray2dInt__dtor(
       // TODO Need to callback chapel to free the data?
       if (dptr->lower) free(dptr->lower);
       if (dptr->higher) free(dptr->higher);
+      if (dptr->blocks) free(dptr->blocks);
       // free contained in dtor before next line
       free(dptr);
       distarray_BlockDistArray2dInt__set_data(self, NULL);
@@ -189,15 +190,19 @@ impl_distarray_BlockDistArray2dInt_initArray(
 	BlockDistArray2dIntChpl distArray = impl_distarray_BlockDistArray2dInt_initArray_chpl(lo1, hi1, lo2, hi2, blk1, blk2);
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	dptr->chpl_data = distArray;
+	// TODO throw error when blk values do not even divide the array in each dimension
 	// TODO Store inside metadata struct instead
-	int dimValue = 2;
+	int32_t dimValue = 2;
 	dptr->dimension = dimValue;
-	dptr->lower = (int32_t*)malloc(sizeof(int32_t) * dimValue);
+	dptr->lower = (int32_t*) malloc(sizeof(int32_t) * dimValue);
 	dptr->lower[0] = lo1;
 	dptr->lower[1] = lo2;
-	dptr->higher = (int32_t*)malloc(sizeof(int32_t) * dimValue);
+	dptr->higher = (int32_t*) malloc(sizeof(int32_t) * dimValue);
 	dptr->higher[0] = hi1;
 	dptr->higher[1] = hi2;
+	dptr->blocks = (int32_t*) malloc(sizeof(int32_t) * dimValue);
+	dptr->blocks[0] = (hi1 - lo1 + 1) / blk1;
+	dptr->blocks[1] = (hi2 - lo2 + 1) / blk2;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.initArray) */
   }
 }
