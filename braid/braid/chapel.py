@@ -24,7 +24,7 @@
 # </pre>
 #
 
-import config, ior_template, ir, os, re, sidl, types
+import config, ior_template, ir, os, re, sidl, tempfile, types
 from patmat import *
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
@@ -87,13 +87,12 @@ def write_to(filename, string):
     string.
     The file is written atomically.
     """
-    tmp = '#'+filename+'#'
-    f = open(tmp,'w')
+    f = tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.')
     f.write(string)
     f.flush()
     os.fsync(f)
     f.close()
-    os.rename(tmp, filename)
+    os.rename(f.name, filename)
 
 def drop_rarray_ext_args(args):
     """
@@ -208,13 +207,13 @@ class Chapel:
                 ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
                 ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
                 
-                self.gen_default_methods(symbol_table, Name, ci)
+                self.gen_default_methods(symbol_table, Implements, ci)
 
                 # recurse to generate method code
                 gen1(Methods, ci)
 
                 # IOR
-                self.generate_ior(ci)
+                self.generate_ior(ci, Implements)
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
                 # Stub (in C)
@@ -277,10 +276,20 @@ class Chapel:
                 self.classes.append(qname)
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
-                # do nothing for now / although the interface should
-                # be used for correctness checks, we probably don't
-                # need to emit any code for it, do we?
-                pass
+                # Interfaces also have an IOR to be generated
+                expect(data, None)
+                qname = '_'.join(symbol_table.prefix+[Name])                
+                ci = self.ClassInfo(Name, symbol_table)
+                ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
+                ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
+                ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
+                ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
+                
+                self.gen_default_methods(symbol_table, [], ci)
+
+                # IOR
+                self.generate_ior(ci, [])
+                write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
@@ -320,7 +329,7 @@ class Chapel:
                 raise Exception("match error")
         return data
 
-    def gen_default_methods(self, symbol_table, name, data):
+    def gen_default_methods(self, symbol_table, implements, data):
         """
         Generate default Babel object methods such as _cast() Also
         generates other IOR data structures such as the _object and
@@ -344,6 +353,10 @@ class Chapel:
 
         def inarg(t, name):
             return sidl.Arg([], sidl.in_, t, name)
+
+        def get_name(interface):
+            (scoped_id, prefix, ext) = interface
+            return '_'.join(prefix)+ext
 
         # Implicit Built-in methods
         builtin(sidl.void, '_cast',
@@ -401,10 +414,20 @@ class Chapel:
                        'The controls and statistics structure')
 
         # @class@__object
+        interfaces = []
+        # pointers to the implemented interface's EPV
+        for impls in implements:
+            for interf in impls[1]:
+                interfaces.append(ir.Struct_item(
+                    ir_babel_object_type(interf[1][:-1], interf[1][-1]),
+                         'd_inherit_'+get_name(interf)))
+        
         data.obj = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''),
                       [ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
-                                      "d_sidl_baseclass"),
+                                      "d_sidl_baseclass")]+
+                      interfaces
+                      +[
                        ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"),
                        ir.Struct_item(unscope(data.cstats), "d_cstats"),
                        ir.Struct_item(ir.Pointer_type(ir.pt_void), "d_data")
@@ -443,13 +466,10 @@ class Chapel:
             '#include <%s_IOR.h>'%qname,
             'typedef struct %s__object _%s__object;'%(qname, qname),
             'typedef _%s__object* %s__object;'%(qname, qname),
-            '#ifndef _CHPL_SIDL_BASETYPES',
-            '#define _CHPL_SIDL_BASETYPES',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
             '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
             %(qname, qname, qname),
-            '#endif'
             ]
         return typedefs
 
@@ -726,7 +746,7 @@ class Chapel:
         else:
             chpl_gen(defn, ci.chpl_stub)
 
-    def generate_ior(self, ci):
+    def generate_ior(self, ci, implements):
         """
         Generate the IOR header file in C.
         """
@@ -735,6 +755,11 @@ class Chapel:
         ci.ior.genh(ir.Import(prefix))
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
+        
+        for impls in implements:
+            for interface in impls[1]:
+                ci.ior.genh(ir.Import('_'.join(interface[1])+'_IOR'))
+
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
         ci.ior.gen(ir.Type_decl(ci.cstats))
@@ -773,9 +798,9 @@ class Chapel:
                 qname = '_'.join(symbol_table.prefix+[Name])                
                 ci = self.ClassInfo(Name, symbol_table, None, self.pkg_chpl_skel)
                 ci.chpl_skel.cstub.genh(ir.Import(qname+'_IOR'))
-                self.gen_default_methods(symbol_table, Name, ci)
+                self.gen_default_methods(symbol_table, Implementes, ci)
                 gen1(Methods, ci)
-                self.generate_ior(ci)
+                self.generate_ior(ci, node)
 
                 # IOR
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
@@ -1700,7 +1725,7 @@ def generate_client_makefile(sidl_file, classes):
            make this work for more than one class
     """
     files = 'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
-    files+= 'STUBHDRS = '+' '.join(['{c}.h {c}_Stub.h {c}_cStub.h'.format(c=c)
+    files+= 'STUBHDRS = '+' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
                                     for c in classes])+'\n'
     files+= 'STUBSRCS = '+' '.join([c+'_cStub.c' for c in classes])+'\n'
 # this is handled by the use statement in the implementation instead:

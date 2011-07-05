@@ -76,7 +76,7 @@ SIDL_TESTS= \
 	regression/parser/wave2d.sidl \
 	regression/parser/wrapper.sidl
 
-EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py
+EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py braid/headerize
 
 ##SIDL_TESTS=$(patsubst %.sidl,../regression/parser/%.sidl, $(SIDL_NAMES))
 
