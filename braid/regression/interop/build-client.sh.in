@@ -41,7 +41,7 @@ $BRAID $sidl -cchapel --makefile			||exit 1
 $BRAID ../../output/output.sidl -cchapel                ||exit 1
 cat >>babel.make <<EOF
 IORHDRS += synch_RegOut_IOR.h
-STUBHDRS += synch_RegOut.h
+STUBHDRS += synch_RegOut_cStub.h synch_RegOut_Stub.h
 STUBSRCS += synch_RegOut_cStub.c 
 EOF
 for libdir in `ls -1 -d ../lib*`; do

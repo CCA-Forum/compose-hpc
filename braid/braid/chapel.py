@@ -24,7 +24,7 @@
 # </pre>
 #
 
-import config, ior_template, ir, os, re, sidl, types
+import config, ior_template, ir, os, re, sidl, tempfile, types
 from patmat import *
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
@@ -87,13 +87,12 @@ def write_to(filename, string):
     string.
     The file is written atomically.
     """
-    tmp = '#'+filename+'#'
-    f = open(tmp,'w')
+    f = tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.')
     f.write(string)
     f.flush()
     os.fsync(f)
     f.close()
-    os.rename(tmp, filename)
+    os.rename(f.name, filename)
 
 def drop_rarray_ext_args(args):
     """
@@ -1727,7 +1726,7 @@ def generate_client_makefile(sidl_file, classes):
            make this work for more than one class
     """
     files = 'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
-    files+= 'STUBHDRS = '+' '.join(['{c}.h {c}_Stub.h {c}_cStub.h'.format(c=c)
+    files+= 'STUBHDRS = '+' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
                                     for c in classes])+'\n'
     files+= 'STUBSRCS = '+' '.join([c+'_cStub.c' for c in classes])+'\n'
 # this is handled by the use statement in the implementation instead:
