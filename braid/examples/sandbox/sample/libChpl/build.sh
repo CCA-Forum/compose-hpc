@@ -25,7 +25,7 @@ GASNET_LDFLAGS=""
 EXTRA_LDFLAGS=""
 
 # extra include/compile flags
-EXTRAFLAGS=-ggdb -O0
+EXTRAFLAGS="-ggdb -O0"
 # extra libraries that the implementation needs to link against
 EXTRALIBS=
 # PREFIX specifies the top of the installation directory
