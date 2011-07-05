@@ -207,13 +207,13 @@ class Chapel:
                 ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
                 ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
                 
-                self.gen_default_methods(symbol_table, node, ci)
+                self.gen_default_methods(symbol_table, Implements, ci)
 
                 # recurse to generate method code
                 gen1(Methods, ci)
 
                 # IOR
-                self.generate_ior(ci)
+                self.generate_ior(ci, Implements)
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
                 # Stub (in C)
@@ -285,10 +285,10 @@ class Chapel:
                 ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
                 ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
                 
-                self.gen_default_methods(symbol_table, node, ci)
+                self.gen_default_methods(symbol_table, [], ci)
 
                 # IOR
-                self.generate_ior(ci)
+                self.generate_ior(ci, [])
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
             elif (sidl.enum, Name, Items, DocComment):
@@ -329,7 +329,7 @@ class Chapel:
                 raise Exception("match error")
         return data
 
-    def gen_default_methods(self, symbol_table, node, data):
+    def gen_default_methods(self, symbol_table, implements, data):
         """
         Generate default Babel object methods such as _cast() Also
         generates other IOR data structures such as the _object and
@@ -355,15 +355,8 @@ class Chapel:
             return sidl.Arg([], sidl.in_, t, name)
 
         def get_name(interface):
-            (scoped_id, prefix, name) = interface
-            return name
-
-        implements = []
-        if node[0] == sidl.class_:
-            (_, (name), extends, implements, invariants, methods, DocComment) = node
-        elif node[0] == sidl.interface:
-            (_, (name), extends, invariants, methods, DocComment) = node
-        else: raise Exception("unexpected node type")
+            (scoped_id, prefix, ext) = interface
+            return '_'.join(prefix)+ext
 
         # Implicit Built-in methods
         builtin(sidl.void, '_cast',
@@ -422,11 +415,12 @@ class Chapel:
 
         # @class@__object
         interfaces = []
+        # pointers to the implemented interface's EPV
         for impls in implements:
             for interf in impls[1]:
-              interfaces.append(ir.Struct_item(
-                  ir_babel_object_type([], str(c_gen(interf[1]))),
-                  'd_inherit_'+get_name(interf)))
+                interfaces.append(ir.Struct_item(
+                    ir_babel_object_type(interf[1][:-1], interf[1][-1]),
+                         'd_inherit_'+get_name(interf)))
         
         data.obj = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''),
@@ -752,7 +746,7 @@ class Chapel:
         else:
             chpl_gen(defn, ci.chpl_stub)
 
-    def generate_ior(self, ci):
+    def generate_ior(self, ci, implements):
         """
         Generate the IOR header file in C.
         """
@@ -761,6 +755,11 @@ class Chapel:
         ci.ior.genh(ir.Import(prefix))
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
+        
+        for impls in implements:
+            for interface in impls[1]:
+                ci.ior.genh(ir.Import('_'.join(interface[1])+'_IOR'))
+
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
         ci.ior.gen(ir.Type_decl(ci.cstats))
@@ -799,9 +798,9 @@ class Chapel:
                 qname = '_'.join(symbol_table.prefix+[Name])                
                 ci = self.ClassInfo(Name, symbol_table, None, self.pkg_chpl_skel)
                 ci.chpl_skel.cstub.genh(ir.Import(qname+'_IOR'))
-                self.gen_default_methods(symbol_table, node, ci)
+                self.gen_default_methods(symbol_table, Implementes, ci)
                 gen1(Methods, ci)
-                self.generate_ior(ci)
+                self.generate_ior(ci, node)
 
                 # IOR
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
