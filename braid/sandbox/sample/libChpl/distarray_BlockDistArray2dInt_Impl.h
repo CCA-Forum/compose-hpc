@@ -108,7 +108,18 @@ impl_distarray_BlockDistArray2dInt__dtor(
  * User-defined object methods
  */
 
+extern
+void
+impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(
+  /* inout */ distarray_BlockDistArray2dInt* A,
+  /* inout */ distarray_BlockDistArray2dInt* B,
+  /* inout */ distarray_BlockDistArray2dInt* C,
+  /* out */ sidl_BaseInterface *_ex);
+
 #ifdef WITH_RMI
+extern struct distarray_BlockDistArray2dInt__object* 
+  impl_distarray_BlockDistArray2dInt_fconnect_distarray_BlockDistArray2dInt(
+  const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_distarray_BlockDistArray2dInt_fconnect_sidl_BaseInterface(const char* 
   url, sidl_bool ar, sidl_BaseInterface *_ex);
@@ -163,6 +174,9 @@ impl_distarray_BlockDistArray2dInt_setIntoArray(
   /* out */ sidl_BaseInterface *_ex);
 
 #ifdef WITH_RMI
+extern struct distarray_BlockDistArray2dInt__object* 
+  impl_distarray_BlockDistArray2dInt_fconnect_distarray_BlockDistArray2dInt(
+  const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_distarray_BlockDistArray2dInt_fconnect_sidl_BaseInterface(const char* 
   url, sidl_bool ar, sidl_BaseInterface *_ex);

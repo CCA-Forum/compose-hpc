@@ -29,7 +29,7 @@ proc impl_distarray_BlockDistArray2dInt_setIntoArray_chpl(distArray, newVal: int
  * There must be same number of blocks in each dimension
  */
 //*/
-proc impl_distarray_BlockDistArray2dInt_multiply_cannon(
+proc impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
 		inout A, inout B, inout C,
 		lo1: int, hi1: int, 
 		lo2: int, hi2: int, 
@@ -38,14 +38,18 @@ proc impl_distarray_BlockDistArray2dInt_multiply_cannon(
   var N1 = (hi1 - lo1 + 1) / blk1;
   var N2 = (hi2 - lo2 + 1) / blk2;
   if (N1 != N2) {
-	halt("The number of blocks in each dimension do not match: ", N1, " and ", N2, " blocks in eahc dim.");
+	halt("The number of blocks in each dimension do not match: ", N1, " and ", N2, " blocks in each dim.");
   }
-    
+  
+  writeln("   Correcting alignment...");
   // Initial alignment: shift block-column i of B UP by i block-units, block-row i of A LEFT by i block-units
   for i in [1..(N1 - 1)] do {
 	var loopLowA = lo1 + (i * blk1);
 	var loopLowB = lo2 + (i * blk2);
+	writeln("   i = ", i, ", loopLowA = ", loopLowA, ", loopLowB = ", loopLowB);
+	writeln("   distarray_BlockDistArray2dInt_shiftLeft()...");
 	distarray_BlockDistArray2dInt_shiftLeft(A, loopLowA, loopLowA + blk1 - 1, lo2, hi2, blk1, blk2);
+	writeln("   distarray_BlockDistArray2dInt_shiftUp()...");
 	distarray_BlockDistArray2dInt_shiftUp(B, lo1, hi1, loopLowB, loopLowB + blk2 - 1, blk1, blk2);
   }
 
@@ -72,7 +76,8 @@ proc impl_distarray_BlockDistArray2dInt_multiply_cannon(
       distarray_BlockDistArray2dInt_shiftUp(B, lo1, hi1, lo2, hi2, blk1, blk2);
     }
   }
-	  
+	
+  writeln("C.distArr: "); writeln(C.distArr);
   // C stores the result	
 }
 //**/
@@ -154,7 +159,7 @@ proc main_dummy_calls() {
   
   writeln("A: "); writeln(A.distArr);
   writeln("B: "); writeln(B.distArr);
-  impl_distarray_BlockDistArray2dInt_multiply_cannon(A, B, C, 1, 4, 1, 4, 2, 2);
+  impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(A, B, C, 1, 4, 1, 4, 2, 2);
   writeln("C (A * B): "); writeln(C.distArr);
   
   writeln(" distarray_BlockDistArray2dInt_chplImpl.main_dummy_calls() ends.");	

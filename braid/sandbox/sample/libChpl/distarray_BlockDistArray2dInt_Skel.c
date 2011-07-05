@@ -14,6 +14,9 @@
 #include <stddef.h>
 
 #ifdef WITH_RMI
+#ifndef included_distarray_BlockDistArray2dInt_h
+#include "distarray_BlockDistArray2dInt.h"
+#endif
 #ifndef included_sidl_BaseInterface_h
 #include "sidl_BaseInterface.h"
 #endif
@@ -42,7 +45,18 @@ impl_distarray_BlockDistArray2dInt__dtor(
   /* in */ distarray_BlockDistArray2dInt self,
   /* out */ sidl_BaseInterface *_ex);
 
+extern
+void
+impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(
+  /* inout */ distarray_BlockDistArray2dInt* A,
+  /* inout */ distarray_BlockDistArray2dInt* B,
+  /* inout */ distarray_BlockDistArray2dInt* C,
+  /* out */ sidl_BaseInterface *_ex);
+
 #ifdef WITH_RMI
+extern struct distarray_BlockDistArray2dInt__object* 
+  impl_distarray_BlockDistArray2dInt_fconnect_distarray_BlockDistArray2dInt(
+  const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_distarray_BlockDistArray2dInt_fconnect_sidl_BaseInterface(const char* 
   url, sidl_bool ar, sidl_BaseInterface *_ex);
@@ -97,6 +111,9 @@ impl_distarray_BlockDistArray2dInt_setIntoArray(
   /* out */ sidl_BaseInterface *_ex);
 
 #ifdef WITH_RMI
+extern struct distarray_BlockDistArray2dInt__object* 
+  impl_distarray_BlockDistArray2dInt_fconnect_distarray_BlockDistArray2dInt(
+  const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_distarray_BlockDistArray2dInt_fconnect_sidl_BaseInterface(const char* 
   url, sidl_bool ar, sidl_BaseInterface *_ex);
@@ -143,11 +160,36 @@ distarray_BlockDistArray2dInt__set_epv(struct
 extern "C" {
 #endif
 
+void
+distarray_BlockDistArray2dInt__set_sepv(struct 
+  distarray_BlockDistArray2dInt__sepv *sepv,
+  struct distarray_BlockDistArray2dInt__pre_sepv *pre_sepv, 
+  struct distarray_BlockDistArray2dInt__post_sepv *post_sepv)
+{
+  pre_sepv->f_matrixMultipleCannon_pre = NULL;
+  sepv->f_matrixMultipleCannon = 
+    impl_distarray_BlockDistArray2dInt_matrixMultipleCannon;
+  post_sepv->f_matrixMultipleCannon_post = NULL;
+}
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void distarray_BlockDistArray2dInt__call_load(void) { 
   sidl_BaseInterface _throwaway_exception = NULL;
   impl_distarray_BlockDistArray2dInt__load(&_throwaway_exception);
 }
 #ifdef WITH_RMI
+struct distarray_BlockDistArray2dInt__object* 
+  skel_distarray_BlockDistArray2dInt_fconnect_distarray_BlockDistArray2dInt(
+  const char* url, sidl_bool ar, sidl_BaseInterface *_ex) { 
+  return distarray_BlockDistArray2dInt__connectI(url, ar, _ex);
+}
+
 struct sidl_BaseInterface__object* 
   skel_distarray_BlockDistArray2dInt_fconnect_sidl_BaseInterface(const char* 
   url, sidl_bool ar, sidl_BaseInterface *_ex) { 

@@ -87,15 +87,22 @@ static int s_load_called = 0;
  */
 
 static int s_method_initialized = 0;
+static int s_static_initialized = 0;
 
-static struct distarray_BlockDistArray2dInt__epv 
+static struct distarray_BlockDistArray2dInt__epv  
   s_my_epv__distarray_blockdistarray2dint;
+static struct distarray_BlockDistArray2dInt__sepv 
+  s_stc_epv__distarray_blockdistarray2dint;
 
-static struct distarray_BlockDistArray2dInt__epv 
+static struct distarray_BlockDistArray2dInt__epv  
   s_my_epv_contracts__distarray_blockdistarray2dint;
+static struct distarray_BlockDistArray2dInt__sepv 
+  s_stc_epv_contracts__distarray_blockdistarray2dint;
 
-static struct distarray_BlockDistArray2dInt__epv 
+static struct distarray_BlockDistArray2dInt__epv  
   s_my_epv_hooks__distarray_blockdistarray2dint;
+static struct distarray_BlockDistArray2dInt__sepv 
+  s_stc_epv_hooks__distarray_blockdistarray2dint;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
@@ -103,8 +110,16 @@ static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
 static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
 static struct sidl_BaseInterface__epv* s_par_epv__sidl_baseinterface;
 
+/*
+ * Static variables for interface contract enforcement and/or hooks controls.
+ */
+
+static struct distarray_BlockDistArray2dInt__cstats s_cstats;
+
 static struct distarray_BlockDistArray2dInt__pre_epv s_preEPV;
 static struct distarray_BlockDistArray2dInt__post_epv s_postEPV;
+static struct distarray_BlockDistArray2dInt__pre_sepv s_preSEPV;
+static struct distarray_BlockDistArray2dInt__post_sepv s_postSEPV;
 
 /*
  * Declare EPV routines defined in the skeleton file.
@@ -118,6 +133,11 @@ extern void distarray_BlockDistArray2dInt__set_epv(
   struct distarray_BlockDistArray2dInt__epv* epv,
     struct distarray_BlockDistArray2dInt__pre_epv* pre_epv,
     struct distarray_BlockDistArray2dInt__post_epv* post_epv);
+
+extern void distarray_BlockDistArray2dInt__set_sepv(
+  struct distarray_BlockDistArray2dInt__sepv* sepv,
+    struct distarray_BlockDistArray2dInt__pre_sepv* pre_sepv,
+    struct distarray_BlockDistArray2dInt__post_sepv* post_sepv);
 
 extern void distarray_BlockDistArray2dInt__call_load(void);
 #ifdef __cplusplus
@@ -836,6 +856,39 @@ distarray_BlockDistArray2dInt__cast__exec(
 }
 
 /*
+ * CHECKS: Enable/disable static contract enforcement.
+ */
+
+static void ior_distarray_BlockDistArray2dInt__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex)
+{
+  *_ex  = NULL;
+  {
+  }
+}
+
+/*
+ * DUMP: Dump static interface contract enforcement statistics.
+ */
+
+static void ior_distarray_BlockDistArray2dInt__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex)
+{
+  *_ex = NULL;
+  {
+    /*
+     * Nothing to do since contract checks not generated.
+     */
+
+  }
+}
+
+/*
  * CHECKS: Enable/disable contract enforcement.
  */
 
@@ -918,6 +971,20 @@ static void* ior_distarray_BlockDistArray2dInt__cast(
   return cast;
   EXIT:
   return NULL;
+}
+
+/*
+ * HOOKS: Enable/disable static hooks.
+ */
+
+static void ior_distarray_BlockDistArray2dInt__set_hooks_static(
+  sidl_bool enable, struct sidl_BaseInterface__object **_ex )
+{
+  *_ex  = NULL;
+  /*
+   * Nothing else to do since hook methods not generated.
+   */
+
 }
 
 /*
@@ -1137,6 +1204,32 @@ static void distarray_BlockDistArray2dInt__init_epv(void)
 }
 
 /*
+ * SEPV: create the static entry point vector (SEPV).
+ */
+
+static void distarray_BlockDistArray2dInt__init_sepv(void)
+{
+  /*
+   * assert( HAVE_LOCKED_STATIC_GLOBALS );
+   */
+
+  struct sidl_BaseInterface__object *throwaway_exception = NULL;
+  struct distarray_BlockDistArray2dInt__sepv*  s = &s_stc_epv__distarray_blockdistarray2dint;
+
+  s->f__set_hooks_static                          = ior_distarray_BlockDistArray2dInt__set_hooks_static;
+  s->f__set_contracts_static                      = ior_distarray_BlockDistArray2dInt__set_contracts_static;
+  s->f__dump_stats_static                         = ior_distarray_BlockDistArray2dInt__dump_stats_static;
+  s->f_matrixMultipleCannon    = NULL;
+
+  distarray_BlockDistArray2dInt__set_sepv(s, &s_preSEPV, &s_postSEPV);
+
+  ior_distarray_BlockDistArray2dInt__set_hooks_static(FALSE, &throwaway_exception);
+
+  s_static_initialized = 1;
+  ior_distarray_BlockDistArray2dInt__ensure_load_called();
+}
+
+/*
  * distarray_BlockDistArray2dInt__getEPVs: Get my version of all relevant EPVs.
  */
 
@@ -1157,6 +1250,20 @@ void distarray_BlockDistArray2dInt__getEPVs (
   *s_arg_epv__distarray_blockdistarray2dint = &s_my_epv__distarray_blockdistarray2dint;
   *s_arg_epv_hooks__distarray_blockdistarray2dint = &s_my_epv_hooks__distarray_blockdistarray2dint;
 }
+/*
+ * distarray_BlockDistArray2dInt__getStaticEPV: return pointer to static EPV structure.
+ */
+
+struct distarray_BlockDistArray2dInt__sepv*
+distarray_BlockDistArray2dInt__getStaticEPV(void){
+  LOCK_STATIC_GLOBALS;
+  if (!s_static_initialized) {
+    distarray_BlockDistArray2dInt__init_sepv();
+  }
+  UNLOCK_STATIC_GLOBALS;
+  return &s_stc_epv__distarray_blockdistarray2dint;
+}
+
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
@@ -1315,6 +1422,7 @@ distarray_BlockDistArray2dInt__IOR_version(int32_t *major, int32_t *minor)
 static const struct distarray_BlockDistArray2dInt__external
 s_externalEntryPoints = {
   distarray_BlockDistArray2dInt__createObject,
+  distarray_BlockDistArray2dInt__getStaticEPV,
   distarray_BlockDistArray2dInt__getSuperEPV,
   2, 
   0

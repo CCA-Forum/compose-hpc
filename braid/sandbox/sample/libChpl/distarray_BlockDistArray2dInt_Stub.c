@@ -68,6 +68,22 @@ static const struct distarray_BlockDistArray2dInt__external* _loadIOR(void)
 #define _getExternals() (_externals ? _externals : _loadIOR())
 
 /*
+ * Hold pointer to static entry point vector
+ */
+
+static const struct distarray_BlockDistArray2dInt__sepv *_sepv = NULL;
+/*
+ * Return pointer to static functions.
+ */
+
+#define _getSEPV() (_sepv ? _sepv : (_sepv = (*(_getExternals()->getStaticEPV))()))
+/*
+ * Reset point to static functions.
+ */
+
+#define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
+
+/*
  * Constructor function for the class.
  */
 
@@ -121,6 +137,37 @@ distarray_BlockDistArray2dInt__connect(const char* url, sidl_BaseInterface *_ex)
 #endif /*WITH_RMI*/
 
 /*
+ * Method to enable/disable static interface contract enforcement.
+ */
+
+void
+distarray_BlockDistArray2dInt__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex)
+{
+  (_getSEPV()->f__set_contracts_static)(
+  enable, enfFilename, resetCounters, _ex);
+  _resetSEPV();
+}
+
+/*
+ * Method to dump static interface contract enforcement statistics.
+ */
+
+void
+distarray_BlockDistArray2dInt__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex)
+{
+  (_getSEPV()->f__dump_stats_static)(
+  filename, prefix, _ex);
+  _resetSEPV();
+}
+
+/*
  * Method to enable/disable interface contract enforcement.
  */
 
@@ -151,6 +198,24 @@ distarray_BlockDistArray2dInt__dump_stats(
   (*self->d_epv->f__dump_stats)(
   self,
   filename, prefix, _ex);
+}
+
+/*
+ * Method:  matrixMultipleCannon[]
+ */
+
+void
+distarray_BlockDistArray2dInt_matrixMultipleCannon(
+  /* inout */ distarray_BlockDistArray2dInt* A,
+  /* inout */ distarray_BlockDistArray2dInt* B,
+  /* inout */ distarray_BlockDistArray2dInt* C,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  (_getSEPV()->f_matrixMultipleCannon)(
+    A,
+    B,
+    C,
+    _ex);
 }
 
 /*
@@ -217,6 +282,20 @@ distarray_BlockDistArray2dInt__isLocal(
   /* out */ sidl_BaseInterface *_ex)
 {
   return !distarray_BlockDistArray2dInt__isRemote(self, _ex);
+}
+
+/*
+ * Method to enable/disable static hooks execution.
+ */
+
+void
+distarray_BlockDistArray2dInt__set_hooks_static(
+  sidl_bool enable,
+  struct sidl_BaseInterface__object **_ex)
+{
+  (_getSEPV()->f__set_hooks_static)(
+  enable, _ex);
+  _resetSEPV();
 }
 
 /**

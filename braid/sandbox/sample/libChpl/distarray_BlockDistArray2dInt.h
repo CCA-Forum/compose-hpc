@@ -95,6 +95,25 @@ distarray_BlockDistArray2dInt__connect(const char *, sidl_BaseInterface *_ex);
 
 #endif /*WITH_RMI*/
 /**
+ * Method to enable/disable static interface contract enforcement.
+ */
+void
+distarray_BlockDistArray2dInt__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex);
+
+/**
+ * Method to dump static interface contract enforcement statistics.
+ */
+void
+distarray_BlockDistArray2dInt__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex);
+
+/**
  * Method to enable/disable interface contract enforcement.
  */
 void
@@ -114,6 +133,16 @@ distarray_BlockDistArray2dInt__dump_stats(
   const char* filename,
   const char* prefix,
   struct sidl_BaseInterface__object **_ex);
+
+/**
+ * Method:  matrixMultipleCannon[]
+ */
+void
+distarray_BlockDistArray2dInt_matrixMultipleCannon(
+  /* inout */ distarray_BlockDistArray2dInt* A,
+  /* inout */ distarray_BlockDistArray2dInt* B,
+  /* inout */ distarray_BlockDistArray2dInt* C,
+  /* out */ sidl_BaseInterface *_ex);
 
 /**
  * Method:  initArray[]
@@ -492,6 +521,13 @@ distarray_BlockDistArray2dInt__isRemote(
 sidl_bool
 distarray_BlockDistArray2dInt__isLocal(
   /* in */ distarray_BlockDistArray2dInt self,
+  /* out */ sidl_BaseInterface *_ex);
+/**
+ * Static Method to enable/disable method hooks invocation.
+ */
+void
+distarray_BlockDistArray2dInt__set_hooks_static(
+  /* in */ sidl_bool enable,
   /* out */ sidl_BaseInterface *_ex);
 /**
  * Method to enable/disable method hooks invocation.

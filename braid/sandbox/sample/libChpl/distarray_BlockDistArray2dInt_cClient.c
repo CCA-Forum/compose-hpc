@@ -20,17 +20,40 @@ void client_main(void) {
   printf(" distarray_BlockDistArray2dInt_cClient.client_main(): hi2 = %d \n", hi2);
 
   for (int i = 0; i <= 3; i++) {
-	for (int j = 0; j < 4; j++) {
+	for (int j = 0; j <= 3; j++) {
 	  distarray_BlockDistArray2dInt_setIntoArray(distArray, 10 * i + j, i, j, &ex);
 	}
   }
 
   for (int i = 0; i <= 3; i++) {
-  	for (int j = 0; j < 4; j++) {
+  	for (int j = 0; j <= 3; j++) {
   	  int32_t val = distarray_BlockDistArray2dInt_getFromArray(distArray, i, j, &ex);
   	  printf("%d ", val);
   	}
   	printf("\n");
+  }
+
+
+  distarray_BlockDistArray2dInt A = distarray_BlockDistArray2dInt__create(&ex);
+  distarray_BlockDistArray2dInt_initArray(A, 0, 3, 0, 3, 2, 2, &ex);
+  distarray_BlockDistArray2dInt B = distarray_BlockDistArray2dInt__create(&ex);
+  distarray_BlockDistArray2dInt_initArray(B, 0, 3, 0, 3, 2, 2, &ex);
+  distarray_BlockDistArray2dInt C = distarray_BlockDistArray2dInt__create(&ex);
+  distarray_BlockDistArray2dInt_initArray(C, 0, 3, 0, 3, 2, 2, &ex);
+  for (int i = 0; i <= 3; i++) {
+    for (int j = 0; j <= 3; j++) {
+      distarray_BlockDistArray2dInt_setIntoArray(A, 10 * i + j, i, j, &ex);
+      distarray_BlockDistArray2dInt_setIntoArray(B, i + 10 * j, i, j, &ex);
+      distarray_BlockDistArray2dInt_setIntoArray(C, 0, i, j, &ex);
+    }
+  }
+  distarray_BlockDistArray2dInt_matrixMultipleCannon(&A, &B, &C, &ex);
+
+  for (int i = 0; i <= 3; i++) {
+    for (int j = 0; j <= 3; j++) {
+      int32_t val = distarray_BlockDistArray2dInt_getFromArray(C, i, j, &ex);
+      printf("C[ %d, %d] = %d ", i, j, val);
+    }
   }
 
   printf(" distarray_BlockDistArray2dInt_cClient.client_main(): Ending.\n");

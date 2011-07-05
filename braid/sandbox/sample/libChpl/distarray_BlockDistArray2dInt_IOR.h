@@ -30,6 +30,7 @@ extern "C" {
 
 struct distarray_BlockDistArray2dInt__array;
 struct distarray_BlockDistArray2dInt__object;
+struct distarray_BlockDistArray2dInt__sepv;
 
 /*
  * Forward references for external classes and interfaces.
@@ -47,6 +48,47 @@ struct sidl_rmi_Call__array;
 struct sidl_rmi_Call__object;
 struct sidl_rmi_Return__array;
 struct sidl_rmi_Return__object;
+
+/*
+ * Declare the static method entry point vector.
+ */
+
+struct distarray_BlockDistArray2dInt__sepv {
+  /* Implicit builtin methods */
+  /* 0 */
+  /* 1 */
+  /* 2 */
+  /* 3 */
+  /* 4 */
+  /* 5 */
+  /* 6 */
+  void (*f__set_hooks_static)(
+    /* in */ sidl_bool enable,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+  /* 7 */
+  void (*f__set_contracts_static)(
+    /* in */ sidl_bool enable,
+    /* in */ const char* enfFilename,
+    /* in */ sidl_bool resetCounters,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+  /* 8 */
+  void (*f__dump_stats_static)(
+    /* in */ const char* filename,
+    /* in */ const char* prefix,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+  /* 9 */
+  /* 10 */
+  /* 11 */
+  /* 12 */
+  /* Methods introduced in sidl.BaseInterface-v0.9.17 */
+  /* Methods introduced in sidl.BaseClass-v0.9.17 */
+  /* Methods introduced in distarray.BlockDistArray2dInt-v0.1 */
+  void (*f_matrixMultipleCannon)(
+    /* inout */ struct distarray_BlockDistArray2dInt__object** A,
+    /* inout */ struct distarray_BlockDistArray2dInt__object** B,
+    /* inout */ struct distarray_BlockDistArray2dInt__object** C,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+};
 
 /*
  * Declare the method entry point vector.
@@ -250,6 +292,30 @@ struct distarray_BlockDistArray2dInt__post_epv {
 };
 
 /*
+ * Declare the static method pre hooks entry point vector.
+ */
+
+struct distarray_BlockDistArray2dInt__pre_sepv {
+  void (*f_matrixMultipleCannon_pre)(
+    /* in */ struct distarray_BlockDistArray2dInt__object* A,
+    /* in */ struct distarray_BlockDistArray2dInt__object* B,
+    /* in */ struct distarray_BlockDistArray2dInt__object* C,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+};
+
+/*
+ * Declare the static method post hooks entry point vector.
+ */
+
+struct distarray_BlockDistArray2dInt__post_sepv {
+  void (*f_matrixMultipleCannon_post)(
+    /* in */ struct distarray_BlockDistArray2dInt__object* A,
+    /* in */ struct distarray_BlockDistArray2dInt__object* B,
+    /* in */ struct distarray_BlockDistArray2dInt__object* C,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+};
+
+/*
  * Define the controls and statistics structure.
  */
 
@@ -273,6 +339,8 @@ struct distarray_BlockDistArray2dInt__external {
   struct distarray_BlockDistArray2dInt__object*
   (*createObject)(void* ddata, struct sidl_BaseInterface__object **_ex);
 
+  struct distarray_BlockDistArray2dInt__sepv*
+  (*getStaticEPV)(void);
   struct sidl_BaseClass__epv*(*getSuperEPV)(void);
   int d_ior_major_version;
   int d_ior_minor_version;
@@ -290,6 +358,13 @@ distarray_BlockDistArray2dInt__externals(void);
 extern struct distarray_BlockDistArray2dInt__object*
 distarray_BlockDistArray2dInt__createObject(void* ddata,struct 
   sidl_BaseInterface__object ** _ex);
+
+extern struct distarray_BlockDistArray2dInt__sepv*
+distarray_BlockDistArray2dInt__getStaticEPV(void);
+
+
+extern struct distarray_BlockDistArray2dInt__sepv*
+distarray_BlockDistArray2dInt__getTypeStaticEPV(int type);
 
 extern void distarray_BlockDistArray2dInt__init(
   struct distarray_BlockDistArray2dInt__object* self, void* ddata, struct 
@@ -310,6 +385,17 @@ extern void distarray_BlockDistArray2dInt__fini(
 extern void distarray_BlockDistArray2dInt__IOR_version(int32_t *major, int32_t 
   *minor);
 
+/*
+ * Define static structure options.
+ */
+
+static const int s_SEPV_DISTARRAY_BLOCKDISTARRAY2DINT_BASE = 0;
+static const int s_SEPV_DISTARRAY_BLOCKDISTARRAY2DINT_CONTRACTS = 1;
+static const int s_SEPV_DISTARRAY_BLOCKDISTARRAY2DINT_HOOKS = 2;
+
+struct distarray_BlockDistArray2dInt__object* 
+  skel_distarray_BlockDistArray2dInt_fconnect_distarray_BlockDistArray2dInt(
+  const char* url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
 struct sidl_BaseInterface__object* 
   skel_distarray_BlockDistArray2dInt_fconnect_sidl_BaseInterface(const char* 
   url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);

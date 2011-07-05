@@ -4,6 +4,9 @@ package distarray version 0.1 {
 
   // naming scheme is <Distr-type>DistArray<rank>d<Type>
   class BlockDistArray2dInt {
+
+    // C = A * B
+    static void matrixMultipleCannon(inout BlockDistArray2dInt A, inout BlockDistArray2dInt B, inout BlockDistArray2dInt C);
     
     void initArray(
           in int lo1, in int hi1, 

@@ -151,6 +151,67 @@ impl_distarray_BlockDistArray2dInt__dtor(
 }
 
 /*
+ * Method:  matrixMultipleCannon[]
+ */
+
+#undef __FUNC__
+#define __FUNC__ "impl_distarray_BlockDistArray2dInt_matrixMultipleCannon"
+
+
+#ifdef __cplusplus
+extern "C"
+#endif
+extern
+void
+impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
+		BlockDistArray2dIntChpl A,
+		BlockDistArray2dIntChpl B,
+		BlockDistArray2dIntChpl C,
+		/* in */ int32_t lo1,
+		/* in */ int32_t hi1,
+		/* in */ int32_t lo2,
+		/* in */ int32_t hi2,
+		/* in */ int32_t blk1,
+		/* in */ int32_t blk2);
+
+#ifdef __cplusplus
+extern "C"
+#endif
+void
+impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(
+  /* inout */ distarray_BlockDistArray2dInt* A,
+  /* inout */ distarray_BlockDistArray2dInt* B,
+  /* inout */ distarray_BlockDistArray2dInt* C,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  *_ex = 0;
+  {
+    /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.matrixMultipleCannon) */
+	printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon()\n");
+	struct distarray_BlockDistArray2dInt__data *aDptr = distarray_BlockDistArray2dInt__get_data(*A);
+	struct distarray_BlockDistArray2dInt__data *bDptr = distarray_BlockDistArray2dInt__get_data(*B);
+	struct distarray_BlockDistArray2dInt__data *cDptr = distarray_BlockDistArray2dInt__get_data(*C);
+	printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(): checkpoint-1\n");
+	printf("  A[1, 1] = %d", impl_distarray_BlockDistArray2dInt_getFromArray(*A, 1, 1, _ex));
+	printf("  B[1, 1] = %d", impl_distarray_BlockDistArray2dInt_getFromArray(*B, 1, 1, _ex));
+	printf("  C[1, 1] = %d", impl_distarray_BlockDistArray2dInt_getFromArray(*C, 1, 1, _ex));
+    // TODO validate values for all 3 matrices. For now assume they share the values
+	int32_t lo1 = cDptr->lower[0];
+	int32_t hi1 = cDptr->higher[0];
+	int32_t lo2 = cDptr->lower[1];
+	int32_t hi2 = cDptr->higher[1];
+	int32_t blk1 = cDptr->blocks[0];
+	int32_t blk2 = cDptr->blocks[1];
+	printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(): checkpoint-2\n");
+	impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
+			aDptr->chpl_data, bDptr->chpl_data, cDptr->chpl_data,
+			lo1, hi1, lo2, hi2, blk1, blk2);
+	return;
+    /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.matrixMultipleCannon) */
+  }
+}
+
+/*
  * Method:  initArray[]
  */
 
