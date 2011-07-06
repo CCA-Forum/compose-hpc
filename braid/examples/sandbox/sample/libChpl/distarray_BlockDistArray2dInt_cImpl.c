@@ -164,9 +164,9 @@ extern "C"
 extern
 void
 impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
-		BlockDistArray2dIntChpl A,
-		BlockDistArray2dIntChpl B,
-		BlockDistArray2dIntChpl C,
+		BlockDistArray2dIntChpl* A,
+		BlockDistArray2dIntChpl* B,
+		BlockDistArray2dIntChpl* C,
 		/* in */ int32_t lo1,
 		/* in */ int32_t hi1,
 		/* in */ int32_t lo2,
@@ -187,24 +187,19 @@ impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.matrixMultipleCannon) */
-	printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon()\n");
 	struct distarray_BlockDistArray2dInt__data *aDptr = distarray_BlockDistArray2dInt__get_data(*A);
 	struct distarray_BlockDistArray2dInt__data *bDptr = distarray_BlockDistArray2dInt__get_data(*B);
 	struct distarray_BlockDistArray2dInt__data *cDptr = distarray_BlockDistArray2dInt__get_data(*C);
-	printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(): checkpoint-1\n");
-	printf("  A[1, 1] = %d", impl_distarray_BlockDistArray2dInt_getFromArray(*A, 1, 1, _ex));
-	printf("  B[1, 1] = %d", impl_distarray_BlockDistArray2dInt_getFromArray(*B, 1, 1, _ex));
-	printf("  C[1, 1] = %d", impl_distarray_BlockDistArray2dInt_getFromArray(*C, 1, 1, _ex));
-    // TODO validate values for all 3 matrices. For now assume they share the values
+	// TODO validate values for all 3 matrices. For now assume they share the values
 	int32_t lo1 = cDptr->lower[0];
 	int32_t hi1 = cDptr->higher[0];
 	int32_t lo2 = cDptr->lower[1];
 	int32_t hi2 = cDptr->higher[1];
 	int32_t blk1 = cDptr->blocks[0];
 	int32_t blk2 = cDptr->blocks[1];
-	printf("  impl_distarray_BlockDistArray2dInt_matrixMultipleCannon(): checkpoint-2\n");
 	impl_distarray_BlockDistArray2dInt_multiply_cannon_chpl(
-			aDptr->chpl_data, bDptr->chpl_data, cDptr->chpl_data,
+			&(aDptr->chpl_data), &(bDptr->chpl_data), &(cDptr->chpl_data),
 			lo1, hi1, lo2, hi2, blk1, blk2);
 	return;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.matrixMultipleCannon) */
@@ -247,7 +242,7 @@ impl_distarray_BlockDistArray2dInt_initArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.initArray) */
-	printf("  impl_distarray_BlockDistArray2dInt_initArray()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_initArray()\n");
 	BlockDistArray2dIntChpl distArray = impl_distarray_BlockDistArray2dInt_initArray_chpl(lo1, hi1, lo2, hi2, blk1, blk2);
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	dptr->chpl_data = distArray;
@@ -287,7 +282,7 @@ impl_distarray_BlockDistArray2dInt_getDimension(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getDimension) */
-	printf("  impl_distarray_BlockDistArray2dInt_getDimension()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_getDimension()\n");
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	return dptr->dimension;
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getDimension) */
@@ -314,7 +309,7 @@ impl_distarray_BlockDistArray2dInt_getLower(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getLower) */
-	printf("  impl_distarray_BlockDistArray2dInt_getLower()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_getLower()\n");
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	return dptr->lower[dim];
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getLower) */
@@ -341,7 +336,7 @@ impl_distarray_BlockDistArray2dInt_getHigher(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getHigher) */
-	printf("  impl_distarray_BlockDistArray2dInt_getHigher()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_getHigher()\n");
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	return dptr->higher[dim];
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getHigher) */
@@ -378,7 +373,7 @@ impl_distarray_BlockDistArray2dInt_getFromArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.getFromArray) */
-	printf("  impl_distarray_BlockDistArray2dInt_getFromArray()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_getFromArray()\n");
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	return impl_distarray_BlockDistArray2dInt_getFromArray_chpl(dptr->chpl_data, idx1, idx2);
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.getFromArray) */
@@ -417,7 +412,7 @@ impl_distarray_BlockDistArray2dInt_setIntoArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(distarray.BlockDistArray2dInt.setIntoArray) */
-	printf("  impl_distarray_BlockDistArray2dInt_setIntoArray()\n");
+	// printf("  impl_distarray_BlockDistArray2dInt_setIntoArray()\n");
 	struct distarray_BlockDistArray2dInt__data *dptr = distarray_BlockDistArray2dInt__get_data(self);
 	impl_distarray_BlockDistArray2dInt_setIntoArray_chpl(dptr->chpl_data, newVal, idx1, idx2);
     /* DO-NOT-DELETE splicer.end(distarray.BlockDistArray2dInt.setIntoArray) */
