@@ -6,7 +6,7 @@ void client_main(void) {
   printf(" distarray_BlockDistArray2dInt_cClient.client_main(): Starting...\n");
 
   sidl_BaseInterface ex;
-  distarray_BlockDistArray2dInt distArray = distarray_BlockDistArray2dInt__create(&ex);
+  distarray_BlockDistArray2dInt distArray = hplsupport_BlockCyclicDistArray2dDouble__create(&ex);
 
   distarray_BlockDistArray2dInt_initArray(distArray, 0, 3, 0, 3, 2, 2, &ex);
 

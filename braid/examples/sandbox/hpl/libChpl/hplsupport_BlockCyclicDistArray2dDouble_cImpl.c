@@ -26,6 +26,7 @@
 #endif
 
 /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._includes) */
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._includes) */
@@ -165,7 +166,8 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.initData) */
 
 	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-	dptr->chpl_data = (BlockCyclicDistArray2dDoubleChpl) data;
+	BlockCyclicDistArray2dDoubleChpl* chplDataPtr = (BlockCyclicDistArray2dDoubleChpl*) data;
+	dptr->chpl_data = (*chplDataPtr);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.initData) */
   }
@@ -202,6 +204,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.getFromArray) */
 
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(%d, %d)\n", idx1, idx2);
 	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
 	return impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(dptr->chpl_data, idx1, idx2);
 
@@ -242,6 +245,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.setIntoArray) */
 
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(%d, %d) = %f\n", idx1, idx2, newVal);
 	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
 	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(dptr->chpl_data, newVal, idx1, idx2);
 

@@ -52,7 +52,7 @@ ${BABEL_LIBTOOL_COMMAND} -c  -o ./gen/hplsupport_SimpleArray1dInt_Skel.c.o    hp
 ${BABEL_LIBTOOL_COMMAND} -c  -o ./gen/hplsupport_SimpleArray1dInt_cImpl.c.o   hplsupport_SimpleArray1dInt_cImpl.c
 
 # Compile the client C source and generate the object file
-# ${BABEL_LIBTOOL_COMMAND} -c  -o ./gen/distarray_BlockDistArray2dInt_cClient.c.o  distarray_BlockDistArray2dInt_cClient.c
+${BABEL_LIBTOOL_COMMAND} -c  -o ./gen/hplsupport_HPL_cClient.c.o  hplsupport_HPL_cClient.c
 
 # Compile the chapel generated C source files and generate the object files
 # ${CC_COMMAND}  ${CHPL_FLAGS}  -c  -o ./gen/a.out.tmp.o   ./gen/_main.c 
@@ -78,6 +78,7 @@ babel-libtool --mode=link ${CXX} -static \
   ./gen/hplsupport_SimpleArray1dInt_Stub.c.o \
   ./gen/hplsupport_SimpleArray1dInt_Skel.c.o \
   ./gen/hplsupport_SimpleArray1dInt_cImpl.c.o \
+  ./gen/hplsupport_HPL_cClient.c.o \
   ./gen/a.out.tmp.o 
     
 cp ./gen/a.out.tmp a.out
