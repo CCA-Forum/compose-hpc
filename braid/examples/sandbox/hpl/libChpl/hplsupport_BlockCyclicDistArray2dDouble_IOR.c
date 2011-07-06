@@ -125,6 +125,59 @@ extern void hplsupport_BlockCyclicDistArray2dDouble__call_load(void);
 #endif
 
 static void
+hplsupport_BlockCyclicDistArray2dDouble_initData__exec(
+        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+        struct sidl_rmi_Call__object* inArgs,
+        struct sidl_rmi_Return__object* outArgs,
+        struct sidl_BaseInterface__object ** _ex) {
+  /* stack space for arguments */
+  void* data = 0;
+  sidl_BaseInterface _throwaway_exception = NULL;
+  sidl_BaseInterface _ex3   = NULL;
+  sidl_BaseException _SIDLex = NULL;
+  /* unpack in and inout argments */
+  sidl_rmi_Call_unpackOpaque( inArgs, "data", &data, _ex);SIDL_CHECK(*_ex);
+
+  /* make the call */
+  (self->d_epv->f_initData)(
+    self,
+    data,
+    _ex);  SIDL_CHECK(*_ex);
+
+  /* pack return value */
+  /* pack out and inout argments */
+  /* clean-up dangling references */
+  EXIT:
+  if(*_ex) { 
+    _SIDLex = sidl_BaseException__cast(*_ex,&_throwaway_exception);
+    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
+    if(_throwaway_exception) {
+      /* Throwing failed, throw _ex up the stack then. */
+      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
+      return;
+    }
+    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
+    sidl_BaseInterface_deleteRef(*_ex, &_throwaway_exception);
+    *_ex = NULL;
+    if(_ex3) { 
+      sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
+      _ex3 = NULL;
+    }
+  } else if(_ex3) {
+    _SIDLex = sidl_BaseException__cast(_ex3,&_throwaway_exception);
+    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
+    if(_throwaway_exception) {
+      /* Throwing failed throw _ex3 up the stack then. */
+      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
+      return;
+    }
+    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
+    sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
+    _ex3 = NULL;
+  }
+}
+
+static void
 hplsupport_BlockCyclicDistArray2dDouble_getFromArray__exec(
         struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
         struct sidl_rmi_Call__object* inArgs,
@@ -787,6 +840,7 @@ ior_hplsupport_BlockCyclicDistArray2dDouble__exec(
       hplsupport_BlockCyclicDistArray2dDouble_getClassInfo__exec },
     { "getFromArray", 
       hplsupport_BlockCyclicDistArray2dDouble_getFromArray__exec },
+    { "initData", hplsupport_BlockCyclicDistArray2dDouble_initData__exec },
     { "isSame", hplsupport_BlockCyclicDistArray2dDouble_isSame__exec },
     { "isType", hplsupport_BlockCyclicDistArray2dDouble_isType__exec },
     { "setIntoArray", 
@@ -857,6 +911,7 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
   epv->f__ctor                 = NULL;
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
+  epv->f_initData              = NULL;
   epv->f_getFromArray          = NULL;
   epv->f_setIntoArray          = NULL;
   epv->f_addRef                = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;

@@ -1215,6 +1215,52 @@ static void remote_hplsupport_BlockCyclicDistArray2dDouble__exec(
   *_ex = NULL;
 }
 
+/* REMOTE METHOD STUB:initData */
+static void
+remote_hplsupport_BlockCyclicDistArray2dDouble_initData(
+  /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object*self ,
+  /* in */ void* data,
+  /* out */ struct sidl_BaseInterface__object **_ex)
+{
+  LANG_SPECIFIC_INIT();
+  *_ex = NULL;
+  {
+    /* initialize a new invocation */
+    struct sidl_BaseInterface__object* _throwaway = NULL;
+    sidl_BaseException _be = NULL;
+    sidl_rmi_Response _rsvp = NULL;
+    struct sidl_rmi_InstanceHandle__object * _conn = ((struct 
+      hplsupport_BlockCyclicDistArray2dDouble__remote*)self->d_data)->d_ih;
+    sidl_rmi_Invocation _inv = sidl_rmi_InstanceHandle_createInvocation( _conn, 
+      "initData", _ex ); SIDL_CHECK(*_ex);
+
+    /* pack in and inout arguments */
+    sidl_rmi_Invocation_packOpaque( _inv, "data", data, _ex);SIDL_CHECK(*_ex);
+
+    /* send actual RMI request */
+    _rsvp = sidl_rmi_Invocation_invokeMethod(_inv, _ex);SIDL_CHECK(*_ex);
+
+    _be = sidl_rmi_Response_getExceptionThrown(_rsvp, _ex);SIDL_CHECK(*_ex);
+    if (_be != NULL) {
+      struct sidl_BaseInterface__object* throwaway_exception = NULL;
+      sidl_BaseException_addLine(_be, 
+      "Exception unserialized from hplsupport.BlockCyclicDistArray2dDouble.initData.",
+        &throwaway_exception);
+      *_ex = (struct sidl_BaseInterface__object*) sidl_BaseInterface__cast(_be,
+        &throwaway_exception);
+      goto EXIT;
+    }
+
+    /* unpack out and inout arguments */
+
+    /* cleanup and return */
+    EXIT:
+    if(_inv) { sidl_rmi_Invocation_deleteRef(_inv, &_throwaway); }
+    if(_rsvp) { sidl_rmi_Response_deleteRef(_rsvp, &_throwaway); }
+    return;
+  }
+}
+
 /* REMOTE METHOD STUB:getFromArray */
 static double
 remote_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
@@ -1559,6 +1605,8 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_remote_epv(void)
   epv->f__ctor               = NULL;
   epv->f__ctor2              = NULL;
   epv->f__dtor               = NULL;
+  epv->f_initData            = 
+    remote_hplsupport_BlockCyclicDistArray2dDouble_initData;
   epv->f_getFromArray        = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_getFromArray;
   epv->f_setIntoArray        = 

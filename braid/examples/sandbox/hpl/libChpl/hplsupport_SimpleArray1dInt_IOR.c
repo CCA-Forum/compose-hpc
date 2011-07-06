@@ -89,13 +89,13 @@ static int s_load_called = 0;
 static int s_method_initialized = 0;
 
 static struct hplsupport_SimpleArray1dInt__epv 
-  s_my_epv__hplsupport_SimpleArray1dInt;
+  s_my_epv__hplsupport_simplearray1dint;
 
 static struct hplsupport_SimpleArray1dInt__epv 
-  s_my_epv_contracts__hplsupport_SimpleArray1dInt;
+  s_my_epv_contracts__hplsupport_simplearray1dint;
 
 static struct hplsupport_SimpleArray1dInt__epv 
-  s_my_epv_hooks__hplsupport_SimpleArray1dInt;
+  s_my_epv_hooks__hplsupport_simplearray1dint;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
@@ -125,6 +125,59 @@ extern void hplsupport_SimpleArray1dInt__call_load(void);
 #endif
 
 static void
+hplsupport_SimpleArray1dInt_initData__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
+        struct sidl_rmi_Call__object* inArgs,
+        struct sidl_rmi_Return__object* outArgs,
+        struct sidl_BaseInterface__object ** _ex) {
+  /* stack space for arguments */
+  void* data = 0;
+  sidl_BaseInterface _throwaway_exception = NULL;
+  sidl_BaseInterface _ex3   = NULL;
+  sidl_BaseException _SIDLex = NULL;
+  /* unpack in and inout argments */
+  sidl_rmi_Call_unpackOpaque( inArgs, "data", &data, _ex);SIDL_CHECK(*_ex);
+
+  /* make the call */
+  (self->d_epv->f_initData)(
+    self,
+    data,
+    _ex);  SIDL_CHECK(*_ex);
+
+  /* pack return value */
+  /* pack out and inout argments */
+  /* clean-up dangling references */
+  EXIT:
+  if(*_ex) { 
+    _SIDLex = sidl_BaseException__cast(*_ex,&_throwaway_exception);
+    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
+    if(_throwaway_exception) {
+      /* Throwing failed, throw _ex up the stack then. */
+      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
+      return;
+    }
+    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
+    sidl_BaseInterface_deleteRef(*_ex, &_throwaway_exception);
+    *_ex = NULL;
+    if(_ex3) { 
+      sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
+      _ex3 = NULL;
+    }
+  } else if(_ex3) {
+    _SIDLex = sidl_BaseException__cast(_ex3,&_throwaway_exception);
+    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
+    if(_throwaway_exception) {
+      /* Throwing failed throw _ex3 up the stack then. */
+      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
+      return;
+    }
+    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
+    sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
+    _ex3 = NULL;
+  }
+}
+
+static void
 hplsupport_SimpleArray1dInt_getFromArray__exec(
         struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
@@ -146,8 +199,7 @@ hplsupport_SimpleArray1dInt_getFromArray__exec(
     _ex);  SIDL_CHECK(*_ex);
 
   /* pack return value */
-  sidl_rmi_Return_packInt( outArgs, "_retval", _retval, _ex);SIDL_CHECK(
-    *_ex);
+  sidl_rmi_Return_packInt( outArgs, "_retval", _retval, _ex);SIDL_CHECK(*_ex);
   /* pack out and inout argments */
   /* clean-up dangling references */
   EXIT:
@@ -356,8 +408,8 @@ hplsupport_SimpleArray1dInt_isSame__exec(
   sidl_rmi_Call_unpackString( inArgs, "iobj", &iobj_str, _ex);SIDL_CHECK(*_ex);
 #ifdef WITH_RMI
 
-  iobj = skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(
-    iobj_str, TRUE, _ex);SIDL_CHECK(*_ex);
+  iobj = skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(iobj_str, 
+    TRUE, _ex);SIDL_CHECK(*_ex);
 #else
   iobj_bc = sidl_rmi_InstanceRegistry_getInstanceByString(iobj_str, 
     _ex);SIDL_CHECK(*_ex);
@@ -739,15 +791,13 @@ ior_hplsupport_SimpleArray1dInt__getURL(
 }
 static void
 ior_hplsupport_SimpleArray1dInt__raddRef(
-    struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* 
-  _ex) {
+    struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* _ex) {
   sidl_BaseInterface_addRef((sidl_BaseInterface)self, _ex);
 }
 
 static sidl_bool
 ior_hplsupport_SimpleArray1dInt__isRemote(
-    struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* 
-  _ex) {
+    struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* _ex) {
   *_ex  = NULL; /* default to no exception */
   return FALSE;
 }
@@ -774,13 +824,13 @@ ior_hplsupport_SimpleArray1dInt__exec(
     { "deleteRef", hplsupport_SimpleArray1dInt_deleteRef__exec },
     { "getClassInfo", hplsupport_SimpleArray1dInt_getClassInfo__exec },
     { "getFromArray", hplsupport_SimpleArray1dInt_getFromArray__exec },
+    { "initData", hplsupport_SimpleArray1dInt_initData__exec },
     { "isSame", hplsupport_SimpleArray1dInt_isSame__exec },
     { "isType", hplsupport_SimpleArray1dInt_isType__exec },
     { "setIntoArray", hplsupport_SimpleArray1dInt_setIntoArray__exec }
   };
   int i, cmp, l = 0;
-  int u = sizeof(s_methods)/sizeof(struct 
-    hplsupport_SimpleArray1dInt__method);
+  int u = sizeof(s_methods)/sizeof(struct hplsupport_SimpleArray1dInt__method);
   *_ex  = NULL; /* default to no exception */
 
   if (methodName) {
@@ -810,11 +860,11 @@ static void hplsupport_SimpleArray1dInt__init_epv(void)
  * assert( HAVE_LOCKED_STATIC_GLOBALS );
  */
 
-  struct hplsupport_SimpleArray1dInt__epv*  epv  = &s_my_epv__hplsupport_SimpleArray1dInt;
-  struct sidl_BaseClass__epv*                  e0   = &s_my_epv__sidl_baseclass;
-  struct sidl_BaseInterface__epv*              e1   = &s_my_epv__sidl_baseinterface;
+  struct hplsupport_SimpleArray1dInt__epv*  epv  = &s_my_epv__hplsupport_simplearray1dint;
+  struct sidl_BaseClass__epv*               e0   = &s_my_epv__sidl_baseclass;
+  struct sidl_BaseInterface__epv*           e1   = &s_my_epv__sidl_baseinterface;
 
-  struct sidl_BaseClass__epv*                 s1 = NULL;
+  struct sidl_BaseClass__epv*              s1 = NULL;
 
   /*
    * Get my parent's EPVs so I can start with their functions.
@@ -843,6 +893,7 @@ static void hplsupport_SimpleArray1dInt__init_epv(void)
   epv->f__ctor                 = NULL;
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
+  epv->f_initData              = NULL;
   epv->f_getFromArray          = NULL;
   epv->f_setIntoArray          = NULL;
   epv->f_addRef                = (void (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
@@ -900,8 +951,8 @@ static void hplsupport_SimpleArray1dInt__init_epv(void)
 void hplsupport_SimpleArray1dInt__getEPVs (
   struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
   struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
-  struct hplsupport_SimpleArray1dInt__epv **s_arg_epv__hplsupport_SimpleArray1dInt,
-  struct hplsupport_SimpleArray1dInt__epv **s_arg_epv_hooks__hplsupport_SimpleArray1dInt)
+  struct hplsupport_SimpleArray1dInt__epv **s_arg_epv__hplsupport_simplearray1dint,
+  struct hplsupport_SimpleArray1dInt__epv **s_arg_epv_hooks__hplsupport_simplearray1dint)
 {
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
@@ -911,8 +962,8 @@ void hplsupport_SimpleArray1dInt__getEPVs (
 
   *s_arg_epv__sidl_baseinterface = &s_my_epv__sidl_baseinterface;
   *s_arg_epv__sidl_baseclass = &s_my_epv__sidl_baseclass;
-  *s_arg_epv__hplsupport_SimpleArray1dInt = &s_my_epv__hplsupport_SimpleArray1dInt;
-  *s_arg_epv_hooks__hplsupport_SimpleArray1dInt = &s_my_epv_hooks__hplsupport_SimpleArray1dInt;
+  *s_arg_epv__hplsupport_simplearray1dint = &s_my_epv__hplsupport_simplearray1dint;
+  *s_arg_epv_hooks__hplsupport_simplearray1dint = &s_my_epv_hooks__hplsupport_simplearray1dint;
 }
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
@@ -1006,7 +1057,7 @@ void hplsupport_SimpleArray1dInt__init(
   struct sidl_BaseInterface__object **_ex)
 {
   struct hplsupport_SimpleArray1dInt__object* s0 = self;
-  struct sidl_BaseClass__object*                 s1 = &s0->d_sidl_baseclass;
+  struct sidl_BaseClass__object*              s1 = &s0->d_sidl_baseclass;
 
   *_ex = 0; /* default no exception */
   LOCK_STATIC_GLOBALS;
@@ -1020,7 +1071,7 @@ void hplsupport_SimpleArray1dInt__init(
   s1->d_sidl_baseinterface.d_epv = &s_my_epv__sidl_baseinterface;
   s1->d_epv                      = &s_my_epv__sidl_baseclass;
 
-  s0->d_epv    = &s_my_epv__hplsupport_SimpleArray1dInt;
+  s0->d_epv    = &s_my_epv__hplsupport_simplearray1dint;
 
   s0->d_data = NULL;
 
@@ -1043,7 +1094,7 @@ void hplsupport_SimpleArray1dInt__fini(
   struct sidl_BaseInterface__object **_ex)
 {
   struct hplsupport_SimpleArray1dInt__object* s0 = self;
-  struct sidl_BaseClass__object*                 s1 = &s0->d_sidl_baseclass;
+  struct sidl_BaseClass__object*              s1 = &s0->d_sidl_baseclass;
 
   *_ex  = NULL; /* default to no exception */
 

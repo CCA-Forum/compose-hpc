@@ -145,6 +145,33 @@ impl_hplsupport_BlockCyclicDistArray2dDouble__dtor(
 }
 
 /*
+ * Method:  initData[]
+ */
+
+#undef __FUNC__
+#define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_initData"
+
+#ifdef __cplusplus
+extern "C"
+#endif
+void
+impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  *_ex = 0;
+  {
+    /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.initData) */
+
+	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
+	dptr->chpl_data = (BlockCyclicDistArray2dDoubleChpl) data;
+
+    /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.initData) */
+  }
+}
+
+/*
  * Method:  getFromArray[]
  */
 

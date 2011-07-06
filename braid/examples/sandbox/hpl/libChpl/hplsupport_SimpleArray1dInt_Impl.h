@@ -105,9 +105,16 @@ impl_hplsupport_SimpleArray1dInt__dtor(
 
 #ifdef WITH_RMI
 extern struct sidl_BaseInterface__object* 
-  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* 
-  url, sidl_bool ar, sidl_BaseInterface *_ex);
+  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* url, 
+  sidl_bool ar, sidl_BaseInterface *_ex);
 #endif /*WITH_RMI*/
+extern
+void
+impl_hplsupport_SimpleArray1dInt_initData(
+  /* in */ hplsupport_SimpleArray1dInt self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex);
+
 extern
 int32_t
 impl_hplsupport_SimpleArray1dInt_getFromArray(
@@ -125,8 +132,8 @@ impl_hplsupport_SimpleArray1dInt_setIntoArray(
 
 #ifdef WITH_RMI
 extern struct sidl_BaseInterface__object* 
-  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* 
-  url, sidl_bool ar, sidl_BaseInterface *_ex);
+  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* url, 
+  sidl_bool ar, sidl_BaseInterface *_ex);
 #endif /*WITH_RMI*/
 
 /* DO-NOT-DELETE splicer.begin(_hmisc) */

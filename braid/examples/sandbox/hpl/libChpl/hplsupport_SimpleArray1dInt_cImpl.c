@@ -147,6 +147,33 @@ impl_hplsupport_SimpleArray1dInt__dtor(
 }
 
 /*
+ * Method:  initData[]
+ */
+
+#undef __FUNC__
+#define __FUNC__ "impl_hplsupport_SimpleArray1dInt_initData"
+
+#ifdef __cplusplus
+extern "C"
+#endif
+void
+impl_hplsupport_SimpleArray1dInt_initData(
+  /* in */ hplsupport_SimpleArray1dInt self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  *_ex = 0;
+  {
+    /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.initData) */
+
+	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
+	dptr->chpl_data = (SimpleArray1dIntChpl) data;
+
+    /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.initData) */
+  }
+}
+
+/*
  * Method:  getFromArray[]
  */
 

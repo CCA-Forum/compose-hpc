@@ -136,6 +136,10 @@ struct hplsupport_SimpleArray1dInt__epv {
     /* out */ struct sidl_BaseInterface__object **_ex);
   /* Methods introduced in sidl.BaseClass-v0.9.17 */
   /* Methods introduced in hplsupport.SimpleArray1dInt-v0.1 */
+  void (*f_initData)(
+    /* in */ struct hplsupport_SimpleArray1dInt__object* self,
+    /* in */ void* data,
+    /* out */ struct sidl_BaseInterface__object **_ex);
   int32_t (*f_getFromArray)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t idx1,
@@ -152,6 +156,10 @@ struct hplsupport_SimpleArray1dInt__epv {
  */
 
 struct hplsupport_SimpleArray1dInt__pre_epv {
+  void (*f_initData_pre)(
+    /* in */ struct hplsupport_SimpleArray1dInt__object* self,
+    /* in */ void* data,
+    /* out */ struct sidl_BaseInterface__object **_ex);
   void (*f_getFromArray_pre)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t idx1,
@@ -168,6 +176,10 @@ struct hplsupport_SimpleArray1dInt__pre_epv {
  */
 
 struct hplsupport_SimpleArray1dInt__post_epv {
+  void (*f_initData_post)(
+    /* in */ struct hplsupport_SimpleArray1dInt__object* self,
+    /* in */ void* data,
+    /* out */ struct sidl_BaseInterface__object **_ex);
   void (*f_getFromArray_post)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t idx1,
@@ -194,10 +206,10 @@ struct hplsupport_SimpleArray1dInt__cstats {
  */
 
 struct hplsupport_SimpleArray1dInt__object {
-  struct sidl_BaseClass__object                 d_sidl_baseclass;
+  struct sidl_BaseClass__object              d_sidl_baseclass;
   struct hplsupport_SimpleArray1dInt__epv*   d_epv;
   struct hplsupport_SimpleArray1dInt__cstats d_cstats;
-  void*                                         d_data;
+  void*                                      d_data;
 };
 
 struct hplsupport_SimpleArray1dInt__external {
@@ -230,9 +242,9 @@ extern void hplsupport_SimpleArray1dInt__getEPVs(
   struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
   struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
   struct hplsupport_SimpleArray1dInt__epv 
-    **s_arg_epv__hplsupport_SimpleArray1dInt,
+    **s_arg_epv__hplsupport_simplearray1dint,
   struct hplsupport_SimpleArray1dInt__epv 
-    **s_arg_epv_hooks__hplsupport_SimpleArray1dInt);
+    **s_arg_epv_hooks__hplsupport_simplearray1dint);
 
 extern void hplsupport_SimpleArray1dInt__fini(
   struct hplsupport_SimpleArray1dInt__object* self, struct 
@@ -242,8 +254,8 @@ extern void hplsupport_SimpleArray1dInt__IOR_version(int32_t *major, int32_t
   *minor);
 
 struct sidl_BaseInterface__object* 
-  skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* 
-  url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
+  skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* url, 
+  sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
 struct hplsupport_SimpleArray1dInt__remote{
   int d_refcount;
   struct sidl_rmi_InstanceHandle__object *d_ih;

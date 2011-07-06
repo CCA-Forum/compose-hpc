@@ -44,9 +44,16 @@ impl_hplsupport_SimpleArray1dInt__dtor(
 
 #ifdef WITH_RMI
 extern struct sidl_BaseInterface__object* 
-  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* 
-  url, sidl_bool ar, sidl_BaseInterface *_ex);
+  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* url, 
+  sidl_bool ar, sidl_BaseInterface *_ex);
 #endif /*WITH_RMI*/
+extern
+void
+impl_hplsupport_SimpleArray1dInt_initData(
+  /* in */ hplsupport_SimpleArray1dInt self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex);
+
 extern
 int32_t
 impl_hplsupport_SimpleArray1dInt_getFromArray(
@@ -64,16 +71,16 @@ impl_hplsupport_SimpleArray1dInt_setIntoArray(
 
 #ifdef WITH_RMI
 extern struct sidl_BaseInterface__object* 
-  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* 
-  url, sidl_bool ar, sidl_BaseInterface *_ex);
+  impl_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* url, 
+  sidl_bool ar, sidl_BaseInterface *_ex);
 #endif /*WITH_RMI*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void
-hplsupport_SimpleArray1dInt__set_epv(struct 
-  hplsupport_SimpleArray1dInt__epv *epv,
+hplsupport_SimpleArray1dInt__set_epv(struct hplsupport_SimpleArray1dInt__epv 
+  *epv,
   struct hplsupport_SimpleArray1dInt__pre_epv *pre_epv, 
   struct hplsupport_SimpleArray1dInt__post_epv *post_epv
 )
@@ -81,6 +88,9 @@ hplsupport_SimpleArray1dInt__set_epv(struct
   epv->f__ctor = impl_hplsupport_SimpleArray1dInt__ctor;
   epv->f__ctor2 = impl_hplsupport_SimpleArray1dInt__ctor2;
   epv->f__dtor = impl_hplsupport_SimpleArray1dInt__dtor;
+  pre_epv->f_initData_pre = NULL;
+  epv->f_initData = impl_hplsupport_SimpleArray1dInt_initData;
+  post_epv->f_initData_post = NULL;
   pre_epv->f_getFromArray_pre = NULL;
   epv->f_getFromArray = impl_hplsupport_SimpleArray1dInt_getFromArray;
   post_epv->f_getFromArray_post = NULL;
@@ -103,8 +113,8 @@ void hplsupport_SimpleArray1dInt__call_load(void) {
 }
 #ifdef WITH_RMI
 struct sidl_BaseInterface__object* 
-  skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* 
-  url, sidl_bool ar, sidl_BaseInterface *_ex) { 
+  skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(const char* url, 
+  sidl_bool ar, sidl_BaseInterface *_ex) { 
   return sidl_BaseInterface__connectI(url, ar, _ex);
 }
 

@@ -9,7 +9,7 @@
  * 
  */
 
-#define HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#define HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 #include "hplsupport_SimpleArray1dInt.h"
 #include "hplsupport_SimpleArray1dInt_IOR.h"
 #ifndef included_sidl_interface_IOR_h
@@ -57,8 +57,7 @@ static const struct hplsupport_SimpleArray1dInt__external* _loadIOR(void)
 #else
   _externals = (struct 
     hplsupport_SimpleArray1dInt__external*)sidl_dynamicLoadIOR(
-    "hplsupport.SimpleArray1dInt",
-    "hplsupport_SimpleArray1dInt__externals") ;
+    "hplsupport.SimpleArray1dInt","hplsupport_SimpleArray1dInt__externals") ;
   sidl_checkIORVersion("hplsupport.SimpleArray1dInt", 
     _externals->d_ior_major_version, _externals->d_ior_minor_version, 2, 0);
 #endif
@@ -88,16 +87,15 @@ hplsupport_SimpleArray1dInt__wrapObj(void* data, sidl_BaseInterface* _ex)
 
 #ifdef WITH_RMI
 
-static hplsupport_SimpleArray1dInt 
-  hplsupport_SimpleArray1dInt__remoteCreate(const char* url, 
-  sidl_BaseInterface *_ex);
+static hplsupport_SimpleArray1dInt hplsupport_SimpleArray1dInt__remoteCreate(
+  const char* url, sidl_BaseInterface *_ex);
 /*
  * RMI constructor function for the class.
  */
 
 hplsupport_SimpleArray1dInt
-hplsupport_SimpleArray1dInt__createRemote(const char* url, 
-  sidl_BaseInterface *_ex)
+hplsupport_SimpleArray1dInt__createRemote(const char* url, sidl_BaseInterface 
+  *_ex)
 {
   return hplsupport_SimpleArray1dInt__remoteCreate(url, _ex);
 }
@@ -113,8 +111,7 @@ static struct hplsupport_SimpleArray1dInt__object*
  */
 
 hplsupport_SimpleArray1dInt
-hplsupport_SimpleArray1dInt__connect(const char* url, sidl_BaseInterface 
-  *_ex)
+hplsupport_SimpleArray1dInt__connect(const char* url, sidl_BaseInterface *_ex)
 {
   return hplsupport_SimpleArray1dInt__remoteConnect(url, TRUE, _ex);
 }
@@ -234,8 +231,8 @@ hplsupport_SimpleArray1dInt__array_createCol(
   const int32_t upper[])
 {
   return (struct 
-    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_createCol(
-    dimen, lower, upper);
+    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_createCol(dimen, 
+    lower, upper);
 }
 
 /**
@@ -252,8 +249,8 @@ hplsupport_SimpleArray1dInt__array_createRow(
   const int32_t upper[])
 {
   return (struct 
-    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_createRow(
-    dimen, lower, upper);
+    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_createRow(dimen, 
+    lower, upper);
 }
 
 /**
@@ -284,8 +281,8 @@ hplsupport_SimpleArray1dInt__array_create1dInit(
   hplsupport_SimpleArray1dInt* data)
 {
   return (struct 
-    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_create1dInit(
-    len, (struct sidl_BaseInterface__object **)data);
+    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_create1dInit(len, 
+    (struct sidl_BaseInterface__object **)data);
 }
 
 /**
@@ -299,8 +296,7 @@ struct hplsupport_SimpleArray1dInt__array*
 hplsupport_SimpleArray1dInt__array_create2dCol(int32_t m, int32_t n)
 {
   return (struct 
-    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_create2dCol(m, 
-    n);
+    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_create2dCol(m, n);
 }
 
 /**
@@ -314,8 +310,7 @@ struct hplsupport_SimpleArray1dInt__array*
 hplsupport_SimpleArray1dInt__array_create2dRow(int32_t m, int32_t n)
 {
   return (struct 
-    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_create2dRow(m, 
-    n);
+    hplsupport_SimpleArray1dInt__array*)sidl_interface__array_create2dRow(m, n);
 }
 
 /**
@@ -933,7 +928,7 @@ static const int32_t s_IOR_MINOR_VERSION = 0;
 static int s_remote_initialized = 0;
 
 static struct hplsupport_SimpleArray1dInt__epv 
-  s_rem_epv__hplsupport_SimpleArray1dInt;
+  s_rem_epv__hplsupport_simplearray1dint;
 
 static struct sidl_BaseClass__epv  s_rem_epv__sidl_baseclass;
 
@@ -1206,6 +1201,52 @@ static void remote_hplsupport_SimpleArray1dInt__exec(
   *_ex = NULL;
 }
 
+/* REMOTE METHOD STUB:initData */
+static void
+remote_hplsupport_SimpleArray1dInt_initData(
+  /* in */ struct hplsupport_SimpleArray1dInt__object*self ,
+  /* in */ void* data,
+  /* out */ struct sidl_BaseInterface__object **_ex)
+{
+  LANG_SPECIFIC_INIT();
+  *_ex = NULL;
+  {
+    /* initialize a new invocation */
+    struct sidl_BaseInterface__object* _throwaway = NULL;
+    sidl_BaseException _be = NULL;
+    sidl_rmi_Response _rsvp = NULL;
+    struct sidl_rmi_InstanceHandle__object * _conn = ((struct 
+      hplsupport_SimpleArray1dInt__remote*)self->d_data)->d_ih;
+    sidl_rmi_Invocation _inv = sidl_rmi_InstanceHandle_createInvocation( _conn, 
+      "initData", _ex ); SIDL_CHECK(*_ex);
+
+    /* pack in and inout arguments */
+    sidl_rmi_Invocation_packOpaque( _inv, "data", data, _ex);SIDL_CHECK(*_ex);
+
+    /* send actual RMI request */
+    _rsvp = sidl_rmi_Invocation_invokeMethod(_inv, _ex);SIDL_CHECK(*_ex);
+
+    _be = sidl_rmi_Response_getExceptionThrown(_rsvp, _ex);SIDL_CHECK(*_ex);
+    if (_be != NULL) {
+      struct sidl_BaseInterface__object* throwaway_exception = NULL;
+      sidl_BaseException_addLine(_be, 
+      "Exception unserialized from hplsupport.SimpleArray1dInt.initData.",
+        &throwaway_exception);
+      *_ex = (struct sidl_BaseInterface__object*) sidl_BaseInterface__cast(_be,
+        &throwaway_exception);
+      goto EXIT;
+    }
+
+    /* unpack out and inout arguments */
+
+    /* cleanup and return */
+    EXIT:
+    if(_inv) { sidl_rmi_Invocation_deleteRef(_inv, &_throwaway); }
+    if(_rsvp) { sidl_rmi_Response_deleteRef(_rsvp, &_throwaway); }
+    return;
+  }
+}
+
 /* REMOTE METHOD STUB:getFromArray */
 static int32_t
 remote_hplsupport_SimpleArray1dInt_getFromArray(
@@ -1278,8 +1319,7 @@ remote_hplsupport_SimpleArray1dInt_setIntoArray(
       "setIntoArray", _ex ); SIDL_CHECK(*_ex);
 
     /* pack in and inout arguments */
-    sidl_rmi_Invocation_packInt( _inv, "newVal", newVal, _ex);SIDL_CHECK(
-      *_ex);
+    sidl_rmi_Invocation_packInt( _inv, "newVal", newVal, _ex);SIDL_CHECK(*_ex);
     sidl_rmi_Invocation_packInt( _inv, "idx1", idx1, _ex);SIDL_CHECK(*_ex);
 
     /* send actual RMI request */
@@ -1519,10 +1559,9 @@ static void hplsupport_SimpleArray1dInt__init_remote_epv(void)
 {
   /* assert( HAVE_LOCKED_STATIC_GLOBALS ); */
   struct hplsupport_SimpleArray1dInt__epv* epv = 
-    &s_rem_epv__hplsupport_SimpleArray1dInt;
-  struct sidl_BaseClass__epv*                 e0  = &s_rem_epv__sidl_baseclass;
-  struct sidl_BaseInterface__epv*             e1  = 
-    &s_rem_epv__sidl_baseinterface;
+    &s_rem_epv__hplsupport_simplearray1dint;
+  struct sidl_BaseClass__epv*              e0  = &s_rem_epv__sidl_baseclass;
+  struct sidl_BaseInterface__epv*          e1  = &s_rem_epv__sidl_baseinterface;
 
   epv->f__cast               = remote_hplsupport_SimpleArray1dInt__cast;
   epv->f__delete             = remote_hplsupport_SimpleArray1dInt__delete;
@@ -1533,21 +1572,18 @@ static void hplsupport_SimpleArray1dInt__init_remote_epv(void)
   epv->f__set_hooks          = remote_hplsupport_SimpleArray1dInt__set_hooks;
   epv->f__set_contracts      = 
     remote_hplsupport_SimpleArray1dInt__set_contracts;
-  epv->f__dump_stats         = 
-    remote_hplsupport_SimpleArray1dInt__dump_stats;
+  epv->f__dump_stats         = remote_hplsupport_SimpleArray1dInt__dump_stats;
   epv->f__ctor               = NULL;
   epv->f__ctor2              = NULL;
   epv->f__dtor               = NULL;
-  epv->f_getFromArray        = 
-    remote_hplsupport_SimpleArray1dInt_getFromArray;
-  epv->f_setIntoArray        = 
-    remote_hplsupport_SimpleArray1dInt_setIntoArray;
+  epv->f_initData            = remote_hplsupport_SimpleArray1dInt_initData;
+  epv->f_getFromArray        = remote_hplsupport_SimpleArray1dInt_getFromArray;
+  epv->f_setIntoArray        = remote_hplsupport_SimpleArray1dInt_setIntoArray;
   epv->f_addRef              = remote_hplsupport_SimpleArray1dInt_addRef;
   epv->f_deleteRef           = remote_hplsupport_SimpleArray1dInt_deleteRef;
   epv->f_isSame              = remote_hplsupport_SimpleArray1dInt_isSame;
   epv->f_isType              = remote_hplsupport_SimpleArray1dInt_isType;
-  epv->f_getClassInfo        = 
-    remote_hplsupport_SimpleArray1dInt_getClassInfo;
+  epv->f_getClassInfo        = remote_hplsupport_SimpleArray1dInt_getClassInfo;
 
   e0->f__cast          = (void* (*)(struct sidl_BaseClass__object*, const char*,
     struct sidl_BaseInterface__object**)) epv->f__cast;
@@ -1672,8 +1708,8 @@ hplsupport_SimpleArray1dInt__remoteConnect(const char *url, sidl_bool ar,
 
   r_obj->d_refcount = 1;
   r_obj->d_ih = instance;
-  s0 =                                          self;
-  s1 =                                          &s0->d_sidl_baseclass;
+  s0 =                                       self;
+  s1 =                                       &s0->d_sidl_baseclass;
 
   LOCK_STATIC_GLOBALS;
   if (!s_remote_initialized) {
@@ -1688,7 +1724,7 @@ hplsupport_SimpleArray1dInt__remoteConnect(const char *url, sidl_bool ar,
   s1->d_epv  = &s_rem_epv__sidl_baseclass;
 
   s0->d_data = (void*) r_obj;
-  s0->d_epv  = &s_rem_epv__hplsupport_SimpleArray1dInt;
+  s0->d_epv  = &s_rem_epv__hplsupport_simplearray1dint;
 
   self->d_data = (void*) r_obj;
 
@@ -1701,8 +1737,8 @@ hplsupport_SimpleArray1dInt__remoteConnect(const char *url, sidl_bool ar,
 /* Create an instance that uses an already existing  */
 /* InstanceHandle to connect to an existing remote object. */
 static struct hplsupport_SimpleArray1dInt__object*
-hplsupport_SimpleArray1dInt__IHConnect(sidl_rmi_InstanceHandle instance, 
-  struct sidl_BaseInterface__object* *_ex)
+hplsupport_SimpleArray1dInt__IHConnect(sidl_rmi_InstanceHandle instance, struct 
+  sidl_BaseInterface__object* *_ex)
 {
   struct hplsupport_SimpleArray1dInt__object* self = NULL;
 
@@ -1732,8 +1768,8 @@ hplsupport_SimpleArray1dInt__IHConnect(sidl_rmi_InstanceHandle instance,
 
   r_obj->d_refcount = 1;
   r_obj->d_ih = instance;
-  s0 =                                          self;
-  s1 =                                          &s0->d_sidl_baseclass;
+  s0 =                                       self;
+  s1 =                                       &s0->d_sidl_baseclass;
 
   LOCK_STATIC_GLOBALS;
   if (!s_remote_initialized) {
@@ -1748,7 +1784,7 @@ hplsupport_SimpleArray1dInt__IHConnect(sidl_rmi_InstanceHandle instance,
   s1->d_epv  = &s_rem_epv__sidl_baseclass;
 
   s0->d_data = (void*) r_obj;
-  s0->d_epv  = &s_rem_epv__hplsupport_SimpleArray1dInt;
+  s0->d_epv  = &s_rem_epv__hplsupport_simplearray1dint;
 
   self->d_data = (void*) r_obj;
 
@@ -1796,8 +1832,8 @@ hplsupport_SimpleArray1dInt__remoteCreate(const char *url, struct
 
   r_obj->d_refcount = 1;
   r_obj->d_ih = instance;
-  s0 =                                          self;
-  s1 =                                          &s0->d_sidl_baseclass;
+  s0 =                                       self;
+  s1 =                                       &s0->d_sidl_baseclass;
 
   LOCK_STATIC_GLOBALS;
   if (!s_remote_initialized) {
@@ -1812,7 +1848,7 @@ hplsupport_SimpleArray1dInt__remoteCreate(const char *url, struct
   s1->d_epv  = &s_rem_epv__sidl_baseclass;
 
   s0->d_data = (void*) r_obj;
-  s0->d_epv  = &s_rem_epv__hplsupport_SimpleArray1dInt;
+  s0->d_epv  = &s_rem_epv__hplsupport_simplearray1dint;
 
   self->d_data = (void*) r_obj;
 

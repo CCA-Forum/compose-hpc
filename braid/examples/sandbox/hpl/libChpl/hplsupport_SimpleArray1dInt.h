@@ -17,8 +17,7 @@
  */
 struct hplsupport_SimpleArray1dInt__object;
 struct hplsupport_SimpleArray1dInt__array;
-typedef struct hplsupport_SimpleArray1dInt__object* 
-  hplsupport_SimpleArray1dInt;
+typedef struct hplsupport_SimpleArray1dInt__object* hplsupport_SimpleArray1dInt;
 
 /*
  * Includes for all header dependencies.
@@ -58,11 +57,11 @@ typedef struct hplsupport_SimpleArray1dInt__object*
 extern "C" {
 #endif
 
-#if !defined(HPLSUPPORT_SimpleArray1dInt_INLINE_DECL) && defined(SIDL_C_HAS_INLINE)
+#if !defined(HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL) && defined(SIDL_C_HAS_INLINE)
 #if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)) || defined(__INTEL_COMPILER) || !defined(__GNUC__)
-#define HPLSUPPORT_SimpleArray1dInt_INLINE_DECL inline
+#define HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL inline
 #else
-#define HPLSUPPORT_SimpleArray1dInt_INLINE_DECL extern inline
+#define HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL extern inline
 #endif
 #endif /* inline preprocessor definitions */
 /**
@@ -83,8 +82,8 @@ hplsupport_SimpleArray1dInt__wrapObj(void * data, sidl_BaseInterface *_ex);
  * RMI constructor function for the class.
  */
 hplsupport_SimpleArray1dInt
-hplsupport_SimpleArray1dInt__createRemote(const char * url, 
-  sidl_BaseInterface *_ex);
+hplsupport_SimpleArray1dInt__createRemote(const char * url, sidl_BaseInterface 
+  *_ex);
 
 /**
  * RMI connector function for the class.(addrefs)
@@ -116,15 +115,36 @@ hplsupport_SimpleArray1dInt__dump_stats(
   struct sidl_BaseInterface__object **_ex);
 
 /**
+ * Method:  initData[]
+ */
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
+void
+hplsupport_SimpleArray1dInt_initData(
+  /* in */ hplsupport_SimpleArray1dInt self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex)
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
+{
+  (*self->d_epv->f_initData)(
+    self,
+    data,
+    _ex);
+}
+#else
+;
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
+
+
+/**
  * Method:  getFromArray[]
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 int32_t
 hplsupport_SimpleArray1dInt_getFromArray(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   int32_t _result;
   _result = (*self->d_epv->f_getFromArray)(
@@ -135,20 +155,20 @@ hplsupport_SimpleArray1dInt_getFromArray(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
  * Method:  setIntoArray[]
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
 hplsupport_SimpleArray1dInt_setIntoArray(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t newVal,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   (*self->d_epv->f_setIntoArray)(
     self,
@@ -158,7 +178,7 @@ hplsupport_SimpleArray1dInt_setIntoArray(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
@@ -175,12 +195,12 @@ hplsupport_SimpleArray1dInt_setIntoArray(
  * class.
  * </p>
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
 hplsupport_SimpleArray1dInt_addRef(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   (*self->d_epv->f_addRef)(
     self,
@@ -188,7 +208,7 @@ hplsupport_SimpleArray1dInt_addRef(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
@@ -198,12 +218,12 @@ hplsupport_SimpleArray1dInt_addRef(
  * Clients should call this method whenever they remove a
  * reference to an object or interface.
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
 hplsupport_SimpleArray1dInt_deleteRef(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   (*self->d_epv->f_deleteRef)(
     self,
@@ -211,20 +231,20 @@ hplsupport_SimpleArray1dInt_deleteRef(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
  * Return true if and only if <code>obj</code> refers to the same
  * object as this object.
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 sidl_bool
 hplsupport_SimpleArray1dInt_isSame(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ sidl_BaseInterface iobj,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   sidl_bool _result;
   _result = (*self->d_epv->f_isSame)(
@@ -235,7 +255,7 @@ hplsupport_SimpleArray1dInt_isSame(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
@@ -244,13 +264,13 @@ hplsupport_SimpleArray1dInt_isSame(
  * routine will return <code>true</code> if and only if a cast to
  * the string type name would succeed.
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 sidl_bool
 hplsupport_SimpleArray1dInt_isType(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ const char* name,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   sidl_bool _result;
   _result = (*self->d_epv->f_isType)(
@@ -261,18 +281,18 @@ hplsupport_SimpleArray1dInt_isType(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
  * Return the meta-data about the class implementing this interface.
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 sidl_ClassInfo
 hplsupport_SimpleArray1dInt_getClassInfo(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   sidl_ClassInfo _result;
   _result = (*self->d_epv->f_getClassInfo)(
@@ -282,7 +302,7 @@ hplsupport_SimpleArray1dInt_getClassInfo(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 
 /**
@@ -305,7 +325,7 @@ hplsupport_SimpleArray1dInt__cast2(
 /**
  * Select and execute a method by name
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
 hplsupport_SimpleArray1dInt__exec(
   /* in */ hplsupport_SimpleArray1dInt self,
@@ -313,7 +333,7 @@ hplsupport_SimpleArray1dInt__exec(
   /* in */ sidl_rmi_Call inArgs,
   /* in */ sidl_rmi_Return outArgs,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   (*self->d_epv->f__exec)(
     self,
@@ -324,17 +344,17 @@ hplsupport_SimpleArray1dInt__exec(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 /**
  * Get the URL of the Implementation of this object (for RMI)
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 char*
 hplsupport_SimpleArray1dInt__getURL(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   char* _result;
   _result = (*self->d_epv->f__getURL)(
@@ -344,17 +364,17 @@ hplsupport_SimpleArray1dInt__getURL(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 /**
  * On a remote object, addrefs the remote instance.
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
 hplsupport_SimpleArray1dInt__raddRef(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   (*self->d_epv->f__raddRef)(
     self,
@@ -362,17 +382,17 @@ hplsupport_SimpleArray1dInt__raddRef(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 /**
  * TRUE if this object is remote, false if local
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 sidl_bool
 hplsupport_SimpleArray1dInt__isRemote(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   sidl_bool _result;
   _result = (*self->d_epv->f__isRemote)(
@@ -382,7 +402,7 @@ hplsupport_SimpleArray1dInt__isRemote(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 /**
  * TRUE if this object is remote, false if local
@@ -394,13 +414,13 @@ hplsupport_SimpleArray1dInt__isLocal(
 /**
  * Method to enable/disable method hooks invocation.
  */
-HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
 hplsupport_SimpleArray1dInt__set_hooks(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ sidl_bool enable,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_SimpleArray1dInt_INLINE_DECL
+#ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   (*self->d_epv->f__set_hooks)(
     self,
@@ -409,7 +429,7 @@ hplsupport_SimpleArray1dInt__set_hooks(
 }
 #else
 ;
-#endif /* HPLSUPPORT_SimpleArray1dInt_INLINE_DECL */
+#endif /* HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL */
 
 /**
  * Create a contiguous array of the given dimension with specified

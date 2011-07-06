@@ -109,6 +109,13 @@ extern struct sidl_BaseInterface__object*
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 #endif /*WITH_RMI*/
 extern
+void
+impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex);
+
+extern
 double
 impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,

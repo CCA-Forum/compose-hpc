@@ -118,6 +118,27 @@ hplsupport_BlockCyclicDistArray2dDouble__dump_stats(
   struct sidl_BaseInterface__object **_ex);
 
 /**
+ * Method:  initData[]
+ */
+HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+void
+hplsupport_BlockCyclicDistArray2dDouble_initData(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex)
+#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+{
+  (*self->d_epv->f_initData)(
+    self,
+    data,
+    _ex);
+}
+#else
+;
+#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+
+
+/**
  * Method:  getFromArray[]
  */
 HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL

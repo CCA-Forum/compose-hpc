@@ -48,6 +48,13 @@ extern struct sidl_BaseInterface__object*
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 #endif /*WITH_RMI*/
 extern
+void
+impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+  /* in */ void* data,
+  /* out */ sidl_BaseInterface *_ex);
+
+extern
 double
 impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
@@ -83,6 +90,9 @@ hplsupport_BlockCyclicDistArray2dDouble__set_epv(struct
   epv->f__ctor = impl_hplsupport_BlockCyclicDistArray2dDouble__ctor;
   epv->f__ctor2 = impl_hplsupport_BlockCyclicDistArray2dDouble__ctor2;
   epv->f__dtor = impl_hplsupport_BlockCyclicDistArray2dDouble__dtor;
+  pre_epv->f_initData_pre = NULL;
+  epv->f_initData = impl_hplsupport_BlockCyclicDistArray2dDouble_initData;
+  post_epv->f_initData_post = NULL;
   pre_epv->f_getFromArray_pre = NULL;
   epv->f_getFromArray = 
     impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray;
