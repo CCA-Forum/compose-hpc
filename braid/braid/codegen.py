@@ -295,6 +295,14 @@ class Scope(object):
         lines = []
         if string.count("\n") > 0:
             return string
+
+        if len(string) == 0:
+            return ''
+
+        # Macros need the line-joiner backslash
+        if string[0] == '#': sep = '\\\n'
+        else: sep = '\n'
+        
         tokens = string.split(' ')
         number_of_quotes = 0
         in_quote = False
@@ -311,7 +319,7 @@ class Scope(object):
             lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
-        indent = '\n' +' '*il
+        indent = sep +' '*il
         if string.count('xxx'):
             print string
             print '->', indent.join(lines)
