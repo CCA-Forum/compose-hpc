@@ -62,19 +62,19 @@ proc clearstack(magicNumber: int): int
     tracker.writeComment("Class D: inheritance of interface A");
     init_part("d.a()"); run_part(d.a(), "D.a");
     init_part("d.d()"); run_part(d.d(), "D.d");
+
+    tracker.writeComment("Class D: via interface A");
+    var a = new Inherit.A(d.cast_Inherit_A());
+    part_no += 1;
+    tracker.startPart(part_no);
+    tracker.writeComment("Casting D to interface A");
+    if ( a == nil) {
+      tracker.endPart(part_no, synch.ResultType.FAIL);
+    } else {
+      tracker.endPart(part_no, synch.ResultType.PASS);
+      init_part("a.a()"); run_part(a.a(), "D.a");
+    }
   }
-
-/*     tracker.writeComment("Class D: via interface A"); */
-/*     Inherit::A a(d); */
-/*     tracker.startPart(++part_no); */
-/*     tracker.writeComment("Casting D to interface A"); */
-/*     if ( !a ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
-/*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       init_part("a.a()"); run_part(a.a(), "D.a"); */
-/*     } */
-
 /*     tracker.writeComment("Class D2: via interface A"); */
 /*     Inherit::D d2 = ::sidl::babel_cast<Inherit::D>(a); */
 /*     tracker.startPart(++part_no); */

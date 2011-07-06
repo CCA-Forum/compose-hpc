@@ -77,6 +77,10 @@ def ir_babel_exception_type():
     """
     return ir.Pointer_type(ir_babel_object_type(['sidl'], 'BaseInterface'))
 
+def get_name(interface):
+    (scoped_id, prefix, ext) = interface
+    return '_'.join(prefix)+ext
+
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
 
@@ -191,6 +195,108 @@ class Chapel:
         def gen(node):         return self.generate_client1(node, data, symbol_table)
         def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
 
+        def generate_class_stub(name, methods, implements=[]):
+            """
+            shared code for class/interface
+            """
+            qname = '_'.join(symbol_table.prefix+[name])                
+            ci = self.ClassInfo(name, symbol_table)
+            ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
+            ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
+            ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
+            ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
+            self.gen_default_methods(symbol_table, implements, ci)
+
+            # recurse to generate method code
+            gen1(methods, ci)
+
+            # IOR
+            self.generate_ior(ci, implements)
+            write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
+
+            # Stub (in C)
+            cstub = ci.chpl_stub.cstub
+            cstub.genh_top(ir.Import(qname+'_IOR'))
+            for code in cstub.optional:
+                cstub.new_global_def(code)
+
+            cstub.gen(ir.Import(qname+'_cStub'))
+
+            # Stub Header
+            write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
+            # Stub C-file
+            write_to(qname+'_cStub.c', cstub.dot_c())
+
+            # Stub (in Chapel)
+            # Chapel supports C structs via the _extern keyword,
+            # but they must be typedef'ed in a header file that
+            # must be passed to the chpl compiler.
+            typedefs = self.class_typedefs(qname, symbol_table)
+            write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
+            chpl_defs = ci.chpl_stub
+            ci.chpl_stub = ChapelFile()
+            ci.chpl_stub.new_def('use sidl;')
+            ior = ChapelScope(ci.chpl_stub)
+            extrns = ChapelScope(ci.chpl_stub)
+            for impls in implements:
+                for interf in impls[1]:
+                    ifname = '_'.join(interf[1])
+                    #ior.new_def('  var d_inherit_%s: %s__object;'
+                    #                     %(get_name(interf), ifname))
+                    extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object): {0}__object;'
+                                         .format(ifname, qname))
+
+
+            ci.chpl_stub.new_def('_extern record %s__object {'%qname)
+            ci.chpl_stub.new_def(ior)
+            ci.chpl_stub.new_def('};')
+
+            ci.chpl_stub.new_def(extrns)
+            ci.chpl_stub.new_def('_extern proc %s__createObject('%qname+
+                                 'd_data: int, '+
+                                 'inout ex: sidl_BaseInterface__object)'+
+                                 ': %s__object;'%qname)
+            name = chpl_gen(name)
+            ci.chpl_stub.new_def(chpl_defs.get_decls())
+            ci.chpl_stub.new_def('// All the static methods of class '+name)
+            ci.chpl_stub.new_def('module %s_static {'%name)
+            ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
+            ci.chpl_stub.new_def('}')
+            ci.chpl_stub.new_def('class %s {'%name)
+            chpl_class = ChapelScope(ci.chpl_stub)
+            chpl_class.new_def('var self: %s__object;'%qname)
+            body = [
+                '  var ex: sidl_BaseInterface__object;',
+                '  this.self = %s__createObject(0, ex);'%qname
+                ]
+            chpl_gen(
+                (ir.fn_defn, [], ir.pt_void, 
+                 name, [], body, 'Constructor'), chpl_class)
+
+            chpl_gen(
+                (ir.fn_defn, [], ir.pt_void, 
+                 chpl_gen(name),
+                 [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
+                  ['  this.self = obj;'],
+                  'Constructor for wrapping an existing object'), chpl_class)
+
+            for impls in implements:
+                for interf in impls[1]:
+                    chpl_gen(
+                        (ir.fn_defn, [], ir.pt_void, 
+                         '_'.join(['cast']+interf[1]), [],
+                         ['return %s(this.self);'%'_'.join(['_cast']+interf[1])],
+                         'Create a don-casted version of the IOR pointer for\n'
+                         'use with the alternate constructor'), chpl_class)
+
+            chpl_class.new_def(chpl_defs.get_defs())
+            ci.chpl_stub.new_def(chpl_class)
+            ci.chpl_stub.new_def('}')
+            self.pkg_chpl_stub.new_def(ci.chpl_stub)
+
+            # Makefile
+            self.classes.append(qname)
+
         if not symbol_table:
             raise Exception()
 
@@ -200,96 +306,12 @@ class Chapel:
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                qname = '_'.join(symbol_table.prefix+[Name])                
-                ci = self.ClassInfo(Name, symbol_table)
-                ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
-                ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
-                ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
-                ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
-                
-                self.gen_default_methods(symbol_table, Implements, ci)
-
-                # recurse to generate method code
-                gen1(Methods, ci)
-
-                # IOR
-                self.generate_ior(ci, Implements)
-                write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
-
-                # Stub (in C)
-                cstub = ci.chpl_stub.cstub
-                cstub.genh_top(ir.Import(qname+'_IOR'))
-                for code in cstub.optional:
-                    cstub.new_global_def(code)
-                    
-                cstub.gen(ir.Import(qname+'_cStub'))
-                
-                # Stub Header
-                write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
-                # Stub C-file
-                write_to(qname+'_cStub.c', cstub.dot_c())
-
-                # Stub (in Chapel)
-                # Chapel supports C structs via the _extern keyword,
-                # but they must be typedef'ed in a header file that
-                # must be passed to the chpl compiler.
-                typedefs = self.class_typedefs(qname, symbol_table)
-                write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
-                chpl_defs = ci.chpl_stub
-                ci.chpl_stub = ChapelFile()
-                ci.chpl_stub.new_def('use sidl;')
-                ci.chpl_stub.new_def('_extern record %s__object {};'%qname)
-                ci.chpl_stub.new_def('_extern proc %s__createObject('%qname+
-                                     'd_data: int, '+
-                                     'inout ex: sidl_BaseInterface__object)'+
-                                     ': %s__object;'%qname)
-                name = chpl_gen(Name)
-                ci.chpl_stub.new_def(chpl_defs.get_decls())
-                ci.chpl_stub.new_def('// All the static methods of class '+name)
-                ci.chpl_stub.new_def('module %s_static {'%name)
-                ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
-                ci.chpl_stub.new_def('}')
-                ci.chpl_stub.new_def('class %s {'%name)
-                chpl_class = ChapelScope(ci.chpl_stub)
-                chpl_class.new_def('var self: %s__object;'%qname)
-                body = [
-                    '  var ex: sidl_BaseInterface__object;',
-                    '  this.self = %s__createObject(0, ex);'%qname
-                    ]
-                chpl_gen(
-                    (ir.fn_defn, [], ir.pt_void, 
-                     Name, [], body, 'Constructor'), chpl_class)
-
-                chpl_gen(
-                    (ir.fn_defn, [], ir.pt_void, 
-                     chpl_gen(Name),
-                     [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                      ['  this.self = obj;'],
-                      'Constructor for wrapping an existing object'), chpl_class)
-
-                chpl_class.new_def(chpl_defs.get_defs())
-                ci.chpl_stub.new_def(chpl_class)
-                ci.chpl_stub.new_def('}')
-                self.pkg_chpl_stub.new_def(ci.chpl_stub)
-
-                # Makefile
-                self.classes.append(qname)
+                generate_class_stub(Name, Methods, Implements)
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
                 expect(data, None)
-                qname = '_'.join(symbol_table.prefix+[Name])                
-                ci = self.ClassInfo(Name, symbol_table)
-                ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
-                ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
-                ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
-                ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
-                
-                self.gen_default_methods(symbol_table, [], ci)
-
-                # IOR
-                self.generate_ior(ci, [])
-                write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
+                generate_class_stub(Name, Methods)
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
@@ -353,10 +375,6 @@ class Chapel:
 
         def inarg(t, name):
             return sidl.Arg([], sidl.in_, t, name)
-
-        def get_name(interface):
-            (scoped_id, prefix, ext) = interface
-            return '_'.join(prefix)+ext
 
         # Implicit Built-in methods
         builtin(sidl.void, '_cast',
@@ -758,8 +776,12 @@ class Chapel:
         
         for impls in implements:
             for interface in impls[1]:
-                ci.ior.genh(ir.Import('_'.join(interface[1])+'_IOR'))
+                ifname = '_'.join(interface[1])
+                ci.ior.genh(ir.Import(ifname+'_IOR'))
+                ci.ior.genh('#define _cast_{0}(ior) (&ior->d_inherit_{0})'
+                            .format(ifname))
 
+                
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
         ci.ior.gen(ir.Type_decl(ci.cstats))
@@ -1940,13 +1962,13 @@ endif
 
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
+	$(CHPL) --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< *Stub.h $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	$(CHPL) --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
 	headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	babel-libtool --mode=compile --tag=CC $(CC) \
