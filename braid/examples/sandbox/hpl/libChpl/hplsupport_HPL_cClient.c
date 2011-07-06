@@ -5,7 +5,9 @@
 
 #define DEBUG 0
 
-void panelSolve(void* abData, void* pivData, /* abLimits*/ int abStart1, int abEnd1, int abStart2, int abEnd2, /*panel domain*/ int start1, int end1, int start2, int end2) {
+void panelSolveNative(void* abData, void* pivData,
+		/* abLimits*/ int abStart1, int abEnd1, int abStart2, int abEnd2,
+		/*panel domain*/ int start1, int end1, int start2, int end2) {
 
   if (DEBUG) printf("panelSolve(%p, %p, /*ab*/ %d, %d, %d, %d, /*panel*/ %d, %d, %d, %d) \n", abData, pivData,
 		  abStart1, abEnd1, abStart2, abEnd2,
