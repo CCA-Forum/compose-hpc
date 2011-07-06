@@ -3,10 +3,10 @@
 package hplsupport version 0.1 {
 
 
-  class SimpleArray1dDouble {
+  class SimpleArray1dInt {
     double getFromArray(in int idx1);
     
-    void setIntoArray(in double newVal, in int idx1);
+    void setIntoArray(in int newVal, in int idx1);
   }
 
 

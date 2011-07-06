@@ -1,9 +1,9 @@
 /*
- * File:          hplsupport_SimpleArray1dDouble_IOR.c
- * Symbol:        hplsupport.SimpleArray1dDouble-v0.1
+ * File:          hplsupport_SimpleArray1dInt_IOR.c
+ * Symbol:        hplsupport.SimpleArray1dInt-v0.1
  * Symbol Type:   class
  * Babel Version: 2.0.0 (Revision: 0  )
- * Description:   Intermediate Object Representation for hplsupport.SimpleArray1dDouble
+ * Description:   Intermediate Object Representation for hplsupport.SimpleArray1dInt
  * 
  * WARNING: Automatically generated; changes will be lost
  * 
@@ -33,7 +33,7 @@
 #ifndef included_sidlOps_h
 #include "sidlOps.h"
 #endif
-#include "hplsupport_SimpleArray1dDouble_IOR.h"
+#include "hplsupport_SimpleArray1dInt_IOR.h"
 #ifndef included_sidl_BaseClass_Impl_h
 #include "sidl_BaseClass_Impl.h"
 #endif
@@ -53,10 +53,10 @@
 
 #include "sidl_thread.h"
 #ifdef HAVE_PTHREAD
-static struct sidl_recursive_mutex_t hplsupport_SimpleArray1dDouble__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
-#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &hplsupport_SimpleArray1dDouble__mutex )
-#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &hplsupport_SimpleArray1dDouble__mutex )
-/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &hplsupport_SimpleArray1dDouble__mutex )==EDEADLOCK) */
+static struct sidl_recursive_mutex_t hplsupport_SimpleArray1dInt__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
+#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &hplsupport_SimpleArray1dInt__mutex )
+#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &hplsupport_SimpleArray1dInt__mutex )
+/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &hplsupport_SimpleArray1dInt__mutex )==EDEADLOCK) */
 #else
 #define LOCK_STATIC_GLOBALS
 #define UNLOCK_STATIC_GLOBALS
@@ -88,14 +88,14 @@ static int s_load_called = 0;
 
 static int s_method_initialized = 0;
 
-static struct hplsupport_SimpleArray1dDouble__epv 
-  s_my_epv__hplsupport_simplearray1ddouble;
+static struct hplsupport_SimpleArray1dInt__epv 
+  s_my_epv__hplsupport_SimpleArray1dInt;
 
-static struct hplsupport_SimpleArray1dDouble__epv 
-  s_my_epv_contracts__hplsupport_simplearray1ddouble;
+static struct hplsupport_SimpleArray1dInt__epv 
+  s_my_epv_contracts__hplsupport_SimpleArray1dInt;
 
-static struct hplsupport_SimpleArray1dDouble__epv 
-  s_my_epv_hooks__hplsupport_simplearray1ddouble;
+static struct hplsupport_SimpleArray1dInt__epv 
+  s_my_epv_hooks__hplsupport_SimpleArray1dInt;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
@@ -103,8 +103,8 @@ static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
 static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
 static struct sidl_BaseInterface__epv* s_par_epv__sidl_baseinterface;
 
-static struct hplsupport_SimpleArray1dDouble__pre_epv s_preEPV;
-static struct hplsupport_SimpleArray1dDouble__post_epv s_postEPV;
+static struct hplsupport_SimpleArray1dInt__pre_epv s_preEPV;
+static struct hplsupport_SimpleArray1dInt__post_epv s_postEPV;
 
 /*
  * Declare EPV routines defined in the skeleton file.
@@ -114,25 +114,25 @@ static struct hplsupport_SimpleArray1dDouble__post_epv s_postEPV;
 extern "C" {
 #endif
 
-extern void hplsupport_SimpleArray1dDouble__set_epv(
-  struct hplsupport_SimpleArray1dDouble__epv* epv,
-    struct hplsupport_SimpleArray1dDouble__pre_epv* pre_epv,
-    struct hplsupport_SimpleArray1dDouble__post_epv* post_epv);
+extern void hplsupport_SimpleArray1dInt__set_epv(
+  struct hplsupport_SimpleArray1dInt__epv* epv,
+    struct hplsupport_SimpleArray1dInt__pre_epv* pre_epv,
+    struct hplsupport_SimpleArray1dInt__post_epv* post_epv);
 
-extern void hplsupport_SimpleArray1dDouble__call_load(void);
+extern void hplsupport_SimpleArray1dInt__call_load(void);
 #ifdef __cplusplus
 }
 #endif
 
 static void
-hplsupport_SimpleArray1dDouble_getFromArray__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_getFromArray__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
   /* stack space for arguments */
   int32_t idx1 = 0;
-  double _retval = 0;
+  int32_t _retval = 0;
   sidl_BaseInterface _throwaway_exception = NULL;
   sidl_BaseInterface _ex3   = NULL;
   sidl_BaseException _SIDLex = NULL;
@@ -146,7 +146,7 @@ hplsupport_SimpleArray1dDouble_getFromArray__exec(
     _ex);  SIDL_CHECK(*_ex);
 
   /* pack return value */
-  sidl_rmi_Return_packDouble( outArgs, "_retval", _retval, _ex);SIDL_CHECK(
+  sidl_rmi_Return_packInt( outArgs, "_retval", _retval, _ex);SIDL_CHECK(
     *_ex);
   /* pack out and inout argments */
   /* clean-up dangling references */
@@ -181,19 +181,19 @@ hplsupport_SimpleArray1dDouble_getFromArray__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble_setIntoArray__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_setIntoArray__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
   /* stack space for arguments */
-  double newVal = 0;
+  int32_t newVal = 0;
   int32_t idx1 = 0;
   sidl_BaseInterface _throwaway_exception = NULL;
   sidl_BaseInterface _ex3   = NULL;
   sidl_BaseException _SIDLex = NULL;
   /* unpack in and inout argments */
-  sidl_rmi_Call_unpackDouble( inArgs, "newVal", &newVal, _ex);SIDL_CHECK(*_ex);
+  sidl_rmi_Call_unpackInt( inArgs, "newVal", &newVal, _ex);SIDL_CHECK(*_ex);
   sidl_rmi_Call_unpackInt( inArgs, "idx1", &idx1, _ex);SIDL_CHECK(*_ex);
 
   /* make the call */
@@ -237,8 +237,8 @@ hplsupport_SimpleArray1dDouble_setIntoArray__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble_addRef__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_addRef__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -287,8 +287,8 @@ hplsupport_SimpleArray1dDouble_addRef__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble_deleteRef__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_deleteRef__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -337,8 +337,8 @@ hplsupport_SimpleArray1dDouble_deleteRef__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble_isSame__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_isSame__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -356,14 +356,14 @@ hplsupport_SimpleArray1dDouble_isSame__exec(
   sidl_rmi_Call_unpackString( inArgs, "iobj", &iobj_str, _ex);SIDL_CHECK(*_ex);
 #ifdef WITH_RMI
 
-  iobj = skel_hplsupport_SimpleArray1dDouble_fconnect_sidl_BaseInterface(
+  iobj = skel_hplsupport_SimpleArray1dInt_fconnect_sidl_BaseInterface(
     iobj_str, TRUE, _ex);SIDL_CHECK(*_ex);
 #else
   iobj_bc = sidl_rmi_InstanceRegistry_getInstanceByString(iobj_str, 
     _ex);SIDL_CHECK(*_ex);
   if(iobj_bc != NULL) {
-    iobj= (struct hplsupport_SimpleArray1dDouble__object*) (
-      *iobj_bc->d_epv->f__cast)(iobj_bc, "hplsupport.SimpleArray1dDouble", _ex);
+    iobj= (struct hplsupport_SimpleArray1dInt__object*) (
+      *iobj_bc->d_epv->f__cast)(iobj_bc, "hplsupport.SimpleArray1dInt", _ex);
     if(iobj != NULL) {
       (((struct sidl_BaseInterface__object*)(iobj))->d_epv->f_deleteRef)(((
         struct sidl_BaseInterface__object*)iobj)->d_object, _ex); SIDL_CHECK(
@@ -421,8 +421,8 @@ hplsupport_SimpleArray1dDouble_isSame__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble_isType__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_isType__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -477,8 +477,8 @@ hplsupport_SimpleArray1dDouble_isType__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble_getClassInfo__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt_getClassInfo__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -544,8 +544,8 @@ hplsupport_SimpleArray1dDouble_getClassInfo__exec(
 }
 
 static void
-hplsupport_SimpleArray1dDouble__cast__exec(
-        struct hplsupport_SimpleArray1dDouble__object* self,
+hplsupport_SimpleArray1dInt__cast__exec(
+        struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -604,8 +604,8 @@ hplsupport_SimpleArray1dDouble__cast__exec(
  * CHECKS: Enable/disable contract enforcement.
  */
 
-static void ior_hplsupport_SimpleArray1dDouble__set_contracts(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+static void ior_hplsupport_SimpleArray1dInt__set_contracts(
+  struct hplsupport_SimpleArray1dInt__object* self,
   sidl_bool   enable,
   const char* enfFilename,
   sidl_bool   resetCounters,
@@ -624,8 +624,8 @@ static void ior_hplsupport_SimpleArray1dDouble__set_contracts(
  * DUMP: Dump interface contract enforcement statistics.
  */
 
-static void ior_hplsupport_SimpleArray1dDouble__dump_stats(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+static void ior_hplsupport_SimpleArray1dInt__dump_stats(
+  struct hplsupport_SimpleArray1dInt__object* self,
   const char* filename,
   const char* prefix,
   struct sidl_BaseInterface__object **_ex)
@@ -639,20 +639,20 @@ static void ior_hplsupport_SimpleArray1dDouble__dump_stats(
   }
 }
 
-static void ior_hplsupport_SimpleArray1dDouble__ensure_load_called(void) {
+static void ior_hplsupport_SimpleArray1dInt__ensure_load_called(void) {
   /*
    * assert( HAVE_LOCKED_STATIC_GLOBALS );
    */
 
   if (! s_load_called ) {
     s_load_called=1;
-    hplsupport_SimpleArray1dDouble__call_load();
+    hplsupport_SimpleArray1dInt__call_load();
   }
 }
 
 /* CAST: dynamic type casting support. */
-static void* ior_hplsupport_SimpleArray1dDouble__cast(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+static void* ior_hplsupport_SimpleArray1dInt__cast(
+  struct hplsupport_SimpleArray1dInt__object* self,
   const char* name, sidl_BaseInterface* _ex)
 {
   int cmp;
@@ -665,10 +665,10 @@ static void* ior_hplsupport_SimpleArray1dDouble__cast(
     return cast;
   }
   else if (cmp < 0) {
-    cmp = strcmp(name, "hplsupport.SimpleArray1dDouble");
+    cmp = strcmp(name, "hplsupport.SimpleArray1dInt");
     if (!cmp) {
       (*self->d_epv->f_addRef)(self, _ex); SIDL_CHECK(*_ex);
-      cast = ((struct hplsupport_SimpleArray1dDouble__object*)self);
+      cast = ((struct hplsupport_SimpleArray1dInt__object*)self);
       return cast;
     }
   }
@@ -689,8 +689,8 @@ static void* ior_hplsupport_SimpleArray1dDouble__cast(
  * HOOKS: Enable/disable hooks.
  */
 
-static void ior_hplsupport_SimpleArray1dDouble__set_hooks(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+static void ior_hplsupport_SimpleArray1dInt__set_hooks(
+  struct hplsupport_SimpleArray1dInt__object* self,
   sidl_bool enable, struct sidl_BaseInterface__object **_ex )
 {
   *_ex  = NULL;
@@ -704,19 +704,19 @@ static void ior_hplsupport_SimpleArray1dDouble__set_hooks(
  * DELETE: call destructor and free object memory.
  */
 
-static void ior_hplsupport_SimpleArray1dDouble__delete(
-  struct hplsupport_SimpleArray1dDouble__object* self, struct 
+static void ior_hplsupport_SimpleArray1dInt__delete(
+  struct hplsupport_SimpleArray1dInt__object* self, struct 
     sidl_BaseInterface__object **_ex)
 {
   *_ex  = NULL; /* default to no exception */
-  hplsupport_SimpleArray1dDouble__fini(self, _ex);
-  memset((void*)self, 0, sizeof(struct hplsupport_SimpleArray1dDouble__object));
+  hplsupport_SimpleArray1dInt__fini(self, _ex);
+  memset((void*)self, 0, sizeof(struct hplsupport_SimpleArray1dInt__object));
   free((void*) self);
 }
 
 static char*
-ior_hplsupport_SimpleArray1dDouble__getURL(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+ior_hplsupport_SimpleArray1dInt__getURL(
+  struct hplsupport_SimpleArray1dInt__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
   char* ret  = NULL;
@@ -738,49 +738,49 @@ ior_hplsupport_SimpleArray1dDouble__getURL(
   return NULL;
 }
 static void
-ior_hplsupport_SimpleArray1dDouble__raddRef(
-    struct hplsupport_SimpleArray1dDouble__object* self, sidl_BaseInterface* 
+ior_hplsupport_SimpleArray1dInt__raddRef(
+    struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* 
   _ex) {
   sidl_BaseInterface_addRef((sidl_BaseInterface)self, _ex);
 }
 
 static sidl_bool
-ior_hplsupport_SimpleArray1dDouble__isRemote(
-    struct hplsupport_SimpleArray1dDouble__object* self, sidl_BaseInterface* 
+ior_hplsupport_SimpleArray1dInt__isRemote(
+    struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* 
   _ex) {
   *_ex  = NULL; /* default to no exception */
   return FALSE;
 }
 
-struct hplsupport_SimpleArray1dDouble__method {
+struct hplsupport_SimpleArray1dInt__method {
   const char *d_name;
-  void (*d_func)(struct hplsupport_SimpleArray1dDouble__object*,
+  void (*d_func)(struct hplsupport_SimpleArray1dInt__object*,
     struct sidl_rmi_Call__object *,
     struct sidl_rmi_Return__object *,
     struct sidl_BaseInterface__object **);
 };
 
 static void
-ior_hplsupport_SimpleArray1dDouble__exec(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+ior_hplsupport_SimpleArray1dInt__exec(
+  struct hplsupport_SimpleArray1dInt__object* self,
   const char* methodName,
   struct sidl_rmi_Call__object* inArgs,
   struct sidl_rmi_Return__object* outArgs,
   struct sidl_BaseInterface__object **_ex )
 {
-  static const struct hplsupport_SimpleArray1dDouble__method  s_methods[] = {
-    { "_cast", hplsupport_SimpleArray1dDouble__cast__exec },
-    { "addRef", hplsupport_SimpleArray1dDouble_addRef__exec },
-    { "deleteRef", hplsupport_SimpleArray1dDouble_deleteRef__exec },
-    { "getClassInfo", hplsupport_SimpleArray1dDouble_getClassInfo__exec },
-    { "getFromArray", hplsupport_SimpleArray1dDouble_getFromArray__exec },
-    { "isSame", hplsupport_SimpleArray1dDouble_isSame__exec },
-    { "isType", hplsupport_SimpleArray1dDouble_isType__exec },
-    { "setIntoArray", hplsupport_SimpleArray1dDouble_setIntoArray__exec }
+  static const struct hplsupport_SimpleArray1dInt__method  s_methods[] = {
+    { "_cast", hplsupport_SimpleArray1dInt__cast__exec },
+    { "addRef", hplsupport_SimpleArray1dInt_addRef__exec },
+    { "deleteRef", hplsupport_SimpleArray1dInt_deleteRef__exec },
+    { "getClassInfo", hplsupport_SimpleArray1dInt_getClassInfo__exec },
+    { "getFromArray", hplsupport_SimpleArray1dInt_getFromArray__exec },
+    { "isSame", hplsupport_SimpleArray1dInt_isSame__exec },
+    { "isType", hplsupport_SimpleArray1dInt_isType__exec },
+    { "setIntoArray", hplsupport_SimpleArray1dInt_setIntoArray__exec }
   };
   int i, cmp, l = 0;
   int u = sizeof(s_methods)/sizeof(struct 
-    hplsupport_SimpleArray1dDouble__method);
+    hplsupport_SimpleArray1dInt__method);
   *_ex  = NULL; /* default to no exception */
 
   if (methodName) {
@@ -804,13 +804,13 @@ ior_hplsupport_SimpleArray1dDouble__exec(
  * EPV: create method entry point vector (EPV) structure.
  */
 
-static void hplsupport_SimpleArray1dDouble__init_epv(void)
+static void hplsupport_SimpleArray1dInt__init_epv(void)
 {
 /*
  * assert( HAVE_LOCKED_STATIC_GLOBALS );
  */
 
-  struct hplsupport_SimpleArray1dDouble__epv*  epv  = &s_my_epv__hplsupport_simplearray1ddouble;
+  struct hplsupport_SimpleArray1dInt__epv*  epv  = &s_my_epv__hplsupport_SimpleArray1dInt;
   struct sidl_BaseClass__epv*                  e0   = &s_my_epv__sidl_baseclass;
   struct sidl_BaseInterface__epv*              e1   = &s_my_epv__sidl_baseinterface;
 
@@ -831,27 +831,27 @@ static void hplsupport_SimpleArray1dDouble__init_epv(void)
 
   s1  =  s_par_epv__sidl_baseclass;
 
-  epv->f__cast                 = ior_hplsupport_SimpleArray1dDouble__cast;
-  epv->f__delete               = ior_hplsupport_SimpleArray1dDouble__delete;
-  epv->f__exec                 = ior_hplsupport_SimpleArray1dDouble__exec;
-  epv->f__getURL               = ior_hplsupport_SimpleArray1dDouble__getURL;
-  epv->f__raddRef              = ior_hplsupport_SimpleArray1dDouble__raddRef;
-  epv->f__isRemote             = ior_hplsupport_SimpleArray1dDouble__isRemote;
-  epv->f__set_hooks            = ior_hplsupport_SimpleArray1dDouble__set_hooks;
-  epv->f__set_contracts        = ior_hplsupport_SimpleArray1dDouble__set_contracts;
-  epv->f__dump_stats           = ior_hplsupport_SimpleArray1dDouble__dump_stats;
+  epv->f__cast                 = ior_hplsupport_SimpleArray1dInt__cast;
+  epv->f__delete               = ior_hplsupport_SimpleArray1dInt__delete;
+  epv->f__exec                 = ior_hplsupport_SimpleArray1dInt__exec;
+  epv->f__getURL               = ior_hplsupport_SimpleArray1dInt__getURL;
+  epv->f__raddRef              = ior_hplsupport_SimpleArray1dInt__raddRef;
+  epv->f__isRemote             = ior_hplsupport_SimpleArray1dInt__isRemote;
+  epv->f__set_hooks            = ior_hplsupport_SimpleArray1dInt__set_hooks;
+  epv->f__set_contracts        = ior_hplsupport_SimpleArray1dInt__set_contracts;
+  epv->f__dump_stats           = ior_hplsupport_SimpleArray1dInt__dump_stats;
   epv->f__ctor                 = NULL;
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
   epv->f_getFromArray          = NULL;
   epv->f_setIntoArray          = NULL;
-  epv->f_addRef                = (void (*)(struct hplsupport_SimpleArray1dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
-  epv->f_deleteRef             = (void (*)(struct hplsupport_SimpleArray1dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
-  epv->f_isSame                = (sidl_bool (*)(struct hplsupport_SimpleArray1dDouble__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
-  epv->f_isType                = (sidl_bool (*)(struct hplsupport_SimpleArray1dDouble__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
-  epv->f_getClassInfo          = (struct sidl_ClassInfo__object* (*)(struct hplsupport_SimpleArray1dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
+  epv->f_addRef                = (void (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
+  epv->f_deleteRef             = (void (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
+  epv->f_isSame                = (sidl_bool (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
+  epv->f_isType                = (sidl_bool (*)(struct hplsupport_SimpleArray1dInt__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
+  epv->f_getClassInfo          = (struct sidl_ClassInfo__object* (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
 
-  hplsupport_SimpleArray1dDouble__set_epv(epv, &s_preEPV, &s_postEPV);
+  hplsupport_SimpleArray1dInt__set_epv(epv, &s_preEPV, &s_postEPV);
 
   /*
    * Override function pointers for sidl.BaseClass with mine, as needed.
@@ -890,35 +890,35 @@ static void hplsupport_SimpleArray1dDouble__init_epv(void)
 
 
   s_method_initialized = 1;
-  ior_hplsupport_SimpleArray1dDouble__ensure_load_called();
+  ior_hplsupport_SimpleArray1dInt__ensure_load_called();
 }
 
 /*
- * hplsupport_SimpleArray1dDouble__getEPVs: Get my version of all relevant EPVs.
+ * hplsupport_SimpleArray1dInt__getEPVs: Get my version of all relevant EPVs.
  */
 
-void hplsupport_SimpleArray1dDouble__getEPVs (
+void hplsupport_SimpleArray1dInt__getEPVs (
   struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
   struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
-  struct hplsupport_SimpleArray1dDouble__epv **s_arg_epv__hplsupport_simplearray1ddouble,
-  struct hplsupport_SimpleArray1dDouble__epv **s_arg_epv_hooks__hplsupport_simplearray1ddouble)
+  struct hplsupport_SimpleArray1dInt__epv **s_arg_epv__hplsupport_SimpleArray1dInt,
+  struct hplsupport_SimpleArray1dInt__epv **s_arg_epv_hooks__hplsupport_SimpleArray1dInt)
 {
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    hplsupport_SimpleArray1dDouble__init_epv();
+    hplsupport_SimpleArray1dInt__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
   *s_arg_epv__sidl_baseinterface = &s_my_epv__sidl_baseinterface;
   *s_arg_epv__sidl_baseclass = &s_my_epv__sidl_baseclass;
-  *s_arg_epv__hplsupport_simplearray1ddouble = &s_my_epv__hplsupport_simplearray1ddouble;
-  *s_arg_epv_hooks__hplsupport_simplearray1ddouble = &s_my_epv_hooks__hplsupport_simplearray1ddouble;
+  *s_arg_epv__hplsupport_SimpleArray1dInt = &s_my_epv__hplsupport_SimpleArray1dInt;
+  *s_arg_epv_hooks__hplsupport_SimpleArray1dInt = &s_my_epv_hooks__hplsupport_SimpleArray1dInt;
 }
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
 
-static struct sidl_BaseClass__epv* hplsupport_SimpleArray1dDouble__getSuperEPV(void) {
+static struct sidl_BaseClass__epv* hplsupport_SimpleArray1dInt__getSuperEPV(void) {
   return s_par_epv__sidl_baseclass;
 }
 
@@ -937,7 +937,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
     impl = sidl_ClassInfoI__create(_ex);
     s_classInfo = sidl_ClassInfo__cast(impl,_ex);
     if (impl) {
-      sidl_ClassInfoI_setName(impl, "hplsupport.SimpleArray1dDouble", _ex);
+      sidl_ClassInfoI_setName(impl, "hplsupport.SimpleArray1dInt", _ex);
       sidl_ClassInfoI_setVersion(impl, "0.1", _ex);
       sidl_ClassInfoI_setIORVersion(impl, s_IOR_MAJOR_VERSION,
         s_IOR_MINOR_VERSION, _ex);
@@ -960,7 +960,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
  */
 
 static void
-initMetadata(struct hplsupport_SimpleArray1dDouble__object* self, sidl_BaseInterface* _ex)
+initMetadata(struct hplsupport_SimpleArray1dInt__object* self, sidl_BaseInterface* _ex)
 {
   *_ex = 0; /* default no exception */
   if (self) {
@@ -976,19 +976,19 @@ return;
 }
 
 /*
- * hplsupport_SimpleArray1dDouble__createObject: Allocate the object and initialize it.
+ * hplsupport_SimpleArray1dInt__createObject: Allocate the object and initialize it.
  */
 
-struct hplsupport_SimpleArray1dDouble__object*
-hplsupport_SimpleArray1dDouble__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
+struct hplsupport_SimpleArray1dInt__object*
+hplsupport_SimpleArray1dInt__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
 {
-  struct hplsupport_SimpleArray1dDouble__object* self =
-    (struct hplsupport_SimpleArray1dDouble__object*) sidl_malloc(
-      sizeof(struct hplsupport_SimpleArray1dDouble__object),
-      "Object allocation failed for struct hplsupport_SimpleArray1dDouble__object",
-        __FILE__, __LINE__, "hplsupport_SimpleArray1dDouble__createObject", _ex);
+  struct hplsupport_SimpleArray1dInt__object* self =
+    (struct hplsupport_SimpleArray1dInt__object*) sidl_malloc(
+      sizeof(struct hplsupport_SimpleArray1dInt__object),
+      "Object allocation failed for struct hplsupport_SimpleArray1dInt__object",
+        __FILE__, __LINE__, "hplsupport_SimpleArray1dInt__createObject", _ex);
   if (!self) goto EXIT;
-  hplsupport_SimpleArray1dDouble__init(self, ddata, _ex); SIDL_CHECK(*_ex);
+  hplsupport_SimpleArray1dInt__init(self, ddata, _ex); SIDL_CHECK(*_ex);
   initMetadata(self, _ex); SIDL_CHECK(*_ex);
   return self;
 
@@ -1000,18 +1000,18 @@ hplsupport_SimpleArray1dDouble__createObject(void* ddata, struct sidl_BaseInterf
  * INIT: initialize a new instance of the class object.
  */
 
-void hplsupport_SimpleArray1dDouble__init(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+void hplsupport_SimpleArray1dInt__init(
+  struct hplsupport_SimpleArray1dInt__object* self,
    void* ddata,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct hplsupport_SimpleArray1dDouble__object* s0 = self;
+  struct hplsupport_SimpleArray1dInt__object* s0 = self;
   struct sidl_BaseClass__object*                 s1 = &s0->d_sidl_baseclass;
 
   *_ex = 0; /* default no exception */
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    hplsupport_SimpleArray1dDouble__init_epv();
+    hplsupport_SimpleArray1dInt__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
@@ -1020,7 +1020,7 @@ void hplsupport_SimpleArray1dDouble__init(
   s1->d_sidl_baseinterface.d_epv = &s_my_epv__sidl_baseinterface;
   s1->d_epv                      = &s_my_epv__sidl_baseclass;
 
-  s0->d_epv    = &s_my_epv__hplsupport_simplearray1ddouble;
+  s0->d_epv    = &s_my_epv__hplsupport_SimpleArray1dInt;
 
   s0->d_data = NULL;
 
@@ -1038,11 +1038,11 @@ void hplsupport_SimpleArray1dDouble__init(
  * FINI: deallocate a class instance (destructor).
  */
 
-void hplsupport_SimpleArray1dDouble__fini(
-  struct hplsupport_SimpleArray1dDouble__object* self,
+void hplsupport_SimpleArray1dInt__fini(
+  struct hplsupport_SimpleArray1dInt__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct hplsupport_SimpleArray1dDouble__object* s0 = self;
+  struct hplsupport_SimpleArray1dInt__object* s0 = self;
   struct sidl_BaseClass__object*                 s1 = &s0->d_sidl_baseclass;
 
   *_ex  = NULL; /* default to no exception */
@@ -1063,16 +1063,16 @@ void hplsupport_SimpleArray1dDouble__fini(
  */
 
 void
-hplsupport_SimpleArray1dDouble__IOR_version(int32_t *major, int32_t *minor)
+hplsupport_SimpleArray1dInt__IOR_version(int32_t *major, int32_t *minor)
 {
   *major = s_IOR_MAJOR_VERSION;
   *minor = s_IOR_MINOR_VERSION;
 }
 
-static const struct hplsupport_SimpleArray1dDouble__external
+static const struct hplsupport_SimpleArray1dInt__external
 s_externalEntryPoints = {
-  hplsupport_SimpleArray1dDouble__createObject,
-  hplsupport_SimpleArray1dDouble__getSuperEPV,
+  hplsupport_SimpleArray1dInt__createObject,
+  hplsupport_SimpleArray1dInt__getSuperEPV,
   2, 
   0
 };
@@ -1083,8 +1083,8 @@ s_externalEntryPoints = {
  * one-stop shopping for loading DLLs.
  */
 
-const struct hplsupport_SimpleArray1dDouble__external*
-hplsupport_SimpleArray1dDouble__externals(void)
+const struct hplsupport_SimpleArray1dInt__external*
+hplsupport_SimpleArray1dInt__externals(void)
 {
   return &s_externalEntryPoints;
 }
