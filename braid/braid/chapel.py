@@ -245,6 +245,8 @@ class Chapel:
                     #                     %(get_name(interf), ifname))
                     extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object): {0}__object;'
                                          .format(ifname, qname))
+                    extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {1}__object;'
+                                         .format(ifname, qname))
 
 
             ci.chpl_stub.new_def('_extern record %s__object {'%qname)
@@ -264,10 +266,10 @@ class Chapel:
             ci.chpl_stub.new_def('}')
             ci.chpl_stub.new_def('class %s {'%name)
             chpl_class = ChapelScope(ci.chpl_stub)
-            chpl_class.new_def('var self: %s__object;'%qname)
+            chpl_class.new_def('var ior: %s__object;'%qname)
             body = [
                 '  var ex: sidl_BaseInterface__object;',
-                '  this.self = %s__createObject(0, ex);'%qname
+                '  this.ior = %s__createObject(0, ex);'%qname
                 ]
             chpl_gen(
                 (ir.fn_defn, [], ir.pt_void, 
@@ -277,7 +279,7 @@ class Chapel:
                 (ir.fn_defn, [], ir.pt_void, 
                  chpl_gen(name),
                  [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                  ['  this.self = obj;'],
+                  ['  this.ior = obj;'],
                   'Constructor for wrapping an existing object'), chpl_class)
 
             for impls in implements:
@@ -285,8 +287,8 @@ class Chapel:
                     chpl_gen(
                         (ir.fn_defn, [], ir.pt_void, 
                          '_'.join(['cast']+interf[1]), [],
-                         ['return %s(this.self);'%'_'.join(['_cast']+interf[1])],
-                         'Create a don-casted version of the IOR pointer for\n'
+                         ['return %s(this.ior);'%'_'.join(['_cast']+interf[1])],
+                         'Create a down-casted version of the IOR pointer for\n'
                          'use with the alternate constructor'), chpl_class)
 
             chpl_class.new_def(chpl_defs.get_defs())
@@ -689,8 +691,8 @@ class Chapel:
             call_self = []
         else:
             extern_self = [ir.Arg([], ir.inout, ir_babel_object_type(
-                symbol_table.prefix, ci.epv.name), 'self')]
-            call_self = ["self"]
+                symbol_table.prefix, ci.epv.name), 'ior')]
+            call_self = ["ior"]
 
         call_args = call_self + call_args + ['ex']
 
@@ -724,7 +726,7 @@ class Chapel:
             callee = ir.Deref(ir.Get_struct_item(
                 epv_type,
                 ir.Deref(ir.Get_struct_item(obj_type,
-                                            ir.Deref('self'),
+                                            ir.Deref('ior'),
                                             ir.Struct_item(epv_type, 'd_epv'))),
                 ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension)))
 
@@ -778,8 +780,12 @@ class Chapel:
             for interface in impls[1]:
                 ifname = '_'.join(interface[1])
                 ci.ior.genh(ir.Import(ifname+'_IOR'))
+                # Cast functions for the IOR
                 ci.ior.genh('#define _cast_{0}(ior) (&ior->d_inherit_{0})'
                             .format(ifname))
+                ci.ior.genh('#define cast_{0}(ior) ((struct {1}__object*)'+
+                            '((struct sidl_BaseInterface__object*)ior)->d_object)'
+                            .format(cname, ifname))
 
                 
         ci.ior.genh(ir.Import('stdint'))
@@ -975,7 +981,7 @@ class Chapel:
         callee = Name+'_impl'
 
         if not static:
-            call_args = ['self->d_data']+call_args
+            call_args = ['ior->d_data']+call_args
 
         if Type == sidl.void:
             Type = ir.pt_void
@@ -1161,9 +1167,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
             
         # SELF
         # cf. babel_stub_args
-        #elif name == 'self':
+        #elif name == 'ior':
         #    typ = typ[1]
-        #    #call_name = '*self'
+        #    #call_name = '*ior'
         #elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # ex
         #    typ = typ[1]
 
@@ -1174,7 +1180,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
         return call_name, (arg, attrs, mode, typ, name)
 
     def obj_by_value((arg, attrs, mode, typ, name)):
-        if typ[0] == ir.struct and name == 'self':
+        if typ[0] == ir.struct and name == 'ior':
             return (arg, attrs, sidl.in_, typ, name)
         else:
             return (arg, attrs, mode, typ, name)
@@ -1412,7 +1418,7 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
         arg_self = \
             [ir.Arg([], ir.in_, ir.Pointer_type(
                     ir_babel_object_type(symbol_table.prefix, class_name)),
-                    'self')]
+                    'ior')]
     arg_ex = \
         [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
@@ -1426,7 +1432,7 @@ def babel_stub_args(attrs, args, symbol_table, class_name):
     else:
         arg_self = [
             ir.Arg([], sidl.inout, 
-                ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
+                ir_babel_object_type(symbol_table.prefix, class_name), 'ior')]
     arg_ex = \
         [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+args+arg_ex

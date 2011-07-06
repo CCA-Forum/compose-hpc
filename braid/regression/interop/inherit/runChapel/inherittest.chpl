@@ -74,19 +74,20 @@ proc clearstack(magicNumber: int): int
       tracker.endPart(part_no, synch.ResultType.PASS);
       init_part("a.a()"); run_part(a.a(), "D.a");
     }
-  }
-/*     tracker.writeComment("Class D2: via interface A"); */
-/*     Inherit::D d2 = ::sidl::babel_cast<Inherit::D>(a); */
-/*     tracker.startPart(++part_no); */
-/*     tracker.writeComment("Casting A to interface D2"); */
-/*     if ( !d2 ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
-/*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
-/*       init_part("d2.d()"); run_part(d2.d(), "D.d"); */
-/*     } */
 
-/*   } */
+    tracker.writeComment("Class D2: via interface A");
+    var d2 = new Inherit.D(cast_Inherit_D(a.ior));
+    part_no += 1;
+    tracker.startPart(part_no);
+    tracker.writeComment("Casting A to interface D2");
+    if ( d2 == nil ) {
+      tracker.endPart(part_no, synch.ResultType.FAIL);
+    } else {
+      tracker.endPart(part_no, synch.ResultType.PASS);
+      init_part("d2.d()"); run_part(d2.d(), "D.d");
+    }
+
+  }
 
 /*   {  */
 /*     Inherit::E e = makeEObject();  */
@@ -95,13 +96,15 @@ proc clearstack(magicNumber: int): int
 /*     init_part("e.e()"); run_part(e.e(), "E.e"); */
 
 /*     tracker.writeComment("Class E: via class C (C.c not overridden)"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /*     tracker.writeComment("Casting E to class C"); */
 /*     Inherit::C c = e; */
-/*     if ( !c ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( c == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("c.c()"); run_part(c.c(), "C.c"); */
 /*     } */
 /*   } */
@@ -113,13 +116,15 @@ proc clearstack(magicNumber: int): int
 /*     init_part("e2.e()"); run_part(e2.e(), "E2.e"); */
 
 /*     tracker.writeComment("Class E2: via class C (C.c overridden)"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /*     tracker.writeComment("Casting E2 to class C"); */
 /*     Inherit::C c = e2; */
-/*     if ( !c ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( c == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("c.c()"); run_part(c.c(), "E2.c"); */
 /*     } */
 
@@ -135,36 +140,42 @@ proc clearstack(magicNumber: int): int
 /*     init_part("f.f()"); run_part(f.f(), "F.f"); */
     
 /*     tracker.writeComment("Class F: via interface A") ; */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /*     tracker.writeComment("Casting F to class A"); */
 /*     Inherit::A a = f; */
-/*     if ( !a ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( a == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("a.a()"); run_part(a.a(), "F.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class F: via interface B"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /*     tracker.writeComment("Casting F to interface B"); */
 /*     Inherit::B b = f; */
-/*     if ( !b ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( b == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("b.b()"); run_part(b.b(), "F.b"); */
 /*     } */
 
 
 /*     tracker.writeComment("Class F: via class C (no overloading of C.c)"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /*     tracker.writeComment("Casting F to class C"); */
 /*     Inherit::C c = f; */
-/*     if ( !c ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( c == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("c.c()"); run_part(c.c(), "C.c"); */
 /*     }  */
 /*   } */
@@ -178,35 +189,41 @@ proc clearstack(magicNumber: int): int
 /*     init_part("f2.f()"); run_part(f2.f(), "F2.f"); */
     
 /*     tracker.writeComment("Class F2: via interface A"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting F2 to interface A"); */
 /*     Inherit::A a = f2; */
-/*     if ( !a ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( a == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("a.a()"); run_part(a.a(), "F2.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class F2: via interface B"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting F2 to interface B"); */
 /*     Inherit::B b = f2; */
-/*     if ( !b ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( b == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("b.b()"); run_part(b.b(), "F2.b"); */
 /*     } */
 
 /*     tracker.writeComment("Class F2: via class C (overloads C.c)") ; */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting F2 to class C"); */
 /*     Inherit::C c = f2; */
-/*     if ( !c ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( c == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("c.c()"); run_part(c.c(), "F2.c"); */
 /*     }  */
 /*   } */
@@ -221,24 +238,28 @@ proc clearstack(magicNumber: int): int
 
     
 /*     tracker.writeComment("Class G: via interface A"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting G to interface A"); */
 /*     Inherit::A a = g; */
-/*     if ( !a ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( a == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("a.a()"); run_part(a.a(), "D.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class G: via class D"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting G to class D"); */
 /*     Inherit::D d = g; */
-/*     if ( !d ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( d == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("d.a()"); run_part(d.a(), "D.a"); */
 /*       init_part("d.d()"); run_part(d.d(), "D.d"); */
 /*     } */
@@ -255,24 +276,28 @@ proc clearstack(magicNumber: int): int
 
     
 /*     tracker.writeComment("Class G2: via interface A"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting G2 to interface A"); */
 /*     Inherit::A a = g2; */
-/*     if ( !a ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( a == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("a.a()"); run_part(a.a(), "G2.a"); */
 /*     } */
 
 /*     tracker.writeComment("Class G2: via class D"); */
-/*     tracker.startPart(++part_no); */
+/*         part_no += 1;
+    tracker.startPart(part_no);
+ */
 /* tracker.writeComment("Casting G2 to class D"); */
 /*     Inherit::D d = g2; */
-/*     if ( !d ) {  */
-/*       tracker.endPart(part_no, synch::ResultType_FAIL); */
+/*     if ( d == nil ) {  */
+/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
 /*     } else {  */
-/*       tracker.endPart(part_no, synch::ResultType_PASS); */
+/*       tracker.endPart(part_no, synch.ResultType.PASS); */
 /*       init_part("d.a()"); run_part(d.a(), "G2.a"); */
 /*       init_part("d.d()"); run_part(d.d(), "G2.d"); */
 /*     } */
