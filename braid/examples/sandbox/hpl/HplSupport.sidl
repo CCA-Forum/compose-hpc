@@ -1,0 +1,22 @@
+
+
+package hplsupport version 0.1 {
+
+
+  class SimpleArray1dDouble {
+    double getFromArray(in int idx1);
+    
+    void setIntoArray(in double newVal, in int idx1);
+  }
+
+
+  // naming scheme is <Distr-type>DistArray<rank>d<Type>
+  class BlockCyclicDistArray2dDouble {
+    double getFromArray(in int idx1, in int idx2);
+    
+    void setIntoArray(in double newVal, in int idx1, in int idx2);
+  }
+}
+
+
+
