@@ -1,7 +1,7 @@
 IMPLHDRS = hplsupport_BlockCyclicDistArray2dDouble_Impl.h                     \
   hplsupport_SimpleArray1dInt_Impl.h
-IMPLSRCS = hplsupport_BlockCyclicDistArray2dDouble_Impl.c                     \
-  hplsupport_SimpleArray1dInt_Impl.c
+IMPLSRCS = hplsupport_BlockCyclicDistArray2dDouble_cImpl.c                     \
+  hplsupport_SimpleArray1dInt_cImpl.c
 IORHDRS = hplsupport_BlockCyclicDistArray2dDouble_IOR.h hplsupport_IOR.h      \
   hplsupport_SimpleArray1dInt_IOR.h
 IORSRCS = hplsupport_BlockCyclicDistArray2dDouble_IOR.c                       \
