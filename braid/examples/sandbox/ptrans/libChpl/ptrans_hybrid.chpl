@@ -19,6 +19,9 @@ use BlockCycDist, Time;
 //
 use HPCCProblemSize;
 
+use ArrayWrapper;
+use ptrans_hybrid_support;
+
 //
 // The number of arrays (used to compute the default problem size)
 //
@@ -60,6 +63,9 @@ config const printParams = true,
 // Start here
 //
 proc main() {
+	
+  ptrans_support_dummy_calls();	
+	
   printConfiguration();
 
   //
