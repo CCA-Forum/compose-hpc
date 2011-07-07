@@ -12,7 +12,4 @@
 #ifndef included_hplsupport_BlockCyclicDistArray2dDouble_h
 #include "hplsupport_BlockCyclicDistArray2dDouble.h"
 #endif
-#ifndef included_hplsupport_SimpleArray1dInt_h
-#include "hplsupport_SimpleArray1dInt.h"
-#endif
 

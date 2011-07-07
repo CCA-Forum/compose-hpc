@@ -31,7 +31,27 @@
 #include "sidl_RuntimeException.h"
 #endif
 /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._hincludes) */
-/* insert code here (include files) */
+
+/**
+ * START: Chapel implementation specific declarations
+ */
+
+// Make forward references of external struct from chpl__header.h
+
+struct __ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F;
+typedef struct __ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F* BlockCyclicDistArray2dDoubleChpl;
+
+// redefine struct from chpl__header.h
+struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F {
+  int32_t locale;
+  BlockCyclicDistArray2dDoubleChpl addr;
+};
+typedef struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F* WideBlockCyclicDistArray2dDoubleChpl;
+
+/**
+ * END: Chapel implementation specific declarations
+ */
+
 /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._hincludes) */
 
 /*
@@ -41,7 +61,7 @@
 struct hplsupport_BlockCyclicDistArray2dDouble__data {
   /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._data) */
   /* insert code here (private data members) */
-  int ignore; /* dummy to force non-empty struct; remove if you add data */
+  BlockCyclicDistArray2dDoubleChpl chpl_data;
   /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._data) */
 };
 

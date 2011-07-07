@@ -19,8 +19,5 @@
 #ifndef included_hplsupport_BlockCyclicDistArray2dDouble_IOR_h
 #include "hplsupport_BlockCyclicDistArray2dDouble_IOR.h"
 #endif
-#ifndef included_hplsupport_SimpleArray1dInt_IOR_h
-#include "hplsupport_SimpleArray1dInt_IOR.h"
-#endif
 
 #endif

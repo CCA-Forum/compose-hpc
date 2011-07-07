@@ -3,15 +3,6 @@
 package hplsupport version 0.1 {
 
 
-  class SimpleArray1dInt {
-    void initData(in opaque data);
-  
-    int getFromArray(in int idx1);
-    
-    void setIntoArray(in int newVal, in int idx1);
-  }
-
-
   // naming scheme is <Distr-type>DistArray<rank>d<Type>
   class BlockCyclicDistArray2dDouble {
     void initData(in opaque data);

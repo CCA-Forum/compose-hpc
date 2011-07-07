@@ -1,7 +1,6 @@
 use BlockCycDist;
 use ArrayWrapper;
 use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;
-use hplsupport_SimpleArray1dInt_chplImpl;
 
 type indexType = int(32);
 type elemType = real(64);
@@ -35,14 +34,5 @@ proc ptrans_support_dummy_calls() {
 	  		  abWrapper, newVal, i, j);  
   }
 
-  var pivWrapper = new ArrayWrapper(indexType, 1, piv);
-  for i in [1..n] do {
-    impl_hplsupport_SimpleArray1dInt_setIntoArray_chpl(
-		  pivWrapper, 
-		  impl_hplsupport_SimpleArray1dInt_getFromArray_chpl(
-  				pivWrapper, i) + i,
-  		  i);
-  }
-  
   writeln("dummy_calls() ends.");
 }

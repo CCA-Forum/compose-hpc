@@ -26,7 +26,9 @@
 #endif
 
 /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._includes) */
-/* insert code here (includes and arbitrary code) */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._includes) */
 
 #define SIDL_IOR_MAJOR_VERSION 2
@@ -70,23 +72,21 @@ impl_hplsupport_BlockCyclicDistArray2dDouble__ctor(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._ctor) */
-    /*
-     * // boilerplate constructor
-     * struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = (struct hplsupport_BlockCyclicDistArray2dDouble__data*)malloc(sizeof(struct hplsupport_BlockCyclicDistArray2dDouble__data));
-     * if (dptr) {
-     *   memset(dptr, 0, sizeof(struct hplsupport_BlockCyclicDistArray2dDouble__data));
-     *   // initialize elements of dptr here
-     * hplsupport_BlockCyclicDistArray2dDouble__set_data(self, dptr);
-     * } else {
-     *   sidl_MemAllocException ex = sidl_MemAllocException_getSingletonException(_ex);
-     *   SIDL_CHECK(*_ex);
-     *   sidl_MemAllocException_setNote(ex, "Out of memory.", _ex); SIDL_CHECK(*_ex);
-     *   sidl_MemAllocException_add(ex, __FILE__, __LINE__, "hplsupport.BlockCyclicDistArray2dDouble._ctor", _ex);
-     *   SIDL_CHECK(*_ex);
-     *   *_ex = (sidl_BaseInterface)ex;
-     * }
-     * EXIT:;
-     */
+
+	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = (struct hplsupport_BlockCyclicDistArray2dDouble__data*)malloc(sizeof(struct hplsupport_BlockCyclicDistArray2dDouble__data));
+	if (dptr) {
+	  memset(dptr, 0, sizeof(struct hplsupport_BlockCyclicDistArray2dDouble__data));
+	  // initialize elements of dptr here
+	  hplsupport_BlockCyclicDistArray2dDouble__set_data(self, dptr);
+	} else {
+	  sidl_MemAllocException ex = sidl_MemAllocException_getSingletonException(_ex);
+	  SIDL_CHECK(*_ex);
+	  sidl_MemAllocException_setNote(ex, "Out of memory.", _ex); SIDL_CHECK(*_ex);
+	  sidl_MemAllocException_add(ex, __FILE__, __LINE__, "hplsupport.BlockCyclicDistArray2dDouble._ctor", _ex);
+	  SIDL_CHECK(*_ex);
+	  *_ex = (sidl_BaseInterface)ex;
+	}
+	EXIT:;
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._ctor) */
   }
@@ -133,15 +133,13 @@ impl_hplsupport_BlockCyclicDistArray2dDouble__dtor(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._dtor) */
-    /*
-     * // boilerplate destructor
-     * struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-     * if (dptr) {
-     *   // free contained in dtor before next line
-     *   free(dptr);
-     *   hplsupport_BlockCyclicDistArray2dDouble__set_data(self, NULL);
-     * }
-     */
+
+    struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
+    if (dptr) {
+      // free contained in dtor before next line
+      free(dptr);
+      hplsupport_BlockCyclicDistArray2dDouble__set_data(self, NULL);
+    }
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._dtor) */
   }
@@ -166,7 +164,13 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.initData) */
-    /* insert code here (initData) */
+    struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
+    WideBlockCyclicDistArray2dDoubleChpl wideDataPtr = (WideBlockCyclicDistArray2dDoubleChpl) data;
+	BlockCyclicDistArray2dDoubleChpl chplDataPtr = wideDataPtr->addr;
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): chplDataPtr = %p \n", chplDataPtr);
+	dptr->chpl_data = chplDataPtr;
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): chpl_data = %p \n", dptr->chpl_data);
+
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.initData) */
   }
 }
@@ -181,6 +185,16 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
 #ifdef __cplusplus
 extern "C"
 #endif
+extern
+double
+impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
+		BlockCyclicDistArray2dDoubleChpl wrappedArray,
+		/* in */ int32_t idx1,
+		/* in */ int32_t idx2);
+
+#ifdef __cplusplus
+extern "C"
+#endif
 double
 impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
@@ -191,7 +205,12 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.getFromArray) */
-    /* insert code here (getFromArray) */
+
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(%d, %d)\n", idx1, idx2);
+	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(): chpl_data = %p \n", dptr->chpl_data);
+	return impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(dptr->chpl_data, idx1, idx2);
+
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.getFromArray) */
   }
 }
@@ -199,6 +218,17 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
 /*
  * Method:  setIntoArray[]
  */
+
+#ifdef __cplusplus
+extern "C"
+#endif
+extern
+void
+impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
+		BlockCyclicDistArray2dDoubleChpl wrappedArray,
+		/* in */ double newVal,
+		/* in */ int32_t idx1,
+		/* in */ int32_t idx2);
 
 #undef __FUNC__
 #define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray"
@@ -217,7 +247,12 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.setIntoArray) */
-    /* insert code here (setIntoArray) */
+
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(%d, %d) = %f\n", idx1, idx2, newVal);
+	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(): chpl_data = %p \n", dptr->chpl_data);
+	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(dptr->chpl_data, newVal, idx1, idx2);
+
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.setIntoArray) */
   }
 }
