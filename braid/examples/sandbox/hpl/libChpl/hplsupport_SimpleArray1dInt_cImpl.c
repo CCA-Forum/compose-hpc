@@ -168,8 +168,11 @@ impl_hplsupport_SimpleArray1dInt_initData(
     /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.initData) */
 
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
-	SimpleArray1dIntChpl* chplDataPtr = (SimpleArray1dIntChpl*) data;
-	dptr->chpl_data = (*chplDataPtr);
+	WideSimpleArray1dIntChpl wideDataPtr = (WideSimpleArray1dIntChpl) data;
+	SimpleArray1dIntChpl chplDataPtr = wideDataPtr->addr;
+	// printf("impl_hplsupport_SimpleArray1dInt_initData(): chplDataPtr = %p \n", chplDataPtr);
+	dptr->chpl_data = chplDataPtr;
+	// printf("impl_hplsupport_SimpleArray1dInt_initData(): chpl_data = %p \n", dptr->chpl_data);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.initData) */
   }
@@ -206,6 +209,7 @@ impl_hplsupport_SimpleArray1dInt_getFromArray(
 
 	// printf("impl_hplsupport_SimpleArray1dInt_getFromArray(%d)\n", idx1);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
+	// printf("impl_hplsupport_SimpleArray1dInt_getFromArray(): chpl_data = %p \n", dptr->chpl_data);
 	return impl_hplsupport_SimpleArray1dInt_getFromArray_chpl(dptr->chpl_data, idx1);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.getFromArray) */
@@ -244,6 +248,7 @@ impl_hplsupport_SimpleArray1dInt_setIntoArray(
     /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.setIntoArray) */
 	// printf("impl_hplsupport_SimpleArray1dInt_setIntoArray(%d) = %d\n", idx1, newVal);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
+	// printf("impl_hplsupport_SimpleArray1dInt_setIntoArray(): chpl_data = %p \n", dptr->chpl_data);
 	impl_hplsupport_SimpleArray1dInt_setIntoArray_chpl(dptr->chpl_data, newVal, idx1);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.setIntoArray) */

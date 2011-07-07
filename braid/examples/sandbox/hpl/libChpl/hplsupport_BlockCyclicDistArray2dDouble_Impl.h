@@ -37,9 +37,16 @@
  */
 
 // Make forward references of external struct from chpl__header.h
-struct __ArrayWrapper__real64_2__array_BlockCyclicArr__real64_2_int32_t_F_BlockCyclicArr__real64_2_int32_t_F;
 
-typedef struct __ArrayWrapper__real64_2__array_BlockCyclicArr__real64_2_int32_t_F_BlockCyclicArr__real64_2_int32_t_F* BlockCyclicDistArray2dDoubleChpl;
+struct __ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F;
+typedef struct __ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F* BlockCyclicDistArray2dDoubleChpl;
+
+// redefine struct from chpl__header.h
+struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F {
+  int32_t locale;
+  BlockCyclicDistArray2dDoubleChpl addr;
+};
+typedef struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F* WideBlockCyclicDistArray2dDoubleChpl;
 
 /**
  * END: Chapel implementation specific declarations

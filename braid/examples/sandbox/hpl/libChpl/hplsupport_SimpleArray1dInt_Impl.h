@@ -37,9 +37,16 @@
  */
 
 // Make forward references of external struct from chpl__header.h
-struct __ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F;
 
+struct __ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F;
 typedef struct __ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F* SimpleArray1dIntChpl;
+
+// redefine struct from chpl__header.h
+struct __chpl____wide_ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F {
+  int32_t locale;
+  SimpleArray1dIntChpl addr;
+};
+typedef struct __chpl____wide_ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F* WideSimpleArray1dIntChpl;
 
 /**
  * END: Chapel implementation specific declarations
