@@ -89,25 +89,24 @@ proc clearstack(magicNumber: int): int
 
   }
 
-/*   {  */
-/*     Inherit::E e = makeEObject();  */
-/*     tracker.writeComment("Class E: inheritance of class C"); */
-/*     init_part("e.c()"); run_part(e.c(), "C.c"); */
-/*     init_part("e.e()"); run_part(e.e(), "E.e"); */
+  {
+    var e = new Inherit.E();
+    tracker.writeComment("Class E: inheritance of class C");
+    init_part("e.c()"); run_part(e.c(), "C.c");
+    init_part("e.e()"); run_part(e.e(), "E.e");
 
-/*     tracker.writeComment("Class E: via class C (C.c not overridden)"); */
-/*         part_no += 1;
+    tracker.writeComment("Class E: via class C (C.c not overridden)");
+    part_no += 1;
     tracker.startPart(part_no);
- */
-/*     tracker.writeComment("Casting E to class C"); */
-/*     Inherit::C c = e; */
-/*     if ( c == nil ) {  */
-/*       tracker.endPart(part_no, synch.ResultType.FAIL); */
-/*     } else {  */
-/*       tracker.endPart(part_no, synch.ResultType.PASS); */
-/*       init_part("c.c()"); run_part(c.c(), "C.c"); */
-/*     } */
-/*   } */
+    tracker.writeComment("Casting E to class C");
+    var c = new Inherit.C(e.cast_Inherit_C());
+    if ( c == nil ) {
+      tracker.endPart(part_no, synch.ResultType.FAIL);
+    } else {
+      tracker.endPart(part_no, synch.ResultType.PASS);
+      init_part("c.c()"); run_part(c.c(), "C.c");
+    }
+  }
 
 /*   {  */
 /*     Inherit::E2 e2 = makeE2Object();  */

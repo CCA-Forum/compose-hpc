@@ -72,20 +72,20 @@ endif
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 endif
 
-$(builddir)/regression/interop/output/libC/GNUmakefile: $(builddir)/regression/interop/build-tracker.sh
-	sh $< $(MAKE) $(MAKEFLAGS)
+$(builddir)/regression/interop/output/libC/GNUmakefile: $(top_builddir)/regression/interop/build-tracker.sh
+	@sh $< $(MAKE) $(MAKEFLAGS)
 
-$(builddir)/regression/interop/%/libimpl.la: $(builddir)/regression/interop/build-server.sh
-	sh $< $@ $(MAKE) $(MAKEFLAGS)
+$(builddir)/regression/interop/%/libimpl.la: $(top_builddir)/regression/interop/build-server.sh
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-$(builddir)/regression/interop/%/libimpl1.la: $(builddir)/regression/interop/build-server.sh
-	sh $< $@ $(MAKE) $(MAKEFLAGS)
+$(builddir)/regression/interop/%/libimpl1.la: $(top_builddir)/regression/interop/build-server.sh
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # FIXME If we should encounter a race condition with this rule, it is
 # because libimpl.la is not the last file to be built by
 # build-server.sh
-$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile
-	sh $< $@ $(MAKE) $(MAKEFLAGS)
+$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # ----------------------------------------------------------------------
 # This is an alternate way of invoking the regression tests via gantlet
@@ -107,7 +107,7 @@ run-gantlet: $(check_DATA)
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
+	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
 
 run-gantlet-gui: $(check_DATA)
 	if test "X$$PROFILE_NAME" = X; then \
@@ -118,7 +118,7 @@ run-gantlet-gui: $(check_DATA)
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(ALLTESTS) ;
+	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" echo $(builddir)/regression/interop/*/run*/run*.sh ;
 
 
 # ----------------------------------------------------------------------
