@@ -222,21 +222,35 @@ class Chapel:
             self.gen_default_methods(symbol_table, extends, implements, ci)
 
             # Consolidate all methods, defined and inherited
-            def full_name(method):
-                return method[2][1]+method[2][2]
-            
             all_names = set()
-            for m in methods:
-                all_names.add(full_name(m))
+
+            def full_method_name(method):
+                """
+                Return the long name of a method (sans class/packages) for sorting purposes.
+                """
+                return method[2][1]+method[2][2]
 
             inherited_methods = []
             if extends:
                 for m in symbol_table[extends[1]][5]:
-                    if full_name(m) not in all_names:
-                        inherited_methods.append(m)
+                    inherited_methods.append(m)
+                    all_names.add(full_method_name(m))
+
+            protocol_methods = []
+            for impls in implements:
+                for interf in impls[1]:
+                    for m in symbol_table[interf[1]][4]:
+                        if not full_method_name(m) in all_names:
+                            all_names.add(full_method_name(m))
+                            protocol_methods.append(m)
+
+            class_methods = []
+            for m in methods:
+                if not full_method_name(m) in all_names:
+                    class_methods.append(m)
 
             # recurse to generate method code
-            gen1(inherited_methods+methods, ci)
+            gen1(inherited_methods+protocol_methods+class_methods, ci)
 
             # IOR
             self.generate_ior(ci, extends, implements)
@@ -274,11 +288,12 @@ class Chapel:
                 extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {1}__object;'
                                .format(base, qname, ex))
 
+            if extends:
+                gen_casts(extends)
+
             for impls in implements:
                 for interf in impls[1]:
                     gen_casts(interf)
-            if extends:
-                gen_casts(extends)
 
             # if is_interface: # generic upcasting of interfaces
             #     extrns.new_def('_extern proc upcast(in ior: {0}__object): {0}__object;'
@@ -334,12 +349,12 @@ class Chapel:
                      'Create a down-casted version of the IOR pointer for\n'
                      'use with the alternate constructor'), chpl_class)
 
+            if extends:
+                gen_cast(extends)
+
             for impls in implements:
                 for interf in impls[1]:
                     gen_cast(interf)
-
-            if extends:
-                gen_cast(extends)
                 
 
             chpl_class.new_def(chpl_defs.get_defs())
@@ -491,7 +506,6 @@ class Chapel:
 
         # @class@__object
         inherits = []
-        # pointers to the implemented interface's EPV
         def gen_inherits(baseclass):
             inherits.append(ir.Struct_item(
                 ir_babel_object_type(baseclass[1][:-1], baseclass[1][-1]),
@@ -499,13 +513,15 @@ class Chapel:
 
         with_sidl_baseclass = not data.is_interface
         
-        for impls in implements:
-            for interf in impls[1]:
-                gen_inherits(interf)
-
+        # pointers to the base class' EPV
         if extends:
             gen_inherits(extends)
             with_sidl_baseclass = False
+
+        # pointers to the implemented interface's EPV
+        for impls in implements:
+            for interf in impls[1]:
+                gen_inherits(interf)
 
         baseclass = []
         if with_sidl_baseclass:
@@ -864,12 +880,12 @@ class Chapel:
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
                        .format(cname, base))
         
+        if extends:
+            gen_cast(extends[1])
+
         for impls in implements:
             for interface in impls[1]:
                 gen_cast(interface[1])
-
-        if extends:
-            gen_cast(extends[1])
                 
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
