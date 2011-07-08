@@ -36,15 +36,7 @@ LIBDIR="${PREFIX}/lib"
 BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${EXTRAFLAGS} ${GASNET_FLAGS} ${CHPL_FLAGS} -I./gen ${INCLUDES}"
 
 
-
-
-
-
-
-rm -f *.o
-rm -f *.lo
-rm -f a.out*
-rm -rf gen
+rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen
 
 chpl --savec ./gen hplsupport_HPL_cClient.h *.chpl --make true
 
