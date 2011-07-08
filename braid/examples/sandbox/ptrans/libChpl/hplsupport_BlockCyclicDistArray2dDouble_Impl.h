@@ -125,7 +125,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_get(
 
 extern
 void
-impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ double newVal,
   /* in */ int32_t idx1,

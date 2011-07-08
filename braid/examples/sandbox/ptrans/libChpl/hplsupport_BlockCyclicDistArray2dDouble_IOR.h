@@ -189,7 +189,7 @@ struct hplsupport_BlockCyclicDistArray2dDouble__epv {
     /* in */ int32_t idx1,
     /* in */ int32_t idx2,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_setIntoArray)(
+  void (*f_set)(
     /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
     /* in */ double newVal,
     /* in */ int32_t idx1,
@@ -211,7 +211,7 @@ struct hplsupport_BlockCyclicDistArray2dDouble__pre_epv {
     /* in */ int32_t idx1,
     /* in */ int32_t idx2,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_setIntoArray_pre)(
+  void (*f_set_pre)(
     /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
     /* in */ double newVal,
     /* in */ int32_t idx1,
@@ -234,7 +234,7 @@ struct hplsupport_BlockCyclicDistArray2dDouble__post_epv {
     /* in */ int32_t idx2,
     /* in */ double _retval,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_setIntoArray_post)(
+  void (*f_set_post)(
     /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
     /* in */ double newVal,
     /* in */ int32_t idx1,

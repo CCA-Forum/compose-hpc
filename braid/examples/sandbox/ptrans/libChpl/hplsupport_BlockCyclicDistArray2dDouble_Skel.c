@@ -80,7 +80,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_get(
 
 extern
 void
-impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ double newVal,
   /* in */ int32_t idx1,
@@ -116,10 +116,10 @@ hplsupport_BlockCyclicDistArray2dDouble__set_epv(struct
   epv->f_get = 
     impl_hplsupport_BlockCyclicDistArray2dDouble_get;
   post_epv->f_get_post = NULL;
-  pre_epv->f_setIntoArray_pre = NULL;
-  epv->f_setIntoArray = 
-    impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray;
-  post_epv->f_setIntoArray_post = NULL;
+  pre_epv->f_set_pre = NULL;
+  epv->f_set = 
+    impl_hplsupport_BlockCyclicDistArray2dDouble_set;
+  post_epv->f_set_post = NULL;
 
 }
 #ifdef __cplusplus

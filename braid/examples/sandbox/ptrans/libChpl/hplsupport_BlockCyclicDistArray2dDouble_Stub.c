@@ -1397,9 +1397,9 @@ remote_hplsupport_BlockCyclicDistArray2dDouble_get(
   }
 }
 
-/* REMOTE METHOD STUB:setIntoArray */
+/* REMOTE METHOD STUB:set */
 static void
-remote_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+remote_hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object*self ,
   /* in */ double newVal,
   /* in */ int32_t idx1,
@@ -1416,7 +1416,7 @@ remote_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
     struct sidl_rmi_InstanceHandle__object * _conn = ((struct 
       hplsupport_BlockCyclicDistArray2dDouble__remote*)self->d_data)->d_ih;
     sidl_rmi_Invocation _inv = sidl_rmi_InstanceHandle_createInvocation( _conn, 
-      "setIntoArray", _ex ); SIDL_CHECK(*_ex);
+      "set", _ex ); SIDL_CHECK(*_ex);
 
     /* pack in and inout arguments */
     sidl_rmi_Invocation_packDouble( _inv, "newVal", newVal, _ex);SIDL_CHECK(
@@ -1431,7 +1431,7 @@ remote_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
     if (_be != NULL) {
       struct sidl_BaseInterface__object* throwaway_exception = NULL;
       sidl_BaseException_addLine(_be, 
-      "Exception unserialized from hplsupport.BlockCyclicDistArray2dDouble.setIntoArray.",
+      "Exception unserialized from hplsupport.BlockCyclicDistArray2dDouble.set.",
         &throwaway_exception);
       *_ex = (struct sidl_BaseInterface__object*) sidl_BaseInterface__cast(_be,
         &throwaway_exception);
@@ -1692,8 +1692,8 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_remote_epv(void)
     remote_hplsupport_BlockCyclicDistArray2dDouble_initData;
   epv->f_get        = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_get;
-  epv->f_setIntoArray        = 
-    remote_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray;
+  epv->f_set        = 
+    remote_hplsupport_BlockCyclicDistArray2dDouble_set;
   epv->f_addRef              = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_addRef;
   epv->f_deleteRef           = 

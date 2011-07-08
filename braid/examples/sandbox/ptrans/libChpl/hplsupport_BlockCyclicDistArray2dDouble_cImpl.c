@@ -169,7 +169,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
 
     double new_val = beta * c_ij  +  a_ji;
 
-    hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(*c, new_val, i, j, _ex);
+    hplsupport_BlockCyclicDistArray2dDouble_set(*c, new_val, i, j, _ex);
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
   }
 }
@@ -243,7 +243,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_get(
 }
 
 /*
- * Method:  setIntoArray[]
+ * Method:  set[]
  */
 
 #ifdef __cplusplus
@@ -251,20 +251,20 @@ extern "C"
 #endif
 extern
 void
-impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
+impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(
         int32_t chplArray,
         /* in */ double newVal,
         /* in */ int32_t idx1,
         /* in */ int32_t idx2);
 
 #undef __FUNC__
-#define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray"
+#define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_set"
 
 #ifdef __cplusplus
 extern "C"
 #endif
 void
-impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ double newVal,
   /* in */ int32_t idx1,
@@ -273,14 +273,14 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
 {
   *_ex = 0;
   {
-    /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.setIntoArray) */
+    /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.set) */
 
-    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(%d, %d) = %f\n", idx1, idx2, newVal);
+    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_set(%d, %d) = %f\n", idx1, idx2, newVal);
     struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(): chpl_data = %d \n", dptr->chpl_data);
-    impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(dptr->chpl_data, newVal, idx1, idx2);
+    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_set(): chpl_data = %d \n", dptr->chpl_data);
+    impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(dptr->chpl_data, newVal, idx1, idx2);
 
-    /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.setIntoArray) */
+    /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.set) */
   }
 }
 /* Babel internal methods, Users should not edit below this line. */

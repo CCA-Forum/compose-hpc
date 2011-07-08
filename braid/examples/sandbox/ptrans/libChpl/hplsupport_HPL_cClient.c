@@ -23,5 +23,5 @@ void transposeHelperNative(int32_t aData, int32_t cData, double beta, int i, int
 
   double new_val = beta * c_ij  +  a_ji;
 
-  hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(c, new_val, i, j, &ex);
+  hplsupport_BlockCyclicDistArray2dDouble_set(c, new_val, i, j, &ex);
 }

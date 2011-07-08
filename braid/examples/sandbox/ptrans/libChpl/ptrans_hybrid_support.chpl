@@ -18,7 +18,7 @@ proc ptrans_support_dummy_calls() {
   
   // Access the array from the current locale
   var curVal = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(ab, 2, 2);
-  impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(ab, curVal + 125.0, 2, 2);
+  impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(ab, curVal + 125.0, 2, 2);
   // Access the array from multiple locales
   for (i, j) in matVectSpace do on Locales(ab(i, j).locale.id) do {
 	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(
@@ -28,7 +28,7 @@ proc ptrans_support_dummy_calls() {
 	} else {
 	  newVal += i + 10 * j;
 	}
-	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
+	impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(
 			ab, newVal, i, j);  
   }
 

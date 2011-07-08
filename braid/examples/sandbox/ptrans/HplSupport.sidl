@@ -9,7 +9,7 @@ package hplsupport version 0.1 {
     
     double get(in int idx1, in int idx2);
     
-    void setIntoArray(in double newVal, in int idx1, in int idx2);
+    void set(in double newVal, in int idx1, in int idx2);
 
     // the helper function to do the transpose
     static void ptransHelper(

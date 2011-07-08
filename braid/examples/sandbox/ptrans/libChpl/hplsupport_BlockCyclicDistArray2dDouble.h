@@ -183,11 +183,11 @@ hplsupport_BlockCyclicDistArray2dDouble_get(
 
 
 /**
- * Method:  setIntoArray[]
+ * Method:  set[]
  */
 HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ double newVal,
   /* in */ int32_t idx1,
@@ -195,7 +195,7 @@ hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
   /* out */ sidl_BaseInterface *_ex)
 #ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 {
-  (*self->d_epv->f_setIntoArray)(
+  (*self->d_epv->f_set)(
     self,
     newVal,
     idx1,
