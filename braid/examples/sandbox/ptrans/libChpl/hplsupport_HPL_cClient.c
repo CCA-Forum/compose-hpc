@@ -18,8 +18,8 @@ void transposeHelperNative(int32_t aData, int32_t cData, double beta, int i, int
 
   // C[i,j] = beta * C[i,j]  +  A[j,i];
 
-  double a_ji = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(a, j, i, &ex);
-  double c_ij = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(c, i, j, &ex);
+  double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(a, j, i, &ex);
+  double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(c, i, j, &ex);
 
   double new_val = beta * c_ij  +  a_ji;
 

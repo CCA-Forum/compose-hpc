@@ -72,7 +72,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
 
 extern
 double
-impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_get(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ int32_t idx1,
   /* in */ int32_t idx2,
@@ -112,10 +112,10 @@ hplsupport_BlockCyclicDistArray2dDouble__set_epv(struct
   pre_epv->f_initData_pre = NULL;
   epv->f_initData = impl_hplsupport_BlockCyclicDistArray2dDouble_initData;
   post_epv->f_initData_post = NULL;
-  pre_epv->f_getFromArray_pre = NULL;
-  epv->f_getFromArray = 
-    impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray;
-  post_epv->f_getFromArray_post = NULL;
+  pre_epv->f_get_pre = NULL;
+  epv->f_get = 
+    impl_hplsupport_BlockCyclicDistArray2dDouble_get;
+  post_epv->f_get_post = NULL;
   pre_epv->f_setIntoArray_pre = NULL;
   epv->f_setIntoArray = 
     impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray;

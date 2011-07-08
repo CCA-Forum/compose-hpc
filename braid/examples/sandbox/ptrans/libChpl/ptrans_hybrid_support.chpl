@@ -17,11 +17,11 @@ proc ptrans_support_dummy_calls() {
   var piv: [1..n] indexType;         // a vector of pivot values
   
   // Access the array from the current locale
-  var curVal = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(ab, 2, 2);
+  var curVal = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(ab, 2, 2);
   impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(ab, curVal + 125.0, 2, 2);
   // Access the array from multiple locales
   for (i, j) in matVectSpace do on Locales(ab(i, j).locale.id) do {
-	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
+	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(
 			ab, i, j) ;
 	if (i < j) {
 	  newVal += 10 * i + j;	

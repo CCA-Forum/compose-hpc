@@ -164,8 +164,8 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
-    double a_ji = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(a, j, i, _ex);
-    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(*c, i, j, _ex);
+    double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(a, j, i, _ex);
+    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(*c, i, j, _ex);
 
     double new_val = beta * c_ij  +  a_ji;
 
@@ -203,18 +203,18 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
 }
 
 /*
- * Method:  getFromArray[]
+ * Method:  get[]
  */
 
 #undef __FUNC__
-#define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray"
+#define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_get"
 
 #ifdef __cplusplus
 extern "C"
 #endif
 extern
 double
-impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
+impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(
         int32_t chplArray,
         /* in */ int32_t idx1,
         /* in */ int32_t idx2);
@@ -223,7 +223,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
 extern "C"
 #endif
 double
-impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_get(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ int32_t idx1,
   /* in */ int32_t idx2,
@@ -231,14 +231,14 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
 {
   *_ex = 0;
   {
-    /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.getFromArray) */
+    /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.get) */
 
-    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(%d, %d)\n", idx1, idx2);
+    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_get(%d, %d)\n", idx1, idx2);
     struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(): chpl_data = %p \n", dptr->chpl_data);
-    return impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(dptr->chpl_data, idx1, idx2);
+    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_get(): chpl_data = %p \n", dptr->chpl_data);
+    return impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(dptr->chpl_data, idx1, idx2);
 
-    /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.getFromArray) */
+    /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.get) */
   }
 }
 

@@ -110,8 +110,8 @@ proc main() {
     use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;	
     // C[i,j] = beta * C[i,j]  +  A[j,i];
     /**
-     * var a_ji = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(aWrapper, j, i);
-     * var c_ij = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(cWrapper, i, j);
+     * var a_ji = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(aWrapper, j, i);
+     * var c_ij = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(cWrapper, i, j);
      * var new_val = beta * c_ij + a_ji;
      * impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(cWrapper, new_val, i, j);
      */

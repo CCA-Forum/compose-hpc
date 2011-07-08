@@ -198,7 +198,7 @@ hplsupport_BlockCyclicDistArray2dDouble_initData__exec(
 }
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble_getFromArray__exec(
+hplsupport_BlockCyclicDistArray2dDouble_get__exec(
         struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
@@ -215,7 +215,7 @@ hplsupport_BlockCyclicDistArray2dDouble_getFromArray__exec(
   sidl_rmi_Call_unpackInt( inArgs, "idx2", &idx2, _ex);SIDL_CHECK(*_ex);
 
   /* make the call */
-  _retval = (self->d_epv->f_getFromArray)(
+  _retval = (self->d_epv->f_get)(
     self,
     idx1,
     idx2,
@@ -905,8 +905,8 @@ ior_hplsupport_BlockCyclicDistArray2dDouble__exec(
     { "deleteRef", hplsupport_BlockCyclicDistArray2dDouble_deleteRef__exec },
     { "getClassInfo", 
       hplsupport_BlockCyclicDistArray2dDouble_getClassInfo__exec },
-    { "getFromArray", 
-      hplsupport_BlockCyclicDistArray2dDouble_getFromArray__exec },
+    { "get", 
+      hplsupport_BlockCyclicDistArray2dDouble_get__exec },
     { "initData", hplsupport_BlockCyclicDistArray2dDouble_initData__exec },
     { "isSame", hplsupport_BlockCyclicDistArray2dDouble_isSame__exec },
     { "isType", hplsupport_BlockCyclicDistArray2dDouble_isType__exec },
@@ -979,7 +979,7 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
   epv->f_initData              = NULL;
-  epv->f_getFromArray          = NULL;
+  epv->f_get          = NULL;
   epv->f_setIntoArray          = NULL;
   epv->f_addRef                = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
   epv->f_deleteRef             = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
