@@ -748,6 +748,12 @@ class Chapel:
             # nothing to be done for an abstract function
             return
 
+        # this is an ugly hack to force generate_method_stub to to wrap the
+        # self argument with a call to upcast()
+        if ci.is_interface:
+            docast = [ir.pure]
+        else: docast = []
+
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
@@ -757,19 +763,13 @@ class Chapel:
         # return value type conversion -- treat it as an out argument
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
-        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
+        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name, docast)
         cdecl = ir.Fn_decl(Attrs, ctype, Name+Extension, cdecl_args, DocComment)
 
         if static:
             call_self = []
         else:
-            # if ci.is_interface:
-            #     pre_call += [ir.Stmt(ir.Var_decl(
-            #         ir_babel_object_type(symbol_table.prefix, ci.epv.name), '_cast_ior')),
-            #                 ir.Stmt(ir.Assignment('_cast_ior', 'upcast(this.ior)'))]
-            #     call_self = ["_cast_ior"]
-            # else:
-                call_self = ["this.ior"]
+            call_self = ["this.ior"]
                 
 
         call_args = call_self + call_args + ['ex']
@@ -863,9 +863,6 @@ class Chapel:
             ci.ior.genh('#define cast_{0}(ior) ((struct {1}__object*)'
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
                        .format(cname, base))
-            # ci.ior.genh('#define upcast(ior) ((struct {1}__object*)'
-            #            '((struct sidl_BaseInterface__object*)ior)->d_object)'
-            #            .format(cname, base))
         
         for impls in implements:
             for interface in impls[1]:
@@ -985,6 +982,7 @@ class Chapel:
                 # Generate the chapel skel
                 self.pkg_chpl_skel = ChapelFile()
                 self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
+
                 self.pkg_enums = []
                 self.generate_server1(UserTypes, data, symbol_table[[Name]])
                 self.pkg_chpl_skel.main_area.new_def('}\n')
@@ -1263,6 +1261,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
         elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
             import pdb; pdb.set_trace()
 
+        # We should find a cleaner way of implementing this
+        if name == 'self' and member_chk(ir.pure, attrs):
+            call_name = '(({0}*)((struct sidl_BaseInterface__object*)self)->d_object)' \
+                        .format(c_gen(typ))
+
         return call_name, (arg, attrs, mode, typ, name)
 
     def obj_by_value((arg, attrs, mode, typ, name)):
@@ -1509,18 +1512,18 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
         [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
-def babel_stub_args(attrs, args, symbol_table, class_name):
+def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
     """
     \return a SIDL -> [*self]+args+[*ex]
     """
     if member_chk(sidl.static, attrs):
-        arg_self = []
+        arg_self = extra_attrs
     else:
         arg_self = [
-            ir.Arg([], sidl.inout, 
+            ir.Arg(extra_attrs, sidl.inout, 
                 ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
+        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+args+arg_ex
 
 

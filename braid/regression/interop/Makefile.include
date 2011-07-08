@@ -118,7 +118,7 @@ run-gantlet-gui: $(check_DATA)
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" echo $(builddir)/regression/interop/*/run*/run*.sh ;
+	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
 
 
 # ----------------------------------------------------------------------
