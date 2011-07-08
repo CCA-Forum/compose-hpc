@@ -59,6 +59,8 @@ config const printParams = true,
              printStats = true;
 
 
+_extern proc transposeHelperNative(inout aData, inout cData, in beta: real(64), in i: int(32), in j: int(32), in hereId: int(32));
+
 //
 // Start here
 //
@@ -110,9 +112,46 @@ proc main() {
     forall (i,j) in TransposeDom do
       C[i,j] = A[j,i];
 
-  else
-    forall (i,j) in TransposeDom do
-      C[i,j] = beta * C[i,j]  +  A[j,i];
+  else {
+	
+	var aWrapper = new ArrayWrapper(eltType, 2, A);
+	var cWrapper = new ArrayWrapper(eltType, 2, C);	  	  
+	  
+	var aWrappers: [0 .. #numLocales] aWrapper.type;
+	var cWrappers: [0 .. #numLocales] cWrapper.type;		
+	for loc in Locales do on loc do {
+	  // TODO Fifgure out how to avoid copying in ArrayWrapper constructor	
+	  aWrappers(here.id) = new ArrayWrapper(eltType, 2, A); 
+	  cWrappers(here.id) = new ArrayWrapper(eltType, 2, C);
+	  // writeln("here.id = ", here.id, ", aWrappers(here.id).locale = ", aWrappers(here.id).locale.id, ", cWrappers(here.id).locale = ", cWrappers(here.id).locale.id);
+	}	  
+	
+	// writeln("1a. A: "); writeln(A);
+	// writeln("1b. C: "); writeln(C);
+		
+    forall (i,j) in TransposeDom do {
+      use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;	
+      // C[i,j] = beta * C[i,j]  +  A[j,i];
+      /**
+       * var a_ji = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(aWrapper, j, i);
+       * var c_ij = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(cWrapper, i, j);
+       * var new_val = beta * c_ij + a_ji;
+       * impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(cWrapper, new_val, i, j);
+       */
+      /**
+       printf("aWrapper.locale = %d, aWrapper.addr = %p, cWrapper.locale = %d, cWrapper.addr = %p  \n",
+        		  aWrapper->locale, aWrapper->addr, cWrapper->locale, cWrapper->addr);
+       */
+      var aWrapperLoc = aWrappers(here.id);
+      var cWrapperLoc = cWrappers(here.id);
+      // writeln("here.id = ", here.id, ", aWrapperLoc.locale = ", aWrapperLoc.locale.id, ", cWrapperLoc.locale = ", cWrapperLoc.locale.id);
+      transposeHelperNative(aWrapperLoc, cWrapperLoc, beta, i, j, here.id);
+      // TODO Figure out how to avoid this copying back
+      C[i, j] = cWrapperLoc.get(i, j);
+    }
+    
+    // writeln("2b. C: "); writeln(C);
+  }
 
   const execTime = getCurrentTime() - startTime;
   

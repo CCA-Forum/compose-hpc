@@ -3,6 +3,10 @@ class ArrayWrapper {
   type eltType;
   param rank;
   var wrappedArray;
+  
+  proc printWrappedArray() {
+	writeln(wrappedArray);
+  }
 
   proc get(ind: rank * int(32)): eltType {
     return wrappedArray(ind);

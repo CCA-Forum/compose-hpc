@@ -166,10 +166,9 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.initData) */
     struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
     WideBlockCyclicDistArray2dDoubleChpl wideDataPtr = (WideBlockCyclicDistArray2dDoubleChpl) data;
-	BlockCyclicDistArray2dDoubleChpl chplDataPtr = wideDataPtr->addr;
-	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): chplDataPtr = %p \n", chplDataPtr);
-	dptr->chpl_data = chplDataPtr;
-	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): chpl_data = %p \n", dptr->chpl_data);
+    BlockCyclicDistArray2dDoubleChpl chplDataPtr = wideDataPtr->addr;
+    dptr->chpl_data = chplDataPtr;
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): wideDataPtr = %p, chpl_data = %p \n", wideDataPtr, dptr->chpl_data);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.initData) */
   }
