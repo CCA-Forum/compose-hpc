@@ -159,7 +159,7 @@ extern "C"
 void
 impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble* a,
-  /* inout */ hplsupport_BlockCyclicDistArray2dDouble** c,
+  /* inout */ hplsupport_BlockCyclicDistArray2dDouble* c,
   /* in */ double beta,
   /* in */ int32_t i,
   /* in */ int32_t j,
@@ -169,11 +169,11 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
     double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(*a, j, i, _ex);
-    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(*(*c), i, j, _ex);
+    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(*c, i, j, _ex);
 
     double new_val = beta * c_ij  +  a_ji;
 
-    hplsupport_BlockCyclicDistArray2dDouble_set(*(*c), new_val, i, j, _ex);
+    hplsupport_BlockCyclicDistArray2dDouble_set(*c, new_val, i, j, _ex);
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
   }
 }

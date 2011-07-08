@@ -16,7 +16,7 @@ void hplsupport_BlockCyclicDistArray2dDouble_set_stub( struct
   idx1, int32_t idx2, struct sidl_BaseInterface__object** ex);
 void hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub( struct 
   hplsupport_BlockCyclicDistArray2dDouble__object* a, struct 
-  hplsupport_BlockCyclicDistArray2dDouble__object** c, double beta, int32_t i, 
+  hplsupport_BlockCyclicDistArray2dDouble__object* c, double beta, int32_t i,
   int32_t j, struct sidl_BaseInterface__object** ex);
 
 #endif

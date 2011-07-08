@@ -89,7 +89,7 @@ struct hplsupport_BlockCyclicDistArray2dDouble__sepv {
    */
   void (*f_ptransHelper)(
     /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* a,
-    /* inout */ struct hplsupport_BlockCyclicDistArray2dDouble__object** c,
+    /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* c,
     /* in */ double beta,
     /* in */ int32_t i,
     /* in */ int32_t j,

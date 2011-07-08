@@ -14,7 +14,7 @@ package hplsupport version 0.1 {
     // the helper function to do the transpose
     static void ptransHelper(
          in BlockCyclicDistArray2dDouble a, 
-         inout BlockCyclicDistArray2dDouble c, 
+         in BlockCyclicDistArray2dDouble c, 
          in double beta, 
          in int i, 
          in int j);

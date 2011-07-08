@@ -20,6 +20,8 @@ use BlockCycDist, Time;
 use HPCCProblemSize;
 
 use ptrans_hybrid_support;
+use hplsupport;
+use hplsupport.BlockCyclicDistArray2dDouble_static;
 
 //
 // The number of arrays (used to compute the default problem size)
@@ -107,20 +109,14 @@ proc main() {
   // writeln("1b. C: "); writeln(C);
 		
   forall (i,j) in TransposeDom do {
-    use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;	
+    var aWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	
+    aWrapper.initData(A);
+    
+    var cWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	  
+    cWrapper.initData(C);  	  
+	  
     // C[i,j] = beta * C[i,j]  +  A[j,i];
-    /**
-     * var a_ji = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(aWrapper, j, i);
-     * var c_ij = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(cWrapper, i, j);
-     * var new_val = beta * c_ij + a_ji;
-     * impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(cWrapper, new_val, i, j);
-     */
-    /**
-     printf("aWrapper.locale = %d, aWrapper.addr = %p, cWrapper.locale = %d, cWrapper.addr = %p  \n",
-      		  aWrapper->locale, aWrapper->addr, cWrapper->locale, cWrapper->addr);
-     */
-    // writeln("here.id = ", here.id, ", aWrapperLoc.locale = ", aWrapperLoc.locale.id, ", cWrapperLoc.locale = ", cWrapperLoc.locale.id);
-    transposeHelperNative(A, C, beta, i, j, here.id);
+    ptransHelper(aWrapper, cWrapper, beta, i, j);
   }
   
   const execTime = getCurrentTime() - startTime;

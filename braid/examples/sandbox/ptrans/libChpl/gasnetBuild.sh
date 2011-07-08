@@ -38,10 +38,17 @@ BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${E
 
 rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen
 
-chpl --savec ./gen hplsupport_HPL_cClient.h *.chpl --make true
+HEADER_DEPS=""
+# HEADER_DEPS="${HEADER_DEPS} hplsupport_HPL_cClient.h"
+HEADER_DEPS="${HEADER_DEPS} braid_chapel_util.h"
+HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble_IOR.h"
+HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble_cStub.h"
+chpl --savec ./gen  ${HEADER_DEPS} *.chpl --make true
 
-BRAID_GEN_C_SOURCES="hplsupport_BlockCyclicDistArray2dDouble_IOR.c hplsupport_BlockCyclicDistArray2dDouble_Stub.c hplsupport_BlockCyclicDistArray2dDouble_Skel.c hplsupport_BlockCyclicDistArray2dDouble_cImpl.c"
-BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_HPL_cClient.c "
+BRAID_GEN_C_SOURCES="hplsupport_BlockCyclicDistArray2dDouble_IOR.c hplsupport_BlockCyclicDistArray2dDouble_Skel.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Stub.c hplsupport_BlockCyclicDistArray2dDouble_cStub.c "
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cImpl.c "
+# BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_HPL_cClient.c "
 
 BRAID_GEN_O_FILES=""
 for loopFile in ${BRAID_GEN_C_SOURCES}

@@ -45,6 +45,6 @@ void hplsupport_BlockCyclicDistArray2dDouble_set_stub( struct hplsupport_BlockCy
   (*self->d_epv->f_set)( self, newVal, idx1, idx2, ex);
 }
 
-void hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub( struct hplsupport_BlockCyclicDistArray2dDouble__object* a, struct hplsupport_BlockCyclicDistArray2dDouble__object** c, double beta, int32_t i, int32_t j, struct sidl_BaseInterface__object** ex) {
+void hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub( struct hplsupport_BlockCyclicDistArray2dDouble__object* a, struct hplsupport_BlockCyclicDistArray2dDouble__object* c, double beta, int32_t i, int32_t j, struct sidl_BaseInterface__object** ex) {
   (_getSEPV()->f_ptransHelper)( a, c, beta, i, j, ex);
 }

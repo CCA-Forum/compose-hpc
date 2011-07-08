@@ -213,7 +213,7 @@ hplsupport_BlockCyclicDistArray2dDouble_set(
 void
 hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
-  /* inout */ hplsupport_BlockCyclicDistArray2dDouble* c,
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble c,
   /* in */ double beta,
   /* in */ int32_t i,
   /* in */ int32_t j,
