@@ -97,6 +97,25 @@ hplsupport_BlockCyclicDistArray2dDouble__connect(const char *,
 
 #endif /*WITH_RMI*/
 /**
+ * Method to enable/disable static interface contract enforcement.
+ */
+void
+hplsupport_BlockCyclicDistArray2dDouble__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex);
+
+/**
+ * Method to dump static interface contract enforcement statistics.
+ */
+void
+hplsupport_BlockCyclicDistArray2dDouble__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex);
+
+/**
  * Method to enable/disable interface contract enforcement.
  */
 void
@@ -187,6 +206,18 @@ hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
 ;
 #endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
 
+
+/**
+ * Method:  ptransHelper[]
+ */
+void
+hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
+  /* inout */ hplsupport_BlockCyclicDistArray2dDouble* c,
+  /* in */ double beta,
+  /* in */ int32_t i,
+  /* in */ int32_t j,
+  /* out */ sidl_BaseInterface *_ex);
 
 /**
  * <p>
@@ -417,6 +448,13 @@ hplsupport_BlockCyclicDistArray2dDouble__isRemote(
 sidl_bool
 hplsupport_BlockCyclicDistArray2dDouble__isLocal(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+  /* out */ sidl_BaseInterface *_ex);
+/**
+ * Static Method to enable/disable method hooks invocation.
+ */
+void
+hplsupport_BlockCyclicDistArray2dDouble__set_hooks_static(
+  /* in */ sidl_bool enable,
   /* out */ sidl_BaseInterface *_ex);
 /**
  * Method to enable/disable method hooks invocation.

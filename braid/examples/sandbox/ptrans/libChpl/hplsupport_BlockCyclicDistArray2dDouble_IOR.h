@@ -30,6 +30,7 @@ extern "C" {
 
 struct hplsupport_BlockCyclicDistArray2dDouble__array;
 struct hplsupport_BlockCyclicDistArray2dDouble__object;
+struct hplsupport_BlockCyclicDistArray2dDouble__sepv;
 
 /*
  * Forward references for external classes and interfaces.
@@ -47,6 +48,49 @@ struct sidl_rmi_Call__array;
 struct sidl_rmi_Call__object;
 struct sidl_rmi_Return__array;
 struct sidl_rmi_Return__object;
+
+/*
+ * Declare the static method entry point vector.
+ */
+
+struct hplsupport_BlockCyclicDistArray2dDouble__sepv {
+  /* Implicit builtin methods */
+  /* 0 */
+  /* 1 */
+  /* 2 */
+  /* 3 */
+  /* 4 */
+  /* 5 */
+  /* 6 */
+  void (*f__set_hooks_static)(
+    /* in */ sidl_bool enable,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+  /* 7 */
+  void (*f__set_contracts_static)(
+    /* in */ sidl_bool enable,
+    /* in */ const char* enfFilename,
+    /* in */ sidl_bool resetCounters,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+  /* 8 */
+  void (*f__dump_stats_static)(
+    /* in */ const char* filename,
+    /* in */ const char* prefix,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+  /* 9 */
+  /* 10 */
+  /* 11 */
+  /* 12 */
+  /* Methods introduced in sidl.BaseInterface-v0.9.17 */
+  /* Methods introduced in sidl.BaseClass-v0.9.17 */
+  /* Methods introduced in hplsupport.BlockCyclicDistArray2dDouble-v0.1 */
+  void (*f_ptransHelper)(
+    /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* a,
+    /* inout */ struct hplsupport_BlockCyclicDistArray2dDouble__object** c,
+    /* in */ double beta,
+    /* in */ int32_t i,
+    /* in */ int32_t j,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+};
 
 /*
  * Declare the method entry point vector.
@@ -199,6 +243,34 @@ struct hplsupport_BlockCyclicDistArray2dDouble__post_epv {
 };
 
 /*
+ * Declare the static method pre hooks entry point vector.
+ */
+
+struct hplsupport_BlockCyclicDistArray2dDouble__pre_sepv {
+  void (*f_ptransHelper_pre)(
+    /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* a,
+    /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* c,
+    /* in */ double beta,
+    /* in */ int32_t i,
+    /* in */ int32_t j,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+};
+
+/*
+ * Declare the static method post hooks entry point vector.
+ */
+
+struct hplsupport_BlockCyclicDistArray2dDouble__post_sepv {
+  void (*f_ptransHelper_post)(
+    /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* a,
+    /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* c,
+    /* in */ double beta,
+    /* in */ int32_t i,
+    /* in */ int32_t j,
+    /* out */ struct sidl_BaseInterface__object **_ex);
+};
+
+/*
  * Define the controls and statistics structure.
  */
 
@@ -222,6 +294,8 @@ struct hplsupport_BlockCyclicDistArray2dDouble__external {
   struct hplsupport_BlockCyclicDistArray2dDouble__object*
   (*createObject)(void* ddata, struct sidl_BaseInterface__object **_ex);
 
+  struct hplsupport_BlockCyclicDistArray2dDouble__sepv*
+  (*getStaticEPV)(void);
   struct sidl_BaseClass__epv*(*getSuperEPV)(void);
   int d_ior_major_version;
   int d_ior_minor_version;
@@ -239,6 +313,13 @@ hplsupport_BlockCyclicDistArray2dDouble__externals(void);
 extern struct hplsupport_BlockCyclicDistArray2dDouble__object*
 hplsupport_BlockCyclicDistArray2dDouble__createObject(void* ddata,struct 
   sidl_BaseInterface__object ** _ex);
+
+extern struct hplsupport_BlockCyclicDistArray2dDouble__sepv*
+hplsupport_BlockCyclicDistArray2dDouble__getStaticEPV(void);
+
+
+extern struct hplsupport_BlockCyclicDistArray2dDouble__sepv*
+hplsupport_BlockCyclicDistArray2dDouble__getTypeStaticEPV(int type);
 
 extern void hplsupport_BlockCyclicDistArray2dDouble__init(
   struct hplsupport_BlockCyclicDistArray2dDouble__object* self, void* ddata, 
@@ -259,6 +340,17 @@ extern void hplsupport_BlockCyclicDistArray2dDouble__fini(
 extern void hplsupport_BlockCyclicDistArray2dDouble__IOR_version(int32_t *major,
   int32_t *minor);
 
+/*
+ * Define static structure options.
+ */
+
+static const int s_SEPV_HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_BASE = 0;
+static const int s_SEPV_HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_CONTRACTS = 1;
+static const int s_SEPV_HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_HOOKS = 2;
+
+struct hplsupport_BlockCyclicDistArray2dDouble__object* 
+  skel_hplsupport_BlockCyclicDistArray2dDouble_fconnect_hplsupport_BlockCyclicDistArray2dDouble
+  (const char* url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
 struct sidl_BaseInterface__object* 
   skel_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
   const char* url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);

@@ -14,6 +14,9 @@
 #include <stddef.h>
 
 #ifdef WITH_RMI
+#ifndef included_hplsupport_BlockCyclicDistArray2dDouble_h
+#include "hplsupport_BlockCyclicDistArray2dDouble.h"
+#endif
 #ifndef included_sidl_BaseInterface_h
 #include "sidl_BaseInterface.h"
 #endif
@@ -42,7 +45,20 @@ impl_hplsupport_BlockCyclicDistArray2dDouble__dtor(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* out */ sidl_BaseInterface *_ex);
 
+extern
+void
+impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
+  /* inout */ hplsupport_BlockCyclicDistArray2dDouble* c,
+  /* in */ double beta,
+  /* in */ int32_t i,
+  /* in */ int32_t j,
+  /* out */ sidl_BaseInterface *_ex);
+
 #ifdef WITH_RMI
+extern struct hplsupport_BlockCyclicDistArray2dDouble__object* 
+  impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_hplsupport_BlockCyclicDistArray2dDouble
+  (const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
@@ -72,6 +88,9 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
   /* out */ sidl_BaseInterface *_ex);
 
 #ifdef WITH_RMI
+extern struct hplsupport_BlockCyclicDistArray2dDouble__object* 
+  impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_hplsupport_BlockCyclicDistArray2dDouble
+  (const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
@@ -111,11 +130,36 @@ hplsupport_BlockCyclicDistArray2dDouble__set_epv(struct
 extern "C" {
 #endif
 
+void
+hplsupport_BlockCyclicDistArray2dDouble__set_sepv(struct 
+  hplsupport_BlockCyclicDistArray2dDouble__sepv *sepv,
+  struct hplsupport_BlockCyclicDistArray2dDouble__pre_sepv *pre_sepv, 
+  struct hplsupport_BlockCyclicDistArray2dDouble__post_sepv *post_sepv)
+{
+  pre_sepv->f_ptransHelper_pre = NULL;
+  sepv->f_ptransHelper = 
+    impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper;
+  post_sepv->f_ptransHelper_post = NULL;
+}
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void hplsupport_BlockCyclicDistArray2dDouble__call_load(void) { 
   sidl_BaseInterface _throwaway_exception = NULL;
   impl_hplsupport_BlockCyclicDistArray2dDouble__load(&_throwaway_exception);
 }
 #ifdef WITH_RMI
+struct hplsupport_BlockCyclicDistArray2dDouble__object* 
+  skel_hplsupport_BlockCyclicDistArray2dDouble_fconnect_hplsupport_BlockCyclicDistArray2dDouble
+  (const char* url, sidl_bool ar, sidl_BaseInterface *_ex) { 
+  return hplsupport_BlockCyclicDistArray2dDouble__connectI(url, ar, _ex);
+}
+
 struct sidl_BaseInterface__object* 
   skel_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex) { 
