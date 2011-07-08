@@ -17,21 +17,20 @@ proc ptrans_support_dummy_calls() {
   var ab : [matVectSpace] elemType;  // the matrix A and vector b
   var piv: [1..n] indexType;         // a vector of pivot values
   
-  var abWrapper = new ArrayWrapper(elemType, 2, ab);
-  impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-		  abWrapper, 
-		  impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
-				  abWrapper, 2, 2) + 125.0,
-		  2, 2);
-  for (i, j) in matVectSpace do {
-	var newVal = 0;
+  // Access the array from the current locale
+  var curVal = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(ab, 2, 2);
+  impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(ab, curVal + 125.0, 2, 2);
+  // Access the array from multiple locales
+  for (i, j) in matVectSpace do on Locales(ab(i, j).locale.id) do {
+	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
+			ab, i, j) ;
 	if (i < j) {
-	  newVal = 10 * i + j;	
+	  newVal += 10 * i + j;	
 	} else {
-	  newVal = i + 10 * j;
+	  newVal += i + 10 * j;
 	}
 	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-	  		  abWrapper, newVal, i, j);  
+			ab, newVal, i, j);  
   }
 
   writeln("dummy_calls() ends.");
