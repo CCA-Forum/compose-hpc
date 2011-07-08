@@ -83,6 +83,10 @@ struct hplsupport_BlockCyclicDistArray2dDouble__sepv {
   /* Methods introduced in sidl.BaseInterface-v0.9.17 */
   /* Methods introduced in sidl.BaseClass-v0.9.17 */
   /* Methods introduced in hplsupport.BlockCyclicDistArray2dDouble-v0.1 */
+  /**
+   * FIXME: Is this a bug? Why is an in argument a pointer - for performance?
+   * If so, then the bug is in the corresponding impl method whose signature does not have pointers
+   */
   void (*f_ptransHelper)(
     /* in */ struct hplsupport_BlockCyclicDistArray2dDouble__object* a,
     /* inout */ struct hplsupport_BlockCyclicDistArray2dDouble__object** c,
@@ -291,6 +295,10 @@ struct hplsupport_BlockCyclicDistArray2dDouble__object {
 };
 
 struct hplsupport_BlockCyclicDistArray2dDouble__external {
+
+  /**
+   * FIXME The braid generator generates void** ddata, is that a bug?
+   */
   struct hplsupport_BlockCyclicDistArray2dDouble__object*
   (*createObject)(void* ddata, struct sidl_BaseInterface__object **_ex);
 

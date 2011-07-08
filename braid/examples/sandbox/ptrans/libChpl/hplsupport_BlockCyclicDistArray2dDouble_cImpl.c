@@ -149,13 +149,17 @@ impl_hplsupport_BlockCyclicDistArray2dDouble__dtor(
 #undef __FUNC__
 #define __FUNC__ "impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper"
 
+/**
+ * FIXME: The impl method signature does not have pointers unlike the function pointer in the epv struct.
+ * There is a corresponding FIXME in the IOR.h. It needs to be fixed one of these two places.
+ */
 #ifdef __cplusplus
 extern "C"
 #endif
 void
 impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
-  /* inout */ hplsupport_BlockCyclicDistArray2dDouble* c,
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble* a,
+  /* inout */ hplsupport_BlockCyclicDistArray2dDouble** c,
   /* in */ double beta,
   /* in */ int32_t i,
   /* in */ int32_t j,
@@ -164,12 +168,12 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
-    double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(a, j, i, _ex);
-    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(*c, i, j, _ex);
+    double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(*a, j, i, _ex);
+    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(*(*c), i, j, _ex);
 
     double new_val = beta * c_ij  +  a_ji;
 
-    hplsupport_BlockCyclicDistArray2dDouble_set(*c, new_val, i, j, _ex);
+    hplsupport_BlockCyclicDistArray2dDouble_set(*(*c), new_val, i, j, _ex);
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
   }
 }
