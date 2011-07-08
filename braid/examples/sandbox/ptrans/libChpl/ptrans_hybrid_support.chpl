@@ -1,5 +1,4 @@
 use BlockCycDist;
-use ArrayWrapper;
 use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;
 
 type indexType = int(32);

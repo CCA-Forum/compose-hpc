@@ -4,17 +4,17 @@
 
 #define DEBUG 0
 
-void transposeHelperNative(void* aData, void* cData, double beta, int i, int j, int hereId) {
+void transposeHelperNative(int32_t aData, int32_t cData, double beta, int i, int j, int hereId) {
 
   sidl_BaseInterface ex;
 
   // printf(" locale id = %d, aData = %p, cData = %p \n", hereId, aData, cData);
 
   hplsupport_BlockCyclicDistArray2dDouble a = hplsupport_BlockCyclicDistArray2dDouble__create(&ex);
-  hplsupport_BlockCyclicDistArray2dDouble_initData(a, aData, &ex);
+  hplsupport_BlockCyclicDistArray2dDouble_initData(a, &aData, &ex);
 
   hplsupport_BlockCyclicDistArray2dDouble c = hplsupport_BlockCyclicDistArray2dDouble__create(&ex);
-  hplsupport_BlockCyclicDistArray2dDouble_initData(c, cData, &ex);
+  hplsupport_BlockCyclicDistArray2dDouble_initData(c, &cData, &ex);
 
   // C[i,j] = beta * C[i,j]  +  A[j,i];
 

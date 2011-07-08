@@ -165,10 +165,9 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.initData) */
     struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-    WideBlockCyclicDistArray2dDoubleChpl wideDataPtr = (WideBlockCyclicDistArray2dDoubleChpl) data;
-    BlockCyclicDistArray2dDoubleChpl chplDataPtr = wideDataPtr->addr;
-    dptr->chpl_data = chplDataPtr;
-	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): wideDataPtr = %p, chpl_data = %p \n", wideDataPtr, dptr->chpl_data);
+    int32_t* chplDataPtr = (int32_t*) data;
+    dptr->chpl_data = *chplDataPtr;
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_initData(): chplDataPtr = %p, chpl_data = %d \n", chplDataPtr, dptr->chpl_data);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.initData) */
   }
@@ -187,7 +186,7 @@ extern "C"
 extern
 double
 impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
-		BlockCyclicDistArray2dDoubleChpl wrappedArray,
+		int32_t chplArray,
 		/* in */ int32_t idx1,
 		/* in */ int32_t idx2);
 
@@ -224,7 +223,7 @@ extern "C"
 extern
 void
 impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-		BlockCyclicDistArray2dDoubleChpl wrappedArray,
+		int32_t chplArray,
 		/* in */ double newVal,
 		/* in */ int32_t idx1,
 		/* in */ int32_t idx2);
@@ -249,7 +248,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
 
 	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(%d, %d) = %f\n", idx1, idx2, newVal);
 	struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(): chpl_data = %p \n", dptr->chpl_data);
+	// printf("impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(): chpl_data = %d \n", dptr->chpl_data);
 	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(dptr->chpl_data, newVal, idx1, idx2);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.setIntoArray) */

@@ -3,8 +3,9 @@
 #define HPLSUPPORT_HPL_CLIENT_H
 
 #include <stdio.h>
+#include <stdint.h>
 
-void transposeHelperNative(void* a, void* c, double beta, int i, int j, int hereId);
+void transposeHelperNative(int32_t a, int32_t c, double beta, int i, int j, int hereId);
 
 #endif
 
