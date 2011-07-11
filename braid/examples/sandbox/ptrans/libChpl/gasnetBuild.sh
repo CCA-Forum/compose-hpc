@@ -37,10 +37,9 @@ BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${E
 
 
 HEADER_DEPS=""
-# HEADER_DEPS="${HEADER_DEPS} hplsupport_HPL_cClient.h"
-HEADER_DEPS="${HEADER_DEPS} braid_chapel_util.h"
-HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble_IOR.h"
+HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble.h"
 HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble_cStub.h"
+HEADER_DEPS="${HEADER_DEPS} braid_chapel_util.h"
 
 BRAID_GEN_C_SOURCES="hplsupport_BlockCyclicDistArray2dDouble_IOR.c hplsupport_BlockCyclicDistArray2dDouble_Skel.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Stub.c hplsupport_BlockCyclicDistArray2dDouble_cStub.c "

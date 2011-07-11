@@ -5,7 +5,7 @@
 
 module sidl {
   // FIXME: autogenerate this from sidl.sidl
-  _extern record sidl_BaseInterface__struct {};
+  _extern record sidl_BaseInterface {};
 // -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
   enum sidl_array_ordering {
     sidl_general_order=0, /* this must be zero (i.e. a false value) */
