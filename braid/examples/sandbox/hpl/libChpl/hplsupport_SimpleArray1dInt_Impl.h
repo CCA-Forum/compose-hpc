@@ -111,14 +111,14 @@ impl_hplsupport_SimpleArray1dInt_initData(
 
 extern
 int32_t
-impl_hplsupport_SimpleArray1dInt_getFromArray(
+impl_hplsupport_SimpleArray1dInt_get(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex);
 
 extern
 void
-impl_hplsupport_SimpleArray1dInt_setIntoArray(
+impl_hplsupport_SimpleArray1dInt_set(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t newVal,
   /* in */ int32_t idx1,

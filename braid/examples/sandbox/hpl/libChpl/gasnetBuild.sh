@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC="`babel-config --query-var=CC`"
+CC="`babel-config --query-var=CC`" # "colorgcc.pl"
 CXX="`babel-config --query-var=CXX`"
 
 CHAPEL_HOME="${CHPL_HOME}"
@@ -59,7 +59,7 @@ BRAID_GEN_O_FILES=""
 
 
 echo "Cleaning previous build artifacts"
-rm -f *.o; rm -f *.lo; rm -f a.out; rm -rf gen;
+rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen;
 
 echo "Generating C files from chpl files"
 chpl --savec ./gen ${HEADER_DEPS} *.chpl --make true

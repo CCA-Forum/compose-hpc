@@ -136,18 +136,18 @@ hplsupport_SimpleArray1dInt_initData(
 
 
 /**
- * Method:  getFromArray[]
+ * Method:  get[]
  */
 HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 int32_t
-hplsupport_SimpleArray1dInt_getFromArray(
+hplsupport_SimpleArray1dInt_get(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex)
 #ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
   int32_t _result;
-  _result = (*self->d_epv->f_getFromArray)(
+  _result = (*self->d_epv->f_get)(
     self,
     idx1,
     _ex);
@@ -159,18 +159,18 @@ hplsupport_SimpleArray1dInt_getFromArray(
 
 
 /**
- * Method:  setIntoArray[]
+ * Method:  set[]
  */
 HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 void
-hplsupport_SimpleArray1dInt_setIntoArray(
+hplsupport_SimpleArray1dInt_set(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t newVal,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex)
 #ifdef HPLSUPPORT_SIMPLEARRAY1DINT_INLINE_DECL
 {
-  (*self->d_epv->f_setIntoArray)(
+  (*self->d_epv->f_set)(
     self,
     newVal,
     idx1,

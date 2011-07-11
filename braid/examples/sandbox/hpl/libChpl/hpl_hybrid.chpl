@@ -369,14 +369,14 @@ proc dummy_calls() {
 		  BlockCyclic(startIdx=(1, 1), (blkSize, blkSize)) = [1..n, 1..n+1];	
   var ab : [matVectSpace] elemType;  // the matrix A and vector b
   for (i, j) in matVectSpace do {
-	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
+	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(
 			  ab, i, j);
 	if (i < j) {
 	  newVal += 10 * i + j;	
 	} else {
 	  newVal += i + 10 * j;
 	}
-	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
+	impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(
 	  		  ab, newVal, i, j);  
   }
   

@@ -6,9 +6,9 @@ package hplsupport version 0.1 {
   class SimpleArray1dInt {
     void initData(in opaque data);
   
-    int getFromArray(in int idx1);
+    int get(in int idx1);
     
-    void setIntoArray(in int newVal, in int idx1);
+    void set(in int newVal, in int idx1);
   }
 
 
@@ -16,9 +16,9 @@ package hplsupport version 0.1 {
   class BlockCyclicDistArray2dDouble {
     void initData(in opaque data);
     
-    double getFromArray(in int idx1, in int idx2);
+    double get(in int idx1, in int idx2);
     
-    void setIntoArray(in double newVal, in int idx1, in int idx2);
+    void set(in double newVal, in int idx1, in int idx2);
   }
 }
 

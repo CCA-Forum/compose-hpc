@@ -178,7 +178,7 @@ hplsupport_SimpleArray1dInt_initData__exec(
 }
 
 static void
-hplsupport_SimpleArray1dInt_getFromArray__exec(
+hplsupport_SimpleArray1dInt_get__exec(
         struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
@@ -193,7 +193,7 @@ hplsupport_SimpleArray1dInt_getFromArray__exec(
   sidl_rmi_Call_unpackInt( inArgs, "idx1", &idx1, _ex);SIDL_CHECK(*_ex);
 
   /* make the call */
-  _retval = (self->d_epv->f_getFromArray)(
+  _retval = (self->d_epv->f_get)(
     self,
     idx1,
     _ex);  SIDL_CHECK(*_ex);
@@ -233,7 +233,7 @@ hplsupport_SimpleArray1dInt_getFromArray__exec(
 }
 
 static void
-hplsupport_SimpleArray1dInt_setIntoArray__exec(
+hplsupport_SimpleArray1dInt_set__exec(
         struct hplsupport_SimpleArray1dInt__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
@@ -249,7 +249,7 @@ hplsupport_SimpleArray1dInt_setIntoArray__exec(
   sidl_rmi_Call_unpackInt( inArgs, "idx1", &idx1, _ex);SIDL_CHECK(*_ex);
 
   /* make the call */
-  (self->d_epv->f_setIntoArray)(
+  (self->d_epv->f_set)(
     self,
     newVal,
     idx1,
@@ -823,11 +823,11 @@ ior_hplsupport_SimpleArray1dInt__exec(
     { "addRef", hplsupport_SimpleArray1dInt_addRef__exec },
     { "deleteRef", hplsupport_SimpleArray1dInt_deleteRef__exec },
     { "getClassInfo", hplsupport_SimpleArray1dInt_getClassInfo__exec },
-    { "getFromArray", hplsupport_SimpleArray1dInt_getFromArray__exec },
+    { "get", hplsupport_SimpleArray1dInt_get__exec },
     { "initData", hplsupport_SimpleArray1dInt_initData__exec },
     { "isSame", hplsupport_SimpleArray1dInt_isSame__exec },
     { "isType", hplsupport_SimpleArray1dInt_isType__exec },
-    { "setIntoArray", hplsupport_SimpleArray1dInt_setIntoArray__exec }
+    { "set", hplsupport_SimpleArray1dInt_set__exec }
   };
   int i, cmp, l = 0;
   int u = sizeof(s_methods)/sizeof(struct hplsupport_SimpleArray1dInt__method);
@@ -894,8 +894,8 @@ static void hplsupport_SimpleArray1dInt__init_epv(void)
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
   epv->f_initData              = NULL;
-  epv->f_getFromArray          = NULL;
-  epv->f_setIntoArray          = NULL;
+  epv->f_get          = NULL;
+  epv->f_set          = NULL;
   epv->f_addRef                = (void (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
   epv->f_deleteRef             = (void (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
   epv->f_isSame                = (sidl_bool (*)(struct hplsupport_SimpleArray1dInt__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;

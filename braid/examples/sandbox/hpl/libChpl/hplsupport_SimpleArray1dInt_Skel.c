@@ -56,14 +56,14 @@ impl_hplsupport_SimpleArray1dInt_initData(
 
 extern
 int32_t
-impl_hplsupport_SimpleArray1dInt_getFromArray(
+impl_hplsupport_SimpleArray1dInt_get(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex);
 
 extern
 void
-impl_hplsupport_SimpleArray1dInt_setIntoArray(
+impl_hplsupport_SimpleArray1dInt_set(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t newVal,
   /* in */ int32_t idx1,
@@ -91,12 +91,12 @@ hplsupport_SimpleArray1dInt__set_epv(struct hplsupport_SimpleArray1dInt__epv
   pre_epv->f_initData_pre = NULL;
   epv->f_initData = impl_hplsupport_SimpleArray1dInt_initData;
   post_epv->f_initData_post = NULL;
-  pre_epv->f_getFromArray_pre = NULL;
-  epv->f_getFromArray = impl_hplsupport_SimpleArray1dInt_getFromArray;
-  post_epv->f_getFromArray_post = NULL;
-  pre_epv->f_setIntoArray_pre = NULL;
-  epv->f_setIntoArray = impl_hplsupport_SimpleArray1dInt_setIntoArray;
-  post_epv->f_setIntoArray_post = NULL;
+  pre_epv->f_get_pre = NULL;
+  epv->f_get = impl_hplsupport_SimpleArray1dInt_get;
+  post_epv->f_get_post = NULL;
+  pre_epv->f_set_pre = NULL;
+  epv->f_set = impl_hplsupport_SimpleArray1dInt_set;
+  post_epv->f_set_post = NULL;
 
 }
 #ifdef __cplusplus

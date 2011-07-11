@@ -178,46 +178,46 @@ impl_hplsupport_SimpleArray1dInt_initData(
 }
 
 /*
- * Method:  getFromArray[]
+ * Method:  get[]
  */
 
 #undef __FUNC__
-#define __FUNC__ "impl_hplsupport_SimpleArray1dInt_getFromArray"
+#define __FUNC__ "impl_hplsupport_SimpleArray1dInt_get"
 
 #ifdef __cplusplus
 extern "C"
 #endif
 int32_t
-impl_hplsupport_SimpleArray1dInt_getFromArray(
+impl_hplsupport_SimpleArray1dInt_get(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t idx1,
   /* out */ sidl_BaseInterface *_ex)
 {
   *_ex = 0;
   {
-    /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.getFromArray) */
+    /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.get) */
 
-	// printf("impl_hplsupport_SimpleArray1dInt_getFromArray(%d)\n", idx1);
+	// printf("impl_hplsupport_SimpleArray1dInt_get(%d)\n", idx1);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
-	// printf("impl_hplsupport_SimpleArray1dInt_getFromArray(): chpl_data = %p \n", dptr->chpl_data);
+	// printf("impl_hplsupport_SimpleArray1dInt_get(): chpl_data = %p \n", dptr->chpl_data);
 	return dptr->chpl_data[idx1];
 
-    /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.getFromArray) */
+    /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.get) */
   }
 }
 
 /*
- * Method:  setIntoArray[]
+ * Method:  set[]
  */
 
 #undef __FUNC__
-#define __FUNC__ "impl_hplsupport_SimpleArray1dInt_setIntoArray"
+#define __FUNC__ "impl_hplsupport_SimpleArray1dInt_set"
 
 #ifdef __cplusplus
 extern "C"
 #endif
 void
-impl_hplsupport_SimpleArray1dInt_setIntoArray(
+impl_hplsupport_SimpleArray1dInt_set(
   /* in */ hplsupport_SimpleArray1dInt self,
   /* in */ int32_t newVal,
   /* in */ int32_t idx1,
@@ -225,13 +225,13 @@ impl_hplsupport_SimpleArray1dInt_setIntoArray(
 {
   *_ex = 0;
   {
-    /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.setIntoArray) */
-	// printf("impl_hplsupport_SimpleArray1dInt_setIntoArray(%d) = %d\n", idx1, newVal);
+    /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.set) */
+	// printf("impl_hplsupport_SimpleArray1dInt_set(%d) = %d\n", idx1, newVal);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
-	// printf("impl_hplsupport_SimpleArray1dInt_setIntoArray(): chpl_data = %p \n", dptr->chpl_data);
+	// printf("impl_hplsupport_SimpleArray1dInt_set(): chpl_data = %p \n", dptr->chpl_data);
 	dptr->chpl_data[idx1] = newVal;
 
-    /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.setIntoArray) */
+    /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.set) */
   }
 }
 /* Babel internal methods, Users should not edit below this line. */
