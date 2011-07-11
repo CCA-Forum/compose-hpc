@@ -19,11 +19,11 @@ cd regression/interop                                   ||exit 1
 TESTCASE=`basename \`dirname \\\`dirname $arg\\\`\``
 language=`echo \`basename \\\`dirname $arg\\\`\` |sed 's/lib//g'`
 sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
-echo "MAKE = $MAKE"
-echo "TESTCASE = $TESTCASE"
-echo "language = $language"
+#echo "MAKE = $MAKE"
+#echo "TESTCASE = $TESTCASE"
+#echo "language = $language"
 
-echo "--setup directory, copy over babel regression test [ $TESTCASE / $language ]"
+#echo "--setup directory, copy over babel regression test [ $TESTCASE / $language ]"
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
 
@@ -39,14 +39,14 @@ else
   chmod -R u+w lib$language                             ||exit 1
 fi
 
-echo "--generate server [ $TESTCASE / $language ]"
+echo "--generate server [ $language / $TESTCASE ]"
 cd lib$language                                         ||exit 1
 $BABEL $sidl -s$language --makefile                     ||exit 1
 # turn on debugging
 @PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1
 cd ..						        ||exit 1
 
-echo "--compile server [ $TESTCASE / $language ]"
+echo "--compile server  [ $language / $TESTCASE ]"
 if [ x"$language" = x"Chapel" ]; then
     exec $MAKE all -C lib$language # verbose
 else

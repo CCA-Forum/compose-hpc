@@ -43,6 +43,18 @@ def drop(lst):
     if lst: return lst[0]
     else:   return None
 
+def strip_common(prefix, a):
+    """
+    \return \c a with the common prefix of \c prefix removed
+    """
+    while (len(prefix) and 
+           len(a) and
+           prefix[0] == a[0]):
+        
+        a = a[1:]
+        prefix = prefix[1:]
+    return a
+
 def babel_object_type(package, name):
     """
     \return the SIDL node for the type of a Babel object 'name'
@@ -93,8 +105,8 @@ def write_to(filename, string):
     """
     f = tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.')
     f.write(string)
-    f.flush()
-    os.fsync(f)
+    #f.flush()
+    #os.fsync(f)
     f.close()
     os.rename(f.name, filename)
 
@@ -115,6 +127,7 @@ def drop_rarray_ext_args(args):
     return filter(lambda a: a[4] not in names, args)
 
 
+
 class Chapel:
     
     class ClassInfo:
@@ -122,7 +135,7 @@ class Chapel:
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
         """
-        def __init__(self, name, symbol_table,
+        def __init__(self, name, symbol_table, is_interface,
                      stub_parent=None,
                      skel_parent=None):
             
@@ -135,6 +148,7 @@ class Chapel:
             self.epv = EPV(name, symbol_table)
             self.ior = CFile()
             self.obj = None
+            self.is_interface = is_interface
 
     def __init__(self, filename, sidl_sexpr, symbol_table, create_makefile, verbose):
         """
@@ -195,23 +209,51 @@ class Chapel:
         def gen(node):         return self.generate_client1(node, data, symbol_table)
         def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
 
-        def generate_class_stub(name, methods, implements=[]):
+        def generate_class_stub(name, methods, extends, is_interface, implements=[]):
             """
             shared code for class/interface
             """
             qname = '_'.join(symbol_table.prefix+[name])                
-            ci = self.ClassInfo(name, symbol_table)
+            ci = self.ClassInfo(name, symbol_table, is_interface)
             ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
             ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
-            self.gen_default_methods(symbol_table, implements, ci)
+            self.gen_default_methods(symbol_table, extends, implements, ci)
+
+            # Consolidate all methods, defined and inherited
+            all_names = set()
+
+            def full_method_name(method):
+                """
+                Return the long name of a method (sans class/packages) for sorting purposes.
+                """
+                return method[2][1]+method[2][2]
+
+            inherited_methods = []
+            if extends:
+                for m in symbol_table[extends[1]][5]:
+                    inherited_methods.append(m)
+                    all_names.add(full_method_name(m))
+
+            protocol_methods = []
+            for impls in implements:
+                for interf in impls[1]:
+                    for m in symbol_table[interf[1]][4]:
+                        if not full_method_name(m) in all_names:
+                            all_names.add(full_method_name(m))
+                            protocol_methods.append(m)
+
+            class_methods = []
+            for m in methods:
+                if not full_method_name(m) in all_names:
+                    class_methods.append(m)
 
             # recurse to generate method code
-            gen1(methods, ci)
+            gen1(inherited_methods+protocol_methods+class_methods, ci)
 
             # IOR
-            self.generate_ior(ci, implements)
+            self.generate_ior(ci, extends, implements)
             write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
             # Stub (in C)
@@ -236,21 +278,37 @@ class Chapel:
             chpl_defs = ci.chpl_stub
             ci.chpl_stub = ChapelFile()
             ci.chpl_stub.new_def('use sidl;')
-            ior = ChapelScope(ci.chpl_stub)
             extrns = ChapelScope(ci.chpl_stub)
+
+            def gen_casts(baseclass):
+                base = '_'.join(baseclass[1])
+                ex = 'inout ex: sidl_BaseInterface__object'
+                extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {0}__object;'
+                               .format(base, qname, ex))
+                extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {1}__object;'
+                               .format(base, qname, ex))
+
+            if extends:
+                gen_casts(extends)
+
             for impls in implements:
                 for interf in impls[1]:
-                    ifname = '_'.join(interf[1])
-                    #ior.new_def('  var d_inherit_%s: %s__object;'
-                    #                     %(get_name(interf), ifname))
-                    extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object): {0}__object;'
-                                         .format(ifname, qname))
-                    extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {1}__object;'
-                                         .format(ifname, qname))
+                    gen_casts(interf)
 
+            # if is_interface: # generic upcasting of interfaces
+            #     extrns.new_def('_extern proc upcast(in ior: {0}__object): {0}__object;'
+            #                    .format(qname))
 
+            if extends:
+                inherits = ': '+'.'.join(strip_common(symbol_table.prefix, extends[1]))
+            else: inherits = ''
+
+            # extern declaration for the IOR
             ci.chpl_stub.new_def('_extern record %s__object {'%qname)
-            ci.chpl_stub.new_def(ior)
+            # if ci.is_interface:
+            #     ci.chpl_stub.new_def('  var d_object: opaque;')
+            # else:
+            #     ci.chpl_stub.new_def('  var d_data: opaque;')
             ci.chpl_stub.new_def('};')
 
             ci.chpl_stub.new_def(extrns)
@@ -264,7 +322,7 @@ class Chapel:
             ci.chpl_stub.new_def('module %s_static {'%name)
             ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
             ci.chpl_stub.new_def('}')
-            ci.chpl_stub.new_def('class %s {'%name)
+            ci.chpl_stub.new_def('class %s /*%s*/ {'%(name,inherits))
             chpl_class = ChapelScope(ci.chpl_stub)
             chpl_class.new_def('var ior: %s__object;'%qname)
             body = [
@@ -282,14 +340,22 @@ class Chapel:
                   ['  this.ior = obj;'],
                   'Constructor for wrapping an existing object'), chpl_class)
 
+            def gen_cast(base):
+                chpl_gen(
+                    (ir.fn_defn, [], ir.pt_void, 
+                     '_'.join(['cast']+base[1]), [],
+                     ['var ex: sidl_BaseInterface__object;',                        
+                      'return %s(this.ior, ex);'%'_'.join(['_cast']+base[1])],
+                     'Create a down-casted version of the IOR pointer for\n'
+                     'use with the alternate constructor'), chpl_class)
+
+            if extends:
+                gen_cast(extends)
+
             for impls in implements:
                 for interf in impls[1]:
-                    chpl_gen(
-                        (ir.fn_defn, [], ir.pt_void, 
-                         '_'.join(['cast']+interf[1]), [],
-                         ['return %s(this.ior);'%'_'.join(['_cast']+interf[1])],
-                         'Create a down-casted version of the IOR pointer for\n'
-                         'use with the alternate constructor'), chpl_class)
+                    gen_cast(interf)
+                
 
             chpl_class.new_def(chpl_defs.get_defs())
             ci.chpl_stub.new_def(chpl_class)
@@ -308,12 +374,12 @@ class Chapel:
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                generate_class_stub(Name, Methods, Implements)
+                generate_class_stub(Name, Methods, Extends, False, Implements)
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
                 expect(data, None)
-                generate_class_stub(Name, Methods)
+                generate_class_stub(Name, Methods, Extends, is_interface=True)
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
@@ -353,7 +419,7 @@ class Chapel:
                 raise Exception("match error")
         return data
 
-    def gen_default_methods(self, symbol_table, implements, data):
+    def gen_default_methods(self, symbol_table, extends, implements, data):
         """
         Generate default Babel object methods such as _cast() Also
         generates other IOR data structures such as the _object and
@@ -379,15 +445,15 @@ class Chapel:
             return sidl.Arg([], sidl.in_, t, name)
 
         # Implicit Built-in methods
-        builtin(sidl.void, '_cast',
+        builtin(sidl.pt_opaque, '_cast',
                 [inarg(sidl.pt_string, 'name')])
 
         builtin(sidl.void, '_delete', [])
 
         builtin(sidl.void, '_exec', [
                 inarg(sidl.pt_string, 'methodName'),
-                inarg(sidl.void, 'FIXMEinArgs'),
-                inarg(sidl.void, 'FIXMEoutArgs')])
+                inarg(sidl.pt_opaque, 'FIXMEinArgs'),
+                inarg(sidl.pt_opaque, 'FIXMEoutArgs')])
 
         builtin(sidl.pt_string, '_getURL', [])
         builtin(sidl.void, '_raddRef', [])
@@ -402,11 +468,14 @@ class Chapel:
         builtin(sidl.void, '_dump_stats', 
                 [inarg(sidl.pt_string, 'filename'),
                  inarg(sidl.pt_string, 'prefix')])
-        builtin(sidl.void, '_ctor', [])
-        builtin(sidl.void, '_ctor2',
-                [inarg(sidl.void, 'private_data')])
-        builtin(sidl.void, '_dtor', [])
-        builtin(sidl.void, '_load', [])
+        if not data.is_interface:
+            builtin(sidl.void, '_ctor', [])
+            builtin(sidl.void, '_ctor2',
+                    [inarg(sidl.void, 'private_data')])
+            builtin(sidl.void, '_dtor', [])
+            builtin(sidl.void, '_load', [])
+
+        # Fixme: these should be inherited from BaseInterface
         builtin(sidl.void, 'addRef', [])
         builtin(sidl.void, 'deleteRef', [])
         builtin(sidl.pt_bool, 'isSame',
@@ -426,32 +495,53 @@ class Chapel:
                 [inarg(sidl.pt_string, 'filename'),
                  inarg(sidl.pt_string, 'prefix')])
 
-        # cstats
+
         prefix = data.epv.symbol_table.prefix
-        data.cstats = \
-            ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''),
-                      [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")],
-                       'The controls and statistics structure')
+        # cstats
+        cstats = []
+        data.cstats = ir.Struct(
+            ir.Scoped_id(prefix+[data.epv.name,'_cstats'], ''),
+            [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")],
+            'The controls and statistics structure')
 
         # @class@__object
-        interfaces = []
+        inherits = []
+        def gen_inherits(baseclass):
+            inherits.append(ir.Struct_item(
+                ir_babel_object_type(baseclass[1][:-1], baseclass[1][-1]),
+                'd_inherit_'+baseclass[1][-1]))#get_name(baseclass)))
+
+        with_sidl_baseclass = not data.is_interface
+        
+        # pointers to the base class' EPV
+        if extends:
+            gen_inherits(extends)
+            with_sidl_baseclass = False
+
         # pointers to the implemented interface's EPV
         for impls in implements:
             for interf in impls[1]:
-                interfaces.append(ir.Struct_item(
-                    ir_babel_object_type(interf[1][:-1], interf[1][-1]),
-                         'd_inherit_'+get_name(interf)))
-        
+                gen_inherits(interf)
+
+        baseclass = []
+        if with_sidl_baseclass:
+            baseclass.append(
+                ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
+                               "d_sidl_baseclass"))
+
+        if not data.is_interface:
+            cstats = [ir.Struct_item(unscope(data.cstats), "d_cstats")]
+
+            
         data.obj = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_object'], ''),
-                      [ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
-                                      "d_sidl_baseclass")]+
-                      interfaces
-                      +[
-                       ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv"),
-                       ir.Struct_item(unscope(data.cstats), "d_cstats"),
-                       ir.Struct_item(ir.Pointer_type(ir.pt_void), "d_data")
-                       ],
+                      baseclass+
+                      inherits+
+                      [ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv")]+
+                       cstats+
+                       [ir.Struct_item(ir.Pointer_type(ir.pt_void),
+                                       'd_object' if data.is_interface else
+                                       'd_data')],
                        'The class object structure')
         data.external = \
             ir.Struct(ir.Scoped_id(prefix+[data.epv.name,'_external'], ''),
@@ -674,6 +764,12 @@ class Chapel:
             # nothing to be done for an abstract function
             return
 
+        # this is an ugly hack to force generate_method_stub to to wrap the
+        # self argument with a call to upcast()
+        if ci.is_interface:
+            docast = [ir.pure]
+        else: docast = []
+
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
@@ -683,16 +779,14 @@ class Chapel:
         # return value type conversion -- treat it as an out argument
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
-        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
+        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name, docast)
         cdecl = ir.Fn_decl(Attrs, ctype, Name+Extension, cdecl_args, DocComment)
 
         if static:
-            extern_self = []
             call_self = []
         else:
-            extern_self = [ir.Arg([], ir.inout, ir_babel_object_type(
-                symbol_table.prefix, ci.epv.name), 'ior')]
-            call_self = ["ior"]
+            call_self = ["this.ior"]
+                
 
         call_args = call_self + call_args + ['ex']
 
@@ -726,7 +820,7 @@ class Chapel:
             callee = ir.Deref(ir.Get_struct_item(
                 epv_type,
                 ir.Deref(ir.Get_struct_item(obj_type,
-                                            ir.Deref('ior'),
+                                            ir.Deref('self'),
                                             ir.Struct_item(epv_type, 'd_epv'))),
                 ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension)))
 
@@ -766,7 +860,7 @@ class Chapel:
         else:
             chpl_gen(defn, ci.chpl_stub)
 
-    def generate_ior(self, ci, implements):
+    def generate_ior(self, ci, extends, implements):
         """
         Generate the IOR header file in C.
         """
@@ -775,18 +869,23 @@ class Chapel:
         ci.ior.genh(ir.Import(prefix))
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
+
+        def gen_cast(scopes):
+            base = '_'.join(scopes)
+            ci.ior.genh(ir.Import(base+'_IOR'))
+            # Cast functions for the IOR
+            ci.ior.genh('#define _cast_{0}(ior,ex) ((struct {0}__object*)((*ior->d_epv->f__cast)(ior,"{1}",ex)))'
+                       .format(base, '.'.join(scopes)))
+            ci.ior.genh('#define cast_{0}(ior) ((struct {1}__object*)'
+                       '((struct sidl_BaseInterface__object*)ior)->d_object)'
+                       .format(cname, base))
         
+        if extends:
+            gen_cast(extends[1])
+
         for impls in implements:
             for interface in impls[1]:
-                ifname = '_'.join(interface[1])
-                ci.ior.genh(ir.Import(ifname+'_IOR'))
-                # Cast functions for the IOR
-                ci.ior.genh('#define _cast_{0}(ior) (&ior->d_inherit_{0})'
-                            .format(ifname))
-                ci.ior.genh('#define cast_{0}(ior) ((struct {1}__object*)'+
-                            '((struct sidl_BaseInterface__object*)ior)->d_object)'
-                            .format(cname, ifname))
-
+                gen_cast(interface[1])
                 
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
@@ -824,11 +923,11 @@ class Chapel:
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
                 qname = '_'.join(symbol_table.prefix+[Name])                
-                ci = self.ClassInfo(Name, symbol_table, None, self.pkg_chpl_skel)
+                ci = self.ClassInfo(Name, symbol_table, False, None, self.pkg_chpl_skel)
                 ci.chpl_skel.cstub.genh(ir.Import(qname+'_IOR'))
-                self.gen_default_methods(symbol_table, Implementes, ci)
+                self.gen_default_methods(symbol_table, Extends, Implementes, ci)
                 gen1(Methods, ci)
-                self.generate_ior(ci, node)
+                self.generate_ior(ci, Extends, Implements)
 
                 # IOR
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
@@ -899,6 +998,7 @@ class Chapel:
                 # Generate the chapel skel
                 self.pkg_chpl_skel = ChapelFile()
                 self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
+
                 self.pkg_enums = []
                 self.generate_server1(UserTypes, data, symbol_table[[Name]])
                 self.pkg_chpl_skel.main_area.new_def('}\n')
@@ -981,7 +1081,7 @@ class Chapel:
         callee = Name+'_impl'
 
         if not static:
-            call_args = ['ior->d_data']+call_args
+            call_args = ['self->d_data']+call_args
 
         if Type == sidl.void:
             Type = ir.pt_void
@@ -1177,10 +1277,15 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
         elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
             import pdb; pdb.set_trace()
 
+        # We should find a cleaner way of implementing this
+        if name == 'self' and member_chk(ir.pure, attrs):
+            call_name = '(({0}*)((struct sidl_BaseInterface__object*)self)->d_object)' \
+                        .format(c_gen(typ))
+
         return call_name, (arg, attrs, mode, typ, name)
 
     def obj_by_value((arg, attrs, mode, typ, name)):
-        if typ[0] == ir.struct and name == 'ior':
+        if typ[0] == ir.struct and name == 'self':
             return (arg, attrs, sidl.in_, typ, name)
         else:
             return (arg, attrs, mode, typ, name)
@@ -1418,23 +1523,23 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
         arg_self = \
             [ir.Arg([], ir.in_, ir.Pointer_type(
                     ir_babel_object_type(symbol_table.prefix, class_name)),
-                    'ior')]
+                    'self')]
     arg_ex = \
         [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
-def babel_stub_args(attrs, args, symbol_table, class_name):
+def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
     """
     \return a SIDL -> [*self]+args+[*ex]
     """
     if member_chk(sidl.static, attrs):
-        arg_self = []
+        arg_self = extra_attrs
     else:
         arg_self = [
-            ir.Arg([], sidl.inout, 
-                ir_babel_object_type(symbol_table.prefix, class_name), 'ior')]
+            ir.Arg(extra_attrs, sidl.inout, 
+                ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
+        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), 'ex')]
     return arg_self+args+arg_ex
 
 

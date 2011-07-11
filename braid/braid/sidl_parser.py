@@ -346,7 +346,6 @@ tokens = [
 # character_literal = r'\'(' + string_innards + r')\''
 # string_literal = r'"(' + string_innards + r'*)"'
 
-
 # Error handling rule
 def t_error(t):
     print "Illegal character '%s'" % t.value[0]
