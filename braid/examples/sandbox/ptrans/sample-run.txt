@@ -1,0 +1,122 @@
+
+RunCommand:
+./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5
+
+Summary of Outputs:
+===================
+
+Three runs for each version:
+               Run-1   Run-2   Run-3    Average
+Pure Chapel  : 49.354  49.629  49.7487  49.5772
+Braid-Chapel : 49.6626 49.6122 49.4733  49.5827 [-0.01%]
+
+
+Raw Outputs of Pure Chapel Version
+==================================
+
+lisianthus% ./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5
+Number of Locales = 4
+Tasks per locale = 0
+Problem size = 200 x 200
+Bytes per array = 320000
+Total memory required (GB) = 0.000596046
+block size = 100 x 100
+beta = 0.5
+
+max acceptable discrepancy: 1.01805e-13
+error = 0.0
+Validation: SUCCESS
+Execution time = 49.354
+Performance (GB/sec) = 6.48376e-06
+
+lisianthus% ./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5
+Number of Locales = 4
+Tasks per locale = 0
+Problem size = 200 x 200
+Bytes per array = 320000
+Total memory required (GB) = 0.000596046
+block size = 100 x 100
+beta = 0.5
+
+max acceptable discrepancy: 1.01805e-13
+error = 0.0
+Validation: SUCCESS
+Execution time = 49.629
+Performance (GB/sec) = 6.44785e-06
+
+lisianthus% ./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5
+Number of Locales = 4
+Tasks per locale = 0
+Problem size = 200 x 200
+Bytes per array = 320000
+Total memory required (GB) = 0.000596046
+block size = 100 x 100
+beta = 0.5
+
+max acceptable discrepancy: 1.01805e-13
+error = 0.0
+Validation: SUCCESS
+Execution time = 49.7487
+Performance (GB/sec) = 6.43233e-06
+
+
+
+========================================================================================================================================================================
+
+
+Raw Outputs of Braid-Chapel Version
+===================================
+
+lisianthus% ./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5 
+dummy_calls() starts...
+dummy_calls() ends.
+Number of Locales = 4
+Tasks per locale = 0
+Problem size = 200 x 200
+Bytes per array = 320000
+Total memory required (GB) = 0.000596046
+block size = 100 x 100
+beta = 0.5
+
+max acceptable discrepancy: 1.01805e-13
+error = 0.0
+Validation: SUCCESS
+Execution time = 49.6626
+Performance (GB/sec) = 6.44348e-06
+
+lisianthus% ./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5 
+dummy_calls() starts...
+dummy_calls() ends.
+Number of Locales = 4
+Tasks per locale = 0
+Problem size = 200 x 200
+Bytes per array = 320000
+Total memory required (GB) = 0.000596046
+block size = 100 x 100
+beta = 0.5
+
+max acceptable discrepancy: 1.01805e-13
+error = 0.0
+Validation: SUCCESS
+Execution time = 49.6122
+Performance (GB/sec) = 6.45003e-06
+
+lisianthus% ./a.out -nl 4 --numrows=200 --rowBlkSize=100 --colBlkSize=100 --printStats=true --beta=0.5 
+dummy_calls() starts...
+dummy_calls() ends.
+Number of Locales = 4
+Tasks per locale = 0
+Problem size = 200 x 200
+Bytes per array = 320000
+Total memory required (GB) = 0.000596046
+block size = 100 x 100
+beta = 0.5
+
+max acceptable discrepancy: 1.01805e-13
+error = 0.0
+Validation: SUCCESS
+Execution time = 49.4733
+Performance (GB/sec) = 6.46814e-06
+
+========================================================================================================================================================================
+

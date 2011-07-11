@@ -57,7 +57,7 @@ echo "Cleaning up previous build artifacts"
 rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen;
 
 echo "Generating C-sources from chpl files"
-chpl --savec ./gen  ${HEADER_DEPS} *.chpl --make true
+chpl --fast --savec ./gen  ${HEADER_DEPS} *.chpl --make true
 
 for loopFile in ${BRAID_GEN_C_SOURCES}
 do
