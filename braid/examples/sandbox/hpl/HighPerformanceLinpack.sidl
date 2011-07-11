@@ -1,0 +1,25 @@
+
+import hplsupport version 0.1;
+
+package hpcc version 0.1 {
+
+  class HighPerformanceLinpack {
+    // the helper function to do the panel solve
+    static void panelSolveCompute(
+          in BlockCyclicDistArray2dDouble ab, 
+          in SimpleArray1dInt piv,
+          /* abLimits*/ 
+          in int abStart1, 
+          in int abEnd1, 
+          in int abStart2, 
+          in int abEnd2,
+          /*panel domain*/ 
+          in int start1, 
+          in int end1, 
+          in int start2, 
+          in int end2);
+  }
+}
+
+
+
