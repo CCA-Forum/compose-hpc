@@ -59,7 +59,8 @@ config const printParams = true,
              printArrays = false,
              printStats = true;
 
-_extern proc GET_REF(inData): opaque;
+// FIXME: Will a ref always be an int(32) in chpl?
+_extern proc GET_CHPL_REF(inData): int(32);
 
 //
 // Start here
@@ -109,10 +110,10 @@ proc main() {
 		
   forall (i,j) in TransposeDom do {
     var aWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	
-    aWrapper.initData(GET_REF(A));
+    aWrapper.initData(GET_CHPL_REF(A));
     
     var cWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	  
-    cWrapper.initData(GET_REF(C));  	  
+    cWrapper.initData(GET_CHPL_REF(C));  	  
 	  
     // C[i,j] = beta * C[i,j]  +  A[j,i];
     ptransHelper(aWrapper, cWrapper, beta, i, j);

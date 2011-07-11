@@ -51,6 +51,7 @@ BRAID_GEN_O_FILES=""
 
 
 
+clear
 
 echo "Cleaning up previous build artifacts"
 rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen;

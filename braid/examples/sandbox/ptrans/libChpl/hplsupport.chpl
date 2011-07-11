@@ -77,13 +77,14 @@ class BlockCyclicDistArray2dDouble {
     }
     
     /**
-     * FIXME We refer to int(32) for a 32b machine and int(64) for a 64b machine
+     * FIXME We refer to int(32) for a 32b machine and int(64) for a 64b machine?
      * FIXME The generator should use a macro (e.g. GET_REF()) to pass the address of data to the stub
-     * FIXME Can we make the generator not type the parameter data in this method (i.e. a generic method)?
      */
-    proc initData( in data: opaque) {
+    proc initData( in data) {
+    	_extern proc GET_REF(inData): opaque;
+    	
         var ex:sidl_BaseInterface;
-        hplsupport_BlockCyclicDistArray2dDouble_initData_stub( self, data, ex);
+        hplsupport_BlockCyclicDistArray2dDouble_initData_stub( self, GET_REF(data), ex);
     }
     
     proc get( in idx1: int(32), in idx2: int(32)): real(64) {
