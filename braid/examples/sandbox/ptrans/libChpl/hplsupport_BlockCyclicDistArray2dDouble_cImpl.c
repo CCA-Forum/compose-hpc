@@ -26,7 +26,6 @@
 #endif
 
 /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._includes) */
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._includes) */
@@ -158,8 +157,8 @@ extern "C"
 #endif
 void
 impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble* a,
-  /* inout */ hplsupport_BlockCyclicDistArray2dDouble* c,
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble c,
   /* in */ double beta,
   /* in */ int32_t i,
   /* in */ int32_t j,
@@ -168,12 +167,12 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
-    double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(*a, j, i, _ex);
-    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(*c, i, j, _ex);
+    double a_ji = hplsupport_BlockCyclicDistArray2dDouble_get(a, j, i, _ex);
+    double c_ij = hplsupport_BlockCyclicDistArray2dDouble_get(c, i, j, _ex);
 
     double new_val = beta * c_ij  +  a_ji;
 
-    hplsupport_BlockCyclicDistArray2dDouble_set(*c, new_val, i, j, _ex);
+    hplsupport_BlockCyclicDistArray2dDouble_set(c, new_val, i, j, _ex);
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.ptransHelper) */
   }
 }
@@ -239,7 +238,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_get(
 
     // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_get(%d, %d)\n", idx1, idx2);
     struct hplsupport_BlockCyclicDistArray2dDouble__data *dptr = hplsupport_BlockCyclicDistArray2dDouble__get_data(self);
-    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_get(): chpl_data = %p \n", dptr->chpl_data);
+    // printf("impl_hplsupport_BlockCyclicDistArray2dDouble_get(%d, %d): chpl_data = %d \n", idx1, idx2, dptr->chpl_data);
     return impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(dptr->chpl_data, idx1, idx2);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble.get) */

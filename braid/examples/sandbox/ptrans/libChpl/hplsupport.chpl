@@ -5,9 +5,6 @@ use sidl;
 /**
  * FIXME We refer to int(32) for a 32b machine and int(64) for a 64b machine
  */
-_extern proc GET_REF(inData): opaque;
-
-_extern proc MAKE_OPAQUE(inRef): opaque;
 
 _extern record hplsupport_BlockCyclicDistArray2dDouble__struct {};
 _extern proc hplsupport_BlockCyclicDistArray2dDouble__createObject(d_data: int, 
@@ -47,7 +44,7 @@ module BlockCyclicDistArray2dDouble_static {
      */	
     proc ptransHelper( 
     		in a: hplsupport.BlockCyclicDistArray2dDouble, 
-    		inout c: hplsupport.BlockCyclicDistArray2dDouble, 
+    		in c: hplsupport.BlockCyclicDistArray2dDouble, 
     		in beta: real(64), 
     		in i: int(32), 
     		in j: int(32)) {
@@ -84,9 +81,9 @@ class BlockCyclicDistArray2dDouble {
      * FIXME The generator should use a macro (e.g. GET_REF()) to pass the address of data to the stub
      * FIXME Can we make the generator not type the parameter data in this method (i.e. a generic method)?
      */
-    proc initData( in data) {
+    proc initData( in data: opaque) {
         var ex:sidl_BaseInterface__struct;
-        hplsupport_BlockCyclicDistArray2dDouble_initData_stub( self, GET_REF(data), ex);
+        hplsupport_BlockCyclicDistArray2dDouble_initData_stub( self, data, ex);
     }
     
     proc get( in idx1: int(32), in idx2: int(32)): real(64) {

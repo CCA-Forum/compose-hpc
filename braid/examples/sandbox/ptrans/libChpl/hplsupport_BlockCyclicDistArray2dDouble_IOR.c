@@ -21,7 +21,6 @@
 #include "sidl_exec_err.h"
 #include "sidl_PreViolation.h"
 #include "sidl_NotImplementedException.h"
-#include <stdio.h>
 /*
  * End: RMI includes
  */

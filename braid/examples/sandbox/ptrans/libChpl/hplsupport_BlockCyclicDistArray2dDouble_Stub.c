@@ -30,7 +30,6 @@
 #include "sidl_BaseInterface_IOR.h"
 #include "babel_config.h"
 #ifdef SIDL_DYNAMIC_LIBRARY
-#include <stdio.h>
 #include <stdlib.h>
 #include "sidl_Loader.h"
 #endif

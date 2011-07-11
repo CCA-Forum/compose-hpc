@@ -59,8 +59,7 @@ config const printParams = true,
              printArrays = false,
              printStats = true;
 
-
-_extern proc transposeHelperNative(aData, cData, in beta: real(64), in i: int(32), in j: int(32), in hereId: int(32));
+_extern proc GET_REF(inData): opaque;
 
 //
 // Start here
@@ -110,10 +109,10 @@ proc main() {
 		
   forall (i,j) in TransposeDom do {
     var aWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	
-    aWrapper.initData(A);
+    aWrapper.initData(GET_REF(A));
     
     var cWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	  
-    cWrapper.initData(C);  	  
+    cWrapper.initData(GET_REF(C));  	  
 	  
     // C[i,j] = beta * C[i,j]  +  A[j,i];
     ptransHelper(aWrapper, cWrapper, beta, i, j);
