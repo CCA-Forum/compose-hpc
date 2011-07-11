@@ -1,9 +1,9 @@
 /*
- * File:          hplsupport_BlockCyclicDistArray2dDouble_IOR.c
- * Symbol:        hplsupport.BlockCyclicDistArray2dDouble-v0.1
+ * File:          hpcc_ParallelTranspose_IOR.c
+ * Symbol:        hpcc.ParallelTranspose-v0.1
  * Symbol Type:   class
  * Babel Version: 2.0.0 (Revision: 0  )
- * Description:   Intermediate Object Representation for hplsupport.BlockCyclicDistArray2dDouble
+ * Description:   Intermediate Object Representation for hpcc.ParallelTranspose
  * 
  * WARNING: Automatically generated; changes will be lost
  * 
@@ -33,7 +33,7 @@
 #ifndef included_sidlOps_h
 #include "sidlOps.h"
 #endif
-#include "hplsupport_BlockCyclicDistArray2dDouble_IOR.h"
+#include "hpcc_ParallelTranspose_IOR.h"
 #ifndef included_sidl_BaseClass_Impl_h
 #include "sidl_BaseClass_Impl.h"
 #endif
@@ -53,10 +53,10 @@
 
 #include "sidl_thread.h"
 #ifdef HAVE_PTHREAD
-static struct sidl_recursive_mutex_t hplsupport_BlockCyclicDistArray2dDouble__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
-#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &hplsupport_BlockCyclicDistArray2dDouble__mutex )
-#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &hplsupport_BlockCyclicDistArray2dDouble__mutex )
-/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &hplsupport_BlockCyclicDistArray2dDouble__mutex )==EDEADLOCK) */
+static struct sidl_recursive_mutex_t hpcc_ParallelTranspose__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
+#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &hpcc_ParallelTranspose__mutex )
+#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &hpcc_ParallelTranspose__mutex )
+/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &hpcc_ParallelTranspose__mutex )==EDEADLOCK) */
 #else
 #define LOCK_STATIC_GLOBALS
 #define UNLOCK_STATIC_GLOBALS
@@ -87,15 +87,20 @@ static int s_load_called = 0;
  */
 
 static int s_method_initialized = 0;
+static int s_static_initialized = 0;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__epv 
-  s_my_epv__hplsupport_blockcyclicdistarray2ddouble;
+static struct hpcc_ParallelTranspose__epv  s_my_epv__hpcc_paralleltranspose;
+static struct hpcc_ParallelTranspose__sepv s_stc_epv__hpcc_paralleltranspose;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__epv 
-  s_my_epv_contracts__hplsupport_blockcyclicdistarray2ddouble;
+static struct hpcc_ParallelTranspose__epv  
+  s_my_epv_contracts__hpcc_paralleltranspose;
+static struct hpcc_ParallelTranspose__sepv 
+  s_stc_epv_contracts__hpcc_paralleltranspose;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__epv 
-  s_my_epv_hooks__hplsupport_blockcyclicdistarray2ddouble;
+static struct hpcc_ParallelTranspose__epv  
+  s_my_epv_hooks__hpcc_paralleltranspose;
+static struct hpcc_ParallelTranspose__sepv 
+  s_stc_epv_hooks__hpcc_paralleltranspose;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
@@ -103,8 +108,16 @@ static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
 static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
 static struct sidl_BaseInterface__epv* s_par_epv__sidl_baseinterface;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__pre_epv s_preEPV;
-static struct hplsupport_BlockCyclicDistArray2dDouble__post_epv s_postEPV;
+/*
+ * Static variables for interface contract enforcement and/or hooks controls.
+ */
+
+static struct hpcc_ParallelTranspose__cstats s_cstats;
+
+static struct hpcc_ParallelTranspose__pre_epv s_preEPV;
+static struct hpcc_ParallelTranspose__post_epv s_postEPV;
+static struct hpcc_ParallelTranspose__pre_sepv s_preSEPV;
+static struct hpcc_ParallelTranspose__post_sepv s_postSEPV;
 
 /*
  * Declare EPV routines defined in the skeleton file.
@@ -114,190 +127,24 @@ static struct hplsupport_BlockCyclicDistArray2dDouble__post_epv s_postEPV;
 extern "C" {
 #endif
 
-extern void hplsupport_BlockCyclicDistArray2dDouble__set_epv(
-  struct hplsupport_BlockCyclicDistArray2dDouble__epv* epv,
-    struct hplsupport_BlockCyclicDistArray2dDouble__pre_epv* pre_epv,
-    struct hplsupport_BlockCyclicDistArray2dDouble__post_epv* post_epv);
+extern void hpcc_ParallelTranspose__set_epv(
+  struct hpcc_ParallelTranspose__epv* epv,
+    struct hpcc_ParallelTranspose__pre_epv* pre_epv,
+    struct hpcc_ParallelTranspose__post_epv* post_epv);
 
-extern void hplsupport_BlockCyclicDistArray2dDouble__call_load(void);
+extern void hpcc_ParallelTranspose__set_sepv(
+  struct hpcc_ParallelTranspose__sepv* sepv,
+    struct hpcc_ParallelTranspose__pre_sepv* pre_sepv,
+    struct hpcc_ParallelTranspose__post_sepv* post_sepv);
+
+extern void hpcc_ParallelTranspose__call_load(void);
 #ifdef __cplusplus
 }
 #endif
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble_initData__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
-        struct sidl_rmi_Call__object* inArgs,
-        struct sidl_rmi_Return__object* outArgs,
-        struct sidl_BaseInterface__object ** _ex) {
-  /* stack space for arguments */
-  void* data = 0;
-  sidl_BaseInterface _throwaway_exception = NULL;
-  sidl_BaseInterface _ex3   = NULL;
-  sidl_BaseException _SIDLex = NULL;
-  /* unpack in and inout argments */
-  sidl_rmi_Call_unpackOpaque( inArgs, "data", &data, _ex);SIDL_CHECK(*_ex);
-
-  /* make the call */
-  (self->d_epv->f_initData)(
-    self,
-    data,
-    _ex);  SIDL_CHECK(*_ex);
-
-  /* pack return value */
-  /* pack out and inout argments */
-  /* clean-up dangling references */
-  EXIT:
-  if(*_ex) { 
-    _SIDLex = sidl_BaseException__cast(*_ex,&_throwaway_exception);
-    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
-    if(_throwaway_exception) {
-      /* Throwing failed, throw _ex up the stack then. */
-      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
-      return;
-    }
-    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
-    sidl_BaseInterface_deleteRef(*_ex, &_throwaway_exception);
-    *_ex = NULL;
-    if(_ex3) { 
-      sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
-      _ex3 = NULL;
-    }
-  } else if(_ex3) {
-    _SIDLex = sidl_BaseException__cast(_ex3,&_throwaway_exception);
-    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
-    if(_throwaway_exception) {
-      /* Throwing failed throw _ex3 up the stack then. */
-      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
-      return;
-    }
-    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
-    sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
-    _ex3 = NULL;
-  }
-}
-
-static void
-hplsupport_BlockCyclicDistArray2dDouble_get__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
-        struct sidl_rmi_Call__object* inArgs,
-        struct sidl_rmi_Return__object* outArgs,
-        struct sidl_BaseInterface__object ** _ex) {
-  /* stack space for arguments */
-  int32_t idx1 = 0;
-  int32_t idx2 = 0;
-  double _retval = 0;
-  sidl_BaseInterface _throwaway_exception = NULL;
-  sidl_BaseInterface _ex3   = NULL;
-  sidl_BaseException _SIDLex = NULL;
-  /* unpack in and inout argments */
-  sidl_rmi_Call_unpackInt( inArgs, "idx1", &idx1, _ex);SIDL_CHECK(*_ex);
-  sidl_rmi_Call_unpackInt( inArgs, "idx2", &idx2, _ex);SIDL_CHECK(*_ex);
-
-  /* make the call */
-  _retval = (self->d_epv->f_get)(
-    self,
-    idx1,
-    idx2,
-    _ex);  SIDL_CHECK(*_ex);
-
-  /* pack return value */
-  sidl_rmi_Return_packDouble( outArgs, "_retval", _retval, _ex);SIDL_CHECK(
-    *_ex);
-  /* pack out and inout argments */
-  /* clean-up dangling references */
-  EXIT:
-  if(*_ex) { 
-    _SIDLex = sidl_BaseException__cast(*_ex,&_throwaway_exception);
-    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
-    if(_throwaway_exception) {
-      /* Throwing failed, throw _ex up the stack then. */
-      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
-      return;
-    }
-    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
-    sidl_BaseInterface_deleteRef(*_ex, &_throwaway_exception);
-    *_ex = NULL;
-    if(_ex3) { 
-      sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
-      _ex3 = NULL;
-    }
-  } else if(_ex3) {
-    _SIDLex = sidl_BaseException__cast(_ex3,&_throwaway_exception);
-    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
-    if(_throwaway_exception) {
-      /* Throwing failed throw _ex3 up the stack then. */
-      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
-      return;
-    }
-    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
-    sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
-    _ex3 = NULL;
-  }
-}
-
-static void
-hplsupport_BlockCyclicDistArray2dDouble_set__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
-        struct sidl_rmi_Call__object* inArgs,
-        struct sidl_rmi_Return__object* outArgs,
-        struct sidl_BaseInterface__object ** _ex) {
-  /* stack space for arguments */
-  double newVal = 0;
-  int32_t idx1 = 0;
-  int32_t idx2 = 0;
-  sidl_BaseInterface _throwaway_exception = NULL;
-  sidl_BaseInterface _ex3   = NULL;
-  sidl_BaseException _SIDLex = NULL;
-  /* unpack in and inout argments */
-  sidl_rmi_Call_unpackDouble( inArgs, "newVal", &newVal, _ex);SIDL_CHECK(*_ex);
-  sidl_rmi_Call_unpackInt( inArgs, "idx1", &idx1, _ex);SIDL_CHECK(*_ex);
-  sidl_rmi_Call_unpackInt( inArgs, "idx2", &idx2, _ex);SIDL_CHECK(*_ex);
-
-  /* make the call */
-  (self->d_epv->f_set)(
-    self,
-    newVal,
-    idx1,
-    idx2,
-    _ex);  SIDL_CHECK(*_ex);
-
-  /* pack return value */
-  /* pack out and inout argments */
-  /* clean-up dangling references */
-  EXIT:
-  if(*_ex) { 
-    _SIDLex = sidl_BaseException__cast(*_ex,&_throwaway_exception);
-    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
-    if(_throwaway_exception) {
-      /* Throwing failed, throw _ex up the stack then. */
-      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
-      return;
-    }
-    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
-    sidl_BaseInterface_deleteRef(*_ex, &_throwaway_exception);
-    *_ex = NULL;
-    if(_ex3) { 
-      sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
-      _ex3 = NULL;
-    }
-  } else if(_ex3) {
-    _SIDLex = sidl_BaseException__cast(_ex3,&_throwaway_exception);
-    sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); 
-    if(_throwaway_exception) {
-      /* Throwing failed throw _ex3 up the stack then. */
-      sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);
-      return;
-    }
-    sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);
-    sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);
-    _ex3 = NULL;
-  }
-}
-
-static void
-hplsupport_BlockCyclicDistArray2dDouble_addRef__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+hpcc_ParallelTranspose_addRef__exec(
+        struct hpcc_ParallelTranspose__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -346,8 +193,8 @@ hplsupport_BlockCyclicDistArray2dDouble_addRef__exec(
 }
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble_deleteRef__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+hpcc_ParallelTranspose_deleteRef__exec(
+        struct hpcc_ParallelTranspose__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -396,8 +243,8 @@ hplsupport_BlockCyclicDistArray2dDouble_deleteRef__exec(
 }
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble_isSame__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+hpcc_ParallelTranspose_isSame__exec(
+        struct hpcc_ParallelTranspose__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -415,16 +262,14 @@ hplsupport_BlockCyclicDistArray2dDouble_isSame__exec(
   sidl_rmi_Call_unpackString( inArgs, "iobj", &iobj_str, _ex);SIDL_CHECK(*_ex);
 #ifdef WITH_RMI
 
-  iobj = 
-    skel_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
-    iobj_str, TRUE, _ex);SIDL_CHECK(*_ex);
+  iobj = skel_hpcc_ParallelTranspose_fconnect_sidl_BaseInterface(iobj_str, TRUE,
+    _ex);SIDL_CHECK(*_ex);
 #else
   iobj_bc = sidl_rmi_InstanceRegistry_getInstanceByString(iobj_str, 
     _ex);SIDL_CHECK(*_ex);
   if(iobj_bc != NULL) {
-    iobj= (struct hplsupport_BlockCyclicDistArray2dDouble__object*) (
-      *iobj_bc->d_epv->f__cast)(iobj_bc, 
-      "hplsupport.BlockCyclicDistArray2dDouble", _ex);
+    iobj= (struct hpcc_ParallelTranspose__object*) (*iobj_bc->d_epv->f__cast)(
+      iobj_bc, "hpcc.ParallelTranspose", _ex);
     if(iobj != NULL) {
       (((struct sidl_BaseInterface__object*)(iobj))->d_epv->f_deleteRef)(((
         struct sidl_BaseInterface__object*)iobj)->d_object, _ex); SIDL_CHECK(
@@ -482,8 +327,8 @@ hplsupport_BlockCyclicDistArray2dDouble_isSame__exec(
 }
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble_isType__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+hpcc_ParallelTranspose_isType__exec(
+        struct hpcc_ParallelTranspose__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -538,8 +383,8 @@ hplsupport_BlockCyclicDistArray2dDouble_isType__exec(
 }
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble_getClassInfo__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+hpcc_ParallelTranspose_getClassInfo__exec(
+        struct hpcc_ParallelTranspose__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -605,8 +450,8 @@ hplsupport_BlockCyclicDistArray2dDouble_getClassInfo__exec(
 }
 
 static void
-hplsupport_BlockCyclicDistArray2dDouble__cast__exec(
-        struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+hpcc_ParallelTranspose__cast__exec(
+        struct hpcc_ParallelTranspose__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object ** _ex) {
@@ -662,11 +507,44 @@ hplsupport_BlockCyclicDistArray2dDouble__cast__exec(
 }
 
 /*
+ * CHECKS: Enable/disable static contract enforcement.
+ */
+
+static void ior_hpcc_ParallelTranspose__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex)
+{
+  *_ex  = NULL;
+  {
+  }
+}
+
+/*
+ * DUMP: Dump static interface contract enforcement statistics.
+ */
+
+static void ior_hpcc_ParallelTranspose__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex)
+{
+  *_ex = NULL;
+  {
+    /*
+     * Nothing to do since contract checks not generated.
+     */
+
+  }
+}
+
+/*
  * CHECKS: Enable/disable contract enforcement.
  */
 
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__set_contracts(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+static void ior_hpcc_ParallelTranspose__set_contracts(
+  struct hpcc_ParallelTranspose__object* self,
   sidl_bool   enable,
   const char* enfFilename,
   sidl_bool   resetCounters,
@@ -685,8 +563,8 @@ static void ior_hplsupport_BlockCyclicDistArray2dDouble__set_contracts(
  * DUMP: Dump interface contract enforcement statistics.
  */
 
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__dump_stats(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+static void ior_hpcc_ParallelTranspose__dump_stats(
+  struct hpcc_ParallelTranspose__object* self,
   const char* filename,
   const char* prefix,
   struct sidl_BaseInterface__object **_ex)
@@ -700,21 +578,20 @@ static void ior_hplsupport_BlockCyclicDistArray2dDouble__dump_stats(
   }
 }
 
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__ensure_load_called(
-  void) {
+static void ior_hpcc_ParallelTranspose__ensure_load_called(void) {
   /*
    * assert( HAVE_LOCKED_STATIC_GLOBALS );
    */
 
   if (! s_load_called ) {
     s_load_called=1;
-    hplsupport_BlockCyclicDistArray2dDouble__call_load();
+    hpcc_ParallelTranspose__call_load();
   }
 }
 
 /* CAST: dynamic type casting support. */
-static void* ior_hplsupport_BlockCyclicDistArray2dDouble__cast(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+static void* ior_hpcc_ParallelTranspose__cast(
+  struct hpcc_ParallelTranspose__object* self,
   const char* name, sidl_BaseInterface* _ex)
 {
   int cmp;
@@ -727,10 +604,10 @@ static void* ior_hplsupport_BlockCyclicDistArray2dDouble__cast(
     return cast;
   }
   else if (cmp < 0) {
-    cmp = strcmp(name, "hplsupport.BlockCyclicDistArray2dDouble");
+    cmp = strcmp(name, "hpcc.ParallelTranspose");
     if (!cmp) {
       (*self->d_epv->f_addRef)(self, _ex); SIDL_CHECK(*_ex);
-      cast = ((struct hplsupport_BlockCyclicDistArray2dDouble__object*)self);
+      cast = ((struct hpcc_ParallelTranspose__object*)self);
       return cast;
     }
   }
@@ -748,11 +625,25 @@ static void* ior_hplsupport_BlockCyclicDistArray2dDouble__cast(
 }
 
 /*
+ * HOOKS: Enable/disable static hooks.
+ */
+
+static void ior_hpcc_ParallelTranspose__set_hooks_static(
+  sidl_bool enable, struct sidl_BaseInterface__object **_ex )
+{
+  *_ex  = NULL;
+  /*
+   * Nothing else to do since hook methods not generated.
+   */
+
+}
+
+/*
  * HOOKS: Enable/disable hooks.
  */
 
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__set_hooks(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+static void ior_hpcc_ParallelTranspose__set_hooks(
+  struct hpcc_ParallelTranspose__object* self,
   sidl_bool enable, struct sidl_BaseInterface__object **_ex )
 {
   *_ex  = NULL;
@@ -766,20 +657,19 @@ static void ior_hplsupport_BlockCyclicDistArray2dDouble__set_hooks(
  * DELETE: call destructor and free object memory.
  */
 
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__delete(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self, struct 
+static void ior_hpcc_ParallelTranspose__delete(
+  struct hpcc_ParallelTranspose__object* self, struct 
     sidl_BaseInterface__object **_ex)
 {
   *_ex  = NULL; /* default to no exception */
-  hplsupport_BlockCyclicDistArray2dDouble__fini(self, _ex);
-  memset((void*)self, 0, sizeof(struct 
-    hplsupport_BlockCyclicDistArray2dDouble__object));
+  hpcc_ParallelTranspose__fini(self, _ex);
+  memset((void*)self, 0, sizeof(struct hpcc_ParallelTranspose__object));
   free((void*) self);
 }
 
 static char*
-ior_hplsupport_BlockCyclicDistArray2dDouble__getURL(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+ior_hpcc_ParallelTranspose__getURL(
+  struct hpcc_ParallelTranspose__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
   char* ret  = NULL;
@@ -801,52 +691,44 @@ ior_hplsupport_BlockCyclicDistArray2dDouble__getURL(
   return NULL;
 }
 static void
-ior_hplsupport_BlockCyclicDistArray2dDouble__raddRef(
-    struct hplsupport_BlockCyclicDistArray2dDouble__object* self, 
-  sidl_BaseInterface* _ex) {
+ior_hpcc_ParallelTranspose__raddRef(
+    struct hpcc_ParallelTranspose__object* self, sidl_BaseInterface* _ex) {
   sidl_BaseInterface_addRef((sidl_BaseInterface)self, _ex);
 }
 
 static sidl_bool
-ior_hplsupport_BlockCyclicDistArray2dDouble__isRemote(
-    struct hplsupport_BlockCyclicDistArray2dDouble__object* self, 
-  sidl_BaseInterface* _ex) {
+ior_hpcc_ParallelTranspose__isRemote(
+    struct hpcc_ParallelTranspose__object* self, sidl_BaseInterface* _ex) {
   *_ex  = NULL; /* default to no exception */
   return FALSE;
 }
 
-struct hplsupport_BlockCyclicDistArray2dDouble__method {
+struct hpcc_ParallelTranspose__method {
   const char *d_name;
-  void (*d_func)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,
+  void (*d_func)(struct hpcc_ParallelTranspose__object*,
     struct sidl_rmi_Call__object *,
     struct sidl_rmi_Return__object *,
     struct sidl_BaseInterface__object **);
 };
 
 static void
-ior_hplsupport_BlockCyclicDistArray2dDouble__exec(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+ior_hpcc_ParallelTranspose__exec(
+  struct hpcc_ParallelTranspose__object* self,
   const char* methodName,
   struct sidl_rmi_Call__object* inArgs,
   struct sidl_rmi_Return__object* outArgs,
   struct sidl_BaseInterface__object **_ex )
 {
-  static const struct hplsupport_BlockCyclicDistArray2dDouble__method  
-    s_methods[] = {
-    { "_cast", hplsupport_BlockCyclicDistArray2dDouble__cast__exec },
-    { "addRef", hplsupport_BlockCyclicDistArray2dDouble_addRef__exec },
-    { "deleteRef", hplsupport_BlockCyclicDistArray2dDouble_deleteRef__exec },
-    { "get", hplsupport_BlockCyclicDistArray2dDouble_get__exec },
-    { "getClassInfo", 
-      hplsupport_BlockCyclicDistArray2dDouble_getClassInfo__exec },
-    { "initData", hplsupport_BlockCyclicDistArray2dDouble_initData__exec },
-    { "isSame", hplsupport_BlockCyclicDistArray2dDouble_isSame__exec },
-    { "isType", hplsupport_BlockCyclicDistArray2dDouble_isType__exec },
-    { "set", hplsupport_BlockCyclicDistArray2dDouble_set__exec }
+  static const struct hpcc_ParallelTranspose__method  s_methods[] = {
+    { "_cast", hpcc_ParallelTranspose__cast__exec },
+    { "addRef", hpcc_ParallelTranspose_addRef__exec },
+    { "deleteRef", hpcc_ParallelTranspose_deleteRef__exec },
+    { "getClassInfo", hpcc_ParallelTranspose_getClassInfo__exec },
+    { "isSame", hpcc_ParallelTranspose_isSame__exec },
+    { "isType", hpcc_ParallelTranspose_isType__exec },
   };
   int i, cmp, l = 0;
-  int u = sizeof(s_methods)/sizeof(struct 
-    hplsupport_BlockCyclicDistArray2dDouble__method);
+  int u = sizeof(s_methods)/sizeof(struct hpcc_ParallelTranspose__method);
   *_ex  = NULL; /* default to no exception */
 
   if (methodName) {
@@ -870,17 +752,17 @@ ior_hplsupport_BlockCyclicDistArray2dDouble__exec(
  * EPV: create method entry point vector (EPV) structure.
  */
 
-static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
+static void hpcc_ParallelTranspose__init_epv(void)
 {
 /*
  * assert( HAVE_LOCKED_STATIC_GLOBALS );
  */
 
-  struct hplsupport_BlockCyclicDistArray2dDouble__epv*  epv  = &s_my_epv__hplsupport_blockcyclicdistarray2ddouble;
-  struct sidl_BaseClass__epv*                           e0   = &s_my_epv__sidl_baseclass;
-  struct sidl_BaseInterface__epv*                       e1   = &s_my_epv__sidl_baseinterface;
+  struct hpcc_ParallelTranspose__epv*  epv  = &s_my_epv__hpcc_paralleltranspose;
+  struct sidl_BaseClass__epv*          e0   = &s_my_epv__sidl_baseclass;
+  struct sidl_BaseInterface__epv*      e1   = &s_my_epv__sidl_baseinterface;
 
-  struct sidl_BaseClass__epv*                          s1 = NULL;
+  struct sidl_BaseClass__epv*         s1 = NULL;
 
   /*
    * Get my parent's EPVs so I can start with their functions.
@@ -897,28 +779,25 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
 
   s1  =  s_par_epv__sidl_baseclass;
 
-  epv->f__cast                 = ior_hplsupport_BlockCyclicDistArray2dDouble__cast;
-  epv->f__delete               = ior_hplsupport_BlockCyclicDistArray2dDouble__delete;
-  epv->f__exec                 = ior_hplsupport_BlockCyclicDistArray2dDouble__exec;
-  epv->f__getURL               = ior_hplsupport_BlockCyclicDistArray2dDouble__getURL;
-  epv->f__raddRef              = ior_hplsupport_BlockCyclicDistArray2dDouble__raddRef;
-  epv->f__isRemote             = ior_hplsupport_BlockCyclicDistArray2dDouble__isRemote;
-  epv->f__set_hooks            = ior_hplsupport_BlockCyclicDistArray2dDouble__set_hooks;
-  epv->f__set_contracts        = ior_hplsupport_BlockCyclicDistArray2dDouble__set_contracts;
-  epv->f__dump_stats           = ior_hplsupport_BlockCyclicDistArray2dDouble__dump_stats;
+  epv->f__cast                 = ior_hpcc_ParallelTranspose__cast;
+  epv->f__delete               = ior_hpcc_ParallelTranspose__delete;
+  epv->f__exec                 = ior_hpcc_ParallelTranspose__exec;
+  epv->f__getURL               = ior_hpcc_ParallelTranspose__getURL;
+  epv->f__raddRef              = ior_hpcc_ParallelTranspose__raddRef;
+  epv->f__isRemote             = ior_hpcc_ParallelTranspose__isRemote;
+  epv->f__set_hooks            = ior_hpcc_ParallelTranspose__set_hooks;
+  epv->f__set_contracts        = ior_hpcc_ParallelTranspose__set_contracts;
+  epv->f__dump_stats           = ior_hpcc_ParallelTranspose__dump_stats;
   epv->f__ctor                 = NULL;
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
-  epv->f_initData              = NULL;
-  epv->f_get                   = NULL;
-  epv->f_set                   = NULL;
-  epv->f_addRef                = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
-  epv->f_deleteRef             = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
-  epv->f_isSame                = (sidl_bool (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
-  epv->f_isType                = (sidl_bool (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
-  epv->f_getClassInfo          = (struct sidl_ClassInfo__object* (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
+  epv->f_addRef                = (void (*)(struct hpcc_ParallelTranspose__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
+  epv->f_deleteRef             = (void (*)(struct hpcc_ParallelTranspose__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
+  epv->f_isSame                = (sidl_bool (*)(struct hpcc_ParallelTranspose__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
+  epv->f_isType                = (sidl_bool (*)(struct hpcc_ParallelTranspose__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
+  epv->f_getClassInfo          = (struct sidl_ClassInfo__object* (*)(struct hpcc_ParallelTranspose__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
 
-  hplsupport_BlockCyclicDistArray2dDouble__set_epv(epv, &s_preEPV, &s_postEPV);
+  hpcc_ParallelTranspose__set_epv(epv, &s_preEPV, &s_postEPV);
 
   /*
    * Override function pointers for sidl.BaseClass with mine, as needed.
@@ -957,35 +836,75 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
 
 
   s_method_initialized = 1;
-  ior_hplsupport_BlockCyclicDistArray2dDouble__ensure_load_called();
+  ior_hpcc_ParallelTranspose__ensure_load_called();
 }
 
 /*
- * hplsupport_BlockCyclicDistArray2dDouble__getEPVs: Get my version of all relevant EPVs.
+ * SEPV: create the static entry point vector (SEPV).
  */
 
-void hplsupport_BlockCyclicDistArray2dDouble__getEPVs (
+static void hpcc_ParallelTranspose__init_sepv(void)
+{
+  /*
+   * assert( HAVE_LOCKED_STATIC_GLOBALS );
+   */
+
+  struct sidl_BaseInterface__object *throwaway_exception = NULL;
+  struct hpcc_ParallelTranspose__sepv*  s = &s_stc_epv__hpcc_paralleltranspose;
+
+  s->f__set_hooks_static                   = ior_hpcc_ParallelTranspose__set_hooks_static;
+  s->f__set_contracts_static               = ior_hpcc_ParallelTranspose__set_contracts_static;
+  s->f__dump_stats_static                  = ior_hpcc_ParallelTranspose__dump_stats_static;
+  s->f_ptransCompute    = NULL;
+
+  hpcc_ParallelTranspose__set_sepv(s, &s_preSEPV, &s_postSEPV);
+
+  ior_hpcc_ParallelTranspose__set_hooks_static(FALSE, &throwaway_exception);
+
+  s_static_initialized = 1;
+  ior_hpcc_ParallelTranspose__ensure_load_called();
+}
+
+/*
+ * hpcc_ParallelTranspose__getEPVs: Get my version of all relevant EPVs.
+ */
+
+void hpcc_ParallelTranspose__getEPVs (
   struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
   struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
-  struct hplsupport_BlockCyclicDistArray2dDouble__epv **s_arg_epv__hplsupport_blockcyclicdistarray2ddouble,
-  struct hplsupport_BlockCyclicDistArray2dDouble__epv **s_arg_epv_hooks__hplsupport_blockcyclicdistarray2ddouble)
+  struct hpcc_ParallelTranspose__epv **s_arg_epv__hpcc_paralleltranspose,
+  struct hpcc_ParallelTranspose__epv **s_arg_epv_hooks__hpcc_paralleltranspose)
 {
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    hplsupport_BlockCyclicDistArray2dDouble__init_epv();
+    hpcc_ParallelTranspose__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
   *s_arg_epv__sidl_baseinterface = &s_my_epv__sidl_baseinterface;
   *s_arg_epv__sidl_baseclass = &s_my_epv__sidl_baseclass;
-  *s_arg_epv__hplsupport_blockcyclicdistarray2ddouble = &s_my_epv__hplsupport_blockcyclicdistarray2ddouble;
-  *s_arg_epv_hooks__hplsupport_blockcyclicdistarray2ddouble = &s_my_epv_hooks__hplsupport_blockcyclicdistarray2ddouble;
+  *s_arg_epv__hpcc_paralleltranspose = &s_my_epv__hpcc_paralleltranspose;
+  *s_arg_epv_hooks__hpcc_paralleltranspose = &s_my_epv_hooks__hpcc_paralleltranspose;
 }
+/*
+ * hpcc_ParallelTranspose__getStaticEPV: return pointer to static EPV structure.
+ */
+
+struct hpcc_ParallelTranspose__sepv*
+hpcc_ParallelTranspose__getStaticEPV(void){
+  LOCK_STATIC_GLOBALS;
+  if (!s_static_initialized) {
+    hpcc_ParallelTranspose__init_sepv();
+  }
+  UNLOCK_STATIC_GLOBALS;
+  return &s_stc_epv__hpcc_paralleltranspose;
+}
+
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
 
-static struct sidl_BaseClass__epv* hplsupport_BlockCyclicDistArray2dDouble__getSuperEPV(void) {
+static struct sidl_BaseClass__epv* hpcc_ParallelTranspose__getSuperEPV(void) {
   return s_par_epv__sidl_baseclass;
 }
 
@@ -1004,7 +923,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
     impl = sidl_ClassInfoI__create(_ex);
     s_classInfo = sidl_ClassInfo__cast(impl,_ex);
     if (impl) {
-      sidl_ClassInfoI_setName(impl, "hplsupport.BlockCyclicDistArray2dDouble", _ex);
+      sidl_ClassInfoI_setName(impl, "hpcc.ParallelTranspose", _ex);
       sidl_ClassInfoI_setVersion(impl, "0.1", _ex);
       sidl_ClassInfoI_setIORVersion(impl, s_IOR_MAJOR_VERSION,
         s_IOR_MINOR_VERSION, _ex);
@@ -1027,7 +946,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
  */
 
 static void
-initMetadata(struct hplsupport_BlockCyclicDistArray2dDouble__object* self, sidl_BaseInterface* _ex)
+initMetadata(struct hpcc_ParallelTranspose__object* self, sidl_BaseInterface* _ex)
 {
   *_ex = 0; /* default no exception */
   if (self) {
@@ -1043,19 +962,19 @@ return;
 }
 
 /*
- * hplsupport_BlockCyclicDistArray2dDouble__createObject: Allocate the object and initialize it.
+ * hpcc_ParallelTranspose__createObject: Allocate the object and initialize it.
  */
 
-struct hplsupport_BlockCyclicDistArray2dDouble__object*
-hplsupport_BlockCyclicDistArray2dDouble__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
+struct hpcc_ParallelTranspose__object*
+hpcc_ParallelTranspose__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
 {
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self =
-    (struct hplsupport_BlockCyclicDistArray2dDouble__object*) sidl_malloc(
-      sizeof(struct hplsupport_BlockCyclicDistArray2dDouble__object),
-      "Object allocation failed for struct hplsupport_BlockCyclicDistArray2dDouble__object",
-        __FILE__, __LINE__, "hplsupport_BlockCyclicDistArray2dDouble__createObject", _ex);
+  struct hpcc_ParallelTranspose__object* self =
+    (struct hpcc_ParallelTranspose__object*) sidl_malloc(
+      sizeof(struct hpcc_ParallelTranspose__object),
+      "Object allocation failed for struct hpcc_ParallelTranspose__object",
+        __FILE__, __LINE__, "hpcc_ParallelTranspose__createObject", _ex);
   if (!self) goto EXIT;
-  hplsupport_BlockCyclicDistArray2dDouble__init(self, ddata, _ex); SIDL_CHECK(*_ex);
+  hpcc_ParallelTranspose__init(self, ddata, _ex); SIDL_CHECK(*_ex);
   initMetadata(self, _ex); SIDL_CHECK(*_ex);
   return self;
 
@@ -1067,18 +986,18 @@ hplsupport_BlockCyclicDistArray2dDouble__createObject(void* ddata, struct sidl_B
  * INIT: initialize a new instance of the class object.
  */
 
-void hplsupport_BlockCyclicDistArray2dDouble__init(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+void hpcc_ParallelTranspose__init(
+  struct hpcc_ParallelTranspose__object* self,
    void* ddata,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* s0 = self;
-  struct sidl_BaseClass__object*                          s1 = &s0->d_sidl_baseclass;
+  struct hpcc_ParallelTranspose__object* s0 = self;
+  struct sidl_BaseClass__object*         s1 = &s0->d_sidl_baseclass;
 
   *_ex = 0; /* default no exception */
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    hplsupport_BlockCyclicDistArray2dDouble__init_epv();
+    hpcc_ParallelTranspose__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
@@ -1087,7 +1006,7 @@ void hplsupport_BlockCyclicDistArray2dDouble__init(
   s1->d_sidl_baseinterface.d_epv = &s_my_epv__sidl_baseinterface;
   s1->d_epv                      = &s_my_epv__sidl_baseclass;
 
-  s0->d_epv    = &s_my_epv__hplsupport_blockcyclicdistarray2ddouble;
+  s0->d_epv    = &s_my_epv__hpcc_paralleltranspose;
 
   s0->d_data = NULL;
 
@@ -1105,12 +1024,12 @@ void hplsupport_BlockCyclicDistArray2dDouble__init(
  * FINI: deallocate a class instance (destructor).
  */
 
-void hplsupport_BlockCyclicDistArray2dDouble__fini(
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* self,
+void hpcc_ParallelTranspose__fini(
+  struct hpcc_ParallelTranspose__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct hplsupport_BlockCyclicDistArray2dDouble__object* s0 = self;
-  struct sidl_BaseClass__object*                          s1 = &s0->d_sidl_baseclass;
+  struct hpcc_ParallelTranspose__object* s0 = self;
+  struct sidl_BaseClass__object*         s1 = &s0->d_sidl_baseclass;
 
   *_ex  = NULL; /* default to no exception */
 
@@ -1130,16 +1049,17 @@ void hplsupport_BlockCyclicDistArray2dDouble__fini(
  */
 
 void
-hplsupport_BlockCyclicDistArray2dDouble__IOR_version(int32_t *major, int32_t *minor)
+hpcc_ParallelTranspose__IOR_version(int32_t *major, int32_t *minor)
 {
   *major = s_IOR_MAJOR_VERSION;
   *minor = s_IOR_MINOR_VERSION;
 }
 
-static const struct hplsupport_BlockCyclicDistArray2dDouble__external
+static const struct hpcc_ParallelTranspose__external
 s_externalEntryPoints = {
-  hplsupport_BlockCyclicDistArray2dDouble__createObject,
-  hplsupport_BlockCyclicDistArray2dDouble__getSuperEPV,
+  hpcc_ParallelTranspose__createObject,
+  hpcc_ParallelTranspose__getStaticEPV,
+  hpcc_ParallelTranspose__getSuperEPV,
   2, 
   0
 };
@@ -1150,8 +1070,8 @@ s_externalEntryPoints = {
  * one-stop shopping for loading DLLs.
  */
 
-const struct hplsupport_BlockCyclicDistArray2dDouble__external*
-hplsupport_BlockCyclicDistArray2dDouble__externals(void)
+const struct hpcc_ParallelTranspose__external*
+hpcc_ParallelTranspose__externals(void)
 {
   return &s_externalEntryPoints;
 }

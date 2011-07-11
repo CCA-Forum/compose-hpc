@@ -21,7 +21,7 @@ use HPCCProblemSize;
 
 use ptrans_hybrid_support;
 use hplsupport;
-use hplsupport.BlockCyclicDistArray2dDouble_static;
+use hpcc.ParallelTranspose_static;
 
 //
 // The number of arrays (used to compute the default problem size)
@@ -116,7 +116,7 @@ proc main() {
     cWrapper.initData(GET_CHPL_REF(C));  	  
 	  
     // C[i,j] = beta * C[i,j]  +  A[j,i];
-    ptransHelper(aWrapper, cWrapper, beta, i, j);
+    ptransCompute(aWrapper, cWrapper, beta, i, j);
   }
   
   const execTime = getCurrentTime() - startTime;

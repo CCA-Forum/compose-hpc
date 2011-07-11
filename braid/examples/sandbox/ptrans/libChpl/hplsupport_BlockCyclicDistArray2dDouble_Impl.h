@@ -89,24 +89,8 @@ impl_hplsupport_BlockCyclicDistArray2dDouble__dtor(
 /*
  * User-defined object methods
  */
-/**
- * FIXME: The impl method signature does not have pointers unlike the function pointer in the epv struct.
- * There is a corresponding FIXME in the IOR.h. It needs to be fixed one of these two places.
- */
-extern
-void
-impl_hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble c,
-  /* in */ double beta,
-  /* in */ int32_t i,
-  /* in */ int32_t j,
-  /* out */ sidl_BaseInterface *_ex);
 
 #ifdef WITH_RMI
-extern struct hplsupport_BlockCyclicDistArray2dDouble__object* 
-  impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_hplsupport_BlockCyclicDistArray2dDouble
-  (const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
@@ -136,9 +120,6 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_set(
   /* out */ sidl_BaseInterface *_ex);
 
 #ifdef WITH_RMI
-extern struct hplsupport_BlockCyclicDistArray2dDouble__object* 
-  impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_hplsupport_BlockCyclicDistArray2dDouble
-  (const char* url, sidl_bool ar, sidl_BaseInterface *_ex);
 extern struct sidl_BaseInterface__object* 
   impl_hplsupport_BlockCyclicDistArray2dDouble_fconnect_sidl_BaseInterface(
   const char* url, sidl_bool ar, sidl_BaseInterface *_ex);

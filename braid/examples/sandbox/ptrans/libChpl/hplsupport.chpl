@@ -26,37 +26,6 @@ _extern proc hplsupport_BlockCyclicDistArray2dDouble__createObject(d_data: int,
         int(32), in idx2: int(32), inout ex: sidl_BaseInterface);
     
     
-// All the static methods of class BlockCyclicDistArray2dDouble
-module BlockCyclicDistArray2dDouble_static {
-
-    use sidl;	
-    
-    _extern proc hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub( 
-        		in a: hplsupport_BlockCyclicDistArray2dDouble, 
-        		in c: hplsupport_BlockCyclicDistArray2dDouble, 
-        		in beta: real(64), 
-        		in i: int(32), 
-        		in j: int(32), 
-        		inout ex: sidl_BaseInterface);
-    	
-    /**
-     * FIXME C is inout, the generator should use GET_REF to obtain a reference?
-     */	
-    proc ptransHelper( 
-    		in a: hplsupport.BlockCyclicDistArray2dDouble, 
-    		in c: hplsupport.BlockCyclicDistArray2dDouble, 
-    		in beta: real(64), 
-    		in i: int(32), 
-    		in j: int(32)) {
-        var ex: sidl_BaseInterface;
-        
-        hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub( a.self, c.self, 
-        		beta, i, j, ex);
-        // TODO Figure out how to handle the inout result
-    }
-    
-    
-}
 class BlockCyclicDistArray2dDouble {
 	
     var self: hplsupport_BlockCyclicDistArray2dDouble;

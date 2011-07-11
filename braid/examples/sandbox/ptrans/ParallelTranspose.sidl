@@ -1,0 +1,18 @@
+
+import hplsupport version 0.1;
+
+package hpcc version 0.1 {
+
+  class ParallelTranspose {
+    // the helper function to do the transpose
+    static void ptransCompute(
+         in BlockCyclicDistArray2dDouble a, 
+         in BlockCyclicDistArray2dDouble c, 
+         in double beta, 
+         in int i, 
+         in int j);
+  }
+}
+
+
+

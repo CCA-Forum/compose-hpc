@@ -44,8 +44,3 @@ _retval = (*self->d_epv->f_get)( self, idx1, idx2, ex);
 void hplsupport_BlockCyclicDistArray2dDouble_set_stub( struct hplsupport_BlockCyclicDistArray2dDouble__object* self, double newVal, int32_t idx1, int32_t idx2, struct sidl_BaseInterface__object** ex) {
   (*self->d_epv->f_set)( self, newVal, idx1, idx2, ex);
 }
-
-void hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub( struct hplsupport_BlockCyclicDistArray2dDouble__object* a, struct hplsupport_BlockCyclicDistArray2dDouble__object* c, double beta, int32_t i, int32_t j, struct sidl_BaseInterface__object** ex) {
-  // printf("hplsupport_BlockCyclicDistArray2dDouble_ptransHelper_stub: a = %p, c = %p \n", a, c);
-  (_getSEPV()->f_ptransHelper)( a, c, beta, i, j, ex);
-}

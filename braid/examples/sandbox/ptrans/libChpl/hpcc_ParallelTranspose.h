@@ -1,24 +1,23 @@
 /*
- * File:          hplsupport_BlockCyclicDistArray2dDouble.h
- * Symbol:        hplsupport.BlockCyclicDistArray2dDouble-v0.1
+ * File:          hpcc_ParallelTranspose.h
+ * Symbol:        hpcc.ParallelTranspose-v0.1
  * Symbol Type:   class
  * Babel Version: 2.0.0 (Revision: 0  )
- * Description:   Client-side glue code for hplsupport.BlockCyclicDistArray2dDouble
+ * Description:   Client-side glue code for hpcc.ParallelTranspose
  * 
  * WARNING: Automatically generated; changes will be lost
  * 
  */
 
-#ifndef included_hplsupport_BlockCyclicDistArray2dDouble_h
-#define included_hplsupport_BlockCyclicDistArray2dDouble_h
+#ifndef included_hpcc_ParallelTranspose_h
+#define included_hpcc_ParallelTranspose_h
 
 /**
- * Symbol "hplsupport.BlockCyclicDistArray2dDouble" (version 0.1)
+ * Symbol "hpcc.ParallelTranspose" (version 0.1)
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__object;
-struct hplsupport_BlockCyclicDistArray2dDouble__array;
-typedef struct hplsupport_BlockCyclicDistArray2dDouble__object* 
-  hplsupport_BlockCyclicDistArray2dDouble;
+struct hpcc_ParallelTranspose__object;
+struct hpcc_ParallelTranspose__array;
+typedef struct hpcc_ParallelTranspose__object* hpcc_ParallelTranspose;
 
 /*
  * Includes for all header dependencies.
@@ -26,6 +25,9 @@ typedef struct hplsupport_BlockCyclicDistArray2dDouble__object*
 
 #ifndef included_sidl_header_h
 #include "sidl_header.h"
+#endif
+#ifndef included_hplsupport_BlockCyclicDistArray2dDouble_h
+#include "hplsupport_BlockCyclicDistArray2dDouble.h"
 #endif
 #ifndef included_sidl_BaseException_h
 #include "sidl_BaseException.h"
@@ -50,58 +52,74 @@ typedef struct hplsupport_BlockCyclicDistArray2dDouble__object*
 #include "sidl_rmi_Return.h"
 #endif
 #ifdef SIDL_C_HAS_INLINE
-#ifndef included_hplsupport_BlockCyclicDistArray2dDouble_IOR_h
-#include "hplsupport_BlockCyclicDistArray2dDouble_IOR.h"
+#ifndef included_hpcc_ParallelTranspose_IOR_h
+#include "hpcc_ParallelTranspose_IOR.h"
 #endif
 #endif /* SIDL_C_HAS_INLINE */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if !defined(HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL) && defined(SIDL_C_HAS_INLINE)
+#if !defined(HPCC_PARALLELTRANSPOSE_INLINE_DECL) && defined(SIDL_C_HAS_INLINE)
 #if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)) || defined(__INTEL_COMPILER) || !defined(__GNUC__)
-#define HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL inline
+#define HPCC_PARALLELTRANSPOSE_INLINE_DECL inline
 #else
-#define HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL extern inline
+#define HPCC_PARALLELTRANSPOSE_INLINE_DECL extern inline
 #endif
 #endif /* inline preprocessor definitions */
 /**
  * Constructor function for the class.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__object*
-hplsupport_BlockCyclicDistArray2dDouble__create(sidl_BaseInterface* _ex);
+struct hpcc_ParallelTranspose__object*
+hpcc_ParallelTranspose__create(sidl_BaseInterface* _ex);
 
 /**
- * Wraps up the private data struct pointer (struct hplsupport_BlockCyclicDistArray2dDouble__data) passed in rather than running the constructor.
+ * Wraps up the private data struct pointer (struct hpcc_ParallelTranspose__data) passed in rather than running the constructor.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__wrapObj(void * data, 
-  sidl_BaseInterface *_ex);
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__wrapObj(void * data, sidl_BaseInterface *_ex);
 
 #ifdef WITH_RMI
 
 /**
  * RMI constructor function for the class.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__createRemote(const char * url, 
-  sidl_BaseInterface *_ex);
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__createRemote(const char * url, sidl_BaseInterface *_ex);
 
 /**
  * RMI connector function for the class.(addrefs)
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__connect(const char *, 
-  sidl_BaseInterface *_ex);
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__connect(const char *, sidl_BaseInterface *_ex);
 
 
 #endif /*WITH_RMI*/
 /**
+ * Method to enable/disable static interface contract enforcement.
+ */
+void
+hpcc_ParallelTranspose__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex);
+
+/**
+ * Method to dump static interface contract enforcement statistics.
+ */
+void
+hpcc_ParallelTranspose__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex);
+
+/**
  * Method to enable/disable interface contract enforcement.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__set_contracts(
-  hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__set_contracts(
+  hpcc_ParallelTranspose self,
   sidl_bool   enable,
   const char* enfFilename,
   sidl_bool   resetCounters,
@@ -111,82 +129,23 @@ hplsupport_BlockCyclicDistArray2dDouble__set_contracts(
  * Method to dump interface contract enforcement statistics.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__dump_stats(
-  hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__dump_stats(
+  hpcc_ParallelTranspose self,
   const char* filename,
   const char* prefix,
   struct sidl_BaseInterface__object **_ex);
 
 /**
- * Method:  initData[]
+ * Method:  ptransCompute[]
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble_initData(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
-  /* in */ void* data,
-  /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
-{
-  (*self->d_epv->f_initData)(
-    self,
-    data,
-    _ex);
-}
-#else
-;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
-
-
-/**
- * Method:  get[]
- */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
-double
-hplsupport_BlockCyclicDistArray2dDouble_get(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
-  /* in */ int32_t idx1,
-  /* in */ int32_t idx2,
-  /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
-{
-  double _result;
-  _result = (*self->d_epv->f_get)(
-    self,
-    idx1,
-    idx2,
-    _ex);
-  return _result;
-}
-#else
-;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
-
-
-/**
- * Method:  set[]
- */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
-void
-hplsupport_BlockCyclicDistArray2dDouble_set(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
-  /* in */ double newVal,
-  /* in */ int32_t idx1,
-  /* in */ int32_t idx2,
-  /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
-{
-  (*self->d_epv->f_set)(
-    self,
-    newVal,
-    idx1,
-    idx2,
-    _ex);
-}
-#else
-;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
-
+hpcc_ParallelTranspose_ptransCompute(
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
+  /* in */ hplsupport_BlockCyclicDistArray2dDouble c,
+  /* in */ double beta,
+  /* in */ int32_t i,
+  /* in */ int32_t j,
+  /* out */ sidl_BaseInterface *_ex);
 
 /**
  * <p>
@@ -202,12 +161,12 @@ hplsupport_BlockCyclicDistArray2dDouble_set(
  * class.
  * </p>
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble_addRef(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose_addRef(
+  /* in */ hpcc_ParallelTranspose self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   (*self->d_epv->f_addRef)(
     self,
@@ -215,7 +174,7 @@ hplsupport_BlockCyclicDistArray2dDouble_addRef(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 
 /**
@@ -225,12 +184,12 @@ hplsupport_BlockCyclicDistArray2dDouble_addRef(
  * Clients should call this method whenever they remove a
  * reference to an object or interface.
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble_deleteRef(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose_deleteRef(
+  /* in */ hpcc_ParallelTranspose self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   (*self->d_epv->f_deleteRef)(
     self,
@@ -238,20 +197,20 @@ hplsupport_BlockCyclicDistArray2dDouble_deleteRef(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 
 /**
  * Return true if and only if <code>obj</code> refers to the same
  * object as this object.
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 sidl_bool
-hplsupport_BlockCyclicDistArray2dDouble_isSame(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose_isSame(
+  /* in */ hpcc_ParallelTranspose self,
   /* in */ sidl_BaseInterface iobj,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   sidl_bool _result;
   _result = (*self->d_epv->f_isSame)(
@@ -262,7 +221,7 @@ hplsupport_BlockCyclicDistArray2dDouble_isSame(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 
 /**
@@ -271,13 +230,13 @@ hplsupport_BlockCyclicDistArray2dDouble_isSame(
  * routine will return <code>true</code> if and only if a cast to
  * the string type name would succeed.
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 sidl_bool
-hplsupport_BlockCyclicDistArray2dDouble_isType(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose_isType(
+  /* in */ hpcc_ParallelTranspose self,
   /* in */ const char* name,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   sidl_bool _result;
   _result = (*self->d_epv->f_isType)(
@@ -288,18 +247,18 @@ hplsupport_BlockCyclicDistArray2dDouble_isType(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 
 /**
  * Return the meta-data about the class implementing this interface.
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 sidl_ClassInfo
-hplsupport_BlockCyclicDistArray2dDouble_getClassInfo(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose_getClassInfo(
+  /* in */ hpcc_ParallelTranspose self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   sidl_ClassInfo _result;
   _result = (*self->d_epv->f_getClassInfo)(
@@ -309,14 +268,14 @@ hplsupport_BlockCyclicDistArray2dDouble_getClassInfo(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 
 /**
  * Cast method for interface and class type conversions.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__object*
-hplsupport_BlockCyclicDistArray2dDouble__cast(
+struct hpcc_ParallelTranspose__object*
+hpcc_ParallelTranspose__cast(
   void* obj,
   sidl_BaseInterface* _ex);
 
@@ -324,7 +283,7 @@ hplsupport_BlockCyclicDistArray2dDouble__cast(
  * String cast method for interface and class type conversions.
  */
 void*
-hplsupport_BlockCyclicDistArray2dDouble__cast2(
+hpcc_ParallelTranspose__cast2(
   void* obj,
   const char* type,
   sidl_BaseInterface *_ex);
@@ -332,15 +291,15 @@ hplsupport_BlockCyclicDistArray2dDouble__cast2(
 /**
  * Select and execute a method by name
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble__exec(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__exec(
+  /* in */ hpcc_ParallelTranspose self,
   /* in */ const char* methodName,
   /* in */ sidl_rmi_Call inArgs,
   /* in */ sidl_rmi_Return outArgs,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   (*self->d_epv->f__exec)(
     self,
@@ -351,17 +310,17 @@ hplsupport_BlockCyclicDistArray2dDouble__exec(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 /**
  * Get the URL of the Implementation of this object (for RMI)
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 char*
-hplsupport_BlockCyclicDistArray2dDouble__getURL(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__getURL(
+  /* in */ hpcc_ParallelTranspose self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   char* _result;
   _result = (*self->d_epv->f__getURL)(
@@ -371,17 +330,17 @@ hplsupport_BlockCyclicDistArray2dDouble__getURL(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 /**
  * On a remote object, addrefs the remote instance.
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble__raddRef(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__raddRef(
+  /* in */ hpcc_ParallelTranspose self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   (*self->d_epv->f__raddRef)(
     self,
@@ -389,17 +348,17 @@ hplsupport_BlockCyclicDistArray2dDouble__raddRef(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 /**
  * TRUE if this object is remote, false if local
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 sidl_bool
-hplsupport_BlockCyclicDistArray2dDouble__isRemote(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__isRemote(
+  /* in */ hpcc_ParallelTranspose self,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   sidl_bool _result;
   _result = (*self->d_epv->f__isRemote)(
@@ -409,25 +368,32 @@ hplsupport_BlockCyclicDistArray2dDouble__isRemote(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 /**
  * TRUE if this object is remote, false if local
  */
 sidl_bool
-hplsupport_BlockCyclicDistArray2dDouble__isLocal(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__isLocal(
+  /* in */ hpcc_ParallelTranspose self,
+  /* out */ sidl_BaseInterface *_ex);
+/**
+ * Static Method to enable/disable method hooks invocation.
+ */
+void
+hpcc_ParallelTranspose__set_hooks_static(
+  /* in */ sidl_bool enable,
   /* out */ sidl_BaseInterface *_ex);
 /**
  * Method to enable/disable method hooks invocation.
  */
-HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+HPCC_PARALLELTRANSPOSE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble__set_hooks(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
+hpcc_ParallelTranspose__set_hooks(
+  /* in */ hpcc_ParallelTranspose self,
   /* in */ sidl_bool enable,
   /* out */ sidl_BaseInterface *_ex)
-#ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
+#ifdef HPCC_PARALLELTRANSPOSE_INLINE_DECL
 {
   (*self->d_epv->f__set_hooks)(
     self,
@@ -436,7 +402,7 @@ hplsupport_BlockCyclicDistArray2dDouble__set_hooks(
 }
 #else
 ;
-#endif /* HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL */
+#endif /* HPCC_PARALLELTRANSPOSE_INLINE_DECL */
 
 /**
  * Create a contiguous array of the given dimension with specified
@@ -445,8 +411,8 @@ hplsupport_BlockCyclicDistArray2dDouble__set_hooks(
  * This function initializes the contents of the array to
  * NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_createCol(
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_createCol(
   int32_t       dimen,
   const int32_t lower[],
   const int32_t upper[]);
@@ -458,8 +424,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_createCol(
  * This function initializes the contents of the array to
  * NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_createRow(
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_createRow(
   int32_t       dimen,
   const int32_t lower[],
   const int32_t upper[]);
@@ -471,8 +437,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_createRow(
  * This function initializes the contents of the array to
  * NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_create1d(int32_t len);
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_create1d(int32_t len);
 
 /**
  * Create a dense one-dimensional vector with a lower
@@ -482,10 +448,10 @@ hplsupport_BlockCyclicDistArray2dDouble__array_create1d(int32_t len);
  * 
  * This array owns and manages its data.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_create1dInit(
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_create1dInit(
   int32_t len, 
-  hplsupport_BlockCyclicDistArray2dDouble* data);
+  hpcc_ParallelTranspose* data);
 
 /**
  * Create a contiguous two-dimensional array in column-major
@@ -494,9 +460,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_create1dInit(
  * This function initializes the contents of the array to
  * NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_create2dCol(int32_t m, int32_t 
-  n);
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_create2dCol(int32_t m, int32_t n);
 
 /**
  * Create a contiguous two-dimensional array in row-major
@@ -505,9 +470,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_create2dCol(int32_t m, int32_t
  * This function initializes the contents of the array to
  * NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_create2dRow(int32_t m, int32_t 
-  n);
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_create2dRow(int32_t m, int32_t n);
 
 /**
  * Create an array that uses data (memory) from another
@@ -517,9 +481,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_create2dRow(int32_t m, int32_t
  * via a set call, deleteRef will be called on the
  * value being replaced if it is not NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_borrow(
-  hplsupport_BlockCyclicDistArray2dDouble* firstElement,
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_borrow(
+  hpcc_ParallelTranspose* firstElement,
   int32_t       dimen,
   const int32_t lower[],
   const int32_t upper[],
@@ -534,16 +498,16 @@ hplsupport_BlockCyclicDistArray2dDouble__array_borrow(
  * passed into methods aren't guaranteed to exist after
  * the method call.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_smartCopy(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array *array);
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_smartCopy(
+  struct hpcc_ParallelTranspose__array *array);
 
 /**
  * Increment the array's internal reference count by one.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_addRef(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array);
+hpcc_ParallelTranspose__array_addRef(
+  struct hpcc_ParallelTranspose__array* array);
 
 /**
  * Decrement the array's internal reference count by one.
@@ -552,32 +516,32 @@ hplsupport_BlockCyclicDistArray2dDouble__array_addRef(
  * object references held by the array.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_deleteRef(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array);
+hpcc_ParallelTranspose__array_deleteRef(
+  struct hpcc_ParallelTranspose__array* array);
 
 /**
  * Retrieve element i1 of a(n) 1-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get1(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get1(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1);
 
 /**
  * Retrieve element (i1,i2) of a(n) 2-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get2(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get2(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2);
 
 /**
  * Retrieve element (i1,i2,i3) of a(n) 3-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get3(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get3(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3);
@@ -585,9 +549,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_get3(
 /**
  * Retrieve element (i1,i2,i3,i4) of a(n) 4-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get4(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get4(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
@@ -596,9 +560,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_get4(
 /**
  * Retrieve element (i1,i2,i3,i4,i5) of a(n) 5-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get5(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get5(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
@@ -608,9 +572,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_get5(
 /**
  * Retrieve element (i1,i2,i3,i4,i5,i6) of a(n) 6-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get6(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get6(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
@@ -621,9 +585,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_get6(
 /**
  * Retrieve element (i1,i2,i3,i4,i5,i6,i7) of a(n) 7-dimensional array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get7(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get7(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
@@ -637,86 +601,86 @@ hplsupport_BlockCyclicDistArray2dDouble__array_get7(
  * indices is assumed to have the right number of elements
  * for the dimension of array.
  */
-hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble__array_get(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose
+hpcc_ParallelTranspose__array_get(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t indices[]);
 
 /**
  * Set element i1 of a(n) 1-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set1(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set1(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element (i1,i2) of a(n) 2-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set2(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set2(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element (i1,i2,i3) of a(n) 3-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set3(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set3(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element (i1,i2,i3,i4) of a(n) 4-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set4(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set4(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
   const int32_t i4,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element (i1,i2,i3,i4,i5) of a(n) 5-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set5(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set5(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
   const int32_t i4,
   const int32_t i5,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element (i1,i2,i3,i4,i5,i6) of a(n) 6-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set6(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set6(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
   const int32_t i4,
   const int32_t i5,
   const int32_t i6,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element (i1,i2,i3,i4,i5,i6,i7) of a(n) 7-dimensional array to value.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set7(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set7(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t i1,
   const int32_t i2,
   const int32_t i3,
@@ -724,25 +688,25 @@ hplsupport_BlockCyclicDistArray2dDouble__array_set7(
   const int32_t i5,
   const int32_t i6,
   const int32_t i7,
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Set element indices of an n-dimensional array to value.indices is assumed to have the right number of elements
  * for the dimension of array.
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_set(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_set(
+  struct hpcc_ParallelTranspose__array* array,
   const int32_t indices[],
-  hplsupport_BlockCyclicDistArray2dDouble const value);
+  hpcc_ParallelTranspose const value);
 
 /**
  * Return the dimension of array. If the array pointer is
  * NULL, zero is returned.
  */
 int32_t
-hplsupport_BlockCyclicDistArray2dDouble__array_dimen(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array);
+hpcc_ParallelTranspose__array_dimen(
+  const struct hpcc_ParallelTranspose__array* array);
 
 /**
  * Return the lower bound of dimension ind.
@@ -750,8 +714,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_dimen(
  * The valid range for ind is from 0 to dimen-1.
  */
 int32_t
-hplsupport_BlockCyclicDistArray2dDouble__array_lower(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_lower(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t ind);
 
 /**
@@ -760,8 +724,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_lower(
  * The valid range for ind is from 0 to dimen-1.
  */
 int32_t
-hplsupport_BlockCyclicDistArray2dDouble__array_upper(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_upper(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t ind);
 
 /**
@@ -770,8 +734,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_upper(
  * The valid range for ind is from 0 to dimen-1.
  */
 int32_t
-hplsupport_BlockCyclicDistArray2dDouble__array_length(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_length(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t ind);
 
 /**
@@ -780,8 +744,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_length(
  * The valid range for ind is from 0 to dimen-1.
  */
 int32_t
-hplsupport_BlockCyclicDistArray2dDouble__array_stride(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array,
+hpcc_ParallelTranspose__array_stride(
+  const struct hpcc_ParallelTranspose__array* array,
   const int32_t ind);
 
 /**
@@ -790,8 +754,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_stride(
  * causes 0 to be returned.
  */
 int
-hplsupport_BlockCyclicDistArray2dDouble__array_isColumnOrder(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array);
+hpcc_ParallelTranspose__array_isColumnOrder(
+  const struct hpcc_ParallelTranspose__array* array);
 
 /**
  * Return a true value iff the array is a contiguous
@@ -799,8 +763,8 @@ hplsupport_BlockCyclicDistArray2dDouble__array_isColumnOrder(
  * causes 0 to be returned.
  */
 int
-hplsupport_BlockCyclicDistArray2dDouble__array_isRowOrder(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* array);
+hpcc_ParallelTranspose__array_isRowOrder(
+  const struct hpcc_ParallelTranspose__array* array);
 
 /**
  * Create a sub-array of another array. This resulting
@@ -864,9 +828,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_isRowOrder(
  *           srcStart will be used. If non-NULL, this
  *           should be an array with dimen elements.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_slice(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* src,
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_slice(
+  struct hpcc_ParallelTranspose__array* src,
   int32_t        dimen,
   const int32_t  numElem[],
   const int32_t  *srcStart,
@@ -896,9 +860,9 @@ hplsupport_BlockCyclicDistArray2dDouble__array_slice(
  *   dest[5] = src[5].
  */
 void
-hplsupport_BlockCyclicDistArray2dDouble__array_copy(
-  const struct hplsupport_BlockCyclicDistArray2dDouble__array* src,
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* dest);
+hpcc_ParallelTranspose__array_copy(
+  const struct hpcc_ParallelTranspose__array* src,
+  struct hpcc_ParallelTranspose__array* dest);
 
 /**
  * If necessary, convert a general matrix into a matrix
@@ -922,21 +886,21 @@ hplsupport_BlockCyclicDistArray2dDouble__array_copy(
  * The caller assumes ownership of the returned reference
  * unless it's NULL.
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__array*
-hplsupport_BlockCyclicDistArray2dDouble__array_ensure(
-  struct hplsupport_BlockCyclicDistArray2dDouble__array* src,
+struct hpcc_ParallelTranspose__array*
+hpcc_ParallelTranspose__array_ensure(
+  struct hpcc_ParallelTranspose__array* src,
   int32_t dimen,
   int     ordering);
 
 
-#pragma weak hplsupport_BlockCyclicDistArray2dDouble__connectI
+#pragma weak hpcc_ParallelTranspose__connectI
 
 /**
  * RMI connector function for the class. (no addref)
  */
-struct hplsupport_BlockCyclicDistArray2dDouble__object*
-hplsupport_BlockCyclicDistArray2dDouble__connectI(const char * url, sidl_bool 
-  ar, struct sidl_BaseInterface__object **_ex);
+struct hpcc_ParallelTranspose__object*
+hpcc_ParallelTranspose__connectI(const char * url, sidl_bool ar, struct 
+  sidl_BaseInterface__object **_ex);
 
 #ifdef __cplusplus
 }
