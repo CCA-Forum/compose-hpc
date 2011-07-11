@@ -168,8 +168,7 @@ impl_hplsupport_SimpleArray1dInt_initData(
     /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.initData) */
 
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
-	WideSimpleArray1dIntChpl wideDataPtr = (WideSimpleArray1dIntChpl) data;
-	SimpleArray1dIntChpl chplDataPtr = wideDataPtr->addr;
+	int32_t* chplDataPtr = (int32_t*) data;
 	// printf("impl_hplsupport_SimpleArray1dInt_initData(): chplDataPtr = %p \n", chplDataPtr);
 	dptr->chpl_data = chplDataPtr;
 	// printf("impl_hplsupport_SimpleArray1dInt_initData(): chpl_data = %p \n", dptr->chpl_data);
@@ -188,15 +187,6 @@ impl_hplsupport_SimpleArray1dInt_initData(
 #ifdef __cplusplus
 extern "C"
 #endif
-extern
-int32_t
-impl_hplsupport_SimpleArray1dInt_getFromArray_chpl(
-		SimpleArray1dIntChpl wrappedArray,
-		/* in */ int32_t idx1);
-
-#ifdef __cplusplus
-extern "C"
-#endif
 int32_t
 impl_hplsupport_SimpleArray1dInt_getFromArray(
   /* in */ hplsupport_SimpleArray1dInt self,
@@ -210,7 +200,7 @@ impl_hplsupport_SimpleArray1dInt_getFromArray(
 	// printf("impl_hplsupport_SimpleArray1dInt_getFromArray(%d)\n", idx1);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
 	// printf("impl_hplsupport_SimpleArray1dInt_getFromArray(): chpl_data = %p \n", dptr->chpl_data);
-	return impl_hplsupport_SimpleArray1dInt_getFromArray_chpl(dptr->chpl_data, idx1);
+	return dptr->chpl_data[idx1];
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.getFromArray) */
   }
@@ -222,16 +212,6 @@ impl_hplsupport_SimpleArray1dInt_getFromArray(
 
 #undef __FUNC__
 #define __FUNC__ "impl_hplsupport_SimpleArray1dInt_setIntoArray"
-
-#ifdef __cplusplus
-extern "C"
-#endif
-extern
-void
-impl_hplsupport_SimpleArray1dInt_setIntoArray_chpl(
-		SimpleArray1dIntChpl wrappedArray,
-		/* in */ int32_t newVal,
-		/* in */ int32_t idx1);
 
 #ifdef __cplusplus
 extern "C"
@@ -249,7 +229,7 @@ impl_hplsupport_SimpleArray1dInt_setIntoArray(
 	// printf("impl_hplsupport_SimpleArray1dInt_setIntoArray(%d) = %d\n", idx1, newVal);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
 	// printf("impl_hplsupport_SimpleArray1dInt_setIntoArray(): chpl_data = %p \n", dptr->chpl_data);
-	impl_hplsupport_SimpleArray1dInt_setIntoArray_chpl(dptr->chpl_data, newVal, idx1);
+	dptr->chpl_data[idx1] = newVal;
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.setIntoArray) */
   }

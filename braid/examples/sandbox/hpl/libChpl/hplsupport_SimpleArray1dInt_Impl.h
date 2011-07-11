@@ -35,19 +35,6 @@
 /**
  * START: Chapel implementation specific declarations
  */
-
-// Make forward references of external struct from chpl__header.h
-
-struct __ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F;
-typedef struct __ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F* SimpleArray1dIntChpl;
-
-// redefine struct from chpl__header.h
-struct __chpl____wide_ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F {
-  int32_t locale;
-  SimpleArray1dIntChpl addr;
-};
-typedef struct __chpl____wide_ArrayWrapper_int32_t_1__array_DefaultRectangularArr_int32_t_1_int32_t_F_DefaultRectangularArr_int32_t_1_int32_t_F* WideSimpleArray1dIntChpl;
-
 /**
  * END: Chapel implementation specific declarations
  */
@@ -61,7 +48,7 @@ typedef struct __chpl____wide_ArrayWrapper_int32_t_1__array_DefaultRectangularAr
 struct hplsupport_SimpleArray1dInt__data {
   /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt._data) */
   /* insert code here (private data members) */
-  SimpleArray1dIntChpl chpl_data;
+  int32_t* chpl_data;
   /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt._data) */
 };
 

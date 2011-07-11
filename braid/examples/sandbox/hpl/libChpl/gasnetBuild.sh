@@ -1,10 +1,5 @@
 #!/bin/bash
 
-rm -f *.o
-rm -f *.lo
-rm -f a.out
-rm -rf gen
-
 CC="`babel-config --query-var=CC`"
 CXX="`babel-config --query-var=CXX`"
 
@@ -40,19 +35,35 @@ LIBDIR="${PREFIX}/lib"
 
 BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${EXTRAFLAGS} ${GASNET_FLAGS} ${CHPL_FLAGS} -I./gen ${INCLUDES}"
 
+HEADER_DEPS=""
+HEADER_DEPS="${HEADER_DEPS} hplsupport_HPL_cClient.h"
 
+BRAID_GEN_C_SOURCES=""
 
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_IOR.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Skel.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cImpl.c"
 
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_IOR.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_Skel.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_cImpl.c"
 
-
-
-chpl --savec ./gen hplsupport_HPL_cClient.h *.chpl --make true
-
-BRAID_GEN_C_SOURCES="hplsupport_BlockCyclicDistArray2dDouble_IOR.c hplsupport_BlockCyclicDistArray2dDouble_Stub.c hplsupport_BlockCyclicDistArray2dDouble_Skel.c hplsupport_BlockCyclicDistArray2dDouble_cImpl.c"
-BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_IOR.c hplsupport_SimpleArray1dInt_Stub.c hplsupport_SimpleArray1dInt_Skel.c hplsupport_SimpleArray1dInt_cImpl.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_HPL_cClient.c "
 
 BRAID_GEN_O_FILES=""
+
+
+
+
+
+echo "Cleaning previous build artifacts"
+rm -f *.o; rm -f *.lo; rm -f a.out; rm -rf gen;
+
+echo "Generating C files from chpl files"
+chpl --savec ./gen ${HEADER_DEPS} *.chpl --make true
+
 for loopFile in ${BRAID_GEN_C_SOURCES}
 do
   echo "Compiling ${loopFile}"

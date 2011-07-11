@@ -16,14 +16,7 @@ use HPCCProblemSize;
 //
 use BlockCycDist;
 
-use ArrayWrapper;
 use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;
-use hplsupport_SimpleArray1dInt_chplImpl;
-
-
-_extern proc panelSolveNative(inout abData, inout pivData, 
-		/* abLimits*/ in abStart1: int(32), in abEnd1: int(32), in abStart2: int(32), in abEnd2: int(32), 
-		/*panel domain*/ in start1: int(32), in end1: int(32), in start2: int(32), in end2: int(32));
 
 
 //
@@ -239,17 +232,21 @@ proc dgemmNativeInds(A: [] elemType,
 // do unblocked-LU decomposition within the specified panel, update the
 // pivot vector accordingly
 //
+_extern proc GET_REF(inData): opaque;	
+_extern proc panelSolveNative(abData, inout pivData, 
+    /* abLimits*/ in abStart1: int(32), in abEnd1: int(32), in abStart2: int(32), in abEnd2: int(32), 
+    /*panel domain*/ in start1: int(32), in end1: int(32), in start2: int(32), in end2: int(32));
+  
 proc panelSolve(ab: [] elemType,
                panel: domain,
-               piv: [] indexType) {
+               inout piv: [] indexType) {
 
-  var abWrapper = new ArrayWrapper(elemType, 2, ab);
-  var pivWrapper = new ArrayWrapper(indexType, 1, piv);	
+  var abRef = GET_REF(ab);	
   
   var abDom = ab.domain;
-  panelSolveNative(abWrapper, pivWrapper, 
+  panelSolveNative(abRef, piv(piv.domain.low), 
   		  abDom.low(1), abDom.high(1), abDom.low(2), abDom.high(2), 
-  		  panel.low(1), panel.high(1), panel.low(2), panel.high(2));
+   		  panel.low(1), panel.high(1), panel.low(2), panel.high(2));
 }
 
 //
@@ -371,32 +368,16 @@ proc dummy_calls() {
   const matVectSpace: domain(2, indexType) dmapped 
 		  BlockCyclic(startIdx=(1, 1), (blkSize, blkSize)) = [1..n, 1..n+1];	
   var ab : [matVectSpace] elemType;  // the matrix A and vector b
-  var piv: [1..n] indexType;         // a vector of pivot values
-  
-  var abWrapper = new ArrayWrapper(elemType, 2, ab);
-  impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-		  abWrapper, 
-		  impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
-				  abWrapper, 2, 2) + 125.0,
-		  2, 2);
   for (i, j) in matVectSpace do {
-	var newVal = 0;
+	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
+			  ab, i, j);
 	if (i < j) {
-	  newVal = 10 * i + j;	
+	  newVal += 10 * i + j;	
 	} else {
-	  newVal = i + 10 * j;
+	  newVal += i + 10 * j;
 	}
 	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-	  		  abWrapper, newVal, i, j);  
-  }
-
-  var pivWrapper = new ArrayWrapper(indexType, 1, piv);
-  for i in [1..n] do {
-    impl_hplsupport_SimpleArray1dInt_setIntoArray_chpl(
-		  pivWrapper, 
-		  impl_hplsupport_SimpleArray1dInt_getFromArray_chpl(
-  				pivWrapper, i) + i,
-  		  i);
+	  		  ab, newVal, i, j);  
   }
   
   writeln("dummy_calls() ends.");
