@@ -16,8 +16,10 @@ use HPCCProblemSize;
 //
 use BlockCycDist;
 
+use hplsupport;
+use hpcc;
+use hpcc.HighPerformanceLinpack_static;
 use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;
-
 
 //
 // The number of matrices and the element type of those matrices
@@ -232,21 +234,17 @@ proc dgemmNativeInds(A: [] elemType,
 // do unblocked-LU decomposition within the specified panel, update the
 // pivot vector accordingly
 //
-_extern proc GET_REF(inData): opaque;	
-_extern proc panelSolveNative(abData, inout pivData, 
-    /* abLimits*/ in abStart1: int(32), in abEnd1: int(32), in abStart2: int(32), in abEnd2: int(32), 
-    /*panel domain*/ in start1: int(32), in end1: int(32), in start2: int(32), in end2: int(32));
-  
 proc panelSolve(ab: [] elemType,
                panel: domain,
                inout piv: [] indexType) {
 
-  var abRef = GET_REF(ab);	
-  
+  /* 
+	TODO Create ab and pic wrappers
   var abDom = ab.domain;
   panelSolveNative(abRef, piv(piv.domain.low), 
   		  abDom.low(1), abDom.high(1), abDom.low(2), abDom.high(2), 
    		  panel.low(1), panel.high(1), panel.low(2), panel.high(2));
+  */
 }
 
 //

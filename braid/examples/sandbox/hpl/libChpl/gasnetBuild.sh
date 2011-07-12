@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC="`babel-config --query-var=CC`" # "colorgcc.pl"
+CC="colorgcc.pl" #"`babel-config --query-var=CC`" # "colorgcc.pl"
 CXX="`babel-config --query-var=CXX`"
 
 CHAPEL_HOME="${CHPL_HOME}"
@@ -36,27 +36,37 @@ LIBDIR="${PREFIX}/lib"
 BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${EXTRAFLAGS} ${GASNET_FLAGS} ${CHPL_FLAGS} -I./gen ${INCLUDES}"
 
 HEADER_DEPS=""
-HEADER_DEPS="${HEADER_DEPS} hplsupport_HPL_cClient.h"
+HEADER_DEPS="${HEADER_DEPS} hpcc.h"
+HEADER_DEPS="${HEADER_DEPS} hplsupport.h"
 
 BRAID_GEN_C_SOURCES=""
 
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_IOR.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cStub.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Skel.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cImpl.c"
 
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_IOR.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_cStub.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_Skel.c"
 BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_SimpleArray1dInt_cImpl.c"
 
-BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_HPL_cClient.c "
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_HighPerformanceLinpack_IOR.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_HighPerformanceLinpack_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_HighPerformanceLinpack_Skel.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_HighPerformanceLinpack_cImpl.c"
+
+# BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_HPL_cClient.c "
 
 BRAID_GEN_O_FILES=""
 
 
 
 
+clear;
+set -e 
 
 echo "Cleaning previous build artifacts"
 rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen;
