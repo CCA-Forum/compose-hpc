@@ -11,7 +11,7 @@ _extern proc hplsupport_SimpleArray1dInt__createObject(
 
 _extern proc hplsupport_SimpleArray1dInt_initData_stub( 
    		in self: hplsupport_SimpleArray1dInt, 
-   		in data: int(64), 
+   		in data: opaque, 
    		inout ex: sidl_BaseInterface);
 
 _extern proc hplsupport_SimpleArray1dInt_get_stub( 
@@ -49,8 +49,11 @@ class SimpleArray1dInt {
     }
     
     proc initData( in data: int(64)) {
+    	_extern proc GET_REF(inData): opaque;
+    	
         var ex:sidl_BaseInterface;
-        hplsupport_SimpleArray1dInt_initData_stub( self, data, ex);
+        
+        hplsupport_SimpleArray1dInt_initData_stub( self, GET_REF(data), ex);
     }
     
     proc get( in idx1: int(32)): int(32) {
@@ -78,7 +81,7 @@ _extern proc hplsupport_BlockCyclicDistArray2dDouble__createObject(
 
 _extern proc hplsupport_BlockCyclicDistArray2dDouble_initData_stub( 
 		in self: hplsupport_BlockCyclicDistArray2dDouble, 
-		in data: int(64), 
+		in data: opaque, 
 		inout ex: sidl_BaseInterface);
 
 _extern proc hplsupport_BlockCyclicDistArray2dDouble_get_stub( 
@@ -118,8 +121,12 @@ class BlockCyclicDistArray2dDouble {
     }
         
     proc initData( in data: int(64)) {
-        var ex:sidl_BaseInterface;
-        hplsupport_BlockCyclicDistArray2dDouble_initData_stub( self, data, ex);
+    	_extern proc GET_REF(inData): opaque;
+    	    	
+    	var ex:sidl_BaseInterface;
+    	var data32 = data: int(32);
+    	        
+    	hplsupport_BlockCyclicDistArray2dDouble_initData_stub( self, GET_REF(data32), ex);
     }
     
     proc get( in idx1: int(32), in idx2: int(32)): real(64) {

@@ -17,9 +17,10 @@ use HPCCProblemSize;
 use BlockCycDist;
 
 use hplsupport;
-use hpcc;
 use hpcc.HighPerformanceLinpack_static;
 use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;
+
+config const debug = false;
 
 //
 // The number of matrices and the element type of those matrices
@@ -234,17 +235,77 @@ proc dgemmNativeInds(A: [] elemType,
 // do unblocked-LU decomposition within the specified panel, update the
 // pivot vector accordingly
 //
+config const useChpl = false;
+
 proc panelSolve(ab: [] elemType,
                panel: domain,
                inout piv: [] indexType) {
+	
+  if (debug) {
+    writeln("panelSolve(): 1. ab = "); writeln(ab);
+    writeln("panelSolve(): 1. piv = "); writeln(piv);
+  }
+  
+  if (useChpl) {
+	panelSolveChapel(ab, panel, piv);  
+  } else {
 
-  /* 
-	TODO Create ab and pic wrappers
-  var abDom = ab.domain;
-  panelSolveNative(abRef, piv(piv.domain.low), 
+    _extern proc GET_CHPL_REF(inData): int(32);
+    _extern proc MAKE_INT_64(inout inData): int(64);	  
+	
+    var abWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	
+    abWrapper.initData(GET_CHPL_REF(ab));
+  
+    var pivWrapper = new hplsupport.SimpleArray1dInt();
+    pivWrapper.initData(MAKE_INT_64(piv(piv.domain.low)));  	
+
+    var abDom = ab.domain;
+    panelSolveCompute(abWrapper, pivWrapper, 
   		  abDom.low(1), abDom.high(1), abDom.low(2), abDom.high(2), 
    		  panel.low(1), panel.high(1), panel.low(2), panel.high(2));
-  */
+  }
+  
+  if (debug) {
+    writeln("panelSolve(): 2. ab = "); writeln(ab);
+    writeln("panelSolve(): 2. piv = "); writeln(piv);
+    writeln();
+  }
+}
+
+proc panelSolveChapel(Ab: [] elemType,
+               panel: domain,
+               piv: [] indexType) {
+
+  for k in panel.dim(2) {             // iterate through the columns
+    var col = panel[k.., k..k];
+    
+    // If there are no rows below the current column return
+    if col.numIndices == 0 then return;
+    
+    // Find the pivot, the element with the largest absolute value.
+    const ( , (pivotRow, )) = maxloc reduce(abs(Ab(col)), col);
+
+    // Capture the pivot value explicitly (note that result of maxloc
+    // is absolute value, so it can't be used directly).
+    //
+    const pivotVal = Ab[pivotRow, k];
+    
+    // Swap the current row with the pivot row and update the pivot vector
+    // to reflect that
+    Ab[k..k, ..] <=> Ab[pivotRow..pivotRow, ..];
+    piv[k] <=> piv[pivotRow];
+
+    if (pivotVal == 0) then
+      halt("Matrix cannot be factorized");
+    
+    // divide all values below and in the same col as the pivot by
+    // the pivot value
+    Ab[k+1.., k..k] /= pivotVal;
+    
+    // update all other values below the pivot
+    forall (i,j) in panel[k+1.., k+1..] do
+      Ab[i,j] -= Ab[i,k] * Ab[k,j];
+  }
 }
 
 //

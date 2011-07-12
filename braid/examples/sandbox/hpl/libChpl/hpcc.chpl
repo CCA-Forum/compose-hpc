@@ -21,8 +21,8 @@ module HighPerformanceLinpack_static {
         		inout ex: sidl_BaseInterface);
     	
     proc panelSolveCompute( 
-    		in ab: hplsupport_BlockCyclicDistArray2dDouble, 
-    		in piv: hplsupport_SimpleArray1dInt, 
+    		in ab: hplsupport.BlockCyclicDistArray2dDouble, 
+    		in piv: hplsupport.SimpleArray1dInt, 
     		/* abLimits*/ 
     		in abStart1: int(32), 
     		in abEnd1: int(32), 

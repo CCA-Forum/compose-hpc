@@ -168,10 +168,12 @@ impl_hplsupport_SimpleArray1dInt_initData(
     /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.initData) */
 
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
-	int32_t* chplDataPtr = (int32_t*) data;
-	// printf("impl_hplsupport_SimpleArray1dInt_initData(): chplDataPtr = %p \n", chplDataPtr);
-	dptr->chpl_data = chplDataPtr;
-	// printf("impl_hplsupport_SimpleArray1dInt_initData(): chpl_data = %p \n", dptr->chpl_data);
+    // printf(("impl_hplsupport_SimpleArray1dInt_initData(): data = %p \n", data);
+	int64_t* chplDataPtr = (int64_t*) data;
+    // printf(("impl_hplsupport_SimpleArray1dInt_initData(): chplDataPtr = %p [content = %ld] \n", chplDataPtr, *chplDataPtr);
+	dptr->chpl_data = (int32_t*) (*chplDataPtr);
+    // printf(("impl_hplsupport_SimpleArray1dInt_initData(): chpl_data = %p \n", dptr->chpl_data);
+    // printf(("impl_hplsupport_SimpleArray1dInt_initData(): [chpl_data[0] = %d] \n", dptr->chpl_data[0]);
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.initData) */
   }
@@ -200,8 +202,11 @@ impl_hplsupport_SimpleArray1dInt_get(
 	// printf("impl_hplsupport_SimpleArray1dInt_get(%d)\n", idx1);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
 	// printf("impl_hplsupport_SimpleArray1dInt_get(): chpl_data = %p \n", dptr->chpl_data);
-	return dptr->chpl_data[idx1];
-
+    // TODO Get the lower value from the chpl layer and set in data struct
+    int lowerIndexStart = 1;
+    int32_t res = dptr->chpl_data[idx1 - lowerIndexStart];
+    // printf("impl_hplsupport_SimpleArray1dInt_get(%d) returns %d \n", idx1, res);
+    return res;
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.get) */
   }
 }
@@ -226,10 +231,12 @@ impl_hplsupport_SimpleArray1dInt_set(
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(hplsupport.SimpleArray1dInt.set) */
-	// printf("impl_hplsupport_SimpleArray1dInt_set(%d) = %d\n", idx1, newVal);
+    // printf(("impl_hplsupport_SimpleArray1dInt_set(%d) = %d\n", idx1, newVal);
 	struct hplsupport_SimpleArray1dInt__data *dptr = hplsupport_SimpleArray1dInt__get_data(self);
-	// printf("impl_hplsupport_SimpleArray1dInt_set(): chpl_data = %p \n", dptr->chpl_data);
-	dptr->chpl_data[idx1] = newVal;
+    // printf(("impl_hplsupport_SimpleArray1dInt_set(): chpl_data = %p [chpl_data[0] = %d] \n", dptr->chpl_data, dptr->chpl_data[0]);
+	// TODO Get the lower value from the chpl layer and set in data struct
+    int lowerIndexStart = 1;
+    dptr->chpl_data[idx1 - lowerIndexStart] = newVal;
 
     /* DO-NOT-DELETE splicer.end(hplsupport.SimpleArray1dInt.set) */
   }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC="colorgcc.pl" #"`babel-config --query-var=CC`" # "colorgcc.pl"
+CC="`babel-config --query-var=CC`" # "colorgcc.pl"
 CXX="`babel-config --query-var=CXX`"
 
 CHAPEL_HOME="${CHPL_HOME}"
@@ -38,6 +38,9 @@ BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${E
 HEADER_DEPS=""
 HEADER_DEPS="${HEADER_DEPS} hpcc.h"
 HEADER_DEPS="${HEADER_DEPS} hplsupport.h"
+HEADER_DEPS="${HEADER_DEPS} braid_chapel_util.h"
+HEADER_DEPS="${HEADER_DEPS} hplsupport_SimpleArray1dInt_cStub.h"
+HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble_cStub.h"
 
 BRAID_GEN_C_SOURCES=""
 
