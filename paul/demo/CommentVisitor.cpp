@@ -12,6 +12,11 @@ using namespace std;
 
 extern SgProject *root;
 
+CommentVisitor::CommentVisitor(string inputFile,int * fcount) {
+	inpFile = inputFile;
+	fileCount = fcount;
+}
+
 string remove_cpp_comment_marks(const string s) {
   return s.substr(2);
 }
@@ -28,14 +33,14 @@ string annotation_text(const string s) {
   return s.substr(1);
 }
 
-void handle_comment(const string s, SgLocatedNode *node) {
+void handle_comment(const string s, SgLocatedNode *node, string inpFile, int *fileCount) {
   if(is_annotation(s)) {
     string ann_text = annotation_text(s);
     Annotation *ann = Annotation::parse(ann_text);
     if(ann != NULL) {
       cerr << "Handling " << ann->get_id() << endl;
       Transform *transf = Transform::get_transform(node,ann);
-      transf->generate();
+      transf->generate(inpFile,fileCount);
       // AstDOTGeneration gen;
       // gen.generate(node,"boids.c");
       delete transf;
@@ -55,12 +60,12 @@ void CommentVisitor::visit(SgNode *node) {
         switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT: {
             string comment = remove_c_comment_marks((*i)->getString());
-            handle_comment(comment,locatedNode);
+            handle_comment(comment,locatedNode,inpFile,fileCount);
             break;
           }
           case CPP_COMMENT: {
             string comment = remove_cpp_comment_marks((*i)->getString());
-            handle_comment(comment,locatedNode);
+            handle_comment(comment,locatedNode,inpFile,fileCount);
             break;
           }
         }
