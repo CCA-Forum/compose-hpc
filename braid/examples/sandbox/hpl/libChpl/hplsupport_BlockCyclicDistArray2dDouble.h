@@ -139,11 +139,11 @@ hplsupport_BlockCyclicDistArray2dDouble_initData(
 
 
 /**
- * Method:  getFromArray[]
+ * Method:  get[]
  */
 HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 double
-hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
+hplsupport_BlockCyclicDistArray2dDouble_get(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ int32_t idx1,
   /* in */ int32_t idx2,
@@ -151,7 +151,7 @@ hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
 #ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 {
   double _result;
-  _result = (*self->d_epv->f_getFromArray)(
+  _result = (*self->d_epv->f_get)(
     self,
     idx1,
     idx2,
@@ -164,11 +164,11 @@ hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
 
 
 /**
- * Method:  setIntoArray[]
+ * Method:  set[]
  */
 HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 void
-hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ double newVal,
   /* in */ int32_t idx1,
@@ -176,7 +176,7 @@ hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
   /* out */ sidl_BaseInterface *_ex)
 #ifdef HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_INLINE_DECL
 {
-  (*self->d_epv->f_setIntoArray)(
+  (*self->d_epv->f_set)(
     self,
     newVal,
     idx1,

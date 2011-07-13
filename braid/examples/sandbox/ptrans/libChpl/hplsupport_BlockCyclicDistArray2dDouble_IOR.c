@@ -21,6 +21,7 @@
 #include "sidl_exec_err.h"
 #include "sidl_PreViolation.h"
 #include "sidl_NotImplementedException.h"
+#include <stdio.h>
 /*
  * End: RMI includes
  */
@@ -86,22 +87,15 @@ static int s_load_called = 0;
  */
 
 static int s_method_initialized = 0;
-static int s_static_initialized = 0;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__epv  
+static struct hplsupport_BlockCyclicDistArray2dDouble__epv 
   s_my_epv__hplsupport_blockcyclicdistarray2ddouble;
-static struct hplsupport_BlockCyclicDistArray2dDouble__sepv 
-  s_stc_epv__hplsupport_blockcyclicdistarray2ddouble;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__epv  
+static struct hplsupport_BlockCyclicDistArray2dDouble__epv 
   s_my_epv_contracts__hplsupport_blockcyclicdistarray2ddouble;
-static struct hplsupport_BlockCyclicDistArray2dDouble__sepv 
-  s_stc_epv_contracts__hplsupport_blockcyclicdistarray2ddouble;
 
-static struct hplsupport_BlockCyclicDistArray2dDouble__epv  
+static struct hplsupport_BlockCyclicDistArray2dDouble__epv 
   s_my_epv_hooks__hplsupport_blockcyclicdistarray2ddouble;
-static struct hplsupport_BlockCyclicDistArray2dDouble__sepv 
-  s_stc_epv_hooks__hplsupport_blockcyclicdistarray2ddouble;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
@@ -109,16 +103,8 @@ static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
 static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
 static struct sidl_BaseInterface__epv* s_par_epv__sidl_baseinterface;
 
-/*
- * Static variables for interface contract enforcement and/or hooks controls.
- */
-
-static struct hplsupport_BlockCyclicDistArray2dDouble__cstats s_cstats;
-
 static struct hplsupport_BlockCyclicDistArray2dDouble__pre_epv s_preEPV;
 static struct hplsupport_BlockCyclicDistArray2dDouble__post_epv s_postEPV;
-static struct hplsupport_BlockCyclicDistArray2dDouble__pre_sepv s_preSEPV;
-static struct hplsupport_BlockCyclicDistArray2dDouble__post_sepv s_postSEPV;
 
 /*
  * Declare EPV routines defined in the skeleton file.
@@ -132,11 +118,6 @@ extern void hplsupport_BlockCyclicDistArray2dDouble__set_epv(
   struct hplsupport_BlockCyclicDistArray2dDouble__epv* epv,
     struct hplsupport_BlockCyclicDistArray2dDouble__pre_epv* pre_epv,
     struct hplsupport_BlockCyclicDistArray2dDouble__post_epv* post_epv);
-
-extern void hplsupport_BlockCyclicDistArray2dDouble__set_sepv(
-  struct hplsupport_BlockCyclicDistArray2dDouble__sepv* sepv,
-    struct hplsupport_BlockCyclicDistArray2dDouble__pre_sepv* pre_sepv,
-    struct hplsupport_BlockCyclicDistArray2dDouble__post_sepv* post_sepv);
 
 extern void hplsupport_BlockCyclicDistArray2dDouble__call_load(void);
 #ifdef __cplusplus
@@ -681,39 +662,6 @@ hplsupport_BlockCyclicDistArray2dDouble__cast__exec(
 }
 
 /*
- * CHECKS: Enable/disable static contract enforcement.
- */
-
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__set_contracts_static(
-  sidl_bool   enable,
-  const char* enfFilename,
-  sidl_bool   resetCounters,
-  struct sidl_BaseInterface__object **_ex)
-{
-  *_ex  = NULL;
-  {
-  }
-}
-
-/*
- * DUMP: Dump static interface contract enforcement statistics.
- */
-
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__dump_stats_static(
-  const char* filename,
-  const char* prefix,
-  struct sidl_BaseInterface__object **_ex)
-{
-  *_ex = NULL;
-  {
-    /*
-     * Nothing to do since contract checks not generated.
-     */
-
-  }
-}
-
-/*
  * CHECKS: Enable/disable contract enforcement.
  */
 
@@ -797,20 +745,6 @@ static void* ior_hplsupport_BlockCyclicDistArray2dDouble__cast(
   return cast;
   EXIT:
   return NULL;
-}
-
-/*
- * HOOKS: Enable/disable static hooks.
- */
-
-static void ior_hplsupport_BlockCyclicDistArray2dDouble__set_hooks_static(
-  sidl_bool enable, struct sidl_BaseInterface__object **_ex )
-{
-  *_ex  = NULL;
-  /*
-   * Nothing else to do since hook methods not generated.
-   */
-
 }
 
 /*
@@ -902,15 +836,13 @@ ior_hplsupport_BlockCyclicDistArray2dDouble__exec(
     { "_cast", hplsupport_BlockCyclicDistArray2dDouble__cast__exec },
     { "addRef", hplsupport_BlockCyclicDistArray2dDouble_addRef__exec },
     { "deleteRef", hplsupport_BlockCyclicDistArray2dDouble_deleteRef__exec },
+    { "get", hplsupport_BlockCyclicDistArray2dDouble_get__exec },
     { "getClassInfo", 
       hplsupport_BlockCyclicDistArray2dDouble_getClassInfo__exec },
-    { "get", 
-      hplsupport_BlockCyclicDistArray2dDouble_get__exec },
     { "initData", hplsupport_BlockCyclicDistArray2dDouble_initData__exec },
     { "isSame", hplsupport_BlockCyclicDistArray2dDouble_isSame__exec },
     { "isType", hplsupport_BlockCyclicDistArray2dDouble_isType__exec },
-    { "set", 
-      hplsupport_BlockCyclicDistArray2dDouble_set__exec }
+    { "set", hplsupport_BlockCyclicDistArray2dDouble_set__exec }
   };
   int i, cmp, l = 0;
   int u = sizeof(s_methods)/sizeof(struct 
@@ -978,8 +910,8 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
   epv->f__ctor2                = NULL;
   epv->f__dtor                 = NULL;
   epv->f_initData              = NULL;
-  epv->f_get          = NULL;
-  epv->f_set          = NULL;
+  epv->f_get                   = NULL;
+  epv->f_set                   = NULL;
   epv->f_addRef                = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
   epv->f_deleteRef             = (void (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
   epv->f_isSame                = (sidl_bool (*)(struct hplsupport_BlockCyclicDistArray2dDouble__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
@@ -1029,32 +961,6 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_epv(void)
 }
 
 /*
- * SEPV: create the static entry point vector (SEPV).
- */
-
-static void hplsupport_BlockCyclicDistArray2dDouble__init_sepv(void)
-{
-  /*
-   * assert( HAVE_LOCKED_STATIC_GLOBALS );
-   */
-
-  struct sidl_BaseInterface__object *throwaway_exception = NULL;
-  struct hplsupport_BlockCyclicDistArray2dDouble__sepv*  s = &s_stc_epv__hplsupport_blockcyclicdistarray2ddouble;
-
-  s->f__set_hooks_static                                    = ior_hplsupport_BlockCyclicDistArray2dDouble__set_hooks_static;
-  s->f__set_contracts_static                                = ior_hplsupport_BlockCyclicDistArray2dDouble__set_contracts_static;
-  s->f__dump_stats_static                                   = ior_hplsupport_BlockCyclicDistArray2dDouble__dump_stats_static;
-  s->f_ptransHelper    = NULL;
-
-  hplsupport_BlockCyclicDistArray2dDouble__set_sepv(s, &s_preSEPV, &s_postSEPV);
-
-  ior_hplsupport_BlockCyclicDistArray2dDouble__set_hooks_static(FALSE, &throwaway_exception);
-
-  s_static_initialized = 1;
-  ior_hplsupport_BlockCyclicDistArray2dDouble__ensure_load_called();
-}
-
-/*
  * hplsupport_BlockCyclicDistArray2dDouble__getEPVs: Get my version of all relevant EPVs.
  */
 
@@ -1075,20 +981,6 @@ void hplsupport_BlockCyclicDistArray2dDouble__getEPVs (
   *s_arg_epv__hplsupport_blockcyclicdistarray2ddouble = &s_my_epv__hplsupport_blockcyclicdistarray2ddouble;
   *s_arg_epv_hooks__hplsupport_blockcyclicdistarray2ddouble = &s_my_epv_hooks__hplsupport_blockcyclicdistarray2ddouble;
 }
-/*
- * hplsupport_BlockCyclicDistArray2dDouble__getStaticEPV: return pointer to static EPV structure.
- */
-
-struct hplsupport_BlockCyclicDistArray2dDouble__sepv*
-hplsupport_BlockCyclicDistArray2dDouble__getStaticEPV(void){
-  LOCK_STATIC_GLOBALS;
-  if (!s_static_initialized) {
-    hplsupport_BlockCyclicDistArray2dDouble__init_sepv();
-  }
-  UNLOCK_STATIC_GLOBALS;
-  return &s_stc_epv__hplsupport_blockcyclicdistarray2ddouble;
-}
-
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
@@ -1247,7 +1139,6 @@ hplsupport_BlockCyclicDistArray2dDouble__IOR_version(int32_t *major, int32_t *mi
 static const struct hplsupport_BlockCyclicDistArray2dDouble__external
 s_externalEntryPoints = {
   hplsupport_BlockCyclicDistArray2dDouble__createObject,
-  hplsupport_BlockCyclicDistArray2dDouble__getStaticEPV,
   hplsupport_BlockCyclicDistArray2dDouble__getSuperEPV,
   2, 
   0

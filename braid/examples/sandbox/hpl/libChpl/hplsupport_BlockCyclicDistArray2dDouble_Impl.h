@@ -36,18 +36,6 @@
  * START: Chapel implementation specific declarations
  */
 
-// Make forward references of external struct from chpl__header.h
-
-struct __ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F;
-typedef struct __ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F* BlockCyclicDistArray2dDoubleChpl;
-
-// redefine struct from chpl__header.h
-struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F {
-  int32_t locale;
-  BlockCyclicDistArray2dDoubleChpl addr;
-};
-typedef struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicArr__real64_2_int32_t_F* WideBlockCyclicDistArray2dDoubleChpl;
-
 /**
  * END: Chapel implementation specific declarations
  */
@@ -61,7 +49,7 @@ typedef struct __chpl____wide_ArrayWrapper__real64_2__array_int32_t_BlockCyclicA
 struct hplsupport_BlockCyclicDistArray2dDouble__data {
   /* DO-NOT-DELETE splicer.begin(hplsupport.BlockCyclicDistArray2dDouble._data) */
   /* insert code here (private data members) */
-  BlockCyclicDistArray2dDoubleChpl chpl_data;
+  int32_t chpl_data;
   /* DO-NOT-DELETE splicer.end(hplsupport.BlockCyclicDistArray2dDouble._data) */
 };
 
@@ -124,7 +112,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_initData(
 
 extern
 double
-impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_get(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ int32_t idx1,
   /* in */ int32_t idx2,
@@ -132,7 +120,7 @@ impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray(
 
 extern
 void
-impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(
+impl_hplsupport_BlockCyclicDistArray2dDouble_set(
   /* in */ hplsupport_BlockCyclicDistArray2dDouble self,
   /* in */ double newVal,
   /* in */ int32_t idx1,

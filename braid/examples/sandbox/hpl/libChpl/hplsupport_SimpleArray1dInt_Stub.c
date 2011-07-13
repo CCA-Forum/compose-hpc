@@ -1247,9 +1247,9 @@ remote_hplsupport_SimpleArray1dInt_initData(
   }
 }
 
-/* REMOTE METHOD STUB:getFromArray */
+/* REMOTE METHOD STUB:get */
 static int32_t
-remote_hplsupport_SimpleArray1dInt_getFromArray(
+remote_hplsupport_SimpleArray1dInt_get(
   /* in */ struct hplsupport_SimpleArray1dInt__object*self ,
   /* in */ int32_t idx1,
   /* out */ struct sidl_BaseInterface__object **_ex)
@@ -1265,7 +1265,7 @@ remote_hplsupport_SimpleArray1dInt_getFromArray(
     struct sidl_rmi_InstanceHandle__object * _conn = ((struct 
       hplsupport_SimpleArray1dInt__remote*)self->d_data)->d_ih;
     sidl_rmi_Invocation _inv = sidl_rmi_InstanceHandle_createInvocation( _conn, 
-      "getFromArray", _ex ); SIDL_CHECK(*_ex);
+      "get", _ex ); SIDL_CHECK(*_ex);
 
     /* pack in and inout arguments */
     sidl_rmi_Invocation_packInt( _inv, "idx1", idx1, _ex);SIDL_CHECK(*_ex);
@@ -1277,7 +1277,7 @@ remote_hplsupport_SimpleArray1dInt_getFromArray(
     if (_be != NULL) {
       struct sidl_BaseInterface__object* throwaway_exception = NULL;
       sidl_BaseException_addLine(_be, 
-      "Exception unserialized from hplsupport.SimpleArray1dInt.getFromArray.",
+      "Exception unserialized from hplsupport.SimpleArray1dInt.get.",
         &throwaway_exception);
       *_ex = (struct sidl_BaseInterface__object*) sidl_BaseInterface__cast(_be,
         &throwaway_exception);
@@ -1298,9 +1298,9 @@ remote_hplsupport_SimpleArray1dInt_getFromArray(
   }
 }
 
-/* REMOTE METHOD STUB:setIntoArray */
+/* REMOTE METHOD STUB:set */
 static void
-remote_hplsupport_SimpleArray1dInt_setIntoArray(
+remote_hplsupport_SimpleArray1dInt_set(
   /* in */ struct hplsupport_SimpleArray1dInt__object*self ,
   /* in */ int32_t newVal,
   /* in */ int32_t idx1,
@@ -1316,7 +1316,7 @@ remote_hplsupport_SimpleArray1dInt_setIntoArray(
     struct sidl_rmi_InstanceHandle__object * _conn = ((struct 
       hplsupport_SimpleArray1dInt__remote*)self->d_data)->d_ih;
     sidl_rmi_Invocation _inv = sidl_rmi_InstanceHandle_createInvocation( _conn, 
-      "setIntoArray", _ex ); SIDL_CHECK(*_ex);
+      "set", _ex ); SIDL_CHECK(*_ex);
 
     /* pack in and inout arguments */
     sidl_rmi_Invocation_packInt( _inv, "newVal", newVal, _ex);SIDL_CHECK(*_ex);
@@ -1329,7 +1329,7 @@ remote_hplsupport_SimpleArray1dInt_setIntoArray(
     if (_be != NULL) {
       struct sidl_BaseInterface__object* throwaway_exception = NULL;
       sidl_BaseException_addLine(_be, 
-      "Exception unserialized from hplsupport.SimpleArray1dInt.setIntoArray.",
+      "Exception unserialized from hplsupport.SimpleArray1dInt.set.",
         &throwaway_exception);
       *_ex = (struct sidl_BaseInterface__object*) sidl_BaseInterface__cast(_be,
         &throwaway_exception);
@@ -1577,8 +1577,8 @@ static void hplsupport_SimpleArray1dInt__init_remote_epv(void)
   epv->f__ctor2              = NULL;
   epv->f__dtor               = NULL;
   epv->f_initData            = remote_hplsupport_SimpleArray1dInt_initData;
-  epv->f_getFromArray        = remote_hplsupport_SimpleArray1dInt_getFromArray;
-  epv->f_setIntoArray        = remote_hplsupport_SimpleArray1dInt_setIntoArray;
+  epv->f_get        = remote_hplsupport_SimpleArray1dInt_get;
+  epv->f_set        = remote_hplsupport_SimpleArray1dInt_set;
   epv->f_addRef              = remote_hplsupport_SimpleArray1dInt_addRef;
   epv->f_deleteRef           = remote_hplsupport_SimpleArray1dInt_deleteRef;
   epv->f_isSame              = remote_hplsupport_SimpleArray1dInt_isSame;

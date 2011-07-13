@@ -30,6 +30,7 @@
 #include "sidl_BaseInterface_IOR.h"
 #include "babel_config.h"
 #ifdef SIDL_DYNAMIC_LIBRARY
+#include <stdio.h>
 #include <stdlib.h>
 #include "sidl_Loader.h"
 #endif
@@ -67,22 +68,6 @@ static const struct hplsupport_BlockCyclicDistArray2dDouble__external* _loadIOR(
 }
 
 #define _getExternals() (_externals ? _externals : _loadIOR())
-
-/*
- * Hold pointer to static entry point vector
- */
-
-static const struct hplsupport_BlockCyclicDistArray2dDouble__sepv *_sepv = NULL;
-/*
- * Return pointer to static functions.
- */
-
-#define _getSEPV() (_sepv ? _sepv : (_sepv = (*(_getExternals()->getStaticEPV))()))
-/*
- * Reset point to static functions.
- */
-
-#define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
 /*
  * Constructor function for the class.
@@ -140,37 +125,6 @@ hplsupport_BlockCyclicDistArray2dDouble__connect(const char* url,
 #endif /*WITH_RMI*/
 
 /*
- * Method to enable/disable static interface contract enforcement.
- */
-
-void
-hplsupport_BlockCyclicDistArray2dDouble__set_contracts_static(
-  sidl_bool   enable,
-  const char* enfFilename,
-  sidl_bool   resetCounters,
-  struct sidl_BaseInterface__object **_ex)
-{
-  (_getSEPV()->f__set_contracts_static)(
-  enable, enfFilename, resetCounters, _ex);
-  _resetSEPV();
-}
-
-/*
- * Method to dump static interface contract enforcement statistics.
- */
-
-void
-hplsupport_BlockCyclicDistArray2dDouble__dump_stats_static(
-  const char* filename,
-  const char* prefix,
-  struct sidl_BaseInterface__object **_ex)
-{
-  (_getSEPV()->f__dump_stats_static)(
-  filename, prefix, _ex);
-  _resetSEPV();
-}
-
-/*
  * Method to enable/disable interface contract enforcement.
  */
 
@@ -201,28 +155,6 @@ hplsupport_BlockCyclicDistArray2dDouble__dump_stats(
   (*self->d_epv->f__dump_stats)(
   self,
   filename, prefix, _ex);
-}
-
-/*
- * Method:  ptransHelper[]
- */
-
-void
-hplsupport_BlockCyclicDistArray2dDouble_ptransHelper(
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble a,
-  /* in */ hplsupport_BlockCyclicDistArray2dDouble c,
-  /* in */ double beta,
-  /* in */ int32_t i,
-  /* in */ int32_t j,
-  /* out */ sidl_BaseInterface *_ex)
-{
-  (_getSEPV()->f_ptransHelper)(
-    a,
-    c,
-    beta,
-    i,
-    j,
-    _ex);
 }
 
 /*
@@ -291,20 +223,6 @@ hplsupport_BlockCyclicDistArray2dDouble__isLocal(
   /* out */ sidl_BaseInterface *_ex)
 {
   return !hplsupport_BlockCyclicDistArray2dDouble__isRemote(self, _ex);
-}
-
-/*
- * Method to enable/disable static hooks execution.
- */
-
-void
-hplsupport_BlockCyclicDistArray2dDouble__set_hooks_static(
-  sidl_bool enable,
-  struct sidl_BaseInterface__object **_ex)
-{
-  (_getSEPV()->f__set_hooks_static)(
-  enable, _ex);
-  _resetSEPV();
 }
 
 /**
@@ -1689,9 +1607,9 @@ static void hplsupport_BlockCyclicDistArray2dDouble__init_remote_epv(void)
   epv->f__dtor               = NULL;
   epv->f_initData            = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_initData;
-  epv->f_get        = 
+  epv->f_get                 = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_get;
-  epv->f_set        = 
+  epv->f_set                 = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_set;
   epv->f_addRef              = 
     remote_hplsupport_BlockCyclicDistArray2dDouble_addRef;

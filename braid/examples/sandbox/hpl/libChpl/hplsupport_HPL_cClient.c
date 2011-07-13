@@ -30,7 +30,7 @@ void panelSolveNative(void* abData, void* pivData,
 	double pivotVal = 0;
 	int pivotRow = -1;
 	for (int p = k; p <= end1; p++) {
-      double loopVal = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, p, k, &ex);
+      double loopVal = hplsupport_BlockCyclicDistArray2dDouble_get(ab, p, k, &ex);
       if (fabs(loopVal) > pivotVal) {
     	pivotVal = loopVal;
     	pivotRow = p;
@@ -48,18 +48,18 @@ void panelSolveNative(void* abData, void* pivData,
       if (DEBUG) printf("  swapping rows in ab \n");
 	  // Ab[k..k, ..] <=> Ab[pivotRow..pivotRow, ..];
 	  for (int c = abStart2; c <= abEnd2; c++) {
-	    double ab1 = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, k, c, &ex);
-        double ab2 = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, pivotRow, c, &ex);
-        hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(ab, ab2, k, c, &ex);
-        hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(ab, ab1, pivotRow, c, &ex);
+	    double ab1 = hplsupport_BlockCyclicDistArray2dDouble_get(ab, k, c, &ex);
+        double ab2 = hplsupport_BlockCyclicDistArray2dDouble_get(ab, pivotRow, c, &ex);
+        hplsupport_BlockCyclicDistArray2dDouble_set(ab, ab2, k, c, &ex);
+        hplsupport_BlockCyclicDistArray2dDouble_set(ab, ab1, pivotRow, c, &ex);
 	  }
 	  if (DEBUG) printf("  swapping rows in piv \n");
 	  // piv[k] <=> piv[pivotRow];
 	  {
-		  int32_t p1 = hplsupport_SimpleArray1dInt_getFromArray(piv, k, &ex);
-		  int32_t p2 = hplsupport_SimpleArray1dInt_getFromArray(piv, pivotRow, &ex);
-		  hplsupport_SimpleArray1dInt_setIntoArray(piv, p2, k, &ex);
-		  hplsupport_SimpleArray1dInt_setIntoArray(piv, p1, pivotRow, &ex);
+		  int32_t p1 = hplsupport_SimpleArray1dInt_get(piv, k, &ex);
+		  int32_t p2 = hplsupport_SimpleArray1dInt_get(piv, pivotRow, &ex);
+		  hplsupport_SimpleArray1dInt_set(piv, p2, k, &ex);
+		  hplsupport_SimpleArray1dInt_set(piv, p1, pivotRow, &ex);
 	  }
 	}
 
@@ -72,9 +72,9 @@ void panelSolveNative(void* abData, void* pivData,
 	if (DEBUG) printf("  normalizing values of col-%d in ab \n", k);
 	// divide all values below and in the same col as the pivot by the pivot value
 	for (int r = k + 1; r <= abEnd1; r++) {
-	  double ab1 = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, r, k, &ex);
+	  double ab1 = hplsupport_BlockCyclicDistArray2dDouble_get(ab, r, k, &ex);
 	  double ab2 = ab1 / pivotVal;
-	  hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(ab, ab2, r, k, &ex);
+	  hplsupport_BlockCyclicDistArray2dDouble_set(ab, ab2, r, k, &ex);
 	}
 
 	if (DEBUG) printf("  updating remaining values of ab \n", k);
@@ -82,11 +82,11 @@ void panelSolveNative(void* abData, void* pivData,
 	for (int i = k + 1; i <= end1; i++) {
       for (int j = k + 1; j <= end2; j++) {
     	// Ab[i,j] -= Ab[i,k] * Ab[k,j];
-    	double ab_ij = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, i, j, &ex);
-    	double ab_ik = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, i, k, &ex);
-    	double ab_kj = hplsupport_BlockCyclicDistArray2dDouble_getFromArray(ab, k, j, &ex);
+    	double ab_ij = hplsupport_BlockCyclicDistArray2dDouble_get(ab, i, j, &ex);
+    	double ab_ik = hplsupport_BlockCyclicDistArray2dDouble_get(ab, i, k, &ex);
+    	double ab_kj = hplsupport_BlockCyclicDistArray2dDouble_get(ab, k, j, &ex);
     	double newVal = ab_ij - (ab_ik * ab_kj);
-    	hplsupport_BlockCyclicDistArray2dDouble_setIntoArray(ab, newVal, i, j, &ex);
+    	hplsupport_BlockCyclicDistArray2dDouble_set(ab, newVal, i, j, &ex);
 	  }
 	}
   }

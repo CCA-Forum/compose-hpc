@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC="`babel-config --query-var=CC`"
+CC="`babel-config --query-var=CC`" #"colorgcc.pl"
 CXX="`babel-config --query-var=CXX`"
 
 CHAPEL_HOME="${CHPL_HOME}"
@@ -39,12 +39,21 @@ BABEL_LIBTOOL_COMMAND="babel-libtool --mode=compile --tag=CC ${CC} ${CFLAGS} ${E
 HEADER_DEPS=""
 HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble.h"
 HEADER_DEPS="${HEADER_DEPS} hplsupport_BlockCyclicDistArray2dDouble_cStub.h"
+HEADER_DEPS="${HEADER_DEPS} hpcc_ParallelTranspose.h"
 HEADER_DEPS="${HEADER_DEPS} braid_chapel_util.h"
 
-BRAID_GEN_C_SOURCES="hplsupport_BlockCyclicDistArray2dDouble_IOR.c hplsupport_BlockCyclicDistArray2dDouble_Skel.c"
-BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Stub.c hplsupport_BlockCyclicDistArray2dDouble_cStub.c "
-BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cImpl.c "
-# BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_HPL_cClient.c "
+BRAID_GEN_C_SOURCES=""
+
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_IOR.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Skel.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cStub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hplsupport_BlockCyclicDistArray2dDouble_cImpl.c"
+
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_ParallelTranspose_IOR.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_ParallelTranspose_Skel.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_ParallelTranspose_Stub.c"
+BRAID_GEN_C_SOURCES="${BRAID_GEN_C_SOURCES} hpcc_ParallelTranspose_cImpl.c"
 
 BRAID_GEN_O_FILES=""
 
@@ -57,7 +66,7 @@ echo "Cleaning up previous build artifacts"
 rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen;
 
 echo "Generating C-sources from chpl files"
-chpl --savec ./gen  ${HEADER_DEPS} *.chpl --make true
+chpl --fast --savec ./gen  ${HEADER_DEPS} *.chpl --make true
 
 for loopFile in ${BRAID_GEN_C_SOURCES}
 do

@@ -16,15 +16,11 @@ use HPCCProblemSize;
 //
 use BlockCycDist;
 
-use ArrayWrapper;
+use hplsupport;
+use hpcc.HighPerformanceLinpack_static;
 use hplsupport_BlockCyclicDistArray2dDouble_chplImpl;
-use hplsupport_SimpleArray1dInt_chplImpl;
 
-
-_extern proc panelSolveNative(inout abData, inout pivData, 
-		/* abLimits*/ in abStart1: int(32), in abEnd1: int(32), in abStart2: int(32), in abEnd2: int(32), 
-		/*panel domain*/ in start1: int(32), in end1: int(32), in start2: int(32), in end2: int(32));
-
+config const debug = false;
 
 //
 // The number of matrices and the element type of those matrices
@@ -239,17 +235,77 @@ proc dgemmNativeInds(A: [] elemType,
 // do unblocked-LU decomposition within the specified panel, update the
 // pivot vector accordingly
 //
+config const useChpl = false;
+
 proc panelSolve(ab: [] elemType,
+               panel: domain,
+               inout piv: [] indexType) {
+	
+  if (debug) {
+    writeln("panelSolve(): 1. ab = "); writeln(ab);
+    writeln("panelSolve(): 1. piv = "); writeln(piv);
+  }
+  
+  if (useChpl) {
+	panelSolveChapel(ab, panel, piv);  
+  } else {
+
+    _extern proc GET_CHPL_REF(inData): int(32);
+    _extern proc MAKE_INT_64(inout inData): int(64);	  
+	
+    var abWrapper = new hplsupport.BlockCyclicDistArray2dDouble();	
+    abWrapper.initData(GET_CHPL_REF(ab));
+  
+    var pivWrapper = new hplsupport.SimpleArray1dInt();
+    pivWrapper.initData(MAKE_INT_64(piv(piv.domain.low)));  	
+
+    var abDom = ab.domain;
+    panelSolveCompute(abWrapper, pivWrapper, 
+  		  abDom.low(1), abDom.high(1), abDom.low(2), abDom.high(2), 
+   		  panel.low(1), panel.high(1), panel.low(2), panel.high(2));
+  }
+  
+  if (debug) {
+    writeln("panelSolve(): 2. ab = "); writeln(ab);
+    writeln("panelSolve(): 2. piv = "); writeln(piv);
+    writeln();
+  }
+}
+
+proc panelSolveChapel(Ab: [] elemType,
                panel: domain,
                piv: [] indexType) {
 
-  var abWrapper = new ArrayWrapper(elemType, 2, ab);
-  var pivWrapper = new ArrayWrapper(indexType, 1, piv);	
-  
-  var abDom = ab.domain;
-  panelSolveNative(abWrapper, pivWrapper, 
-  		  abDom.low(1), abDom.high(1), abDom.low(2), abDom.high(2), 
-  		  panel.low(1), panel.high(1), panel.low(2), panel.high(2));
+  for k in panel.dim(2) {             // iterate through the columns
+    var col = panel[k.., k..k];
+    
+    // If there are no rows below the current column return
+    if col.numIndices == 0 then return;
+    
+    // Find the pivot, the element with the largest absolute value.
+    const ( , (pivotRow, )) = maxloc reduce(abs(Ab(col)), col);
+
+    // Capture the pivot value explicitly (note that result of maxloc
+    // is absolute value, so it can't be used directly).
+    //
+    const pivotVal = Ab[pivotRow, k];
+    
+    // Swap the current row with the pivot row and update the pivot vector
+    // to reflect that
+    Ab[k..k, ..] <=> Ab[pivotRow..pivotRow, ..];
+    piv[k] <=> piv[pivotRow];
+
+    if (pivotVal == 0) then
+      halt("Matrix cannot be factorized");
+    
+    // divide all values below and in the same col as the pivot by
+    // the pivot value
+    Ab[k+1.., k..k] /= pivotVal;
+    
+    // update all other values below the pivot
+    forall (i,j) in panel[k+1.., k+1..] do
+      Ab[i,j] -= Ab[i,k] * Ab[k,j];
+  }
 }
 
 //
@@ -371,32 +427,16 @@ proc dummy_calls() {
   const matVectSpace: domain(2, indexType) dmapped 
 		  BlockCyclic(startIdx=(1, 1), (blkSize, blkSize)) = [1..n, 1..n+1];	
   var ab : [matVectSpace] elemType;  // the matrix A and vector b
-  var piv: [1..n] indexType;         // a vector of pivot values
-  
-  var abWrapper = new ArrayWrapper(elemType, 2, ab);
-  impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-		  abWrapper, 
-		  impl_hplsupport_BlockCyclicDistArray2dDouble_getFromArray_chpl(
-				  abWrapper, 2, 2) + 125.0,
-		  2, 2);
   for (i, j) in matVectSpace do {
-	var newVal = 0;
+	var newVal = impl_hplsupport_BlockCyclicDistArray2dDouble_get_chpl(
+			  ab, i, j);
 	if (i < j) {
-	  newVal = 10 * i + j;	
+	  newVal += 10 * i + j;	
 	} else {
-	  newVal = i + 10 * j;
+	  newVal += i + 10 * j;
 	}
-	impl_hplsupport_BlockCyclicDistArray2dDouble_setIntoArray_chpl(
-	  		  abWrapper, newVal, i, j);  
-  }
-
-  var pivWrapper = new ArrayWrapper(indexType, 1, piv);
-  for i in [1..n] do {
-    impl_hplsupport_SimpleArray1dInt_setIntoArray_chpl(
-		  pivWrapper, 
-		  impl_hplsupport_SimpleArray1dInt_getFromArray_chpl(
-  				pivWrapper, i) + i,
-  		  i);
+	impl_hplsupport_BlockCyclicDistArray2dDouble_set_chpl(
+	  		  ab, newVal, i, j);  
   }
   
   writeln("dummy_calls() ends.");

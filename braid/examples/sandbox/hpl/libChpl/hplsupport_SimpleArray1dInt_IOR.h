@@ -140,11 +140,11 @@ struct hplsupport_SimpleArray1dInt__epv {
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ void* data,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  int32_t (*f_getFromArray)(
+  int32_t (*f_get)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t idx1,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_setIntoArray)(
+  void (*f_set)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t newVal,
     /* in */ int32_t idx1,
@@ -160,11 +160,11 @@ struct hplsupport_SimpleArray1dInt__pre_epv {
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ void* data,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_getFromArray_pre)(
+  void (*f_get_pre)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t idx1,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_setIntoArray_pre)(
+  void (*f_set_pre)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t newVal,
     /* in */ int32_t idx1,
@@ -180,12 +180,12 @@ struct hplsupport_SimpleArray1dInt__post_epv {
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ void* data,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_getFromArray_post)(
+  void (*f_get_post)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t idx1,
     /* in */ int32_t _retval,
     /* out */ struct sidl_BaseInterface__object **_ex);
-  void (*f_setIntoArray_post)(
+  void (*f_set_post)(
     /* in */ struct hplsupport_SimpleArray1dInt__object* self,
     /* in */ int32_t newVal,
     /* in */ int32_t idx1,
