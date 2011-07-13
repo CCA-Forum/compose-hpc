@@ -125,22 +125,11 @@ proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
     result[0][i] = r.low;
     result[1][i] = r.high;
   }
-
-  if (arrayOrderMode == sidl_array_ordering.sidl_column_major_order) {
-    var loopStride = 1;
-    for i in [1..arrayRank] {
-      result[2][i] = loopStride;
-      var rs: range = srcDom.dim(i);
-      loopStride = loopStride * (rs.high - rs.low + 1);
-    }
+  // rely on the array to provide the strides
+  if (arrayRank == 1) {
+    result[2][1] = srcDom.stride;
   } else {
-    var loopStride = 1;
-    for i in [1..arrayRank] {
-      var stride_idx = arrayRank - i + 1;
-      result[2][stride_idx] = loopStride;
-      var rs: range = srcDom.dim(stride_idx);
-      loopStride = loopStride * (rs.high - rs.low + 1);
-    }
+    result[2] = srcDom.stride;
   }
 
   return result;
