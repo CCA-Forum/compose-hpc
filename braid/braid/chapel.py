@@ -135,7 +135,7 @@ class Chapel:
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
         """
-        def __init__(self, name, symbol_table, is_interface,
+        def __init__(self, name, symbol_table, is_interface, is_abstract,
                      stub_parent=None,
                      skel_parent=None):
             
@@ -149,6 +149,7 @@ class Chapel:
             self.ior = CFile()
             self.obj = None
             self.is_interface = is_interface
+            self.is_abstract = is_abstract
 
     def __init__(self, filename, sidl_sexpr, symbol_table, create_makefile, verbose):
         """
@@ -209,12 +210,14 @@ class Chapel:
         def gen(node):         return self.generate_client1(node, data, symbol_table)
         def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
 
-        def generate_class_stub(name, methods, extends, is_interface, implements=[]):
+        def generate_class_stub(name, methods, extends, is_interface, 
+                                implements=[]):
             """
             shared code for class/interface
             """
-            qname = '_'.join(symbol_table.prefix+[name])                
-            ci = self.ClassInfo(name, symbol_table, is_interface)
+            qname = '_'.join(symbol_table.prefix+[name])  
+            ci = self.ClassInfo(name, symbol_table, is_interface, 
+                                member_chk(sidl.abstract, self.class_attrs))
             ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
             ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
@@ -223,6 +226,7 @@ class Chapel:
 
             # Consolidate all methods, defined and inherited
             all_names = set()
+            all_methods = []
 
             def full_method_name(method):
                 """
@@ -230,27 +234,31 @@ class Chapel:
                 """
                 return method[2][1]+method[2][2]
 
-            inherited_methods = []
-            if extends:
-                for m in symbol_table[extends[1]][5]:
-                    inherited_methods.append(m)
-                    all_names.add(full_method_name(m))
-
-            protocol_methods = []
-            for impls in implements:
-                for interf in impls[1]:
-                    for m in symbol_table[interf[1]][4]:
-                        if not full_method_name(m) in all_names:
-                            all_names.add(full_method_name(m))
-                            protocol_methods.append(m)
-
-            class_methods = []
-            for m in methods:
+            def add_method(m):
                 if not full_method_name(m) in all_names:
-                    class_methods.append(m)
+                    all_names.add(full_method_name(m))
+                    all_methods.append(m)
+
+            def scan_protocols(implements):
+                for impls in implements:
+                    for interf in impls[1]:
+                        for m in symbol_table[interf[1]][4]:
+                            add_method(m)
+
+            if extends:
+                base = symbol_table[extends[1]]
+                scan_protocols(base[3])
+                for m in base[5]:
+                    add_method(m)
+
+            scan_protocols(implements)
+
+            for m in methods:
+                add_method(m)
 
             # recurse to generate method code
-            gen1(inherited_methods+protocol_methods+class_methods, ci)
+            #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
+            gen1(all_methods, ci)
 
             # IOR
             self.generate_ior(ci, extends, implements)
@@ -404,6 +412,7 @@ class Chapel:
 
 
             elif (sidl.user_type, Attrs, Cipse):
+                self.class_attrs = Attrs
                 gen(Cipse)
 
             elif (sidl.file, Requires, Imports, UserTypes):
@@ -529,7 +538,7 @@ class Chapel:
                 ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
                                "d_sidl_baseclass"))
 
-        if not data.is_interface:
+        if not data.is_interface and not data.is_abstract:
             cstats = [ir.Struct_item(unscope(data.cstats), "d_cstats")]
 
             
@@ -757,12 +766,17 @@ class Chapel:
                            Except, From, Requires, Ensures, DocComment))
 
         abstract = member_chk(sidl.abstract, Attrs)
+        final = member_chk(sidl.final, Attrs)
         static = member_chk(sidl.static, Attrs)
-        final = member_chk(sidl.static, Attrs)
 
+        attrs = []
         if abstract:
-            # nothing to be done for an abstract function
-            return
+            # we still need to output a stub for an abstract function,
+            # since it might me a virtual function call through an
+            # abstract interface
+            pass
+        if final: attrs.append(ir.final)
+        if static: attrs.append(ir.static)
 
         # this is an ugly hack to force generate_method_stub to to wrap the
         # self argument with a call to upcast()
@@ -779,8 +793,8 @@ class Chapel:
         # return value type conversion -- treat it as an out argument
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
-        cdecl_args = babel_stub_args(Attrs, cdecl_args, symbol_table, ci.epv.name, docast)
-        cdecl = ir.Fn_decl(Attrs, ctype, Name+Extension, cdecl_args, DocComment)
+        cdecl_args = babel_stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
+        cdecl = ir.Fn_decl(attrs, ctype, Name+Extension, cdecl_args, DocComment)
 
         if static:
             call_self = []
@@ -1459,15 +1473,18 @@ class EPV:
             if typ[0] == ir.struct:
                 typ = ir.Pointer_type(typ)
             name = 'f_'+Name+Extension
-            args = babel_epv_args(Attrs, Args, self.symbol_table, self.name)
-            return ir.Fn_decl(Attrs, typ, name, args, DocComment)
+
+            # discard the abstract attribute. Ir doen't know it
+            attrs = set(Attrs)
+            attrs.discard(sidl.abstract)
+            attrs = list(attrs)
+            args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
+            return ir.Fn_decl(attrs, typ, name, args, DocComment)
 
         if self.finalized:
             import pdb; pdb.set_trace()
 
-        if member_chk(sidl.abstract, method[3]):
-            pass
-        elif member_chk(sidl.static, method[3]):
+        if member_chk(sidl.static, method[3]):
             self.static_methods.append(to_fn_decl(method))
         else:
             self.methods.append(to_fn_decl(method))

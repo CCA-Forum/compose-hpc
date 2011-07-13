@@ -39,7 +39,7 @@
 # 	  | Package
 # 	  | Struct
 # 	  | Enum ),
-#   Type_attr = type_attribute(final | abstract),
+#   Type_attr = (final | abstract),
 #   Id = 'STR',
 #   Doc_comment = 'STR',
 #   Enum = enum(Id, [Enumerator], Doc_comment),
@@ -188,7 +188,6 @@ string = 'string'
 struct = 'struct'
 struct_item = 'struct_item'
 times = 'times'
-type_attribute = 'type_attribute'
 user_type = 'user_type'
 var_ref = 'var_ref'
 version = 'version'
@@ -266,7 +265,9 @@ def User_type(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], list):
         for a in args[0]:
-            if isinstance(a, tuple) and a[0] == type_attribute:
+            if a == final:
+                pass
+            elif a == abstract:
                 pass
             elif isinstance(a, tuple) and a[0] == custom_attribute:
                 pass
@@ -468,30 +469,7 @@ def Package(*args):
         raise Exception("Grammar Error")
     return tuple(['package']+list(args))
 
-def Type_attribute(*args):
-    """
-    Construct a "type_attribute" node. Valid arguments are 
-    (Final()
-    |Abstract())
-    \return (\c "Type_attr", Final()
-    |Abstract())
-    """
-    f = Type_attribute
-    if len(args) <> 1:
-        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
-        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
-        raise Exception("Grammar Error")
-    if args[0] == final:
-        pass
-    elif args[0] == abstract:
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    return tuple(['type_attribute']+list(args))
-
+# skipping \c Type_attr= (final|abstract)
 # skipping \c Custom_attr= (\c Custom_attribute|\c Custom_attribute_assoc)
 # skipping \c Cipse= (\c Class|\c Interface|\c Package|\c Struct|\c Enum)
 def Struct(*args):
