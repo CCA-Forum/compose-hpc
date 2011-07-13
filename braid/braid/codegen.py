@@ -1733,7 +1733,6 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 
-            elif (sidl.type_attribute, Name):    return Name
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
             elif (sidl.method_name, Name, []):   return gen(Name)
             elif (sidl.method_name, Name, Extension): return gen(Name)+' '+Extension
