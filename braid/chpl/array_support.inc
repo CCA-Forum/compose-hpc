@@ -125,12 +125,8 @@ proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
     result[0][i] = r.low;
     result[1][i] = r.high;
   }
-  // rely on the array to provide the strides
-  if (arrayRank == 1) {
-    result[2][1] = srcDom.stride;
-  } else {
-    result[2] = srcDom.stride;
-  }
-
+  // rely on the blk value from the array to provide the strides
+  result[2] = srcArray._value.blk;
+  
   return result;
 }

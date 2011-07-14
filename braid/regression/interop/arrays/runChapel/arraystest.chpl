@@ -151,7 +151,7 @@ tracker.setExpectations(-1);
     (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
      41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
      89, 97, 101, 103, 107, 109, 113, 127, 131);
-  //init_part(); run_part("borrowed_int", !borrowed);
+
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
   init_part(); run_part("borrowed_int: not-nil", borrowed._not_nil());
 
@@ -165,6 +165,32 @@ tracker.setExpectations(-1);
   magicNumber = clearstack(magicNumber);
 
   tracker.writeComment("End: Check sidl.borrow_int_Array");
+}
+
+{
+  tracker.writeComment("Start: Check sidl.borrow_int_Array:slice");
+
+  magicNumber = clearstack(magicNumber);
+  var borrowed: sidl.Array(int(32), sidl_int__array);
+  var elementsExtra: [-1..32] int(32) =
+    (-1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+     41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
+     89, 97, 101, 103, 107, 109, 113, 127, 131, -1);
+  var elements = elementsExtra[0..31];
+
+  borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
+  init_part(); run_part("borrowed_int:slice: not-nil", borrowed._not_nil());
+
+  var resCheckInt1 = ArrayTest.ArrayOps_static.checkInt(borrowed);
+  init_part(); run_part("borrowed int:slice: checkInt() before copy", resCheckInt1 == true);
+
+  borrowed.smartCopy();
+  var resCheckInt2 = ArrayTest.ArrayOps_static.checkInt(borrowed);
+  init_part(); run_part("borrowed int:slice: checkInt() after copy", resCheckInt2 == true);
+
+  magicNumber = clearstack(magicNumber);
+
+  tracker.writeComment("End: Check sidl.borrow_int_Array:slice");
 }
 
 {
@@ -1001,6 +1027,34 @@ tracker.setExpectations(-1);
     init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o) == true);
 
     tracker.writeComment("End: Check matrix multiplication");
+ }
+
+ {
+    tracker.writeComment("Start: Check matrix multiplication:slice");
+
+    var n = 3, m = 3, o = 2;
+    var ae: [-2..n, -2..m] int(32);
+    var be: [-2..m, 0..o] int(32);
+    var xe: [-2..n, 0..o] int(32);
+
+    [(i) in [0..8]] ae[i / m, i % m] = i;
+    [(i) in [0..5]] be[i / o, i % o] = i;
+
+    tracker.writeComment("matrixMultiply():slice");
+    ArrayTest.ArrayOps_static.matrixMultiply(
+        ae[0.. #n, 0.. #m],
+        be[0.. #m, 0.. #o],
+        xe[0.. #n, 0.. #o],
+        n, m, o);
+
+    tracker.writeComment("checkMatrixMultiply():slice");
+    init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(
+        ae[0.. #n, 0.. #m],
+        be[0.. #m, 0.. #o],
+        xe[0.. #n, 0.. #o],
+        n, m, o) == true);
+
+    tracker.writeComment("End: Check matrix multiplication:slice");
  }
 
   
