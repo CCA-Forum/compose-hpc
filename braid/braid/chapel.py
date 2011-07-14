@@ -35,6 +35,7 @@ from codegen import (
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
+chpl_param_ex_name = '_babel_param_ex'
 
 def drop(lst):
     """
@@ -589,6 +590,7 @@ class Chapel:
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
+            '#define CHECK_CONTENT_NOT_NIL(aPtr) ((*aPtr) != NULL)',
             '#endif',
             '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
             %(qname, qname, qname),
@@ -765,6 +767,9 @@ class Chapel:
 
         ior_args = drop_rarray_ext_args(Args)
 
+        chpl_args = []
+        chpl_args.extend(Args)
+        
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
                            Except, From, Requires, Ensures, DocComment))
 
@@ -789,6 +794,12 @@ class Chapel:
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
+        post_call.append('_extern proc CHECK_CONTENT_NOT_NIL(inout aRef): bool;')
+        post_call.append(ir.Stmt(ir.If(
+            ir.Call("CHECK_CONTENT_NOT_NIL", ["ex"]),
+            [ir.Stmt(ir.Assignment(chpl_param_ex_name, ir.Call("new SidlBaseException", ["ex"])))]
+        )))
+
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
         return_stmt = []
@@ -806,6 +817,9 @@ class Chapel:
                 
 
         call_args = call_self + call_args + ['ex']
+        # Add the exception to the chapel method signature
+        chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, 'SidlBaseException'), chpl_param_ex_name))
+        
 
         #if final:
             # final : Final methods are the opposite of virtual. While
@@ -859,7 +873,7 @@ class Chapel:
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
-        defn = (ir.fn_defn, [], Type, Name, Args,
+        defn = (ir.fn_defn, [], Type, Name, chpl_args,
                 pre_call+call+post_call+return_stmt,
                 DocComment)
 
@@ -1401,7 +1415,7 @@ def lower_ir(symbol_table, sidl_term):
             if (isinstance(Terms, list)):
                 return map(low, Terms)
         else:
-            raise Exception("Not implemented")
+            raise Exception("lower_ir:: Not implemented: " + str(sidl_term))
 
 @matcher(globals(), debug=False)
 def lower_type_ir(symbol_table, sidl_type):
@@ -1440,7 +1454,6 @@ def lower_type_ir(symbol_table, sidl_type):
                 t = Scalar_type[1]
             return ir.Typedef_type('sidl_%s__array'%t)
 
-
         elif (sidl.class_, Name, _, _, _, _):
             return ir_babel_object_type([], Name)
         
@@ -1448,7 +1461,7 @@ def lower_type_ir(symbol_table, sidl_type):
             return ir_babel_object_type([], Name)
         
         else:
-            raise Exception("Not implemented")
+            raise Exception("Not implemented: " + str(sidl_type))
 
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
     return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name

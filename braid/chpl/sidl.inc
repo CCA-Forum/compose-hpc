@@ -5,6 +5,25 @@ module sidl {
   // FIXME: autogenerate this from sidl.sidl
   _extern record sidl_BaseInterface__object {};
 
+  /**
+   * Base class for all Exceptions at Chapel end
+   */
+  class SidlBaseException {
+
+    var self: sidl_BaseInterface__object;
+
+    /**
+     * Constructor for wrapping the actual exception
+     */
+    proc BlockCyclicDistArray2dDouble(in obj: sidl_BaseInterface__object) {
+      this.self = obj;
+    }
+
+    proc getException() {
+      return this.self;
+    }
+  }
+
 # include <array.inc>
 
 // Start: Borrowed Array related items  
