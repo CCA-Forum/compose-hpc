@@ -160,6 +160,34 @@ Actions performed by the Blas2Cublas.py script
         placed in the same directory as the original source file.
 
 
+IMPORTANT NOTE FOR ATLAS LIBRARY USERS.
+---------------------------------------
+
+- If the transformed code contains a mix of regular blas calls
+  and cuda blas calls and the ATLAS library is used to handle
+  the regular blas calls, the header include (cblas.h) in the 
+  original input code (before transformation) provided to
+  the script should be wrapped using extern "C" as follows:
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "cblas.h"
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+  and to compile the transformed code use :
+
+  nvcc transformedCode.cu -lcuda -lcudart -I$ATLAS_INC -L$ATLAS_LIB -lcblas -latlas -lcublas 
+
+This is because the code is compilied using gcc, but the linking buisness is done using
+g++. I am not sure if this is always the case (hence the ifdef).
+
+See $PAUL_HOME/blas2cublas/tests/blas3/cblas1.c for an example.
+
 
 Linking options
 ---------------
@@ -178,6 +206,8 @@ NOTE: The line with options must start with %
 - If no include and/or library paths along with other required 
   libraries are given, the transformed code is left for the user
   to be compiled.
+
+
 
 
 

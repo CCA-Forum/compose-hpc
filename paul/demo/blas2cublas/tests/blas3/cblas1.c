@@ -1,6 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "cblas.h"
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #define n 1024
 
