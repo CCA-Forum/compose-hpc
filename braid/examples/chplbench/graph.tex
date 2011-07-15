@@ -6,7 +6,7 @@
 
 \newcommand{\myplot}[5]{
   \begin{tikzpicture}[scale=1] 
-    \begin{loglogaxis}[
+    \begin{semilogyaxis}[
         width=\textwidth,
         %ymin=0.0001,ymax=25,
         legend style={at={(0.5,-0.15)}, 
@@ -16,8 +16,9 @@
         title=#1,
         xlabel=#2,
         ylabel=#3,
-        xtick={1,2,4,8,16,32,64,128},
-        xticklabels={1,2,4,8,16,32,64,128}
+        xtick={1,2,4,6,8,10,12,14,16,18,20,22,24},
+        xticklabels={1,2,4,6,8,10,12,14,16,18,20,22,24},
+        cycle list name=colors
       ]
       \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{C}     #5] {#4}; 
       \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{CXX}   #5] {#4}; 
@@ -34,11 +35,14 @@
       \addlegendentry{F03}
       \addlegendentry{Java}
       \addlegendentry{Python}
-    \end{loglogaxis}
+    \end{semilogyaxis}
   \end{tikzpicture}
 }
 
-\myplot{int/copy}{\#struct items}{\#instructions}{out/result_int_copy.txt}{/100000}\\
+\myplot{int/copy}{\#arguments}{\#instructions}{out/result_int_copy.txt}{/100000}\\
+\myplot{bool/copy}{\#arguments}{\#instructions}{out/result_bool_copy.txt}{/100000}\\
+\myplot{float/copy}{\#arguments}{\#instructions}{out/result_float_copy.txt}{/100000}\\
+\myplot{string/copy}{\#arguments}{\#instructions}{out/result_string_copy.txt}{/100000}\\
 
 
 \end{document}

@@ -16,7 +16,7 @@ SIDLS=$(patsubst %,out/chpl_%.sidl, $(NUMBER_TYPE_EXPRS))
 COMPILES=$(patsubst %,out/client_%/token, $(NUMBER_TYPE_EXPRS))
 TIMINGS=$(patsubst %,out/client_%/times, $(NUMBER_TYPE_EXPRS))
 
-TYPES=int float bool strings
+TYPES=int float bool string
 RESULTS=$(patsubst %, out/result_%_copy.txt, $(TYPES)) 
 
 .PHONY: clean all sidls compile timings
