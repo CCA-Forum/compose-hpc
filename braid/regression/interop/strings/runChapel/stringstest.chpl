@@ -9,7 +9,7 @@ use synch;
 config var bindir = "gantlet compatibility";
 
 var part_no: int = 0;
-var sidl_ex: SidlBaseException = nil;
+var sidl_ex: BaseException = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 
 proc init_part()
@@ -30,7 +30,7 @@ proc run_part(result: bool)
   tracker.writeComment("End of part " + part_no, sidl_ex);
 }
 
-var obj = new Strings.Cstring();
+var obj = new Strings.Cstring(sidl_ex);
 tracker.setExpectations(-1, sidl_ex);
   
 { 

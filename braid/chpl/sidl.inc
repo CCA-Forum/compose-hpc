@@ -8,14 +8,14 @@ module sidl {
   /**
    * Base class for all Exceptions at Chapel end
    */
-  class SidlBaseException {
+  class BaseException {
 
     var self: sidl_BaseInterface__object;
 
     /**
      * Constructor for wrapping the actual exception
      */
-    proc BlockCyclicDistArray2dDouble(in obj: sidl_BaseInterface__object) {
+    proc BaseException(in obj: sidl_BaseInterface__object) {
       this.self = obj;
     }
 
