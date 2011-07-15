@@ -308,14 +308,20 @@ class Scope(object):
         in_quote = False
         while len(tokens) > 0:
             line = ""
+            took_token = False
             while (len(tokens) > 0 and 
                    ((len(line)+len(tokens[0]) < self._max_line_length)
                     or in_quote)):
                 number_of_quotes += tokens[0].count('"')
                 in_quote = number_of_quotes&1 # odd number of quotes
                 line += tokens.pop(0)
+                took_token = True
                 if len(tokens): line += ' '
 
+            if not took_token:
+                line += tokens.pop(0)                
+                if len(tokens): line += ' '
+                
             lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
