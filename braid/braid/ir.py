@@ -47,6 +47,7 @@
 # 	 | VarRefExpr
 # 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
 #          | assignment(VarRefExpr, Expr)
+#          | set_arg(VarRefExpr, Expr)	 
 # 	 | infix_expr(Bin_op, Expr, Expr)
 # 	 | prefix_expr(Un_op, Expr)
 # 	 | sign_extend(Bits, Expr)
@@ -172,6 +173,7 @@ result = 'result'
 return_ = 'return'
 rshift = 'rshift'
 scoped_id = 'scoped_id'
+set_arg = 'set_arg'
 set_struct_item = 'set_struct_item'
 sign_extend = 'sign_extend'
 static = 'static'
@@ -427,6 +429,8 @@ def Goto(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == assignment:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
+        pass
     elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == prefix_expr:
@@ -440,7 +444,7 @@ def Goto(*args):
         raise Exception("Grammar Error")
     return tuple(['goto']+list(args))
 
-# skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Set_struct_item|\c Assignment|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
+# skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
 def If(*args):
     """
     Construct a "if" node. Valid arguments are 
@@ -487,6 +491,8 @@ def If(*args):
     elif isinstance(args[0], tuple) and args[0][0] == set_struct_item:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == assignment:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
         pass
@@ -564,6 +570,8 @@ def Return(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == assignment:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
+        pass
     elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == prefix_expr:
@@ -623,6 +631,8 @@ def While(*args):
     elif isinstance(args[0], tuple) and args[0][0] == set_struct_item:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == assignment:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
         pass
@@ -715,6 +725,8 @@ def Do_while(*args):
     elif isinstance(args[1], tuple) and args[1][0] == set_struct_item:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
@@ -1261,6 +1273,8 @@ def Stmt(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == assignment:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
+        pass
     elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == prefix_expr:
@@ -1372,6 +1386,8 @@ def Set_struct_item(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
         pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
+        pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == prefix_expr:
@@ -1425,6 +1441,8 @@ def Set_struct_item(*args):
     elif isinstance(args[3], tuple) and args[3][0] == set_struct_item:
         pass
     elif isinstance(args[3], tuple) and args[3][0] == assignment:
+        pass
+    elif isinstance(args[3], tuple) and args[3][0] == set_arg:
         pass
     elif isinstance(args[3], tuple) and args[3][0] == infix_expr:
         pass
@@ -1501,6 +1519,8 @@ def Assignment(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
         pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
+        pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == prefix_expr:
@@ -1513,6 +1533,83 @@ def Assignment(*args):
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['assignment']+list(args))
+
+def Set_arg(*args):
+    """
+    Construct a "set_arg" node. Valid arguments are 
+    (\c VarRefExpr(), \c Expr())
+    \return (\c "Set_arg", \c VarRefExpr(), \c Expr())
+    """
+    f = Set_arg
+    if len(args) <> 2:
+        print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], PythonTypes.StringType):
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == pointer_expr:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == deref:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == get_struct_item:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == call:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], PythonTypes.StringType):
+        pass
+    elif isinstance(args[1], PythonTypes.FloatType):
+        pass
+    elif isinstance(args[1], PythonTypes.IntType):
+        pass
+    elif args[1] == pure:
+        pass
+    elif args[1] == result:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == complex:
+        pass
+    elif args[1] == true:
+        pass
+    elif args[1] == false:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == new:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == var_decl_init:
+        pass
+    elif isinstance(args[1], PythonTypes.StringType):
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == pointer_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == deref:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == get_struct_item:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == call:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_struct_item:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == assignment:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == prefix_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == sign_extend:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['set_arg']+list(args))
 
 def Infix_expr(*args):
     """
@@ -1602,6 +1699,8 @@ def Infix_expr(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
         pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
+        pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == prefix_expr:
@@ -1648,6 +1747,8 @@ def Infix_expr(*args):
     elif isinstance(args[2], tuple) and args[2][0] == set_struct_item:
         pass
     elif isinstance(args[2], tuple) and args[2][0] == assignment:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == set_arg:
         pass
     elif isinstance(args[2], tuple) and args[2][0] == infix_expr:
         pass
@@ -1720,6 +1821,8 @@ def Prefix_expr(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
         pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
+        pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == prefix_expr:
@@ -1786,6 +1889,8 @@ def Sign_extend(*args):
     elif isinstance(args[1], tuple) and args[1][0] == set_struct_item:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
@@ -1908,6 +2013,8 @@ def Var_decl_init(*args):
         pass
     elif isinstance(args[2], tuple) and args[2][0] == assignment:
         pass
+    elif isinstance(args[2], tuple) and args[2][0] == set_arg:
+        pass
     elif isinstance(args[2], tuple) and args[2][0] == infix_expr:
         pass
     elif isinstance(args[2], tuple) and args[2][0] == prefix_expr:
@@ -2022,6 +2129,8 @@ def Get_struct_item(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == assignment:
         pass
+    elif isinstance(args[1], tuple) and args[1][0] == set_arg:
+        pass
     elif isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == prefix_expr:
@@ -2089,6 +2198,8 @@ def Call(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == assignment:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
+        pass
     elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == prefix_expr:
@@ -2137,6 +2248,8 @@ def Call(*args):
             elif isinstance(a, tuple) and a[0] == set_struct_item:
                 pass
             elif isinstance(a, tuple) and a[0] == assignment:
+                pass
+            elif isinstance(a, tuple) and a[0] == set_arg:
                 pass
             elif isinstance(a, tuple) and a[0] == infix_expr:
                 pass
