@@ -36,7 +36,7 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
-extern_def_check_content_not_nil = '_extern proc CHECK_CONTENT_NOT_NIL(inout aRef): bool;'
+extern_def_is_null = '_extern proc IS_NULL(inout aRef): bool;'
 chpl_base_exception = 'BaseException'
 
 def drop(lst):
@@ -84,13 +84,13 @@ def ir_babel_object_type(package, name):
     if isinstance(name, tuple):
         name = name[1]
     elif isinstance(name, str): name = [name]
-    return ir.Struct(babel_object_type(package+name, '_object'), [], '')
+    return ir.Pointer_type(ir.Struct(babel_object_type(package+name, '_object'), [], ''))
 
 def ir_babel_exception_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir.Pointer_type(ir_babel_object_type(['sidl'], 'BaseInterface'))
+    return ir_babel_object_type(['sidl'], 'BaseInterface')
 
 def get_name(interface):
     (scoped_id, prefix, ext) = interface
@@ -339,8 +339,8 @@ class Chapel:
             body = [
                 '  var ex: sidl_BaseInterface__object;',
                 '  this.ior = %s__createObject(0, ex);'%qname,
-                '  ' + extern_def_check_content_not_nil,
-                '  if (CHECK_CONTENT_NOT_NIL(ex)) {',
+                '  ' + extern_def_is_null,
+                '  if (IS_NULL(ex)) {',
                 '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
                 '  }'
             ]
@@ -526,7 +526,8 @@ class Chapel:
         inherits = []
         def gen_inherits(baseclass):
             inherits.append(ir.Struct_item(
-                ir_babel_object_type(baseclass[1][:-1], baseclass[1][-1]),
+                ir_babel_object_type(baseclass[1][:-1], baseclass[1][-1])
+                [1], # not a pointer, it is an embedded struct
                 'd_inherit_'+baseclass[1][-1]))#get_name(baseclass)))
 
         with_sidl_baseclass = not data.is_interface
@@ -567,7 +568,7 @@ class Chapel:
                                                        ir.Pointer_type(data.obj),
                                                        "createObject", [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
-                                                           ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')],
+                                                           ir.Arg([], sidl.inout, ir_babel_exception_type(), '_ex')],
                                                        "")),
                                                        "createObject"),
                        # FIXME: only if contains static methods
@@ -598,7 +599,7 @@ class Chapel:
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-            '#define CHECK_CONTENT_NOT_NIL(aPtr) ((*aPtr) != NULL)',
+            '#define IS_NULL(aPtr) ((*aPtr) != NULL)',
             '#endif',
             '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
             %(qname, qname, qname),
@@ -800,12 +801,13 @@ class Chapel:
             docast = [ir.pure]
         else: docast = []
 
-        pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
+        pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex'))]
         post_call = []
-        post_call.append(extern_def_check_content_not_nil)
+        post_call.append(extern_def_is_null)
         post_call.append(ir.Stmt(ir.If(
-            ir.Call("CHECK_CONTENT_NOT_NIL", ["ex"]),
-            [ir.Stmt(ir.Assignment(chpl_param_ex_name, ir.Call("new " + chpl_base_exception, ["ex"])))]
+            ir.Prefix_expr(ir.log_not, ir.Call("IS_NULL", ['_ex'])),
+            [ir.Stmt(ir.Assignment(chpl_param_ex_name, 
+                                   ir.Call("new " + chpl_base_exception, ['_ex'])))]
         )))
 
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
@@ -824,7 +826,7 @@ class Chapel:
             call_self = ["this.ior"]
                 
 
-        call_args = call_self + call_args + ['ex']
+        call_args = call_self + call_args + ['_ex']
         # Add the exception to the chapel method signature
         chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
         
@@ -1155,7 +1157,7 @@ class Chapel:
         #argdecls = map(argvardecl, Args)
         #def get_arg_name((arg, attrs, mode, typ, name)):
         #    return name
-        #dcall = ir.Call(Name, [] if static else ['obj']+map(get_arg_name, Args)+['ex'])
+        #dcall = ir.Call(Name, [] if static else ['obj']+map(get_arg_name, Args)+['_ex'])
         #ci.chpl_skel.main_area.new_def('{\n')
         #ci.chpl_skel.main_area.new_def('var obj: %s__object;\n'%
         #                               '_'.join(ci.epv.symbol_table.prefix+[ci.epv.name]))
@@ -1562,11 +1564,11 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
         arg_self = []
     else:
         arg_self = \
-            [ir.Arg([], ir.in_, ir.Pointer_type(
-                    ir_babel_object_type(symbol_table.prefix, class_name)),
+            [ir.Arg([], ir.in_, 
+                    ir_babel_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir_babel_exception_type(), 'ex')]
+        [ir.Arg([], sidl.inout, ir_babel_exception_type(), '_ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
@@ -1577,10 +1579,10 @@ def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
         arg_self = extra_attrs
     else:
         arg_self = [
-            ir.Arg(extra_attrs, sidl.inout, 
+            ir.Arg(extra_attrs, sidl.in_, 
                 ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), 'ex')]
+        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), '_ex')]
     return arg_self+args+arg_ex
 
 
