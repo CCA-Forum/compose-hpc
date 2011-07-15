@@ -10,7 +10,7 @@ use sidl;
 config var bindir = "gantlet compatibility";
 
 var part_no: int = 0;
-var sidl_ex: SidlBaseException = nil;
+var sidl_ex: BaseException = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 var magic_number = 13;
 
@@ -55,7 +55,7 @@ var TEST_DIM2 = 13; /* second dimension of 2-d arrays */
 
 //synch::ResultType result = synch::ResultType_PASS;
 var magicNumber = 13;
-var obj = new ArrayTest.ArrayOps();
+var obj = new ArrayTest.ArrayOps(sidl_ex);
 tracker.setExpectations(-1, sidl_ex);
   
 //tracker.setExpectations(158);

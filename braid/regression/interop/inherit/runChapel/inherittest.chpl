@@ -10,7 +10,7 @@ use sidl;
 config var bindir = "gantlet compatibility";
 
 var part_no: int = 0;
-var sidl_ex: SidlBaseException = nil;
+var sidl_ex: BaseException = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 var magicNumber = 13;
 //tracker.setExpectations(76, sidl_ex);
@@ -53,13 +53,13 @@ proc clearstack(magicNumber: int): int
 }
 
 { 
-  var c = new Inherit.C();
+  var c = new Inherit.C(sidl_ex);
   tracker.writeComment("Class C:", sidl_ex);
   init_part("c.c()"); run_part(c.c(sidl_ex), "C.c");
 }
 
   {
-    var d = new Inherit.D();
+    var d = new Inherit.D(sidl_ex);
     tracker.writeComment("Class D: inheritance of interface A", sidl_ex);
     init_part("d.a()"); run_part(d.a(sidl_ex), "D.a");
     init_part("d.d()"); run_part(d.d(sidl_ex), "D.d");
@@ -91,7 +91,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var e = new Inherit.E();
+    var e = new Inherit.E(sidl_ex);
     tracker.writeComment("Class E: inheritance of class C", sidl_ex);
     init_part("e.c()"); run_part(e.c(sidl_ex), "C.c");
     init_part("e.e()"); run_part(e.e(sidl_ex), "E.e");
@@ -110,7 +110,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var e2 = new Inherit.E2();
+    var e2 = new Inherit.E2(sidl_ex);
     tracker.writeComment("Class E2: inheritance of class C", sidl_ex);
     init_part("e2.c()"); run_part(e2.c(sidl_ex), "E2.c");
     init_part("e2.e()"); run_part(e2.e(sidl_ex), "E2.e");
@@ -131,7 +131,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var f = new Inherit.F();
+    var f = new Inherit.F(sidl_ex);
     tracker.writeComment("Class F: Multiple inheritance (no overriding)", sidl_ex);
     init_part("f.a()"); run_part(f.a(sidl_ex), "F.a");
     init_part("f.b()"); run_part(f.b(sidl_ex), "F.b");
@@ -177,7 +177,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var f2 = new Inherit.F2();
+    var f2 = new Inherit.F2(sidl_ex);
     tracker.writeComment("Class F2: Multiple inheritance (overrides C.c)", sidl_ex);
     init_part("f2.a()"); run_part(f2.a(sidl_ex), "F2.a");
     init_part("f2.b()"); run_part(f2.b(sidl_ex), "F2.b");
@@ -222,7 +222,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var g = new Inherit.G();
+    var g = new Inherit.G(sidl_ex);
 
     tracker.writeComment("Class G: indirect multiple inheritance ( no overloads)", sidl_ex);
     init_part("g.a()"); run_part(g.a(sidl_ex), "D.a");
@@ -258,7 +258,7 @@ proc clearstack(magicNumber: int): int
   }
   
   {
-    var g2 = new Inherit.G2();
+    var g2 = new Inherit.G2(sidl_ex);
 
     tracker.writeComment("Class G2: indirect multiple inheritance (overloads)", sidl_ex);
     init_part("g2.a()"); run_part(g2.a(sidl_ex), "G2.a");
@@ -294,7 +294,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var i = new Inherit.I();
+    var i = new Inherit.I(sidl_ex);
     tracker.writeComment("Class I: implements abstract class H that implements A", sidl_ex);
     init_part("i.a()"); run_part(i.a(sidl_ex), "I.a");
     init_part("i.h()"); run_part(i.h(sidl_ex), "I.h");
@@ -310,7 +310,7 @@ proc clearstack(magicNumber: int): int
   }
 
   {
-    var j = new Inherit.J();
+    var j = new Inherit.J(sidl_ex);
     tracker.writeComment("\nClass J: implements A and B, extends E. Calls super of E and C\n", sidl_ex);
     init_part("j.a()"); run_part(j.a(sidl_ex), "J.a");
     init_part("j.b()"); run_part(j.b(sidl_ex), "J.b");
@@ -322,7 +322,7 @@ proc clearstack(magicNumber: int): int
   }
 
   /* { */
-  /*   var k = new Inherit.K(); */
+  /*   var k = new Inherit.K(sidl_ex); */
   /*   tracker.writeComment("Class K: implements A2, extends H.", sidl_ex); */
   /*   init_part("k.a()"); run_part(k.a(sidl_ex), "K.a"); */
   /*   init_part("k.a(0)"); run_part(k.a(0), "K.a2"); */
@@ -344,7 +344,7 @@ proc clearstack(magicNumber: int): int
   /* } */
 
   /* { */
-  /*   var l = new Inherit.L(); */
+  /*   var l = new Inherit.L(sidl_ex); */
   /*   tracker.writeComment("Class L: implements A, A2.", sidl_ex); */
   /*   init_part("l.a()"); run_part(l.a(sidl_ex), "L.a"); */
   /*   init_part("l.a(0)"); run_part(l.a(0), "L.a2"); */

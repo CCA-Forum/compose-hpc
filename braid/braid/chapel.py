@@ -36,6 +36,8 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
+extern_def_check_content_not_nil = '_extern proc CHECK_CONTENT_NOT_NIL(inout aRef): bool;'
+chpl_base_exception = 'BaseException'
 
 def drop(lst):
     """
@@ -336,18 +338,24 @@ class Chapel:
             chpl_class.new_def('var ior: %s__object;'%qname)
             body = [
                 '  var ex: sidl_BaseInterface__object;',
-                '  this.ior = %s__createObject(0, ex);'%qname
-                ]
+                '  this.ior = %s__createObject(0, ex);'%qname,
+                '  ' + extern_def_check_content_not_nil,
+                '  if (CHECK_CONTENT_NOT_NIL(ex)) {',
+                '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
+                '  }'
+            ]
             chpl_gen(
                 (ir.fn_defn, [], ir.pt_void, 
-                 name, [], body, 'Constructor'), chpl_class)
+                 name,
+                 [ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)],
+                 body, 'Constructor'), chpl_class)
 
             chpl_gen(
                 (ir.fn_defn, [], ir.pt_void, 
                  chpl_gen(name),
                  [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                  ['  this.ior = obj;'],
-                  'Constructor for wrapping an existing object'), chpl_class)
+                 ['  this.ior = obj;'],
+                 'Constructor for wrapping an existing object'), chpl_class)
 
             def gen_cast(base):
                 chpl_gen(
@@ -794,10 +802,10 @@ class Chapel:
 
         pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), 'ex'))]
         post_call = []
-        post_call.append('_extern proc CHECK_CONTENT_NOT_NIL(inout aRef): bool;')
+        post_call.append(extern_def_check_content_not_nil)
         post_call.append(ir.Stmt(ir.If(
             ir.Call("CHECK_CONTENT_NOT_NIL", ["ex"]),
-            [ir.Stmt(ir.Assignment(chpl_param_ex_name, ir.Call("new SidlBaseException", ["ex"])))]
+            [ir.Stmt(ir.Assignment(chpl_param_ex_name, ir.Call("new " + chpl_base_exception, ["ex"])))]
         )))
 
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
@@ -818,7 +826,7 @@ class Chapel:
 
         call_args = call_self + call_args + ['ex']
         # Add the exception to the chapel method signature
-        chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, 'SidlBaseException'), chpl_param_ex_name))
+        chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
         
 
         #if final:
