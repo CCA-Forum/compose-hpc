@@ -37,7 +37,7 @@ SIDLFILE=../blas.sidl
 # extra include/compile flags
 EXTRAFLAGS=-ggdb -O0
 # extra libraries that the implementation needs to link against
-EXTRALIBS=
+EXTRALIBS=-lcblas
 # library version number
 VERSION=0.1.1
 # PREFIX specifies the top of the installation directory
