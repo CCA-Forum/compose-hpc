@@ -55,13 +55,17 @@ proc main() {
 }
 
 proc cblas_daxpy(n, a, X, Y) {
+  _extern proc cblas_daxpy_local(n, a, X, Y);
+  _extern proc makeOpaque(inout a): opaque;
+  _extern proc printArray(n, X);
   
   forall blk in 1..n by blkSize {
     on Locales(X(blk).locale.id) do {
-      const locDomain: domain(1) = [blk..#blkSize];
-      for i in locDomain do {
-        Y(i) = (a * X(i)) + Y(i);
-      }
+    
+      var xPtr = makeOpaque(X(blk));
+      write("X-", blk, ": "); printArray(blkSize, xPtr);
+      var yPtr = makeOpaque(Y(blk));
+      write("Y-", blk, ": "); printArray(blkSize, yPtr);      
     }
   }
 }
