@@ -36,7 +36,8 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
-extern_def_is_null = '_extern proc IS_NULL(inout aRef): bool;'
+extern_def_is_not_null = '_extern proc IS_NOT_NULL(aRef): bool;'
+extern_def_set_to_null = '_extern proc SET_TO_NULL(inout aRef);'
 chpl_base_exception = 'BaseException'
 
 def drop(lst):
@@ -337,10 +338,12 @@ class Chapel:
             chpl_class = ChapelScope(ci.chpl_stub)
             chpl_class.new_def('var ior: %s__object;'%qname)
             body = [
+                '  ' + extern_def_is_not_null,
+                '  ' + extern_def_set_to_null,
                 '  var ex: sidl_BaseInterface__object;',
+                '  SET_TO_NULL(ex);',
                 '  this.ior = %s__createObject(0, ex);'%qname,
-                '  ' + extern_def_is_null,
-                '  if (IS_NULL(ex)) {',
+                '  if (IS_NOT_NULL(ex)) {',
                 '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
                 '  }'
             ]
@@ -599,7 +602,9 @@ class Chapel:
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-            '#define IS_NULL(aPtr) ((*aPtr) != NULL)',
+            '#define printMsg(msg, aPtr) printf(msg, aPtr)', # FIXME Remove this
+            '#define IS_NOT_NULL(aPtr) ((aPtr) != NULL)',
+            '#define SET_TO_NULL(aPtr) (*(aPtr) = NULL)',
             '#endif',
             '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
             %(qname, qname, qname),
@@ -801,11 +806,15 @@ class Chapel:
             docast = [ir.pure]
         else: docast = []
 
-        pre_call = [ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex'))]
+        pre_call = []
+        pre_call.append(extern_def_is_not_null)
+        pre_call.append(extern_def_set_to_null)
+        pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
+        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
+
         post_call = []
-        post_call.append(extern_def_is_null)
         post_call.append(ir.Stmt(ir.If(
-            ir.Prefix_expr(ir.log_not, ir.Call("IS_NULL", ['_ex'])),
+            ir.Prefix_expr(ir.log_not, ir.Call("IS_NOT_NULL", ['_ex'])),
             [ir.Stmt(ir.Assignment(chpl_param_ex_name, 
                                    ir.Call("new " + chpl_base_exception, ['_ex'])))]
         )))
