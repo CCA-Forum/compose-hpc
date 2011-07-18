@@ -11,6 +11,7 @@ type eltType = real(64);
 config const numElements = 20;
 config const blkSize = 4;
 config const alpha = 2.0;
+config const debug = false;
 
 proc main() {
 
@@ -32,13 +33,24 @@ proc main() {
     Y(i) = elemLocId;
   }
   
-  writeln("1. alpha: ", alpha);
-  write("1. X: "); writeln(X);
-  write("1. Y: "); writeln(Y);
+  if (debug) {
+    writeln("1. alpha: ", alpha);
+    write("1. X: "); writeln(X);
+    write("1. Y: "); writeln(Y);
+  }
   
+  const startTime = getCurrentTime();
   cblas_daxpy(numElements, alpha, X, Y);
+  const endTime = getCurrentTime();
   
-  write("2. Y: "); writeln(Y);
+  if (debug) {
+    write("2. Y: "); writeln(Y);
+  }
+  
+  const execTime = endTime - startTime;
+  
+  writeln("Execution time = ", execTime, " secs");
+  verifyResults(numElements, alpha, X, Y);
 
 }
 
@@ -52,6 +64,25 @@ proc cblas_daxpy(n, a, X, Y) {
       }
     }
   }
+}
+
+proc verifyResults(n, a, X, Y) {
+
+  writeln("Verifying results...");
+  var validMsg = "SUCCESS";
+  forall i in X.domain do {
+    var yl = Y(i).locale.id;
+    
+    var x = X(i);
+    var y = Y(i);
+    
+    var d = y - (a * x);
+    
+    if (abs(d - yl) > 0.0001) {
+      validMsg = "FAILURE";
+    }
+  }
+  writeln("Validation: ", validMsg);
 }
 
 

@@ -1,8 +1,8 @@
 OUTPUT_FILE="runMe"
 NUM_LOCALES=4
 ALPHA=2.0
-N=30
-BLOCK=4
+N=10000
+BLOCK=100
 
 
 all: clean compile run
