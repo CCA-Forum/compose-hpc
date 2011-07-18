@@ -55,6 +55,7 @@
 	 | VarRefExpr
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
          | assignment(VarRefExpr, Expr)
+         | set_arg(VarRefExpr, Expr)	 
 	 | infix_expr(Bin_op, Expr, Expr)
 	 | prefix_expr(Un_op, Expr)
 	 | sign_extend(Bits, Expr)

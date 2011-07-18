@@ -308,14 +308,20 @@ class Scope(object):
         in_quote = False
         while len(tokens) > 0:
             line = ""
+            took_token = False
             while (len(tokens) > 0 and 
                    ((len(line)+len(tokens[0]) < self._max_line_length)
                     or in_quote)):
                 number_of_quotes += tokens[0].count('"')
                 in_quote = number_of_quotes&1 # odd number of quotes
                 line += tokens.pop(0)
+                took_token = True
                 if len(tokens): line += ' '
 
+            if not took_token:
+                line += tokens.pop(0)                
+                if len(tokens): line += ' '
+                
             lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
@@ -667,6 +673,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             elif (ir.var_decl, Type, Name): declare_var(Type, gen(Name))
             elif (ir.goto, Label):    return 'goto '+Label
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.set_arg, Var, Expr):    return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
             elif (Expr):
@@ -853,6 +860,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
             elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.eq):             return '.eq.'
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
@@ -1303,6 +1311,8 @@ class CCodeGenerator(ClikeCodeGenerator):
             elif (ir.import_, Name): 
                 return scope.new_global_def('#include <%s.h>'%Name)
 
+            elif (ir.set_arg, Var, Expr): return '*%s = %s'%(gen(Var), gen(Expr))
+
             elif (Expr):
                 return super(CCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
@@ -1349,6 +1359,8 @@ class CXXCodeGenerator(CCodeGenerator):
 
             elif (ir.set_struct_item, _, StructName, Item, Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
+
+            elif (ir.set_arg, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
 
             elif (Expr):
                 return super(CXXCodeGenerator, self).generate(Expr, scope)
@@ -1438,6 +1450,8 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                 return deref(Type, StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.assignment, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
+            elif (ir.set_arg, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
+
             elif (ir.true):           return 'true'
             elif (ir.false):          return 'false'
             elif (Expr):
@@ -1571,6 +1585,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
 
             elif (ir.var_decl, Type, Name): return ''
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.eq):             return '=='
             elif (ir.true):           return 'True'
             elif (ir.false):          return 'False'
@@ -1733,7 +1748,6 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 
-            elif (sidl.type_attribute, Name):    return Name
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
             elif (sidl.method_name, Name, []):   return gen(Name)
             elif (sidl.method_name, Name, Extension): return gen(Name)+' '+Extension

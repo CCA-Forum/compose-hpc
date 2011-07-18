@@ -384,7 +384,23 @@ class BorrowedRectangularArr: BaseArr {
   }
 
   proc dsiSlice(d: DefaultRectangularDom) {
-    halt("dsiSlice() not supported for BorrowedRectangularArray");
+    var bDom = new BorrowedRectangularDom(d.rank, d.idxType, d.stridable, dom.dist);
+    bDom.rectDom = d;
+
+    var alias = new BorrowedRectangularArr(eltType=eltType, rank=rank,
+                                         idxType=idxType,
+                                         stridable=d.stridable,
+                                         dom=bDom);
+    alias.bData = bData;
+    alias.blk = blk;
+    alias.str = str;
+    alias.origin = origin;
+    for param i in 1..rank {
+      alias.off(i) = d.dsiDim(i).low;
+      alias.origin += blk(i) * (d.dsiDim(i).low - off(i)) / str(i);
+    }
+    alias.computeFactoredOffs();
+    return alias;
   }
 
   proc dsiRankChange(d, param newRank: int, param newStridable: bool, args) {
@@ -396,7 +412,8 @@ class BorrowedRectangularArr: BaseArr {
   }
 
   proc dsiLocalSlice(ranges) {
-    halt("all dsiLocalSlice calls on DefaultRectangulars should be handled in ChapelArray.chpl");
+    halt("all dsiLocalSlice calls on DefaultRectangulars should be handled in ChapelArray.chpl",
+            " Expecting the same for Borrowed Arrays");
   }
 }
 

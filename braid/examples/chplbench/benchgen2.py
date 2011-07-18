@@ -3,6 +3,7 @@ import sidl, ir, codegen, chapel
 # This is a one-shot script to generate a couple of testcases.
 # It also doubles as a convoluted example of how to use BRAID to
 # generate code in multiple languages.
+# cf. ../structbench/benchgen.py
 
 def sidl_code(n, datatype):
     return """
@@ -22,7 +23,7 @@ def sidl_code(n, datatype):
 
 def copy_expr(n, datatype):
     def assign(var, val):
-        return ir.Stmt((ir.assignment, var, val))
+        return ir.Stmt(ir.Set_arg(var, val))
 
     # unhold = []
     # if lang == "Java":
@@ -37,30 +38,31 @@ def copy_expr(n, datatype):
 def gen_main_chpl(n, datatype):
     t = chapel.ChapelCodeGenerator.type_map[datatype]
     if datatype == "bool":
-        init = '\n  '.join(["var a%d: bool = TRUE;"%i              for i in range(0, n)]
-                          +["var b%d: bool = FALSE;"%i             for i in range(0, n)])
+        init = '\n  '.join(["var a%d: bool = true;"%i              for i in range(0, n)]
+                          +["var b%d: bool = false;"%i             for i in range(0, n)])
     elif datatype == "float":
-        init = '\n  '.join(["var a%d: real(32) = %f;"%(i, float(i))    for i in range(0, n)]
-                          +["var b%d: real(32) = %f;"%(i, float(i))    for i in range(0, n)])
+        init = '\n  '.join(["var a%d: real(32) = %f : real(32);"%(i, float(i))   for i in range(0, n)]
+                          +["var b%d: real(32) = %f : real(32);"%(i, float(i))   for i in range(0, n)])
     elif datatype == "int":
         init = '\n  '.join(["var a%d: int(32) = %d;"%(i, float(n-i))  for i in range(0, n)]
                           +["var b%d: int(32) = %d;"%(i, float(n-i))  for i in range(0, n)])
     elif datatype == "string":
-        init = '\n  '.join(['var a%d = "             %3d");'%(i, i) for i in range(0, n)]
-                          +['var b%d = "             %3d");'%(i, i) for i in range(0, n)])
+        init = '\n  '.join(['var a%d = "             %3d";'%(i, i) for i in range(0, n)]
+                          +['var b%d = "             %3d";'%(i, i) for i in range(0, n)])
     else: raise Exception("data type")
     return r"""
 use s;
 config var num_runs:int(32) = 1;
 writeln("running "+num_runs+" times");
 
+var ex: SidlBaseException;
 var server = new s.Benchmark();
 
 /* Benchmarks */
 [i in 0..num_runs] {
   /* Initialization */
   """+init+r"""
-  server.run(%s);
+  server.run(%s, ex);
 }
 """%', '.join(['a{n}, b{n}'.format(n=i) for i in range(0,n)])
     

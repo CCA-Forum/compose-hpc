@@ -556,7 +556,7 @@ def p_typeAttrOrCustomAttrList(p):
 def p_typeAttr(p):
     '''typeAttr : FINAL
                 | ABSTRACT'''
-    p[0] = (sidl.type_attribute, p[1])
+    p[0] = str.lower(p[1])
 
 def p_name(p):
     '''name : IDENTIFIER'''
