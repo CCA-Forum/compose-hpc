@@ -4,6 +4,7 @@
 // Use standard Chapel modules for Block-Cyclic distributions and timings
 //
 use BlockCycDist, Time;
+use blas;
 
 type idxType = int(32);
 type eltType = real(64);
@@ -55,17 +56,33 @@ proc main() {
 }
 
 proc cblas_daxpy(n, a, X, Y) {
-  _extern proc cblas_daxpy_local(n, a, X, Y);
-  _extern proc makeOpaque(inout a): opaque;
-  _extern proc printArray(n, X);
+	
+  _extern class sidl_double__array { var d_metadata: sidl__array; var d_firstElement: opaque; };	
+  _extern proc double_ptr(inout firstElement: real(64)): opaque;
+  _extern proc sidl_double__array_borrow( 
+		  in firstElement: opaque, 
+		  in dimen: int(32), 
+		  inout lower: int(32), 
+		  inout upper: int(32), 
+		  inout stride: int(32)): sidl_double__array;
   
   forall blk in 1..n by blkSize {
     on Locales(X(blk).locale.id) do {
     
-      var xPtr = makeOpaque(X(blk));
-      write("X-", blk, ": "); printArray(blkSize, xPtr);
-      var yPtr = makeOpaque(Y(blk));
-      write("Y-", blk, ": "); printArray(blkSize, yPtr);      
+      var xPtr = double_ptr(X(blk));
+      var yPtr = double_ptr(Y(blk));
+      
+      var lower: [1..1] int(32); lower[1] = 0;
+      var higher: [1..1] int(32); higher[1] = blkSize;
+      var stride: [1..1] int(32); stride[1] = 1;
+      
+      var xIor = sidl_double__array_borrow(xPtr, 1, lower[1], upper[1], stride[1]);      
+      var xArr = Array(real(64), sidl_double__array, xIor);
+      
+      var yIor = sidl_double__array_borrow(yPtr, 1, lower[1], upper[1], stride[1]); 
+      var yArr = Array(real(64), sidl_double__array, yIor);
+       
+      VectorUtils_static.helper_daxpy(n, a, xArr, yArr);
     }
   }
 }
