@@ -7,6 +7,6 @@ package blas version 0.1 {
          in int n,
          in double alpha,
          in array<double, 1> X, 
-         inout array<double, 1> Y);
+         in array<double, 1> Y);
   }
 }
