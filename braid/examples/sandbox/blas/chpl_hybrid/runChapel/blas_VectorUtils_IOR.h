@@ -72,7 +72,7 @@ struct blas_VectorUtils__sepv {
   void (*f_dump_stats_static)( const char* filename, const char* prefix, struct 
     sidl_BaseInterface__object** ex);
   void (*f_helper_daxpy)( int n, double alpha, sidl_double__array X, 
-    sidl_double__array* Y, struct sidl_BaseInterface__object** ex);
+    sidl_double__array Y, struct sidl_BaseInterface__object** ex);
 };
 
 /**

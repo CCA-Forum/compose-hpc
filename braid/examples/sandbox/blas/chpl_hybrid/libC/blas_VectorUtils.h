@@ -140,7 +140,7 @@ blas_VectorUtils_helper_daxpy(
   /* in */ int32_t n,
   /* in */ double alpha,
   /* in array<double> */ struct sidl_double__array* X,
-  /* inout array<double> */ struct sidl_double__array** Y,
+  /* in array<double> */ struct sidl_double__array* Y,
   /* out */ sidl_BaseInterface *_ex);
 
 /**

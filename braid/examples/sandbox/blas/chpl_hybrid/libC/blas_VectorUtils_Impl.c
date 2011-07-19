@@ -26,6 +26,7 @@
 #endif
 
 /* DO-NOT-DELETE splicer.begin(blas.VectorUtils._includes) */
+#include <stdio.h>
 #include "cblas.h"
 /* DO-NOT-DELETE splicer.end(blas.VectorUtils._includes) */
 
@@ -162,14 +163,19 @@ impl_blas_VectorUtils_helper_daxpy(
   /* in */ int32_t n,
   /* in */ double alpha,
   /* in array<double> */ struct sidl_double__array* X,
-  /* inout array<double> */ struct sidl_double__array** Y,
+  /* in array<double> */ struct sidl_double__array* Y,
   /* out */ sidl_BaseInterface *_ex)
 {
   *_ex = 0;
   {
     /* DO-NOT-DELETE splicer.begin(blas.VectorUtils.helper_daxpy) */
+	int i;
+	printf("impl_blas_VectorUtils_helper_daxpy(%d, %4.2f, %p, %p) \n", n, alpha, X, Y);
     double* xPtr = X->d_firstElement;
-    double* yPtr = (*Y)->d_firstElement;
+    double* yPtr = Y->d_firstElement;
+    printf("impl_blas_VectorUtils_helper_daxpy(): xPtr = %p and yPtr = %p \n", xPtr, yPtr);
+    printf("x: "); for (i = 0; i < 4; i++) { printf(" %f ", xPtr[i]); } printf("\n");
+    printf("y: "); for (i = 0; i < 4; i++) { printf(" %f ", yPtr[i]); } printf("\n");
     cblas_daxpy(n, alpha, xPtr, 1, yPtr, 1);
     /* DO-NOT-DELETE splicer.end(blas.VectorUtils.helper_daxpy) */
   }

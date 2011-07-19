@@ -4,7 +4,9 @@
 // Use standard Chapel modules for Block-Cyclic distributions and timings
 //
 use BlockCycDist, Time;
+use sidl;
 use blas;
+use blas.VectorUtils_static;
 
 type idxType = int(32);
 type eltType = real(64);
@@ -57,32 +59,31 @@ proc main() {
 
 proc cblas_daxpy(n, a, X, Y) {
 	
-  _extern class sidl_double__array { var d_metadata: sidl__array; var d_firstElement: opaque; };	
+  // _extern record sidl__array { };	
+  // _extern class sidl_double__array { var d_metadata: sidl__array; var d_firstElement: opaque; };	
   _extern proc double_ptr(inout firstElement: real(64)): opaque;
-  _extern proc sidl_double__array_borrow( 
-		  in firstElement: opaque, 
-		  in dimen: int(32), 
-		  inout lower: int(32), 
-		  inout upper: int(32), 
-		  inout stride: int(32)): sidl_double__array;
   
-  forall blk in 1..n by blkSize {
+  for blk in 1..n by blkSize {
     on Locales(X(blk).locale.id) do {
     
+      writeln("Processing block: ", blk, " on locale-", here.id);	
+    	
       var xPtr = double_ptr(X(blk));
       var yPtr = double_ptr(Y(blk));
       
       var lower: [1..1] int(32); lower[1] = 0;
-      var higher: [1..1] int(32); higher[1] = blkSize;
+      var upper: [1..1] int(32); upper[1] = blkSize - 1;
       var stride: [1..1] int(32); stride[1] = 1;
+      writeln(" lower: ", lower, ", upper: ", upper, ", stride: ", stride);
       
-      var xIor = sidl_double__array_borrow(xPtr, 1, lower[1], upper[1], stride[1]);      
-      var xArr = Array(real(64), sidl_double__array, xIor);
+      var xIor = sidl.sidl_double__array_borrow(xPtr, 1, lower[1], upper[1], stride[1]);      
+      var xArr = new sidl.Array(real(64), sidl_double__array, xIor);
       
       var yIor = sidl_double__array_borrow(yPtr, 1, lower[1], upper[1], stride[1]); 
-      var yArr = Array(real(64), sidl_double__array, yIor);
+      var yArr = new sidl.Array(real(64), sidl_double__array, yIor);
        
-      VectorUtils_static.helper_daxpy(n, a, xArr, yArr);
+      writeln(" calling helper_daxpy");
+      helper_daxpy(n, a, xArr, yArr);
     }
   }
 }

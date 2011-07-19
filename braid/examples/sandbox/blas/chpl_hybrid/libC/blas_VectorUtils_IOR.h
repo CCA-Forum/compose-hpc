@@ -87,7 +87,7 @@ struct blas_VectorUtils__sepv {
     /* in */ int32_t n,
     /* in */ double alpha,
     /* in array<double> */ struct sidl_double__array* X,
-    /* inout array<double> */ struct sidl_double__array** Y,
+    /* in array<double> */ struct sidl_double__array* Y,
     /* out */ struct sidl_BaseInterface__object **_ex);
 };
 
