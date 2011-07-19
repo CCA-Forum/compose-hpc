@@ -352,9 +352,9 @@ class Chapel(object):
 
             chpl_gen(
                 (ir.fn_defn, [], ir.pt_void, 
-                 'dtor',
-                 [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                 [vcall('deleteRef', ['this.self'], ci)],
+                 '~'+chpl_gen(name), [],
+                 ['var ex: sidl_BaseInterface__object;',
+                  vcall('deleteRef', ['this.self', 'ex'], ci)],
                  'Destructor'), chpl_class)
 
             def gen_cast(base):
