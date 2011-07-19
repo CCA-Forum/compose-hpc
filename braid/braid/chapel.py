@@ -350,12 +350,14 @@ class Chapel(object):
                   ],
                  'Constructor for wrapping an existing object'), chpl_class)
 
-            chpl_gen(
-                (ir.fn_defn, [], ir.pt_void, 
-                 '~'+chpl_gen(name), [],
-                 ['var ex: sidl_BaseInterface__object;',
-                  vcall('deleteRef', ['this.self', 'ex'], ci)],
-                 'Destructor'), chpl_class)
+            if not ci.is_interface:
+                chpl_gen(
+                    (ir.fn_defn, [], ir.pt_void, 
+                     '~'+chpl_gen(name), [],
+                     ['var ex: sidl_BaseInterface__object;',
+                      vcall('deleteRef', ['this.self', 'ex'], ci),
+                      vcall('_dtor', ['this.self', 'ex'], ci)],
+                     'Destructor'), chpl_class)
 
             def gen_cast(base):
                 chpl_gen(
