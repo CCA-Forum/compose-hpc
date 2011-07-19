@@ -3,6 +3,8 @@
 // Hold pointer to IOR functions.
 static const struct blas_VectorUtils__external *_externals = NULL;
 
+extern const struct blas_VectorUtils__external* blas_VectorUtils__externals();
+
 // Lookup the symbol to get the IOR functions.
 static const struct blas_VectorUtils__external* _loadIOR(void)
 
@@ -31,6 +33,20 @@ static const struct blas_VectorUtils__sepv *_sepv = NULL;
 #define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
 
-void blas_VectorUtils_helper_daxpy_stub( int32_t n, double alpha, sidl_double__array X, sidl_double__array Y, struct sidl_BaseInterface__object** ex) {
-  (_getSEPV()->f_helper_daxpy)( n, alpha, X, Y, ex);
+void blas_VectorUtils_helper_daxpy_stub( int32_t n, double alpha, sidl_double__array X, sidl_double__array Y, struct sidl_BaseInterface__object** _ex) {
+  (_getSEPV()->f_helper_daxpy)( n, alpha, X, Y, _ex);
+}
+
+/**
+ * Implicit built-in method: addRef
+ */
+void blas_VectorUtils_addRef_stub( struct blas_VectorUtils__object* self, struct sidl_BaseInterface__object** _ex) {
+  (*self->d_epv->f_addRef)( self, _ex);
+}
+
+/**
+ * Implicit built-in method: deleteRef
+ */
+void blas_VectorUtils_deleteRef_stub( struct blas_VectorUtils__object* self, struct sidl_BaseInterface__object** _ex) {
+  (*self->d_epv->f_deleteRef)( self, _ex);
 }

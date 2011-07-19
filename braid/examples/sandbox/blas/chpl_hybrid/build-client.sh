@@ -5,6 +5,11 @@ echo "Compiling Braid -> BLAS tests."
 # Begin of main driver
 
 set -x
+
+echo "Clean previous artifacts"
+rm -vf runChapel/*.*o 
+rm -vf runChapel/babel-stamp
+
 echo "--set up environment"
 BABEL=/Users/imam1/softwares/bin/babel
 BRAID="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../../../../compose-hpc/braid/contrib/argparse-1.1:../../../../../compose-hpc/braid/contrib/ply: /usr/bin/python ../../../../../compose-hpc/braid/braid/braid.py"
@@ -21,7 +26,7 @@ for libdir in `ls -1 -d ../lib*`; do
   esac
   echo "--compiling client [ $language ]"
   echo "Current directory: `pwd`"
-  make SERVER="${libdir}/libimpl*.la" IMPL="daxpy_hybird_block_cyclic" EXTRA_LDFLAGS="$extralib" OUTFILE="runChapel2$language"                   ||exit 1
+  make CFLAGS='-O0 -ggdb' SERVER="${libdir}/libimpl*.la" IMPL="daxpy_hybird_block_cyclic" EXTRA_LDFLAGS="$extralib" OUTFILE="runChapel2$language"                   ||exit 1
 
   # generate wrapper scripts
   case "$language" in

@@ -170,12 +170,8 @@ impl_blas_VectorUtils_helper_daxpy(
   {
     /* DO-NOT-DELETE splicer.begin(blas.VectorUtils.helper_daxpy) */
 	int i;
-	printf("impl_blas_VectorUtils_helper_daxpy(%d, %4.2f, %p, %p) \n", n, alpha, X, Y);
-    double* xPtr = X->d_firstElement;
+	double* xPtr = X->d_firstElement;
     double* yPtr = Y->d_firstElement;
-    printf("impl_blas_VectorUtils_helper_daxpy(): xPtr = %p and yPtr = %p \n", xPtr, yPtr);
-    printf("x: "); for (i = 0; i < 4; i++) { printf(" %f ", xPtr[i]); } printf("\n");
-    printf("y: "); for (i = 0; i < 4; i++) { printf(" %f ", yPtr[i]); } printf("\n");
     cblas_daxpy(n, alpha, xPtr, 1, yPtr, 1);
     /* DO-NOT-DELETE splicer.end(blas.VectorUtils.helper_daxpy) */
   }
