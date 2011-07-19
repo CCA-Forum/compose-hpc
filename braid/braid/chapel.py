@@ -326,13 +326,14 @@ class Chapel(object):
             chpl_class = ChapelScope(ci.chpl_stub)
             chpl_class.new_def('var self: %s__object;'%qname)
             body = [
-                'var ex: sidl_BaseInterface__object;',
-                'this.self = %s__createObject(0, ex);'%qname,
-                '' + extern_def_is_null,
-                'if (IS_NULL(ex)) {',
-                '   {arg_name} = new {base_ex}(ex);'.format(
-                    arg_name=chpl_param_ex_name, base_ex=chpl_base_exception),
-                '}',
+                '  ' + extern_def_is_not_null,
+                '  ' + extern_def_set_to_null,
+                '  var ex: sidl_BaseInterface__object;',
+                '  SET_TO_NULL(ex);',
+                '  this.self = %s__createObject(0, ex);'%qname,
+                '  if (IS_NOT_NULL(ex)) {',
+                '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
+                '  }',
                 vcall('addRef', ['this.self', 'ex'], ci)
             ]
             chpl_gen(
