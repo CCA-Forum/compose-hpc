@@ -34,9 +34,9 @@ LIBNAME=impl
 # please name the SIDL file here
 SIDLFILE=../blas.sidl
 # extra include/compile flags 
-EXTRAFLAGS=
+EXTRAFLAGS=-I/usr/include/atlas
 # extra libraries that the implementation needs to link against
-EXTRALIBS=-lcblas
+EXTRALIBS=-L/usr/lib64/atlas -lcblas
 # library version number
 VERSION=0.1.1
 # PREFIX specifies the top of the installation directory
