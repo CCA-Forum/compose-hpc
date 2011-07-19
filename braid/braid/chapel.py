@@ -100,6 +100,19 @@ def get_name(interface):
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
 
+def vcall(name, args, ci):
+    """
+    \return the IR for a non-static Babel virtual method call
+    """
+    epv = ci.epv.get_type()
+    cdecl = ci.epv.find_method(name)
+    return ir.Stmt(ir.Call(ir.Deref(ir.Get_struct_item(epv,
+                ir.Deref(ir.Get_struct_item(ci.obj,
+                                            ir.Deref('self'),
+                                            ir.Struct_item(epv, 'd_epv'))),
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args))
+
+
 @accepts(str, str)
 def write_to(filename, string):
     """
@@ -132,9 +145,9 @@ def drop_rarray_ext_args(args):
 
 
 
-class Chapel:
+class Chapel(object):
     
-    class ClassInfo:
+    class ClassInfo(object):
         """
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
@@ -264,23 +277,6 @@ class Chapel:
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
             gen1(all_methods, ci)
 
-            # IOR
-            self.generate_ior(ci, extends, implements)
-            write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
-
-            # Stub (in C)
-            cstub = ci.chpl_stub.cstub
-            cstub.genh_top(ir.Import(qname+'_IOR'))
-            for code in cstub.optional:
-                cstub.new_global_def(code)
-
-            cstub.gen(ir.Import(qname+'_cStub'))
-
-            # Stub Header
-            write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
-            # Stub C-file
-            write_to(qname+'_cStub.c', cstub.dot_c())
-
             # Stub (in Chapel)
             # Chapel supports C structs via the _extern keyword,
             # but they must be typedef'ed in a header file that
@@ -288,7 +284,7 @@ class Chapel:
             typedefs = self.class_typedefs(qname, symbol_table)
             write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
             chpl_defs = ci.chpl_stub
-            ci.chpl_stub = ChapelFile()
+            ci.chpl_stub = ChapelFile(chpl_defs)
             ci.chpl_stub.new_def('use sidl;')
             extrns = ChapelScope(ci.chpl_stub)
 
@@ -307,20 +303,12 @@ class Chapel:
                 for interf in impls[1]:
                     gen_casts(interf)
 
-            # if is_interface: # generic upcasting of interfaces
-            #     extrns.new_def('_extern proc upcast(in ior: {0}__object): {0}__object;'
-            #                    .format(qname))
-
             if extends:
                 inherits = ': '+'.'.join(strip_common(symbol_table.prefix, extends[1]))
             else: inherits = ''
 
             # extern declaration for the IOR
             ci.chpl_stub.new_def('_extern record %s__object {'%qname)
-            # if ci.is_interface:
-            #     ci.chpl_stub.new_def('  var d_object: opaque;')
-            # else:
-            #     ci.chpl_stub.new_def('  var d_data: opaque;')
             ci.chpl_stub.new_def('};')
 
             ci.chpl_stub.new_def(extrns)
@@ -336,16 +324,16 @@ class Chapel:
             ci.chpl_stub.new_def('}')
             ci.chpl_stub.new_def('class %s /*%s*/ {'%(name,inherits))
             chpl_class = ChapelScope(ci.chpl_stub)
-            chpl_class.new_def('var ior: %s__object;'%qname)
+            chpl_class.new_def('var self: %s__object;'%qname)
             body = [
-                '  ' + extern_def_is_not_null,
-                '  ' + extern_def_set_to_null,
-                '  var ex: sidl_BaseInterface__object;',
-                '  SET_TO_NULL(ex);',
-                '  this.ior = %s__createObject(0, ex);'%qname,
-                '  if (IS_NOT_NULL(ex)) {',
-                '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
-                '  }'
+                'var ex: sidl_BaseInterface__object;',
+                'this.self = %s__createObject(0, ex);'%qname,
+                '' + extern_def_is_null,
+                'if (IS_NULL(ex)) {',
+                '   {arg_name} = new {base_ex}(ex);'.format(
+                    arg_name=chpl_param_ex_name, base_ex=chpl_base_exception),
+                '}',
+                vcall('addRef', ['this.self', 'ex'], ci)
             ]
             chpl_gen(
                 (ir.fn_defn, [], ir.pt_void, 
@@ -357,15 +345,27 @@ class Chapel:
                 (ir.fn_defn, [], ir.pt_void, 
                  chpl_gen(name),
                  [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                 ['  this.ior = obj;'],
+                 ['var ex: sidl_BaseInterface__object;',
+                  'this.self = obj;',
+                  vcall('addRef', ['this.self', 'ex'], ci)
+                  ],
                  'Constructor for wrapping an existing object'), chpl_class)
+
+            if not ci.is_interface:
+                chpl_gen(
+                    (ir.fn_defn, [], ir.pt_void, 
+                     '~'+chpl_gen(name), [],
+                     ['var ex: sidl_BaseInterface__object;',
+                      vcall('deleteRef', ['this.self', 'ex'], ci),
+                      vcall('_dtor', ['this.self', 'ex'], ci)],
+                     'Destructor'), chpl_class)
 
             def gen_cast(base):
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void, 
                      '_'.join(['cast']+base[1]), [],
                      ['var ex: sidl_BaseInterface__object;',                        
-                      'return %s(this.ior, ex);'%'_'.join(['_cast']+base[1])],
+                      'return %s(this.self, ex);'%'_'.join(['_cast']+base[1])],
                      'Create a down-casted version of the IOR pointer for\n'
                      'use with the alternate constructor'), chpl_class)
 
@@ -380,7 +380,28 @@ class Chapel:
             chpl_class.new_def(chpl_defs.get_defs())
             ci.chpl_stub.new_def(chpl_class)
             ci.chpl_stub.new_def('}')
+
+            # This is important for the chapel stub, but we generate
+            # separate files vor the cstubs
             self.pkg_chpl_stub.new_def(ci.chpl_stub)
+
+
+            # IOR
+            self.generate_ior(ci, extends, implements)
+            write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
+
+            # Stub (in C)
+            cstub = ci.chpl_stub.cstub
+            cstub.genh_top(ir.Import(qname+'_IOR'))
+            for code in cstub.optional:
+                cstub.new_global_def(code)
+
+            cstub.gen(ir.Import(qname+'_cStub'))
+
+            # Stub Header
+            write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
+            # Stub C-file
+            write_to(qname+'_cStub.c', cstub.dot_c())
 
             # Makefile
             self.classes.append(qname)
@@ -635,7 +656,7 @@ class Chapel:
                 ctype = ior_type(symbol_table, typ)
 
                 if mode <> sidl.out:
-                    cname = name+'.ior'
+                    cname = name+'.self'
 
                 if mode <> sidl.in_:
                     cname = '_IOR_'+name
@@ -668,14 +689,14 @@ class Chapel:
                     t = typ[1][1]
                 ctype = ir.Typedef_type('sidl_%s__array'%t)
                 if mode <> sidl.out:
-                    cname = name+'.ior'
+                    cname = name+'.self'
 
                 if mode <> sidl.in_:
                     cname = '_IOR_'+name
                     # wrap the C type in a native Chapel object
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                     if mode == sidl.inout:
-                        pre_call.append(ir.Stmt(ir.Assignment(cname, name+'.ior')))
+                        pre_call.append(ir.Stmt(ir.Assignment(cname, name+'.self')))
 
                     conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, cname])
                     
@@ -832,7 +853,7 @@ class Chapel:
         if static:
             call_self = []
         else:
-            call_self = ["this.ior"]
+            call_self = ["this.self"]
                 
 
         call_args = call_self + call_args + ['_ex']
@@ -1188,6 +1209,8 @@ def externals(prefix):
 // Hold pointer to IOR functions.
 static const struct {a}__external *_externals = NULL;
 
+extern const struct {a}__external* {a}__externals();
+
 // Lookup the symbol to get the IOR functions.
 static const struct {a}__external* _loadIOR(void)
 
@@ -1216,6 +1239,9 @@ static const struct {a}__sepv *_sepv = NULL;
 #define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
 '''.format(a='_'.join(prefix), b='.'.join(prefix))
+
+# FIXME: this is a hack to create each stub only once
+stubs_generated = set()
 
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     """
@@ -1378,13 +1404,15 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
         post_call.append(ir.Stmt(ir.Return('_retval')))
 
     # Generate the C code into the scope's associated cStub
-    c_gen([cstub_decl,
+    if sname not in stubs_generated:
+        stubs_generated.add(sname)
+        c_gen([cstub_decl,
            ir.Fn_defn([], ctype, sname, cstub_decl_args,
                       pre_call+body+post_call, DocComment)], scope.cstub)
-    
+
     # Chapel _extern declaration
     chplstub_decl = ir.Fn_decl([], ctype, sname, map(obj_by_value, cstub_decl_args), DocComment)
-    scope.get_toplevel().new_header_def('_extern '+chpl_gen(chplstub_decl))
+    scope.new_def('_extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
 
@@ -1485,7 +1513,7 @@ def lower_type_ir(symbol_table, sidl_type):
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
     return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
 
-class EPV:
+class EPV(object):
     """
     Babel entry point vector for virtual method calls.
     Also contains the SEPV which is used for all static functions.
@@ -1524,6 +1552,18 @@ class EPV:
         else:
             self.methods.append(to_fn_decl(method))
         return self
+
+    def find_method(self, method):
+        """
+        Perform a linear search through the list of methods and return
+        the first with a matching name.
+        """
+        for m in self.methods:
+            fn_decl, attrs, typ, name, args, doc = m
+            if name == 'f_'+method:
+                return fn_decl, attrs, typ, name[2:], args, doc
+        import pdb; pdb.set_trace()
+        return None
 
     def get_ir(self):
         """
