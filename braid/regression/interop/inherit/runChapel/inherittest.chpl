@@ -77,7 +77,7 @@ proc clearstack(magicNumber: int): int
     }
 
     tracker.writeComment("Class D2: via interface A", sidl_ex);
-    var d2 = new Inherit.D(cast_Inherit_D(a.ior));
+    var d2 = new Inherit.D(cast_Inherit_D(a.self));
     part_no += 1;
     tracker.startPart(part_no, sidl_ex);
     tracker.writeComment("Casting A to interface D2", sidl_ex);
