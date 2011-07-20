@@ -11,7 +11,7 @@ clean:
 	rm -f ${OUTPUT_FILE}*
 
 compile: 
-	chpl daxpy_block_cyclic.chpl -o ${OUTPUT_FILE}
+	chpl --fast daxpy_block_cyclic.chpl -o ${OUTPUT_FILE} --print-commands
 
 run: 
 	./${OUTPUT_FILE} -nl ${NUM_LOCALES} --numElements=${N} --blkSize=${BLOCK} --alpha=${ALPHA}

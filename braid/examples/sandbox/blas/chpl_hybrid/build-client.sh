@@ -4,7 +4,7 @@ echo "Compiling Braid -> BLAS tests."
 
 # Begin of main driver
 
-set -x
+# set -x
 
 echo "Clean previous artifacts"
 rm -vf runChapel/*.*o 

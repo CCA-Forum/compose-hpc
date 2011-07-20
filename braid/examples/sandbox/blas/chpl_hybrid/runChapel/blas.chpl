@@ -61,6 +61,9 @@
             _extern proc blas_VectorUtils_deleteRef_stub( in self: blas_VectorUtils__object, inout 
         _ex: sidl_BaseInterface__object);
             blas_VectorUtils_deleteRef_stub( this.self, ex);
+            _extern proc blas_VectorUtils__dtor_stub( in self: blas_VectorUtils__object, inout _ex: 
+        sidl_BaseInterface__object);
+            blas_VectorUtils__dtor_stub( this.self, ex);
         }
         
         

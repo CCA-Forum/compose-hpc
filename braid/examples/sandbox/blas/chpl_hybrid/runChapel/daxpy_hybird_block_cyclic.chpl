@@ -18,6 +18,10 @@ config const debug = false;
 
 proc main() {
 
+  writeln("Num Elements: ", numElements);
+  writeln("Block Size: ", blkSize);
+  writeln("Alpha: ", alpha);
+
   var startIndicesTuple: 1*idxType;
   startIndicesTuple(1) = 1;
   
@@ -30,10 +34,14 @@ proc main() {
   var X: [VectorDom] eltType;
   var Y: [VectorDom] eltType;
   
-  forall i in VectorDom do {
-    var elemLocId = X(i).locale.id;
-    X(i) = i;
-    Y(i) = 10 + i;
+  forall blk in 1..numElements by blkSize {
+    on Locales(X(blk).locale.id) do {
+      var elemLocId = X(blk).locale.id;
+      forall i in [blk .. #blkSize] do {
+        X(i) = i;
+        Y(i) = 10 + i;
+      }
+    }
   }
   
   if (debug) {
@@ -63,7 +71,7 @@ proc cblas_daxpy_chpl(n, a, X, Y) {
   // _extern class sidl_double__array { var d_metadata: sidl__array; var d_firstElement: opaque; };	
   _extern proc double_ptr(inout firstElement: real(64)): opaque;
   
-  for blk in 1..n by blkSize {
+  forall blk in 1..n by blkSize {
     on Locales(X(blk).locale.id) do {
       if (debug) {
         writeln("Processing block: ", blk, " on locale-", here.id);	

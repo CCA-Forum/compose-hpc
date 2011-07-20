@@ -16,5 +16,9 @@ void blas_VectorUtils_addRef_stub( struct blas_VectorUtils__object* self, struct
  * Implicit built-in method: deleteRef
  */
 void blas_VectorUtils_deleteRef_stub( struct blas_VectorUtils__object* self, struct sidl_BaseInterface__object** _ex);
+/**
+ * Implicit built-in method: _dtor
+ */
+void blas_VectorUtils__dtor_stub( struct blas_VectorUtils__object* self, struct sidl_BaseInterface__object** _ex);
 
 #endif

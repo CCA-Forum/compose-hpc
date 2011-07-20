@@ -15,6 +15,10 @@ config const debug = false;
 
 proc main() {
 
+  writeln("Num Elements: ", numElements);
+  writeln("Block Size: ", blkSize);
+  writeln("Alpha: ", alpha);
+
   var startIndicesTuple: 1*idxType;
   startIndicesTuple(1) = 1;
   
@@ -27,12 +31,16 @@ proc main() {
   var X: [VectorDom] eltType;
   var Y: [VectorDom] eltType;
   
-  forall i in VectorDom do {
-    var elemLocId = X(i).locale.id;
-    X(i) = i;
-    Y(i) = elemLocId;
+  forall blk in 1..numElements by blkSize {
+    on Locales(X(blk).locale.id) do {
+
+      forall i in [blk .. #blkSize] do {
+        X(i) = i;
+        Y(i) = 10 + i;
+      }
+    }
   }
-  
+  writeln("Initialized data");  
   if (debug) {
     writeln("1. alpha: ", alpha);
     write("1. X: "); writeln(X);
@@ -59,7 +67,7 @@ proc cblas_daxpy(n, a, X, Y) {
   forall blk in 1..n by blkSize {
     on Locales(X(blk).locale.id) do {
       const locDomain: domain(1) = [blk..#blkSize];
-      for i in locDomain do {
+      forall i in locDomain do {
         Y(i) = (a * X(i)) + Y(i);
       }
     }
@@ -69,20 +77,22 @@ proc cblas_daxpy(n, a, X, Y) {
 proc verifyResults(n, a, X, Y) {
 
   writeln("Verifying results...");
+
   var validMsg = "SUCCESS";
   forall i in X.domain do {
-    var yl = Y(i).locale.id;
-    
+    var y_orig = 10 + i;
+
     var x = X(i);
     var y = Y(i);
-    
-    var d = y - (a * x);
-    
-    if (abs(d - yl) > 0.0001) {
-      validMsg = "FAILURE";
+
+    var expected = y_orig + (a * x);
+
+    if (abs(expected - y) > 0.0001) {
+      validMsg = "FAILURE mismatch at index: " + i + ", expected: " + expected + ", found: " + y;
     }
   }
   writeln("Validation: ", validMsg);
 }
+
 
 
