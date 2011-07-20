@@ -48,7 +48,7 @@ proc main() {
   }
   
   const startTime = getCurrentTime();
-  cblas_daxpy(numElements, alpha, X, Y);
+  chpl_daxpy(numElements, alpha, X, Y);
   const endTime = getCurrentTime();
   
   if (debug) {
@@ -60,12 +60,21 @@ proc main() {
   writeln("Execution time = ", execTime, " secs");
   verifyResults(numElements, alpha, X, Y);
 
+  const startTime2 = getCurrentTime();
+  chpl_daxpy_2(numElements, alpha, X, Y);
+  const endTime2 = getCurrentTime();
+  writeln("Variant-2 time = ", (endTime2 - startTime2), " secs");  
+  
+  const startTime3 = getCurrentTime();
+  chpl_daxpy_3(numElements, alpha, X, Y);
+  const endTime3 = getCurrentTime();
+  writeln("Variant-3 time = ", (endTime3 - startTime3), " secs");  
+ 
 }
 
-proc cblas_daxpy(n, a, X, Y) {
-  
+proc chpl_daxpy(n, a, X, Y) {  
   forall blk in 1..n by blkSize {
-    on Locales(X(blk).locale.id) do {
+    on X(blk) do {
       const locDomain: domain(1) = [blk..#blkSize];
       forall i in locDomain do {
         Y(i) = (a * X(i)) + Y(i);
@@ -74,21 +83,39 @@ proc cblas_daxpy(n, a, X, Y) {
   }
 }
 
+proc chpl_daxpy_2(n, a, X, Y) {  
+  Y = a * X + Y;
+}
+
+proc chpl_daxpy_3(n, a, X, Y) {  
+  forall blk in 1..n by blkSize {
+    on X(blk) do {
+      const locDomain: domain(1) = [blk..#blkSize];
+      forall (x,y) in (X(locDomain), Y(locDomain)) do {
+    	  y = a * x + y;
+      }
+    }
+  }	 
+}
+
 proc verifyResults(n, a, X, Y) {
 
   writeln("Verifying results...");
 
   var validMsg = "SUCCESS";
-  forall i in X.domain do {
-    var y_orig = 10 + i;
-
-    var x = X(i);
-    var y = Y(i);
-
-    var expected = y_orig + (a * x);
-
-    if (abs(expected - y) > 0.0001) {
-      validMsg = "FAILURE mismatch at index: " + i + ", expected: " + expected + ", found: " + y;
+  forall blk in 1..n by blkSize {
+    on X(blk) do {
+      const locDomain: domain(1) = [blk..#blkSize];
+      forall i in locDomain do {
+      	var y_orig = 10 + i;
+       	var x = X(i);
+       	var y = Y(i);
+        	
+       	var expected = y_orig + (a * x);
+       	if (abs(expected - y) > 0.0001) {
+       	  validMsg = "FAILURE mismatch at index: " + i + ", expected: " + expected + ", found: " + y;
+       	}
+      }
     }
   }
   writeln("Validation: ", validMsg);

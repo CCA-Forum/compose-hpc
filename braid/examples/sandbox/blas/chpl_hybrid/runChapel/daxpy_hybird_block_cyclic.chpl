@@ -72,7 +72,7 @@ proc cblas_daxpy_chpl(n, a, X, Y) {
   _extern proc double_ptr(inout firstElement: real(64)): opaque;
   
   forall blk in 1..n by blkSize {
-    on Locales(X(blk).locale.id) do {
+    on X(blk) do {
       if (debug) {
         writeln("Processing block: ", blk, " on locale-", here.id);	
       }
@@ -99,21 +99,22 @@ proc cblas_daxpy_chpl(n, a, X, Y) {
 proc verifyResults(n, a, X, Y) {
 
   writeln("Verifying results...");
-  
+
   var validMsg = "SUCCESS";
-  forall i in X.domain do {
-    var y_orig = 10 + i;
-    
-    var x = X(i);
-    var y = Y(i);
-    
-    var expected = y_orig + (a * x);
-    
-    if (abs(expected - y) > 0.0001) {
-      validMsg = "FAILURE mismatch at index: " + i + ", expected: " + expected + ", found: " + y;
+  forall blk in 1..n by blkSize {
+    on X(blk) do {
+      const locDomain: domain(1) = [blk..#blkSize];
+      forall i in locDomain do {
+      	var y_orig = 10 + i;
+       	var x = X(i);
+       	var y = Y(i);
+        	
+       	var expected = y_orig + (a * x);
+       	if (abs(expected - y) > 0.0001) {
+       	  validMsg = "FAILURE mismatch at index: " + i + ", expected: " + expected + ", found: " + y;
+       	}
+      }
     }
   }
   writeln("Validation: ", validMsg);
 }
-
-
