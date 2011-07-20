@@ -2,7 +2,7 @@
  * File:          blas_VectorUtils.h
  * Symbol:        blas.VectorUtils-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 7138  trunk)
+ * Babel Version: 2.0.0 (Revision: 0  )
  * Description:   Client-side glue code for blas.VectorUtils
  * 
  * WARNING: Automatically generated; changes will be lost

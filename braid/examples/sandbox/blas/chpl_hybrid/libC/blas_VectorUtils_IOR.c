@@ -2,7 +2,7 @@
  * File:          blas_VectorUtils_IOR.c
  * Symbol:        blas.VectorUtils-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 7138  trunk)
+ * Babel Version: 2.0.0 (Revision: 0  )
  * Description:   Intermediate Object Representation for blas.VectorUtils
  * 
  * WARNING: Automatically generated; changes will be lost
@@ -90,15 +90,13 @@ static int s_method_initialized = 0;
 static int s_static_initialized = 0;
 
 static struct blas_VectorUtils__epv  s_my_epv__blas_vectorutils;
-static VAR_UNUSED struct blas_VectorUtils__sepv s_stc_epv__blas_vectorutils;
+static struct blas_VectorUtils__sepv s_stc_epv__blas_vectorutils;
 
 static struct blas_VectorUtils__epv  s_my_epv_contracts__blas_vectorutils;
-static VAR_UNUSED struct blas_VectorUtils__sepv 
-  s_stc_epv_contracts__blas_vectorutils;
+static struct blas_VectorUtils__sepv s_stc_epv_contracts__blas_vectorutils;
 
 static struct blas_VectorUtils__epv  s_my_epv_hooks__blas_vectorutils;
-static VAR_UNUSED struct blas_VectorUtils__sepv 
-  s_stc_epv_hooks__blas_vectorutils;
+static struct blas_VectorUtils__sepv s_stc_epv_hooks__blas_vectorutils;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
