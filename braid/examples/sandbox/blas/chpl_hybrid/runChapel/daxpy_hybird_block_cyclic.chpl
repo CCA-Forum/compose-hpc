@@ -18,6 +18,10 @@ config const debug = false;
 
 proc main() {
 
+  writeln("Num Elements: ", numElements);
+  writeln("Block Size: ", blkSize);
+  writeln("Alpha: ", alpha);
+
   var startIndicesTuple: 1*idxType;
   startIndicesTuple(1) = 1;
   
@@ -30,10 +34,14 @@ proc main() {
   var X: [VectorDom] eltType;
   var Y: [VectorDom] eltType;
   
-  forall i in VectorDom do {
-    var elemLocId = X(i).locale.id;
-    X(i) = i;
-    Y(i) = elemLocId;
+  forall blk in 1..numElements by blkSize {
+    on Locales(X(blk).locale.id) do {
+      var elemLocId = X(blk).locale.id;
+      forall i in [blk .. #blkSize] do {
+        X(i) = i;
+        Y(i) = 10 + i;
+      }
+    }
   }
   
   if (debug) {
@@ -43,7 +51,7 @@ proc main() {
   }
   
   const startTime = getCurrentTime();
-  cblas_daxpy(numElements, alpha, X, Y);
+  cblas_daxpy_chpl(numElements, alpha, X, Y);
   const endTime = getCurrentTime();
   
   if (debug) {
@@ -57,16 +65,17 @@ proc main() {
 
 }
 
-proc cblas_daxpy(n, a, X, Y) {
+proc cblas_daxpy_chpl(n, a, X, Y) {
 	
   // _extern record sidl__array { };	
   // _extern class sidl_double__array { var d_metadata: sidl__array; var d_firstElement: opaque; };	
   _extern proc double_ptr(inout firstElement: real(64)): opaque;
   
-  for blk in 1..n by blkSize {
-    on Locales(X(blk).locale.id) do {
-    
-      writeln("Processing block: ", blk, " on locale-", here.id);	
+  forall blk in 1..n by blkSize {
+    on X(blk) do {
+      if (debug) {
+        writeln("Processing block: ", blk, " on locale-", here.id);	
+      }
     	
       var xPtr = double_ptr(X(blk));
       var yPtr = double_ptr(Y(blk));
@@ -74,7 +83,6 @@ proc cblas_daxpy(n, a, X, Y) {
       var lower: [1..1] int(32); lower[1] = 0;
       var upper: [1..1] int(32); upper[1] = blkSize - 1;
       var stride: [1..1] int(32); stride[1] = 1;
-      writeln(" lower: ", lower, ", upper: ", upper, ", stride: ", stride);
       
       var xIor = sidl.sidl_double__array_borrow(xPtr, 1, lower[1], upper[1], stride[1]);      
       var xArr = new sidl.Array(real(64), sidl_double__array, xIor);
@@ -82,8 +90,8 @@ proc cblas_daxpy(n, a, X, Y) {
       var yIor = sidl_double__array_borrow(yPtr, 1, lower[1], upper[1], stride[1]); 
       var yArr = new sidl.Array(real(64), sidl_double__array, yIor);
        
-      writeln(" calling helper_daxpy");
-      helper_daxpy(n, a, xArr, yArr);
+      var baseEx: BaseException = nil;
+      helper_daxpy(blkSize, a, xArr, yArr, baseEx);
     }
   }
 }
@@ -91,20 +99,22 @@ proc cblas_daxpy(n, a, X, Y) {
 proc verifyResults(n, a, X, Y) {
 
   writeln("Verifying results...");
+
   var validMsg = "SUCCESS";
-  forall i in X.domain do {
-    var yl = Y(i).locale.id;
-    
-    var x = X(i);
-    var y = Y(i);
-    
-    var d = y - (a * x);
-    
-    if (abs(d - yl) > 0.0001) {
-      validMsg = "FAILURE";
+  forall blk in 1..n by blkSize {
+    on X(blk) do {
+      const locDomain: domain(1) = [blk..#blkSize];
+      forall i in locDomain do {
+      	var y_orig = 10 + i;
+       	var x = X(i);
+       	var y = Y(i);
+        	
+       	var expected = y_orig + (a * x);
+       	if (abs(expected - y) > 0.0001) {
+       	  validMsg = "FAILURE mismatch at index: " + i + ", expected: " + expected + ", found: " + y;
+       	}
+      }
     }
   }
   writeln("Validation: ", validMsg);
 }
-
-

@@ -2,7 +2,7 @@
  * File:          blas_VectorUtils_Impl.h
  * Symbol:        blas.VectorUtils-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 0  )
+ * Babel Version: 2.0.0 (Revision: 7138  trunk)
  * Description:   Server-side implementation for blas.VectorUtils
  * 
  * WARNING: Automatically generated; only changes within splicers preserved

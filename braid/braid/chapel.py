@@ -1202,6 +1202,8 @@ def externals(prefix):
 // Hold pointer to IOR functions.
 static const struct {a}__external *_externals = NULL;
 
+extern const struct {a}__external* {a}__externals();
+
 // Lookup the symbol to get the IOR functions.
 static const struct {a}__external* _loadIOR(void)
 
