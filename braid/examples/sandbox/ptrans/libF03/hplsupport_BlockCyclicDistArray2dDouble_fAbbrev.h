@@ -1,0 +1,7 @@
+/* Renaming stub symbols so they don't conflict with F90 bindings */
+#ifdef __FORTRAN03__
+#define hplsupport_BlockCyclicDistArray2dDouble hplsupport_BlockCyclicDistArray2dDouble_F03
+#define hplsupport_BlockCyclicDistArray2dDouble_type hplsupport_BlockCyclicDistArray2dDouble_type_F03
+#define hplsupport_BlockCyclicDistArray2dDouble_array hplsupport_BlockCyclicDistArray2dDouble_array_F03
+#endif /*__FORTRAN03__*/
+
