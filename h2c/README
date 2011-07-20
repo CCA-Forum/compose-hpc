@@ -1,0 +1,30 @@
+PURPOSE
+
+This is a modified (by Ben Allan) version of mcpp that (under the right switches) generates
+filtered, depth and line numbered dependency output.
+A patch file (vs the mcpp272 source) is included (but already applied in this tree).
+
+h2c.sh header to c file converter.
+
+An example (very brittle) script using the generated line numbers is h2c.sh, a tool for
+converting a dir full of c headers into a generated dir full of .c files derived from those
+headers. Note: h2c.sh does not work unless input locations hardcoded at the top 
+exist and local (to whereever you run the script from) output dirs cheaders and dfiles have
+been manually created.
+
+The purpose of h2c.sh (and this modified mcpp) is to prepare batches of header files for transformation by
+tools which only transform input .c ( and probably c++) and not .h files.
+Each header is converted to a .c file with the addition of a 2line prolog and 2line epilog.
+A needed companion header is generated.
+
+INSTALL
+
+When building this package, specify --program-prefix=ba and a --prefix, or you get the standard
+mcpp binary name and an attempt to install in /usr/local.
+The h2c.sh script is not installed and must be copied & tailored to each use.
+
+See the full readme in mcpp for details.
+
+Ben Allan, 6/2011
+
+LICENSE: The modifications to mcpp and the h2c.sh demo script are provided as-is, without warranty, and recipients of this code are subject to the mcpp license.
