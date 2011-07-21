@@ -91,7 +91,9 @@ if __name__ == '__main__':
     cmdline = argparse.ArgumentParser(description=config.PACKAGE_STRING+'''
 -- Do magically wonderful things with SIDL 
 (scientific interface definition language) files.
-''', epilog="Please report bugs to <%s>."%config.PACKAGE_BUGREPORT)
+[This version of BRAID was configured on %s, %s.]
+'''%(config.BUILD_MACHINE,config.CONFIGURE_DATE), 
+    epilog="Please report bugs to <%s>."%config.PACKAGE_BUGREPORT)
 
     cmdline.add_argument('sidl_files', metavar='<file.sidl>', nargs='*',#type=file
 			 help='SIDL files to use as input')
