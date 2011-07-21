@@ -163,9 +163,17 @@ contains
 
     ! DO-NOT-DELETE splicer.begin(hpcc.ParallelTranspose.ptransCompute)
     ! insert code here (ptransCompute method)
-     
-    write (*,*) "Inside ptransCompute_impl()"
-    
+    real (kind=sidl_double) :: a_ji
+    real (kind=sidl_double) :: c_ij
+    real (kind=sidl_double) :: new_val    
+
+    c_ij = get(c, i, j, exception);
+    a_ji = get(a, j, i, exception);
+
+    new_val = beta * c_ij  +  a_ji;
+
+    call set(c, new_val, i, j, exception);  
+  
     ! DO-NOT-DELETE splicer.end(hpcc.ParallelTranspose.ptransCompute)
   end subroutine ptransCompute_impl
 
