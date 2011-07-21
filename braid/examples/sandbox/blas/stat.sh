@@ -40,9 +40,9 @@ function median() {
 import numpy,sys
 for l in sys.stdin.readlines():
     print ' '.join(l.split()[:4]+[str(numpy.mean(
-        map(lambda x: float(x), l.split()[5:])))])
+        map(lambda x: float(x), l.split()[4:])))])
 "
 }
 
 echo "Name Locales Elements Blocksize Time"
-pull_info /p/lscratchb/prantl1/data_pure* | merge_runs | median |sort -s -n -k 5 |sort -s -n -k 3 |sort -s -n -k 2 |sort -s -n -k 4 
+pull_info $@ | merge_runs | median |sort -s -n -k 5 |sort -s -n -k 3 |sort -s -n -k 2 |sort -s -n -k 4 
