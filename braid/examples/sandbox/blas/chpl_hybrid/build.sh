@@ -15,6 +15,11 @@ BABEL=/Users/imam1/softwares/bin/babel
 BRAID="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../../../../compose-hpc/braid/contrib/argparse-1.1:../../../../../compose-hpc/braid/contrib/ply: /usr/bin/python ../../../../../compose-hpc/braid/braid/braid.py"
 sidl=blas.sidl
 
+echo "--compile server"
+cd libC						||exit 1
+make clean all
+cd ..
+
 echo "--generate client"
 cd runChapel						||exit 1
 
