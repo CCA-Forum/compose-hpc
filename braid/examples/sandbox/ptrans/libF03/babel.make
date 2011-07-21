@@ -1,13 +1,9 @@
-FSKELSRCS = hpcc_ParallelTranspose_fSkelf.F03                                 \
-  hplsupport_BlockCyclicDistArray2dDouble_fSkelf.F03
-IMPLSRCS = hpcc_ParallelTranspose_Impl.F03                                    \
-  hplsupport_BlockCyclicDistArray2dDouble_Impl.F03
+FSKELSRCS = hpcc_ParallelTranspose_fSkelf.F03
+IMPLSRCS = hpcc_ParallelTranspose_Impl.F03 
 IORHDRS = hpcc_IOR.h hpcc_ParallelTranspose_IOR.h                             \
   hplsupport_BlockCyclicDistArray2dDouble_IOR.h hplsupport_IOR.h
-IORSRCS = hpcc_ParallelTranspose_IOR.c                                        \
-  hplsupport_BlockCyclicDistArray2dDouble_IOR.c
-SKELSRCS = hpcc_ParallelTranspose_fSkel.c                                     \
-  hplsupport_BlockCyclicDistArray2dDouble_fSkel.c
+IORSRCS = hpcc_ParallelTranspose_IOR.c     
+SKELSRCS = hpcc_ParallelTranspose_fSkel.c  
 STUBHDRS = hpcc_ParallelTranspose_fAbbrev.h hpcc_ParallelTranspose_fStub.h    \
   hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h                           \
   hplsupport_BlockCyclicDistArray2dDouble_fStub.h
@@ -34,12 +30,4 @@ _deps_hplsupport_BlockCyclicDistArray2dDouble =                               \
   hplsupport_BlockCyclicDistArray2dDouble_type
 hplsupport_BlockCyclicDistArray2dDouble$(MOD_SUFFIX) : $(addsuffix $(MOD_SUFFIX), $(_deps_hplsupport_BlockCyclicDistArray2dDouble))
 
-_deps_hplsupport_BlockCyclicDistArray2dDouble_Impl =                          \
-  hplsupport_BlockCyclicDistArray2dDouble
-hplsupport_BlockCyclicDistArray2dDouble_Impl$(MOD_SUFFIX) : $(addsuffix $(MOD_SUFFIX), $(_deps_hplsupport_BlockCyclicDistArray2dDouble_Impl))
-
-_deps_hplsupport_BlockCyclicDistArray2dDouble_fSkelf =                        \
-  hplsupport_BlockCyclicDistArray2dDouble_Impl                                \
-  hplsupport_BlockCyclicDistArray2dDouble_type
-hplsupport_BlockCyclicDistArray2dDouble_fSkelf$(MOD_SUFFIX) : $(addsuffix $(MOD_SUFFIX), $(_deps_hplsupport_BlockCyclicDistArray2dDouble_fSkelf))
 

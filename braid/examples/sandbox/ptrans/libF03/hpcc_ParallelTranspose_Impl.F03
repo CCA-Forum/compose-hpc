@@ -163,10 +163,9 @@ contains
 
     ! DO-NOT-DELETE splicer.begin(hpcc.ParallelTranspose.ptransCompute)
     ! insert code here (ptransCompute method)
-    ! 
-    ! This method has not been implemented
-    ! 
-
+     
+    write (*,*) "Inside ptransCompute_impl()"
+    
     ! DO-NOT-DELETE splicer.end(hpcc.ParallelTranspose.ptransCompute)
   end subroutine ptransCompute_impl
 
