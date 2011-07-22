@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# Usage: $0 file*.txt
+
+# collate all the info from the bench*.txt files in $@
+# into a space-seperated table
 function pull_info() {
-    for f in $@ #`ls -1 data_hybrid*`; do
-      do
+    for f in $@; do
       if grep -q SUCCESS $f; then
 	  true
       else
@@ -22,6 +25,12 @@ function pull_info() {
     done
 }
 
+# bench1  a b c 1 time1
+# bench1  a b c 2 time2
+# bench2  d e f 1 time3
+# ----->
+# bench1  a b c time1 time2
+# bench2  d e f 3
 function merge_runs() {
     awk '{
       bench = $1 " " $2 " " $3 " " $4;
@@ -35,6 +44,9 @@ function merge_runs() {
     }'
 }
 
+# bench1  a b c time1 time2
+# -------->
+# bench1  a b c `median(time1 time2)`
 function median() {
     python -c "
 import numpy,sys

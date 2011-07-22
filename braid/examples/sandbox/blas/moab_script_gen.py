@@ -6,6 +6,7 @@ blockSize = 512
 numElems = 16 * blockSize
 #maxNodes = 32
 numRuns = 1
+walltime = '0:06:00'
 
 for t in range(1,100,50):
   n = t * numElems
@@ -17,7 +18,7 @@ for t in range(1,100,50):
 #MSUB -A comp
 #MSUB -l nodes={nodes}
 #MSUB -l partition=ansel
-#MSUB -l walltime=0:06:00
+#MSUB -l walltime={walltime}
 #MSUB -q {p}
 #MSUB -m a
 #MSUB -N hy_{nodes}-{n}-{b}-{r}
@@ -26,7 +27,7 @@ for t in range(1,100,50):
 
 export MPIRUN_CMD="srun -N %N %P %A"
 chpl_hybrid/runChapel/runChapel2C -nl {nodes} -v --rowSize=32 --colSize={n} --blkSize={b} --maxThreadsPerLocale=12 --dataParTasksPerLocale=12
-'''.format(nodes=nodes,n=n,b=b,r=r,p=p))
+'''.format(nodes=nodes,n=n,b=b,r=r,p=p,walltime=walltime))
         fh.close()
 
         fh = open('data_pure-{nodes}-{n}-{b}-{r}.moab'.format(nodes=nodes,n=n,b=b,r=r), 'w')
@@ -34,7 +35,7 @@ chpl_hybrid/runChapel/runChapel2C -nl {nodes} -v --rowSize=32 --colSize={n} --bl
 #MSUB -A comp
 #MSUB -l nodes={nodes}
 #MSUB -l partition=ansel
-#MSUB -l walltime=0:06:00
+#MSUB -l walltime={walltime}
 #MSUB -q {p}
 #MSUB -m a
 #MSUB -N pu_{nodes}-{n}-{b}-{r}        
@@ -43,5 +44,5 @@ chpl_hybrid/runChapel/runChapel2C -nl {nodes} -v --rowSize=32 --colSize={n} --bl
 
 export MPIRUN_CMD="srun -N %N %P %A"
 chpl_pure/runMe -nl {nodes} -v --rowSize=32 --colSize={n} --blkSize={b} --maxThreadsPerLocale=12 --dataParTasksPerLocale=12
-'''.format(nodes=nodes,n=n,b=b,r=r,p=p))
+'''.format(nodes=nodes,n=n,b=b,r=r,p=p,walltime=walltime))
         fh.close()
