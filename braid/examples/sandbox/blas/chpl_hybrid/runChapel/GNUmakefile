@@ -35,9 +35,13 @@ LIBNAME=impl
 # please name the SIDL file here
 SIDLFILE=../blas.sidl
 # extra include/compile flags
-EXTRAFLAGS=-ggdb -O0 -I/usr/include/atlas
+EXTRAFLAGS=-ggdb -O0 
+# EXTRAFLAGS=-ggdb -O0 -I/usr/include/atlas
+
 # extra libraries that the implementation needs to link against
-EXTRALIBS=-L/usr/lib64/atlas -lcblas
+# EXTRALIBS=-lcblas  
+EXTRALIBS=-lcblas -L/usr/lib64/atlas 
+
 # library version number
 VERSION=0.1.1
 # PREFIX specifies the top of the installation directory
@@ -48,8 +52,8 @@ LIBDIR=$(PREFIX)/lib
 # the default installation installs the stub header and IOR header files
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
-CHAPEL=/g/g91/prantl1/sw/opt/chapel/bin/linux64/chpl
-CHAPEL_ROOT=/g/g91/prantl1/sw/opt/chapel
+CHAPEL=$(CHPL_HOME)/bin/$(CHPL_HOST_PLATFORM)/chpl
+CHAPEL_ROOT=$(CHPL_HOME)
 CHAPEL_MAKE_MEM=default
 # CHAPEL_MAKE_COMM=none
 CHAPEL_MAKE_COMM=gasnet
@@ -58,6 +62,7 @@ CHAPEL_MAKE_TASKS=fifo
 CHAPEL_MAKE_THREADS=pthreads
 
 ifeq ($(CHAPEL_MAKE_COMM),gasnet)
+#CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-gasnet-nodbg/substrate-udp
 CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-gasnet-nodbg/substrate-ibv
 else
 CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
@@ -66,16 +71,23 @@ endif
 CHPL=chpl
 # CHPL=chpl --print-commands --print-passes
 
-CHPL_FLAGS=-std=c99 -DGASNET_PAR -D_REENTRANT -D_GNU_SOURCE -l$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/include -l$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/include/ibv-conduit -DGASNET_CONDUIT_IBV -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/gasnet -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
+CHPL_FLAGS=-std=c99 -DGASNET_PAR -D_REENTRANT -D_GNU_SOURCE -l$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/include -l$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/include/ibv-conduit -DGASNET_CONDUIT_IBV -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/gasnet -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all
+#CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/gasnet -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
 
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
 
+#CHPL_GASNET_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHAPEL_ROOT)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 CHPL_GASNET_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHAPEL_ROOT)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-ibv-par -libverbs -lpthread -lgcc -lm
 
+#CHPL_LAUNCHER_LDFLAGS=$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 CHPL_LAUNCHER_LDFLAGS=$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-gasnetrun_ibv/main_launcher.o
+
+#LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
 LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-gasnetrun_ibv -lchpllaunch -lchpl -lm
 
+#SIDL_RUNTIME=/Users/imam1/softwares/include
 SIDL_RUNTIME=/g/g91/prantl1/install/include
+
 CHPL_HEADERS=-I$(SIDL_RUNTIME)/chpl -M$(SIDL_RUNTIME)/chpl \
   chpl_sidl_array.h
 
@@ -98,6 +110,8 @@ all: lib$(LIBNAME).la $(SCLFILE) $(OUTFILE) $(OUTFILE)_real
 
 # actual program
 $(OUTFILE)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
+#	babel-libtool --mode=link --tag=CXX /usr/local/bin/mpicc -static lib$(LIBNAME).la 
+#	babel-libtool --mode=link --tag=CXX $(CXX) -static lib$(LIBNAME).la 
 	babel-libtool --mode=link --tag=CXX /usr/local/bin/mpicc -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
           $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
