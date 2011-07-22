@@ -51,7 +51,7 @@ function median() {
     python -c "
 import numpy,sys
 for l in sys.stdin.readlines():
-    print ' '.join(l.split()[:4]+[str(numpy.mean(
+    print ' '.join(l.split()[:4]+[str(numpy.median(
         map(lambda x: float(x), l.split()[4:])))])
 "
 }
