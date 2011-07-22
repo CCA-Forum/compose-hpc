@@ -12,7 +12,7 @@ type idxType = int(32);
 type eltType = real(64);
 
 config const rowSize = 20;
-const colSize = rowSize;
+config const colSize = rowSize;
 config const blkSize = 4;
 config const alpha = 2.0;
 config const debug = false;
@@ -28,6 +28,8 @@ proc main() {
   
   var X: [VectorDom] eltType;
   var Y: [VectorDom] eltType;
+
+  writeln("Initializing data...");
   
   forall r in 1..rowSize do {
     forall blk in 1..rowSize by blkSize {
@@ -39,6 +41,8 @@ proc main() {
       }
     } 
   }
+
+  writeln("Done initializing. Executing...");
   
   const startTime = getCurrentTime();
   cblas_daxpy_chpl(rowSize, alpha, X, Y);

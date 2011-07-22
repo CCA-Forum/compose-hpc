@@ -2,7 +2,7 @@
 ! File:          hpcc_ParallelTranspose.F03
 ! Symbol:        hpcc.ParallelTranspose-v0.1
 ! Symbol Type:   class
-! Babel Version: 2.0.0 (Revision: 0  )
+! Babel Version: 2.0.0 (Revision: 7138  trunk)
 ! Description:   Client-side module for hpcc.ParallelTranspose
 ! 
 ! WARNING: Automatically generated; changes will be lost
@@ -15,13 +15,13 @@
 ! 
 
 
-#include "hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h"
-#include "sidl_RuntimeException_fAbbrev.h"
-#include "sidl_ClassInfo_fAbbrev.h"
-#include "sidl_BaseClass_fAbbrev.h"
-#include "sidl_BaseInterface_fAbbrev.h"
-#include "hpcc_ParallelTranspose_fAbbrev.h"
 #include "sidl_BaseException_fAbbrev.h"
+#include "hpcc_ParallelTranspose_fAbbrev.h"
+#include "sidl_BaseInterface_fAbbrev.h"
+#include "sidl_BaseClass_fAbbrev.h"
+#include "sidl_ClassInfo_fAbbrev.h"
+#include "sidl_RuntimeException_fAbbrev.h"
+#include "hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h"
 #include "sidl_rmi_Call_fAbbrev.h"
 #include "sidl_rmi_Return_fAbbrev.h"
 #include "sidl_rmi_Ticket_fAbbrev.h"
@@ -29,13 +29,13 @@
 module hpcc_ParallelTranspose
 
   use sidl
-  use hplsupport_BlockCyclicDistArray2dDouble_type
-  use sidl_RuntimeException_type
-  use sidl_ClassInfo_type
-  use sidl_BaseClass_type
-  use sidl_BaseInterface_type
-  use hpcc_ParallelTranspose_type
   use sidl_BaseException_type
+  use hpcc_ParallelTranspose_type
+  use sidl_BaseInterface_type
+  use sidl_BaseClass_type
+  use sidl_ClassInfo_type
+  use sidl_RuntimeException_type
+  use hplsupport_BlockCyclicDistArray2dDouble_type
   use sidl_rmi_Call_type
   use sidl_rmi_Return_type
   use sidl_rmi_Ticket_type

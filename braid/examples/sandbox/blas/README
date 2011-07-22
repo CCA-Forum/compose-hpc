@@ -1,0 +1,7 @@
+USEFUL SCRIPTS
+==============
+
+find . -name 'data_hybrid*.moab' -exec msub {} \;
+
+
+squeue -u prantl1 |awk '{print "canceljob " $1}' >kill.sh

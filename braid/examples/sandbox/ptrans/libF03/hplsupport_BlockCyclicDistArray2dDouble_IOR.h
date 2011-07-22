@@ -2,7 +2,7 @@
  * File:          hplsupport_BlockCyclicDistArray2dDouble_IOR.h
  * Symbol:        hplsupport.BlockCyclicDistArray2dDouble-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 0  )
+ * Babel Version: 2.0.0 (Revision: 7138  trunk)
  * Description:   Intermediate Object Representation for hplsupport.BlockCyclicDistArray2dDouble
  * 
  * WARNING: Automatically generated; changes will be lost
@@ -19,6 +19,14 @@ struct sidl_rmi_InstanceHandle__object;
 #ifndef included_sidl_BaseClass_IOR_h
 #include "sidl_BaseClass_IOR.h"
 #endif
+
+#ifndef VAR_UNUSED
+#ifdef __GNUC__
+#define VAR_UNUSED __attribute__ ((__unused__))
+#else
+#define VAR_UNUSED
+#endif /* __GNUC__ */
+#endif /* VAR_UNUSED */
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,7 +2,7 @@
 ! File:          hplsupport_BlockCyclicDistArray2dDouble.F03
 ! Symbol:        hplsupport.BlockCyclicDistArray2dDouble-v0.1
 ! Symbol Type:   class
-! Babel Version: 2.0.0 (Revision: 0  )
+! Babel Version: 2.0.0 (Revision: 7138  trunk)
 ! Description:   Client-side module for hplsupport.BlockCyclicDistArray2dDouble
 ! 
 ! WARNING: Automatically generated; changes will be lost
@@ -15,12 +15,12 @@
 ! 
 
 
-#include "hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h"
-#include "sidl_RuntimeException_fAbbrev.h"
-#include "sidl_ClassInfo_fAbbrev.h"
-#include "sidl_BaseClass_fAbbrev.h"
-#include "sidl_BaseInterface_fAbbrev.h"
 #include "sidl_BaseException_fAbbrev.h"
+#include "sidl_BaseInterface_fAbbrev.h"
+#include "sidl_BaseClass_fAbbrev.h"
+#include "sidl_ClassInfo_fAbbrev.h"
+#include "sidl_RuntimeException_fAbbrev.h"
+#include "hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h"
 #include "sidl_rmi_Call_fAbbrev.h"
 #include "sidl_rmi_Return_fAbbrev.h"
 #include "sidl_rmi_Ticket_fAbbrev.h"
@@ -28,12 +28,12 @@
 module hplsupport_BlockCyclicDistArray2dDouble
 
   use sidl
-  use hplsupport_BlockCyclicDistArray2dDouble_type
-  use sidl_RuntimeException_type
-  use sidl_ClassInfo_type
-  use sidl_BaseClass_type
-  use sidl_BaseInterface_type
   use sidl_BaseException_type
+  use sidl_BaseInterface_type
+  use sidl_BaseClass_type
+  use sidl_ClassInfo_type
+  use sidl_RuntimeException_type
+  use hplsupport_BlockCyclicDistArray2dDouble_type
   use sidl_rmi_Call_type
   use sidl_rmi_Return_type
   use sidl_rmi_Ticket_type

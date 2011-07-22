@@ -2,7 +2,7 @@
  * File:          hpcc_ParallelTranspose_IOR.h
  * Symbol:        hpcc.ParallelTranspose-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 0  )
+ * Babel Version: 2.0.0 (Revision: 7138  trunk)
  * Description:   Intermediate Object Representation for hpcc.ParallelTranspose
  * 
  * WARNING: Automatically generated; changes will be lost
@@ -19,6 +19,14 @@ struct sidl_rmi_InstanceHandle__object;
 #ifndef included_sidl_BaseClass_IOR_h
 #include "sidl_BaseClass_IOR.h"
 #endif
+
+#ifndef VAR_UNUSED
+#ifdef __GNUC__
+#define VAR_UNUSED __attribute__ ((__unused__))
+#else
+#define VAR_UNUSED
+#endif /* __GNUC__ */
+#endif /* VAR_UNUSED */
 
 #ifdef __cplusplus
 extern "C" {
@@ -305,12 +313,12 @@ static const int s_SEPV_HPCC_PARALLELTRANSPOSE_BASE = 0;
 static const int s_SEPV_HPCC_PARALLELTRANSPOSE_CONTRACTS = 1;
 static const int s_SEPV_HPCC_PARALLELTRANSPOSE_HOOKS = 2;
 
-struct hplsupport_BlockCyclicDistArray2dDouble__object* 
-  skel_hpcc_ParallelTranspose_fconnect_hplsupport_BlockCyclicDistArray2dDouble(
-  const char* url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
 struct sidl_BaseInterface__object* 
   skel_hpcc_ParallelTranspose_fconnect_sidl_BaseInterface(const char* url, 
   sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
+struct hplsupport_BlockCyclicDistArray2dDouble__object* 
+  skel_hpcc_ParallelTranspose_fconnect_hplsupport_BlockCyclicDistArray2dDouble(
+  const char* url, sidl_bool ar, struct sidl_BaseInterface__object * *_ex);
 struct hpcc_ParallelTranspose__remote{
   int d_refcount;
   struct sidl_rmi_InstanceHandle__object *d_ih;

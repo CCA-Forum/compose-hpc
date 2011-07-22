@@ -2,7 +2,7 @@
  * File:          hpcc_ParallelTranspose_fSkel.c
  * Symbol:        hpcc.ParallelTranspose-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 0  )
+ * Babel Version: 2.0.0 (Revision: 7138  trunk)
  * Description:   Server-side glue code for hpcc.ParallelTranspose
  * 
  * WARNING: Automatically generated; changes will be lost
@@ -86,16 +86,16 @@
 #include <stdio.h>
 
 #ifdef WITH_RMI
-struct hplsupport_BlockCyclicDistArray2dDouble__object* 
-  skel_hpcc_ParallelTranspose_fconnect_hplsupport_BlockCyclicDistArray2dDouble(
-  const char* url, sidl_bool ar, sidl_BaseInterface *_ex) { 
-  return hplsupport_BlockCyclicDistArray2dDouble__connectI(url, ar, _ex);
-}
-
 struct sidl_BaseInterface__object* 
   skel_hpcc_ParallelTranspose_fconnect_sidl_BaseInterface(const char* url, 
   sidl_bool ar, sidl_BaseInterface *_ex) { 
   return sidl_BaseInterface__connectI(url, ar, _ex);
+}
+
+struct hplsupport_BlockCyclicDistArray2dDouble__object* 
+  skel_hpcc_ParallelTranspose_fconnect_hplsupport_BlockCyclicDistArray2dDouble(
+  const char* url, sidl_bool ar, sidl_BaseInterface *_ex) { 
+  return hplsupport_BlockCyclicDistArray2dDouble__connectI(url, ar, _ex);
 }
 
 #endif /*WITH_RMI*/

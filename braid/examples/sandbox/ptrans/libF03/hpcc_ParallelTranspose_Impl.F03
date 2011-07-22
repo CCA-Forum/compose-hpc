@@ -2,7 +2,7 @@
 ! File:          hpcc_ParallelTranspose_Impl.F03
 ! Symbol:        hpcc.ParallelTranspose-v0.1
 ! Symbol Type:   class
-! Babel Version: 2.0.0 (Revision: 0  )
+! Babel Version: 2.0.0 (Revision: 7138  trunk)
 ! Description:   Server-side implementation for hpcc.ParallelTranspose
 ! 
 ! WARNING: Automatically generated; only changes within splicers preserved
@@ -15,13 +15,13 @@
 ! 
 
 
-#include "hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h"
-#include "sidl_RuntimeException_fAbbrev.h"
-#include "sidl_ClassInfo_fAbbrev.h"
-#include "sidl_BaseClass_fAbbrev.h"
-#include "sidl_BaseInterface_fAbbrev.h"
-#include "hpcc_ParallelTranspose_fAbbrev.h"
 #include "sidl_BaseException_fAbbrev.h"
+#include "hpcc_ParallelTranspose_fAbbrev.h"
+#include "sidl_BaseInterface_fAbbrev.h"
+#include "sidl_BaseClass_fAbbrev.h"
+#include "sidl_ClassInfo_fAbbrev.h"
+#include "sidl_RuntimeException_fAbbrev.h"
+#include "hplsupport_BlockCyclicDistArray2dDouble_fAbbrev.h"
 ! DO-NOT-DELETE splicer.begin(module.include)
 ! 
 ! Add additional include statements here
@@ -163,10 +163,17 @@ contains
 
     ! DO-NOT-DELETE splicer.begin(hpcc.ParallelTranspose.ptransCompute)
     ! insert code here (ptransCompute method)
-    ! 
-    ! This method has not been implemented
-    ! 
+    real (kind=sidl_double) :: a_ji
+    real (kind=sidl_double) :: c_ij
+    real (kind=sidl_double) :: new_val    
 
+    c_ij = get(c, i, j, exception);
+    a_ji = get(a, j, i, exception);
+
+    new_val = beta * c_ij  +  a_ji;
+
+    call set(c, new_val, i, j, exception);  
+  
     ! DO-NOT-DELETE splicer.end(hpcc.ParallelTranspose.ptransCompute)
   end subroutine ptransCompute_impl
 

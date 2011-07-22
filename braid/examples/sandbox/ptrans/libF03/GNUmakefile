@@ -38,7 +38,7 @@ include babel.make
 # please name the server library here
 LIBNAME=impl
 # please name the SIDL file here
-SIDLFILE=../ParallelTranspose.sidl ../HplSupport.sidl
+SIDLFILE=../ParallelTranspose.sidl
 # extra include/compile flags 
 EXTRAFLAGS=
 # extra librarys that the implementation needs to link against
@@ -109,7 +109,7 @@ lib$(LIBNAME).la : $(ALLOBJS)
 	  $(FCFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
 	  $(EXTRALIBS)
 
-$(PUREBABELGEN) $(BABELGEN) : babel-stamp
+$(PUREBABELGEN) $(BABELGEN) : 
 	@if test -f $@; then \
 	    touch $@; \
 	else \
@@ -150,7 +150,7 @@ endif
 	rm -f $(@:.lo=$(F03CPPSUFFIX)) $(@:.lo=.tmp)
 
 clean : 
-	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo *.mod
+	-rm -f babel-temp babel-stamp *.o *.lo *.mod
 
 realclean : clean
 	-rm -f lib$(LIBNAME).la lib$(LIBNAME).scl

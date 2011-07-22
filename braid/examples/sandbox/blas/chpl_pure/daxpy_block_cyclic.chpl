@@ -25,6 +25,8 @@ proc main() {
   
   var X: [VectorDom] eltType;
   var Y: [VectorDom] eltType;
+
+  writeln("Initializing data...");
   
   forall r in 1..rowSize do {
     forall blk in 1..rowSize by blkSize {
@@ -36,6 +38,8 @@ proc main() {
       }
     } 
   }
+
+  writeln("Done initalizing, executing...");
   
   const startTime = getCurrentTime();
   chpl_daxpy(rowSize, alpha, X, Y);

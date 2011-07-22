@@ -2,7 +2,7 @@
  * File:          hpcc_ParallelTranspose_IOR.c
  * Symbol:        hpcc.ParallelTranspose-v0.1
  * Symbol Type:   class
- * Babel Version: 2.0.0 (Revision: 0  )
+ * Babel Version: 2.0.0 (Revision: 7138  trunk)
  * Description:   Intermediate Object Representation for hpcc.ParallelTranspose
  * 
  * WARNING: Automatically generated; changes will be lost
@@ -90,16 +90,17 @@ static int s_method_initialized = 0;
 static int s_static_initialized = 0;
 
 static struct hpcc_ParallelTranspose__epv  s_my_epv__hpcc_paralleltranspose;
-static struct hpcc_ParallelTranspose__sepv s_stc_epv__hpcc_paralleltranspose;
+static VAR_UNUSED struct hpcc_ParallelTranspose__sepv 
+  s_stc_epv__hpcc_paralleltranspose;
 
 static struct hpcc_ParallelTranspose__epv  
   s_my_epv_contracts__hpcc_paralleltranspose;
-static struct hpcc_ParallelTranspose__sepv 
+static VAR_UNUSED struct hpcc_ParallelTranspose__sepv 
   s_stc_epv_contracts__hpcc_paralleltranspose;
 
 static struct hpcc_ParallelTranspose__epv  
   s_my_epv_hooks__hpcc_paralleltranspose;
-static struct hpcc_ParallelTranspose__sepv 
+static VAR_UNUSED struct hpcc_ParallelTranspose__sepv 
   s_stc_epv_hooks__hpcc_paralleltranspose;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
