@@ -52,11 +52,12 @@ def gen_main_chpl(n, datatype):
     else: raise Exception("data type")
     return r"""
 use s;
+use sidl;
 config var num_runs:int(32) = 1;
 writeln("running "+num_runs+" times");
 
-var ex: SidlBaseException;
-var server = new s.Benchmark();
+var ex: sidl.BaseException;
+var server = new s.Benchmark(ex);
 
 /* Benchmarks */
 [i in 0..num_runs] {

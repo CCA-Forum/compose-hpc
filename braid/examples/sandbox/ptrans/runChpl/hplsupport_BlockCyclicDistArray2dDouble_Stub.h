@@ -1,0 +1,16 @@
+#ifndef __HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_STUB_H__
+#define __HPLSUPPORT_BLOCKCYCLICDISTARRAY2DDOUBLE_STUB_H__
+// Package header (enums, etc...)
+#include <stdint.h>
+#include <hplsupport.h>
+#include <hplsupport_BlockCyclicDistArray2dDouble_IOR.h>
+typedef struct hplsupport_BlockCyclicDistArray2dDouble__object _hplsupport_BlockCyclicDistArray2dDouble__object;
+typedef _hplsupport_BlockCyclicDistArray2dDouble__object* hplsupport_BlockCyclicDistArray2dDouble__object;
+#ifndef _CHPL_SIDL_BASETYPES
+#define _CHPL_SIDL_BASETYPES
+typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;
+typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;
+hplsupport_BlockCyclicDistArray2dDouble__object hplsupport_BlockCyclicDistArray2dDouble__createObject(hplsupport_BlockCyclicDistArray2dDouble__object copy, sidl_BaseInterface__object* ex);
+#endif
+
+#endif

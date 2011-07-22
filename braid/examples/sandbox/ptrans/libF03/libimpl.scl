@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<scl>
+ <library uri="/g/g91/prantl1/babel/compose-hpc/braid/examples/sandbox/ptrans/libF03/libimpl.la" scope="local" resolution="lazy" >
+    <class name="hpcc.ParallelTranspose" desc="ior/impl" />
+  </library>
+</scl>
