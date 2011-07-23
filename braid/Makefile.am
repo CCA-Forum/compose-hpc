@@ -55,6 +55,14 @@ doc/html/index.html:
 	$(MAKE) doc
 
 info_TEXINFOS = doc/braid.texi
+# Convert the info file into a man page
+install-data-hook:
+	mkdir -p $(DESTDIR)$(mandir)/man1
+	info2man $(DESTDIR)$(infodir)/braid.info >$(DESTDIR)$(mandir)/man1/braid.1
+
+uninstall-hook:
+	rm -f $(DESTDIR)$(mandir)/man1/braid.1
+
 
 distclean-local:
 	rm -f toolcheck.log

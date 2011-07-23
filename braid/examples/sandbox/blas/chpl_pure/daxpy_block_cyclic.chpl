@@ -13,6 +13,7 @@ config const colSize = rowSize;
 config const blkSize = 4;
 config const alpha = 2.0;
 config const debug = false;
+config const mode = 2;
 
 proc main() {
 
@@ -42,7 +43,11 @@ proc main() {
   writeln("Done initalizing, executing...");
   
   const startTime = getCurrentTime();
-  chpl_daxpy(rowSize, alpha, X, Y);
+  if (mode == 1) {
+    chpl_daxpy_1(rowSize, alpha, X, Y);
+  } else if (mode == 2) {
+    chpl_daxpy_2(rowSize, alpha, X, Y);
+  }
   const endTime = getCurrentTime();
   
   const execTime = endTime - startTime;
@@ -52,8 +57,22 @@ proc main() {
  
 }
 
-proc chpl_daxpy(n, a, X, Y) {  
+proc chpl_daxpy_1(n, a, X, Y) {  
   Y = a * X + Y;
+}
+
+proc chpl_daxpy_2(n, a, X, Y) {
+  forall r in 1..rowSize do {
+    // writeln("r = ", r);
+    forall blk in 1..n by blkSize {
+      on X(r, blk) do {
+        var rl = r;
+        local { 
+          [i in blk .. #blkSize] Y(rl, i) = a * X(rl, i) + Y(rl, i);
+        }
+      }
+    }
+  }
 }
 
 proc verifyResults(n, a, X, Y) {
