@@ -31,8 +31,8 @@ proc main() {
 
   writeln("Initializing data...");
   
-  forall r in 1..rowSize do {
-    forall blk in 1..rowSize by blkSize {
+  forall blk in 1..colSize by blkSize do {
+    for r in 1..rowSize do {
       on Locales(X(r, blk).locale.id) do {
         forall i in [blk .. #blkSize] do {
           X(r, i) = r + i;
@@ -45,7 +45,7 @@ proc main() {
   writeln("Done initializing. Executing...");
   
   const startTime = getCurrentTime();
-  cblas_daxpy_chpl(rowSize, alpha, X, Y);
+  cblas_daxpy_chpl(colSize, alpha, X, Y);
   const endTime = getCurrentTime();
   
   if (debug) {
@@ -55,7 +55,7 @@ proc main() {
   const execTime = endTime - startTime;
   
   writeln("Execution time = ", execTime, " secs");
-  verifyResults(rowSize, alpha, X, Y);
+  verifyResults(colSize, alpha, X, Y);
 
 }
 
@@ -63,9 +63,9 @@ proc cblas_daxpy_chpl(n, a, X, Y) {
 	
   _extern proc double_ptr(inout firstElement: real(64)): opaque;
   
-  forall r in 1..rowSize do {
-   forall blk in 1..n by blkSize {
-      on X(r, blk) do {
+  forall blk in 1..n by blkSize do {
+    for r in 1..rowSize do {
+	  // on X(r, blk) do {
         if (debug) {
           writeln("Processing block: ", blk, " on locale-", here.id);	
         }
@@ -85,7 +85,7 @@ proc cblas_daxpy_chpl(n, a, X, Y) {
        
         var baseEx: BaseException = nil;
         helper_daxpy(blkSize, a, xArr, yArr, baseEx);
-      }
+      // }
     }
   }
 }
@@ -95,8 +95,8 @@ proc verifyResults(n, a, X, Y) {
   writeln("Verifying results...");
 
   var validMsg = "SUCCESS";
-  forall r in 1..rowSize do {
-    forall blk in 1..n by blkSize {
+  forall blk in 1..n by blkSize do {
+    for r in 1..rowSize do {
       on X(r, blk) do {
         const locDomain: domain(1) = [blk..#blkSize];
         forall i in locDomain do {
