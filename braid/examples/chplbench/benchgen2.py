@@ -17,6 +17,19 @@ def sidl_code(n, datatype):
     'in {type} a{n}, out {type} b{n}'.format(type=datatype, n=i)
     for i in range(0, n)]))
 
+def sidl_code_sum(n, datatype):
+    return """
+    package s version 1.0 {{
+      class Benchmark {{
+        {type} run({args});
+      }}
+
+    }}
+    """.format(type=datatype, args=', '.join([
+    'in {type} a{n}'.format(type=datatype, n=i)
+    for i in range(0, n)]))
+
+
 #-----------------------------------------------------------------------
 # benchmark kernels
 #-----------------------------------------------------------------------
@@ -32,10 +45,16 @@ def copy_expr(n, datatype):
 
     return [assign('b%d'%i, 'a%d'%i) for i in range(0, n)]
 
+
+def sum_expr(n, datatype):
+    e = reduce(ir.Plus, ['a%d'%i for i in range(0, n)], 0)
+    return [ir.Stmt(ir.Return(e))]
+
+
 #-----------------------------------------------------------------------
 # return a main.chpl for the client implementation
 #-----------------------------------------------------------------------
-def gen_main_chpl(n, datatype):
+def gen_main_chpl(n, datatype, bench):
     t = chapel.ChapelCodeGenerator.type_map[datatype]
     if datatype == "bool":
         init = '\n  '.join(["var a%d: bool = true;"%i              for i in range(0, n)]
@@ -50,6 +69,12 @@ def gen_main_chpl(n, datatype):
         init = '\n  '.join(['var a%d = "                            %3d";'%(i, i) for i in range(0, n)]
                           +['var b%d = "                            %3d";'%(i, i) for i in range(0, n)])
     else: raise Exception("data type")
+
+    if bench == 'sum':
+        args = ', '.join(['a{n}'.format(n=i) for i in range(0,n)])
+    else:
+        args = ', '.join(['a{n}, b{n}'.format(n=i) for i in range(0,n)])
+
     return r"""
 use s;
 use sidl;
@@ -65,7 +90,7 @@ var server = new s.Benchmark(ex);
   """+init+r"""
   server.run(%s, ex);
 }
-"""%', '.join(['a{n}, b{n}'.format(n=i) for i in range(0,n)])
+"""%args
     
 
 
@@ -78,7 +103,7 @@ def main():
                          help='number of elements in the Vector chpl')
     cmdline.add_argument('datatype', metavar='t',
                          help='data type for the Vector chpl')
-    cmdline.add_argument('expr', metavar='expr', choices=['copy'],
+    cmdline.add_argument('expr', metavar='expr', choices=['copy', 'sum'],
                          help='benchmark expression to generate')
     # cmdline.add_argument('babel', metavar='babel',
     #                    help='the Babel executable')
@@ -89,6 +114,9 @@ def main():
     expr = args.expr
     if expr == 'copy':
         benchmark_expr = copy_expr
+    if expr == 'sum':
+        benchmark_expr = sum_expr
+        sidl_code = sidl_code_sum
     else: raise
 
     print "-------------------------------------------------------------"
@@ -145,7 +173,7 @@ def main():
     #print cmd
     subprocess.check_call(cmd, shell=True)
     f = open('out/client_%d_%s_%s/main.chpl'%(i,datatype,expr), "w")
-    f.write(gen_main_chpl(i,datatype))
+    f.write(gen_main_chpl(i,datatype,expr))
     f.close
 
     print "-------------------------------------------------------------"
