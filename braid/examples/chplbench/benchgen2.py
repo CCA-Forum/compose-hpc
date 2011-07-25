@@ -47,8 +47,8 @@ def gen_main_chpl(n, datatype):
         init = '\n  '.join(["var a%d: int(32) = %d;"%(i, float(n-i))  for i in range(0, n)]
                           +["var b%d: int(32) = %d;"%(i, float(n-i))  for i in range(0, n)])
     elif datatype == "string":
-        init = '\n  '.join(['var a%d = "             %3d";'%(i, i) for i in range(0, n)]
-                          +['var b%d = "             %3d";'%(i, i) for i in range(0, n)])
+        init = '\n  '.join(['var a%d = "                            %3d";'%(i, i) for i in range(0, n)]
+                          +['var b%d = "                            %3d";'%(i, i) for i in range(0, n)])
     else: raise Exception("data type")
     return r"""
 use s;
@@ -148,44 +148,13 @@ def main():
     f.write(gen_main_chpl(i,datatype))
     f.close
 
-
-#     print "-------------------------------------------------------------"
-#     print "adapting client Makefile..."
-#     print "-------------------------------------------------------------"
-#     filename = 'out/client_%d_%s_%s/GNUmakefile'%(i,datatype,expr)
-#     os.rename(filename, filename+'~')
-#     dest = open(filename, 'w')
-#     src = open(filename+'~', 'r')
-
-#     for line in src:
-#         m = re.match(r'^(all *:.*)$', line)
-#         if m:
-#             dest.write(m.group(1)+
-#                        ' runC2C runC2CXX runC2F77 runC2F90 runC2F03 runC2Java runC2Python\n')
-#             dest.write("CXX=`babel-config --query-var=CXX`\n"+
-#                        '\n'.join([
-# """
-# runC2{lang}: lib$(LIBNAME).la ../{lang}_{i}_{t}_{e}/libimpl.la main.lo
-# \tbabel-libtool --mode=link $(CC) -static main.lo lib$(LIBNAME).la \
-# \t    ../{lang}_{i}_{t}_{e}/libimpl.la -o runC2{lang}
-# """.format(lang=lang, i=i, t=datatype, e=expr) for lang in languages[:6]]))
-#             dest.write("""
-# runC2Python: lib$(LIBNAME).la ../Python_{i}_{t}_{e}/libimpl1.la main.lo
-# \tbabel-libtool --mode=link $(CC) -static main.lo lib$(LIBNAME).la \
-# \t    ../Python_{i}_{t}_{e}/libimpl1.la -o runC2Python
-# """.format(i=i,t=datatype,e=expr))
-#         else:
-#             dest.write(line)
-#     dest.close()
-#     src.close()
-
     print "-------------------------------------------------------------"
     print "generating benchmark script..."
     print "-------------------------------------------------------------"
     def numruns(t):
         if t == 'string':
             return str(100001)
-        return str(1000001)
+        return    str(1000001)
 
     f = open('out/client_%d_%s_%s/runAll.sh'%(i,datatype,expr), 'w')
     f.write(r"""#!/usr/bin/bash
@@ -222,8 +191,8 @@ function medtime {
    cat $2.all \
        | sort \
        | python -c 'import numpy,sys; \
-           print numpy.mean( \
-             sorted(map(lambda x: float(x), sys.stdin.readlines()))[1:9])' \
+           print numpy.median( \
+             map(lambda x: float(x), sys.stdin.readlines()))' \
        >>$2
 }
 """)

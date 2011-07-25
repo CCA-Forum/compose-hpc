@@ -13,6 +13,7 @@ config const colSize = rowSize;
 config const blkSize = 4;
 config const alpha = 2.0;
 config const debug = false;
+config const mode = 2;
 
 proc main() {
 
@@ -28,8 +29,8 @@ proc main() {
 
   writeln("Initializing data...");
   
-  forall r in 1..rowSize do {
-    forall blk in 1..rowSize by blkSize {
+  forall blk in 1..colSize by blkSize do {
+    for r in 1..rowSize do {
       on Locales(X(r, blk).locale.id) do {
         forall i in [blk .. #blkSize] do {
           X(r, i) = r + i;
@@ -42,18 +43,33 @@ proc main() {
   writeln("Done initalizing, executing...");
   
   const startTime = getCurrentTime();
-  chpl_daxpy(rowSize, alpha, X, Y);
+  if (mode == 1) {
+    chpl_daxpy_1(colSize, alpha, X, Y);
+  } else if (mode == 2) {
+    chpl_daxpy_2(colSize, alpha, X, Y);
+  }
   const endTime = getCurrentTime();
   
   const execTime = endTime - startTime;
   
   writeln("Execution time = ", execTime, " secs");
-  verifyResults(rowSize, alpha, X, Y);
+  verifyResults(colSize, alpha, X, Y);
  
 }
 
-proc chpl_daxpy(n, a, X, Y) {  
+proc chpl_daxpy_1(n, a, X, Y) {  
   Y = a * X + Y;
+}
+
+proc chpl_daxpy_2(n, a, X, Y) {
+  forall blk in 1..n by blkSize do {
+    for r in 1..rowSize do {
+      // on X(r, blk) do {
+        var rl = r;
+        [i in blk .. #blkSize] Y(rl, i) = a * X(rl, i) + Y(rl, i);
+      // }
+    }
+  }
 }
 
 proc verifyResults(n, a, X, Y) {
@@ -61,8 +77,8 @@ proc verifyResults(n, a, X, Y) {
   writeln("Verifying results...");
 
   var validMsg = "SUCCESS";
-  forall r in 1..rowSize do {
-    forall blk in 1..n by blkSize {
+  forall blk in 1..n by blkSize do {
+    for r in 1..rowSize do {
       on X(r, blk) do {
         const locDomain: domain(1) = [blk..#blkSize];
         forall i in locDomain do {
