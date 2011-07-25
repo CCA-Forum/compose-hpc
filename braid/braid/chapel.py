@@ -36,7 +36,7 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
-extern_def_is_not_null = '_extern proc IS_NOT_NULL(inout aRef): bool;'
+extern_def_is_not_null = '_extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = '_extern proc SET_TO_NULL(inout aRef);'
 chpl_base_exception = 'BaseException'
 
@@ -625,8 +625,8 @@ class Chapel(object):
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
             '#define printPtr(aPtr) printf("The pointer [aPtr] = %p [content = %p] \\n", aPtr, (void*)(*aPtr))', # FIXME Remove this
-            '#define IS_NOT_NULL(aPtr) ((int64_t)(*(aPtr)))',
-            '#define SET_TO_NULL(aPtr) (*(aPtr) = 0)',
+            '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
+            '#define SET_TO_NULL(aPtr) (*aPtr) = 0',
             '#endif',
             '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
             %(qname, qname, qname),
@@ -841,7 +841,7 @@ class Chapel(object):
         post_call = []
         post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
-            ir.Prefix_expr(ir.log_not, ir.Call("IS_NOT_NULL", ['_ex'])),
+            ir.Call("IS_NOT_NULL", ['_ex']),
             [
                 ir.Stmt(ir.Call("writeln", ['"_ex is not pointing to NULL"'])),
                 ir.Stmt(ir.Assignment(chpl_param_ex_name,
@@ -1992,6 +1992,8 @@ STUBSRCS = {stubsrcs}
     generate_client_server_makefile(sidl_file)
 
 def generate_client_server_makefile(sidl_file):
+    extraflags=''
+    extraflags='-ggdb -O0'
     write_to('GNUmakefile', r"""
 # Generic Chapel Babel wrapper GNU Makefile
 # $Id$
@@ -2029,8 +2031,7 @@ LIBNAME=impl
 # please name the SIDL file here
 SIDLFILE="""+sidl_file+r"""
 # extra include/compile flags
-EXTRAFLAGS=                         
-#EXTRAFLAGS=-ggdb -O0
+EXTRAFLAGS="""+extraflags+r"""
 # extra libraries that the implementation needs to link against
 EXTRALIBS=
 # library version number

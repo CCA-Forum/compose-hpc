@@ -4,9 +4,14 @@
 module sidl {
   // FIXME: autogenerate this from sidl.sidl
   _extern record sidl_BaseInterface__object {};
+  _extern record sidl_BaseClass__object {};
 
   // FIXME: autogenerate this from sidl.sidl
   _extern record sidl_SIDLException__object {};
+
+  class BaseClass {
+    var self: sidl_BaseInterface__object;
+  }
 
   /**
    * Base class for all Exceptions at Chapel end
