@@ -12,6 +12,13 @@
 # Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
+# 
+# Contributors/Acknowledgements:
+#
+# Summer interns at LLNL:
+# * 2010, 2011 Shams Imam <shams@rice.edu> 
+#   contributed argument conversions, r-array handling, exception handling, 
+#   distributed arrays, the patches to the Chapel compiler, ...
 #
 # LLNL-CODE-473891.
 # All rights refserved.
