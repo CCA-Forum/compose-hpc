@@ -36,7 +36,7 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
-extern_def_is_not_null = '_extern proc IS_NOT_NULL(aRef): bool;'
+extern_def_is_not_null = '_extern proc IS_NOT_NULL(inout aRef): bool;'
 extern_def_set_to_null = '_extern proc SET_TO_NULL(inout aRef);'
 chpl_base_exception = 'BaseException'
 
@@ -624,9 +624,9 @@ class Chapel(object):
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-            '#define printMsg(msg, aPtr) printf(msg, aPtr)', # FIXME Remove this
-            '#define IS_NOT_NULL(aPtr) ((aPtr) != NULL)',
-            '#define SET_TO_NULL(aPtr) (*(aPtr) = NULL)',
+            '#define printPtr(aPtr) printf("The pointer [aPtr] = %p [content = %p] \\n", aPtr, (void*)(*aPtr))', # FIXME Remove this
+            '#define IS_NOT_NULL(aPtr) ((int64_t)(*(aPtr)))',
+            '#define SET_TO_NULL(aPtr) (*(aPtr) = 0)',
             '#endif',
             '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
             %(qname, qname, qname),
@@ -831,15 +831,25 @@ class Chapel(object):
         pre_call = []
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
+        pre_call.append("_extern proc printPtr(inout anObj);")
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
         pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
+        pre_call.append('write("Pre call: "); printPtr(_ex);')
+        pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
+        pre_call.append('writeln("Calling ' + str(Name) + '");')
 
         post_call = []
+        post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
             ir.Prefix_expr(ir.log_not, ir.Call("IS_NOT_NULL", ['_ex'])),
-            [ir.Stmt(ir.Assignment(chpl_param_ex_name, 
-                                   ir.Call("new " + chpl_base_exception, ['_ex'])))]
+            [
+                ir.Stmt(ir.Call("writeln", ['"_ex is not pointing to NULL"'])),
+                ir.Stmt(ir.Assignment(chpl_param_ex_name,
+                                   ir.Call("new " + chpl_base_exception, ['_ex'])))
+            ]
         )))
+        post_call.append('write("Post call: "); printPtr(_ex);')
+        post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
 
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
