@@ -4,6 +4,7 @@ using namespace std;
 
 void handleTRSMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, string fname, string arrayPrefix, SgExprListExp* fArgs){
 	
+	ostringstream cocciStream;
 	string prefix = "";
 	string len_X = "n";
 
@@ -94,51 +95,52 @@ void handleTRSMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, 
 		cublasCall = "cublasDtrsv";
 	}
 
-	cocciFptr << "@@ \n";
-	cocciFptr << "identifier order,uplo,trans,diag;  \n";
-	cocciFptr << "expression n, k, lda, incx;  \n";
-	cocciFptr << "@@ \n";
+	cocciStream << "@@ \n";
+	cocciStream << "identifier order,uplo,trans,diag;  \n";
+	cocciStream << "expression n, k, lda, incx;  \n";
+	cocciStream << "@@ \n";
 
 	if(checkBlasCallType)
-		cocciFptr << "- "<<blasCall<<"(order,uplo, trans,diag, n, "<<matARef<<",lda,"<<vecXRef<<",incx); \n";
-	else cocciFptr << "- "<<blasCall<<"(uplo, trans,diag, n, "<<matARef<<",lda,"<<vecXRef<<",incx); \n";
+		cocciStream << "- "<<blasCall<<"(order,uplo, trans,diag, n, "<<matARef<<",lda,"<<vecXRef<<",incx); \n";
+	else cocciStream << "- "<<blasCall<<"(uplo, trans,diag, n, "<<matARef<<",lda,"<<vecXRef<<",incx); \n";
 
-	DeclareDevicePtrB2(cocciFptr,aType,arrayPrefix,true,true,false);
+	DeclareDevicePtrB2(cocciStream,aType,arrayPrefix,true,true,false);
 
-	cocciFptr << "+  /* Allocate device memory */  \n";
-	cocciFptr << "+  cublasAlloc(n*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
-	cocciFptr << "+  cublasAlloc("<<len_X<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-	cocciFptr << "+  \n";
-	cocciFptr << "+  /* Copy matrix, vector to device */     \n";
-	cocciFptr << "+  cublasSetMatrix ( n,n, sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<", n, (void *) "<<arrayPrefix<<"_A, n);  \n";
-	cocciFptr << "+  cublasSetVector ( len_X, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
+	cocciStream << "+  /* Allocate device memory */  \n";
+	cocciStream << "+  cublasAlloc(n*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
+	cocciStream << "+  cublasAlloc("<<len_X<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
+	cocciStream << "+  \n";
+	cocciStream << "+  /* Copy matrix, vector to device */     \n";
+	cocciStream << "+  cublasSetMatrix ( n,n, sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<", n, (void *) "<<arrayPrefix<<"_A, n);  \n";
+	cocciStream << "+  cublasSetVector ( len_X, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
 
-	cocciFptr << "+  \n";
-	cocciFptr << "+  /* CUBLAS call */  \n";
-	RowMajorWarning(cocciFptr,warnRowMajor);
+	cocciStream << "+  \n";
+	cocciStream << "+  /* CUBLAS call */  \n";
+	RowMajorWarning(cocciStream,warnRowMajor);
 
 	if(uplo==""){
-		//cocciFptr << "//Warning:CBLAS_UPLO could not be determined. Default = \'U\' \n";
+		//cocciStream << "//Warning:CBLAS_UPLO could not be determined. Default = \'U\' \n";
 		uplo = "uplo";
 	}
 
 	if(cblasTrans == ""){
 		cbTrans = "trans";
-		//cocciFptr << "//Warning:CBLAS_TRANS could not be determined. Default = \'N\' \n";
+		//cocciStream << "//Warning:CBLAS_TRANS could not be determined. Default = \'N\' \n";
 	}
 
 	if(cblasDiag == ""){
 		diag = "diag";
-		//cocciFptr << "//Warning:CBLAS_DIAG could not be determined. Default = \'N\' \n";
+		//cocciStream << "//Warning:CBLAS_DIAG could not be determined. Default = \'N\' \n";
 	}
 
 
-	cocciFptr << "+  "<<cublasCall<<"("<<uplo<<","<<cbTrans<<","<<diag<<",n,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx);  \n";
+	cocciStream << "+  "<<cublasCall<<"("<<uplo<<","<<cbTrans<<","<<diag<<",n,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx);  \n";
 
-	cocciFptr << "+  \n";
-	cocciFptr << "+  /* Copy result vector back to host */  \n";
-	cocciFptr << "+  cublasSetVector ( len_X, sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_X, incx, "<<vecXRef<<", incx);  \n";
-	FreeDeviceMemoryB2(cocciFptr,arrayPrefix,true,true,false);
+	cocciStream << "+  \n";
+	cocciStream << "+  /* Copy result vector back to host */  \n";
+	cocciStream << "+  cublasSetVector ( len_X, sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_X, incx, "<<vecXRef<<", incx);  \n";
+	FreeDeviceMemoryB2(cocciStream,arrayPrefix,true,true,false);
+	cocciFptr << cocciStream.str();
 
 }
 

@@ -183,8 +183,8 @@ extern "C" {
 
   nvcc transformedCode.cu -lcuda -lcudart -I$ATLAS_INC -L$ATLAS_LIB -lcblas -latlas -lcublas 
 
-This is because the code is compilied using gcc, but the linking buisness is done using
-g++. I am not sure if this is always the case (hence the ifdef).
+- This is because the host(CPU) code is compilied using gcc, but the linking buisness is
+  done using g++. I am not sure if this is always the case (hence the ifdef).
 
 See $PAUL_HOME/blas2cublas/tests/blas3/cblas1.c for an example.
 

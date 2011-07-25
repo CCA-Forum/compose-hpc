@@ -4,6 +4,7 @@ using namespace std;
 
 void handleSumNrm2Aminmax(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprListExp* fArgs){
 	
+	ostringstream cocciStream;
 	string prefix = "";
 	string len_X = "";
 
@@ -90,29 +91,30 @@ void handleSumNrm2Aminmax(ofstream &cocciFptr,string fname, string arrayPrefix, 
 	}
 
 
-	cocciFptr << "@@ \n";
-	cocciFptr << "expression n, incx;  \n";
-	cocciFptr << "@@ \n";
+	cocciStream << "@@ \n";
+	cocciStream << "expression n, incx;  \n";
+	cocciStream << "@@ \n";
 
-	cocciFptr << "<...\n- "<<blasCall<<"(n, "<<vecXRef<<",incx); \n";
-	cocciFptr << "+ "<<aType<<" *"<<arrayPrefix<<"_result;  \n";
-	DeclareDevicePtrB2(cocciFptr,aType,arrayPrefix,false,true,false);
+	cocciStream << "<...\n- "<<blasCall<<"(n, "<<vecXRef<<",incx); \n";
+	cocciStream << "+ "<<aType<<" *"<<arrayPrefix<<"_result;  \n";
+	DeclareDevicePtrB2(cocciStream,aType,arrayPrefix,false,true,false);
 
-	cocciFptr << "+  /* Allocate device memory */  \n";
-	cocciFptr << "+  cublasAlloc(n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-	cocciFptr << "+  cublasAlloc(1, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_result);  \n";
+	cocciStream << "+  /* Allocate device memory */  \n";
+	cocciStream << "+  cublasAlloc(n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
+	cocciStream << "+  cublasAlloc(1, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_result);  \n";
 
-	cocciFptr << "+  \n";
-	cocciFptr << "+  /* Copy vector to device */     \n";
-	cocciFptr << "+  cublasSetVector (n, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
+	cocciStream << "+  \n";
+	cocciStream << "+  /* Copy vector to device */     \n";
+	cocciStream << "+  cublasSetVector (n, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
 
-	cocciFptr << "+  \n";
-	cocciFptr << "+  /* CUBLAS call */  \n";
-	cocciFptr << "+  "<<cublasCall<<"(n,"<<arrayPrefix<<"_X,incx);  \n...>\n";
-	cocciFptr << "+  \n";
+	cocciStream << "+  \n";
+	cocciStream << "+  /* CUBLAS call */  \n";
+	cocciStream << "+  "<<cublasCall<<"(n,"<<arrayPrefix<<"_X,incx);  \n...>\n";
+	cocciStream << "+  \n";
 
-	FreeDeviceMemoryB2(cocciFptr,arrayPrefix,false,true,false);
-	cocciFptr << "+  cublasFree("<<arrayPrefix<<"_result); \n";
+	FreeDeviceMemoryB2(cocciStream,arrayPrefix,false,true,false);
+	cocciStream << "+  cublasFree("<<arrayPrefix<<"_result); \n";
+	cocciFptr << cocciStream.str();
 
 }
 
