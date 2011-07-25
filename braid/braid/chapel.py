@@ -841,12 +841,12 @@ class Chapel(object):
         pre_call.append("_extern proc printPtr(inout anObj);")
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
         pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
-        pre_call.append('write("Pre call: "); printPtr(_ex);')
-        pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
-        pre_call.append('writeln("Calling ' + str(Name) + '");')
+        #pre_call.append('write("Pre call: "); printPtr(_ex);')
+        #pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
+        #pre_call.append('writeln("Calling ' + str(Name) + '");')
 
         post_call = []
-        post_call.append('writeln("Done Calling ' + str(Name) + '");')
+        #post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", ['_ex']),
             [
@@ -855,8 +855,8 @@ class Chapel(object):
                                    ir.Call("new " + chpl_base_exception, ['_ex'])))
             ]
         )))
-        post_call.append('write("Post call: "); printPtr(_ex);')
-        post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
+        #post_call.append('write("Post call: "); printPtr(_ex);')
+        #post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
 
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
