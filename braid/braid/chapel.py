@@ -624,7 +624,6 @@ class Chapel(object):
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-            '#define printPtr(aPtr) printf("The pointer [aPtr] = %p [content = %p] \\n", aPtr, (void*)(*aPtr))', # FIXME Remove this
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
             '#define SET_TO_NULL(aPtr) (*aPtr) = 0',
             '#endif',
@@ -831,15 +830,10 @@ class Chapel(object):
         pre_call = []
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
-        pre_call.append("_extern proc printPtr(inout anObj);")
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
         pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
-        pre_call.append('write("Pre call: "); printPtr(_ex);')
-        pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
-        pre_call.append('writeln("Calling ' + str(Name) + '");')
-
+        
         post_call = []
-        post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", ['_ex']),
             [
@@ -848,9 +842,7 @@ class Chapel(object):
                                    ir.Call("new " + chpl_base_exception, ['_ex'])))
             ]
         )))
-        post_call.append('write("Post call: "); printPtr(_ex);')
-        post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
-
+        
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
         return_stmt = []
