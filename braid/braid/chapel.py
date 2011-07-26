@@ -320,13 +320,9 @@ class Chapel(object):
                                  'inout ex: sidl_BaseInterface__object)'+
                                  ': %s__object;'%qname)
             name = chpl_gen(name)
-            ci.chpl_stub.new_def(chpl_defs.get_decls())
-            ci.chpl_stub.new_def('// All the static methods of class '+name)
-            ci.chpl_stub.new_def('module %s_static {'%name)
-            ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
-            ci.chpl_stub.new_def('}')
-            ci.chpl_stub.new_def('class %s %s {'%(name,inherits))
+
             chpl_class = ChapelScope(ci.chpl_stub)
+            chpl_static_helper = ChapelScope(ci.chpl_stub)
             
             # Generate create and wrap methods for classes to init/wrap the IOR
             if not ci.is_interface:
@@ -334,36 +330,66 @@ class Chapel(object):
                 # The field to point to the IOR
                 chpl_class.new_def('var self: %s__object;' % qname)
 
-                # The create() method to create a new IOR instance
-                # FIXME Shams: Add exceptions to the signature
-                body = [
+                common_head = [
                     '  ' + extern_def_is_not_null,
                     '  ' + extern_def_set_to_null,
                     '  var ex: sidl_BaseInterface__object;',
-                    '  SET_TO_NULL(ex);',
-                    '  this.self = %s__createObject(0, ex);' % qname,
+                    '  SET_TO_NULL(ex);'
+                ]
+                common_tail = [
+                    vcall('addRef', ['this.self', 'ex'], ci),
                     '  if (IS_NOT_NULL(ex)) {',
                     '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
-                    '  }',
-                    vcall('addRef', ['this.self', 'ex'], ci)
+                    '  }'
                 ]
+
+                # The create() method to create a new IOR instance
+                create_body = []
+                create_body.extend(common_head)
+                create_body.append('  this.self = %s__createObject(0, ex);' % qname)
+                create_body.extend(common_tail)
+                wrapped_ex_arg = ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void,
                      'create',
-                     [ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)],
-                     body, 'Psuedo-Constructor to initialize the IOR object'), chpl_class)
+                     [wrapped_ex_arg],
+                     create_body, 'Psuedo-Constructor to initialize the IOR object'), chpl_class)
+                # Create a static function to create the object using create()
+                wrap_static_defn = (ir.fn_defn, [], (ir.typedef_type, name),
+                    'create_' + name,
+                    [wrapped_ex_arg],
+                    [
+                        '  var inst = new %s();' % name,
+                        '  inst.create(%s);' % wrapped_ex_arg[4],
+                        '  return inst;'
+                    ],
+                    'Static helper function to create instance using create()')
+                chpl_gen(wrap_static_defn, chpl_static_helper)
 
                 # This wrap() method to copy the refernce to an existing IOR
-                # FIXME Shams: Add exceptions to the signature
+                wrap_body = []
+                wrap_body.extend(common_head)
+                wrap_body.append('  this.self = obj;')
+                wrap_body.extend(common_tail)
+                wrapped_obj_arg = ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void,
                      'wrap',
-                     [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                     ['var ex: sidl_BaseInterface__object;',
-                      'this.self = obj;',
-                      vcall('addRef', ['this.self', 'ex'], ci)
-                      ],
+                     [wrapped_obj_arg, wrapped_ex_arg],
+                     wrap_body,
                      'Pseudo-Constructor for wrapping an existing object'), chpl_class)
+
+                # Create a static function to create the object using wrap()
+                wrap_static_defn = (ir.fn_defn, [], (ir.typedef_type, name),
+                    'wrap_' + name,
+                    [wrapped_obj_arg, wrapped_ex_arg],
+                    [
+                        '  var inst = new %s();' % name,
+                        '  inst.wrap(%s, %s);' % (wrapped_obj_arg[4], wrapped_ex_arg[4]),
+                        '  return inst;'
+                    ],
+                    'Static helper function to create instance using wrap()')
+                chpl_gen(wrap_static_defn, chpl_static_helper)
 
                 # Provide a destructor for the class
                 chpl_gen(
@@ -399,12 +425,19 @@ class Chapel(object):
 
             for impls in implements:
                 for interf in impls[1]:
-                    gen_cast(interf)
-                
+                    gen_cast(interf)                
 
             chpl_class.new_def(chpl_defs.get_defs())
+            
+            ci.chpl_stub.new_def(chpl_defs.get_decls())
+            ci.chpl_stub.new_def('// All the static methods of class '+name)
+            ci.chpl_stub.new_def('module %s_static {'%name)
+            ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
+            ci.chpl_stub.new_def('}')
+            ci.chpl_stub.new_def('class %s %s {'%(name,inherits))
             ci.chpl_stub.new_def(chpl_class)
             ci.chpl_stub.new_def('}')
+            ci.chpl_stub.new_def(chpl_static_helper)
 
             # This is important for the chapel stub, but we generate
             # separate files vor the cstubs
