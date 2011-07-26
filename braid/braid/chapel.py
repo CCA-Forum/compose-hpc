@@ -861,9 +861,7 @@ class Chapel(object):
 
         chpl_args = []
         chpl_args.extend(Args)
-        # Add the exception to the chapel method signature
-        chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
-
+        
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
                            Except, From, Requires, Ensures, DocComment))
 
@@ -880,127 +878,120 @@ class Chapel(object):
         if final: attrs.append(ir.final)
         if static: attrs.append(ir.static)
 
+        # this is an ugly hack to force generate_method_stub to to wrap the
+        # self argument with a call to upcast()
         if ci.is_interface:
-            # If method is in an interface we do not need to provide a stub impl
-            defn = (ir.fn_defn, [], Type, Name, chpl_args,
-                    ['compilerError("interface method needs to be implemented by implementing class");'],
-                    DocComment)
-            chpl_gen(defn, ci.chpl_stub)
-        elif abstract:
-            # If method is abstract we do not need to provide a stub impl
-            defn = (ir.fn_defn, [], Type, Name, chpl_args,
-                    ['compilerError("abstract method needs to be implemented by child class");'],
-                    DocComment)
-            chpl_gen(defn, ci.chpl_stub)
+            docast = [ir.pure]
+        else: docast = []
+
+        pre_call = []
+        pre_call.append(extern_def_is_not_null)
+        pre_call.append(extern_def_set_to_null)
+        pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
+        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
+        
+        post_call = []
+        post_call.append(ir.Stmt(ir.If(
+            ir.Call("IS_NOT_NULL", ['_ex']),
+            [
+                ir.Stmt(ir.Assignment(chpl_param_ex_name,
+                                   ir.Call("new " + chpl_base_exception, ['_ex'])))
+            ]
+        )))
+        
+        call_args, cdecl_args = unzip(map(convert_arg, ior_args))
+        return_expr = []
+        return_stmt = []
+
+        # return value type conversion -- treat it as an out argument
+        _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
+
+        cdecl_args = babel_stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
+        cdecl = ir.Fn_decl(attrs, ctype, Name+Extension, cdecl_args, DocComment)
+
+        if static:
+            call_self = []
+        elif ci.is_interface:
+            qname = '_'.join(symbol_table.prefix + [ci.epv.name])
+            call_self = ['_'.join(['cast'] + [qname]) + '()']
         else:
-            # Else we need to generate the stub impl
+            call_self = ["this.self"]
+                
 
-            docast = []
-            pre_call = []
-            post_call = []
+        call_args = call_self + call_args + ['_ex']
+        # Add the exception to the chapel method signature
+        chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
+        
 
-            pre_call.append(extern_def_is_not_null)
-            pre_call.append(extern_def_set_to_null)
-            pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
-            pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
-
-
-            post_call.append(ir.Stmt(ir.If(
-                ir.Call("IS_NOT_NULL", ['_ex']),
-                [
-                    ir.Stmt(ir.Assignment(chpl_param_ex_name,
-                                       ir.Call("new " + chpl_base_exception, ['_ex'])))
-                ]
-            )))
-
-            call_args, cdecl_args = unzip(map(convert_arg, ior_args))
-            return_expr = []
-            return_stmt = []
-
-            # return value type conversion -- treat it as an out argument
-            _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
-
-            cdecl_args = babel_stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
-            cdecl = ir.Fn_decl(attrs, ctype, Name+Extension, cdecl_args, DocComment)
-
-            if static:
-                call_self = []
-            else:
-                call_self = ["this.self"]
-
-
-            call_args = call_self + call_args + ['_ex']
+        #if final:
+            # final : Final methods are the opposite of virtual. While
+            # they may still be inherited by child classes, they
+            # cannot be overridden.
             
-
-            #if final:
-                # final : Final methods are the opposite of virtual. While
-                # they may still be inherited by child classes, they
-                # cannot be overridden.
-
-                # static call
-                #The problem with this is that e.g. C++ symbols usere different names
-                #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
-            #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
-            if static:
-                # static : Static methods are sometimes called "class
-                # methods" because they are part of a class, but do not
-                # depend on an object instance. In non-OO languages, this
-                # means that the typical first argument of an instance is
-                # removed. In OO languages, these are mapped directly to
-                # an Java or C++ static method.
-                epv_type = ci.epv.get_type()
-                obj_type = ci.obj
-                callee = ir.Get_struct_item(
-                    epv_type,
-                    ir.Deref(ir.Call('_getSEPV', [])),
-                    ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension))
-
-            else:
-                # dynamic virtual method call
-                epv_type = ci.epv.get_type()
-                obj_type = ci.obj
-                callee = ir.Deref(ir.Get_struct_item(
-                    epv_type,
-                    ir.Deref(ir.Get_struct_item(obj_type,
-                                                ir.Deref('self'),
-                                                ir.Struct_item(epv_type, 'd_epv'))),
-                    ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension)))
+            # static call
+            #The problem with this is that e.g. C++ symbols usere different names
+            #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
+        #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+        if static:
+            # static : Static methods are sometimes called "class
+            # methods" because they are part of a class, but do not
+            # depend on an object instance. In non-OO languages, this
+            # means that the typical first argument of an instance is
+            # removed. In OO languages, these are mapped directly to
+            # an Java or C++ static method.
+            epv_type = ci.epv.get_type()
+            obj_type = ci.obj
+            callee = ir.Get_struct_item(
+                epv_type,
+                ir.Deref(ir.Call('_getSEPV', [])),
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension))
+            
+        else:
+            # dynamic virtual method call
+            epv_type = ci.epv.get_type()
+            obj_type = ci.obj
+            callee = ir.Deref(ir.Get_struct_item(
+                epv_type,
+                ir.Deref(ir.Get_struct_item(obj_type,
+                                            ir.Deref('self'),
+                                            ir.Struct_item(epv_type, 'd_epv'))),
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension)))
 
 
-            if Type == sidl.void:
-                Type = ir.pt_void
-                call = [ir.Stmt(ir.Call(callee, call_args))]
-            else:
-                if return_expr or post_call:
-                    rvar = '_IOR_retval'
-                    if not return_expr:
-                        pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
-                        rx = rvar
-                    else:
-                        rx = return_expr[0]
-
-                    call = [ir.Stmt(ir.Assignment(rvar, ir.Call(callee, call_args)))]
-                    return_stmt = [ir.Stmt(ir.Return(rx))]
+        if Type == sidl.void:
+            Type = ir.pt_void
+            call = [ir.Stmt(ir.Call(callee, call_args))]
+        else:
+            if return_expr or post_call:
+                rvar = '_IOR_retval'
+                if not return_expr:
+                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
+                    rx = rvar
                 else:
-                    call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
-
-            defn = (ir.fn_defn, [], Type, Name, chpl_args,
-                    pre_call + call + post_call + return_stmt,
-                    DocComment)
-
-            if static:
-                # # FIXME final functions still _may_ have a cstub
-                # # FIXME can we reuse cdecl for this?
-                # # see the __attribute__ hack below
-                # impl_decl = ir.Fn_decl([], ctype,
-                #                        callee, cdecl_args, DocComment)
-                # extern_decl = ir.Fn_decl([], ctype,
-                #                          callee, map(obj_by_value, cdecl_args), DocComment)
-                # ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
-                # ci.chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
-                chpl_gen(defn, ci.chpl_static_stub)
+                    rx = return_expr[0]
+                    
+                call = [ir.Stmt(ir.Assignment(rvar, ir.Call(callee, call_args)))]
+                return_stmt = [ir.Stmt(ir.Return(rx))]
             else:
-                chpl_gen(defn, ci.chpl_stub)
+                call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
+
+        defn = (ir.fn_defn, [], Type, Name, chpl_args,
+                pre_call+call+post_call+return_stmt,
+                DocComment)
+
+        if static:
+            # # FIXME final functions still _may_ have a cstub
+            # # FIXME can we reuse cdecl for this?
+            # # see the __attribute__ hack below
+            # impl_decl = ir.Fn_decl([], ctype,
+            #                        callee, cdecl_args, DocComment)
+            # extern_decl = ir.Fn_decl([], ctype,
+            #                          callee, map(obj_by_value, cdecl_args), DocComment)
+            # ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
+            # ci.chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
+            chpl_gen(defn, ci.chpl_static_stub)
+        else:
+            chpl_gen(defn, ci.chpl_stub)
 
     def generate_ior(self, ci, extends, implements):
         """
