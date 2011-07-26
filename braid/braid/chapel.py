@@ -331,7 +331,7 @@ class Chapel(object):
                 # The field to point to the IOR
                 chpl_class.new_def('var self: %s__object;' % qname)
 
-                # FIXME Shams: This method should be called create()
+                # The create() method to create a new IOR instance
                 # FIXME Shams: Add exceptions to the signature
                 body = [
                     '  ' + extern_def_is_not_null,
@@ -346,21 +346,21 @@ class Chapel(object):
                 ]
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void,
-                     name,
+                     'create',
                      [ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)],
-                     body, 'Constructor'), chpl_class)
+                     body, 'Psuedo-Constructor to initialize the IOR object'), chpl_class)
 
-                # FIXME Shams: This method should be called wrap()
+                # This wrap() method to copy the refernce to an existing IOR
                 # FIXME Shams: Add exceptions to the signature
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void,
-                     chpl_gen(name),
+                     'wrap',
                      [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
                      ['var ex: sidl_BaseInterface__object;',
                       'this.self = obj;',
                       vcall('addRef', ['this.self', 'ex'], ci)
                       ],
-                     'Constructor for wrapping an existing object'), chpl_class)
+                     'Pseudo-Constructor for wrapping an existing object'), chpl_class)
 
                 # Provide a destructor for the class
                 chpl_gen(
