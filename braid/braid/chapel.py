@@ -296,16 +296,19 @@ class Chapel(object):
                 extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {1}__object;'
                                .format(base, qname, ex))
 
+            parent_classes = []
             if extends:
                 gen_casts(extends)
+                parent_classes += strip_common(symbol_table.prefix, extends[1])
 
             for impls in implements:
                 for interf in impls[1]:
                     gen_casts(interf)
+                    parent_classes += strip_common(symbol_table.prefix, interf[1])
 
-            if extends:
-                inherits = ': '+'.'.join(strip_common(symbol_table.prefix, extends[1]))
-            else: inherits = ''
+            inherits = ''
+            if parent_classes:
+                inherits = ': ' + ', '.join(parent_classes)
 
             # extern declaration for the IOR
             ci.chpl_stub.new_def('_extern record %s__object {'%qname)
@@ -322,7 +325,7 @@ class Chapel(object):
             ci.chpl_stub.new_def('module %s_static {'%name)
             ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
             ci.chpl_stub.new_def('}')
-            ci.chpl_stub.new_def('class %s /*%s*/ {'%(name,inherits))
+            ci.chpl_stub.new_def('class %s %s {'%(name,inherits))
             chpl_class = ChapelScope(ci.chpl_stub)
             
             # Generate create and wrap methods for classes to init/wrap the IOR
