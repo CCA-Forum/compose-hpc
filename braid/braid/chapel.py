@@ -324,35 +324,45 @@ class Chapel(object):
             ci.chpl_stub.new_def('}')
             ci.chpl_stub.new_def('class %s /*%s*/ {'%(name,inherits))
             chpl_class = ChapelScope(ci.chpl_stub)
-            chpl_class.new_def('var self: %s__object;'%qname)
-            body = [
-                '  ' + extern_def_is_not_null,
-                '  ' + extern_def_set_to_null,
-                '  var ex: sidl_BaseInterface__object;',
-                '  SET_TO_NULL(ex);',
-                '  this.self = %s__createObject(0, ex);'%qname,
-                '  if (IS_NOT_NULL(ex)) {',
-                '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
-                '  }',
-                vcall('addRef', ['this.self', 'ex'], ci)
-            ]
-            chpl_gen(
-                (ir.fn_defn, [], ir.pt_void, 
-                 name,
-                 [ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)],
-                 body, 'Constructor'), chpl_class)
-
-            chpl_gen(
-                (ir.fn_defn, [], ir.pt_void, 
-                 chpl_gen(name),
-                 [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
-                 ['var ex: sidl_BaseInterface__object;',
-                  'this.self = obj;',
-                  vcall('addRef', ['this.self', 'ex'], ci)
-                  ],
-                 'Constructor for wrapping an existing object'), chpl_class)
-
+            
+            # Generate create and wrap methods for classes to init/wrap the IOR
             if not ci.is_interface:
+
+                # The field to point to the IOR
+                chpl_class.new_def('var self: %s__object;' % qname)
+
+                # FIXME Shams: This method should be called create()
+                # FIXME Shams: Add exceptions to the signature
+                body = [
+                    '  ' + extern_def_is_not_null,
+                    '  ' + extern_def_set_to_null,
+                    '  var ex: sidl_BaseInterface__object;',
+                    '  SET_TO_NULL(ex);',
+                    '  this.self = %s__createObject(0, ex);' % qname,
+                    '  if (IS_NOT_NULL(ex)) {',
+                    '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
+                    '  }',
+                    vcall('addRef', ['this.self', 'ex'], ci)
+                ]
+                chpl_gen(
+                    (ir.fn_defn, [], ir.pt_void,
+                     name,
+                     [ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)],
+                     body, 'Constructor'), chpl_class)
+
+                # FIXME Shams: This method should be called wrap()
+                # FIXME Shams: Add exceptions to the signature
+                chpl_gen(
+                    (ir.fn_defn, [], ir.pt_void,
+                     chpl_gen(name),
+                     [ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')],
+                     ['var ex: sidl_BaseInterface__object;',
+                      'this.self = obj;',
+                      vcall('addRef', ['this.self', 'ex'], ci)
+                      ],
+                     'Constructor for wrapping an existing object'), chpl_class)
+
+                # Provide a destructor for the class
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void, 
                      '~'+chpl_gen(name), [],
@@ -361,9 +371,20 @@ class Chapel(object):
                       vcall('_dtor', ['this.self', 'ex'], ci)],
                      'Destructor'), chpl_class)
 
+            # Interface needs to provide a dummy cast method
+            if ci.is_interface:
+                # FIXME Shams: Add Exceptions to the signature
+                chpl_gen(
+                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % qname),
+                     '_'.join(['cast'] + [qname]),
+                     [],
+                     ['compilerError("interface method needs to be implemented by implementing class");'],
+                     'Interface method to return up-casted version of the \n'
+                     'IOR Pointer for the interface from the implementing class'), chpl_class)
+
             def gen_cast(base):
                 chpl_gen(
-                    (ir.fn_defn, [], ir.pt_void, 
+                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % '_'.join(base[1])),
                      '_'.join(['cast']+base[1]), [],
                      ['var ex: sidl_BaseInterface__object;',                        
                       'return %s(this.self, ex);'%'_'.join(['_cast']+base[1])],
@@ -837,7 +858,6 @@ class Chapel(object):
         post_call.append(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", ['_ex']),
             [
-                ir.Stmt(ir.Call("writeln", ['"_ex is not pointing to NULL"'])),
                 ir.Stmt(ir.Assignment(chpl_param_ex_name,
                                    ir.Call("new " + chpl_base_exception, ['_ex'])))
             ]
@@ -855,6 +875,9 @@ class Chapel(object):
 
         if static:
             call_self = []
+        elif ci.is_interface:
+            qname = '_'.join(symbol_table.prefix + [ci.epv.name])
+            call_self = ['_'.join(['cast'] + [qname]) + '()']
         else:
             call_self = ["this.self"]
                 
