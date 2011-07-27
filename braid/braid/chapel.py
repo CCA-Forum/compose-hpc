@@ -437,12 +437,12 @@ class Chapel(object):
             ci.chpl_stub.new_def('// All the static methods of class '+name)
             ci.chpl_stub.new_def('module %s_static {'%name)
             ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
+            ci.chpl_stub.new_def(chpl_static_helper)
             ci.chpl_stub.new_def('}')
             ci.chpl_stub.new_def('class %s %s %s {'%(name,inherits,interfaces))
             ci.chpl_stub.new_def(chpl_class)
             ci.chpl_stub.new_def('}')
-            ci.chpl_stub.new_def(chpl_static_helper)
-
+            
             # This is important for the chapel stub, but we generate
             # separate files vor the cstubs
             self.pkg_chpl_stub.new_def(ci.chpl_stub)
