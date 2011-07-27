@@ -73,7 +73,7 @@ proc testD() {
   init_part("d.d()"); run_part(d.d(sidl_ex), "D.d");
 
   tracker.writeComment("Class D: via interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(d.cast_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(d.as_Inherit_A(), sidl_ex);
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting D to interface A", sidl_ex);
@@ -85,7 +85,8 @@ proc testD() {
   }
 
   tracker.writeComment("Class D2: via interface A", sidl_ex);
-  var d2 = Inherit.wrap_D(cast_Inherit_D(a.cast_Inherit_A()), sidl_ex);
+  // FIXME Where is cast_Inherit_D() defined?
+  var d2 = Inherit.wrap_D(cast_Inherit_D(a.as_Inherit_A()), sidl_ex);
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting A to interface D2", sidl_ex);
@@ -110,7 +111,7 @@ proc testE() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting E to class C", sidl_ex);
-  var c: Inherit.C = e;
+  var c: Inherit.C = Inherit.wrap_C(e.as_Inherit_C(), sidl_ex);
   if ( c == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -130,7 +131,7 @@ proc testE2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting E2 to class C", sidl_ex);
-  var c: Inherit.C = Inherit.wrap_C(e2.cast_Inherit_C(), sidl_ex);;
+  var c: Inherit.C = Inherit.wrap_C(e2.as_Inherit_C(), sidl_ex);;
   if ( c == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -154,7 +155,7 @@ proc testF() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting F to class A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(f.cast_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(f.as_Inherit_A(), sidl_ex);
   if ( a == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -166,7 +167,7 @@ proc testF() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting F to interface B", sidl_ex);
-  var b: Inherit.B = Inherit.wrap_B(f.cast_Inherit_B(), sidl_ex);
+  var b: Inherit.B = Inherit.wrap_B(f.as_Inherit_B(), sidl_ex);
   if ( b == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -179,7 +180,7 @@ proc testF() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting F to class C", sidl_ex);
-  var c: Inherit.C = f;
+  var c: Inherit.C = Inherit.wrap_C(f.as_Inherit_C(), sidl_ex);
   if ( c == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -201,7 +202,7 @@ proc testF2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting F2 to interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(f2.cast_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(f2.as_Inherit_A(), sidl_ex);
   if ( a == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -213,7 +214,7 @@ proc testF2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting F2 to interface B", sidl_ex);
-  var b: Inherit.B = Inherit.wrap_B(f2.cast_Inherit_B(), sidl_ex);
+  var b: Inherit.B = Inherit.wrap_B(f2.as_Inherit_B(), sidl_ex);
   if ( b == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -225,7 +226,7 @@ proc testF2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting F2 to class C", sidl_ex);
-  var c: Inherit.C = f2;
+  var c: Inherit.C = Inherit.wrap_C(f2.as_Inherit_C(), sidl_ex);
   if ( c == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -248,7 +249,9 @@ proc testG() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting G to interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(g.cast_Inherit_A(), sidl_ex);
+  // FIXME G does not have as_Inherit_A()!!!
+  var d_temp: Inherit.D = Inherit.wrap_D(g.as_Inherit_D(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(d_temp.as_Inherit_A(), sidl_ex);
   if ( a == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -260,7 +263,7 @@ proc testG() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting G to class D", sidl_ex);
-  var d: Inherit.D = g;
+  var d: Inherit.D = Inherit.wrap_D(g.as_Inherit_D(), sidl_ex);
   if ( d == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -284,7 +287,9 @@ proc testG2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting G2 to interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(g2.cast_Inherit_A(), sidl_ex);
+  // FIXME G2 does not have as_Inherit_A()!!!
+  var d_temp: Inherit.D = Inherit.wrap_D(g2.as_Inherit_D(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(d_temp.as_Inherit_A(), sidl_ex);
   if ( a == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -296,7 +301,7 @@ proc testG2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting G2 to class D", sidl_ex);
-  var d: Inherit.D = g2;
+  var d: Inherit.D = Inherit.wrap_D(g2.as_Inherit_D(), sidl_ex);
   if ( d == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -314,11 +319,13 @@ proc testI() {
   init_part("i.h()"); run_part(i.h(sidl_ex), "I.h");
 
   tracker.writeComment("Class I: via interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(i.cast_Inherit_A(), sidl_ex);
+  // FIXME I does not have as_Inherit_A()!!!
+  var h_temp: Inherit.H = Inherit.wrap_H(i.as_Inherit_H(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(h_temp.as_Inherit_A(), sidl_ex);
   init_part("a.a()"); run_part(a.a(sidl_ex), "I.a");
 
   tracker.writeComment("Class I: via abstract class H", sidl_ex);
-  var h: Inherit.H = i;
+  var h: Inherit.H = Inherit.wrap_H(i.as_Inherit_H(), sidl_ex);
   init_part("h.a()"); run_part(h.a(sidl_ex), "I.a");
   init_part("h.h()"); run_part(h.h(sidl_ex), "I.h");
 }
@@ -346,15 +353,17 @@ proc testK() {
   init_part("k.k()"); run_part(k.k(sidl_ex), "K.k");
 
   tracker.writeComment("Class K: via interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(k.cast_Inherit_A(), sidl_ex);
+  // FIXME I does not have as_Inherit_A()!!!
+  var h_temp: Inherit.H = Inherit.wrap_H(k.as_Inherit_H(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(h_temp.as_Inherit_A(), sidl_ex);
   init_part("a.a()"); run_part(a.a(sidl_ex), "K.a");
    
   tracker.writeComment("Class K: via interface A2", sidl_ex);
-  var a2: Inherit.A2 = Inherit.wrap_A2(k.cast_Inherit_A2(), sidl_ex);
+  var a2: Inherit.A2 = Inherit.wrap_A2(k.as_Inherit_A2(), sidl_ex);
   init_part("a2.a(0)"); run_part(a2.a(0, sidl_ex), "K.a2");
 
   tracker.writeComment("Class K: via abstract class H", sidl_ex);
-  var h: Inherit.H = k;
+  var h: Inherit.H = Inherit.wrap_H(k.as_Inherit_H(), sidl_ex);
   init_part("h.a()"); run_part(h.a(sidl_ex), "K.a");
   init_part("h.h()"); run_part(h.h(sidl_ex), "K.h");
 }
@@ -369,11 +378,11 @@ proc testL() {
   init_part("l.l()"); run_part(l.l(sidl_ex), "L.l");
 
   tracker.writeComment("Class L: via interface A", sidl_ex);
-  var a: Inherit.A = Inherit.wrap_A(l.cast_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.wrap_A(l.as_Inherit_A(), sidl_ex);
   init_part("a.a()"); run_part(a.a(sidl_ex), "L.a");
    
   tracker.writeComment("Class L: via interface A2", sidl_ex);
-  var a2: Inherit.A2 = Inherit.wrap_A2(l.cast_Inherit_A(), sidl_ex);
+  var a2: Inherit.A2 = Inherit.wrap_A2(l.as_Inherit_A(), sidl_ex);
   init_part("a2.a(0)"); run_part(a2.a(0, sidl_ex), "L.a2");
 }
 testL();
