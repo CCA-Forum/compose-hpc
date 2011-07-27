@@ -288,7 +288,7 @@ class Chapel(object):
             ci.chpl_stub.new_def('use sidl;')
             extrns = ChapelScope(ci.chpl_stub)
 
-            def gen_casts(baseclass):
+            def gen_extern_casts(baseclass):
                 base = '_'.join(baseclass[1])
                 ex = 'inout ex: sidl_BaseInterface__object'
                 extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {0}__object;'
@@ -298,17 +298,21 @@ class Chapel(object):
 
             parent_classes = []
             if extends:
-                gen_casts(extends)
+                gen_extern_casts(extends)
                 parent_classes += strip_common(symbol_table.prefix, extends[1])
 
+            parent_interfaces = []
             for impls in implements:
                 for interf in impls[1]:
-                    gen_casts(interf)
-                    parent_classes += strip_common(symbol_table.prefix, interf[1])
+                    gen_extern_casts(interf)
+                    parent_interfaces += strip_common(symbol_table.prefix, interf[1])
 
             inherits = ''
+            interfaces = ''
             if parent_classes:
                 inherits = ': ' + ', '.join(parent_classes)
+            if parent_interfaces:
+                interfaces = ' /*' + ', '.join(parent_interfaces) + '*/ '
 
             # extern declaration for the IOR
             ci.chpl_stub.new_def('_extern record %s__object {'%qname)
@@ -323,35 +327,37 @@ class Chapel(object):
 
             chpl_class = ChapelScope(ci.chpl_stub)
             chpl_static_helper = ChapelScope(ci.chpl_stub)
-            
+
+            self_field_name = 'self_' + name
             # Generate create and wrap methods for classes to init/wrap the IOR
+            
+            # The field to point to the IOR
+            chpl_class.new_def('var ' + self_field_name + ': %s__object;' % qname)
+
+            common_head = [
+                '  ' + extern_def_is_not_null,
+                '  ' + extern_def_set_to_null,
+                '  var ex: sidl_BaseInterface__object;',
+                '  SET_TO_NULL(ex);'
+            ]
+            common_tail = [
+                vcall('addRef', ['this.' + self_field_name, 'ex'], ci),
+                '  if (IS_NOT_NULL(ex)) {',
+                '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
+                '  }'
+            ]
+
+            # The create() method to create a new IOR instance
+            create_body = []
+            create_body.extend(common_head)
+            create_body.append('  this.' + self_field_name + ' = %s__createObject(0, ex);' % qname)
+            create_body.extend(common_tail)
+            wrapped_ex_arg = ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)
             if not ci.is_interface:
-
-                # The field to point to the IOR
-                chpl_class.new_def('var self: %s__object;' % qname)
-
-                common_head = [
-                    '  ' + extern_def_is_not_null,
-                    '  ' + extern_def_set_to_null,
-                    '  var ex: sidl_BaseInterface__object;',
-                    '  SET_TO_NULL(ex);'
-                ]
-                common_tail = [
-                    vcall('addRef', ['this.self', 'ex'], ci),
-                    '  if (IS_NOT_NULL(ex)) {',
-                    '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_exception) ,
-                    '  }'
-                ]
-
-                # The create() method to create a new IOR instance
-                create_body = []
-                create_body.extend(common_head)
-                create_body.append('  this.self = %s__createObject(0, ex);' % qname)
-                create_body.extend(common_tail)
-                wrapped_ex_arg = ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name)
+                # Interfaces instances cannot be created!
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void,
-                     'create',
+                     'init_' + name,
                      [wrapped_ex_arg],
                      create_body, 'Psuedo-Constructor to initialize the IOR object'), chpl_class)
                 # Create a static function to create the object using create()
@@ -360,69 +366,67 @@ class Chapel(object):
                     [wrapped_ex_arg],
                     [
                         '  var inst = new %s();' % name,
-                        '  inst.create(%s);' % wrapped_ex_arg[4],
+                        '  inst.init_%s(%s);' % (name, wrapped_ex_arg[4]),
                         '  return inst;'
                     ],
                     'Static helper function to create instance using create()')
                 chpl_gen(wrap_static_defn, chpl_static_helper)
 
-                # This wrap() method to copy the refernce to an existing IOR
-                wrap_body = []
-                wrap_body.extend(common_head)
-                wrap_body.append('  this.self = obj;')
-                wrap_body.extend(common_tail)
-                wrapped_obj_arg = ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')
-                chpl_gen(
-                    (ir.fn_defn, [], ir.pt_void,
-                     'wrap',
-                     [wrapped_obj_arg, wrapped_ex_arg],
-                     wrap_body,
-                     'Pseudo-Constructor for wrapping an existing object'), chpl_class)
+            # This wrap() method to copy the refernce to an existing IOR
+            wrap_body = []
+            wrap_body.extend(common_head)
+            wrap_body.append('  this.' + self_field_name + ' = obj;')
+            wrap_body.extend(common_tail)
+            wrapped_obj_arg = ir.Arg([], ir.in_, ir_babel_object_type([], qname), 'obj')
+            chpl_gen(
+                (ir.fn_defn, [], ir.pt_void,
+                 'wrap',
+                 [wrapped_obj_arg, wrapped_ex_arg],
+                 wrap_body,
+                 'Pseudo-Constructor for wrapping an existing object'), chpl_class)
 
-                # Create a static function to create the object using wrap()
-                wrap_static_defn = (ir.fn_defn, [], (ir.typedef_type, name),
-                    'wrap_' + name,
-                    [wrapped_obj_arg, wrapped_ex_arg],
-                    [
-                        '  var inst = new %s();' % name,
-                        '  inst.wrap(%s, %s);' % (wrapped_obj_arg[4], wrapped_ex_arg[4]),
-                        '  return inst;'
-                    ],
-                    'Static helper function to create instance using wrap()')
-                chpl_gen(wrap_static_defn, chpl_static_helper)
+            # Create a static function to create the object using wrap()
+            wrap_static_defn = (ir.fn_defn, [], (ir.typedef_type, name),
+                'wrap_' + name,
+                [wrapped_obj_arg, wrapped_ex_arg],
+                [
+                    '  var inst = new %s();' % name,
+                    '  inst.wrap(%s, %s);' % (wrapped_obj_arg[4], wrapped_ex_arg[4]),
+                    '  return inst;'
+                ],
+                'Static helper function to create instance using wrap()')
+            chpl_gen(wrap_static_defn, chpl_static_helper)
 
-                # Provide a destructor for the class
-                chpl_gen(
-                    (ir.fn_defn, [], ir.pt_void, 
-                     '~'+chpl_gen(name), [],
-                     ['var ex: sidl_BaseInterface__object;',
-                      vcall('deleteRef', ['this.self', 'ex'], ci),
-                      vcall('_dtor', ['this.self', 'ex'], ci)],
-                     'Destructor'), chpl_class)
+            # Provide a destructor for the class
+            destructor_body = []
+            destructor_body.append('var ex: sidl_BaseInterface__object;')
+            destructor_body.append(vcall('deleteRef', ['this.' + self_field_name, 'ex'], ci))
+            if not ci.is_interface:
+                # Interfaces have no destructor
+                destructor_body.append(vcall('_dtor', ['this.' + self_field_name, 'ex'], ci))
+            chpl_gen(
+                (ir.fn_defn, [], ir.pt_void, '~'+chpl_gen(name), [],
+                 destructor_body, 'Destructor'), chpl_class)
 
-            # Interface needs to provide a dummy cast method
-            if ci.is_interface:
-                # FIXME Shams: Add Exceptions to the signature
+            def gen_self_cast():
                 chpl_gen(
                     (ir.fn_defn, [], (ir.typedef_type, '%s__object' % qname),
-                     '_'.join(['cast'] + [qname]),
-                     [],
-                     ['compilerError("interface method needs to be implemented by implementing class");'],
-                     'Interface method to return up-casted version of the \n'
-                     'IOR Pointer for the interface from the implementing class'), chpl_class)
+                     '_'.join(['cast']+[qname]), [],
+                     ['return %s;' % self_field_name],
+                     'return the current IOR pointer'), chpl_class)
 
             def gen_cast(base):
                 chpl_gen(
                     (ir.fn_defn, [], (ir.typedef_type, '%s__object' % '_'.join(base[1])),
                      '_'.join(['cast']+base[1]), [],
                      ['var ex: sidl_BaseInterface__object;',                        
-                      'return %s(this.self, ex);'%'_'.join(['_cast']+base[1])],
+                      ('return %s(this.' + self_field_name + ', ex);') % '_'.join(['_cast']+base[1])],
                      'Create a down-casted version of the IOR pointer for\n'
                      'use with the alternate constructor'), chpl_class)
 
+            gen_self_cast()
             if extends:
                 gen_cast(extends)
-
             for impls in implements:
                 for interf in impls[1]:
                     gen_cast(interf)                
@@ -434,7 +438,7 @@ class Chapel(object):
             ci.chpl_stub.new_def('module %s_static {'%name)
             ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
             ci.chpl_stub.new_def('}')
-            ci.chpl_stub.new_def('class %s %s {'%(name,inherits))
+            ci.chpl_stub.new_def('class %s %s %s {'%(name,inherits,interfaces))
             ci.chpl_stub.new_def(chpl_class)
             ci.chpl_stub.new_def('}')
             ci.chpl_stub.new_def(chpl_static_helper)
@@ -911,11 +915,8 @@ class Chapel(object):
 
         if static:
             call_self = []
-        elif ci.is_interface:
-            qname = '_'.join(symbol_table.prefix + [ci.epv.name])
-            call_self = ['_'.join(['cast'] + [qname]) + '()']
         else:
-            call_self = ["this.self"]
+            call_self = ["this.self_" + ci.epv.name]
                 
 
         call_args = call_self + call_args + ['_ex']
