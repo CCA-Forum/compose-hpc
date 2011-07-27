@@ -411,14 +411,14 @@ class Chapel(object):
             def gen_self_cast():
                 chpl_gen(
                     (ir.fn_defn, [], (ir.typedef_type, '%s__object' % qname),
-                     '_'.join(['cast']+[qname]), [],
+                     '_'.join(['as']+[qname]), [],
                      ['return %s;' % self_field_name],
                      'return the current IOR pointer'), chpl_class)
 
             def gen_cast(base):
                 chpl_gen(
                     (ir.fn_defn, [], (ir.typedef_type, '%s__object' % '_'.join(base[1])),
-                     '_'.join(['cast']+base[1]), [],
+                     '_'.join(['as']+base[1]), [],
                      ['var ex: sidl_BaseInterface__object;',                        
                       ('return %s(this.' + self_field_name + ', ex);') % '_'.join(['_cast']+base[1])],
                      'Create a down-casted version of the IOR pointer for\n'
