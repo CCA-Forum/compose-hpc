@@ -310,7 +310,7 @@ class Chapel(object):
             inherits = ''
             interfaces = ''
             if parent_classes:
-                inherits = ': ' + ', '.join(parent_classes)
+                inherits = ' /*' + ': ' + ', '.join(parent_classes) + '*/ '
             if parent_interfaces:
                 interfaces = ' /*' + ', '.join(parent_interfaces) + '*/ '
 
