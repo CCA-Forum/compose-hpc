@@ -911,7 +911,7 @@ class Chapel(object):
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
         cdecl_args = babel_stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
-        cdecl = ir.Fn_decl(attrs, ctype, Name+Extension, cdecl_args, DocComment)
+        cdecl = ir.Fn_decl(attrs, ctype, Name + Extension, cdecl_args, DocComment)
 
         if static:
             call_self = []
@@ -945,7 +945,7 @@ class Chapel(object):
             callee = ir.Get_struct_item(
                 epv_type,
                 ir.Deref(ir.Call('_getSEPV', [])),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension))
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension))
             
         else:
             # dynamic virtual method call
@@ -956,7 +956,7 @@ class Chapel(object):
                 ir.Deref(ir.Get_struct_item(obj_type,
                                             ir.Deref('self'),
                                             ir.Struct_item(epv_type, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+Name+Extension)))
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension)))
 
 
         if Type == sidl.void:
@@ -976,7 +976,7 @@ class Chapel(object):
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
-        defn = (ir.fn_defn, [], Type, Name, chpl_args,
+        defn = (ir.fn_defn, [], Type, Name + Extension, chpl_args,
                 pre_call+call+post_call+return_stmt,
                 DocComment)
 
@@ -1996,7 +1996,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.import_, Name): new_def('use %s;'%Name)
 
             elif (sidl.custom_attribute, Id):       return gen(Id)
-            elif (sidl.method_name, Id, Extension): return gen(Id)
+            elif (sidl.method_name, Id, Extension): return gen(Id) + gen(Extension)
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 

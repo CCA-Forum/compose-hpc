@@ -348,7 +348,7 @@ proc testK() {
   var k = Inherit.create_K(sidl_ex);
   tracker.writeComment("Class K: implements A2, extends H.", sidl_ex);
   init_part("k.a()"); run_part(k.a(sidl_ex), "K.a");
-  init_part("k.a(0)"); run_part(k.a(0, sidl_ex), "K.a2");
+  init_part("k.a(0)"); run_part(k.a2(0, sidl_ex), "K.a2");
   init_part("k.h()"); run_part(k.h(sidl_ex), "K.h");
   init_part("k.k()"); run_part(k.k(sidl_ex), "K.k");
 
@@ -369,12 +369,12 @@ proc testK() {
 }
 testK();
 
-/**
+/*
 proc testL() {
   var l = Inherit.create_L(sidl_ex);
   tracker.writeComment("Class L: implements A, A2.", sidl_ex);
-  init_part("l.a()"); run_part(l.a(sidl_ex), "L.a");
-  init_part("l.a(0)"); run_part(l.a(0, sidl_ex), "L.a2");
+  init_part("l.a()"); run_part(l.aa(sidl_ex), "L.a");
+  init_part("l.a(0)"); run_part(l.a2(0, sidl_ex), "L.a2");
   init_part("l.l()"); run_part(l.l(sidl_ex), "L.l");
 
   tracker.writeComment("Class L: via interface A", sidl_ex);
@@ -382,7 +382,7 @@ proc testL() {
   init_part("a.a()"); run_part(a.a(sidl_ex), "L.a");
    
   tracker.writeComment("Class L: via interface A2", sidl_ex);
-  var a2: Inherit.A2 = Inherit.wrap_A2(l.as_Inherit_A(), sidl_ex);
+  var a2: Inherit.A2 = Inherit.wrap_A2(l.as_Inherit_A2(), sidl_ex);
   init_part("a2.a(0)"); run_part(a2.a(0, sidl_ex), "L.a2");
 }
 testL();
