@@ -288,6 +288,32 @@ class Chapel(object):
             ci.chpl_stub.new_def('use sidl;')
             extrns = ChapelScope(ci.chpl_stub)
 
+            def visit_hierarchy(items_visited, base_class, visit_func):
+
+                def visit_hierarchy_helper(items_visited, base):
+
+                    visit_func(base)
+                    items_visited.append(base[1])
+
+                    sidl_def = symbol_table[base[1]]
+                    if sidl_def:
+                        if sidl.class_ == sidl_def[0]:
+                            parent_sym = sidl_def[2]
+                            if parent_sym and parent_sym[1] not in items_visited:
+                                visit_hierarchy_helper(items_visited, parent_sym)
+                            for loop_impls in sidl_def[3]:
+                                loop_intfs = loop_impls[1]
+                                for intf_sym in loop_intfs:
+                                    if intf_sym and intf_sym[1] not in items_visited:
+                                        visit_hierarchy_helper(items_visited, intf_sym)
+                        elif sidl.interface == sidl_def[0]:
+                            for parent_intf in sidl_def[2]:
+                                if parent_intf and parent_intf[1] not in items_visited:
+                                    visit_hierarchy_helper(items_visited, parent_intf)
+                                        
+                if base_class and base_class[1] not in items_visited:
+                    visit_hierarchy_helper(items_visited, base_class)
+
             def gen_extern_casts(baseclass):
                 base = '_'.join(baseclass[1])
                 ex = 'inout ex: sidl_BaseInterface__object'
@@ -297,14 +323,15 @@ class Chapel(object):
                                .format(base, qname, ex))
 
             parent_classes = []
+            extern_hier_visited = []
             if extends:
-                gen_extern_casts(extends)
+                visit_hierarchy(extern_hier_visited, extends, gen_extern_casts)
                 parent_classes += strip_common(symbol_table.prefix, extends[1])
 
             parent_interfaces = []
             for impls in implements:
                 for interf in impls[1]:
-                    gen_extern_casts(interf)
+                    visit_hierarchy(extern_hier_visited, interf, gen_extern_casts)
                     parent_interfaces += strip_common(symbol_table.prefix, interf[1])
 
             inherits = ''
@@ -419,17 +446,18 @@ class Chapel(object):
                 chpl_gen(
                     (ir.fn_defn, [], (ir.typedef_type, '%s__object' % '_'.join(base[1])),
                      '_'.join(['as']+base[1]), [],
-                     ['var ex: sidl_BaseInterface__object;',                        
+                     ['var ex: sidl_BaseInterface__object;',
                       ('return %s(this.' + self_field_name + ', ex);') % '_'.join(['_cast']+base[1])],
                      'Create a down-casted version of the IOR pointer for\n'
                      'use with the alternate constructor'), chpl_class)
 
             gen_self_cast()
+            casts_generated = [symbol_table.prefix+[name]]
             if extends:
-                gen_cast(extends)
+                visit_hierarchy(casts_generated, extends, gen_cast)
             for impls in implements:
                 for interf in impls[1]:
-                    gen_cast(interf)                
+                    visit_hierarchy(casts_generated, interf, gen_cast)
 
             chpl_class.new_def(chpl_defs.get_defs())
             

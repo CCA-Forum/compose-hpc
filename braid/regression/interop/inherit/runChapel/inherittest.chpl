@@ -85,7 +85,6 @@ proc testD() {
   }
 
   tracker.writeComment("Class D2: via interface A", sidl_ex);
-  // FIXME Where is cast_Inherit_D() defined?
   var d2 = Inherit.D_static.wrap_D(cast_Inherit_D(a.as_Inherit_A()), sidl_ex);
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
@@ -249,9 +248,7 @@ proc testG() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting G to interface A", sidl_ex);
-  // FIXME G does not have as_Inherit_A()!!!
-  var d_temp: Inherit.D = Inherit.D_static.wrap_D(g.as_Inherit_D(), sidl_ex);
-  var a: Inherit.A = Inherit.A_static.wrap_A(d_temp.as_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.A_static.wrap_A(g.as_Inherit_A(), sidl_ex);
   if ( a == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -287,9 +284,7 @@ proc testG2() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting G2 to interface A", sidl_ex);
-  // FIXME G2 does not have as_Inherit_A()!!!
-  var d_temp: Inherit.D = Inherit.D_static.wrap_D(g2.as_Inherit_D(), sidl_ex);
-  var a: Inherit.A = Inherit.A_static.wrap_A(d_temp.as_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.A_static.wrap_A(g2.as_Inherit_A(), sidl_ex);
   if ( a == nil ) {
     tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
@@ -319,9 +314,7 @@ proc testI() {
   init_part("i.h()"); run_part(i.h(sidl_ex), "I.h");
 
   tracker.writeComment("Class I: via interface A", sidl_ex);
-  // FIXME I does not have as_Inherit_A()!!!
-  var h_temp: Inherit.H = Inherit.H_static.wrap_H(i.as_Inherit_H(), sidl_ex);
-  var a: Inherit.A = Inherit.A_static.wrap_A(h_temp.as_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.A_static.wrap_A(i.as_Inherit_A(), sidl_ex);
   init_part("a.a()"); run_part(a.a(sidl_ex), "I.a");
 
   tracker.writeComment("Class I: via abstract class H", sidl_ex);
@@ -353,9 +346,7 @@ proc testK() {
   init_part("k.k()"); run_part(k.k(sidl_ex), "K.k");
 
   tracker.writeComment("Class K: via interface A", sidl_ex);
-  // FIXME I does not have as_Inherit_A()!!!
-  var h_temp: Inherit.H = Inherit.H_static.wrap_H(k.as_Inherit_H(), sidl_ex);
-  var a: Inherit.A = Inherit.A_static.wrap_A(h_temp.as_Inherit_A(), sidl_ex);
+  var a: Inherit.A = Inherit.A_static.wrap_A(k.as_Inherit_A(), sidl_ex);
   init_part("a.a()"); run_part(a.a(sidl_ex), "K.a");
    
   tracker.writeComment("Class K: via interface A2", sidl_ex);
