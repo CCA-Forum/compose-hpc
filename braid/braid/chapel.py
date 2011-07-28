@@ -12,6 +12,13 @@
 # Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
+# 
+# Contributors/Acknowledgements:
+#
+# Summer interns at LLNL:
+# * 2010, 2011 Shams Imam <shams@rice.edu> 
+#   contributed argument conversions, r-array handling, exception handling, 
+#   distributed arrays, the patches to the Chapel compiler, ...
 #
 # LLNL-CODE-473891.
 # All rights refserved.
@@ -921,8 +928,12 @@ class Chapel(object):
         pre_call.append(extern_def_set_to_null)
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
         pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
-        
+        #pre_call.append('write("Pre call: "); printPtr(_ex);')
+        #pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
+        #pre_call.append('writeln("Calling ' + str(Name) + '");')
+
         post_call = []
+        #post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", ['_ex']),
             [
@@ -930,7 +941,9 @@ class Chapel(object):
                                    ir.Call("new " + chpl_base_exception, ['_ex'])))
             ]
         )))
-        
+        #post_call.append('write("Post call: "); printPtr(_ex);')
+        #post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
+
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         return_expr = []
         return_stmt = []
