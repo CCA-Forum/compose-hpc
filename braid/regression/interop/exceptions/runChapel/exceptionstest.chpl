@@ -46,7 +46,7 @@ proc assertTrue(actual: bool, msg: string): bool
 {
   tracker.writeComment("Start: Exceptions test fib-good", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
@@ -62,7 +62,7 @@ writeln();
 {
   tracker.writeComment("Start: Exceptions test fib-NegativeValueException", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
@@ -78,7 +78,7 @@ writeln();
 {
   tracker.writeComment("Start: Exceptions test fib-TooDeepException", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
@@ -95,7 +95,7 @@ writeln();
 {
   tracker.writeComment("Start: Exceptions test fib-TooBigException", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;

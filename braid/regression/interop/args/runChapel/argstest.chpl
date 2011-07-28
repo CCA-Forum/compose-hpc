@@ -82,7 +82,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   tracker.writeComment("Start: Testing bool", sidl_ex);
   var b_out: bool;
   var b_inout: bool = true;
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   init_part(); run_part( "returnbackbool", obj.returnbackbool( sidl_ex) == true );
   init_part(); run_part( "passinbool", obj.passinbool( true, sidl_ex ) == true );
@@ -99,7 +99,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   tracker.writeComment("Start: Testing char (string in chapel)", sidl_ex);
   var c_out: string = 'DUMMY';
   var c_inout: string = 'A';
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
  
   local {
   init_part(); run_part( "returnbackchar", obj.returnbackchar( sidl_ex) == '3' );
@@ -123,7 +123,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   var i32_out: int(32);
   var i32_inout: int(32) = POS_VALUE_INT32; 
   
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   init_part(); run_part( obj.returnbackint(sidl_ex) == 3 );
   init_part(); run_part( obj.passinint(POS_VALUE_INT32, sidl_ex) == true );
@@ -147,7 +147,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   var i64_out: int(64);
   var i64_inout: int(64) = 3;
   
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   init_part(); run_part( obj.returnbacklong( sidl_ex) == THREE_POS );
   init_part(); run_part( obj.passinlong( i64_in, sidl_ex ) == true );
@@ -167,7 +167,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   var r32_out: real(32) = 0.0: real(32);  
   var r32_inout: real(32) = 3.1: real(32); 
   
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   tracker.writeComment("obj.returnbackfloat() = " + obj.returnbackfloat(sidl_ex), sidl_ex);
  
@@ -196,7 +196,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   var r64_out: real(64) = 0.0: real(64);  
   var r64_inout: real(64) = 3.14: real(64); 
   
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   tracker.writeComment("obj.returnbackdouble() = " + obj.returnbackdouble(sidl_ex), sidl_ex);
  
@@ -230,7 +230,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   var c32_out: complex(64); 
   var c32_inout: complex(64); c32_inout.re = 3.1: real(32); c32_inout.im = 3.1: real(32); 
 
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   //writeln("retval = " + obj.returnbackfcomplex(sidl_ex));
   
@@ -263,7 +263,7 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   var c64_out: complex(128); 
   var c64_inout: complex(128); c64_inout.re = 3.14: real(64); c64_inout.im = 3.14: real(64); 
 
-  var obj: Args.Basic = new Args.Basic(sidl_ex);
+  var obj: Args.Basic = Args.Basic_static.create_Basic(sidl_ex);
 
   //writeln("retval = " + obj.returnbackdcomplex(sidl_ex));
   
