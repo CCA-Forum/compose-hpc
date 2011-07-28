@@ -5,7 +5,7 @@ import sidl, ir, codegen, chapel
 # generate code in multiple languages.
 # cf. ../structbench/benchgen.py
 
-def sidl_code(n, datatype):
+def sidl_code_copy(n, datatype):
     return """
     package s version 1.0 {{
       class Benchmark {{
@@ -113,11 +113,12 @@ def main():
     babel = 'babel' #args.babel
     expr = args.expr
     if expr == 'copy':
+        sidl_code = sidl_code_copy
         benchmark_expr = copy_expr
-    if expr == 'sum':
+    elif expr == 'sum':
         benchmark_expr = sum_expr
         sidl_code = sidl_code_sum
-    else: raise
+    else: raise Exception()
 
     print "-------------------------------------------------------------"
     print "generating servers"
@@ -182,7 +183,7 @@ def main():
     def numruns(t):
         if t == 'string':
             return str(100001)
-        return    str(1000001)
+        return    str(10000001)
 
     f = open('out/client_%d_%s_%s/runAll.sh'%(i,datatype,expr), 'w')
     f.write(r"""#!/usr/bin/bash

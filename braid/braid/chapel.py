@@ -2000,7 +2000,7 @@ STUBSRCS = {stubsrcs}
 
 def generate_client_server_makefile(sidl_file):
     extraflags=''
-    extraflags='-ggdb -O0'
+    #extraflags='-ggdb -O0'
     write_to('GNUmakefile', r"""
 # Generic Chapel Babel wrapper GNU Makefile
 # $Id$
