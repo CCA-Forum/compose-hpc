@@ -252,33 +252,61 @@ class Chapel(object):
             all_names = set()
             all_methods = []
 
-            def full_method_name(method):
-                """
-                Return the long name of a method (sans class/packages) for sorting purposes.
-                """
-                return method[2][1]+method[2][2]
+            def scan_class(extends, implements, methods):
 
-            def add_method(m):
-                if not full_method_name(m) in all_names:
-                    all_names.add(full_method_name(m))
-                    all_methods.append(m)
+                def full_method_name(method):
+                    """
+                    Return the long name of a method (sans class/packages)
+                    for sorting purposes.
+                    """
+                    return method[2][1]+method[2][2]
 
-            def scan_protocols(implements):
-                for impls in implements:
-                    for interf in impls[1]:
-                        for m in symbol_table[interf[1]][4]:
-                            add_method(m)
+                def add_method(m):
+                    if not full_method_name(m) in all_names:
+                        all_names.add(full_method_name(m))
+                        all_methods.append(m)
 
-            if extends:
-                base = symbol_table[extends[1]]
-                scan_protocols(base[3])
-                for m in base[5]:
+                def remove_method(m):
+                    """
+                    If we encounter a overloaded method with an extension,
+                    we need to insert that new full name into the EPV, but
+                    we also need to remove the original definition of that
+                    function from the EPV.
+                    """
+                    (_, _, (_, name, _), _, args, _, _, _, _, _) = m
+
+                    i = 0
+                    for i in range(len(all_methods)):
+                        m = all_methods[i]
+                        (_, _, (_, name1, _), _, args1, _, _, _, _, _) = m
+                        if (name1, args1) == (name, args):
+                            del all_methods[i]
+                            all_names.remove(full_method_name(m))
+                            break
+
+                def scan_protocols(implements):
+                    for impls in implements:
+                        for interf in impls[1]:
+                            for m in symbol_table[interf[1]][4]:
+                                add_method(m)
+
+                if extends:
+                    base = symbol_table[extends[1]]
+                    scan_class(sidl.class_extends(base), 
+                               sidl.class_implements(base), 
+                               sidl.class_methods(base))
+                    #scan_protocols(base[3])
+                    #for m in base[5]:
+                    #    add_method(m)
+
+                scan_protocols(implements)
+
+                for m in methods:
+                    if m[6]: # from clause
+                        remove_method(m)
                     add_method(m)
 
-            scan_protocols(implements)
-
-            for m in methods:
-                add_method(m)
+            scan_class(extends, implements, methods)
 
             # recurse to generate method code
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
@@ -295,32 +323,6 @@ class Chapel(object):
             ci.chpl_stub.new_def('use sidl;')
             extrns = ChapelScope(ci.chpl_stub)
 
-            def visit_hierarchy(items_visited, base_class, visit_func):
-
-                def visit_hierarchy_helper(items_visited, base):
-
-                    visit_func(base)
-                    items_visited.append(base[1])
-
-                    sidl_def = symbol_table[base[1]]
-                    if sidl_def:
-                        if sidl.class_ == sidl_def[0]:
-                            parent_sym = sidl_def[2]
-                            if parent_sym and parent_sym[1] not in items_visited:
-                                visit_hierarchy_helper(items_visited, parent_sym)
-                            for loop_impls in sidl_def[3]:
-                                loop_intfs = loop_impls[1]
-                                for intf_sym in loop_intfs:
-                                    if intf_sym and intf_sym[1] not in items_visited:
-                                        visit_hierarchy_helper(items_visited, intf_sym)
-                        elif sidl.interface == sidl_def[0]:
-                            for parent_intf in sidl_def[2]:
-                                if parent_intf and parent_intf[1] not in items_visited:
-                                    visit_hierarchy_helper(items_visited, parent_intf)
-                                        
-                if base_class and base_class[1] not in items_visited:
-                    visit_hierarchy_helper(items_visited, base_class)
-
             def gen_extern_casts(baseclass):
                 base = '_'.join(baseclass[1])
                 ex = 'inout ex: sidl_BaseInterface__object'
@@ -332,13 +334,13 @@ class Chapel(object):
             parent_classes = []
             extern_hier_visited = []
             if extends:
-                visit_hierarchy(extern_hier_visited, extends, gen_extern_casts)
+                sidl.visit_hierarchy(extends, gen_extern_casts, symbol_table, extern_hier_visited)
                 parent_classes += strip_common(symbol_table.prefix, extends[1])
 
             parent_interfaces = []
             for impls in implements:
                 for interf in impls[1]:
-                    visit_hierarchy(extern_hier_visited, interf, gen_extern_casts)
+                    sidl.visit_hierarchy(interf, gen_extern_casts, symbol_table,  extern_hier_visited)
                     parent_interfaces += strip_common(symbol_table.prefix, interf[1])
 
             inherits = ''
@@ -461,10 +463,10 @@ class Chapel(object):
             gen_self_cast()
             casts_generated = [symbol_table.prefix+[name]]
             if extends:
-                visit_hierarchy(casts_generated, extends, gen_cast)
+                sidl.visit_hierarchy(extends, gen_cast, symbol_table, casts_generated)
             for impls in implements:
                 for interf in impls[1]:
-                    visit_hierarchy(casts_generated, interf, gen_cast)
+                    sidl.visit_hierarchy(interf, gen_cast, symbol_table, casts_generated)
 
             chpl_class.new_def(chpl_defs.get_defs())
             

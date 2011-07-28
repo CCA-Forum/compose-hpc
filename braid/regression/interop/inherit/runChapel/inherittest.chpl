@@ -360,7 +360,6 @@ proc testK() {
 }
 testK();
 
-/*
 proc testL() {
   var l = Inherit.L_static.create_L(sidl_ex);
   tracker.writeComment("Class L: implements A, A2.", sidl_ex);
@@ -377,7 +376,6 @@ proc testL() {
   init_part("a2.a(0)"); run_part(a2.a(0, sidl_ex), "L.a2");
 }
 testL();
-*/
 
 tracker.close(sidl_ex);
 

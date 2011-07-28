@@ -119,3 +119,46 @@
 %pt_dcomplex = Primitive_type(dcomplex)
 %pt_string   = Primitive_type(string)
 %pt_opaque   = Primitive_type(opaque)
+%def visit_hierarchy(base_class, visit_func, symbol_table, items_visited = []):
+%    """
+%    Visit all parent classes and implemented interfaces of
+%    \c base_class exactly once and invoke visit_func on each
+%    sidl.class/sidl.interface node.
+% 
+%    \arg items_visited         An optional list of nodes
+%                               to exclude from visiting.
+% 			       Contains the list of visited
+% 			       nodes after return.
+%    """
+% 
+%    def h(items_visited, base):
+% 
+% 	visit_func(base)
+% 	items_visited.append(base[1])
+% 
+% 	sidl_def = symbol_table[base[1]]
+% 	if sidl_def:
+% 	    if class_ == sidl_def[0]:
+% 		parent_sym = sidl_def[2]
+% 		if parent_sym and parent_sym[1] not in items_visited:
+% 		    h(items_visited, parent_sym)
+% 		for loop_impls in sidl_def[3]:
+% 		    loop_intfs = loop_impls[1]
+% 		    for intf_sym in loop_intfs:
+% 			if intf_sym and intf_sym[1] not in items_visited:
+% 			    h(items_visited, intf_sym)
+% 	    elif interface == sidl_def[0]:
+% 		for parent_intf in sidl_def[2]:
+% 		    if parent_intf and parent_intf[1] not in items_visited:
+% 			h(items_visited, parent_intf)
+% 			    
+%    if base_class and base_class[1] not in items_visited:
+% 	h(items_visited, base_class)
+%
+%% FIXME: generate this with GRAMOLA
+%
+%def class_id(c): return c[1]
+%def class_extends(c): return c[2]
+%def class_implements(c): return c[3]
+%def class_invariants(c): return c[4]
+%def class_methods(c): return c[5]
