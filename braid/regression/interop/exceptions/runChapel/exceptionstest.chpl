@@ -46,77 +46,68 @@ proc assertTrue(actual: bool, msg: string): bool
 {
   tracker.writeComment("Start: Exceptions test fib-good", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
   var isExNotNil = (baseEx != nil);
-  writeln("1. isExNotNil = ", isExNotNil);
-  writeln("1. baseEx = ", baseEx);
   obj.getFib(10, 25, 200, 0, baseEx);
-  writeln("2. baseEx = ", baseEx);
   isExNotNil = (baseEx != nil);
-  writeln("2. isExNotNil = ", isExNotNil);
   run_part( "test fib-good", baseEx == nil );
 
   delete obj;
   tracker.writeComment("End: Exceptions test fib-good", sidl_ex);
 }
-
+writeln();
 {
   tracker.writeComment("Start: Exceptions test fib-NegativeValueException", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
   obj.getFib(-1, 10, 10, 0, baseEx);
-  writeln("baseEx = ", baseEx);
+  writeln("Expecting NegativeValueException, found baseEx = ", baseEx);
   var isExNotNil = (baseEx != nil);
-  writeln("isExNotNil = ", isExNotNil);
-
   run_part( "test fib-NegativeValueException", isExNotNil );
 
   delete obj;
   tracker.writeComment("End: Exceptions test fib-NegativeValueException", sidl_ex);
 }
-
+writeln();
 {
   tracker.writeComment("Start: Exceptions test fib-TooDeepException", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
   obj.getFib(10, 1, 1000, 0, baseEx);
-  writeln("baseEx = ", baseEx);
+  writeln("Expecting TooDeepException, found baseEx = ", baseEx);
   // FIXME Need to catch the appropriate class of exception in try-catch-like block
-  var isExNotNil = (baseEx != nil);
-  writeln("isExNotNil = ", isExNotNil);
-
+  var isExNotNil = (baseEx != nil);  
   run_part( "test fib-TooDeepException", isExNotNil );
 
   delete obj;
   tracker.writeComment("End: Exceptions test fib-TooDeepException", sidl_ex);
 }
-
+writeln();
 {
   tracker.writeComment("Start: Exceptions test fib-TooBigException", sidl_ex);
 
-  var obj: Exceptions.Fib = new Exceptions.Fib(sidl_ex);
+  var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
   var baseEx: BaseException = nil;
   obj.getFib(10, 1000, 1, 0, baseEx);
-  writeln("baseEx = ", baseEx);
+  writeln("Expecting TooBigException, found baseEx = ", baseEx);
   // FIXME Need to catch the appropriate class of exception in try-catch-like block
   var isExNotNil = (baseEx != nil);
-  writeln("isExNotNil = ", isExNotNil);
-
   run_part( "test fib-TooBigException", isExNotNil );
 
   delete obj;
   tracker.writeComment("End: Exceptions test fib-TooBigException", sidl_ex);
 }
+writeln();
 
 tracker.close(sidl_ex);

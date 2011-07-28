@@ -5,9 +5,11 @@ module sidl {
   // FIXME: autogenerate this from sidl.sidl
   _extern record sidl_BaseInterface__object {};
   _extern record sidl_BaseClass__object {};
+  _extern record sidl_BaseException__object {};
 
   // FIXME: autogenerate this from sidl.sidl
   _extern record sidl_SIDLException__object {};
+  _extern record sidl_io_Serializable__object {};
 
   class BaseClass {
     var self: sidl_BaseInterface__object;
