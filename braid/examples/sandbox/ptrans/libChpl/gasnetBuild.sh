@@ -23,7 +23,7 @@ GASNET_LDFLAGS="-L${CHAPEL_HOME}/third-party/gasnet/install/${CHAPEL_HOST_PLATFO
 EXTRA_LDFLAGS=""
 
 # extra include/compile flags
-EXTRAFLAGS=""
+EXTRAFLAGS="-O3"
 
 # extra libraries that the implementation needs to link against
 EXTRALIBS=""
