@@ -82,8 +82,7 @@ config var num_runs:int(32) = 1;
 writeln("running "+num_runs+" times");
 
 var ex: sidl.BaseException;
-var server = new s.Benchmark();
-s.init_Benchmark(ex);
+var server = s.Benchmark_static.create_Benchmark(ex);
 
 /* Benchmarks */
 [i in 0..num_runs] {
