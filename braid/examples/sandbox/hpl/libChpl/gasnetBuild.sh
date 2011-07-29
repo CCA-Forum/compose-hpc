@@ -23,7 +23,7 @@ GASNET_LDFLAGS="-L${CHAPEL_HOME}/third-party/gasnet/install/${CHAPEL_HOST_PLATFO
 EXTRA_LDFLAGS=""
 
 # extra include/compile flags
-EXTRAFLAGS=""
+EXTRAFLAGS="-O3"
 
 # extra libraries that the implementation needs to link against
 EXTRALIBS=""
@@ -75,7 +75,7 @@ echo "Cleaning previous build artifacts"
 rm -f *.o; rm -f *.lo; rm -f runHpl*; rm -rf gen;
 
 echo "Generating C files from chpl files"
-chpl --savec ./gen ${HEADER_DEPS} *.chpl --make true
+chpl --savec ./gen ${HEADER_DEPS} *.chpl --fast --make true
 
 for loopFile in ${BRAID_GEN_C_SOURCES}
 do
