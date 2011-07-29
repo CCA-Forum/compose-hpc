@@ -55,14 +55,27 @@ doc/html/index.html:
 	$(MAKE) doc
 
 info_TEXINFOS = doc/braid.texi
-# Convert the info file into a man page
-install-data-hook:
-	mkdir -p $(DESTDIR)$(mandir)/man1
-	info2man $(DESTDIR)$(infodir)/braid.info >$(DESTDIR)$(mandir)/man1/braid.1
+dist_man_MANS = $(srcdir)/doc/braid.1
 
-uninstall-hook:
-	rm -f $(DESTDIR)$(mandir)/man1/braid.1
-
+# We are distributing the compiled manpage so we don't depend on rst2man
+# Insert the output of braid --help into the MAN page.
+$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
+	$(AM_V_GEN)
+	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
+                     -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
+	@sh $(top_builddir)/braid/braid --help \
+	|  sed -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
+               -e 's/:$$/\n~~~~~~~~~~~~~~~~~~~~\n\n/' \
+               -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
+               -e 's/pos/OPTIONS\n=======\n\npos/' >>braid.txt
+	@echo >>braid.txt
+	@cat $(srcdir)/COPYRIGHT >>braid.txt
+	@if [ -n `which rst2man` ]; then \
+		rst2man -v braid.txt $@; \
+	else \
+		echo "**WARNING rst2man not installed, did not update $@"; \
+	fi
+	@ echo rm -f braid.txt
 
 distclean-local:
 	rm -f toolcheck.log
