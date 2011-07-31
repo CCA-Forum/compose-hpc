@@ -80,7 +80,7 @@ void handleSYHEMM(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor,
 		cublasCall = "cublasZhemm";
 	}
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "identifier order,size,uplo;  \n";
 	cocciStream << "expression m,n,alpha,a,lda,b,ldb,beta,c,ldc;  \n";
 	cocciStream << "@@ \n";

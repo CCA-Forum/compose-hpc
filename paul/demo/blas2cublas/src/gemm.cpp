@@ -69,11 +69,12 @@ void handleGEMM(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 		cublasCall = "cublasCgemm";
 	}
 	else if(fname.find("zgemm") != string::npos){
+		//Handling both _zgemm and _zgemm3m calls
 		aType = "cuDoubleComplex";
 		cublasCall = "cublasZgemm";
 	}
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "identifier order,transA,transB;  \n";
 	cocciStream << "expression rA,cB,cA,alpha,lda,ldb,beta,ldc;  \n";
 	cocciStream << "@@ \n";

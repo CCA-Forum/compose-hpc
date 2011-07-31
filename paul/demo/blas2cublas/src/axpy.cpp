@@ -5,19 +5,6 @@ using namespace std;
 void handleAXPY(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprListExp* fArgs){
 	
 	ostringstream cocciStream;
-	string prefix = "";
-	string len_X = "";
-	string len_Y = "";
-
-	size_t preInd = arrayPrefix.find_first_of(":");
-	if(preInd != string::npos) prefix = arrayPrefix.substr(0,preInd);
-
-	size_t lenInd = arrayPrefix.find_last_of(":");
-	if(lenInd != string::npos) len_X = arrayPrefix.substr(preInd+1,lenInd-preInd-1);
-
-	len_Y = arrayPrefix.substr(lenInd+1);
-
-	arrayPrefix = prefix;
 
 	string aType = "";
 	string blasCall = fname;
@@ -48,7 +35,7 @@ void handleAXPY(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprList
 		cublasCall = "cublasZaxpy";
 	}
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "expression n, incx, incy;  \n";
 	cocciStream << "@@ \n";
 

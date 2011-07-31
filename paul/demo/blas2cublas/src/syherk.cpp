@@ -77,7 +77,7 @@ void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor,
 		aType = "cuDoubleComplex";
 		cublasCall = "cublasZsyrk";
 	}
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "identifier order,uplo,trans;  \n";
 	cocciStream << "expression n,k,alpha,a,lda,beta,c,ldc;  \n";
 	cocciStream << "@@ \n";

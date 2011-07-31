@@ -5,6 +5,8 @@
   PAUL_HOME (path to paul/demo folder),
   BLAS_HOME, MKL_HOME (if using Intel MKL library)
 
+- Works with C++ code too.
+
 - Coccinelle version (1.0.0-rc4) is needed
   for this transformation to work as desired.
 
@@ -18,6 +20,8 @@
 
 - Some BLAS routines are not provided in CUDA BLAS and
   are hence not handled by this transformation. They are
+  - BLAS 3 -> {c,z}gemm3m (handled by using CUDA cgemm,zgemm)
+              {SC,DZ}GEMM, {SC,DZ}GEMV (Intel MKL only)
   - BLAS 2 -> {s,d}gem2vu, {c,z}gem2vc 
   - BLAS 1 -> {s}dsdot, {d,s}cabs1 
   - CUDA BLAS library provides routines for rotg, rotmg
@@ -67,37 +71,21 @@ cblas_sgemm(...);
   For now the prefix selection to avoid name clashes
   is left to the user.
 
-For BLAS level 1,2 routines the annotation required is
-of the form
+For certain BLAS level 2 routines (gbmv, gemv) the
+annotation required is of the form
 
-/*% BLAS_TO_CUBLAS prefix=device1:len_X:len_Y */
+/*% BLAS_TO_CUBLAS prefix=device1 lenX=10 lenY=20 */
 cblas_sgemv(...);
 
-where len_X and len_Y are the variables in the
-original (non-transformed) code that contain
-the lengths of vectors X, Y whose memory references
-are passed to the BLAS level 1,2 routines.
-':' is the seperator for (array,vector) prefix and
-lengths of vectors X,Y.
+where lenX and lenY are assigned the lengths itself as integers
+or the variable names in the original (non-transformed) code 
+that contain the lengths of vectors X, Y whose memory
+references are passed to these BLAS level 2 routines.
 
 The lengths of these vectors are not passed to
 the BLAS calls and hence the transformation 
 cannot figure out the size for the corresponding
 vectors to be allocated on the GPU memory.
-
-This style of specifying lengths along with the
-prefix is way to bad and needs to be changed in
-the future. It is simple and works for now.
-
-Some level 1,2 routines that require only one vector,
-such as isamax(n, x, incx) where only vector X is
-present. In such cases, the annotation can be specified as 
-
-/*% BLAS_TO_CUBLAS prefix=device1:len_X */
-isamax(n, x, incx);
-
-
-
 
 Running a sample transformation
 -------------------------------
@@ -122,7 +110,7 @@ Running a sample transformation
 	  automatically annotates all BLAS calls in the source file
 	  provided.
 
-	- The vector lengths however for BLAS 1,2 routines need
+	- The vector lengths however for certain BLAS 2 routines need
 	  to be added manually to the annotaion options.
 
 
@@ -206,9 +194,6 @@ NOTE: The line with options must start with %
 - If no include and/or library paths along with other required 
   libraries are given, the transformed code is left for the user
   to be compiled.
-
-
-
 
 
 Work in Progress

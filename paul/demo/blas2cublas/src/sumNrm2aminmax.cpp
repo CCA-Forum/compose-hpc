@@ -5,16 +5,6 @@ using namespace std;
 void handleSumNrm2Aminmax(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprListExp* fArgs){
 	
 	ostringstream cocciStream;
-	string prefix = "";
-	string len_X = "";
-
-	size_t preInd = arrayPrefix.find_first_of(":");
-	if(preInd != string::npos) prefix = arrayPrefix.substr(0,preInd);
-
-	size_t lenInd = arrayPrefix.find_last_of(":");
-	if(lenInd != string::npos) len_X = arrayPrefix.substr(preInd+1,lenInd-preInd-1);
-
-	arrayPrefix = prefix;
 
 	string matARef = "";
 	string aType = "";
@@ -91,7 +81,7 @@ void handleSumNrm2Aminmax(ofstream &cocciFptr,string fname, string arrayPrefix, 
 	}
 
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "expression n, incx;  \n";
 	cocciStream << "@@ \n";
 

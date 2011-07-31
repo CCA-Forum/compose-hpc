@@ -5,26 +5,15 @@ using namespace std;
 void handleSCAL(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprListExp* fArgs){
 	
 	ostringstream cocciStream;
-	string prefix = "";
-	string len_X = "";
-	string len_Y = "";
-
-	size_t preInd = arrayPrefix.find_first_of(":");
-	if(preInd != string::npos) prefix = arrayPrefix.substr(0,preInd);
-
-	size_t lenInd = arrayPrefix.find_last_of(":");
-	if(lenInd != string::npos) len_X = arrayPrefix.substr(preInd+1,lenInd-preInd-1);
-
-	arrayPrefix = prefix;
 
 	string aType = "";
 	string blasCall = fname;
 	string cublasCall = "";
 
-	SgNode* matrixAptr = fArgs->get_traversalSuccessorByIndex(1);
+
 	SgNode* vecXptr = fArgs->get_traversalSuccessorByIndex(2);
 
-	string matARef = matrixAptr->unparseToCompleteString();
+
 	string vecXRef = vecXptr->unparseToCompleteString();
 
 	if(fname.find("sscal") != string::npos){
@@ -52,11 +41,11 @@ void handleSCAL(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprList
 		cublasCall = "cublasZdscal";
 	}
 
-	cocciStream << "@@ \n";
-	cocciStream << "expression n, incx;  \n";
+	cocciStream << "@disable paren@ \n";
+	cocciStream << "expression n, a, incx;  \n";
 	cocciStream << "@@ \n";
 
-	cocciStream << "- "<<blasCall<<"(n, "<<matARef<<","<<vecXRef<<",incx); \n";
+	cocciStream << "- "<<blasCall<<"(n, a,"<<vecXRef<<",incx); \n";
 
 	cocciStream << "+ "<<aType<<" *"<<arrayPrefix<<"_A;  \n";
 	DeclareDevicePtrB2(cocciStream,aType,arrayPrefix,false,true,false);
@@ -68,7 +57,7 @@ void handleSCAL(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprList
 	cocciStream << "+  \n";
 	cocciStream << "+  /* Copy matrix, vectors to device */     \n";
 	cocciStream << "+  cublasSetVector ( n, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
-	cocciStream << "+  cudaMemcpy("<<arrayPrefix<<"_A,"<<matARef<<",sizeType_"<<arrayPrefix<<",cudaMemcpyHostToDevice);  \n";
+	cocciStream << "+  cudaMemset("<<arrayPrefix<<"_A,a,sizeType_"<<arrayPrefix<<");  \n";
 
 
 	cocciStream << "+  \n";

@@ -2,22 +2,9 @@
 
 using namespace std;
 
-void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, string fname, string arrayPrefix, SgExprListExp* fArgs){
+void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, string fname, string arrayPrefix, string lenX, string lenY, SgExprListExp* fArgs){
 	
 	ostringstream cocciStream;
-	string prefix = "";
-	string len_X = "-1";
-	string len_Y = "-1";
-
-	size_t preInd = arrayPrefix.find_first_of(":");
-	if(preInd != string::npos) prefix = arrayPrefix.substr(0,preInd);
-
-	size_t lenInd = arrayPrefix.find_last_of(":");
-	if(lenInd != string::npos) len_X = arrayPrefix.substr(preInd+1,lenInd-preInd-1);
-
-	len_Y = arrayPrefix.substr(lenInd+1);
-
-	arrayPrefix = prefix;
 
 	string matARef = "";
 	string aType = "";
@@ -66,17 +53,15 @@ void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 		cublasCall = "cublasDgemv";
 	}
 	else if(fname.find("cgemv") != string::npos){
-		//handles both cgemv and scgemv
 		aType = "cuComplex";
 		cublasCall = "cublasCgemv";
 	}
 	else if(fname.find("zgemv") != string::npos){
-		//handles both zgemv and dzgemv
 		aType = "cuDoubleComplex";
 		cublasCall = "cublasZgemv";
 	}
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "identifier order,trans;  \n";
 	cocciStream << "expression m, n, alpha, a, lda, x, incx, beta, y, incy;  \n";
 	cocciStream << "@@ \n";
@@ -89,13 +74,13 @@ void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 
 	cocciStream << "+  /* Allocate device memory */  \n";
 	cocciStream << "+  cublasAlloc(m*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
-	cocciStream << "+  cublasAlloc("<<len_X<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-	cocciStream << "+  cublasAlloc("<<len_Y<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_Y);  \n";
+	cocciStream << "+  cublasAlloc("<<lenX<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
+	cocciStream << "+  cublasAlloc("<<lenY<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_Y);  \n";
 	cocciStream << "+  \n";
 	cocciStream << "+  /* Copy matrix, vectors to device */     \n";
 	cocciStream << "+  cublasSetMatrix ( m, n, sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<", m, (void *) "<<arrayPrefix<<"_A, m);  \n";
-	cocciStream << "+  cublasSetVector ( len_X, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
-	cocciStream << "+  if(beta != 0) cublasSetVector ( len_Y, sizeType_"<<arrayPrefix<<","<<vecYRef<<", incy, "<<arrayPrefix<<"_Y, incy);  \n";
+	cocciStream << "+  cublasSetVector ( "<<lenX<<", sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
+	cocciStream << "+  if(beta != 0) cublasSetVector ( "<<lenY<<", sizeType_"<<arrayPrefix<<","<<vecYRef<<", incy, "<<arrayPrefix<<"_Y, incy);  \n";
 
 	cocciStream << "+  \n";
 	cocciStream << "+  /* CUBLAS call */  \n";
@@ -112,7 +97,7 @@ void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 
 	cocciStream << "+  \n";
 	cocciStream << "+  /* Copy result vector back to host */  \n";
-	cocciStream << "+  cublasSetVector ( len_Y, sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
+	cocciStream << "+  cublasSetVector ( "<<lenY<<", sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
 	FreeDeviceMemoryB2(cocciStream,arrayPrefix,true,true,true);
 	cocciFptr << cocciStream.str();
 

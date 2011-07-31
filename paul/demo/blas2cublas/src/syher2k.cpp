@@ -81,7 +81,7 @@ void handleSYHER2K(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor
 		cublasCall = "cublasZsyr2k";
 	}
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "identifier order,uplo,trans;  \n";
 	cocciStream << "expression n,k,alpha,a,lda,b,ldb,beta,c,ldc;  \n";
 	cocciStream << "@@ \n";

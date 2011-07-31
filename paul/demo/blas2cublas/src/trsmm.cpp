@@ -98,7 +98,7 @@ void handleTRSMM(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, 
 	}
 
 
-	cocciStream << "@@ \n";
+	cocciStream << "@disable paren@ \n";
 	cocciStream << "identifier order,side,uplo,transa,diag;  \n";
 	cocciStream << "expression m,n,lda,alpha,ldb;  \n";
 	cocciStream << "@@ \n";
