@@ -1,4 +1,6 @@
 // Script that adds annotations to all blas calls in a source file.
+// Identify the various BLAS calls and annotate them. Generate a
+// unique prefix each time a BLAS call is annotated.
 
 @initialize:python@
 
@@ -7,7 +9,11 @@ count = 0
 @cbcall@
 position cbc;
 identifier CblasCall ~= "^\(cblas_sgemm\|cblas_dgemm\|cblas_cgemm\|\
-		       cblas_cgemm3m\|cblas_zgemm\|cblas_zgemm3m\)$";
+		        cblas_cgemm3m\|cblas_zgemm\|cblas_zgemm3m\|\
+		     sgemm\|dgemm\|cgemm\|cgemm3m\|zgemm\|zgemm3m\|\
+	       sgemm_\|dgemm_\|cgemm_\|cgemm3m_\|zgemm_\|zgemm3m_\|\
+		   SGEMM\|DGEMM\|CGEMM\|CGEMM3M\|ZGEMM\|ZGEMM3M\)$";
+
 @@
 
 CblasCall@cbc(...);
@@ -31,7 +37,9 @@ CblasCall@cbc(...);
 
 @cbcall1@
 position cbc;
-identifier CblasCall ~= "^\(cblas_ssymm\|cblas_dsymm\|cblas_csymm\|cblas_zsymm\)$";
+identifier CblasCall ~= "^\(cblas_ssymm\|cblas_dsymm\|cblas_csymm\|cblas_zsymm\|\
+ssymm\|dsymm\|csymm\|zsymm\|ssymm_\|dsymm_\|csymm_\|zsymm_\|SSYMM\|DSYMM\|CSYMM\|ZSYMM\)$";
+
 @@
 
 CblasCall@cbc(...);
@@ -56,7 +64,11 @@ CblasCall@cbc(...);
 @cbcall2@
 position cbc;
 identifier CblasCall ~= "^\(cblas_sscal\|cblas_dscal\|\
-		       cblas_cscal\|cblas_zscal\|cblas_csscal\|cblas_zdscal\)$";
+		       cblas_cscal\|cblas_zscal\|cblas_csscal\|cblas_zdscal\|\
+			sscal\|dscal\|cscal\|zscal\|csscal\|zdscal\|\
+			sscal_\|dscal_\|cscal_\|zscal_\|csscal_\|zdscal_\|\
+			SSCAL\|DSCAL\|CSCAL\|ZSCAL\|CSSCAL\|ZDSCAL\)$";
+
 @@
 
 CblasCall@cbc(...);
@@ -81,7 +93,11 @@ CblasCall@cbc(...);
 @cbcall3@
 position cbc;
 identifier CblasCall ~= "^\(cblas_ssyrk\|cblas_ssyr2k\|cblas_dsyrk\|cblas_csyrk\|\
-			cblas_dsyr2k\|cblas_csyr2k\|cblas_zsyr2k\|cblas_zsyrk\)$";
+			cblas_dsyr2k\|cblas_csyr2k\|cblas_zsyr2k\|cblas_zsyrk\|\
+			ssyrk\|ssyr2k\|dsyrk\|csyrk\|dsyr2k\|csyr2k\|zsyr2k\|zsyrk\|\
+		ssyrk_\|ssyr2k_\|dsyrk_\|csyrk_\|dsyr2k_\|csyr2k_\|zsyr2k_\|zsyrk_\|\
+ 		    SSYRK\|SSYR2K\|DSYRK\|CSYRK\|DSYR2K\|CSYR2K\|ZSYR2K\|ZSYRK\|\)$";
+
 @@
 
 CblasCall@cbc(...);
@@ -105,7 +121,9 @@ CblasCall@cbc(...);
 
 @cbcall4@
 position cbc;
-identifier CblasCall ~= "^\(cblas_strmm\|cblas_ztrmm\|cblas_dtrmm\|cblas_ctrmm\)$";
+identifier CblasCall ~= "^\(cblas_strmm\|cblas_ztrmm\|cblas_dtrmm\|cblas_ctrmm\|\
+			strmm\|ztrmm\|dtrmm\|ctrmm\|STRMM\|ZTRMM\|DTRMM\|CTRMM\|\
+			strmm_\|ztrmm_\|dtrmm_\|ctrmm_\)$";
 @@
 
 CblasCall@cbc(...);
@@ -129,7 +147,10 @@ CblasCall@cbc(...);
 
 @cbcall5@
 position cbc;
-identifier CblasCall ~= "^\(cblas_strsm\|cblas_ztrsm\|cblas_dtrsm\|cblas_ctrsm\)$";
+identifier CblasCall ~= "^\(cblas_strsm\|cblas_ztrsm\|cblas_dtrsm\|cblas_ctrsm\|\
+			strsm\|ztrsm\|dtrsm\|ctrsm\|STRSM\|ZTRSM\|DTRSM\|CTRSM\|\
+			strsm_\|ztrsm_\|dtrsm_\|ctrsm_\)$";
+
 @@
 
 CblasCall@cbc(...);
@@ -153,7 +174,10 @@ CblasCall@cbc(...);
 
 @cbcall6@
 position cbc;
-identifier CblasCall ~= "^\(cblas_zhemm\|cblas_chemm\|cblas_cherk\|cblas_zherk\|cblas_cher2k\|cblas_zher2k\)$";
+identifier CblasCall ~= "^\(cblas_zhemm\|cblas_chemm\|cblas_cherk\|cblas_zherk\|cblas_cher2k\|cblas_zher2k\|\
+				zhemm\|chemm\|cherk\|zherk\|cher2k\|zher2k\|\
+				zhemm_\|chemm_\|cherk_\|zherk_\|cher2k_\|zher2k_\|\
+				ZHEMM\|CHEMM\|CHERK\|ZHERK\|CHER2K\|ZHER2K\)$";
 @@
 
 CblasCall@cbc(...);
@@ -178,7 +202,8 @@ CblasCall@cbc(...);
 @cbcall7@
 position cbc;
 identifier CblasCall ~= "^\(sdot\|ddot\|dsdot\|sdsdot\|\
-			cblas_sdot\|cblas_ddot\|cblas_dsdot\|cblas_sdsdot\)$";
+			cblas_sdot\|cblas_ddot\|cblas_dsdot\|cblas_sdsdot\|\
+sdot_\|ddot_\|dsdot_\|sdsdot_\|SDOT\|DDOT\|DSDOT\|SDSDOT\)$";
 
 @@
 
@@ -207,8 +232,8 @@ CblasCall@cbc(...);
 
 @cbcall71@
 position cbc;
-identifier CblasCall ~= "^\(sdoti\|ddoti\|\
-			cblas_sdoti\|cblas_ddoti\)$";
+identifier CblasCall ~= "^\(sdoti\|ddoti\|sdoti_\|ddoti_\
+			cblas_sdoti\|cblas_ddoti\|SDOTI\|DDOTI\)$";
 
 @@
 
@@ -237,8 +262,9 @@ CblasCall@cbc(...);
 @cbcall72@
 position cbc;
 identifier CblasCall ~= "^\(cdotu_sub\|cdotui_sub\|zdotu_sub\|zdotui_sub\|\
-			cblas_cdotu_sub\|cblas_cdotui_sub\|cblas_zdotu_sub\|\
-		       cblas_zdotui_sub\)$";
+		      cblas_cdotu_sub\|cblas_cdotui_sub\|cblas_zdotu_sub\|\
+		   cblas_zdotui_sub\|cdotu_sub_\|cdotui_sub_\|zdotu_sub_\|\
+	     zdotui_sub_\|CDOTU_SUB\|CDOTUI_SUB\|ZDOTU_SUB\|ZDOTUI_SUB\)$";
 
 @@
 
@@ -268,7 +294,10 @@ CblasCall@cbc(...);
 @cbcall73@
 position cbc;
 identifier CblasCall ~= "^\(cdotc_sub\|cdotci_sub\|zdotc_sub\|zdotci_sub\|\
-		       cblas_cdotc_sub\|cblas_cdotci_sub\|\|cblas_zdotc_sub\|cblas_zdotci_sub\)$";
+		       cblas_cdotc_sub\|cblas_cdotci_sub\|cblas_zdotc_sub\|cblas_zdotci_sub\|\
+			cdotc_sub_\|cdotci_sub_\|zdotc_sub_\|zdotci_sub_\|\
+			CDOTC_SUB\|CDOTCI_SUB\|ZDOTC_SUB\|ZDOTCI_SUB\)$";
+
 @@
 
 
@@ -304,9 +333,17 @@ identifier CblasCall ~= "^\(snrm2\|sasum\|dnrm2\|dasum\|\
 		       cblas_snrm2\|cblas_sasum\|cblas_dnrm2\|cblas_dasum\|\
 		       cblas_scnrm2\|cblas_scasum\|cblas_dznrm2\|cblas_dzasum\|\
 		       cblas_isamax\|cblas_idamax\|cblas_icamax\|cblas_izamax\|\
-		       cblas_isamin\|cblas_idamin\|cblas_icamin\|cblas_izamin\)$";
-@@
+		       cblas_isamin\|cblas_idamin\|cblas_icamin\|cblas_izamin\|\
+		       snrm2_\|sasum_\|dnrm2_\|dasum_\|\
+		       scnrm2_\|scasum_\|dznrm2_\|dzasum_\|\
+		       isamax_\|idamax_\|icamax_\|izamax_\|\
+		       isamin_\|idamin_\|icamin_\|izamin_\|\
+		       SNRM2\|SASUM\|DNRM2\|DASUM\|\
+		       SCNRM2\|SCASUM\|DZNRM2\|DZASUM\|\
+		       ISAMAX\|IDAMAX\|ICAMAX\|IZAMAX\|\
+		       ISAMIN\|IDAMIN\|ICAMIN\|IZAMIN\)$";
 
+@@
 
 CblasCall@cbc(...);
 
@@ -333,7 +370,8 @@ CblasCall@cbc(...);
 @cbcall9@
 position cbc;
 identifier CblasCall ~= "^\(sgemv\|dgemv\|cgemv\|zgemv\|\
-		       cblas_sgemv\|cblas_dgemv\|cblas_cgemv\|cblas_zgemv\)$";
+		       cblas_sgemv\|cblas_dgemv\|cblas_cgemv\|cblas_zgemv\|\
+	     sgemv_\|dgemv_\|cgemv_\|zgemv_\|SGEMV\|DGEMV\|CGEMV\|ZGEMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -359,7 +397,8 @@ CblasCall@cbc(...);
 @cbcall10@
 position cbc;
 identifier CblasCall ~= "^\(sgbmv\|dgbmv\|cgbmv\|zgbmv\|\
-		       cblas_sgbmv\|cblas_dgbmv\|cblas_cgbmv\|cblas_zgbmv\)$";
+		       cblas_sgbmv\|cblas_dgbmv\|cblas_cgbmv\|cblas_zgbmv\|\
+	     sgbmv_\|dgbmv_\|cgbmv_\|zgbmv_\|SGBMV\|DGBMV\|CGBMV\|ZGBMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -384,7 +423,8 @@ CblasCall@cbc(...);
 @cbcall11@
 position cbc;
 identifier CblasCall ~= "^\(strmv\|dtrmv\|ctrmv\|ztrmv\|\
-		       cblas_strmv\|cblas_dtrmv\|cblas_ctrmv\|cblas_ztrmv\)$";
+		       cblas_strmv\|cblas_dtrmv\|cblas_ctrmv\|cblas_ztrmv\|\
+	     strmv_\|dtrmv_\|ctrmv_\|ztrmv_\|STRMV\|DTRMV\|CTRMV\|ZTRMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -409,7 +449,8 @@ CblasCall@cbc(...);
 @cbcall12@
 position cbc;
 identifier CblasCall ~= "^\(stpmv\|dtpmv\|ctpmv\|ztpmv\|\
-		       cblas_stpmv\|cblas_dtpmv\|cblas_ctpmv\|cblas_ztpmv\)$";
+		       cblas_stpmv\|cblas_dtpmv\|cblas_ctpmv\|cblas_ztpmv\|\
+	     stpmv_\|dtpmv_\|ctpmv_\|ztpmv_\|STPMV\|DTPMV\|CTPMV\|ZTPMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -434,7 +475,8 @@ CblasCall@cbc(...);
 @cbcall13@
 position cbc;
 identifier CblasCall ~= "^\(stbsv\|dtbsv\|ctbsv\|ztbsv\|\
-		       cblas_stbsv\|cblas_dtbsv\|cblas_ctbsv\|cblas_ztbsv\)$";
+		       cblas_stbsv\|cblas_dtbsv\|cblas_ctbsv\|cblas_ztbsv\|\
+	     stbsv_\|dtbsv_\|ctbsv_\|ztbsv_\|STBSV\|DTBSV\|CTBSV\|ZTBSV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -459,7 +501,8 @@ CblasCall@cbc(...);
 @cbcall14@
 position cbc;
 identifier CblasCall ~= "^\(stpsv\|dtpsv\|ctpsv\|ztpsv\|\
-		       cblas_stpsv\|cblas_dtpsv\|cblas_ctpsv\|cblas_ztpsv\)$";
+		       cblas_stpsv\|cblas_dtpsv\|cblas_ctpsv\|cblas_ztpsv\|\
+	     stpsv_\|dtpsv_\|ctpsv_\|ztpsv_\|STPSV\|DTPSV\|CTPSV\|ZTPSV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -484,7 +527,8 @@ CblasCall@cbc(...);
 @cbcall15@
 position cbc;
 identifier CblasCall ~= "^\(stbmv\|dtbmv\|ctbmv\|ztbmv\|\
-		       cblas_stbmv\|cblas_dtbmv\|cblas_ctbmv\|cblas_ztbmv\)$";
+		       cblas_stbmv\|cblas_dtbmv\|cblas_ctbmv\|cblas_ztbmv\|\
+             stbmv_\|dtbmv_\|ctbmv_\|ztbmv_\|STBMV\|DTBMV\|CTBMV\|ZTBMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -509,7 +553,8 @@ CblasCall@cbc(...);
 @cbcall16@
 position cbc;
 identifier CblasCall ~= "^\(strsv\|dtrsv\|ctrsv\|ztrsv\|\
-		       cblas_strsv\|cblas_dtrsv\|cblas_ctrsv\|cblas_ztrsv\)$";
+		       cblas_strsv\|cblas_dtrsv\|cblas_ctrsv\|cblas_ztrsv\|\
+	     strsv_\|dtrsv_\|ctrsv_\|ztrsv_\|STRSV\|DTRSV\|CTRSV\|ZTRSV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -534,7 +579,8 @@ CblasCall@cbc(...);
 @cbcall17@
 position cbc;
 identifier CblasCall ~= "^\(strsv\|dtrsv\|ctrsv\|ztrsv\|\
-		       cblas_strsv\|cblas_dtrsv\|cblas_ctrsv\|cblas_ztrsv\)$";
+		       cblas_strsv\|cblas_dtrsv\|cblas_ctrsv\|cblas_ztrsv\|\
+	     strsv_\|dtrsv_\|ctrsv_\|ztrsv_\|STRSV\|DTRSV\|CTRSV\|ZTRSV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -559,14 +605,17 @@ CblasCall@cbc(...);
 @cbcall18@
 position cbc;
 identifier CblasCall ~= "^\(srotg\|drotg\|crotg\|zrotg\|\
-		       srotmg\|srot\|sroti\|srotm\|\
-		       drotmg\|drot\|drotm\|droti\|\
-		       csrot\|zdrot\|cblas_srotg\|cblas_drotg\|cblas_crotg\|cblas_zrotg\|\
+		       srotmg\|srot\|sroti\|srotm\|cblas_zrotg\|\
+		       drotmg\|drot\|drotm\|droti\|srotmg_\|\
+		       csrot\|zdrot\|cblas_srotg\|cblas_drotg\|cblas_crotg\|\
 		       cblas_srotmg\|cblas_srot\|cblas_sroti\|cblas_srotm\|\
 		       cblas_drotmg\|cblas_drot\|cblas_drotm\|cblas_droti\|\
-		       cblas_csrot\|cblas_zdrot\)$";
-@@
+		       cblas_csrot\|cblas_zdrot\|srotg_\|drotg_\|crotg_\|zrotg_\|\
+		       srot_\|sroti_\|srotm_\|drotmg_\|drot_\|drotm_\|droti_\|\
+		       SROTG\|DROTG\|CROTG\|ZROTG\|SROTMG\|SROT\|SROTI\|SROTM\|\
+		       DROTMG\|DROT\|DROTM\|DROTI\)$";
 
+@@
 
 CblasCall@cbc(...);
 
@@ -593,7 +642,8 @@ CblasCall@cbc(...);
 @cbcall19@
 position cbc;
 identifier CblasCall ~= "^\(sswap\|dswap\|cswap\|zswap\|\
-		       cblas_sswap\|cblas_dswap\|cblas_cswap\|cblas_zswap\)$";
+		       cblas_sswap\|cblas_dswap\|cblas_cswap\|cblas_zswap\|\
+	     sswap_\|dswap_\|cswap_\|zswap_\|SSWAP\|DSWAP\|CSWAP\|ZSWAP\)$";
 @@
 
 CblasCall@cbc(...);
@@ -618,7 +668,8 @@ CblasCall@cbc(...);
 @cbcall20@
 position cbc;
 identifier CblasCall ~= "^\(scopy\|dcopy\|ccopy\|zcopy\|\
-		       cblas_scopy\|cblas_dcopy\|cblas_ccopy\|cblas_zcopy\)$";
+		       cblas_scopy\|cblas_dcopy\|cblas_ccopy\|cblas_zcopy\|\
+		scopy_\|dcopy_\|ccopy_\|zcopy_\|SCOPY\|DCOPY\|CCOPY\|ZCOPY\)$";
 @@
 
 CblasCall@cbc(...);
@@ -643,7 +694,8 @@ CblasCall@cbc(...);
 @cbcall21@
 position cbc;
 identifier CblasCall ~= "^\(saxpy\|daxpy\|caxpy\|zaxpy\|\
-		       cblas_saxpy\|cblas_daxpy\|cblas_caxpy\|cblas_zaxpy\)$";
+		       cblas_saxpy\|cblas_daxpy\|cblas_caxpy\|cblas_zaxpy\|\
+		saxpy_\|daxpy_\|caxpy_\|zaxpy_\|SAXPY\|DAXPY\|CAXPY\|ZAXPY\)$";
 @@
 
 CblasCall@cbc(...);
@@ -668,7 +720,8 @@ CblasCall@cbc(...);
 @cbcall22@
 position cbc;
 identifier CblasCall ~= "^\(saxpby\|daxpby\|caxpby\|zaxpby\|\
-		       cblas_saxpby\|cblas_daxpby\|cblas_caxpby\|cblas_zaxpby\)$";
+		       cblas_saxpby\|cblas_daxpby\|cblas_caxpby\|cblas_zaxpby\|\
+	 saxpby_\|daxpby_\|caxpby_\|zaxpby_\|SAXPBY\|DAXPBY\|CAXPBY\|ZAXPBY\)$";
 @@
 
 CblasCall@cbc(...);
@@ -693,7 +746,8 @@ CblasCall@cbc(...);
 @cbcall23@
 position cbc;
 identifier CblasCall ~= "^\(saxpyi\|daxpyi\|caxpyi\|zaxpyi\|\
-		       cblas_saxpyi\|cblas_daxpyi\|cblas_caxpyi\|cblas_zaxpyi\)$";
+		       cblas_saxpyi\|cblas_daxpyi\|cblas_caxpyi\|cblas_zaxpyi\|\
+	 saxpyi_\|daxpyi_\|caxpyi_\|zaxpyi_\|SAXPYI\|DAXPYI\|CAXPYI\|ZAXPYI\)$";
 @@
 
 CblasCall@cbc(...);
@@ -718,7 +772,8 @@ CblasCall@cbc(...);
 @cbcall24@
 position cbc;
 identifier CblasCall ~= "^\(sgthr\|dgthr\|cgthr\|zgthr\|\
-		       cblas_sgthr\|cblas_dgthr\|cblas_cgthr\|cblas_zgthr\)$";
+		       cblas_sgthr\|cblas_dgthr\|cblas_cgthr\|cblas_zgthr\|\
+		sgthr_\|dgthr_\|cgthr_\|zgthr_\|SGTHR\|DGTHR\|CGTHR\|ZGTHR\)$";
 @@
 
 CblasCall@cbc(...);
@@ -743,7 +798,8 @@ CblasCall@cbc(...);
 @cbcall25@
 position cbc;
 identifier CblasCall ~= "^\(sgthrz\|dgthrz\|cgthrz\|zgthrz\|\
-		       cblas_sgthrz\|cblas_dgthrz\|cblas_cgthrz\|cblas_zgthrz\)$";
+		       cblas_sgthrz\|cblas_dgthrz\|cblas_cgthrz\|cblas_zgthrz\|\
+	sgthrz_\|dgthrz_\|cgthrz_\|zgthrz_\|SGTHRZ\|DGTHRZ\|CGTHRZ\|ZGTHRZ\)$";
 @@
 
 CblasCall@cbc(...);
@@ -768,7 +824,8 @@ CblasCall@cbc(...);
 @cbcall26@
 position cbc;
 identifier CblasCall ~= "^\(ssctr\|dsctr\|csctr\|zsctr\|\
-		       cblas_ssctr\|cblas_dsctr\|cblas_csctr\|cblas_zsctr\)$";
+		       cblas_ssctr\|cblas_dsctr\|cblas_csctr\|cblas_zsctr\|\
+	     ssctr_\|dsctr_\|csctr_\|zsctr_\|SSCTR\|DSCTR\|CSCTR\|ZSCTR\)$";
 @@
 
 CblasCall@cbc(...);
@@ -793,7 +850,8 @@ CblasCall@cbc(...);
 @cbcall27@
 position cbc;
 identifier CblasCall ~= "^\(ssymv\|dsymv\|ssbmv\|dsbmv\|sspmv\|dspmv\|\
-		       cblas_ssymv\|cblas_dsymv\|cblas_ssbmv\|cblas_dsbmv\|cblas_sspmv\|cblas_dspmv\)$";
+		       cblas_ssymv\|cblas_dsymv\|cblas_ssbmv\|cblas_dsbmv\|cblas_sspmv\|cblas_dspmv\|\
+		ssymv_\|dsymv_\|ssbmv_\|dsbmv_\|sspmv_\|dspmv_\|SSYMV\|DSYMV\|SSBMV\|DSBMV\|SSPMV\|DSPMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -818,7 +876,8 @@ CblasCall@cbc(...);
 @cbcall28@
 position cbc;
 identifier CblasCall ~= "^\(chpmv\|chemv\|chbmv\|zhemv\|zhbmv\|zhpmv\|\
-		       cblas_chpmv\|cblas_chemv\|cblas_chbmv\|cblas_zhemv\|cblas_zhbmv\|cblas_zhpmv\)$";
+		       cblas_chpmv\|cblas_chemv\|cblas_chbmv\|cblas_zhemv\|cblas_zhbmv\|cblas_zhpmv\|\
+         chpmv_\|chemv_\|chbmv_\|zhemv_\|zhbmv_\|zhpmv_\|CHPMV\|CHEMV\|CHBMV\|ZHEMV\|ZHBMV\|ZHPMV\)$";
 @@
 
 CblasCall@cbc(...);
@@ -843,7 +902,8 @@ CblasCall@cbc(...);
 @cbcall29@
 position cbc;
 identifier CblasCall ~= "^\(sger\|dger\|cgeru\|zgeru\|zgerc\|cgerc\|\
-			cblas_sger\|cblas_dger\|cblas_cgeru\|cblas_zgeru\|cblas_zgerc\|cblas_cgerc\)$";
+			cblas_sger\|cblas_dger\|cblas_cgeru\|cblas_zgeru\|cblas_zgerc\|cblas_cgerc\|\
+	          sger\|dger\|cgeru\|zgeru\|zgerc\|cgerc\|SGER\|DGER\|CGERU\|ZGERU\|ZGERC\|CGERC\)$";
 @@
 
 CblasCall@cbc(...);
@@ -868,7 +928,8 @@ CblasCall@cbc(...);
 @cbcall30@
 position cbc;
 identifier CblasCall ~= "^\(ssyr\|dsyr\|ssyr2\|dsyr2\|\
-		       cblas_ssyr\|cblas_dsyr\|cblas_ssyr2\|cblas_dsyr2\)$";
+		       cblas_ssyr\|cblas_dsyr\|cblas_ssyr2\|cblas_dsyr2\|\
+	           ssyr\|dsyr\|ssyr2\|dsyr2\|SSYR\|DSYR\|SSYR2\|DSYR2\)$";
 @@
 
 CblasCall@cbc(...);
@@ -893,7 +954,8 @@ CblasCall@cbc(...);
 @cbcall31@
 position cbc;
 identifier CblasCall ~= "^\(sspr\|dspr\|sspr2\|dspr2\|\
-		       cblas_sspr\|cblas_dspr\|cblas_sspr2\|cblas_dspr2\)$";
+		       cblas_sspr\|cblas_dspr\|cblas_sspr2\|cblas_dspr2\|\
+		   sspr\|dspr\|sspr2\|dspr2\|SSPR\|DSPR\|SSPR2\|DSPR2\)$";
 @@
 
 CblasCall@cbc(...);
@@ -918,7 +980,8 @@ CblasCall@cbc(...);
 @cbcall32@
 position cbc;
 identifier CblasCall ~= "^\(shpr\|dhpr\|shpr2\|dhpr2\|\
-		       cblas_shpr\|cblas_dhpr\|cblas_shpr2\|cblas_dhpr2\)$";
+		       cblas_shpr\|cblas_dhpr\|cblas_shpr2\|cblas_dhpr2\|\
+		   shpr\|dhpr\|shpr2\|dhpr2\|SHPR\|DHPR\|SHPR2\|DHPR2\)$";
 @@
 
 CblasCall@cbc(...);
@@ -943,7 +1006,8 @@ CblasCall@cbc(...);
 @cbcall33@
 position cbc;
 identifier CblasCall ~= "^\(cher\|cher2\|zher\|zher2\|\
-		       cblas_cher\|cblas_cher2\|cblas_zher\|cblas_zher2\)$";
+		       cblas_cher\|cblas_cher2\|cblas_zher\|cblas_zher2\|\
+		   cher\|cher2\|zher\|zher2\|CHER\|CHER2\|ZHER\|ZHER2\)$";
 @@
 
 CblasCall@cbc(...);

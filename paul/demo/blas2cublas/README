@@ -18,6 +18,14 @@
   nrm2, amin, amax, rot* need more work and hence are
   not transformed even if annotated.
 
+- If the C interface to BLAS is used and arrays are
+  specified to be treated as if in row-major order,
+  then the transformation produces a warning since CUDA BLAS
+  assumes column-major storage of arrays. The user
+  could then tweak the generated CUBLAS call to specify
+  whether the arrays should be transposed or not.
+  
+
 - Some BLAS routines are not provided in CUDA BLAS and
   are hence not handled by this transformation. They are
   - BLAS 3 -> {c,z}gemm3m (handled by using CUDA cgemm,zgemm)
