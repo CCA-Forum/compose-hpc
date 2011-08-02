@@ -47,7 +47,7 @@
 	  | Package
 	  | Struct
 	  | Enum ),
-  Type_attr = type_attribute(final | abstract),
+  Type_attr = (final | abstract),
   Id = 'STR',
   Doc_comment = 'STR',
   Enum = enum(Id, [Enumerator], Doc_comment),

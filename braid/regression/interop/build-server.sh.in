@@ -1,0 +1,54 @@
+#!/bin/sh
+if [ $# -lt 2 ]; then 
+    echo "usage: $0 testcase make [flags]"
+    exit 1
+fi
+
+BABEL=@BABEL_PREFIX@/bin/babel
+arg=$1
+shift
+MAKE=$1
+shift
+if echo "$1" | grep -q '^-'; then
+    MAKE="$MAKE $*"
+else
+    MAKE="$MAKE -$*"
+fi
+cd regression/interop                                   ||exit 1
+
+TESTCASE=`basename \`dirname \\\`dirname $arg\\\`\``
+language=`echo \`basename \\\`dirname $arg\\\`\` |sed 's/lib//g'`
+sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
+#echo "MAKE = $MAKE"
+#echo "TESTCASE = $TESTCASE"
+#echo "language = $language"
+
+#echo "--setup directory, copy over babel regression test [ $TESTCASE / $language ]"
+mkdir -p $TESTCASE
+cd $TESTCASE                                            ||exit 1
+
+if [ x"$language" = x"Chapel" ]; then
+  # copy from Braid srcdir
+  cp -u -r \
+   ../@top_srcdir@/regression/interop/$TESTCASE/libChapel .||exit 1
+  BABEL="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
+else
+ # copy from Babel srcdir
+  cp -u -r \
+   @BABEL_SRCDIR@/regression/$TESTCASE/lib$language .   ||exit 1
+  chmod -R u+w lib$language                             ||exit 1
+fi
+
+echo "--generate server [ $language / $TESTCASE ]"
+cd lib$language                                         ||exit 1
+$BABEL $sidl -s$language --makefile                     ||exit 1
+# turn on debugging
+@PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1
+cd ..						        ||exit 1
+
+echo "--compile server  [ $language / $TESTCASE ]"
+if [ x"$language" = x"Chapel" ]; then
+    exec $MAKE all -C lib$language # verbose
+else
+    exec $MAKE all -C lib$language >/dev/null
+fi

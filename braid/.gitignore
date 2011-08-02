@@ -1,0 +1,12 @@
+
+# ignore all pyc files
+*.pyc
+
+# ignore all .DS_Store 
+.DS_Store
+
+# ignore all .project files
+.project
+.pydevproject
+
+

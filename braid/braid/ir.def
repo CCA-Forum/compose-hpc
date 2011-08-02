@@ -37,7 +37,7 @@
 %%# Prefix an underscore to suppress singleton warnings.
 [
   _File = [ (Fn_decl | Fn_defn
-	  | Var_decl | Var_defn
+	  | Var_decl
 	  | Import
 	  | type_decl(Type)
 	  ) ],
@@ -50,19 +50,19 @@
   If = if(Expr, Body),
   Body = [Stmt],
   Expr = ( Literal
-	 | call(Expr, [Expr])	 
 	 | new(Type, [Arg])
          | Var_decl
-         | Var_defn
 	 | VarRefExpr
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
          | assignment(VarRefExpr, Expr)
+         | set_arg(VarRefExpr, Expr)	 
 	 | infix_expr(Bin_op, Expr, Expr)
 	 | prefix_expr(Un_op, Expr)
 	 | sign_extend(Bits, Expr)
 	 ),
-  Var_decl = var_decl(Type, Id),
-  Var_defn = var_defn(Type, Id),
+  Var_decl = ( var_decl(Type, Id)
+	     | var_decl_init(Type, Id, Expr)
+	     ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
@@ -76,6 +76,7 @@
 	       | Pointer_expr
 	       | Deref
 	       | get_struct_item(Struct, Expr, Struct_item)
+	       | call(Expr, [Expr])	 
 	       ),
   Pointer_expr = pointer_expr(VarRefExpr),
   Deref = deref(VarRefExpr),
@@ -121,6 +122,7 @@
 %pt_dcomplex = Primitive_type(dcomplex)
 %pt_string   = Primitive_type(string)
 %pt_void     = Primitive_type(void)
+%void_ptr    = Pointer_type(pt_void)
 %
 % ## const char*
 %const_str = Pointer_type(Const(Primitive_type(char)))
@@ -130,3 +132,25 @@
 %    same as Infix_expr(ir.plus, A, B)
 %    """
 %    return Infix_expr(plus, A, B)
+%
+%def Get_struct_item_stmt(struct, sname, iname):
+%    """
+%    Convenience replacement function for Get_struct_item().
+%    Accepts just the name of the item and looks up the type from \c struct.
+%    """
+%    for item in struct[2]:
+%        (_, _, id) = item
+%        if id == iname:
+%            return Stmt(Get_struct_item(struct, sname, item))
+%    raise Exception('lookup failed')
+%
+%def Set_struct_item_stmt(struct, sname, iname, expr):
+%    """
+%    Convenience replacement function for Set_struct_item().
+%    Accepts just the name of the item and looks up the type from \c struct.
+%    """
+%    for item in struct[2]:
+%        (_, _, id) = item
+%        if id == iname:
+%            return Stmt(Set_struct_item(struct, sname, item, expr))
+%    raise Exception('lookup failed')

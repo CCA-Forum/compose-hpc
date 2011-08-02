@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 file1.c ..."
+    echo "       performs an unholy conversion of Chapel-generated C code into a header file"
+fi
+
+
+for file in $*; do
+    perl -pi -e 's|/\*|//|g;' \
+             -e 's|\*/||g;' \
+             -e 's|(^[^ ].*)\{|extern \1; /*|g;' \
+             -e 's|^\}|*/|g' $file
+done

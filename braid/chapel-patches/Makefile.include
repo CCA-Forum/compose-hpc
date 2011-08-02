@@ -1,0 +1,8 @@
+# TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
+# Generate this list with
+# ls -1 chapel-patches/*.diff
+EXTRA_DIST += \
+  chapel-patches/0002-add-support-for-reference-copying-borrowing-from-dat.diff \
+  chapel-patches/0003-add-example-for-borrowed-array.diff \
+  chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
+  chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff

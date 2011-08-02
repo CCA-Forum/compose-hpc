@@ -25,7 +25,7 @@
 # \mainpage
 # Welcome to Braid/Babel 2!
 
-import argparse, re
+import argparse, re, sys
 import sidl_parser, sidl_symbols, codegen, chapel, config, legal
 
 def braid(args):
@@ -47,7 +47,7 @@ def braid(args):
             chapel.Chapel(sidl_file, sidl_ast, symtab,
                           args.makefile, args.verbose).generate_client()
         else:
-            print "**ERROR: Unknown language `%s'." % args.client
+            print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
             exit(1)
 
         # Server code generation
@@ -59,7 +59,7 @@ def braid(args):
             chapel.Chapel(sidl_file, sidl_ast, symtab,
                           args.makefile, args.verbose).generate_server()
         else:
-            print "**ERROR: Unknown language `%s'." % args.client
+            print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
             exit(1)
 
 def inject_sidl_runtime(sidl_ast, args):

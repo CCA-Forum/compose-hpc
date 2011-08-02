@@ -80,8 +80,17 @@ PKG_CHECK_MODULES(BABEL, [babel >= 2.0.0],
     [AC_SUBST([HAVE_BABEL], 1)
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
-     AC_SUBST([BABEL_SRCDIR], 
-              [`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`])
+     AC_SUBST([BABEL_SRCDIR],  [`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`])
+     AC_SUBST([BABEL_VERSION], [`$BABEL_PREFIX/bin/babel-config --query-var=VERSION`])
+     BABEL_LANGS=`$BABEL_PREFIX/bin/babel-config --query-var=BABEL_SUPPORTED_LANGUAGES`
+     AC_SUBST([BABEL_SUPPORTED_LANGUAGES], [$BABEL_LANGS])
+     AM_CONDITIONAL([BABEL_LANG_C], [echo $BABEL_LANGS |grep -q c])
+     AM_CONDITIONAL([BABEL_LANG_CXX], [echo $BABEL_LANGS |grep -q cxx])
+     AM_CONDITIONAL([BABEL_LANG_F77], [echo $BABEL_LANGS |grep -q f77])
+     AM_CONDITIONAL([BABEL_LANG_F90], [echo $BABEL_LANGS |grep -q f90])
+     AM_CONDITIONAL([BABEL_LANG_F03], [echo $BABEL_LANGS |grep -q f03])
+     AM_CONDITIONAL([BABEL_LANG_JAVA], [echo $BABEL_LANGS |grep -q java])
+     AM_CONDITIONAL([BABEL_LANG_PYTHON], [echo $BABEL_LANGS |grep -q python])
      AC_MSG_RESULT([using $BABEL_PREFIX/bin/babel])],
      [AC_MSG_NOTICE([Did not find Babel version 2 or later! 
 Please remember to set PKG_CONFIG_PATH accordingly.])
@@ -97,11 +106,18 @@ AS_IF([test -x "${CHAPEL}"],
      AC_MSG_RESULT([using $CHAPEL (version $CHAPEL_VERSION)])
      AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.3.0], 
          [AC_SUBST([CHAPEL], ["$CHAPEL"])
-          AC_SUBST([CHAPEL_ROOT], 
-                   ["`dirname \`dirname \\\`dirname $CHAPEL\\\`\``"])
+ 	  CHAPEL_ROOT=`dirname \`dirname \\\`dirname $CHAPEL\\\`\``
+          AC_SUBST([CHAPEL_ROOT], [$CHAPEL_ROOT])
           AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])],
 	 [AC_MSG_NOTICE([Chapel version < 1.3 is too old])
           AC_SUBST([CHAPEL], [])])
+     AS_IF([test -n "$CHPL_COMM" ],
+          [AC_SUBST([CHAPEL_COMM], [$CHPL_COMM])
+           AC_MSG_NOTICE([Chapel: CHPL_COMM=$CHPL_COMM])],
+	  [AC_SUBST([CHAPEL_COMM], ["none"])
+           AC_MSG_NOTICE([The environment variable CHPL_COMM was not set, defaulting to "none".
+Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
+	  ])
     ],
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
      AC_SUBST([CHAPEL], [])])
@@ -121,7 +137,9 @@ PKG_CHECK_MODULES(PL, [pl >= 5.8.0],
          AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
 	],
 	[AC_MSG_NOTICE([Did not find SWI-Prolog version 5.8 or later! 
-Please remember to set PKG_CONFIG_PATH accordingly.])
+Please remember to set PKG_CONFIG_PATH accordingly.
+Note: You won't need to have this installed 
+      unless you intend to modyfy the IR grammar.])
          AC_SUBST([SWIPL], [""])
         ])
     ])
@@ -133,9 +151,12 @@ AC_CONFIG_FILES([Makefile
   braid/braid 
   braid/config.py 
   Doxyfile
+  patch-chapel-compiler.sh
+  regression/interop/build-client.sh
+  regression/interop/build-server.sh
   regression/interop/build-tracker.sh
   regression/interop/driver.sh
-])
+], [chmod +x patch-chapel-compiler.sh])
 
 AC_OUTPUT
 

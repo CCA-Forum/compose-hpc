@@ -31,6 +31,7 @@ EXTRA_DIST= \
 # Recursive make considered harmful
 include braid/Makefile.include
 include regression/interop/Makefile.include
+include chapel-patches/Makefile.include
 
 DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
   PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
@@ -65,8 +66,10 @@ clean-local: clean-braid
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
-                       $(BABEL_TESTS:%.babel=%) \
-                       regression/interop/output; \
+                       regression/interop/output && \
+		for f in `echo $(BABEL_TESTS)|sed 's/ /\\n/g'`; do \
+	            rm -rf `dirname \`dirname $$f\``; \
+		done; \
 	fi
 
 
@@ -84,7 +87,9 @@ nobase_include_HEADERS += \
   chpl/sidl.chpl
 
 BUILT_SOURCES += chpl/sidl.chpl
-EXTRA_DIST += chpl/sidl.inc chpl/array.inc
+EXTRA_DIST += chpl/sidl.inc chpl/array.inc chpl/barray.inc chpl/darray.inc
+
+noinst_SCRIPTS = patch-chapel-compiler.sh.in
 
 chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
 	@mkdir -p chpl

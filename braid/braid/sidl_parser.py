@@ -346,7 +346,6 @@ tokens = [
 # character_literal = r'\'(' + string_innards + r')\''
 # string_literal = r'"(' + string_innards + r'*)"'
 
-
 # Error handling rule
 def t_error(t):
     print "Illegal character '%s'" % t.value[0]
@@ -557,7 +556,7 @@ def p_typeAttrOrCustomAttrList(p):
 def p_typeAttr(p):
     '''typeAttr : FINAL
                 | ABSTRACT'''
-    p[0] = (sidl.type_attribute, p[1])
+    p[0] = str.lower(p[1])
 
 def p_name(p):
     '''name : IDENTIFIER'''
@@ -701,7 +700,8 @@ def p_methodName(p):
     if p[2] == []:
         p[0] = (sidl.method_name, p[1], '')
     else:
-        p[0] = (sidl.method_name, p[1], p[2])
+        # '[token]'->'token'
+        p[0] = (sidl.method_name, p[1], p[2][1:-1])
 
 def p_maybeExceptClause(p):
     '''maybeExceptClause : exceptClause

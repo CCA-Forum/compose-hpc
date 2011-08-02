@@ -1,0 +1,12 @@
+
+package blas version 0.1 {
+
+  class VectorUtils {
+    // the helper function to do the actual call to daxpy
+    static void helper_daxpy(
+         in int n,
+         in double alpha,
+         in array<double, 1> X, 
+         in array<double, 1> Y);
+  }
+}

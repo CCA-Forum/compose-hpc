@@ -24,7 +24,7 @@
 #
 from codegen import accepts, returns
 from patmat import matcher, match, member, unify, expect, Variable
-import sidl, types
+import sidl, types, sys
 
 def resolve(ast, verbose=True):
     """
@@ -35,28 +35,31 @@ def resolve(ast, verbose=True):
     
     ast1 = consolidate_packages(ast)
     symtab = build_symbol_table(ast1, SymbolTable(), verbose)
-    ast2 = resolve_symbols(ast1, symtab, verbose)
-    return ast2, symtab
+
+    def resolve_rebuild(ast, symtab):
+        """
+        FIXME: this is not very efficient. Can we replace this with
+        something unification-based in the future?
+        """
+        ast1 = resolve_symbols(ast, symtab, verbose)
+        symtab1 = build_symbol_table(ast1, SymbolTable(), verbose)
+        if repr(symtab) <> repr(symtab1):
+            return resolve_rebuild(ast1, symtab1)
+        return ast1, symtab1
+
+    return resolve_rebuild(ast1, symtab)
 
 @matcher(globals(), debug=False)
 def build_symbol_table(node, symbol_table, verbose=True):
     """
-    Does two things:
-
-    * Build a hierarchical \c SymbolTable() for \c node.
-
-    * Resolve all scoped ids in definitions to their full name:
-      They are still stored as scoped_id, but they are guaranteed
-      to contain a full name, including all parent
-      namespaces/scopes.
-
+    Build a hierarchical \c SymbolTable() for \c node.
     For the time being, we store the fully scoped name
     (= \c [package,subpackage,classname] ) for each class
     in the symbol table.
     """
 
     def gen(node):
-        return build_symbol_table(node, symbol_table)
+        return build_symbol_table(node, symbol_table, verbose)
 
     with match(node):
         if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
@@ -85,7 +88,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
             symbol_table[Name] = SymbolTable(symbol_table,
                                              symbol_table.prefix+[Name])
-            build_symbol_table(UserTypes, symbol_table[[Name]])
+            build_symbol_table(UserTypes, symbol_table[[Name]], verbose)
 
         elif (sidl.user_type, Attrs, Cipse):
             gen(Cipse)
@@ -103,7 +106,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
         else:
             raise Exception("match error")
-
+        
     return symbol_table
 
 @matcher(globals(), debug=False)
@@ -116,24 +119,30 @@ def resolve_symbols(node, symbol_table, verbose=True):
     """
 
     def res(node):
-        return resolve_symbols(node, symbol_table)
+        return resolve_symbols(node, symbol_table, verbose)
 
-    # if node <> []:
+    #if node <> []:
     #     print node[0], symbol_table
+    #if isinstance(node, tuple):
+    #    if node[0] == 'class':
+    #        print node[0:5]
 
     with match(node):
         if (sidl.scoped_id, Names, Ext):
             prefix, name = symbol_table.get_full_name(Names)
-            #print Names, "->", prefix, name
+            # if name == ['BaseException']:
+            #     print Names, "->", prefix, name
             return (sidl.scoped_id, prefix+name, Ext)
 
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
-                print "Resolving symbols for package %s" \
+                print "Building symbols for package %s" \
                       %'.'.join(symbol_table.prefix+[Name])
-            return (sidl.package, Name, Version,
-                    resolve_symbols(UserTypes, symbol_table._symbol[Name]), DocComment)
+                sys.stdout.flush()
 
+            return (sidl.package, Name, Version,
+                    resolve_symbols(UserTypes, symbol_table._symbol[Name],
+                                    verbose), DocComment)
         else:
             if (isinstance(node, list)):
                 return map(res, node)
@@ -141,6 +150,7 @@ def resolve_symbols(node, symbol_table, verbose=True):
                 return tuple(map(res, node))
             else:
                 return node
+            
 
 @matcher(globals(), debug=False)
 def consolidate_packages(node):
@@ -267,3 +277,6 @@ class SymbolTable:
 
     def __str__(self):
         return str(self._symbol)
+
+    def __repr__(self):
+        return repr(self._symbol)

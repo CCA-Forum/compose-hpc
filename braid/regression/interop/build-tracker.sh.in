@@ -7,7 +7,11 @@ fi
 BABEL=@BABEL_PREFIX@/bin/babel
 MAKE=$1
 shift
-MAKE="$MAKE -$*"
+if echo "$1" | grep -q '^-'; then
+    MAKE="$MAKE $*"
+else
+    MAKE="$MAKE -$*"
+fi
 echo "MAKE = $MAKE"
 cd regression/interop                                   ||exit 1
 
@@ -19,6 +23,6 @@ if [ ! -e output/libC/Makefile ]; then
     cd output/libC                                      ||exit 1
     echo "--build tracker"
     $BABEL ../output.sidl -sc --makefile		||exit 1
-    $MAKE                                               ||exit 1
+    $MAKE >/dev/null                                    ||exit 1
     cd -
 fi

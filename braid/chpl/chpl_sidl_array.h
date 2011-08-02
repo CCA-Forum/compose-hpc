@@ -13,6 +13,7 @@
 #include <sidl_opaque_IOR.h>      
 #include <sidl_string_IOR.h>      
 #include <sidl_BaseInterface_IOR.h>
+#include <stdlib.h> 
 
 struct sidl_string__array {
   struct sidl__array   d_metadata;
@@ -43,7 +44,28 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
   sidlArrayElem1(array,ind1) = val
 
 // Identity function. We use it to cast * -> opaque
-#define int_ptr(A) A
+#define bool_ptr(A) A     
+#define char_ptr(A) A     
+#define dcomplex_ptr(A) A 
+#define double_ptr(A) A   
+#define fcomplex_ptr(A) A 
+#define float_ptr(A) A    
+#define int_ptr(A) A      
+#define long_ptr(A) A     
+#define opaque_ptr(A) A   
+#define string_ptr(A) A   
 #define chpl_sidl__array_smartCopy(A) sidl__array_smartCopy((struct sidl__array *)(A))
 #define chpl_sidl__array_deleteRef(A) sidl__array_deleteRef((struct sidl__array *)(A))
+#define chpl_sidl__array_isColumnOrder(A) sidl__array_isColumnOrder((const struct sidl__array *)(A))
+#define chpl_sidl__array_isRowOrder(A) sidl__array_isRowOrder((const struct sidl__array *)(A))
+        
+#define getOpaqueData(inData) ((void*)inData)
+#define isSameOpaqueData(in1, in2) (getOpaqueData(in1) == getOpaqueData(in2))
+        
+// void* allocateData(int typeSize, int numElements) 
+#define allocateData(typeSize, numElements) (chpl_malloc(numElements, typeSize, CHPL_RT_MD_ARRAY_ELEMENTS, 67, "chpl_sidl_array.h"))
+
+// void deallocateData(void* bData) 
+#define deallocateData(bData) (chpl_free(bData, 70, "chpl_sidl_array.h"))
+        
 #endif

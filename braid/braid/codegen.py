@@ -295,23 +295,37 @@ class Scope(object):
         lines = []
         if string.count("\n") > 0:
             return string
+
+        if len(string) == 0:
+            return ''
+
+        # Macros need the line-joiner backslash
+        if string[0] == '#': sep = '\\\n'
+        else: sep = '\n'
+        
         tokens = string.split(' ')
         number_of_quotes = 0
         in_quote = False
         while len(tokens) > 0:
             line = ""
+            took_token = False
             while (len(tokens) > 0 and 
                    ((len(line)+len(tokens[0]) < self._max_line_length)
                     or in_quote)):
                 number_of_quotes += tokens[0].count('"')
                 in_quote = number_of_quotes&1 # odd number of quotes
                 line += tokens.pop(0)
+                took_token = True
                 if len(tokens): line += ' '
 
+            if not took_token:
+                line += tokens.pop(0)                
+                if len(tokens): line += ' '
+                
             lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
-        indent = '\n' +' '*il
+        indent = sep +' '*il
         if string.count('xxx'):
             print string
             print '->', indent.join(lines)
@@ -456,6 +470,9 @@ class F77File(SourceFile):
         Append definition \c s to the scope
         \return  \c self
         """
+        if s == self:
+            return self
+        
         # break long lines
         tokens = s.split()
         line = ' '*(self.relative_indent+indent)
@@ -655,7 +672,8 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
 
             elif (ir.var_decl, Type, Name): declare_var(Type, gen(Name))
             elif (ir.goto, Label):    return 'goto '+Label
-            elif (ir.assignment):     return '='
+            elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.set_arg, Var, Expr):    return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
             elif (Expr):
@@ -678,8 +696,11 @@ class F90File(SourceFile):
         Append definition \c s to the scope
         \return  \c self
         """
+        if s == self:
+            return self
+        
         # split long lines
-        tokens = s.split()
+        tokens = str(s).split()
         while len(tokens) > 0: 
             line = ' '*(self.relative_indent+indent)
             while (len(tokens) > 0 and 
@@ -838,7 +859,8 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
             elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
-            elif (ir.assignment):     return '='
+            elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.eq):             return '.eq.'
             elif (ir.true):           return '.true.'
             elif (ir.false):          return '.false.'
@@ -1065,7 +1087,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         }
 
     un_op = { 
-        'log_not': 'not',
+        'log_not': '!',
         'bit_not': '~'
         }
 
@@ -1165,8 +1187,11 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.call, (ir.deref, Name), Args): 
                 return '(*%s)(%s)' % (gen(Name), gen_comma_sep(Args))
 
-            elif (ir.call, Name, Args): 
-                return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
+            elif (ir.call, Name, Args):
+                if isinstance(Name, tuple):
+                    return '(%s)(%s)' % (gen(Name), gen_comma_sep(Args))
+                else:
+                    return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
             # FIXME should we use scoped_id instead of typedecl?
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
@@ -1257,7 +1282,7 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return "(*%s)->%s"%(gen(StructName),gen(Item))
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
-                return gen(StructName)+'->'+gen(Item)
+                return "%s->%s"%(gen(StructName), gen(Item))
 
             elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'->'+gen(Item)+' = '+gen(Value)
@@ -1285,6 +1310,8 @@ class CCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.import_, Name): 
                 return scope.new_global_def('#include <%s.h>'%Name)
+
+            elif (ir.set_arg, Var, Expr): return '*%s = %s'%(gen(Var), gen(Expr))
 
             elif (Expr):
                 return super(CCodeGenerator, self).generate(Expr, scope)
@@ -1332,6 +1359,8 @@ class CXXCodeGenerator(CCodeGenerator):
 
             elif (ir.set_struct_item, _, StructName, Item, Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
+
+            elif (ir.set_arg, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
 
             elif (Expr):
                 return super(CXXCodeGenerator, self).generate(Expr, scope)
@@ -1406,6 +1435,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                     s.new_header_def(decl)
                 return tmp
 
+
         val = self.generate_non_tuple(node, scope)
         if val <> None:
             return val
@@ -1418,6 +1448,9 @@ class JavaCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.set_struct_item, Type, StructName, Item, Value):
                 return deref(Type, StructName)+'.'+gen(Item)+' = '+gen(Value)
+
+            elif (ir.assignment, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
+            elif (ir.set_arg, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
 
             elif (ir.true):           return 'true'
             elif (ir.false):          return 'false'
@@ -1551,7 +1584,8 @@ class PythonCodeGenerator(GenericCodeGenerator):
                 return new_block('if %s'%gen(Condition), Body)
 
             elif (ir.var_decl, Type, Name): return ''
-            elif (ir.assignment):     return '='
+            elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.eq):             return '=='
             elif (ir.true):           return 'True'
             elif (ir.false):          return 'False'
@@ -1714,7 +1748,6 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.scoped_id, A, B):
                 return '%s%s' % (gen_dot_sep(A), gen(B))
 
-            elif (sidl.type_attribute, Name):    return Name
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
             elif (sidl.method_name, Name, []):   return gen(Name)
             elif (sidl.method_name, Name, Extension): return gen(Name)+' '+Extension

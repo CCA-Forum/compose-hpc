@@ -1,14 +1,16 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
+# These are gently ordered by number of generated files to speedup parallel builds
 BABEL_TESTS = \
-  regression/interop/args.babel \
-  regression/interop/arrays.babel \
-  regression/interop/strings.babel  
-
-EXTRA_DIST += $(BABEL_TESTS) \
+  regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl 
+
+BABEL_TESTNAMES = \
+  args arrays inherit strings
+
+EXTRA_DIST += $(BABEL_TESTS)
 
 if ENABLE_INTEROP_REGRESSION
 TESTS += $(BABEL_TESTS)
@@ -16,20 +18,109 @@ TESTS += $(BABEL_TESTS)
 ## BABEL_TESTS = args arrays strings
 ## $(BABEL_TESTS:%=$(INTEROP_DIR)/%.babel)
 
-TEST_EXTENSIONS += .babel
-BABEL_LOG_COMPILER = sh 
+TEST_EXTENSIONS += .chpl
+CHPL_LOG_COMPILER = sh 
 # FIXME:
 #
 # On parallel make: Apparently my nice hack to pass through the jobs
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
 #AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -j1 --
+AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh
 
-# This target will be mad prior to the tests. We use it to compile
-# regression/output from Babel.
-check_DATA = $(builddir)/regression/interop/output/libC/babel.make
-$(builddir)/regression/interop/output/libC/babel.make: $(builddir)/regression/interop/build-tracker.sh
-	sh $< $(MAKE) $(MAKEFLAGS)
+# This target will be made prior to the tests. We use it to compile
+# regression/output and all the server libraries that are copied over
+# from Babel
+if BABEL_LANG_C # can't do much without C
+check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile
+check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la)
+languages = C
+
+if BABEL_LANG_CXX
+  languages += Cxx
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la)
+endif
+
+if BABEL_LANG_F77
+  languages += F77
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la)
+endif
+
+if BABEL_LANG_F90
+  languages += F90
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
+endif
+
+if BABEL_LANG_F03
+  languages += F03
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
+endif
+
+if BABEL_LANG_JAVA
+  languages += Java
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
+endif
+
+if BABEL_LANG_PYTHON
+  languages += Python
+  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+endif
+
+#check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
+#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
+
+check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
+endif
+
+$(builddir)/regression/interop/output/libC/GNUmakefile: $(top_builddir)/regression/interop/build-tracker.sh
+	@sh $< $(MAKE) $(MAKEFLAGS)
+
+$(builddir)/regression/interop/%/libimpl.la: $(top_builddir)/regression/interop/build-server.sh
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+$(builddir)/regression/interop/%/libimpl1.la: $(top_builddir)/regression/interop/build-server.sh
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+# FIXME If we should encounter a race condition with this rule, it is
+# because libimpl.la is not the last file to be built by
+# build-server.sh
+$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+# ----------------------------------------------------------------------
+# This is an alternate way of invoking the regression tests via gantlet
+# End-users should use `make check' instead.
+# This prints better statistics about broken tests
+RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
+		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
+		-d -k$(PACKAGE) #-c$(host)
+
+STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
+ALLTESTS = $(STATIC_TESTS)
+
+run-gantlet: $(check_DATA)
+	if test "X$$PROFILE_NAME" = X; then \
+	    PROFILE_NAME="$(host)"; \
+        fi; \
+	if test "X$(SESSION)" != X; then \
+	    session_name="$(SESSION)"; \
+        else  \
+            session_name="default_$$CHECK_COMMAND"; \
+        fi; \
+	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
+
+run-gantlet-gui: $(check_DATA)
+	if test "X$$PROFILE_NAME" = X; then \
+	    PROFILE_NAME="$(host)"; \
+        fi; \
+	if test "X$(SESSION)" != X; then \
+	    session_name="$(SESSION)"; \
+        else  \
+            session_name="default_$$CHECK_COMMAND"; \
+        fi; \
+	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
+
+
+# ----------------------------------------------------------------------
 
 endif
