@@ -2319,6 +2319,1127 @@ def Const(*args):
         raise Exception("Grammar Error")
     return tuple(['const']+list(args))
 
+# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum)
+def import_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "import" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'import':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+# skipping \c Var_decl= (\c Var_decl|\c Var_decl_init)
+def fn_defn_attrs(arg):
+    """
+    Accessor function.
+    \return the "attrs" member of a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_defn':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def fn_defn_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_defn':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def fn_defn_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_defn':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def fn_defn_args(arg):
+    """
+    Accessor function.
+    \return the "args" member of a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_defn':
+        raise Exception("Grammar Error")
+    else: return arg[4]
+
+
+def fn_defn_stmts(arg):
+    """
+    Accessor function.
+    \return the "stmts" member of a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_defn':
+        raise Exception("Grammar Error")
+    else: return arg[5]
+
+
+def fn_defn_docComment(arg):
+    """
+    Accessor function.
+    \return the "docComment" member of a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_defn':
+        raise Exception("Grammar Error")
+    else: return arg[6]
+
+
+def fn_decl_attrs(arg):
+    """
+    Accessor function.
+    \return the "attrs" member of a "fn_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_decl':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def fn_decl_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "fn_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_decl':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def fn_decl_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "fn_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_decl':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def fn_decl_args(arg):
+    """
+    Accessor function.
+    \return the "args" member of a "fn_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_decl':
+        raise Exception("Grammar Error")
+    else: return arg[4]
+
+
+def fn_decl_docComment(arg):
+    """
+    Accessor function.
+    \return the "docComment" member of a "fn_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'fn_decl':
+        raise Exception("Grammar Error")
+    else: return arg[5]
+
+
+# skipping \c _File=[ (\c Fn_decl|\c Fn_defn|\c Var_decl|\c Import|\c Type_decl)]
+# skipping \c Id=STR
+def goto_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "goto" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'goto':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+# skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
+def if_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "if" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'if':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def if_body(arg):
+    """
+    Accessor function.
+    \return the "body" member of a "if" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'if':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def return_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "return" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'return':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def while_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "while" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'while':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def while_body(arg):
+    """
+    Accessor function.
+    \return the "body" member of a "while" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'while':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def do_while_body(arg):
+    """
+    Accessor function.
+    \return the "body" member of a "do_while" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'do_while':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def do_while_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "do_while" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'do_while':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def comment_STR(arg):
+    """
+    Accessor function.
+    \return the "STR" member of a "comment" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'comment':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+# skipping \c Stmt= (\c Stmt|\c Comment)
+# skipping \c Body=[\c Stmt]
+def arg_attrs(arg):
+    """
+    Accessor function.
+    \return the "attrs" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def arg_mode(arg):
+    """
+    Accessor function.
+    \return the "mode" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def arg_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def arg_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[4]
+
+
+def struct_scoped_id(arg):
+    """
+    Accessor function.
+    \return the "scoped_id" member of a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def struct_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def struct_struct_items(arg):
+    """
+    Accessor function.
+    \return the "struct_items" member of a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def struct_docComment(arg):
+    """
+    Accessor function.
+    \return the "docComment" member of a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def struct_item_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def struct_item_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+# skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Un_op= (is|log_not|bit_not)
+# skipping \c Bits=INT
+# skipping \c Literal= (STR|FLOAT|INT|pure|result|\c Complex|true|false)
+def complex_FLOAT(arg):
+    """
+    Accessor function.
+    \return the "FLOAT" member of a "complex" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'complex':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def complex_FLOAT(arg):
+    """
+    Accessor function.
+    \return the "FLOAT" member of a "complex" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'complex':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def scoped_id_ids(arg):
+    """
+    Accessor function.
+    \return the "ids" member of a "scoped_id" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'scoped_id':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def scoped_id_extension(arg):
+    """
+    Accessor function.
+    \return the "extension" member of a "scoped_id" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'scoped_id':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+# skipping \c DocComment=STR
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator)
+def enum_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "enum" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'enum':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def enum_enumerators(arg):
+    """
+    Accessor function.
+    \return the "enumerators" member of a "enum" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'enum':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def enum_docComment(arg):
+    """
+    Accessor function.
+    \return the "docComment" member of a "enum" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'enum':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def deref_varRefExpr(arg):
+    """
+    Accessor function.
+    \return the "varRefExpr" member of a "deref" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'deref':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def pointer_expr_varRefExpr(arg):
+    """
+    Accessor function.
+    \return the "varRefExpr" member of a "pointer_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'pointer_expr':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+# skipping \c Attr= (static|pure)
+# skipping \c Mode= (in|out|inout)
+def pointer_type_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "pointer_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'pointer_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def pointer_type_fn_decl(arg):
+    """
+    Accessor function.
+    \return the "fn_decl" member of a "pointer_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'pointer_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_bool(arg):
+    """
+    Accessor function.
+    \return the "bool" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_char(arg):
+    """
+    Accessor function.
+    \return the "char" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_int(arg):
+    """
+    Accessor function.
+    \return the "int" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_long(arg):
+    """
+    Accessor function.
+    \return the "long" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_float(arg):
+    """
+    Accessor function.
+    \return the "float" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_double(arg):
+    """
+    Accessor function.
+    \return the "double" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_fcomplex(arg):
+    """
+    Accessor function.
+    \return the "fcomplex" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_dcomplex(arg):
+    """
+    Accessor function.
+    \return the "dcomplex" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_string(arg):
+    """
+    Accessor function.
+    \return the "string" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_void(arg):
+    """
+    Accessor function.
+    \return the "void" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+# skipping \c Extension=STR
+def type_decl_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "type_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'type_decl':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_do_while(arg):
+    """
+    Accessor function.
+    \return the "do_while" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_while_(arg):
+    """
+    Accessor function.
+    \return the "while_" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_break(arg):
+    """
+    Accessor function.
+    \return the "break" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_return_(arg):
+    """
+    Accessor function.
+    \return the "return_" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_if_(arg):
+    """
+    Accessor function.
+    \return the "if_" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_goto(arg):
+    """
+    Accessor function.
+    \return the "goto" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def stmt_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def new_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "new" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'new':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def new_args(arg):
+    """
+    Accessor function.
+    \return the "args" member of a "new" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'new':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def set_struct_item_struct(arg):
+    """
+    Accessor function.
+    \return the "struct" member of a "set_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'set_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def set_struct_item_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "set_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'set_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def set_struct_item_struct_item(arg):
+    """
+    Accessor function.
+    \return the "struct_item" member of a "set_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'set_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def set_struct_item_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "set_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'set_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[4]
+
+
+def assignment_varRefExpr(arg):
+    """
+    Accessor function.
+    \return the "varRefExpr" member of a "assignment" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'assignment':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def assignment_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "assignment" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'assignment':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def set_arg_varRefExpr(arg):
+    """
+    Accessor function.
+    \return the "varRefExpr" member of a "set_arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'set_arg':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def set_arg_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "set_arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'set_arg':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def infix_expr_bin_op(arg):
+    """
+    Accessor function.
+    \return the "bin_op" member of a "infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'infix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def infix_expr_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'infix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def infix_expr_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'infix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def prefix_expr_un_op(arg):
+    """
+    Accessor function.
+    \return the "un_op" member of a "prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'prefix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def prefix_expr_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'prefix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def sign_extend_bits(arg):
+    """
+    Accessor function.
+    \return the "bits" member of a "sign_extend" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'sign_extend':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def sign_extend_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "sign_extend" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'sign_extend':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def var_decl_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "var_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'var_decl':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def var_decl_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "var_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'var_decl':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def var_decl_init_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "var_decl_init" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'var_decl_init':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def var_decl_init_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "var_decl_init" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'var_decl_init':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def var_decl_init_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "var_decl_init" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'var_decl_init':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def enumerator_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "enumerator" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'enumerator':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def enumerator_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "enumerator" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'enumerator':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def enumerator_INT(arg):
+    """
+    Accessor function.
+    \return the "INT" member of a "enumerator" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'enumerator':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def get_struct_item_struct(arg):
+    """
+    Accessor function.
+    \return the "struct" member of a "get_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'get_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def get_struct_item_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "get_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'get_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def get_struct_item_struct_item(arg):
+    """
+    Accessor function.
+    \return the "struct_item" member of a "get_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'get_struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def call_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "call" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'call':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def call_exprs(arg):
+    """
+    Accessor function.
+    \return the "exprs" member of a "call" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'call':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def typedef_type_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "typedef_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'typedef_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def const_type(arg):
+    """
+    Accessor function.
+    \return the "type" member of a "const" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'const':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
  ## ir primitive types
 pt_bool = Primitive_type(bool)
 pt_bool     = Primitive_type(bool)
