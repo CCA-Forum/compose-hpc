@@ -4,6 +4,7 @@ using namespace std;
 
 void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, string fname, string arrayPrefix, SgExprListExp* fArgs){
 
+	ostringstream cocciStream;
 	string matARef = "";
 	string matBRef = "";
 	string matCRef = "";
@@ -76,15 +77,15 @@ void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor,
 		aType = "cuDoubleComplex";
 		cublasCall = "cublasZsyrk";
 	}
-	cocciFptr << "@@ \n";
-	cocciFptr << "identifier order,uplo,trans;  \n";
-	cocciFptr << "expression n,k,alpha,a,lda,beta,c,ldc;  \n";
-	cocciFptr << "@@ \n";
-	if(checkBlasCallType) cocciFptr <<   "- "<<blasCall<<"(order,uplo,trans,n,k,alpha,"<<matARef<<",lda,beta,"<<matCRef<<",ldc);  \n";
-	else cocciFptr <<   "- "<<blasCall<<"(uplo,trans,n,k,alpha,"<<matARef<<",lda,beta,"<<matCRef<<",ldc);  \n";
-	cocciFptr << "+ \n";
-	cocciFptr << "+  /* Allocate device memory */  \n";
-	DeclareDevicePtrB3(cocciFptr,aType,arrayPrefix,true,false,true);
+	cocciStream << "@disable paren@ \n";
+	cocciStream << "identifier order,uplo,trans;  \n";
+	cocciStream << "expression n,k,alpha,a,lda,beta,c,ldc;  \n";
+	cocciStream << "@@ \n";
+	if(checkBlasCallType) cocciStream <<   "- "<<blasCall<<"(order,uplo,trans,n,k,alpha,"<<matARef<<",lda,beta,"<<matCRef<<",ldc);  \n";
+	else cocciStream <<   "- "<<blasCall<<"(uplo,trans,n,k,alpha,"<<matARef<<",lda,beta,"<<matCRef<<",ldc);  \n";
+	cocciStream << "+ \n";
+	cocciStream << "+  /* Allocate device memory */  \n";
+	DeclareDevicePtrB3(cocciStream,aType,arrayPrefix,true,false,true);
 
 
 	string rA = "";
@@ -92,7 +93,7 @@ void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor,
 	string dimC = "n";
 
 	if(cblasUplo == "") {
-		cocciFptr << "//Warning:CBLAS_UPLO could not be determined. Default = \'U\' \n";
+		cocciStream << "//Warning:CBLAS_UPLO could not be determined. Default = \'U\' \n";
 		cuUplo = "uplo";
 	}
 
@@ -102,7 +103,7 @@ void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor,
 		cA = "k";
 		if(cblasTrans == ""){
 			cuTrans = "trans";
-			cocciFptr << "//Warning:CBLAS_TRANS could not be determined. Default = \'N\' \n";
+			cocciStream << "//Warning:CBLAS_TRANS could not be determined. Default = \'N\' \n";
 		}
 	}
 	else if(cblasTrans == "CblasTrans" || cblasTrans == "CblasConjTrans"){
@@ -110,21 +111,22 @@ void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor,
 		cA = "n";
 	}
 
-	cocciFptr << "+  cublasAlloc(n*k, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
-	cocciFptr << "+  cublasAlloc(n*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_C);  \n";
-	cocciFptr << "+       \n";
+	cocciStream << "+  cublasAlloc(n*k, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
+	cocciStream << "+  cublasAlloc(n*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_C);  \n";
+	cocciStream << "+       \n";
 
-	cocciFptr << "+  /* Copy matrices to device */   \n";
-	cocciFptr << "+  cublasSetMatrix ("<<rA<<","<< cA<<", sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<","<<rA<<", (void *) "<<arrayPrefix<<"_A,"<< rA<<");  \n";
-	cocciFptr << "+     \n";
-	cocciFptr << "+  /* CUBLAS call */  \n";
-	RowMajorWarning(cocciFptr,warnRowMajor);
-	cocciFptr << "+  "<<cublasCall<<"("<<cuUplo<<","<<cuTrans<<",n,k,alpha,"<<arrayPrefix<<"_A,lda,beta,"<<arrayPrefix<<"_C,ldc);  \n";
-	cocciFptr << "+  \n";
-	cocciFptr << "+  /* Copy result array back to host */ \n";
-	cocciFptr << "+  cublasSetMatrix( n, n, sizeType_"<<arrayPrefix<<", (void *) "<<arrayPrefix<<"_C, n, (void *)"<<matCRef<<", n); \n";
+	cocciStream << "+  /* Copy matrices to device */   \n";
+	cocciStream << "+  cublasSetMatrix ("<<rA<<","<< cA<<", sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<","<<rA<<", (void *) "<<arrayPrefix<<"_A,"<< rA<<");  \n";
+	cocciStream << "+     \n";
+	cocciStream << "+  /* CUBLAS call */  \n";
+	RowMajorWarning(cocciStream,warnRowMajor);
+	cocciStream << "+  "<<cublasCall<<"("<<cuUplo<<","<<cuTrans<<",n,k,alpha,"<<arrayPrefix<<"_A,lda,beta,"<<arrayPrefix<<"_C,ldc);  \n";
+	cocciStream << "+  \n";
+	cocciStream << "+  /* Copy result array back to host */ \n";
+	cocciStream << "+  cublasSetMatrix( n, n, sizeType_"<<arrayPrefix<<", (void *) "<<arrayPrefix<<"_C, n, (void *)"<<matCRef<<", n); \n";
 
-	FreeDeviceMemoryB3(cocciFptr,arrayPrefix,true,false,true);
+	FreeDeviceMemoryB3(cocciStream,arrayPrefix,true,false,true);
+	cocciFptr << cocciStream.str();
 
 }
 

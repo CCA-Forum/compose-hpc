@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
 	//BLAS call
 
-        /*% BLAS_TO_CUBLAS prefix=device1 */
+        /*% BLAS_TO_CUBLAS prefix=device1 lenY=22 */
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0,
                     &a[0],n, &b[bi+ci],n, 1.0, c,n);
 

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "rose.h"
 using namespace std;
 
@@ -12,8 +13,8 @@ void handleSYHEMM(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleSYHERK(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleSYHER2K(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleTRSMM(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleGBMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleGEMV(ofstream &, bool, bool, string, string, SgExprListExp*);
+void handleGBMV(ofstream &, bool, bool, string, string, string, string, SgExprListExp*);
+void handleGEMV(ofstream &, bool, bool, string, string, string, string, SgExprListExp*);
 void handleGER(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleHSBMV(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleHSEYMV(ofstream &, bool, bool, string, string, SgExprListExp*);
@@ -35,7 +36,7 @@ void handleSWAP(ofstream &, string, string, SgExprListExp*);
 void handleROTM(ofstream &, string, string, SgExprListExp*);
 void handleROT(ofstream &, string, string, SgExprListExp*);
 
-inline void RowMajorWarning(ofstream &cocciFptr, bool warnRowMajor){
+inline void RowMajorWarning(ostringstream &cocciFptr, bool warnRowMajor){
 	if(warnRowMajor){
 		cocciFptr << "+  //BLAS_TO_CUBLAS transformation performance warning: \n";
 		cocciFptr << "+  //CUBLAS calls assume arrays are stored in column-major order. \n";
@@ -43,7 +44,7 @@ inline void RowMajorWarning(ofstream &cocciFptr, bool warnRowMajor){
 	}
 }
 
-inline void FreeDeviceMemoryB3(ofstream &cocciFptr, string arrayPrefix, bool a, bool b, bool c){
+inline void FreeDeviceMemoryB3(ostringstream &cocciFptr, string arrayPrefix, bool a, bool b, bool c){
 
 	cocciFptr << "+  \n";
 	cocciFptr << "+  /* Free device memory */    \n";
@@ -54,7 +55,7 @@ inline void FreeDeviceMemoryB3(ofstream &cocciFptr, string arrayPrefix, bool a, 
 
 }
 
-inline void FreeDeviceMemoryB2(ofstream &cocciFptr, string arrayPrefix, bool a, bool x, bool y){
+inline void FreeDeviceMemoryB2(ostringstream &cocciFptr, string arrayPrefix, bool a, bool x, bool y){
 
 	cocciFptr << "+  \n";
 	cocciFptr << "+  /* Free device memory */    \n";
@@ -65,7 +66,7 @@ inline void FreeDeviceMemoryB2(ofstream &cocciFptr, string arrayPrefix, bool a, 
 
 }
 
-inline void DeclareDevicePtrB3(ofstream &cocciFptr, string aType, string arrayPrefix, bool a, bool b, bool c){
+inline void DeclareDevicePtrB3(ostringstream &cocciFptr, string aType, string arrayPrefix, bool a, bool b, bool c){
 	cocciFptr << "+  \n";
 	if(a) cocciFptr << "+  "<<aType<<" *"<<arrayPrefix<<"_A;  \n";
 	if(b) cocciFptr << "+  "<<aType<<" *"<<arrayPrefix<<"_B;  \n";
@@ -74,7 +75,7 @@ inline void DeclareDevicePtrB3(ofstream &cocciFptr, string aType, string arrayPr
 	cocciFptr << "+  \n";
 }
 
-inline void DeclareDevicePtrB2(ofstream &cocciFptr, string aType, string arrayPrefix, bool a, bool x, bool y){
+inline void DeclareDevicePtrB2(ostringstream &cocciFptr, string aType, string arrayPrefix, bool a, bool x, bool y){
 	cocciFptr << "+  \n";
 	if(a) cocciFptr << "+  "<<aType<<" *"<<arrayPrefix<<"_A;  \n";
 	if(x) cocciFptr << "+  "<<aType<<" *"<<arrayPrefix<<"_X;  \n";
