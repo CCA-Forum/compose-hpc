@@ -1,0 +1,13 @@
+c__builtin__
+set
+p0
+((lp1
+S'simpleton'
+p2
+aS'dutch'
+p3
+aS'fred'
+p4
+atp5
+Rp6
+.

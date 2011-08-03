@@ -16,13 +16,19 @@ static struct DType {
 	long y;
 } DType0 = { -1, 17L };
 
-int simpleton(int x)
+int simpleton(struct dummy_insert *argadded,int x)
 {
+	if (argadded != (struct dummy_insert *)4096) {
+		exit(2);
+	}
 	static int dummy_first;
 	return MULT(MULT(dummy_first,x), dummy_stub2);
 }
 
-int fred(int x)
+int fred(struct dummy_insert *argadded,int x)
 {
-	return simpleton(3);
+	if (argadded != (struct dummy_insert *)4096) {
+		exit(2);
+	}
+	return simpleton(((struct dummy_insert *)4096), 3);
 }
