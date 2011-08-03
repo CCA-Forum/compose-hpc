@@ -23,7 +23,7 @@ GASNET_LDFLAGS="-L${CHAPEL_HOME}/third-party/gasnet/install/${CHAPEL_HOST_PLATFO
 EXTRA_LDFLAGS=""
 
 # extra include/compile flags
-EXTRAFLAGS=""
+EXTRAFLAGS="-O3"
 
 # extra libraries that the implementation needs to link against
 EXTRALIBS=""
@@ -72,10 +72,10 @@ clear;
 set -e 
 
 echo "Cleaning previous build artifacts"
-rm -f *.o; rm -f *.lo; rm -f a.out*; rm -rf gen;
+rm -f *.o; rm -f *.lo; rm -f runHpl*; rm -rf gen;
 
 echo "Generating C files from chpl files"
-chpl --savec ./gen ${HEADER_DEPS} *.chpl --make true
+chpl --savec ./gen ${HEADER_DEPS} *.chpl --fast --make true
 
 for loopFile in ${BRAID_GEN_C_SOURCES}
 do
@@ -86,23 +86,23 @@ done
 
 echo "Compiling ./gen/_main.c"
 echo "BRAID_GEN_O_FILES = ${BRAID_GEN_O_FILES}"
-${BABEL_LIBTOOL_COMMAND}  -c  -o ./gen/a.out.tmp.o  ./gen/_main.c 
+${BABEL_LIBTOOL_COMMAND}  -c  -o ./gen/runHpl.tmp.o  ./gen/_main.c 
 
 echo "Linking all files"
 babel-libtool --mode=link ${CXX} -static \
-  -o ./gen/a.out.tmp  \
+  -o ./gen/runHpl.tmp  \
   -rpath ${LIBDIR} \
   ${CFLAGS} ${EXTRAFLAGS} ${LIBS} \
   ${EXTRALIBS} \
   ${CHPL_LDFLAGS} ${GASNET_LDFLAGS} ${EXTRA_LDFLAGS} \
   ${BRAID_GEN_O_FILES} \
-  ./gen/a.out.tmp.o 
+  ./gen/runHpl.tmp.o 
   
 echo "Generating launcher"
 
-echo " Creating a.out_real"
-cp ./gen/a.out.tmp a.out_real
-rm ./gen/a.out.tmp
+echo " Creating runHpl_real"
+cp ./gen/runHpl.tmp runHpl_real
+rm ./gen/runHpl.tmp
 
 echo " Creating config.c"
 echo "#include \"chplcgfns.h\"" > ./gen/config.c
@@ -110,14 +110,14 @@ echo "#include \"config.h\"" >> ./gen/config.c
 echo "#include \"_config.c\"" >> ./gen/config.c
 
 echo " Compiling config.c"
-${CC} -std=c99 -D_POSIX_C_SOURCE -c -o ./gen/a.out.tmp_launcher.o -I${CHAPEL_RUNTIME_INC_DIR}/${CHAPEL_HOST_PLATFORM} -I${CHAPEL_RUNTIME_INC_DIR} -I. ./gen/config.c 
+${CC} -std=c99 -D_POSIX_C_SOURCE -c -o ./gen/runHpl.tmp_launcher.o -I${CHAPEL_RUNTIME_INC_DIR}/${CHAPEL_HOST_PLATFORM} -I${CHAPEL_RUNTIME_INC_DIR} -I. ./gen/config.c 
 
 echo " Linking the launcher"
-${CC}  -o ./gen/a.out.tmp_launcher -L${CHAPEL_SUBSTRATE_DIR}/launch-amudprun ./gen/a.out.tmp_launcher.o ${CHAPEL_SUBSTRATE_DIR}/launch-amudprun/main_launcher.o -lchpllaunch -lm 
+${CC}  -o ./gen/runHpl.tmp_launcher -L${CHAPEL_SUBSTRATE_DIR}/launch-amudprun ./gen/runHpl.tmp_launcher.o ${CHAPEL_SUBSTRATE_DIR}/launch-amudprun/main_launcher.o -lchpllaunch -lm 
 
-echo " Creating a.out"
-cp ./gen/a.out.tmp_launcher ./gen/a.out.tmp
-cp ./gen/a.out.tmp a.out
-rm ./gen/a.out.tmp  
+echo " Creating runHpl"
+cp ./gen/runHpl.tmp_launcher ./gen/runHpl.tmp
+cp ./gen/runHpl.tmp runHpl
+rm ./gen/runHpl.tmp  
 
   

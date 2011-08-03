@@ -49,6 +49,7 @@ main(_) :-
     ),
     normalize(Term, Docstrings, Varnames1),
     copy_term(Docstrings, CyclicGrammar),
+    copy_term(Docstrings-Varnames, Gacc-Vacc),
 
     format('~n~n## Token definitions~n~n'),
     copy_term(Docstrings, G),
@@ -65,7 +66,12 @@ main(_) :-
 	       '**ERROR: did you use the same symbol twice on the LHS?~n', []),
 	halt(1)), !,
     maplist(rhs_of, CyclicGrammar, CycGrammarRHS), !,
-    maplist(constructor, CycGrammarRHS, Docstrings).
+    maplist(constructor, CycGrammarRHS, Docstrings),
+
+    % generate the accessor functions
+    maplist(lownames, Vacc),
+    maplist(rhs_of, Gacc, GaccRHS), !,
+    maplist(accessor, GaccRHS, Docstrings).
 
 %    format('~n~n## Traversal classes~n~n'),
 %    format('def DepthFirstPostOrderTraversal():~n'),
@@ -95,6 +101,9 @@ unify(Fail) :- format(user_error, '**Failed in rule `~w\'~n', [Fail]), fail.
 docref(Name=Var) :-
     safe_atom(Name, NameS),
     atom_concat('\\c ', NameS, Var).
+lownames(Name=Var) :-
+    lowercase_atom(Name, NameL),
+    safe_atom(NameL, Var).
 
 % ignore python builtins
 tokendef('STR').
@@ -125,7 +134,7 @@ gather_tokens(A, Ts1) :-
 % ----------------------------------------------------------------------
 %%normalize/2
 % Rewrite the grammar such that each nested complex term on the RHS is
-% replaced by a Variable and an additional rule defining that
+% replaced by a Variable plus an additional rule defining that
 % variable.
 normalize([], [], []).
 normalize([A=B|Rules], NormalizedRules, Varnames) :-
@@ -254,6 +263,13 @@ uppercase_atom(A, A1) :-
     char_type(C1, to_upper(C)),
     atom_chars(A1, [C1|Cs]).
 
+%% lowercase_atom/2 convert 'Abc' to 'abc'
+lowercase_atom(A, A1) :-
+    atom_chars(A, [C|Cs]),
+    char_type(C1, to_lower(C)),
+    atom_chars(A1, [C1|Cs]).
+
+
 %% constructor/2: output a constructor for a given grammar node
 constructor([], _).
 constructor(_A|_B, Doc)    :- format('# skipping ~w~n', [Doc]).
@@ -290,6 +306,55 @@ constructor(Error, _) :-
 	format(user_error, 'to identify the offending term.~n', [])
     ),
     halt(1).
+
+% ----------------------------------------------------------------------
+
+%% accessor/2: output an accessor function for a given grammar node
+accessor([], _).
+accessor(_A|_B, Doc) :- format('# skipping ~w~n', [Doc]).
+accessor([_|_], Doc) :- format('# skipping ~w~n', [Doc]).
+accessor(Atom, Doc) :- atom(Atom), format('# skipping ~w~n', [Doc]).
+
+accessor(Term, _) :-
+    ground(Term),		% sanity check
+    Term =.. [Type|Args],
+    accessor1(Type, 1, Args).
+
+accessor(Error, _) :-
+    format(user_error, '**ERROR: In ~w~n', [Error]),
+    halt(1).
+
+%% get all the different names an argument may have via backtracking
+name_of(Arg, ArgName) :- name_of(Arg, ArgName, '').
+name_of([Arg], ArgName, _) :- !, name_of(Arg, ArgName, 's').
+name_of(A|_, ArgName, S) :- name_of(A, ArgName, S).
+name_of(_|B, ArgName, S) :- !, name_of(B, ArgName, S).
+name_of(Arg, ArgName, S) :-
+	functor(Arg, F, _),
+	sub_atom(F, _, 1, 0, Last),
+	( Last = 's' % append plural `s' only of last char is not 's'
+	-> ArgName = F
+	; atom_concat(F, S, ArgName)).
+
+accessor1(_, _, []).
+accessor1(Type, N, [Arg|Args]) :-    
+    ( name_of(Arg, ArgName),
+      format('def ~a_~a(arg):~n', [Type, ArgName]),
+      format('    """~n'),
+      format('    Accessor function.~n'),
+      format('    \\return the "~a" member of a "~a" node.~n', [ArgName, Type]),
+      format('    """~n'),
+      format('    if not isinstance(arg, tuple):~n', []),
+      format('        raise Exception("Grammar Error")~n'),
+      format('    elif arg[0] <> \'~a\':~n', [Type]),
+      format('        raise Exception("Grammar Error")~n'),
+      format('    else: return arg[~d]~n~n~n', [N]),
+      fail % loop until we gone through all alternatives A|B
+    )
+    ; (
+       N1 is N+1,
+       accessor1(Type, N1, Args)
+      ).
 
 % ----------------------------------------------------------------------
 

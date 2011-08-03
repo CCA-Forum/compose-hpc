@@ -1,13 +1,12 @@
 BABELPATH=/home/prantl1/work/babel/install/bin
 PYTHONPATH=../../../../braid.build/braid:../../braid:../../contrib/argparse-1.1
 
-#Numbers 	 #1 8 32 64 128 #2 4 6 8 12 16 24 32 48 64 96 128 #256 512
-#NUMBERS=$(shell seq 1 16) 18 20 $(shell seq 24 4 48) 64 96 128
+ifeq ($(SUM),)
 NUMBERS=$(shell seq 1 24)
-NUMBER_TYPES=$(patsubst %, %_int, $(NUMBERS)) \
-             $(patsubst %, %_float, $(NUMBERS)) \
-             $(patsubst %, %_bool, $(NUMBERS)) \
+NUMBER_TYPES=$(patsubst %, %_bool, $(NUMBERS)) \
              $(patsubst %, %_string, $(NUMBERS))
+#             $(patsubst %, %_float, $(NUMBERS)) 
+#             $(patsubst %, %_int, $(NUMBERS)) 
 
 NUMBER_TYPE_EXPRS=$(patsubst %, %_copy, $(NUMBER_TYPES))
 # uncomment this line to run only specific tests
@@ -16,9 +15,26 @@ SIDLS=$(patsubst %,out/chpl_%.sidl, $(NUMBER_TYPE_EXPRS))
 COMPILES=$(patsubst %,out/client_%/token, $(NUMBER_TYPE_EXPRS))
 TIMINGS=$(patsubst %,out/client_%/times, $(NUMBER_TYPE_EXPRS))
 
-TYPES=int float bool string
+TYPES=bool string #int float 
 RESULTS=$(patsubst %, out/result_%_copy.txt, $(TYPES)) 
 
+else
+
+NUMBERS=1 $(shell seq 2 2 56)
+NUMBER_TYPES=$(patsubst %, %_float, $(NUMBERS)) \
+             #$(patsubst %, %_int, $(NUMBERS))
+
+NUMBER_TYPE_EXPRS=$(patsubst %, %_sum, $(NUMBER_TYPES))
+# uncomment this line to run only specific tests
+#NUMBER_TYPE_EXPRS=2_int_bsort 128_int_bsort #128_string_reverse 128_bool_nop 128_float_reverse
+SIDLS=$(patsubst %,out/chpl_%.sidl, $(NUMBER_TYPE_EXPRS))
+COMPILES=$(patsubst %,out/client_%/token, $(NUMBER_TYPE_EXPRS))
+TIMINGS=$(patsubst %,out/client_%/times, $(NUMBER_TYPE_EXPRS))
+
+TYPES=float #int
+RESULTS=$(patsubst %, out/result_%_sum.txt, $(TYPES)) 
+
+endif
 .PHONY: clean all sidls compile timings
 
 all: graph.pdf
@@ -36,7 +52,7 @@ sidls: $(SIDLS)
 compile: sidls 
 	$(MAKE) $(COMPILES)
 timings: compile
-	$(MAKE) $(TIMINGS) # execute timing measurements serially
+	$(MAKE) -j1 $(TIMINGS) # execute timing measurements serially
 
 clean:
 	rm -rf out graph.pdf

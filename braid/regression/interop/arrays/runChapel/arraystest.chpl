@@ -55,7 +55,7 @@ var TEST_DIM2 = 13; /* second dimension of 2-d arrays */
 
 //synch::ResultType result = synch::ResultType_PASS;
 var magicNumber = 13;
-var obj = new ArrayTest.ArrayOps(sidl_ex);
+var obj = ArrayTest.ArrayOps_static.create_ArrayOps(sidl_ex);
 tracker.setExpectations(-1, sidl_ex);
   
 //tracker.setExpectations(158);

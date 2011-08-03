@@ -4,6 +4,16 @@
 module sidl {
   // FIXME: autogenerate this from sidl.sidl
   _extern record sidl_BaseInterface__object {};
+  _extern record sidl_BaseClass__object {};
+  _extern record sidl_BaseException__object {};
+
+  // FIXME: autogenerate this from sidl.sidl
+  _extern record sidl_SIDLException__object {};
+  _extern record sidl_io_Serializable__object {};
+
+  class BaseClass {
+    var self: sidl_BaseInterface__object;
+  }
 
   /**
    * Base class for all Exceptions at Chapel end
@@ -11,13 +21,6 @@ module sidl {
   class BaseException {
 
     var self: sidl_BaseInterface__object;
-
-    /**
-     * Constructor for wrapping the actual exception
-     */
-    proc BaseException(in obj: sidl_BaseInterface__object) {
-      this.self = obj;
-    }
 
     proc getException() {
       return this.self;

@@ -5,7 +5,7 @@ import sidl, ir, codegen, chapel
 # generate code in multiple languages.
 # cf. ../structbench/benchgen.py
 
-def sidl_code(n, datatype):
+def sidl_code_copy(n, datatype):
     return """
     package s version 1.0 {{
       class Benchmark {{
@@ -16,6 +16,19 @@ def sidl_code(n, datatype):
     """.format(args=', '.join([
     'in {type} a{n}, out {type} b{n}'.format(type=datatype, n=i)
     for i in range(0, n)]))
+
+def sidl_code_sum(n, datatype):
+    return """
+    package s version 1.0 {{
+      class Benchmark {{
+        {type} run({args});
+      }}
+
+    }}
+    """.format(type=datatype, args=', '.join([
+    'in {type} a{n}'.format(type=datatype, n=i)
+    for i in range(0, n)]))
+
 
 #-----------------------------------------------------------------------
 # benchmark kernels
@@ -32,10 +45,16 @@ def copy_expr(n, datatype):
 
     return [assign('b%d'%i, 'a%d'%i) for i in range(0, n)]
 
+
+def sum_expr(n, datatype):
+    e = reduce(ir.Plus, ['a%d'%i for i in range(0, n)], 0)
+    return [ir.Stmt(ir.Return(e))]
+
+
 #-----------------------------------------------------------------------
 # return a main.chpl for the client implementation
 #-----------------------------------------------------------------------
-def gen_main_chpl(n, datatype):
+def gen_main_chpl(n, datatype, bench):
     t = chapel.ChapelCodeGenerator.type_map[datatype]
     if datatype == "bool":
         init = '\n  '.join(["var a%d: bool = true;"%i              for i in range(0, n)]
@@ -47,9 +66,15 @@ def gen_main_chpl(n, datatype):
         init = '\n  '.join(["var a%d: int(32) = %d;"%(i, float(n-i))  for i in range(0, n)]
                           +["var b%d: int(32) = %d;"%(i, float(n-i))  for i in range(0, n)])
     elif datatype == "string":
-        init = '\n  '.join(['var a%d = "             %3d";'%(i, i) for i in range(0, n)]
-                          +['var b%d = "             %3d";'%(i, i) for i in range(0, n)])
+        init = '\n  '.join(['var a%d = "                            %3d";'%(i, i) for i in range(0, n)]
+                          +['var b%d = "                            %3d";'%(i, i) for i in range(0, n)])
     else: raise Exception("data type")
+
+    if bench == 'sum':
+        args = ', '.join(['a{n}'.format(n=i) for i in range(0,n)])
+    else:
+        args = ', '.join(['a{n}, b{n}'.format(n=i) for i in range(0,n)])
+
     return r"""
 use s;
 use sidl;
@@ -57,7 +82,7 @@ config var num_runs:int(32) = 1;
 writeln("running "+num_runs+" times");
 
 var ex: sidl.BaseException;
-var server = new s.Benchmark(ex);
+var server = s.Benchmark_static.create_Benchmark(ex);
 
 /* Benchmarks */
 [i in 0..num_runs] {
@@ -65,7 +90,7 @@ var server = new s.Benchmark(ex);
   """+init+r"""
   server.run(%s, ex);
 }
-"""%', '.join(['a{n}, b{n}'.format(n=i) for i in range(0,n)])
+"""%args
     
 
 
@@ -78,7 +103,7 @@ def main():
                          help='number of elements in the Vector chpl')
     cmdline.add_argument('datatype', metavar='t',
                          help='data type for the Vector chpl')
-    cmdline.add_argument('expr', metavar='expr', choices=['copy'],
+    cmdline.add_argument('expr', metavar='expr', choices=['copy', 'sum'],
                          help='benchmark expression to generate')
     # cmdline.add_argument('babel', metavar='babel',
     #                    help='the Babel executable')
@@ -88,8 +113,12 @@ def main():
     babel = 'babel' #args.babel
     expr = args.expr
     if expr == 'copy':
+        sidl_code = sidl_code_copy
         benchmark_expr = copy_expr
-    else: raise
+    elif expr == 'sum':
+        benchmark_expr = sum_expr
+        sidl_code = sidl_code_sum
+    else: raise Exception()
 
     print "-------------------------------------------------------------"
     print "generating servers"
@@ -145,39 +174,8 @@ def main():
     #print cmd
     subprocess.check_call(cmd, shell=True)
     f = open('out/client_%d_%s_%s/main.chpl'%(i,datatype,expr), "w")
-    f.write(gen_main_chpl(i,datatype))
+    f.write(gen_main_chpl(i,datatype,expr))
     f.close
-
-
-#     print "-------------------------------------------------------------"
-#     print "adapting client Makefile..."
-#     print "-------------------------------------------------------------"
-#     filename = 'out/client_%d_%s_%s/GNUmakefile'%(i,datatype,expr)
-#     os.rename(filename, filename+'~')
-#     dest = open(filename, 'w')
-#     src = open(filename+'~', 'r')
-
-#     for line in src:
-#         m = re.match(r'^(all *:.*)$', line)
-#         if m:
-#             dest.write(m.group(1)+
-#                        ' runC2C runC2CXX runC2F77 runC2F90 runC2F03 runC2Java runC2Python\n')
-#             dest.write("CXX=`babel-config --query-var=CXX`\n"+
-#                        '\n'.join([
-# """
-# runC2{lang}: lib$(LIBNAME).la ../{lang}_{i}_{t}_{e}/libimpl.la main.lo
-# \tbabel-libtool --mode=link $(CC) -static main.lo lib$(LIBNAME).la \
-# \t    ../{lang}_{i}_{t}_{e}/libimpl.la -o runC2{lang}
-# """.format(lang=lang, i=i, t=datatype, e=expr) for lang in languages[:6]]))
-#             dest.write("""
-# runC2Python: lib$(LIBNAME).la ../Python_{i}_{t}_{e}/libimpl1.la main.lo
-# \tbabel-libtool --mode=link $(CC) -static main.lo lib$(LIBNAME).la \
-# \t    ../Python_{i}_{t}_{e}/libimpl1.la -o runC2Python
-# """.format(i=i,t=datatype,e=expr))
-#         else:
-#             dest.write(line)
-#     dest.close()
-#     src.close()
 
     print "-------------------------------------------------------------"
     print "generating benchmark script..."
@@ -185,7 +183,7 @@ def main():
     def numruns(t):
         if t == 'string':
             return str(100001)
-        return str(1000001)
+        return    str(10000001)
 
     f = open('out/client_%d_%s_%s/runAll.sh'%(i,datatype,expr), 'w')
     f.write(r"""#!/usr/bin/bash
@@ -222,8 +220,8 @@ function medtime {
    cat $2.all \
        | sort \
        | python -c 'import numpy,sys; \
-           print numpy.mean( \
-             sorted(map(lambda x: float(x), sys.stdin.readlines()))[1:9])' \
+           print numpy.median( \
+             map(lambda x: float(x), sys.stdin.readlines()))' \
        >>$2
 }
 """)

@@ -15,8 +15,6 @@
 @c %**end of header
 
 @copying
-This manual is for BRAID (version @value{VERSION}, @value{UPDATED}).
-
 Copyright @copyright{} 2011, Lawrence Livermore National Security, LLC
 Produced at the Lawrence Livermore National Laboratory.
 Written by the Components Team @email{components@@llnl.gov}

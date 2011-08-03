@@ -1,0 +1,15 @@
+..                                               -*- rst -*-
+
+======
+BRAID
+======
+
+----------------------------------------------------------
+Next-generation high-performance language interoperability
+----------------------------------------------------------
+
+:Date: @DATE@
+:Version: @VERSION@
+:Manual section: 1
+:Manual group: Compilers and Programming Languages
+

@@ -34,6 +34,9 @@ SRCDIR            = "@srcdir@"
 PATH_SEPARATOR	  = "@PATH_SEPARATOR@"
 PREFIX            = "@prefix@"
 
+BUILD_MACHINE     = "@BUILD_MACHINE@"
+CONFIGURE_DATE    = "@CONFIGURE_DATE@"
+
 HAVE_BABEL        = "@HAVE_BABEL@"
 BABEL_PREFIX      = "@BABEL_PREFIX@"
 SIDL_PATH         = "@SIDL_PATH@"

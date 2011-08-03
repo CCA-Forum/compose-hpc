@@ -42,9 +42,10 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
-	$(nobase_include_HEADERS) $(nobase_python_PYTHON) \
-	$(noinst_PYTHON) $(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/braid/Makefile.include \
+	$(dist_man_MANS) $(nobase_include_HEADERS) \
+	$(nobase_python_PYTHON) $(noinst_PYTHON) $(srcdir)/Doxyfile.in \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/braid/Makefile.include \
 	$(srcdir)/chapel-patches/Makefile.include \
 	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
@@ -54,9 +55,9 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(top_srcdir)/regression/interop/build-server.sh.in \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
 	$(top_srcdir)/regression/interop/driver.sh.in INSTALL \
-	config/config.guess config/config.sub config/install-sh \
-	config/ltmain.sh config/missing config/py-compile \
-	config/ylwrap scanner.c
+	config/config.guess config/config.sub config/depcomp \
+	config/install-sh config/ltmain.sh config/missing \
+	config/py-compile config/texinfo.tex config/ylwrap scanner.c
 
 #UNIT_TOKENS = $(patsubst %.py,%.unit, $(python_PYTHON))
 # Most of the Python files contain doctest tests
@@ -137,7 +138,8 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" \
+	"$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" \
+	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" \
 	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(nobase_pyexec_LTLIBRARIES)
 braid_scanner_la_DEPENDENCIES =
@@ -153,8 +155,9 @@ braid_scanner_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 am__dirstamp = $(am__leading_dot)dirstamp
 SCRIPTS = $(bin_SCRIPTS) $(noinst_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
-depcomp =
-am__depfiles_maybe =
+depcomp = $(SHELL) $(top_srcdir)/config/depcomp
+am__depfiles_maybe = depfiles
+am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -224,6 +227,9 @@ DVIPS = dvips
 am__python_PYTHON_DIST = $(top_srcdir)/contrib/ply/yacc.py \
 	contrib/argparse-1.1/argparse.py
 py_compile = $(top_srcdir)/config/py-compile
+man1dir = $(mandir)/man1
+NROFF = nroff
+MANS = $(dist_man_MANS)
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -355,16 +361,20 @@ BABEL_PREFIX = @BABEL_PREFIX@
 BABEL_SRCDIR = @BABEL_SRCDIR@
 BABEL_SUPPORTED_LANGUAGES = @BABEL_SUPPORTED_LANGUAGES@
 BABEL_VERSION = @BABEL_VERSION@
+BUILD_MACHINE = @BUILD_MACHINE@
 CC = @CC@
+CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CHAPEL = @CHAPEL@
 CHAPEL_COMM = @CHAPEL_COMM@
 CHAPEL_ROOT = @CHAPEL_ROOT@
 CHAPEL_VERSION = @CHAPEL_VERSION@
+CONFIGURE_DATE = @CONFIGURE_DATE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
+DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 DOXYGEN = @DOXYGEN@
 DSYMUTIL = @DSYMUTIL@
@@ -449,7 +459,9 @@ abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+am__include = @am__include@
 am__leading_dot = @am__leading_dot@
+am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
@@ -665,6 +677,7 @@ DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
   PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
 
 info_TEXINFOS = doc/braid.texi
+dist_man_MANS = $(srcdir)/doc/braid.1
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -677,15 +690,15 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/br
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign --ignore-deps'; \
-	      $(am__cd) $(srcdir) && $(AUTOMAKE) --foreign --ignore-deps \
+	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign'; \
+	      $(am__cd) $(srcdir) && $(AUTOMAKE) --foreign \
 		&& exit 0; \
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign --ignore-deps Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign --ignore-deps Makefile
+	  $(AUTOMAKE) --foreign Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -821,17 +834,35 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/braid_scanner_la-scanner.Plo@am__quote@
+
 .c.o:
-	$(AM_V_CC)$(COMPILE) -c $<
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c $<
 
 .c.obj:
-	$(AM_V_CC)$(COMPILE) -c `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 .c.lo:
-	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 braid_scanner_la-scanner.lo: scanner.c
-	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(braid_scanner_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o braid_scanner_la-scanner.lo `test -f 'scanner.c' || echo '$(srcdir)/'`scanner.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(braid_scanner_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT braid_scanner_la-scanner.lo -MD -MP -MF $(DEPDIR)/braid_scanner_la-scanner.Tpo -c -o braid_scanner_la-scanner.lo `test -f 'scanner.c' || echo '$(srcdir)/'`scanner.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/braid_scanner_la-scanner.Tpo $(DEPDIR)/braid_scanner_la-scanner.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='scanner.c' object='braid_scanner_la-scanner.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(braid_scanner_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o braid_scanner_la-scanner.lo `test -f 'scanner.c' || echo '$(srcdir)/'`scanner.c
 
 .l.c:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
@@ -1071,6 +1102,44 @@ uninstall-pythonPYTHON:
 	cd "$(DESTDIR)$(pythondir)" && rm -f $$filesc || exit $$?; \
 	echo " ( cd '$(DESTDIR)$(pythondir)' && rm -f" $$fileso ")"; \
 	cd "$(DESTDIR)$(pythondir)" && rm -f $$fileso
+install-man1: $(dist_man_MANS)
+	@$(NORMAL_INSTALL)
+	test -z "$(man1dir)" || $(MKDIR_P) "$(DESTDIR)$(man1dir)"
+	@list=''; test -n "$(man1dir)" || exit 0; \
+	{ for i in $$list; do echo "$$i"; done; \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	  sed -n '/\.1[a-z]*$$/p'; \
+	} | while read p; do \
+	  if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; echo "$$p"; \
+	done | \
+	sed -e 'n;s,.*/,,;p;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,' | \
+	sed 'N;N;s,\n, ,g' | { \
+	list=; while read file base inst; do \
+	  if test "$$base" = "$$inst"; then list="$$list $$file"; else \
+	    echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man1dir)/$$inst'"; \
+	    $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man1dir)/$$inst" || exit $$?; \
+	  fi; \
+	done; \
+	for i in $$list; do echo "$$i"; done | $(am__base_list) | \
+	while read files; do \
+	  test -z "$$files" || { \
+	    echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(man1dir)'"; \
+	    $(INSTALL_DATA) $$files "$(DESTDIR)$(man1dir)" || exit $$?; }; \
+	done; }
+
+uninstall-man1:
+	@$(NORMAL_UNINSTALL)
+	@list=''; test -n "$(man1dir)" || exit 0; \
+	files=`{ for i in $$list; do echo "$$i"; done; \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	  sed -n '/\.1[a-z]*$$/p'; \
+	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
+	test -z "$$files" || { \
+	  echo " ( cd '$(DESTDIR)$(man1dir)' && rm -f" $$files ")"; \
+	  cd "$(DESTDIR)$(man1dir)" && rm -f $$files; }
 install-nobase_includeHEADERS: $(nobase_include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
@@ -1309,6 +1378,19 @@ recheck recheck-html:
 @am__EXEEXT_TRUE@	@p='$<'; $(am__check_pre) $(CHPL_LOG_COMPILE) "$$tst" $(am__check_post)
 
 distdir: $(DISTFILES)
+	@list='$(MANS)'; if test -n "$$list"; then \
+	  list=`for p in $$list; do \
+	    if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
+	    if test -f "$$d$$p"; then echo "$$d$$p"; else :; fi; done`; \
+	  if test -n "$$list" && \
+	    grep 'ab help2man is required to generate this page' $$list >/dev/null; then \
+	    echo "error: found man pages containing the \`missing help2man' replacement text:" >&2; \
+	    grep -l 'ab help2man is required to generate this page' $$list | sed 's/^/         /' >&2; \
+	    echo "       to fix them, install help2man, remove and regenerate the man pages;" >&2; \
+	    echo "       typically \`make maintainer-clean' will remove them" >&2; \
+	    exit 1; \
+	  else :; fi; \
+	else :; fi
 	$(am__remove_distdir)
 	test -d "$(distdir)" || mkdir "$(distdir)"
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -1468,9 +1550,10 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(HEADERS)
+all-am: Makefile $(INFO_DEPS) $(LTLIBRARIES) $(SCRIPTS) $(MANS) \
+		$(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1519,6 +1602,7 @@ clean-am: clean-aminfo clean-generic clean-libtool clean-local \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-libtool distclean-local distclean-tags
@@ -1535,8 +1619,9 @@ info: info-am
 
 info-am: $(INFO_DEPS)
 
-install-data-am: install-nobase_includeHEADERS \
-	install-nobase_pythonPYTHON install-pythonPYTHON
+install-data-am: install-info-am install-man \
+	install-nobase_includeHEADERS install-nobase_pythonPYTHON \
+	install-pythonPYTHON
 
 install-dvi: install-dvi-am
 
@@ -1610,7 +1695,7 @@ install-info-am: $(INFO_DEPS)
 	    install-info --info-dir="$(DESTDIR)$(infodir)" "$(DESTDIR)$(infodir)/$$relfile" || :;\
 	  done; \
 	else : ; fi
-install-man:
+install-man: install-man1
 
 install-pdf: install-pdf-am
 
@@ -1643,6 +1728,7 @@ installcheck-am: installcheck-binSCRIPTS
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-aminfo \
 	maintainer-clean-generic
@@ -1661,10 +1747,13 @@ ps: ps-am
 ps-am: $(PSS)
 
 uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
-	uninstall-info-am uninstall-nobase_includeHEADERS \
+	uninstall-info-am uninstall-man \
+	uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
 	uninstall-pythonPYTHON
+
+uninstall-man: uninstall-man1
 
 .MAKE: all check check-am check-html install install-am install-strip \
 	recheck recheck-html
@@ -1681,17 +1770,18 @@ uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
 	install-binSCRIPTS install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
-	install-nobase_includeHEADERS install-nobase_pyexecLTLIBRARIES \
-	install-nobase_pythonPYTHON install-pdf install-pdf-am \
-	install-ps install-ps-am install-pythonPYTHON install-strip \
-	installcheck installcheck-am installcheck-binSCRIPTS \
-	installdirs maintainer-clean maintainer-clean-aminfo \
+	install-man1 install-nobase_includeHEADERS \
+	install-nobase_pyexecLTLIBRARIES install-nobase_pythonPYTHON \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-pythonPYTHON install-strip installcheck \
+	installcheck-am installcheck-binSCRIPTS installdirs \
+	maintainer-clean maintainer-clean-aminfo \
 	maintainer-clean-generic mostlyclean mostlyclean-aminfo \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am recheck recheck-html tags uninstall \
 	uninstall-am uninstall-binSCRIPTS uninstall-dvi-am \
-	uninstall-html-am uninstall-info-am \
-	uninstall-nobase_includeHEADERS \
+	uninstall-html-am uninstall-info-am uninstall-man \
+	uninstall-man1 uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
 	uninstall-pythonPYTHON
@@ -1787,6 +1877,26 @@ doc:
 
 doc/html/index.html:
 	$(MAKE) doc
+
+# We are distributing the compiled manpage so we don't depend on rst2man
+# Insert the output of braid --help into the MAN page.
+$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
+	$(AM_V_GEN)
+	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
+                     -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
+	@sh $(top_builddir)/braid/braid --help \
+	|  sed -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
+               -e 's/:$$/\n~~~~~~~~~~~~~~~~~~~~\n\n/' \
+               -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
+               -e 's/pos/OPTIONS\n=======\n\npos/' >>braid.txt
+	@echo >>braid.txt
+	@cat $(srcdir)/COPYRIGHT >>braid.txt
+	@if which rst2man; then \
+		rst2man -v braid.txt $@; \
+	else \
+		echo "**WARNING rst2man not installed, did not update $@"; \
+	fi
+	@ echo rm -f braid.txt
 
 distclean-local:
 	rm -f toolcheck.log

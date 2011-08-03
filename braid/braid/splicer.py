@@ -46,7 +46,7 @@ def replace(filename, splicer_name, text):
         if re.match(r'.*DO-NOT-DELETE splicer\.begin\('+splicer_name+r'\).*', 
                     line):
             dest.write(line)
-            dest.write(text)
+            dest.write(text+'\n')
             inside = True
             did_replace = True
         elif (inside and
