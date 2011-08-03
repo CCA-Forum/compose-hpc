@@ -31,9 +31,9 @@ cd regression/interop                                   ||exit 1
 echo "--setup directory, copy over babel regression test"
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
-cp -u -r \
+cp -r \
     ../@srcdir@/$TESTCASE/runChapel .                   ||exit 1
-chmod u+w -R runChapel                                  ||exit 1
+chmod -R u+w runChapel                                  ||exit 1
 
 echo "--generate client"
 cd runChapel						||exit 1
