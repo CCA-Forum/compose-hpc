@@ -89,7 +89,7 @@ void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 	if(cbTrans==""){
 		//cocciStream << "+ //WARNING: Transpose Options for array \'A\' could not be determined.  \n";
 		//cocciStream << "+ //Assuming non-transposed form for the array \'A\'.  \n";
-		cocciStream << "+  "<<cublasCall<<"(trans,m, n, 						alpha,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx,beta,"<<arrayPrefix<<"_Y,incy);  \n";
+		cocciStream << "+  "<<cublasCall<<"(trans,m, n, alpha,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx,beta,"<<arrayPrefix<<"_Y,incy);  \n";
 	}
 
 	else

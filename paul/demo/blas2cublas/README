@@ -85,6 +85,13 @@ annotation required is of the form
 /*% BLAS_TO_CUBLAS prefix=device1 lenX=10 lenY=20 */
 cblas_sgemv(...);
 
+(OR)
+/*% BLAS_TO_CUBLAS prefix=device1 lenX=lx lenY=ly */
+cblas_sgemv(...);
+
+where lx, ly are the variables in the original
+code that contain the vector lengths.
+
 where lenX and lenY are assigned the lengths itself as integers
 or the variable names in the original (non-transformed) code 
 that contain the lengths of vectors X, Y whose memory
@@ -101,7 +108,9 @@ Running a sample transformation
   to run the transformation.
 
 - The options to this script are
-  ./Blas2Cublas.py path-to-file BLAS_OPTION autoAnnot
+  ./Blas2Cublas.py path-to-file BLAS_OPTION autoAnnot 
+   where AnnotOptions={autoAnnot, autoAnnotNstop, PAUL} 
+
   where BLAS_OPTION is one of {MKL,BLAS} which 
   tells the script whether to use the Intel MKL library
   or any other BLAS library.
@@ -118,9 +127,32 @@ Running a sample transformation
 	  automatically annotates all BLAS calls in the source file
 	  provided.
 
-	- The vector lengths however for certain BLAS 2 routines need
-	  to be added manually to the annotaion options.
+	- The vector lengths however for certain BLAS 2 routines (gemv,gbmv)
+          need to be added manually to the annotaion options.
 
+	- The autoAnnotNstop option stops the script after automatically
+	  annotating the input source code. If not provided, the script proceeds
+	  to generate the transformed code. This option is used when the user
+	  wants to verify/add something to the automatically annotated code.
+
+	- After the user verifies/adds something to the automatically annotated code,
+	  he can run the script with the option PAUL which would resume the process of
+	  generating the transformed code taking the annotated code.
+          NOTE: When running with PAUL option the input file provided to the script
+		is the original input source file which is provided when the script
+		is run for the first time. The script automatically takes care of
+		resuming PAUL execution on the generated (annotated) code,
+		i.e. the name of the file (generated) which contains the annotations
+		need not be provided when running with the PAUL option.
+
+	Ex: ./Blas2Cublas.py ./test.c BLAS autoAnnotNstop
+
+		- generates rose_test.c and rose_trans_test.c (which has annotations)
+		- User reviews/adds something to rose_trans_test.c
+		- Then user should run ./Blas2Cublas.py ./test.c BLAS PAUL
+		  - With this the script runs PAUL on rose_trans_test.c
+		    and produces the transformed code.
+	  
 
 Blas2Cublas.py Usage Examples
 -----------------------------

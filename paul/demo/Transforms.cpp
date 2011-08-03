@@ -345,7 +345,7 @@ void handleBlasCalls(ofstream &cocciFptr,string &fname,SgExprListExp *fArgs, str
 	else if(fname.find("copy") != npos) handleCOPY(cocciFptr,fname,arrayPrefix,fArgs);
 
 	// Handle dotc, dotu, dot routines.
-	else if(fname.find("dot") != npos)  ; //handleDOT(cocciFptr,fname,arrayPrefix,fArgs);
+	else if(fname.find("dot") != npos)  ;//handleDOT(cocciFptr,fname,arrayPrefix,fArgs);
 
 	// Handle scal routines.
 	else if(fname.find("scal") != npos) handleSCAL(cocciFptr,fname,arrayPrefix,fArgs);
