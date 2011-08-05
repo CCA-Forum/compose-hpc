@@ -242,7 +242,7 @@ proc test_chapelIMatrix() {
   tracker.writeComment("Start: test_chapelIMatrix", sidl_ex);
 
   // make1DIMatrix()
-  var chplArray: [1 .. arraySize] int(32);
+  var chplArray: [1 .. #arraySize] int(32);
   var chplArray_rank = chplArray.domain.rank;
   var chplArray_lus = computeLowerUpperAndStride(chplArray);
   var chplArray_lower = chplArray_lus(0);
