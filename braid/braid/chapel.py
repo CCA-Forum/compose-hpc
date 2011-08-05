@@ -486,7 +486,7 @@ class Chapel(object):
 
 
             # IOR
-            self.generate_ior(ci, extends, implements)
+            self.generate_ior(ci, extends, implements, all_methods)
             write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
             # Stub (in C)
@@ -1037,7 +1037,7 @@ class Chapel(object):
         else:
             chpl_gen(defn, ci.chpl_stub)
 
-    def generate_ior(self, ci, extends, implements):
+    def generate_ior(self, ci, extends, implements, methods):
         """
         Generate the IOR header file in C.
         """
@@ -1057,6 +1057,57 @@ class Chapel(object):
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
                        .format(cname, base))
         
+        def gen_forward_references():
+            
+            def get_ctype(typ):
+                """
+                Extract name and generate argument conversions
+                """
+                ctype = ''
+                if not typ:
+                    pass
+                elif typ[0] == sidl.scoped_id:
+                    # Symbol
+                    ctype = '_'.join(typ[1])
+                elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+                    ctype = get_ctype(typ[1])    
+                elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
+                    ctype = get_ctype(typ[1]) 
+    
+                return ctype
+            
+            def add_forward_defn(name):
+                ci.ior.genh('struct ' + name + '__array;')
+                ci.ior.genh('struct ' + name + '__object;')
+            
+            add_forward_defn(cname)
+            refs = ['sidl_BaseException', 'sidl_BaseInterface']
+            
+            # lookup extends/impls clause
+            if extends:
+                refs.append('_'.join(extends[1]))
+                pass
+            for impls in implements:
+                for interface in impls[1]:
+                    refs.append('_'.join(interface[1]))
+                    
+            # lookup method args and return types
+            for loop_method in methods:
+                (_, _, _, _, loop_args, _, _, _, _, _) = loop_method
+                for loop_arg in loop_args:
+                    (_, _, _, loop_typ, _) = loop_arg
+                    loop_ctype = get_ctype(loop_typ)
+                    if loop_ctype:
+                        refs.append(loop_ctype)
+            
+            # lookup static function args and return types
+            
+            # sort the refs and the add the forward references to the header
+            refs = list(set(refs))
+            refs.sort()
+            for loop_ref in refs:
+                add_forward_defn(loop_ref)
+        
         if extends:
             gen_cast(extends[1])
 
@@ -1064,8 +1115,11 @@ class Chapel(object):
             for interface in impls[1]:
                 gen_cast(interface[1])
                 
+        # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
+                
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
+        gen_forward_references()
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.external))
@@ -1104,7 +1158,7 @@ class Chapel(object):
                 ci.chpl_skel.cstub.genh(ir.Import(qname+'_IOR'))
                 self.gen_default_methods(symbol_table, Extends, Implementes, ci)
                 gen1(Methods, ci)
-                self.generate_ior(ci, Extends, Implements)
+                self.generate_ior(ci, Extends, Implements, Methods)
 
                 # IOR
                 write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
@@ -1452,8 +1506,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
         #elif name == 'ior':
         #    typ = typ[1]
         #    #call_name = '*ior'
-        #elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # ex
-        #    typ = typ[1]
+        # FIXME Why is the struct wrapped inside two pointers even though it is an in argument?
+        # elif typ[0] == ir.pointer_type and name != 'self' and mode == sidl.in_ and typ[1][0] == ir.pointer_type and typ[1][1][0] == ir.struct:
+        #     typ = typ[1]
 
         # ARRAYS
         elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
@@ -1489,7 +1544,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     # return value type conversion -- treat it as an out argument
     retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
     cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
-
+    
     static = member_chk(sidl.static, Attrs)
     if static:
         scope.cstub.optional.add(externals(prefix))
