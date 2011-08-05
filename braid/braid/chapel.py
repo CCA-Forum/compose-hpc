@@ -885,7 +885,6 @@ class Chapel(object):
                 #return (call_expr_str, convert_el_res[1])
                 return '_babel_wrapped_local_'+arg_name, (arg, attrs, mode, ctype, name)
                 
-
             return cname, (arg, attrs, mode, ctype, name)
 
         def obj_by_value((arg, attrs, mode, typ, name)):
@@ -899,7 +898,7 @@ class Chapel(object):
          Except, From, Requires, Ensures, DocComment) = method
 
         ior_args = drop_rarray_ext_args(Args)
-
+        
         chpl_args = []
         chpl_args.extend(Args)
         
@@ -947,6 +946,7 @@ class Chapel(object):
         #post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
 
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
+        
         return_expr = []
         return_stmt = []
 
@@ -1540,10 +1540,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     pre_call = []
     post_call = []
     call_args, cstub_decl_args = unzip(map(convert_arg, Args))
-
+    
     # return value type conversion -- treat it as an out argument
     retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
     cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
+    
     
     static = member_chk(sidl.static, Attrs)
     if static:
@@ -1590,7 +1591,7 @@ def ior_type(symbol_table, t):
     """
     if (t[0] == sidl.scoped_id and
         symbol_table[t[1]][0] == sidl.class_):
-        return ir.Pointer_type(ir_babel_object_type(*symbol_table.get_full_name(t[1])))
+        return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
 
     else: return t
 
@@ -2062,7 +2063,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 # ignore wrongfully introduced pointers
                 # -> actually I should fix generate_method_stub instead
                 return gen(Type)
-
+                
             elif (ir.typedef_type, cbool):
                 return "bool"
 
