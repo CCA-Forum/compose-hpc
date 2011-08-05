@@ -754,7 +754,7 @@ class Chapel(object):
                 ctype = ior_type(symbol_table, typ)
 
                 if mode <> sidl.out:
-                    cname = name+'.self'
+                    cname = name + '.self_' + typ[1][-1]
 
                 if mode <> sidl.in_:
                     cname = '_IOR_'+name
