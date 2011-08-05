@@ -51,7 +51,7 @@ proc test_Overload() {
   var f1: real(32) = 1.0: real(32);
   var i1: int(32) = 1;
   var did: real(64) = 2.0;
-  var dfid: real(64) = 3.0;
+  var difd: real(64) = 3.0;
   var s1: string = "aString";
   
   var cd1: complex(128); cd1.re =1.1; cd1.im = 1.1;
@@ -67,7 +67,36 @@ proc test_Overload() {
   init_part(); run_part(" t.getValue", t.getValue(sidl_ex) == 1);
   
   init_part(); run_part(" t.getValue(b1)", t.getValueBool(b1, sidl_ex) == b1);
-  init_part(); run_part(" t.getValue(d1)", t.getValueDouble(d1, sidl_ex) == d1);
+  init_part(); run_part(" t.getValue(d1)", t.getValueDouble(d1, sidl_ex) == d1);  
+  
+  cdret = t.getValueDcomplex(cd1, sidl_ex);
+  init_part(); run_part(" t.getValueDcomplex(cd1).re", cdret.re == cd1.re);
+  init_part(); run_part(" t.getValueDcomplex(cd1).im", cdret.im == cd1.im);
+  
+  init_part(); run_part(" t.getValue(f1)", t.getValueFloat(f1, sidl_ex) == f1);
+  
+  cfret = t.getValueFcomplex(cf1, sidl_ex);
+  init_part(); run_part(" t.getValueFcomplex(cf1).re", cfret.re == cf1.re);
+  init_part(); run_part(" t.getValueFcomplex(cf1).im", cfret.im == cf1.im);
+  
+  init_part(); run_part(" t.getValueInt(i1)", t.getValueInt(i1, sidl_ex) == i1);
+  init_part(); run_part(" t.getValueString(s1)", t.getValueString(s1, sidl_ex) == s1);
+
+  init_part(); run_part(" t.getValueDoubleInt(d1, i1)", t.getValueDoubleInt(d1, i1, sidl_ex) == did);
+  init_part(); run_part(" t.getValueIntDouble(i1, d1)", t.getValueIntDouble(i1, d1, sidl_ex) == did);
+
+  init_part(); run_part(" t.getValueDoubleIntFloat(d1, i1, f1)", t.getValueDoubleIntFloat(d1, i1, f1, sidl_ex) == difd);
+  init_part(); run_part(" t.getValueIntDoubleFloat(i1, d1, f1)", t.getValueIntDoubleFloat(i1, d1, f1, sidl_ex) == difd);
+
+  init_part(); run_part(" t.getValueDoubleFloatInt(d1, f1, i1)", t.getValueDoubleFloatInt(d1, f1, i1, sidl_ex) == difd);
+  init_part(); run_part(" t.getValueIntFloatDouble(i1, f1, d1)", t.getValueIntFloatDouble(i1, f1, d1, sidl_ex) == difd);
+
+  init_part(); run_part(" t.getValueFloatDoubleInt(f1, d1, i1)", t.getValueFloatDoubleInt(f1, d1, i1, sidl_ex) == difd);
+  init_part(); run_part(" t.getValueFloatIntDouble(f1, i1, d1)", t.getValueFloatIntDouble(f1, i1, d1, sidl_ex) == difd);
+
+  init_part(); run_part(" t.getValueException(ae)", t.getValueException(ae, sidl_ex) == "AnException");
+  init_part(); run_part(" t.getValueAClass(ac)", t.getValueAClass(ac, sidl_ex) == 2);
+  init_part(); run_part(" t.getValueBClass(bc)", t.getValueBClass(bc, sidl_ex) == 2);
   
   tracker.writeComment("End: test_Overload", sidl_ex);
   magicNumber = clearstack(magicNumber);
