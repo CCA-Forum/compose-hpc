@@ -20,7 +20,8 @@
 
 - If the C interface to BLAS is used and arrays are
   specified to be treated as if in row-major order,
-  then the transformation produces a warning since CUDA BLAS
+  then the transformation produces a warning for blas calls
+  that do not have transpose options as arguments, since CUDA BLAS
   assumes column-major storage of arrays. The user
   could then tweak the generated CUBLAS call to specify
   whether the arrays should be transposed or not.
@@ -65,7 +66,7 @@
 Annotations Specification
 --------------------------
 
-For BLAS level 3 routines the annotation required is shown in
+- The annotation required is shown in
 the following example.
 
 /*% BLAS_TO_CUBLAS prefix=device1 */
@@ -78,29 +79,6 @@ cblas_sgemm(...);
   allocated on the GPU) in the transformed code. 
   For now the prefix selection to avoid name clashes
   is left to the user.
-
-For certain BLAS level 2 routines (gbmv, gemv) the
-annotation required is of the form
-
-/*% BLAS_TO_CUBLAS prefix=device1 lenX=10 lenY=20 */
-cblas_sgemv(...);
-
-(OR)
-/*% BLAS_TO_CUBLAS prefix=device1 lenX=lx lenY=ly */
-cblas_sgemv(...);
-
-where lx, ly are the variables in the original
-code that contain the vector lengths.
-
-where lenX and lenY are assigned the lengths itself as integers
-or the variable names in the original (non-transformed) code 
-that contain the lengths of vectors X, Y whose memory
-references are passed to these BLAS level 2 routines.
-
-The lengths of these vectors are not passed to
-the BLAS calls and hence the transformation 
-cannot figure out the size for the corresponding
-vectors to be allocated on the GPU memory.
 
 Running a sample transformation
 -------------------------------
@@ -126,9 +104,6 @@ Running a sample transformation
 	  to blas2cublas.py needs to be passed. The script
 	  automatically annotates all BLAS calls in the source file
 	  provided.
-
-	- The vector lengths however for certain BLAS 2 routines (gemv,gbmv)
-          need to be added manually to the annotaion options.
 
 	- The autoAnnotNstop option stops the script after automatically
 	  annotating the input source code. If not provided, the script proceeds
@@ -239,9 +214,7 @@ NOTE: The line with options must start with %
 Work in Progress
 ----------------
 
-- Cleanup and document code that handles tranformations involving
-  blas1, blas2 routines.
-- Testing transformations involving blas1, blas2 routines.
+- Some more documentation in code generation.
 - Complete handling routines in BLAS 1 that return values
   ( dot*, sum, nrm2, amin, amax, rot* )
 

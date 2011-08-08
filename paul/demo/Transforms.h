@@ -26,10 +26,7 @@ public:
   // prefix for variables introduced
   // as part of the transformation.
   string arrayPrefix;
-  // For gemv, gbmv routines
-  // lengths of vectors X, Y.
-  string lenX;
-  string lenY;
+
   // Check if prefix, vector lengths are provided.
   BlasToCublasTransform(Annotation *a, SgLocatedNode *root);
   // Generate appropriate Coccinelle rules.

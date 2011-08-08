@@ -2,8 +2,10 @@
 
 using namespace std;
 
-void handleGBMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, string fname, string arrayPrefix, string lenX, string lenY, SgExprListExp* fArgs){
+void handleGBMV(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, string fname, string arrayPrefix, SgExprListExp* fArgs){
 	
+	string lenXY="";
+
 	ostringstream cocciStream;
 
 	string matARef = "";
@@ -34,10 +36,6 @@ void handleGBMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 		vecYptr = fArgs->get_traversalSuccessorByIndex(11);
 
 	}
-
-	if(    cblasTrans  == "CblasTrans")     cbTrans = "\'T\'";
-	else if(cblasTrans == "CblasNoTrans")   cbTrans = "\'N\'";
-	else if(cblasTrans == "CblasConjTrans") cbTrans = "\'C\'";
 
 	matARef = matrixAptr->unparseToCompleteString();
 	vecXRef = vecXptr->unparseToCompleteString();
@@ -71,32 +69,62 @@ void handleGBMV(ofstream &cocciFptr,bool checkBlasCallType, bool warnRowMajor, s
 
 	DeclareDevicePtrB2(cocciStream,aType,arrayPrefix,true,true,true);
 
-	cocciStream << "+  /* Allocate device memory */  \n";
-	cocciStream << "+  cublasAlloc(m*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
-	cocciStream << "+  cublasAlloc("<<lenX<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-	cocciStream << "+  cublasAlloc("<<lenY<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_Y);  \n";
-	cocciStream << "+  \n";
-	cocciStream << "+  /* Copy matrix, vectors to device */     \n";
-	cocciStream << "+  cublasSetMatrix ( m, n, sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<", m, (void *) "<<arrayPrefix<<"_A, m);  \n";
-	cocciStream << "+  cublasSetVector ( "<<lenX<<",, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
-	cocciStream << "+  if(beta != 0) cublasSetVector ("<<lenY<<", sizeType_"<<arrayPrefix<<","<<vecYRef<<", incy, "<<arrayPrefix<<"_Y, incy);  \n";
+	if(checkBlasCallType){
 
-	cocciStream << "+  \n";
-	cocciStream << "+  /* CUBLAS call */  \n";
-	RowMajorWarning(cocciStream,warnRowMajor);
+		if(isRowMajor){
+			if(    cblasTrans  == "CblasTrans")     cbTrans = "\'N\'";
+			else if(cblasTrans == "CblasNoTrans")   cbTrans = "\'T\'";
+			else if(cblasTrans == "CblasConjTrans") cbTrans = "\'C\'";
+		}
+		else{
+			if(    cblasTrans  == "CblasTrans")     cbTrans = "\'T\'";
+			else if(cblasTrans == "CblasNoTrans")   cbTrans = "\'N\'";
+			else if(cblasTrans == "CblasConjTrans") cbTrans = "\'C\'";
+		}
 
-	if(cbTrans==""){
-		//cocciStream << "+ //WARNING: Transpose Options for array \'A\' could not be determined.  \n";
-		//cocciStream << "+ //Assuming non-transposed form for the array \'A\'.  \n";
-		cocciStream << "+  "<<cublasCall<<"(trans,m, n, kl, ku, 						alpha,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx,beta,"<<arrayPrefix<<"_Y,incy);  \n";
+		if(cbTrans == "\'N\'") lenXY = "n";
+		else if(cbTrans == "\'T\'") lenXY = "m";
+		else if(cbTrans == "\'C\'") lenXY = "m";
+
+		cocciStream << "+  /* Allocate device memory */  \n";
+		cocciStream << "+  cublasAlloc(m*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
+		cocciStream << "+  cublasAlloc("<<lenXY<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
+		cocciStream << "+  cublasAlloc("<<lenXY<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_Y);  \n\n";
+		cocciStream << "+  /* Copy matrix, vectors to device */     \n";
+		cocciStream << "+  cublasSetMatrix ( m, n, sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<", m, (void *) "<<arrayPrefix<<"_A, m);  \n";
+		cocciStream << "+  cublasSetVector ( "<<lenXY<<",, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
+		cocciStream << "+  if(beta != 0) cublasSetVector ("<<lenXY<<", sizeType_"<<arrayPrefix<<","<<vecYRef<<", incy, "<<arrayPrefix<<"_Y, incy);  \n\n";
+
+		cocciStream << "+  /* CUBLAS call */  \n";
+		cocciStream << "+  "<<cublasCall<<"("<<cbTrans<<",m, n, kl, ku, alpha,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx,beta,"<<arrayPrefix<<"_Y,incy);  \n\n";
+
+		cocciStream << "+  /* Copy result vector back to host */  \n";
+		cocciStream << "+  cublasSetVector ( "<<lenXY<<", sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
+
+	}	
+
+	else{
+		lenXY = arrayPrefix + "_lenXY";
+		cocciStream << "+ int "<<lenXY<<"; \n";
+		cocciStream << "+ if(*(trans) == \'N\') "<<lenXY<<" = n; \n";
+		cocciStream << "+ else "<<lenXY<<" = m; \n\n";
+
+		cocciStream << "+  /* Allocate device memory */  \n";
+		cocciStream << "+  cublasAlloc(*(m) * *(n), sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
+		cocciStream << "+  cublasAlloc("<<lenXY<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
+		cocciStream << "+  cublasAlloc("<<lenXY<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_Y);  \n\n";
+		cocciStream << "+  /* Copy matrix, vectors to device */     \n";
+		cocciStream << "+  cublasSetMatrix ( *(m), *(n), sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<", *(m), (void *) "<<arrayPrefix<<"_A, *(m));  \n";
+		cocciStream << "+  cublasSetVector ( "<<lenXY<<",, sizeType_"<<arrayPrefix<<","<<vecXRef<<", *(incx), "<<arrayPrefix<<"_X, *(incx));  \n";
+		cocciStream << "+  if(*(beta) != 0) cublasSetVector ("<<lenXY<<", sizeType_"<<arrayPrefix<<","<<vecYRef<<", *(incy), "<<arrayPrefix<<"_Y, *(incy));  \n\n";
+
+		cocciStream << "+  /* CUBLAS call */  \n";
+		cocciStream << "+  "<<cublasCall<<"(*(trans),*(m), *(n), *(kl), *(ku), *(alpha),"<<arrayPrefix<<"_A,*(lda),"<<arrayPrefix<<"_X,*(incx),*(beta),"<<arrayPrefix<<"_Y,*(incy));  \n\n";
+
+		cocciStream << "+  /* Copy result vector back to host */  \n";
+		cocciStream << "+  cublasSetVector ( "<<lenXY<<", sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_Y, *(incy), "<<vecYRef<<", *(incy));  \n";
 	}
 
-	else
-		cocciStream << "+  "<<cublasCall<<"("<<cbTrans<<",m, n, kl, ku, alpha,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_X,incx,beta,"<<arrayPrefix<<"_Y,incy);  \n";
-
-	cocciStream << "+  \n";
-	cocciStream << "+  /* Copy result vector back to host */  \n";
-	cocciStream << "+  cublasSetVector ( "<<lenY<<", sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
 	FreeDeviceMemoryB2(cocciStream,arrayPrefix,true,true,true);
 	cocciFptr << cocciStream.str();
 
