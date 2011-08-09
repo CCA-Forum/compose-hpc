@@ -35,7 +35,7 @@ def resolve(ast, verbose=True):
     
     ast1 = consolidate_packages(ast)
     symtab = build_symbol_table(ast1, SymbolTable(), verbose)
-
+    
     def resolve_rebuild(ast, symtab):
         """
         FIXME: this is not very efficient. Can we replace this with
@@ -133,7 +133,7 @@ def resolve_symbols(node, symbol_table, verbose=True):
             # if name == ['BaseException']:
             #     print Names, "->", prefix, name
             return (sidl.scoped_id, prefix+name, Ext)
-
+        
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
                 print "Building symbols for package %s" \
@@ -263,16 +263,37 @@ class SymbolTable:
         """
         return a tuple of scopes, name for a scoped id.
         """
-        n = len(scopes)
-        symbol_table = self
-        # go up (and down again) in the hierarchy
-        while not symbol_table.lookup(scopes[0]): # up until we find something
-            symbol_table = symbol_table.parent()
-
+        found = False
+        
+        try:
+            # go up the hierarchy until we find something
+            symbol_table = self
+            while not symbol_table.lookup(scopes[0]): 
+                symbol_table = symbol_table.parent()
+            found = True    
+        except Exception:
+            pass
+        
+        if not found:
+            # look in other symbol tables of the parent, using their prefixes
+            for loop_prefix, loop_value in self.parent()._symbol.iteritems():
+                if loop_prefix == self.prefix:
+                    continue
+                if isinstance(loop_value, SymbolTable):
+                    loop_scope = scopes[0]
+                    if loop_value.lookup(loop_scope):
+                        symbol_table = loop_value
+                        found = True
+                        break
+        
+        if not found:
+            raise Exception('Cannot resolve full name for ' + str(scopes[0]) + ' from ' + str(self.prefix))
+                
         #while symbol_table._parent:
         #    symbol_table = symbol_table.parent()
         #    scopes.insert(
         r = symbol_table.prefix+scopes[0:len(scopes)-1], [scopes[-1]]
+        #print(' get_full_name: ' + str(scopes[0]) + ' resolved to ' + str(r))
         return r
 
     def __str__(self):
