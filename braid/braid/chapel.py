@@ -1590,8 +1590,7 @@ def ior_type(symbol_table, t):
     if \c t is a scoped_id return the IOR type of t.
     else return \c t.
     """
-    if (t[0] == sidl.scoped_id and
-        symbol_table[t[1]][0] == sidl.class_):
+    if (t[0] == sidl.scoped_id and symbol_table[t[1]][0] in [sidl.class_, sidl.interface]):
         return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
 
     else: return t
