@@ -758,14 +758,16 @@ class Chapel(object):
                     cname = name + '.self_' + typ[1][-1]
 
                 if mode <> sidl.in_:
-                    cname = '_IOR_'+name
+                    cname = '_IOR_' + name
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                    
                     # wrap the C type in a native Chapel object
-                    conv = (ir.new, ".".join(typ[1]), [cname])
-                    if name == 'retval':
-                        return_expr.append(conv)
-                    else:
-                        post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+                    chpl_class_name = typ[1][-1]
+                    conv = ir.Call(".".join(typ[1]) + "_static.wrap_" + chpl_class_name, [cname, chpl_param_ex_name])
+                    chpl_name = '_chpl_' + name
+                    post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, chpl_class_name), chpl_name)))
+                    post_call.append(ir.Stmt(ir.Assignment(chpl_name, conv)))
+                    return_expr.append(chpl_name)
 
             
             elif typ[0] == sidl.scoped_id:
@@ -926,6 +928,10 @@ class Chapel(object):
         else: docast = []
 
         pre_call = []
+        post_call = []
+        return_expr = []
+        return_stmt = []
+        
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), chpl_local_exception_var)))
@@ -934,7 +940,6 @@ class Chapel(object):
         #pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
         #pre_call.append('writeln("Calling ' + str(Name) + '");')
 
-        post_call = []
         #post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", [chpl_local_exception_var]),
@@ -948,9 +953,6 @@ class Chapel(object):
 
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         
-        return_expr = []
-        return_stmt = []
-
         # return value type conversion -- treat it as an out argument
         _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
 
