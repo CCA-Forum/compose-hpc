@@ -2097,7 +2097,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.custom_attribute, Id):       return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id) + gen(Extension)
             elif (sidl.scoped_id, A, B):
-                return '%s%s' % (gen_dot_sep(A), gen(B))
+                return '%s%s' % (A[-1], gen(B))
 
             elif (Expr):
                 return super(ChapelCodeGenerator, self).generate(Expr, scope)
