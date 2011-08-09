@@ -41,8 +41,9 @@ def braid(args):
         # Client code generation
         if args.client == None:
             pass
-        elif re.match(r'([cC]hapel)|(chpl)', args.client):
+        elif re.match(r'([cC]hapel)|(chpl)', args.client):            
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
+            # FIXME Handle imports here after injection of sidl runtime
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
             chapel.Chapel(sidl_file, sidl_ast, symtab,
                           args.makefile, args.verbose).generate_client()
@@ -73,16 +74,24 @@ def inject_sidl_runtime(sidl_ast, args):
         exit(1)
 
     if args.verbose:
-        print "loading library `sidl'"
+        print "loading library 'sidl'"
     _, _, _, sidl = sidl_parser.parse(config.SIDL_PATH+'/sidl.sidl')
 
     if args.verbose:
-        print "loading library `sidlx'"
+        print "loading library 'sidlx'"
     _, _, _, sidlx = sidl_parser.parse(config.SIDL_PATH+'/sidlx.sidl')
 
     # merge in the standard library
-    sf, req, imp, defs = sidl_ast
-    return sf, req, [sidl, sidlx], defs
+    new_imps = [sidl, sidlx]
+    # preserve other imports for further processing
+    sf, req, imps, defs = sidl_ast
+    for loop_imp in imps:
+        scope = loop_imp[1]
+        name = '.'.join(scope[1])
+        if (name not in ['sidl', 'sidlx']):
+            new_imps.append(loop_imp)
+    
+    return sf, req, new_imps, defs
 
 
 
