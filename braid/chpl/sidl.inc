@@ -11,6 +11,9 @@ module sidl {
   _extern record sidl_SIDLException__object {};
   _extern record sidl_io_Serializable__object {};
 
+  class BaseInterface {
+    var self: sidl_BaseInterface__object;
+  }
   class BaseClass {
     var self: sidl_BaseInterface__object;
   }
