@@ -30,13 +30,13 @@ import sidl_parser, sidl_symbols, codegen, chapel, config, legal
 
 def braid(args):
     for sidl_file in args.sidl_files:
-	sidl_ast = sidl_parser.parse(sidl_file)
-
+        sidl_ast = sidl_parser.parse(sidl_file)
+        
         # SIDL operations
-	if args.gen_sexp:
-	    print str(sidl_ast)
-	if args.gen_sidl:
-	    print str(codegen.generate("SIDL", sidl_ast, args.debug))
+        if args.gen_sexp:
+            print str(sidl_ast)
+        if args.gen_sidl:
+            print str(codegen.generate("SIDL", sidl_ast, args.debug))
 
         # Client code generation
         if args.client == None:
