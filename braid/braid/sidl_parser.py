@@ -492,12 +492,12 @@ def p_imports(p): # *
 
 def p_import_1(p):
     '''import : IMPORT scopedID SEMICOLON'''
-    print "FIXME: process import"
+    print "FIXME: sidl_parser.p_import_1::process import"
     p[0] = (sidl.import_, p[2])
 
 def p_import_2(p):
     '''import : IMPORT scopedID version SEMICOLON'''
-    print "FIXME: process import"
+    print "FIXME: sidl_parser.p_import_2::process import"
     p[0] = (sidl.import_, p[2], p[3])
 
 def p_import_error(p):
