@@ -14,8 +14,56 @@ module sidl {
   class BaseInterface {
     var self: sidl_BaseInterface__object;
   }
+  // All the static methods of class BaseClass
+  module BaseClass_static {
+    proc create_BaseClass( inout _babel_param_ex: BaseException): BaseClass {
+      var inst = new BaseClass();
+      inst.init_BaseClass(_babel_param_ex);
+      return inst;
+    }
+      
+    proc wrap_BaseClass( in obj: sidl_BaseClass__object, inout _babel_param_ex: BaseException): BaseClass {
+      var inst = new BaseClass();
+      inst.wrap(obj, _babel_param_ex);
+      return inst;
+    }
+  }
   class BaseClass {
-    var self: sidl_BaseInterface__object;
+    var self_BaseClass: sidl_BaseClass__object;
+    proc init_BaseClass( inout _babel_param_ex: BaseException) {
+      _extern proc IS_NOT_NULL(in aRef): bool;
+      _extern proc SET_TO_NULL(inout aRef);
+      var ex: sidl_BaseInterface__object;
+      SET_TO_NULL(ex);
+      this.self_BaseClass = sidl_BaseClass__createObject(0, ex);
+      _extern proc sidl_BaseClass_addRef_stub( in self: 
+      sidl_BaseClass__object, inout _ex: sidl_BaseInterface__object);
+      sidl_BaseClass_addRef_stub(this.self_BaseClass, ex);
+      if (IS_NOT_NULL(ex)) {
+  	    _babel_param_ex = new BaseException(ex);
+      }
+    }
+    proc wrap( in obj: sidl_BaseClass__object, inout _babel_param_ex: BaseException) {
+      _extern proc IS_NOT_NULL(in aRef): bool;
+      _extern proc SET_TO_NULL(inout aRef);
+      var ex: sidl_BaseInterface__object;
+      SET_TO_NULL(ex);
+      this.self_BaseClass = obj;
+      _extern proc sidl_BaseClass_addRef_stub( in self: 
+      sidl_BaseClass__object, inout _ex: sidl_BaseInterface__object);
+      sidl_BaseClass_addRef_stub(this.self_BaseClass, ex);
+      if (IS_NOT_NULL(ex)) {
+        _babel_param_ex = new BaseException(ex);
+      }
+    }
+    proc ~BaseClass() {
+      var ex: sidl_BaseInterface__object;
+      _extern proc sidl_BaseClass_deleteRef_stub( in self: sidl_BaseClass__object, inout _ex: sidl_BaseInterface__object);
+      sidl_BaseClass_deleteRef_stub(this.self_BaseClass, ex);
+      _extern proc sidl_BaseClass__dtor_stub( in self: 
+      sidl_BaseClass__object, inout _ex: sidl_BaseInterface__object);
+      sidl_BaseClass__dtor_stub( this.self_BaseClass, ex);
+    }
   }
 
   /**
