@@ -46,6 +46,7 @@ chpl_param_ex_name = '_babel_param_ex'
 extern_def_is_not_null = '_extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = '_extern proc SET_TO_NULL(inout aRef);'
 chpl_base_exception = 'BaseException'
+chpl_local_exception_var = '_ex'
 
 def drop(lst):
     """
@@ -360,7 +361,7 @@ class Chapel(object):
                                  'inout ex: sidl_BaseInterface__object)'+
                                  ': %s__object;'%qname)
             name = chpl_gen(name)
-
+            
             chpl_class = ChapelScope(ci.chpl_stub)
             chpl_static_helper = ChapelScope(ci.chpl_stub)
 
@@ -691,7 +692,7 @@ class Chapel(object):
                                                        ir.Pointer_type(data.obj),
                                                        "createObject", [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
-                                                           ir.Arg([], sidl.inout, ir_babel_exception_type(), '_ex')],
+                                                           ir.Arg([], sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)],
                                                        "")),
                                                        "createObject"),
                        # FIXME: only if contains static methods
@@ -927,8 +928,8 @@ class Chapel(object):
         pre_call = []
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
-        pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
-        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
+        pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), chpl_local_exception_var)))
+        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", [chpl_local_exception_var])))
         #pre_call.append('write("Pre call: "); printPtr(_ex);')
         #pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
         #pre_call.append('writeln("Calling ' + str(Name) + '");')
@@ -936,10 +937,10 @@ class Chapel(object):
         post_call = []
         #post_call.append('writeln("Done Calling ' + str(Name) + '");')
         post_call.append(ir.Stmt(ir.If(
-            ir.Call("IS_NOT_NULL", ['_ex']),
+            ir.Call("IS_NOT_NULL", [chpl_local_exception_var]),
             [
                 ir.Stmt(ir.Assignment(chpl_param_ex_name,
-                                   ir.Call("new " + chpl_base_exception, ['_ex'])))
+                                   ir.Call("new " + chpl_base_exception, [chpl_local_exception_var])))
             ]
         )))
         #post_call.append('write("Post call: "); printPtr(_ex);')
@@ -962,7 +963,7 @@ class Chapel(object):
             call_self = ["this.self_" + ci.epv.name]
                 
 
-        call_args = call_self + call_args + ['_ex']
+        call_args = call_self + call_args + [chpl_local_exception_var]
         # Add the exception to the chapel method signature
         chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
         
@@ -1347,7 +1348,7 @@ class Chapel(object):
         #argdecls = map(argvardecl, Args)
         #def get_arg_name((arg, attrs, mode, typ, name)):
         #    return name
-        #dcall = ir.Call(Name, [] if static else ['obj']+map(get_arg_name, Args)+['_ex'])
+        #dcall = ir.Call(Name, [] if static else ['obj']+map(get_arg_name, Args)+[chpl_local_exception_var])
         #ci.chpl_skel.main_area.new_def('{\n')
         #ci.chpl_skel.main_area.new_def('var obj: %s__object;\n'%
         #                               '_'.join(ci.epv.symbol_table.prefix+[ci.epv.name]))
@@ -1779,7 +1780,7 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
                     ir_babel_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], sidl.inout, ir_babel_exception_type(), '_ex')]
+        [ir.Arg([], sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
@@ -1793,7 +1794,7 @@ def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
             ir.Arg(extra_attrs, sidl.in_, 
                 ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), '_ex')]
+        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)]
     return arg_self+args+arg_ex
 
 
