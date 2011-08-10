@@ -42,21 +42,10 @@ var magicNumber = 13;
 tracker.setExpectations(-1, sidl_ex);
 // tracker.setExpectations(19);
 
-proc test_Enums() {
-  magicNumber = clearstack(magicNumber);	
-  tracker.writeComment("Start: test_Enums", sidl_ex);
-  
-  init_part(); run_part(" dummy", true);
-  
-  tracker.writeComment("End: test_Enums", sidl_ex);
-  magicNumber = clearstack(magicNumber);
-}
-test_Enums();
-
-proc test_colorwheel() { 
+proc test_EnumsColorwheel() { 
 	
   magicNumber = clearstack(magicNumber);	
-  tracker.writeComment("Start: test_colorwheel", sidl_ex);	
+  tracker.writeComment("Start: test_EnumsColorwheel", sidl_ex);	
   
   // undefined integer values 
   var outVar: enums.color;
@@ -80,9 +69,98 @@ proc test_colorwheel() {
   init_part(); run_part(" obj.passeverywhere-2", outVar == enums.color.violet);
   init_part(); run_part(" obj.passeverywhere-3", inoutVar == enums.color.green);
 
-  tracker.writeComment("End: test_colorwheel", sidl_ex);
+  tracker.writeComment("End: test_EnumsColorwheel", sidl_ex);
   magicNumber = clearstack(magicNumber);
 }
-test_colorwheel();
+test_EnumsColorwheel();
+
+proc test_EnumsCar() {
+  magicNumber = clearstack(magicNumber);	
+  tracker.writeComment("Start: test_EnumsCar", sidl_ex);
+  
+  // fully defined integer values 
+  var outVar: enums.car;
+  var inoutVar: enums.car  = enums.car.ford;
+  var obj: enums.cartest  = enums.cartest_static.create_cartest(sidl_ex);
+  
+  // FIXME: Need to support arrays
+  // .sidl.array< .enums.car > tin, tout, tinout, tret;
+   
+  init_part(); run_part(" obj.returnback", obj.returnback(sidl_ex) == enums.car.porsche);
+  init_part(); run_part(" obj.passin", obj.passin(enums.car.mercedes, sidl_ex));
+  init_part(); run_part(" obj.passout", obj.passout(outVar, sidl_ex) && outVar == enums.car.ford);
+  init_part(); run_part(" obj.passinout", obj.passinout(inoutVar, sidl_ex) && inoutVar == enums.car.porsche);
+  init_part(); run_part(" obj.passeverywhere", 
+      obj.passeverywhere(enums.car.mercedes, outVar, inoutVar, sidl_ex) == enums.car.porsche &&
+  	  outVar == enums.car.ford && inoutVar == enums.car.mercedes);
+  
+  // tin = createArray();
+  // tinout = createArray();
+  // tracker.writeComment("Calling enums.cartest.passarray");
+  // tret = obj.passarray(tin, tout, tinout);
+  // init_part(); run_part(" dummy", checkArray(tin) && checkArray(tout) && checkArray(tinout) && checkArray(tret));
+  
+  tracker.writeComment("End: test_EnumsCar", sidl_ex);
+  magicNumber = clearstack(magicNumber);
+}
+test_EnumsCar();
+
+proc test_EnumsNumber() {
+  magicNumber = clearstack(magicNumber);	
+  tracker.writeComment("Start: test_EnumsNumber", sidl_ex);
+  
+  // partially defined integer values
+  var outVar: enums.number;
+  var inoutVar: enums.number = enums.number.zero;
+  var obj: enums.numbertest = enums.numbertest_static.create_numbertest(sidl_ex);
+   
+  init_part(); run_part(" returnback", obj.returnback(sidl_ex) == enums.number.notOne );
+  init_part(); run_part(" passin", obj.passin(enums.number.notZero, sidl_ex));
+  init_part(); run_part(" passout", obj.passout(outVar, sidl_ex) && outVar == enums.number.negOne );
+  init_part(); run_part(" passinout", obj.passinout(inoutVar, sidl_ex) && inoutVar == enums.number.notZero );
+  init_part(); run_part(" passeverywhere", 
+      obj.passeverywhere(enums.number.notZero, outVar, inoutVar, sidl_ex) == enums.number.notOne &&
+  	  outVar == enums.number.negOne && inoutVar == enums.number.zero );
+  
+  tracker.writeComment("End: test_EnumsNumber", sidl_ex);
+  magicNumber = clearstack(magicNumber);
+}
+test_EnumsNumber();
+
+proc test_EnumsArray() {
+  magicNumber = clearstack(magicNumber);	
+  tracker.writeComment("Start: test_EnumsArray", sidl_ex);
+  
+  /**
+   FIXME: Need to support arrays
+  const int32_t numElem[] = { 2 };
+  const int32_t stride[] = { 2 };
+  sidl.array<enums.car> enumArray = sidl.array<enums.car>.create1d(4);
+  sidl.array<enums.car> tmpArray;
+  init_part(); run_part(" dummy", enumArray);
+  enumArray.set(0, enums.car.porsche);
+  enumArray.set(1, enums.car.ford);
+  enumArray.set(2, enums.car.mercedes);
+  enumArray.set(3, enums.car.porsche);
+  init_part(); run_part(" dummy", enums.car.porsche == enumArray.get(0));
+  init_part(); run_part(" dummy", enums.car.porsche == enumArray.get(3));
+  init_part(); run_part(" dummy", enums.car.ford == enumArray.get(1));
+  tmpArray = enumArray;
+  init_part(); run_part(" dummy", tmpArray);
+  tmpArray = tmpArray.slice(1, numElem, 0, stride);
+  init_part(); run_part(" dummy", enums.car.porsche == tmpArray.get(0));
+  init_part(); run_part(" dummy", enums.car.mercedes == tmpArray.get(1));
+  tmpArray.smartCopy();
+  init_part(); run_part(" dummy", tmpArray);
+  init_part(); run_part(" dummy", enums.car.porsche == tmpArray.get(0));
+  init_part(); run_part(" dummy", enums.car.mercedes == tmpArray.get(1));  
+  */
+  
+  init_part(); run_part(" dummy", true);
+  
+  tracker.writeComment("End: test_EnumsArray", sidl_ex);
+  magicNumber = clearstack(magicNumber);
+}
+test_EnumsArray();
 
 tracker.close(sidl_ex);
