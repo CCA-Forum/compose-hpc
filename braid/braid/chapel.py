@@ -1502,7 +1502,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
                 post_call.append((ir.stmt, '{n}{a}im = _babel_{n}.imaginary'.format(**fmt)))
             
         elif typ[0] == sidl.enum:
-            call_name = ir.Sign_extend(64, name)
+            # No special treatment for enums, rely on chpl runtime to set it
+            #call_name = ir.Sign_extend(64, name)
+            pass
+            
             
         # SELF
         # cf. babel_stub_args
@@ -1944,6 +1947,11 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             comp_stmt = ChapelFile(scope, relative_indent=4)
             s = str(self.generate(body, comp_stmt))
             return new_def(scope._sep.join([prefix+s,suffix]))
+        
+        @accepts(str, str, str)
+        def new_scope1(prefix, body, suffix):
+            '''used for things like enumerator'''
+            return scope.new_header_def(''.join([prefix,body,suffix])+';')
 
         def gen_comma_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
@@ -2094,6 +2102,34 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return 'var %s:%s = %s'%(gen(Name), gen(Type), gen(Initializer))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
+
+            elif (ir.type_decl, (ir.enum, Name, Items, DocComment)):
+                # Manually transform the Items
+                enum_transformed = False
+                used_states = []
+                for loop_item in Items: 
+                    if (len(loop_item) == 3): 
+                        used_states.append(loop_item[2])
+                    else:
+                        enum_transformed = True
+                
+                items_to_use = Items
+                if enum_transformed:
+                    # Explicitly state the enum values as Chapel enums start at 1
+                    new_items = []
+                    avail_state = 0
+                    for loop_item in Items: 
+                        if (len(loop_item) == 3):
+                            new_items.append(loop_item)
+                        else:
+                            while avail_state in used_states: 
+                                avail_state = avail_state + 1
+                            new_items.append(ir.Enumerator(loop_item[1], avail_state))
+                            used_states.append(avail_state)
+                    items_to_use = new_items
+                    
+                return new_scope1('enum %s {'%gen(Name), gen_comma_sep(items_to_use), '}')
+            
             elif (ir.import_, Name): new_def('use %s;'%Name)
 
             elif (sidl.custom_attribute, Id):       return gen(Id)
