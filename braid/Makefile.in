@@ -624,10 +624,15 @@ BABEL_TESTS = \
   regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
-  regression/interop/strings/runChapel/stringstest.chpl 
+  regression/interop/strings/runChapel/stringstest.chpl \
+  regression/interop/exceptions/runChapel/exceptionstest.chpl \
+  regression/interop/ordering/runChapel/orderingtest.chpl \
+  regression/interop/overload/runChapel/overloadtest.chpl \
+  regression/interop/enums/runChapel/enumstest.chpl 
+# regression/interop/sortb/runChapel/sortbtest.chpl
 
 BABEL_TESTNAMES = \
-  args arrays inherit strings
+  args arrays inherit strings exceptions ordering overload enums # sortb
 
 @ENABLE_INTEROP_REGRESSION_TRUE@CHPL_LOG_COMPILER = sh 
 # FIXME:
