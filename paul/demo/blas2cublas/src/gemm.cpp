@@ -15,7 +15,6 @@ void handleGEMM(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor, st
 	string cblasTransA = "";
 	string cblasTransB = "";
 
-
 	if(checkBlasCallType){
 		cblasTransA = fArgs->get_traversalSuccessorByIndex(1)->unparseToString();
 		cblasTransB = fArgs->get_traversalSuccessorByIndex(2)->unparseToString();
@@ -65,7 +64,7 @@ void handleGEMM(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor, st
 	}
 
 	cocciStream << "@disable paren@ \n";
-	cocciStream << "identifier order,transA,transB;  \n";
+	cocciStream << "expression order,transA,transB;  \n";
 	cocciStream << "expression rA,cB,cA,alpha,lda,ldb,beta,ldc;  \n";
 	cocciStream << "@@ \n";
 
@@ -93,20 +92,50 @@ void handleGEMM(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor, st
 			if(    cblasTransA  == "CblasTrans")     cbTransA = "\'N\'";
 			else if(cblasTransA == "CblasNoTrans")   cbTransA = "\'T\'";
 			else if(cblasTransA == "CblasConjTrans") cbTransA = "\'C\'";
+			else{
+				cbTransA = uPrefix + "_transA";
+				cocciStream << "+ char "<<cbTransA<<"; \n";
+				cocciStream << "+ if("<<cblasTransA<<" == CblasTrans) "<<cbTransA<<" = \'N\'; \n";
+				cocciStream << "+ else if("<<cblasTransA<<" == CblasNoTrans) "<<cbTransA<<" = \'T\'; \n";
+				cocciStream << "+ else if("<<cblasTransA<<" == CblasConjTrans) "<<cbTransA<<" = \'C\'; \n\n";
+
+			}
 
 			if(     cblasTransB == "CblasTrans")     cbTransB = "\'N\'";
 			else if(cblasTransB == "CblasNoTrans")   cbTransB = "\'T\'";
 			else if(cblasTransB == "CblasConjTrans") cbTransB = "\'C\'";
+			else{
+				cbTransB = uPrefix + "_transB";
+				cocciStream << "+ char "<<cbTransB<<"; \n";
+				cocciStream << "+ if("<<cblasTransB<<" == CblasTrans) "<<cbTransB<<" = \'N\'; \n";
+				cocciStream << "+ else if("<<cblasTransB<<" == CblasNoTrans) "<<cbTransB<<" = \'T\'; \n";
+				cocciStream << "+ else if("<<cblasTransB<<" == CblasConjTrans) "<<cbTransB<<" = \'C\'; \n\n";
+			}
 		}
 
 		else{
 			if(    cblasTransA  == "CblasTrans")     cbTransA = "\'T\'";
 			else if(cblasTransA == "CblasNoTrans")   cbTransA = "\'N\'";
 			else if(cblasTransA == "CblasConjTrans") cbTransA = "\'C\'";
+			else{
+				cbTransA = uPrefix + "_transA";
+				cocciStream << "+ char "<<cbTransA<<"; \n";
+				cocciStream << "+ if("<<cblasTransA<<" == CblasTrans) "<<cbTransA<<" = \'T\'; \n";
+				cocciStream << "+ else if("<<cblasTransA<<" == CblasNoTrans) "<<cbTransA<<" = \'N\'; \n";
+				cocciStream << "+ else if("<<cblasTransA<<" == CblasConjTrans) "<<cbTransA<<" = \'C\'; \n\n";
+
+			}
 
 			if(     cblasTransB == "CblasTrans")     cbTransB = "\'T\'";
 			else if(cblasTransB == "CblasNoTrans")   cbTransB = "\'N\'";
 			else if(cblasTransB == "CblasConjTrans") cbTransB = "\'C\'";
+			else{
+				cbTransB = uPrefix + "_transB";
+				cocciStream << "+ char "<<cbTransB<<"; \n";
+				cocciStream << "+ if("<<cblasTransB<<" == CblasTrans) "<<cbTransB<<" = \'T\'; \n";
+				cocciStream << "+ else if("<<cblasTransB<<" == CblasNoTrans) "<<cbTransB<<" = \'N\'; \n";
+				cocciStream << "+ else if("<<cblasTransB<<" == CblasConjTrans) "<<cbTransB<<" = \'C\'; \n\n";
+			}
 		}
 
 		cocciStream << "+ "<<cublasCall<<"("<<cbTransA<<","<<cbTransB<<",rA,cB,cA,alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_B,ldb,beta,"<<uPrefix<<"_C,ldc);\n\n";

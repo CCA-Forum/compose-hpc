@@ -31,8 +31,8 @@
   are hence not handled by this transformation. They are
   - BLAS 3 -> {c,z}gemm3m (handled by using CUDA cgemm,zgemm)
               {SC,DZ}GEMM, {SC,DZ}GEMV (Intel MKL only)
-  - BLAS 2 -> {s,d}gem2vu, {c,z}gem2vc 
-  - BLAS 1 -> {s}dsdot, {d,s}cabs1 
+  - BLAS 2 -> {s,d}gem2vu, {c,z}gem2vc (Intel MKL only)
+  - BLAS 1 -> {ds,sds}dot, {d,s}cabs1 
   - CUDA BLAS library provides routines for rotg, rotmg
     for completeness sake and are run on the CPU. Hence
     they are not transformed even if annotated.

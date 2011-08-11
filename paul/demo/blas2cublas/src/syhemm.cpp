@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void handleSYHEMM(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, string fname, string arrayPrefix, SgExprListExp* fArgs){
+void handleSYHEMM(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, string fname, string uPrefix, SgExprListExp* fArgs){
 
 	ostringstream cocciStream;
 	string matARef = "";
@@ -73,13 +73,13 @@ void handleSYHEMM(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, s
 	}
 
 	cocciStream << "@disable paren@ \n";
-	cocciStream << "identifier order,side,uplo;  \n";
+	cocciStream << "expression order,side,uplo;  \n";
 	cocciStream << "expression m,n,alpha,a,lda,b,ldb,beta,c,ldc;  \n";
 	cocciStream << "@@ \n";
 	if(checkBlasCallType) cocciStream <<   "- "<<blasCall<<"(order,side,uplo,m,n,alpha,"<<matARef<<",lda,"<<matBRef<<",ldb,beta,"<<matCRef<<",ldc);  \n\n";
 	else cocciStream <<   "- "<<blasCall<<"(side,uplo,m,n,alpha,"<<matARef<<",lda,"<<matBRef<<",ldb,beta,"<<matCRef<<",ldc);  \n\n";
 	cocciStream << "+  /* Allocate device memory */  \n";
-	DeclareDevicePtrB3(cocciStream,aType,arrayPrefix,true,true,true);
+	DeclareDevicePtrB3(cocciStream,aType,uPrefix,true,true,true);
 
 	string dimA = "";
 	string cblasSide = "";
@@ -87,58 +87,75 @@ void handleSYHEMM(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, s
 
 	if(checkBlasCallType){
 
-		if(sideA == "CblasLeft")       cblasSide = "\'L\'";
-		else if(sideA == "CblasRight") cblasSide = "\'R\'";
+		if(sideA == "CblasLeft")       
+		{
+			dimA = "m"; cblasSide = "\'L\'";
+			cocciStream << "+  cublasAlloc(m*m, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
+		}
+		else if(sideA == "CblasRight") {
+			dimA = "n"; cblasSide = "\'R\'";
+			cocciStream << "+  cublasAlloc(n*n, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
+		}
+		else{
+			cblasSide = uPrefix + "_side";
+			dimA = uPrefix + "_dimA";
+			cocciStream << "+ int "<<dimA<<"; \n";
+			cocciStream << "+ char "<<cblasSide<<"; \n";
+			cocciStream << "+ if("<<sideA<<" == CblasLeft) "<<cblasSide<<" = \'L\'; \n";
+			cocciStream << "+ else "<<cblasSide<<" = \'R\'; \n";
+			cocciStream << "+ if("<<cblasSide<<" == \'R\') "<<dimA<<" = n; \n";
+			cocciStream << "+ else "<<dimA<<" = m; \n\n";
+			cocciStream << "+ cublasAlloc("<<dimA<<" * "<<dimA<<", sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
+
+		}
 
 		if(uploA == "CblasUpper") cblasUplo = "\'U\'";
 		else if(uploA == "CblasLower") cblasUplo = "\'L\'";
 
-		if(cblasSide == "\'L\'")
-		{
-			dimA = "m";
-			cocciStream << "+  cublasAlloc(m*m, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
-		}
-		else if(cblasSide == "\'R\'"){
-			dimA = "n";
-			cocciStream << "+  cublasAlloc(n*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
+		else{
+			cblasUplo = uPrefix + "_uplo";
+			cocciStream << "+ char "<<cblasUplo<<"; \n";
+			cocciStream << "+ if("<<uploA<<" == CblasUpper) "<<cblasUplo<<" = \'U\'; \n";
+			cocciStream << "+ else "<<cblasUplo<<" = \'L\'; \n";
+
 		}
 
-		cocciStream << "+  cublasAlloc(m*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_B);  \n";
-		cocciStream << "+  cublasAlloc(m*n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_C);  \n\n";
+		cocciStream << "+  cublasAlloc(m*n, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_B);  \n";
+		cocciStream << "+  cublasAlloc(m*n, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_C);  \n\n";
 		cocciStream << "+  /* Copy matrices to device */   \n";
-		cocciStream << "+  cublasSetMatrix ("<<dimA<<","<< dimA<<", sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<","<<dimA<<", (void *) "<<arrayPrefix<<"_A,"<< dimA<<");  \n";
-		cocciStream << "+  cublasSetMatrix ( m, n, sizeType_"<<arrayPrefix<<", (void *)"<<matBRef<<", m, (void *) "<<arrayPrefix<<"_B, m);  \n\n";
+		cocciStream << "+  cublasSetMatrix ("<<dimA<<","<< dimA<<", sizeType_"<<uPrefix<<", (void *)"<<matARef<<","<<dimA<<", (void *) "<<uPrefix<<"_A,"<< dimA<<");  \n";
+		cocciStream << "+  cublasSetMatrix ( m, n, sizeType_"<<uPrefix<<", (void *)"<<matBRef<<", m, (void *) "<<uPrefix<<"_B, m);  \n\n";
 		cocciStream << "+  /* CUBLAS call */  \n";
 		RowMajorWarning(cocciStream,isRowMajor);
-		cocciStream << "+  "<<cublasCall<<"("<<cblasSide<<","<<cblasUplo<<",m,n,alpha,"<<arrayPrefix<<"_A,lda,"<<arrayPrefix<<"_B,ldb,beta,"<<arrayPrefix<<"_C,ldc);  \n\n";
+		cocciStream << "+  "<<cublasCall<<"("<<cblasSide<<","<<cblasUplo<<",m,n,alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_B,ldb,beta,"<<uPrefix<<"_C,ldc);  \n\n";
 		cocciStream << "+  /* Copy result array back to host */ \n";
-		cocciStream << "+  cublasSetMatrix( m, n, sizeType_"<<arrayPrefix<<", (void *) "<<arrayPrefix<<"_C, m, (void *)"<<matCRef<<", m); \n";
+		cocciStream << "+  cublasSetMatrix( m, n, sizeType_"<<uPrefix<<", (void *) "<<uPrefix<<"_C, m, (void *)"<<matCRef<<", m); \n";
 
 	}
 
 	else {
 
-		dimA = arrayPrefix + "_dimA";
+		dimA = uPrefix + "_dimA";
 		cocciStream << "+ int "<<dimA<<"; \n";
 		cocciStream << "+ if(*(side) == \'L\') "<<dimA<<" = m; \n";
 		cocciStream << "+ else "<<dimA<<" = n; \n\n";
 
-		cocciStream << "+  cublasAlloc("<<dimA<<"*"<< dimA<<", sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_A);  \n";
+		cocciStream << "+  cublasAlloc("<<dimA<<"*"<< dimA<<", sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
 
-		cocciStream << "+  cublasAlloc(*(m) * *(n), sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_B);  \n";
-		cocciStream << "+  cublasAlloc(*(m) * *(n), sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_C);  \n\n";
+		cocciStream << "+  cublasAlloc(*(m) * *(n), sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_B);  \n";
+		cocciStream << "+  cublasAlloc(*(m) * *(n), sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_C);  \n\n";
 		cocciStream << "+  /* Copy matrices to device */   \n";
-		cocciStream << "+  cublasSetMatrix ("<<dimA<<","<< dimA<<", sizeType_"<<arrayPrefix<<", (void *)"<<matARef<<","<<dimA<<", (void *) "<<arrayPrefix<<"_A,"<< dimA<<");  \n";
-		cocciStream << "+  cublasSetMatrix ( *(m), *(n), sizeType_"<<arrayPrefix<<", (void *)"<<matBRef<<", *(m), (void *) "<<arrayPrefix<<"_B, *(m));  \n\n";
+		cocciStream << "+  cublasSetMatrix ("<<dimA<<","<< dimA<<", sizeType_"<<uPrefix<<", (void *)"<<matARef<<","<<dimA<<", (void *) "<<uPrefix<<"_A,"<< dimA<<");  \n";
+		cocciStream << "+  cublasSetMatrix ( *(m), *(n), sizeType_"<<uPrefix<<", (void *)"<<matBRef<<", *(m), (void *) "<<uPrefix<<"_B, *(m));  \n\n";
 		cocciStream << "+  /* CUBLAS call */  \n";
 
-		cocciStream << "+  "<<cublasCall<<"(*(side),*(uplo),*(m),*(n),*(alpha),"<<arrayPrefix<<"_A,*(lda),"<<arrayPrefix<<"_B,*(ldb),*(beta),"<<arrayPrefix<<"_C,*(ldc));  \n\n";
+		cocciStream << "+  "<<cublasCall<<"(*(side),*(uplo),*(m),*(n),*(alpha),"<<uPrefix<<"_A,*(lda),"<<uPrefix<<"_B,*(ldb),*(beta),"<<uPrefix<<"_C,*(ldc));  \n\n";
 		cocciStream << "+  /* Copy result array back to host */ \n";
-		cocciStream << "+  cublasSetMatrix( *(m), *(n), sizeType_"<<arrayPrefix<<", (void *) "<<arrayPrefix<<"_C, *(m), (void *)"<<matCRef<<", *(m)); \n";
+		cocciStream << "+  cublasSetMatrix( *(m), *(n), sizeType_"<<uPrefix<<", (void *) "<<uPrefix<<"_C, *(m), (void *)"<<matCRef<<", *(m)); \n";
 
 	}
 
-	FreeDeviceMemoryB3(cocciStream,arrayPrefix,true,true,true);
+	FreeDeviceMemoryB3(cocciStream,uPrefix,true,true,true);
 	cocciFptr << cocciStream.str();
 
 }

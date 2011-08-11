@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void handleSumNrm2Aminmax(ofstream &cocciFptr, bool checkBlasCallType, string fname, string arrayPrefix, SgExprListExp* fArgs){
+void handleSumNrm2Aminmax(ofstream &cocciFptr, bool checkBlasCallType, string fname, string uPrefix, SgExprListExp* fArgs){
 	
 	ostringstream cocciStream;
 
@@ -86,37 +86,37 @@ void handleSumNrm2Aminmax(ofstream &cocciFptr, bool checkBlasCallType, string fn
 	cocciStream << "@@ \n";
 
 	cocciStream << "<...\n- "<<blasCall<<"(n, "<<vecXRef<<",incx); \n";
-	cocciStream << "+ "<<aType<<" *"<<arrayPrefix<<"_result;  \n";
-	DeclareDevicePtrB2(cocciStream,aType,arrayPrefix,false,true,false);
+	cocciStream << "+ "<<aType<<" *"<<uPrefix<<"_result;  \n";
+	DeclareDevicePtrB2(cocciStream,aType,uPrefix,false,true,false);
 
 	if(checkBlasCallType){
 
 		cocciStream << "+  /* Allocate device memory */  \n";
-		cocciStream << "+  cublasAlloc(n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-		cocciStream << "+  cublasAlloc(1, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_result);  \n\n";
+		cocciStream << "+  cublasAlloc(n, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_X);  \n";
+		cocciStream << "+  cublasAlloc(1, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_result);  \n\n";
 
 		cocciStream << "+  /* Copy vector to device */     \n";
-		cocciStream << "+  cublasSetVector (n, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n\n";
+		cocciStream << "+  cublasSetVector (n, sizeType_"<<uPrefix<<","<<vecXRef<<", incx, "<<uPrefix<<"_X, incx);  \n\n";
 
 		cocciStream << "+  /* CUBLAS call */  \n";
-		cocciStream << "+  "<<cublasCall<<"(n,"<<arrayPrefix<<"_X,incx);  \n...>\n\n";
+		cocciStream << "+  "<<cublasCall<<"(n,"<<uPrefix<<"_X,incx);  \n...>\n\n";
 	}
 
 	else{
 
 		cocciStream << "+  /* Allocate device memory */  \n";
-		cocciStream << "+  cublasAlloc(*(n), sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-		cocciStream << "+  cublasAlloc(1, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_result);  \n\n";
+		cocciStream << "+  cublasAlloc(*(n), sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_X);  \n";
+		cocciStream << "+  cublasAlloc(1, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_result);  \n\n";
 
 		cocciStream << "+  /* Copy vector to device */     \n";
-		cocciStream << "+  cublasSetVector (*(n), sizeType_"<<arrayPrefix<<","<<vecXRef<<", *(incx), "<<arrayPrefix<<"_X, *(incx));  \n\n";
+		cocciStream << "+  cublasSetVector (*(n), sizeType_"<<uPrefix<<","<<vecXRef<<", *(incx), "<<uPrefix<<"_X, *(incx));  \n\n";
 
 		cocciStream << "+  /* CUBLAS call */  \n";
-		cocciStream << "+  "<<cublasCall<<"(*(n),"<<arrayPrefix<<"_X,*(incx));  \n...>\n\n";
+		cocciStream << "+  "<<cublasCall<<"(*(n),"<<uPrefix<<"_X,*(incx));  \n...>\n\n";
 	}
 
-	FreeDeviceMemoryB2(cocciStream,arrayPrefix,false,true,false);
-	cocciStream << "+  cublasFree("<<arrayPrefix<<"_result); \n";
+	FreeDeviceMemoryB2(cocciStream,uPrefix,false,true,false);
+	cocciStream << "+  cublasFree("<<uPrefix<<"_result); \n";
 	cocciFptr << cocciStream.str();
 
 }
