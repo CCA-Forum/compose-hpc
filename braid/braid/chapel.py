@@ -759,16 +759,19 @@ class Chapel(object):
 
                 if mode <> sidl.in_:
                     cname = '_IOR_' + name
+                    
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                     
                     # wrap the C type in a native Chapel object
                     chpl_class_name = typ[1][-1]
                     conv = ir.Call(".".join(typ[1]) + "_static.wrap_" + chpl_class_name, [cname, chpl_param_ex_name])
-                    chpl_name = '_chpl_' + name
-                    post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, chpl_class_name), chpl_name)))
-                    post_call.append(ir.Stmt(ir.Assignment(chpl_name, conv)))
-                    return_expr.append(chpl_name)
-
+                    
+                    if name == 'retval':
+                        post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, chpl_class_name), name)))
+                    post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+                    
+                    if name == 'retval':
+                        return_expr.append(name)
             
             elif typ[0] == sidl.scoped_id:
                 # Symbol
@@ -793,7 +796,7 @@ class Chapel(object):
                     cname = name+'.self'
 
                 if mode <> sidl.in_:
-                    cname = '_IOR_'+name
+                    cname = '_IOR_' + name
                     # wrap the C type in a native Chapel object
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                     if mode == sidl.inout:
@@ -936,11 +939,7 @@ class Chapel(object):
         pre_call.append(extern_def_set_to_null)
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), chpl_local_exception_var)))
         pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", [chpl_local_exception_var])))
-        #pre_call.append('write("Pre call: "); printPtr(_ex);')
-        #pre_call.append('writeln("Pre call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
-        #pre_call.append('writeln("Calling ' + str(Name) + '");')
-
-        #post_call.append('writeln("Done Calling ' + str(Name) + '");')
+        
         post_call.append(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", [chpl_local_exception_var]),
             [
@@ -948,9 +947,7 @@ class Chapel(object):
                                    ir.Call("new " + chpl_base_exception, [chpl_local_exception_var])))
             ]
         )))
-        #post_call.append('write("Post call: "); printPtr(_ex);')
-        #post_call.append('writeln("Post call: ' + chpl_param_ex_name + ' = ", ' + chpl_param_ex_name + ');')
-
+        
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         
         # return value type conversion -- treat it as an out argument
