@@ -14,6 +14,9 @@ module sidl {
   class BaseInterface {
     var self: sidl_BaseInterface__object;
   }
+  
+  _extern proc sidl_BaseClass__createObject(d_data: int, inout ex: sidl_BaseInterface__object): sidl_BaseClass__object;
+  
   // All the static methods of class BaseClass
   module BaseClass_static {
     proc create_BaseClass( inout _babel_param_ex: BaseException): BaseClass {
