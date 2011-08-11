@@ -628,11 +628,12 @@ BABEL_TESTS = \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl \
   regression/interop/overload/runChapel/overloadtest.chpl \
-  regression/interop/enums/runChapel/enumstest.chpl 
+  regression/interop/enums/runChapel/enumstest.chpl \
+  regression/interop/objarg/runChapel/objargtest.chpl 
 # regression/interop/sortb/runChapel/sortbtest.chpl
 
 BABEL_TESTNAMES = \
-  args arrays inherit strings exceptions ordering overload enums # sortb
+  args arrays inherit strings exceptions ordering overload enums objarg # sortb
 
 @ENABLE_INTEROP_REGRESSION_TRUE@CHPL_LOG_COMPILER = sh 
 # FIXME:
