@@ -48,7 +48,7 @@ endif
 .PHONY: doc
 doc:
 	@echo "  GEN [doxygen documentation]"
-	($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
+	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
         || echo "Doxygen not found; SKIPPING"
 
 doc/html/index.html:
@@ -70,12 +70,12 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
                -e 's/pos/OPTIONS\n=======\n\npos/' >>braid.txt
 	@echo >>braid.txt
 	@cat $(srcdir)/COPYRIGHT >>braid.txt
-	@if which rst2man; then \
+	@if which rst2man >/dev/null; then \
 		rst2man -v braid.txt $@; \
 	else \
 		echo "**WARNING rst2man not installed, did not update $@"; \
 	fi
-	@ echo rm -f braid.txt
+	@rm -f braid.txt
 
 distclean-local:
 	rm -f toolcheck.log

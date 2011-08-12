@@ -236,7 +236,6 @@ proc test_makeIMatrix() {
 }
 test_makeIMatrix();
 
-/**** FIXME make1DIMatrix ?
 proc test_chapelIMatrix() {
   magicNumber = clearstack(magicNumber);	
   tracker.writeComment("Start: test_chapelIMatrix", sidl_ex);
@@ -269,7 +268,6 @@ proc test_chapelIMatrix() {
   magicNumber = clearstack(magicNumber);
 }
 test_chapelIMatrix();
-***********/
 
 proc test_isSliceWorking() {
   magicNumber = clearstack(magicNumber);	

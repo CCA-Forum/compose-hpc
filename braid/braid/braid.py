@@ -43,7 +43,7 @@ def braid(args):
             pass
         elif re.match(r'([cC]hapel)|(chpl)', args.client):            
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
-            # FIXME Handle imports here after injection of sidl runtime
+            print "FIXME Handle imports here after injection of sidl runtime"
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
             chapel.Chapel(sidl_file, sidl_ast, symtab,
                           args.makefile, args.verbose).generate_client()

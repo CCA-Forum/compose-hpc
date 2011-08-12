@@ -114,6 +114,15 @@ def vcall(name, args, ci):
     """
     epv = ci.epv.get_type()
     cdecl = ci.epv.find_method(name)
+    # this is part of an ugly hack to make sure that self is
+    # dereferenced as self->d_object (by setting attr of self to the
+    # unused value of 'pure')
+    if ci.is_interface and args:
+        _, attrs, type, id, arguments, doc = cdecl
+        _, attrs0, mode0, type0, name0 = arguments[0]
+        arguments = [ir.Arg([ir.pure], mode0, type0, name0)]+arguments[1:]
+        cdecl = ir.Fn_decl(attrs, type, id, arguments, doc)
+        
     return ir.Stmt(ir.Call(ir.Deref(ir.Get_struct_item(epv,
                 ir.Deref(ir.Get_struct_item(ci.obj,
                                             ir.Deref('self'),
@@ -753,7 +762,6 @@ class Chapel(object):
 
             if is_obj_type(symbol_table, typ):
                 ctype = ior_type(symbol_table, typ)
-
                 if mode <> sidl.out:
                     cname = name + '.self_' + typ[1][-1]
 
@@ -959,7 +967,7 @@ class Chapel(object):
         if static:
             call_self = []
         else:
-            call_self = ["this.self_" + ci.epv.name]
+            call_self = ['this.self_' + ci.epv.name]
                 
 
         call_args = call_self + call_args + [chpl_local_exception_var]
