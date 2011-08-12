@@ -1,4 +1,5 @@
-#include "stub.h"
+#include <stdlib.h>
+#include "d_stub.h"
 
 /* stub file for rose to put output in and to test cocinelle rewrites on. */
 
@@ -15,18 +16,18 @@ static struct DType {
 	long y;
 } DType0 = { -1, 17L };
 
-int simpleton(struct dummy_insert *arg0,int x)
+int simpleton(struct dummy_insert *argadded,int x)
 {
-	if (arg0 != 4096) {
+	if (argadded != (struct dummy_insert *)4096) {
 		exit(2);
 	}
 	static int dummy_first;
 	return MULT(MULT(dummy_first,x), dummy_stub2);
 }
 
-int fred(struct dummy_insert *arg0,int x)
+int fred(struct dummy_insert *argadded,int x)
 {
-	if (arg0 != 4096) {
+	if (argadded != (struct dummy_insert *)4096) {
 		exit(2);
 	}
 	return simpleton(3);

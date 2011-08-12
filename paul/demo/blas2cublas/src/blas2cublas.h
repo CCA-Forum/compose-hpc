@@ -13,8 +13,8 @@ void handleSYHEMM(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleSYHERK(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleSYHER2K(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleTRSMM(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleGBMV(ofstream &, bool, bool, string, string, string, string, SgExprListExp*);
-void handleGEMV(ofstream &, bool, bool, string, string, string, string, SgExprListExp*);
+void handleGBMV(ofstream &, bool, bool, string, string, SgExprListExp*);
+void handleGEMV(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleGER(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleHSBMV(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleHSEYMV(ofstream &, bool, bool, string, string, SgExprListExp*);
@@ -26,15 +26,15 @@ void handleHSPR(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleTBSMV(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleTPSMV(ofstream &, bool, bool, string, string, SgExprListExp*);
 void handleTRSMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleSumNrm2Aminmax(ofstream &, string, string, SgExprListExp*);
-void handleAXPY(ofstream &, string, string, SgExprListExp*);
-void handleAXPBY(ofstream &, string, string, SgExprListExp*);
-void handleCOPY(ofstream &, string, string, SgExprListExp*);
-void handleDOT(ofstream &, string, string, SgExprListExp*);
-void handleSCAL(ofstream &, string, string, SgExprListExp*);
-void handleSWAP(ofstream &, string, string, SgExprListExp*);
-void handleROTM(ofstream &, string, string, SgExprListExp*);
-void handleROT(ofstream &, string, string, SgExprListExp*);
+void handleSumNrm2Aminmax(ofstream &, bool, string, string, SgExprListExp*);
+void handleAXPY(ofstream &, bool, string, string, SgExprListExp*);
+void handleAXPBY(ofstream &, bool, string, string, SgExprListExp*);
+void handleCOPY(ofstream &, bool, string, string, SgExprListExp*);
+void handleDOT(ofstream &, bool, string, string, SgExprListExp*);
+void handleSCAL(ofstream &, bool, string, string, SgExprListExp*);
+void handleSWAP(ofstream &, bool, string, string, SgExprListExp*);
+void handleROTM(ofstream &, bool, string, string, SgExprListExp*);
+void handleROT(ofstream &, bool, string, string, SgExprListExp*);
 
 inline void RowMajorWarning(ostringstream &cocciFptr, bool warnRowMajor){
 	if(warnRowMajor){

@@ -1,8 +1,3 @@
-#ben settings:
-# spatch is in /home/baallan/coke on ubuntu 1010220 vm
-BOOST_HOME=/home/baallan/diversity/roses/boost1450
-ROSE_HOME=/home/baallan/diversity/roses/b1210
-#end ben
 SOURCES    = scanner.l parser.y main.cpp \
 						 Annotation.cpp \
 						 Dynamic.cpp \

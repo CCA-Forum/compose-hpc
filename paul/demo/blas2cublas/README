@@ -20,7 +20,8 @@
 
 - If the C interface to BLAS is used and arrays are
   specified to be treated as if in row-major order,
-  then the transformation produces a warning since CUDA BLAS
+  then the transformation produces a warning for blas calls
+  that do not have transpose options as arguments, since CUDA BLAS
   assumes column-major storage of arrays. The user
   could then tweak the generated CUBLAS call to specify
   whether the arrays should be transposed or not.
@@ -30,8 +31,8 @@
   are hence not handled by this transformation. They are
   - BLAS 3 -> {c,z}gemm3m (handled by using CUDA cgemm,zgemm)
               {SC,DZ}GEMM, {SC,DZ}GEMV (Intel MKL only)
-  - BLAS 2 -> {s,d}gem2vu, {c,z}gem2vc 
-  - BLAS 1 -> {s}dsdot, {d,s}cabs1 
+  - BLAS 2 -> {s,d}gem2vu, {c,z}gem2vc (Intel MKL only)
+  - BLAS 1 -> {ds,sds}dot, {d,s}cabs1 
   - CUDA BLAS library provides routines for rotg, rotmg
     for completeness sake and are run on the CPU. Hence
     they are not transformed even if annotated.
@@ -65,7 +66,7 @@
 Annotations Specification
 --------------------------
 
-For BLAS level 3 routines the annotation required is shown in
+- The annotation required is shown in
 the following example.
 
 /*% BLAS_TO_CUBLAS prefix=device1 */
@@ -79,29 +80,15 @@ cblas_sgemm(...);
   For now the prefix selection to avoid name clashes
   is left to the user.
 
-For certain BLAS level 2 routines (gbmv, gemv) the
-annotation required is of the form
-
-/*% BLAS_TO_CUBLAS prefix=device1 lenX=10 lenY=20 */
-cblas_sgemv(...);
-
-where lenX and lenY are assigned the lengths itself as integers
-or the variable names in the original (non-transformed) code 
-that contain the lengths of vectors X, Y whose memory
-references are passed to these BLAS level 2 routines.
-
-The lengths of these vectors are not passed to
-the BLAS calls and hence the transformation 
-cannot figure out the size for the corresponding
-vectors to be allocated on the GPU memory.
-
 Running a sample transformation
 -------------------------------
 - The script Blas2Cublas.py in paul/demo folder is used
   to run the transformation.
 
 - The options to this script are
-  ./Blas2Cublas.py path-to-file BLAS_OPTION autoAnnot
+  ./Blas2Cublas.py path-to-file BLAS_OPTION autoAnnot 
+   where AnnotOptions={autoAnnot, autoAnnotNstop, PAUL} 
+
   where BLAS_OPTION is one of {MKL,BLAS} which 
   tells the script whether to use the Intel MKL library
   or any other BLAS library.
@@ -118,9 +105,29 @@ Running a sample transformation
 	  automatically annotates all BLAS calls in the source file
 	  provided.
 
-	- The vector lengths however for certain BLAS 2 routines need
-	  to be added manually to the annotaion options.
+	- The autoAnnotNstop option stops the script after automatically
+	  annotating the input source code. If not provided, the script proceeds
+	  to generate the transformed code. This option is used when the user
+	  wants to verify/add something to the automatically annotated code.
 
+	- After the user verifies/adds something to the automatically annotated code,
+	  he can run the script with the option PAUL which would resume the process of
+	  generating the transformed code taking the annotated code.
+          NOTE: When running with PAUL option the input file provided to the script
+		is the original input source file which is provided when the script
+		is run for the first time. The script automatically takes care of
+		resuming PAUL execution on the generated (annotated) code,
+		i.e. the name of the file (generated) which contains the annotations
+		need not be provided when running with the PAUL option.
+
+	Ex: ./Blas2Cublas.py ./test.c BLAS autoAnnotNstop
+
+		- generates rose_test.c and rose_trans_test.c (which has annotations)
+		- User reviews/adds something to rose_trans_test.c
+		- Then user should run ./Blas2Cublas.py ./test.c BLAS PAUL
+		  - With this the script runs PAUL on rose_trans_test.c
+		    and produces the transformed code.
+	  
 
 Blas2Cublas.py Usage Examples
 -----------------------------
@@ -207,9 +214,7 @@ NOTE: The line with options must start with %
 Work in Progress
 ----------------
 
-- Cleanup and document code that handles tranformations involving
-  blas1, blas2 routines.
-- Testing transformations involving blas1, blas2 routines.
+- Some more documentation in code generation.
 - Complete handling routines in BLAS 1 that return values
   ( dot*, sum, nrm2, amin, amax, rot* )
 

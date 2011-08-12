@@ -64,18 +64,23 @@ extension = fileName[fileName.rindex(".")+1:]
 cocciOptions = ""
 if(extension != "c"): cocciOptions = "-c++"
 
-os.system("%s -rose:skipfinalCompileStep %s %s" %(simpleTrans,fileName,linker))
+if(not (autoAnnotOption=="PAUL")):
+	os.system("%s -rose:skipfinalCompileStep %s %s" %(simpleTrans,fileName,linker))
 
-if(len(autoAnnotOption) != 0):
-    os.system("spatch %s -cocci_file %s rose_%s -o rose_trans_%s > /dev/null" %(cocciOptions,autoAnnot,fileName,fileName))
-    os.system("sed -i 's/%s/%s/g' rose_trans_%s" %("*\/;","*\/",fileName))
-else:
-    os.system("cp rose_%s rose_trans_%s" %(fileName,fileName))
+	if(len(autoAnnotOption) != 0):
+	    os.system("spatch %s -cocci_file %s rose_%s -o rose_trans_%s > /dev/null" %(cocciOptions,autoAnnot,fileName,fileName))
+	    os.system("sed -i 's/%s/%s/g' rose_trans_%s" %("*\/;","*\/",fileName))
+	else:
+	    os.system("cp rose_%s rose_trans_%s" %(fileName,fileName))
+
+	if(autoAnnotOption=="autoAnnotNstop"): quit()
 
 print "Running PAUL"
 os.system("%s rose_trans_%s.%s %s" %(paul,fName,extension,linker))
 
 blasCocci = "rose_trans_%s_blasCalls.cocci" %(fName)
+
+
 
 if(os.path.exists(blasCocci)):
     print "Transforming rose_trans_%s.%s" %(fName,extension)

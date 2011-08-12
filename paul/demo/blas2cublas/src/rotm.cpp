@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void handleROTM(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprListExp* fArgs){
+void handleROTM(ofstream &cocciFptr, bool checkBlasCallType, string fname, string uPrefix, SgExprListExp* fArgs){
 	
 	ostringstream cocciStream;
 
@@ -36,35 +36,56 @@ void handleROTM(ofstream &cocciFptr,string fname, string arrayPrefix, SgExprList
 
 	cocciStream << "- "<<blasCall<<"(n,"<<vecXRef<<",incx,"<<vecYRef<<",incy,"<<paramRef<<"); \n";
 
-	cocciStream << "+ "<<aType<<" *"<<arrayPrefix<<"_param;  \n";
-	cocciStream << "+ "<<aType<<" *"<<arrayPrefix<<"_result;  \n";
+	cocciStream << "+ "<<aType<<" *"<<uPrefix<<"_param;  \n";
+	cocciStream << "+ "<<aType<<" *"<<uPrefix<<"_result;  \n";
 
-	DeclareDevicePtrB2(cocciStream,aType,arrayPrefix,false,true,true);
+	DeclareDevicePtrB2(cocciStream,aType,uPrefix,false,true,true);
 
-	cocciStream << "+  /* Allocate device memory */  \n";
-	cocciStream << "+  cublasAlloc(n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_X);  \n";
-	cocciStream << "+  cublasAlloc(n, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_Y);  \n";
-	cocciStream << "+  cublasAlloc(5, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_param);  \n";
-	cocciStream << "+  cublasAlloc(1, sizeType_"<<arrayPrefix<<", (void**)&"<<arrayPrefix<<"_result);  \n";
+	if(checkBlasCallType){
 
-	cocciStream << "+  \n";
-	cocciStream << "+  /* Copy matrix, vectors to device */     \n";
-	cocciStream << "+  cublasSetVector ( n, sizeType_"<<arrayPrefix<<","<<vecXRef<<", incx, "<<arrayPrefix<<"_X, incx);  \n";
-	cocciStream << "+  cublasSetVector ( n, sizeType_"<<arrayPrefix<<","<<vecYRef<<", incy, "<<arrayPrefix<<"_Y, incy);  \n";
-	cocciStream << "+  cudaMemcpy("<<arrayPrefix<<"_param,"<<paramRef<<",5*sizeof("<<aType<<"),cudaMemcpyHostToDevice);  \n";
+		cocciStream << "+  /* Allocate device memory */  \n";
+		cocciStream << "+  cublasAlloc(n, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_X);  \n";
+		cocciStream << "+  cublasAlloc(n, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_Y);  \n";
+		cocciStream << "+  cublasAlloc(5, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_param);  \n";
+		cocciStream << "+  cublasAlloc(1, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_result);  \n\n";
 
+		cocciStream << "+  /* Copy matrix, vectors to device */     \n";
+		cocciStream << "+  cublasSetVector ( n, sizeType_"<<uPrefix<<","<<vecXRef<<", incx, "<<uPrefix<<"_X, incx);  \n";
+		cocciStream << "+  cublasSetVector ( n, sizeType_"<<uPrefix<<","<<vecYRef<<", incy, "<<uPrefix<<"_Y, incy);  \n";
+		cocciStream << "+  cudaMemcpy("<<uPrefix<<"_param,"<<paramRef<<",5*sizeof("<<aType<<"),cudaMemcpyHostToDevice);  \n\n";
 
-	cocciStream << "+  \n";
-	cocciStream << "+  /* CUBLAS call */  \n";
-	cocciStream << "+  "<<cublasCall<<"(n, "<<arrayPrefix<<"_X,incx,"<<arrayPrefix<<"_Y,incy,"<<arrayPrefix<<"_param);  \n";
+		cocciStream << "+  /* CUBLAS call */  \n";
+		cocciStream << "+  "<<cublasCall<<"(n, "<<uPrefix<<"_X,incx,"<<uPrefix<<"_Y,incy,"<<uPrefix<<"_param);  \n\n";
 
-	cocciStream << "+  \n";
-	cocciStream << "+  /* Copy result vectors back to host */  \n";
-	cocciStream << "+  cublasSetVector (n, sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_X, incx, "<<vecXRef<<", incx);  \n";
-	cocciStream << "+  cublasSetVector (n, sizeType_"<<arrayPrefix<<","<<arrayPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
-	FreeDeviceMemoryB2(cocciStream,arrayPrefix,false,true,true);
-	cocciStream << "+ cublasFree("<<arrayPrefix<<"_param);\n";
-	cocciStream << "+  cublasFree("<<arrayPrefix<<"_result); \n";
+		cocciStream << "+  /* Copy result vectors back to host */  \n";
+		cocciStream << "+  cublasSetVector (n, sizeType_"<<uPrefix<<","<<uPrefix<<"_X, incx, "<<vecXRef<<", incx);  \n";
+		cocciStream << "+  cublasSetVector (n, sizeType_"<<uPrefix<<","<<uPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
+	}
+
+	else{
+
+		cocciStream << "+  /* Allocate device memory */  \n";
+		cocciStream << "+  cublasAlloc(*(n), sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_X);  \n";
+		cocciStream << "+  cublasAlloc(*(n), sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_Y);  \n";
+		cocciStream << "+  cublasAlloc(5, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_param);  \n";
+		cocciStream << "+  cublasAlloc(1, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_result);  \n\n";
+
+		cocciStream << "+  /* Copy matrix, vectors to device */     \n";
+		cocciStream << "+  cublasSetVector ( *(n), sizeType_"<<uPrefix<<","<<vecXRef<<", *(incx), "<<uPrefix<<"_X, *(incx));  \n";
+		cocciStream << "+  cublasSetVector ( *(n), sizeType_"<<uPrefix<<","<<vecYRef<<", *(incy), "<<uPrefix<<"_Y, *(incy));  \n";
+		cocciStream << "+  cudaMemcpy("<<uPrefix<<"_param,"<<paramRef<<",5*sizeof("<<aType<<"),cudaMemcpyHostToDevice);  \n\n";
+
+		cocciStream << "+  /* CUBLAS call */  \n";
+		cocciStream << "+  "<<cublasCall<<"(*(n), "<<uPrefix<<"_X,*(incx),"<<uPrefix<<"_Y,*(incy),"<<uPrefix<<"_param);  \n\n";
+
+		cocciStream << "+  /* Copy result vectors back to host */  \n";
+		cocciStream << "+  cublasSetVector (*(n), sizeType_"<<uPrefix<<","<<uPrefix<<"_X, *(incx), "<<vecXRef<<", *(incx));  \n";
+		cocciStream << "+  cublasSetVector (*(n), sizeType_"<<uPrefix<<","<<uPrefix<<"_Y, *(incy), "<<vecYRef<<", *(incy));  \n";
+	}
+
+	FreeDeviceMemoryB2(cocciStream,uPrefix,false,true,true);
+	cocciStream << "+ cublasFree("<<uPrefix<<"_param);\n";
+	cocciStream << "+ cublasFree("<<uPrefix<<"_result); \n";
 	cocciFptr << cocciStream.str();
 
 }
