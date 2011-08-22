@@ -4,32 +4,32 @@ use sidl;
 
 config var bindir = "gantlet compatibility";
 
+var failed: bool = false;
 var part_no: int = 0;
 var sidl_ex: BaseException = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 
-proc init_part()
-{
+proc init_part() {
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
-  tracker.writeComment("Part "+part_no, sidl_ex);
+  tracker.writeComment("Part " + part_no, sidl_ex);
 }
 
-proc run_part(result: bool)
-{
+proc run_part(result: bool) {
   run_part("", result);
 }
 
-proc run_part(msg: string, result: bool)
-{
+proc run_part(msg: string, result: bool) {
   if (msg.length > 0) {
     tracker.writeComment(msg, sidl_ex);
   }
   var r: ResultType;
   if (result) then
     r = ResultType.PASS;
-  else
+  else {
     r = ResultType.FAIL;
+    failed = true;
+  }
   tracker.endPart(part_no, r, sidl_ex);
   tracker.writeComment("End of part " + part_no, sidl_ex);
 }
@@ -111,3 +111,6 @@ writeln();
 writeln();
 
 tracker.close(sidl_ex);
+
+if (failed) then
+  exit(1);

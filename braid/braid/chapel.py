@@ -2238,6 +2238,12 @@ LIBDIR=$(PREFIX)/lib
 # the default installation installs the stub header and IOR header files
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
+
+CC=`babel-config --query-var=CC`
+INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include -I$(SIDL_RUNTIME)/chpl
+CFLAGS=`babel-config --flags-c` -std=c99
+LIBS=`babel-config --libs-c-client`
+
 CHAPEL="""+config.CHAPEL+r"""
 CHAPEL_ROOT="""+config.CHAPEL_ROOT+r"""
 CHAPEL_MAKE_MEM=default
@@ -2313,11 +2319,6 @@ $(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
-
-CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include -I$(SIDL_RUNTIME)/chpl
-CFLAGS=`babel-config --flags-c` -std=c99
-LIBS=`babel-config --libs-c-client`
 
 STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
 IOROBJS=$(IORSRCS:.c=.lo)

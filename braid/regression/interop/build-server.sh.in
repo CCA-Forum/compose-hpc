@@ -50,5 +50,5 @@ echo "--compile server  [ $language / $TESTCASE ]"
 if [ x"$language" = x"Chapel" ]; then
     exec $MAKE all -C lib$language # verbose
 else
-    exec $MAKE all -C lib$language >/dev/null
+    exec $MAKE all -C lib$language #>/dev/null
 fi
