@@ -300,11 +300,17 @@ class Chapel(object):
                             for m in symbol_table[interf[1]][4]:
                                 add_method(m)
 
-                if extends:
-                    base = symbol_table[extends[1]]
-                    scan_class(sidl.class_extends(base), 
-                               sidl.class_implements(base), 
-                               sidl.class_methods(base))
+                for ext in extends:
+                    base = symbol_table[ext[1]]
+                    if base[0] == sidl.class_:
+                        scan_class(sidl.class_extends(base), 
+                                   sidl.class_implements(base), 
+                                   sidl.class_methods(base))
+                    elif base[0] == sidl.interface:
+                        scan_class(sidl.interface_extends(base), 
+                                   [], 
+                                   sidl.interface_methods(base))
+                    else: raise("?")
                     #scan_protocols(base[3])
                     #for m in base[5]:
                     #    add_method(m)
@@ -343,9 +349,9 @@ class Chapel(object):
 
             parent_classes = []
             extern_hier_visited = []
-            if extends:
-                sidl.visit_hierarchy(extends, gen_extern_casts, symbol_table, extern_hier_visited)
-                parent_classes += strip_common(symbol_table.prefix, extends[1])
+            for ext in extends:
+                sidl.visit_hierarchy(ext, gen_extern_casts, symbol_table, extern_hier_visited)
+                parent_classes += strip_common(symbol_table.prefix, ext[1])
 
             parent_interfaces = []
             for impls in implements:
@@ -472,8 +478,8 @@ class Chapel(object):
 
             gen_self_cast()
             casts_generated = [symbol_table.prefix+[name]]
-            if extends:
-                sidl.visit_hierarchy(extends, gen_cast, symbol_table, casts_generated)
+            for ext in extends:
+                sidl.visit_hierarchy(ext, gen_cast, symbol_table, casts_generated)
             for impls in implements:
                 for interf in impls[1]:
                     sidl.visit_hierarchy(interf, gen_cast, symbol_table, casts_generated)
@@ -666,8 +672,8 @@ class Chapel(object):
         with_sidl_baseclass = not data.is_interface
         
         # pointers to the base class' EPV
-        if extends:
-            gen_inherits(extends)
+        for ext in extends:
+            gen_inherits(ext)
             with_sidl_baseclass = False
 
         # pointers to the implemented interface's EPV
@@ -929,7 +935,6 @@ class Chapel(object):
             # since it might me a virtual function call through an
             # abstract interface
             pass
-        if final: attrs.append(ir.final)
         if static: attrs.append(ir.static)
 
         # this is an ugly hack to force generate_method_stub to to wrap the
@@ -1092,9 +1097,9 @@ class Chapel(object):
             refs = ['sidl_BaseException', 'sidl_BaseInterface']
             
             # lookup extends/impls clause
-            if extends:
-                refs.append('_'.join(extends[1]))
-                pass
+            for ext in extends:
+                refs.append('_'.join(ext[1]))
+
             for impls in implements:
                 for interface in impls[1]:
                     refs.append('_'.join(interface[1]))
@@ -1116,8 +1121,8 @@ class Chapel(object):
             for loop_ref in refs:
                 add_forward_defn(loop_ref)
         
-        if extends:
-            gen_cast(extends[1])
+        for ext in extends:
+            gen_cast(ext[1])
 
         for impls in implements:
             for interface in impls[1]:
@@ -1709,9 +1714,10 @@ class EPV(object):
                 typ = ir.Pointer_type(typ)
             name = 'f_'+Name+Extension
 
-            # discard the abstract attribute. Ir doen't know it
+            # discard the abstract/final attributes. Ir doesn't know them.
             attrs = set(Attrs)
             attrs.discard(sidl.abstract)
+            attrs.discard(sidl.final)
             attrs = list(attrs)
             args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(attrs, typ, name, args, DocComment)

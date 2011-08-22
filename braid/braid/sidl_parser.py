@@ -601,7 +601,8 @@ def p_structItem_2(p):
 def p_class(p):
     '''class : CLASS name maybeExtendsOne implementsSomeAllLists LBRACE invariants methods RBRACE'''
     no_comma(p[8])
-    p[0] = (sidl.class_, p[2], p[3], (p[4]), (p[6]), (p[7]), scanner.last_doc_comment())
+    ext = [p[3]] if p[3] else p[3]
+    p[0] = (sidl.class_, p[2], ext, (p[4]), (p[6]), (p[7]), scanner.last_doc_comment())
 
 def p_implementsSomeAllLists(p):
     '''implementsSomeAllLists : empty
