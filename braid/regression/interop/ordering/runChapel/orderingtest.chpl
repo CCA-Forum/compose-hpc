@@ -250,6 +250,8 @@ proc test_chapelIMatrix() {
   var chplArray_lower = chplArray_lus(0);
   var chplArray_upper = chplArray_lus(1);
   var chplArray_stride = chplArray_lus(2);
+
+  [(i) in [0..arraySize]] chplArray(i) = i;
               
   var wrappedArray: sidl_int__array = sidl_int__array_borrow(
         int_ptr(chplArray(chplArray.domain.low)),
@@ -257,8 +259,8 @@ proc test_chapelIMatrix() {
         chplArray_lower[1],
         chplArray_upper[1],
         chplArray_stride[1]);
-  var A: sidl.Array(int(32), sidl_int__array) = 
-		  new Array(chplArray.eltType, sidl_int__array, wrappedArray);
+  var A: sidl.Array(int(32), sidl_int__array) =
+  		  new Array(chplArray.eltType, sidl_int__array, wrappedArray);
   
   init_part(); run_part(" is not nil", A != nil);
   init_part(); run_part(" isIMatrixOne", Ordering.IntOrderTest_static.isIMatrixOne(A, sidl_ex));
