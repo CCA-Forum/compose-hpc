@@ -244,7 +244,7 @@ proc test_chapelIMatrix() {
   tracker.writeComment("Start: test_chapelIMatrix", sidl_ex);
 
   // make1DIMatrix()
-  var chplArray: [1 .. #arraySize] int(32);
+  var chplArray: [0 .. #arraySize] int(32);
   var chplArray_rank = chplArray.domain.rank;
   var chplArray_lus = computeLowerUpperAndStride(chplArray);
   var chplArray_lower = chplArray_lus(0);
@@ -260,7 +260,7 @@ proc test_chapelIMatrix() {
         chplArray_upper[1],
         chplArray_stride[1]);
   var A: sidl.Array(int(32), sidl_int__array) =
-  		  new Array(chplArray.eltType, sidl_int__array, wrappedArray);
+    new Array(chplArray.eltType, sidl_int__array, wrappedArray);
   
   init_part(); run_part(" is not nil", A != nil);
   init_part(); run_part(" isIMatrixOne", Ordering.IntOrderTest_static.isIMatrixOne(A, sidl_ex));
