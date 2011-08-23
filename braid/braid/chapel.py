@@ -174,10 +174,10 @@ class Chapel(object):
                      skel_parent=None):
             
             self.impl = ChapelFile()
-            self.chpl_stub = ChapelFile(stub_parent, relative_indent=4)
-            self.chpl_skel = ChapelFile(skel_parent, relative_indent=4)
-            self.chpl_static_stub = ChapelFile(self.chpl_stub)            
-            self.chpl_static_skel = ChapelFile(self.chpl_stub)            
+            self.chpl_method_stub = ChapelFile(stub_parent, relative_indent=4)
+            self.chpl_skel = ChapelFile(skel_parent, relative_indent=0)
+            self.chpl_static_stub = ChapelFile(stub_parent)            
+            self.chpl_static_skel = ChapelFile(skel_parent)            
             self.skel = CFile()
             self.epv = EPV(name, symbol_table)
             self.ior = CFile()
@@ -209,7 +209,7 @@ class Chapel(object):
         \li do the work
         """
         try:
-            self.generate_client1(self.sidl_ast, None, self.symbol_table)
+            self.generate_client_pkg(self.sidl_ast, None, self.symbol_table)
             if self.create_makefile:
                 generate_client_makefile(self.sidl_file, self.classes)
         except:
@@ -237,25 +237,27 @@ class Chapel(object):
 
 
     @matcher(globals(), debug=False)
-    def generate_client1(self, node, data, symbol_table):
+    def generate_client_pkg(self, node, data, symbol_table):
         """
         CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT CLIENT
         """
-        def gen(node):         return self.generate_client1(node, data, symbol_table)
-        def gen1(node, data1): return self.generate_client1(node, data1, symbol_table)
+        def gen(node):         return self.generate_client_pkg(node, data, symbol_table)
+        def gen1(node, data1): return self.generate_client_pkg(node, data1, symbol_table)
 
-        def generate_class_stub(name, methods, extends, is_interface, 
-                                implements=[]):
+        def generate_class_stub(name, methods, extends, doc_comment,
+                                is_interface, implements=[]):
             """
             shared code for class/interface
             """
             qname = '_'.join(symbol_table.prefix+[name])  
+            chpl_stub = ChapelFile()
             ci = self.ClassInfo(name, symbol_table, is_interface, 
-                                member_chk(sidl.abstract, self.class_attrs))
-            ci.chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
-            ci.chpl_stub.cstub.genh(ir.Import('sidlType'))
-            ci.chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
-            ci.chpl_stub.cstub.genh(ir.Import('chpltypes'))
+                                member_chk(sidl.abstract, self.class_attrs),
+                                stub_parent=chpl_stub)
+            chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
+            chpl_stub.cstub.genh(ir.Import('sidlType'))
+            chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
+            chpl_stub.cstub.genh(ir.Import('chpltypes'))
             self.gen_default_methods(symbol_table, extends, implements, ci)
 
             # Consolidate all methods, defined and inherited
@@ -334,10 +336,10 @@ class Chapel(object):
             # must be passed to the chpl compiler.
             typedefs = self.class_typedefs(qname, symbol_table)
             write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
-            chpl_defs = ci.chpl_stub
-            ci.chpl_stub = ChapelFile(chpl_defs)
-            ci.chpl_stub.new_def('use sidl;')
-            extrns = ChapelScope(ci.chpl_stub)
+            chpl_defs = chpl_stub
+            chpl_stub = ChapelFile(chpl_defs)
+            chpl_stub.new_def('use sidl;')
+            extrns = ChapelScope(chpl_stub)
 
             def gen_extern_casts(baseclass):
                 base = '_'.join(baseclass[1])
@@ -367,18 +369,18 @@ class Chapel(object):
                 interfaces = ' /*' + ', '.join(parent_interfaces) + '*/ '
 
             # extern declaration for the IOR
-            ci.chpl_stub.new_def('_extern record %s__object {'%qname)
-            ci.chpl_stub.new_def('};')
+            chpl_stub.new_def('_extern record %s__object {'%qname)
+            chpl_stub.new_def('};')
 
-            ci.chpl_stub.new_def(extrns)
-            ci.chpl_stub.new_def('_extern proc %s__createObject('%qname+
+            chpl_stub.new_def(extrns)
+            chpl_stub.new_def('_extern proc %s__createObject('%qname+
                                  'd_data: int, '+
                                  'inout ex: sidl_BaseInterface__object)'+
                                  ': %s__object;'%qname)
             name = chpl_gen(name)
             
-            chpl_class = ChapelScope(ci.chpl_stub)
-            chpl_static_helper = ChapelScope(ci.chpl_stub)
+            chpl_class = ChapelScope(chpl_stub)
+            chpl_static_helper = ChapelScope(chpl_stub)
 
             self_field_name = 'self_' + name
             # Generate create and wrap methods for classes to init/wrap the IOR
@@ -486,19 +488,22 @@ class Chapel(object):
 
             chpl_class.new_def(chpl_defs.get_defs())
             
-            ci.chpl_stub.new_def(chpl_defs.get_decls())
-            ci.chpl_stub.new_def('// All the static methods of class '+name)
-            ci.chpl_stub.new_def('module %s_static {'%name)
-            ci.chpl_stub.new_def(ci.chpl_static_stub.get_defs())
-            ci.chpl_stub.new_def(chpl_static_helper)
-            ci.chpl_stub.new_def('}')
-            ci.chpl_stub.new_def('class %s %s %s {'%(name,inherits,interfaces))
-            ci.chpl_stub.new_def(chpl_class)
-            ci.chpl_stub.new_def('}')
+            chpl_stub.new_def(chpl_defs.get_decls())
+            chpl_stub.new_def('// All the static methods of class '+name)
+            chpl_stub.new_def('module %s_static {'%name)
+            chpl_stub.new_def(ci.chpl_static_stub.get_defs())
+            chpl_stub.new_def(chpl_static_helper)
+            chpl_stub.new_def('}')
+            chpl_stub.new_def('')
+            chpl_stub.new_def(gen_doc_comment(doc_comment, chpl_stub)+
+                              'class %s %s %s {'%(name,inherits,interfaces))
+            chpl_stub.new_def(chpl_class)
+            chpl_stub.new_def(ci.chpl_method_stub)
+            chpl_stub.new_def('}')
             
             # This is important for the chapel stub, but we generate
-            # separate files vor the cstubs
-            self.pkg_chpl_stub.new_def(ci.chpl_stub)
+            # separate files for the cstubs
+            self.pkg_chpl_stub.new_def(chpl_stub)
 
 
             # IOR
@@ -506,7 +511,7 @@ class Chapel(object):
             write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
 
             # Stub (in C)
-            cstub = ci.chpl_stub.cstub
+            cstub = chpl_stub.cstub
             cstub.genh_top(ir.Import(qname+'_IOR'))
             for code in cstub.optional:
                 cstub.new_global_def(code)
@@ -530,12 +535,12 @@ class Chapel(object):
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                generate_class_stub(Name, Methods, Extends, False, Implements)
+                generate_class_stub(Name, Methods, Extends, DocComment, False, Implements)
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
                 expect(data, None)
-                generate_class_stub(Name, Methods, Extends, is_interface=True)
+                generate_class_stub(Name, Methods, Extends, DocComment, is_interface=True)
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
@@ -547,14 +552,14 @@ class Chapel(object):
                 if self.in_package:
                     # nested modules are generated in-line
                     self.pkg_chpl_stub.new_def('module %s {'%Name)
-                    self.generate_client1(UserTypes, data, symbol_table[[Name]])
+                    self.generate_client_pkg(UserTypes, data, symbol_table[[Name]])
                     self.pkg_chpl_stub.new_def('}')
                 else:
                     # new file for the toplevel package
-                    self.pkg_chpl_stub = ChapelFile()
+                    self.pkg_chpl_stub = ChapelFile(relative_indent=0)
                     self.pkg_enums = []
                     self.in_package = True
-                    self.generate_client1(UserTypes, data, symbol_table[[Name]])
+                    self.generate_client_pkg(UserTypes, data, symbol_table[[Name]])
                     qname = '_'.join(symbol_table.prefix+[Name])                
                     write_to(qname+'.chpl', str(self.pkg_chpl_stub))
 
@@ -569,10 +574,10 @@ class Chapel(object):
 
             elif (sidl.user_type, Attrs, Cipse):
                 self.class_attrs = Attrs
-                self.in_package = False
                 gen(Cipse)
 
             elif (sidl.file, Requires, Imports, UserTypes):
+                self.in_package = False
                 gen(UserTypes)
 
             elif A:
@@ -1054,10 +1059,10 @@ class Chapel(object):
             # extern_decl = ir.Fn_decl([], ctype,
             #                          callee, map(obj_by_value, cdecl_args), DocComment)
             # ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
-            # ci.chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
+            # chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
             chpl_gen(defn, ci.chpl_static_stub)
         else:
-            chpl_gen(defn, ci.chpl_stub)
+            chpl_gen(defn, ci.chpl_method_stub)
 
     def generate_ior(self, ci, extends, implements, methods):
         """
@@ -1930,6 +1935,15 @@ def c_gen(ir, scope=None):
         scope = CFile()
     return CCodeGenerator().generate(ir, scope)
 
+def gen_doc_comment(doc_comment, scope):
+    if doc_comment == '':
+        return ''
+    sep = '\n'+' '*scope.indent_level
+    return (sep+' * ').join(['/**']+
+                           re.split('\n\s*', doc_comment)
+                           )+sep+' */'+sep
+
+
 class ChapelCodeGenerator(ClikeCodeGenerator):
     type_map = {
         'void':      "void",
@@ -1966,7 +1980,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             '''used for things like if, while, ...'''
             comp_stmt = ChapelFile(scope, relative_indent=4)
             s = str(self.generate(body, comp_stmt))
-            return new_def(scope._sep.join([prefix+s,suffix]))
+            return new_def(scope._sep.join(['',prefix+s,suffix]))
         
         @accepts(str, str, str)
         def new_scope1(prefix, body, suffix):
@@ -1985,13 +1999,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         def tmap(f, l):
             return tuple(map(f, l))
 
-        def gen_comment(doc_comment):
-            if doc_comment == '':
-                return ''
-            sep = '\n'+' '*scope.indent_level
-            return (sep+' * ').join(['/**']+
-                                   re.split('\n\s*', doc_comment)
-                                   )+sep+' */'+sep
+        def gen_comment(DocComment):
+            return gen_doc_comment(DocComment, scope)
+
         cbool = '_Bool'
         int32 = 'int32_t'
         int64 = 'int64_t'

@@ -247,7 +247,7 @@ class Scope(object):
         \return \c self
         """
         #print 'new_def', s
-        if s <> self:
+        if s <> [] and s <> self:
             self._defs.extend(self._pre_defs)
             self._defs.append(self.break_line(str(s)))
             self._defs.extend(self._post_defs)
