@@ -544,23 +544,32 @@ class Chapel(object):
                 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel stub
-                self.pkg_chpl_stub = ChapelFile()
-                self.pkg_enums = []
-                self.generate_client1(UserTypes, data, symbol_table[[Name]])
-                qname = '_'.join(symbol_table.prefix+[Name])                
-                write_to(qname+'.chpl', str(self.pkg_chpl_stub))
+                if self.in_package:
+                    # nested modules are generated in-line
+                    self.pkg_chpl_stub.new_def('module %s {'%Name)
+                    self.generate_client1(UserTypes, data, symbol_table[[Name]])
+                    self.pkg_chpl_stub.new_def('}')
+                else:
+                    # new file for the toplevel package
+                    self.pkg_chpl_stub = ChapelFile()
+                    self.pkg_enums = []
+                    self.in_package = True
+                    self.generate_client1(UserTypes, data, symbol_table[[Name]])
+                    qname = '_'.join(symbol_table.prefix+[Name])                
+                    write_to(qname+'.chpl', str(self.pkg_chpl_stub))
 
-                pkg_h = CFile()
-                for enum in self.pkg_enums:
-                    pkg_h.gen(ir.Type_decl(enum))
-                write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
-
-                # Makefile
-                self.pkgs.append(qname)
+                    pkg_h = CFile()
+                    for enum in self.pkg_enums:
+                        pkg_h.gen(ir.Type_decl(enum))
+                    write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
+     
+                    # Makefile
+                    self.pkgs.append(qname)
 
 
             elif (sidl.user_type, Attrs, Cipse):
                 self.class_attrs = Attrs
+                self.in_package = False
                 gen(Cipse)
 
             elif (sidl.file, Requires, Imports, UserTypes):
