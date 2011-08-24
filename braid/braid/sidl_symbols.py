@@ -64,21 +64,21 @@ def build_symbol_table(node, symbol_table, verbose=True):
     with match(node):
         if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
             symbol_table[Name] = \
-                ( sidl.class_, (sidl.scoped_id, symbol_table.prefix+[Name], []),
+                ( sidl.class_, (sidl.scoped_id, symbol_table.prefix, Name, []),
                   Extends, Implements, Invariants, Methods )
 
         elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
             symbol_table[Name] = \
-                ( sidl.interface, (sidl.scoped_id, symbol_table.prefix+[Name], []),
+                ( sidl.interface, (sidl.scoped_id, symbol_table.prefix, Name, []),
                   Extends, Invariants, Methods )
 
         elif (sidl.enum, Name, Items, DocComment):
             symbol_table[Name] = node
 
-        elif (sidl.struct, (sidl.scoped_id, Names, Ext), Items, DocComment):
+        elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
             symbol_table[Names[-1]] = \
                 ( sidl.struct,
-                  (sidl.scoped_id, symbol_table.prefix+Names, []),
+                  (sidl.scoped_id, symbol_table.prefix+Prefix, Name, Ext),
                   Items )
 
         elif (sidl.package, Name, Version, UserTypes, DocComment):
@@ -88,7 +88,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
             symbol_table[Name] = SymbolTable(symbol_table,
                                              symbol_table.prefix+[Name])
-            build_symbol_table(UserTypes, symbol_table[[Name]], verbose)
+            build_symbol_table(UserTypes, symbol_table[sidl.Scoped_id([], Name, '')], verbose)
 
         elif (sidl.user_type, Attrs, Cipse):
             gen(Cipse)
@@ -128,11 +128,11 @@ def resolve_symbols(node, symbol_table, verbose=True):
     #        print node[0:5]
 
     with match(node):
-        if (sidl.scoped_id, Names, Ext):
-            prefix, name = symbol_table.get_full_name(Names)
+        if (sidl.scoped_id, Prefix, Name, Ext):
+            prefix, name = symbol_table.get_full_name(Prefix+[Name])
             # if name == ['BaseException']:
             #     print Names, "->", prefix, name
-            return (sidl.scoped_id, prefix+[name], Ext)
+            return (sidl.scoped_id, prefix, name, Ext)
         
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
@@ -204,7 +204,7 @@ def consolidate_packages(node):
                 return node
 
 
-class SymbolTable:
+class SymbolTable(object):
     """
     Hierarchical symbol table for SIDL identifiers.
     \arg prefix  parent package. A list of identifiers
@@ -232,11 +232,12 @@ class SymbolTable:
         except KeyError:
             return None
 
-    @accepts(types.InstanceType, list)
-    def __getitem__(self, scopes):
+    @accepts(object, tuple)
+    def __getitem__(self, scoped_id):
         """
         perform a recursive symbol lookup of a scoped identifier
         """
+        scopes = scoped_id[1]+[scoped_id[2]]
         n = len(scopes)
         symbol_table = self
         # go up (and down again) in the hierarchy

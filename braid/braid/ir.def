@@ -103,7 +103,8 @@
     | string
     | void ),
   Pointer_type = pointer_type(Type|Fn_decl),
-  Scoped_id = scoped_id([Id], Extension),
+  Scoped_id = scoped_id([Module], Id, Extension),
+  Module = 'STR',
   Extension = 'STR',
   Id = 'STR',
   DocComment='STR',

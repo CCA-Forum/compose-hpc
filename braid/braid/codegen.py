@@ -1296,12 +1296,12 @@ class CCodeGenerator(ClikeCodeGenerator):
             elif (ir.set_struct_item, _, StructName, (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
-            elif (ir.scoped_id, Names, Ext):
-                return '_'.join(Names)
+            elif (ir.scoped_id, Prefix, Name, Ext):
+                return '_'.join(Prefix+[Name])
 
-            elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
+            elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
                 return gen(#(ir.pointer_type, 
-                            (ir.struct, gen((ir.scoped_id, Names, Ext)), Items, DocComment))
+                            (ir.struct, gen((ir.scoped_id, Prefix, Name, Ext)), Items, DocComment))
 
             elif (ir.struct, Name, _, DocComment): 
                 return "struct %s"%gen(Name)
@@ -1746,8 +1746,8 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.struct, Name, Items):
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
-            elif (sidl.scoped_id, A, B):
-                return '%s%s' % (gen_dot_sep(A), gen(B))
+            elif (sidl.scoped_id, Prefix, Name, Ext):
+                return '%s%s' % (gen_dot_sep(Prefix+Name), gen(Ext))
 
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
             elif (sidl.method_name, Name, []):   return gen(Name)

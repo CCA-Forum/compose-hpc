@@ -95,7 +95,8 @@
 #     | string
 #     | void ),
 #   Pointer_type = pointer_type(Type|Fn_decl),
-#   Scoped_id = scoped_id([Id], Extension),
+#   Scoped_id = scoped_id([Module], Id, Extension),
+#   Module = 'STR',
 #   Extension = 'STR',
 #   Id = 'STR',
 #   DocComment='STR',
@@ -945,12 +946,12 @@ def Complex(*args):
 def Scoped_id(*args):
     """
     Construct a "scoped_id" node. Valid arguments are 
-    ([\c Id()], \c Extension())
-    \return (\c "Scoped_id", [\c Id()], \c Extension())
+    ([\c Module()], \c Id(), \c Extension())
+    \return (\c "Scoped_id", [\c Module()], \c Id(), \c Extension())
     """
     f = Scoped_id
-    if len(args) <> 2:
-        print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
     if isinstance(args[0], list):
@@ -972,6 +973,13 @@ def Scoped_id(*args):
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], PythonTypes.StringType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['scoped_id']+list(args))
@@ -1170,6 +1178,8 @@ def Primitive_type(*args):
         raise Exception("Grammar Error")
     return tuple(['primitive_type']+list(args))
 
+def STR():
+    return STR
 def STR():
     return STR
 def Type_decl(*args):
@@ -2727,16 +2737,28 @@ def complex_FLOAT(arg):
     else: return arg[2]
 
 
-def scoped_id_ids(arg):
+def scoped_id_modules(arg):
     """
     Accessor function.
-    \return the "ids" member of a "scoped_id" node.
+    \return the "modules" member of a "scoped_id" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
     elif arg[0] <> 'scoped_id':
         raise Exception("Grammar Error")
     else: return arg[1]
+
+
+def scoped_id_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "scoped_id" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'scoped_id':
+        raise Exception("Grammar Error")
+    else: return arg[2]
 
 
 def scoped_id_extension(arg):
@@ -2748,7 +2770,7 @@ def scoped_id_extension(arg):
         raise Exception("Grammar Error")
     elif arg[0] <> 'scoped_id':
         raise Exception("Grammar Error")
-    else: return arg[2]
+    else: return arg[3]
 
 
 # skipping \c DocComment=STR
@@ -2959,6 +2981,7 @@ def primitive_type_void(arg):
     else: return arg[1]
 
 
+# skipping \c Module=STR
 # skipping \c Extension=STR
 def type_decl_type(arg):
     """

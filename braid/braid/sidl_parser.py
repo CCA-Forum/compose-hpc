@@ -41,7 +41,7 @@
 #
 # </pre>
 #
-import logging, operator, os.path, sys
+import itertools, logging, operator, os.path, sys
 sys.path.append('.libs')
 import yacc, sidl, scanner
 #import ply.lex as lex
@@ -601,9 +601,15 @@ def p_structItem_2(p):
 def p_class(p):
     '''class : CLASS name maybeExtendsOne implementsSomeAllLists LBRACE invariants methods RBRACE'''
     no_comma(p[8])
-    ext = [p[3]] if p[3] else p[3]
     # Every class implicitly inherits from BaseClass
-    impl = (p[4]) if p[4] else [(sidl.scoped_id, (['sidl', 'BaseClass']), '')]
+    if not p[3]:
+        ext = [(sidl.extends, (sidl.scoped_id, ['sidl'], 'BaseClass', ''))]
+    else: ext = p[3]
+
+    if p[4]:
+        impl = list(itertools.chain.from_iterable(p[4]))
+    else: impl = p[4]
+
     p[0] = (sidl.class_, p[2], ext, impl, (p[6]), (p[7]), scanner.last_doc_comment())
 
 def p_implementsSomeAllLists(p):
@@ -636,7 +642,10 @@ def p_interface(p):
     '''interface : INTERFACE name extendsList LBRACE invariants methods RBRACE'''
     no_comma(p[7])
     # Every interface implicitly inherits from BaseInterface
-    exts = (p[3]) if p[3] else [(sidl.scoped_id, (['sidl', 'BaseInterface']), '')]
+    if p[3]:
+        exts = p[3] #list(itertools.chain.from_iterable(p[3]))
+    else:
+        exts = [(sidl.extends, (sidl.scoped_id, ['sidl'], 'BaseInterface', ''))]
     p[0] = (sidl.interface, p[2], exts, (p[5]), (p[6]), scanner.last_doc_comment())
 
 def p_scopedIDs(p): # +
@@ -648,19 +657,21 @@ def p_extendsList(p):
     '''extendsList : empty
                    | EXTENDS scopedIDs'''
     try2nd(p)
+    p[0] = map(lambda x: (sidl.extends, x), p[0])
 
 def p_maybeExtendsOne(p):
     '''maybeExtendsOne : empty
                        | EXTENDS scopedID'''
     try2nd(p)
+    if p[0]: p[0] = [(sidl.extends, p[0])]
 
 def p_implementsList(p):
     '''implementsList : IMPLEMENTS scopedIDs'''
-    p[0] = (sidl.implements, p[2])
+    p[0] = map(lambda x: (sidl.implements, x), p[2])
 
 def p_implementsAllList(p):
     '''implementsAllList : IMPLEMENTS_ALL scopedIDs'''
-    p[0] = (sidl.implements_all, p[2])
+    p[0] = map(lambda x: (sidl.implements_all, x), p[2])
 
 def p_method(p):
     '''method : methodAttrs typeVoid methodName LPAREN maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions'''
@@ -1050,13 +1061,10 @@ def p_maybeSemicolon(p):
 def p_scopedID(p):
     '''scopedID : maybeDot names empty
                 | maybeDot names EXTENSION'''
-
-    # print "FIXME: do symbol table lookup"
-    # see how chapel.py handles this!
     if p[3] == []:
-        p[0] = (sidl.scoped_id, (p[2]), '')
+        p[0] = (sidl.scoped_id, (p[2][:-1]), p[2][-1], '')
     else:
-        p[0] = (sidl.scoped_id, (p[2]), p[3])
+        p[0] = (sidl.scoped_id, (p[2][:-1]), p[2][-1], p[3])
 
 def p_names(p): # +
     '''names : name

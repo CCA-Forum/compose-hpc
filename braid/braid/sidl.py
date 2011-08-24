@@ -35,10 +35,10 @@
 #   Package = package(Id, Version, [User_type], Doc_comment),
 #   User_type = user_type([(Type_attr|Custom_attr)], Cipse),
 #   Cipse = ( Class
-# 	  | Interface
-# 	  | Package
-# 	  | Struct
-# 	  | Enum ),
+#           | Interface
+#           | Package
+#           | Struct
+#           | Enum ),
 #   Type_attr = (final | abstract),
 #   Id = 'STR',
 #   Doc_comment = 'STR',
@@ -49,19 +49,19 @@
 #   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
 #   Interface = interface(Id, [Extends], [Invariant], [Method], Doc_comment),
 #   Implements = ( implements(Scoped_id)
-# 	       | implements_all(Scoped_id)),
+#                | implements_all(Scoped_id)),
 #   Method = method(Type_void, Method_name, [Method_attr], [Arg],
-# 		  [Except], [From], [Require], [Ensure], Doc_comment),
+#                   [Except], [From], [Require], [Ensure], Doc_comment),
 #   Method_name = method_name(Id, Extension),
 #   Extension = 'STR',
 #   Type_void = ( void | Type ),
 #   Method_attr = ( oneway
-# 		| local
-# 		| static
-# 		| abstract
-# 		| final
-# 		| nonblocking
-# 		| copy ),
+#                 | local
+#                 | static
+#                 | abstract
+#                 | final
+#                 | nonblocking
+#                 | copy ),
 #   From = from(Scoped_id),
 #   Invariant = invariant(Assertion),
 #   Assertion = assertion(Id, AssertExpr),
@@ -69,11 +69,11 @@
 #   Ensure = ensure([Scoped_id]),
 #   Extends = extends([Scoped_id]),
 #   Arg = ( arg([Arg_attr], Mode, Type_void, Id)
-# 	| rarg([Arg_attr], Mode, Rarray) ),
+#         | rarg([Arg_attr], Mode, Rarray) ),
 #   Arg_attr = (copy | ['STR']),
 #   Custom_attr = ( custom_attribute('STR')
-# 		| custom_attribute_assoc('STR', 'STR')
-# 		),
+#                 | custom_attribute_assoc('STR', 'STR')
+#                 ),
 #   Mode = (in | out | inout),
 #   Type = (Primitive_type | Array | Scoped_id),
 #   Primitive_type = primitive_type(
@@ -86,16 +86,17 @@
 #   Extents = SimpleIntExpression,
 #   SimpleIntExpression = 'INT', % resolved by the parser?
 #   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
-# 	       | prefix_expr(Un_op, AssertExpr)
-# 	       | fn_eval(Id, [Arg])
-# 	       | var_ref(Id)
-# 	       | Id
-# 	       | Literal
-# 	       ),
+#                | prefix_expr(Un_op, AssertExpr)
+#                | fn_eval(Id, [Arg])
+#                | var_ref(Id)
+#                | Id
+#                | Literal
+#                ),
 #   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
-# 	  |plus|minus|times|divide|modulo|rem|pow),
+#           |plus|minus|times|divide|modulo|rem|pow),
 #   Un_op = ( is|log_not|bit_not ),
-#   Scoped_id = scoped_id([Id], Extension),
+#   Scoped_id = scoped_id([Module], Id, Extension),
+#   Module = 'STR',
 #   Literal = ('INT' | 'FLOAT' | 'STR' | pure | result | Complex),
 #   Complex = complex('FLOAT', 'FLOAT')
 # ].
@@ -386,12 +387,12 @@ def Version(*args):
 def Scoped_id(*args):
     """
     Construct a "scoped_id" node. Valid arguments are 
-    ([\c Id()], \c Extension())
-    \return (\c "Scoped_id", [\c Id()], \c Extension())
+    ([\c Module()], \c Id(), \c Extension())
+    \return (\c "Scoped_id", [\c Module()], \c Id(), \c Extension())
     """
     f = Scoped_id
-    if len(args) <> 2:
-        print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
     if isinstance(args[0], list):
@@ -413,6 +414,13 @@ def Scoped_id(*args):
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], PythonTypes.StringType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['scoped_id']+list(args))
@@ -1226,6 +1234,8 @@ def INT():
 # skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
+def STR():
+    return STR
 def Complex(*args):
     """
     Construct a "complex" node. Valid arguments are 
@@ -1879,16 +1889,28 @@ def version_INT(arg):
     else: return arg[1]
 
 
-def scoped_id_ids(arg):
+def scoped_id_modules(arg):
     """
     Accessor function.
-    \return the "ids" member of a "scoped_id" node.
+    \return the "modules" member of a "scoped_id" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
     elif arg[0] <> 'scoped_id':
         raise Exception("Grammar Error")
     else: return arg[1]
+
+
+def scoped_id_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "scoped_id" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'scoped_id':
+        raise Exception("Grammar Error")
+    else: return arg[2]
 
 
 def scoped_id_extension(arg):
@@ -1900,7 +1922,7 @@ def scoped_id_extension(arg):
         raise Exception("Grammar Error")
     elif arg[0] <> 'scoped_id':
         raise Exception("Grammar Error")
-    else: return arg[2]
+    else: return arg[3]
 
 
 # skipping \c Id=STR
@@ -2610,6 +2632,7 @@ def primitive_type_opaque(arg):
 # skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
+# skipping \c Module=STR
 def complex_FLOAT(arg):
     """
     Accessor function.
@@ -2914,7 +2937,7 @@ def var_ref_id(arg):
 pt_bool = Primitive_type(bool)
 pt_bool     = Primitive_type(bool)
 pt_char     = Primitive_type(char)
-pt_int	     = Primitive_type(int)
+pt_int      = Primitive_type(int)
 pt_long     = Primitive_type(long)
 pt_float    = Primitive_type(float)
 pt_double   = Primitive_type(double)
@@ -2930,31 +2953,30 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes = []):
  
     \arg visited_nodes         An optional list of nodes
                                to exclude from visiting.
- 			       Contains the list of visited
- 			       nodes after return.
+                              Contains the list of visited
+                              nodes after return.
     """
  
     def step(visited_nodes, base):
  
- 	visit_func(base)
- 	visited_nodes.append(base[1])
+       visit_func(base)
+       visited_nodes.append(base)
  
- 	n = symbol_table[base[1]]
- 	if n:
- 	    if n[0] == class_:
- 		extends = n[2]
- 		for ext in extends:
+       n = symbol_table[base]
+       if n:
+           if n[0] == class_:
+               extends = n[2]
+               for ext in extends:
                    if ext[1] not in visited_nodes:
- 		        step(visited_nodes, ext)
- 		for loop_impls in n[3]:
- 		    loop_interfaces = loop_impls[1]
- 		    for interface_sym in loop_interfaces:
- 			if interface_sym and interface_sym[1] not in visited_nodes:
- 			    step(visited_nodes, interface_sym)
- 	    elif n[0] == interface:
- 		for parent_interface in n[2]:
- 		    if parent_interface and parent_interface[1] not in visited_nodes:
- 			step(visited_nodes, parent_interface)
- 			    
+                       step(visited_nodes, ext)
+               for loop_impls in n[3]:
+                   loop_interface = loop_impls[1]
+                   if loop_interface and loop_interface not in visited_nodes:
+                       step(visited_nodes, loop_interface)
+           elif n[0] == interface:
+               for parent_interface in n[2]:
+                   if parent_interface[1] and parent_interface[1] not in visited_nodes:
+                       step(visited_nodes, parent_interface[1])
+                           
     if base_class and base_class[1] not in visited_nodes:
- 	step(visited_nodes, base_class)
+       step(visited_nodes, base_class)
