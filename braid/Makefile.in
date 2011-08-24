@@ -547,7 +547,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
-	$(am__append_16) chpl/sidl.inc chpl/array.inc chpl/barray.inc \
+	$(am__append_16) chpl/array.inc chpl/barray.inc \
 	chpl/darray.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
@@ -1605,7 +1605,8 @@ info-am: $(INFO_DEPS)
 install-data-am: install-info-am install-man \
 	install-nobase_includeHEADERS install-nobase_pythonPYTHON \
 	install-pythonPYTHON
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-am
 
 install-dvi-am: $(DVIS)
@@ -1737,8 +1738,8 @@ uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
 
 uninstall-man: uninstall-man1
 
-.MAKE: all check check-am check-html install install-am install-strip \
-	recheck recheck-html
+.MAKE: all check check-am check-html install install-am \
+	install-data-am install-strip recheck recheck-html
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-TESTS check-am \
 	check-html clean clean-aminfo clean-cscope clean-generic \
@@ -1749,15 +1750,15 @@ uninstall-man: uninstall-man1
 	distclean-generic distclean-libtool distclean-local \
 	distclean-tags distcleancheck distdir distuninstallcheck dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-binSCRIPTS install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-man1 install-nobase_includeHEADERS \
-	install-nobase_pyexecLTLIBRARIES install-nobase_pythonPYTHON \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-pythonPYTHON install-strip installcheck \
-	installcheck-am installcheck-binSCRIPTS installdirs \
-	maintainer-clean maintainer-clean-aminfo \
+	install-binSCRIPTS install-data install-data-am \
+	install-data-hook install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-man1 \
+	install-nobase_includeHEADERS install-nobase_pyexecLTLIBRARIES \
+	install-nobase_pythonPYTHON install-pdf install-pdf-am \
+	install-ps install-ps-am install-pythonPYTHON install-strip \
+	installcheck installcheck-am installcheck-binSCRIPTS \
+	installdirs maintainer-clean maintainer-clean-aminfo \
 	maintainer-clean-generic mostlyclean mostlyclean-aminfo \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am recheck recheck-html tags uninstall \
@@ -1887,6 +1888,7 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
+	rm -rf chpl/sidl_*.[ch]
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
@@ -1896,10 +1898,24 @@ clean-local: clean-braid
 		done; \
 	fi
 
-chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
-	@mkdir -p chpl
+chpl/sidl.chpl: chpl/array.inc chpl/barray.inc chpl/array_support.inc $(nobase_python_PYTHON)
+	@$(MKDIR_P) chpl
 	$(AM_V_GEN)
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $< -o $@
+	@echo "generating Chapel bindings for the SIDL runtime"
+	@cd chpl && \
+          env PYTHONPATH=../braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
+            -cchpl $(SIDL_PATH)/sidl.sidl --makefile
+	@echo "generating Chapel array extensions"
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array_support.inc >>$@
+
+#lib_LIBRARIES = libsidl.la
+#libsidl.la: chpl/sidl.chpl
+#	$(MAKE) -C chpl 
+
+install-data-hook:
+	@cp chpl/*.[ch] $(includedir)/chpl/
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

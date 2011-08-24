@@ -76,13 +76,13 @@ def babel_object_type(package, name):
     if isinstance(name, tuple):
         name = name[1]
     elif isinstance(name, str): name = [name]
-    return sidl.Scoped_id(package+name, "")
+    return sidl.Scoped_id(package+name, '')
 
 def babel_exception_type():
     """
     \return the SIDL node for the Babel exception type
     """
-    return babel_object_type(['sidl'], 'BaseInterface')
+    return babel_object_type(['sidl'], 'BaseException')
 
 def ir_babel_object_type(package, name):
     """
@@ -90,16 +90,13 @@ def ir_babel_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    if isinstance(name, tuple):
-        name = name[1]
-    elif isinstance(name, str): name = [name]
-    return ir.Pointer_type(ir.Struct(babel_object_type(package+name, '_object'), [], ''))
+    return ir.Pointer_type(ir.Struct(babel_object_type(package, name+'__object'), [], ''))
 
 def ir_babel_exception_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir_babel_object_type(['sidl'], 'BaseInterface')
+    return ir_babel_object_type(['sidl'], 'BaseException')
 
 def get_name(interface):
     (scoped_id, prefix, ext) = interface
@@ -249,7 +246,11 @@ class Chapel(object):
             """
             shared code for class/interface
             """
+            # Qualified name (C Version)
             qname = '_'.join(symbol_table.prefix+[name])  
+            # Qualified name including Chapel modules
+            mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
+            mod_name = '.'.join(symbol_table.prefix[1:]+[name])
             chpl_stub = ChapelFile()
             ci = self.ClassInfo(name, symbol_table, is_interface, 
                                 member_chk(sidl.abstract, self.class_attrs),
@@ -343,11 +344,12 @@ class Chapel(object):
 
             def gen_extern_casts(baseclass):
                 base = '_'.join(baseclass[1])
-                ex = 'inout ex: sidl_BaseInterface__object'
-                extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {0}__object;'
-                               .format(base, qname, ex))
-                extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {1}__object;'
-                               .format(base, qname, ex))
+                mod_base = '.'.join(baseclass[1][1:]+[base])
+                ex = 'inout ex: sidl_BaseException__object'
+                extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {3}__object;'
+                               .format(base, mod_qname, ex, mod_base))
+                extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {2}__object;'
+                               .format(mod_base, qname, mod_qname))
 
             parent_classes = []
             extern_hier_visited = []
@@ -375,23 +377,23 @@ class Chapel(object):
             chpl_stub.new_def(extrns)
             chpl_stub.new_def('_extern proc %s__createObject('%qname+
                                  'd_data: int, '+
-                                 'inout ex: sidl_BaseInterface__object)'+
-                                 ': %s__object;'%qname)
+                                 'inout ex: sidl_BaseException__object)'+
+                                 ': %s__object;'%mod_qname)
             name = chpl_gen(name)
             
             chpl_class = ChapelScope(chpl_stub)
-            chpl_static_helper = ChapelScope(chpl_stub)
+            chpl_static_helper = ChapelScope(chpl_stub, relative_indent=4)
 
             self_field_name = 'self_' + name
             # Generate create and wrap methods for classes to init/wrap the IOR
             
             # The field to point to the IOR
-            chpl_class.new_def('var ' + self_field_name + ': %s__object;' % qname)
+            chpl_class.new_def('var ' + self_field_name + ': %s__object;' % mod_qname)
 
             common_head = [
                 '  ' + extern_def_is_not_null,
                 '  ' + extern_def_set_to_null,
-                '  var ex: sidl_BaseInterface__object;',
+                '  var ex: sidl_BaseException__object;',
                 '  SET_TO_NULL(ex);'
             ]
             common_tail = [
@@ -415,11 +417,11 @@ class Chapel(object):
                      [wrapped_ex_arg],
                      create_body, 'Psuedo-Constructor to initialize the IOR object'), chpl_class)
                 # Create a static function to create the object using create()
-                wrap_static_defn = (ir.fn_defn, [], (ir.typedef_type, name),
+                wrap_static_defn = (ir.fn_defn, [], mod_name,
                     'create_' + name,
                     [wrapped_ex_arg],
                     [
-                        '  var inst = new %s();' % name,
+                        '  var inst = new %s();' % mod_name,
                         '  inst.init_%s(%s);' % (name, wrapped_ex_arg[4]),
                         '  return inst;'
                     ],
@@ -440,11 +442,11 @@ class Chapel(object):
                  'Pseudo-Constructor for wrapping an existing object'), chpl_class)
 
             # Create a static function to create the object using wrap()
-            wrap_static_defn = (ir.fn_defn, [], (ir.typedef_type, name),
+            wrap_static_defn = (ir.fn_defn, [], mod_name,
                 'wrap_' + name,
                 [wrapped_obj_arg, wrapped_ex_arg],
                 [
-                    '  var inst = new %s();' % name,
+                    '  var inst = new %s();' % mod_name,
                     '  inst.wrap(%s, %s);' % (wrapped_obj_arg[4], wrapped_ex_arg[4]),
                     '  return inst;'
                 ],
@@ -453,7 +455,7 @@ class Chapel(object):
 
             # Provide a destructor for the class
             destructor_body = []
-            destructor_body.append('var ex: sidl_BaseInterface__object;')
+            destructor_body.append('var ex: sidl_BaseException__object;')
             destructor_body.append(vcall('deleteRef', ['this.' + self_field_name, 'ex'], ci))
             if not ci.is_interface:
                 # Interfaces have no destructor
@@ -464,16 +466,17 @@ class Chapel(object):
 
             def gen_self_cast():
                 chpl_gen(
-                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % qname),
+                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % mod_qname),
                      '_'.join(['as']+[qname]), [],
                      ['return %s;' % self_field_name],
                      'return the current IOR pointer'), chpl_class)
 
             def gen_cast(base):
                 chpl_gen(
-                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % '_'.join(base[1])),
+                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % 
+                                      '.'.join(base[1][:-1]+['_'.join(base[1])])),
                      '_'.join(['as']+base[1]), [],
-                     ['var ex: sidl_BaseInterface__object;',
+                     ['var ex: sidl_BaseException__object;',
                       ('return %s(this.' + self_field_name + ', ex);') % '_'.join(['_cast']+base[1])],
                      'Create a down-casted version of the IOR pointer for\n'
                      'use with the alternate constructor'), chpl_class)
@@ -750,12 +753,12 @@ class Chapel(object):
             'typedef _%s__object* %s__object;'%(qname, qname),
             '#ifndef SIDL_BASE_INTERFACE_OBJECT',
             '#define SIDL_BASE_INTERFACE_OBJECT',
-            'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
-            'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
+            'typedef struct sidl_BaseException__object _sidl_BaseException__object;',
+            'typedef _sidl_BaseException__object* sidl_BaseException__object;',
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
             '#define SET_TO_NULL(aPtr) (*aPtr) = 0',
             '#endif',
-            '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
+            '%s__object %s__createObject(%s__object copy, sidl_BaseException__object* ex);'
             %(qname, qname, qname),
             ]
         return typedefs
@@ -792,10 +795,11 @@ class Chapel(object):
                     
                     # wrap the C type in a native Chapel object
                     chpl_class_name = typ[1][-1]
-                    conv = ir.Call(".".join(typ[1]) + "_static.wrap_" + chpl_class_name, [cname, chpl_param_ex_name])
+                    mod_chpl_class_name = '.'.join(typ[1][:-1]+[chpl_class_name])
+                    conv = ir.Call('.'.join(typ[1]) + '_static.wrap_' + chpl_class_name, [cname, chpl_param_ex_name])
                     
                     if name == 'retval':
-                        post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, chpl_class_name), name)))
+                        post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, mod_chpl_class_name), name)))
                     post_call.append(ir.Stmt(ir.Assignment(name, conv)))
                     
                     if name == 'retval':
@@ -851,7 +855,7 @@ class Chapel(object):
                 chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
                 
                 # sanity check on input arra:yensure domain is rectangular
-                pre_call.append(ir.Stmt(ir.Call("performSanityCheck",
+                pre_call.append(ir.Stmt(ir.Call('performSanityCheck',
                     [chpl_dom_var_name, '"{arg_name}"'.format(arg_name=arg_name)])))
                 # ensure we are working with a 'local' array
                 # FIXME Hack to define a variable without explicitly specifying type
@@ -1216,7 +1220,7 @@ class Chapel(object):
                                            %(qname,objname))
                 self.pkg_chpl_skel.new_def('_extern proc %s__createObject('%qname+
                                      'd_data: int, '+
-                                     'inout ex: sidl_BaseInterface__object)'+
+                                     'inout ex: sidl_BaseException__object)'+
                                      ': %s__object;'%qname)
                 self.pkg_chpl_skel.new_def(ci.chpl_skel)
 
@@ -1378,7 +1382,7 @@ class Chapel(object):
         #ci.chpl_skel.main_area.new_def('{\n')
         #ci.chpl_skel.main_area.new_def('var obj: %s__object;\n'%
         #                               '_'.join(ci.epv.symbol_table.prefix+[ci.epv.name]))
-        #ci.chpl_skel.main_area.new_def('var ex: sidl_BaseInterface__object;\n')
+        #ci.chpl_skel.main_area.new_def('var ex: sidl_BaseException__object;\n')
         #chpl_gen(argdecls+[dcall], ci.chpl_skel.main_area)
         #ci.chpl_skel.main_area.new_def('}\n')
 
@@ -1692,11 +1696,11 @@ def lower_type_ir(symbol_table, sidl_type):
                 t = Scalar_type[1]
             return ir.Typedef_type('sidl_%s__array'%t)
 
-        elif (sidl.class_, Name, _, _, _, _):
-            return ir_babel_object_type([], Name)
+        elif (sidl.class_, ScopedId, _, _, _, _):
+            return ir_babel_object_type(ScopedId[1][:-1], ScopedId[1][-1])
         
-        elif (sidl.interface, Name, _, _, _):
-            return ir_babel_object_type([], Name)
+        elif (sidl.interface, ScopedId, _, _, _):
+            return ir_babel_object_type(ScopedId[1][:-1], ScopedId[1][-1])
         
         else:
             raise Exception("Not implemented: " + str(sidl_type))
@@ -2120,16 +2124,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return "complex(128)"
             
             elif (ir.struct, (ir.scoped_id, Names, Ext), Items, DocComment):
-                return '_'.join(Names)
+                return '.'.join(Names[:-1]+['_'.join(Names)])
 
             elif (ir.var_decl, Type, Name):
-                return 'var %s:%s'%(gen(Name), gen(Type))
+                return 'var %s: %s'%(gen(Name), gen(Type))
 
             elif (ir.var_decl_init, (ir.typedef_type, "inferred_type"), Name, Initializer): 
                 return 'var %s = %s'%(gen(Name), gen(Initializer))
 
             elif (ir.var_decl_init, Type, Name, Initializer): 
-                return 'var %s:%s = %s'%(gen(Name), gen(Type), gen(Initializer))
+                return 'var %s: %s = %s'%(gen(Name), gen(Type), gen(Initializer))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
 
@@ -2164,8 +2168,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (sidl.custom_attribute, Id):       return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id) + gen(Extension)
-            elif (sidl.scoped_id, A, B):
-                return '%s%s' % (A[-1], gen(B))
+            elif (sidl.scoped_id, Names, Ext):
+                return '.'.join(Names[:-1]+[Names[-1]])
+                #return '%s%s' % (A[-1], gen(B))
 
             elif (Expr):
                 return super(ChapelCodeGenerator, self).generate(Expr, scope)
@@ -2298,7 +2303,7 @@ LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include
 CHPL_HEADERS=-I$(SIDL_RUNTIME)/chpl -M$(SIDL_RUNTIME)/chpl \
-  chpl_sidl_array.h
+  chpl_sidl_array.h $(SIDL_RUNTIME)/chpl/*.c
 
 # most of the rest of the file should not require editing
 

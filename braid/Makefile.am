@@ -84,6 +84,7 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
+	rm -rf chpl/sidl_*.[ch]
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
@@ -108,11 +109,25 @@ nobase_include_HEADERS += \
   chpl/sidl.chpl
 
 BUILT_SOURCES += chpl/sidl.chpl
-EXTRA_DIST += chpl/sidl.inc chpl/array.inc chpl/barray.inc chpl/darray.inc
+EXTRA_DIST += chpl/array.inc chpl/barray.inc chpl/darray.inc
 
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 
-chpl/sidl.chpl: chpl/sidl.inc chpl/array.inc 
-	@mkdir -p chpl
+chpl/sidl.chpl: chpl/array.inc chpl/barray.inc chpl/array_support.inc $(nobase_python_PYTHON)
+	@$(MKDIR_P) chpl
 	$(AM_V_GEN)
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $< -o $@
+	@echo "generating Chapel bindings for the SIDL runtime"
+	@cd chpl && \
+          env PYTHONPATH=../braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
+            -cchpl $(SIDL_PATH)/sidl.sidl --makefile
+	@echo "generating Chapel array extensions"
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array_support.inc >>$@
+
+#lib_LIBRARIES = libsidl.la
+#libsidl.la: chpl/sidl.chpl
+#	$(MAKE) -C chpl 
+
+install-data-hook:
+	@cp chpl/*.[ch] $(includedir)/chpl/

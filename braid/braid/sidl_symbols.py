@@ -132,7 +132,7 @@ def resolve_symbols(node, symbol_table, verbose=True):
             prefix, name = symbol_table.get_full_name(Names)
             # if name == ['BaseException']:
             #     print Names, "->", prefix, name
-            return (sidl.scoped_id, prefix+name, Ext)
+            return (sidl.scoped_id, prefix+[name], Ext)
         
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
@@ -292,7 +292,7 @@ class SymbolTable:
         #while symbol_table._parent:
         #    symbol_table = symbol_table.parent()
         #    scopes.insert(
-        r = symbol_table.prefix+scopes[0:len(scopes)-1], [scopes[-1]]
+        r = symbol_table.prefix+scopes[0:len(scopes)-1], scopes[-1]
         #print(' get_full_name: ' + str(scopes[0]) + ' resolved to ' + str(r))
         return r
 
