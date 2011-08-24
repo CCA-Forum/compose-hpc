@@ -2968,7 +2968,7 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes = []):
                extends = n[2]
                for ext in extends:
                    if ext[1] not in visited_nodes:
-                       step(visited_nodes, ext)
+                       step(visited_nodes, ext[1])
                for loop_impls in n[3]:
                    loop_interface = loop_impls[1]
                    if loop_interface and loop_interface not in visited_nodes:

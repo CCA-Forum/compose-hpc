@@ -131,4 +131,4 @@ chpl/sidl.chpl: chpl/array.inc chpl/barray.inc chpl/array_support.inc $(nobase_p
 $(SIDLSTUB_SRCS): chpl/sidl.chpl
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
-AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR)
+AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include

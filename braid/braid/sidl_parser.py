@@ -603,7 +603,9 @@ def p_class(p):
     no_comma(p[8])
     # Every class implicitly inherits from BaseClass
     if not p[3]:
-        ext = [(sidl.extends, (sidl.scoped_id, ['sidl'], 'BaseClass', ''))]
+        if p[2] <> 'BaseClass':
+            ext = [(sidl.extends, (sidl.scoped_id, ['sidl'], 'BaseClass', ''))]
+        else: ext = []
     else: ext = p[3]
 
     if p[4]:
@@ -641,11 +643,15 @@ def p_methods(p): # *
 def p_interface(p):
     '''interface : INTERFACE name extendsList LBRACE invariants methods RBRACE'''
     no_comma(p[7])
+
     # Every interface implicitly inherits from BaseInterface
     if p[3]:
-        exts = p[3] #list(itertools.chain.from_iterable(p[3]))
+        exts = p[3]
     else:
-        exts = [(sidl.extends, (sidl.scoped_id, ['sidl'], 'BaseInterface', ''))]
+        if p[2] <> 'BaseInterface':
+            exts = [(sidl.extends, (sidl.scoped_id, ['sidl'], 'BaseInterface', ''))]
+        else: exts = []
+
     p[0] = (sidl.interface, p[2], exts, (p[5]), (p[6]), scanner.last_doc_comment())
 
 def p_scopedIDs(p): # +
