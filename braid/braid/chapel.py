@@ -650,13 +650,13 @@ class Chapel(object):
             builtin(sidl.void, '_load', [])
 
         # Fixme: these should be inherited from BaseInterface
-        builtin(sidl.void, 'addRef', [])
-        builtin(sidl.void, 'deleteRef', [])
-        builtin(sidl.pt_bool, 'isSame',
-                [inarg(babel_exception_type(), 'iobj')])
-        builtin(sidl.pt_bool, 'isType',
-                [inarg(sidl.pt_string, 'type')])
-        builtin(babel_object_type(['sidl'], 'ClassInfo'), 'getClassInfo', [])
+        # builtin(sidl.void, 'addRef', [])
+        # builtin(sidl.void, 'deleteRef', [])
+        # builtin(sidl.pt_bool, 'isSame',
+        #         [inarg(babel_exception_type(), 'iobj')])
+        # builtin(sidl.pt_bool, 'isType',
+        #         [inarg(sidl.pt_string, 'type')])
+        # builtin(babel_object_type(['sidl'], 'ClassInfo'), 'getClassInfo', [])
 
         static_builtin(sidl.void, 'setHooks_static', 
                 [inarg(sidl.pt_bool, 'enable')])
@@ -2294,7 +2294,7 @@ CHPL=chpl --fast
 
 CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
 
-CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread
+CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread -lsidlstub_chpl
 
 CHPL_GASNET_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHAPEL_ROOT)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
@@ -2303,7 +2303,7 @@ LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include
 CHPL_HEADERS=-I$(SIDL_RUNTIME)/chpl -M$(SIDL_RUNTIME)/chpl \
-  chpl_sidl_array.h $(SIDL_RUNTIME)/chpl/*.c
+  chpl_sidl_array.h
 
 # most of the rest of the file should not require editing
 

@@ -80,6 +80,7 @@ PKG_CHECK_MODULES(BABEL, [babel >= 2.0.0],
      AC_SUBST([BABEL_PREFIX], [`$PKG_CONFIG babel --variable prefix`])
      AC_SUBST([SIDL_PATH], ["$BABEL_PREFIX/share"])
      AC_SUBST([BABEL_SRCDIR],  [`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`])
+     AC_SUBST([BABEL_INCLUDEDIR],  [`$BABEL_PREFIX/bin/babel-config --query-var=includedir`])
      AC_SUBST([BABEL_VERSION], [`$BABEL_PREFIX/bin/babel-config --query-var=VERSION`])
      BABEL_LANGS=`$BABEL_PREFIX/bin/babel-config --query-var=BABEL_SUPPORTED_LANGUAGES`
      AC_SUBST([BABEL_SUPPORTED_LANGUAGES], [$BABEL_LANGS])

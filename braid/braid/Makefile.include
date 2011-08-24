@@ -24,9 +24,10 @@ PYTHON_SOURCES = \
 	braid/sidl_token.py \
 	braid/splicer.py
 
+BUILT_PYTHON_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
 # the nobase_ prefix prevents path stripping during install
-nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_SOURCES)
-BUILT_SOURCES += braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
+nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
+BUILT_SOURCES += $(BUILT_PYTHON_SOURCES)
 GRAMMARS = braid/ir.def braid/sidl.def
 
 bin_SCRIPTS += braid/braid braid/headerize

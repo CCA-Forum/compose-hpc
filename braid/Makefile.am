@@ -31,6 +31,7 @@ EXTRA_DIST= \
 # Recursive make considered harmful
 include braid/Makefile.include
 include regression/interop/Makefile.include
+include chpl/Makefile.include
 include chapel-patches/Makefile.include
 
 DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
@@ -106,9 +107,10 @@ endif
 # Runtime support files
 nobase_include_HEADERS += \
   chpl/chpl_sidl_array.h \
-  chpl/sidl.chpl
+  chpl/sidl.chpl \
+  $(SIDLSTUB_HDRS)
 
-BUILT_SOURCES += chpl/sidl.chpl
+BUILT_SOURCES += chpl/sidl.chpl $(SIDLSTUB_SRCS)
 EXTRA_DIST += chpl/array.inc chpl/barray.inc chpl/darray.inc
 
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
@@ -119,15 +121,14 @@ chpl/sidl.chpl: chpl/array.inc chpl/barray.inc chpl/array_support.inc $(nobase_p
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd chpl && \
           env PYTHONPATH=../braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
-            -cchpl $(SIDL_PATH)/sidl.sidl --makefile
+            -cchpl $(SIDL_PATH)/sidl.sidl
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array_support.inc >>$@
 
-#lib_LIBRARIES = libsidl.la
-#libsidl.la: chpl/sidl.chpl
-#	$(MAKE) -C chpl 
-
-install-data-hook:
-	@cp chpl/*.[ch] $(includedir)/chpl/
+# Rules to build the Chapel stubs for the SIDL runtime
+$(SIDLSTUB_SRCS): chpl/sidl.chpl
+lib_LTLIBRARIES = libsidlstub_chpl.la
+libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
+AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR)

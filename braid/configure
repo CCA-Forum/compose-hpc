@@ -646,6 +646,7 @@ BABEL_LANG_C_FALSE
 BABEL_LANG_C_TRUE
 BABEL_SUPPORTED_LANGUAGES
 BABEL_VERSION
+BABEL_INCLUDEDIR
 BABEL_SRCDIR
 SIDL_PATH
 BABEL_PREFIX
@@ -14617,6 +14618,8 @@ $as_echo "yes" >&6; }
      SIDL_PATH="$BABEL_PREFIX/share"
 
      BABEL_SRCDIR=`$BABEL_PREFIX/bin/babel-config --query-var=abs_top_srcdir`
+
+     BABEL_INCLUDEDIR=`$BABEL_PREFIX/bin/babel-config --query-var=includedir`
 
      BABEL_VERSION=`$BABEL_PREFIX/bin/babel-config --query-var=VERSION`
 

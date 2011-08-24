@@ -47,6 +47,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/braid/Makefile.include \
 	$(srcdir)/chapel-patches/Makefile.include \
+	$(srcdir)/chpl/Makefile.include \
 	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
@@ -137,11 +138,11 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" \
-	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" \
-	"$(DESTDIR)$(includedir)"
-LTLIBRARIES = $(nobase_pyexec_LTLIBRARIES)
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" \
+	"$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" \
+	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" \
+	"$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"
+LTLIBRARIES = $(lib_LTLIBRARIES) $(nobase_pyexec_LTLIBRARIES)
 braid_scanner_la_DEPENDENCIES =
 am_braid_scanner_la_OBJECTS = braid_scanner_la-scanner.lo
 braid_scanner_la_OBJECTS = $(am_braid_scanner_la_OBJECTS)
@@ -153,6 +154,40 @@ braid_scanner_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(braid_scanner_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
 am__dirstamp = $(am__leading_dot)dirstamp
+libsidlstub_chpl_la_LIBADD =
+am__objects_1 = sidl_BaseClass_cStub.lo sidl_BaseException_cStub.lo \
+	sidl_BaseInterface_cStub.lo sidl_CastException_cStub.lo \
+	sidl_ClassInfo_cStub.lo sidl_ClassInfoI_cStub.lo \
+	sidl_DFinder_cStub.lo sidl_DLL_cStub.lo \
+	sidl_EnfPolicy_cStub.lo sidl_Finder_cStub.lo \
+	sidl_InvViolation_cStub.lo sidl_io_Deserializer_cStub.lo \
+	sidl_io_IOException_cStub.lo sidl_io_Serializable_cStub.lo \
+	sidl_io_Serializer_cStub.lo \
+	sidl_LangSpecificException_cStub.lo sidl_Loader_cStub.lo \
+	sidl_MemAllocException_cStub.lo \
+	sidl_NotImplementedException_cStub.lo \
+	sidl_PostViolation_cStub.lo sidl_PreViolation_cStub.lo \
+	sidl_rmi_BindException_cStub.lo sidl_rmi_Call_cStub.lo \
+	sidl_rmi_ConnectException_cStub.lo \
+	sidl_rmi_ConnectRegistry_cStub.lo \
+	sidl_rmi_InstanceHandle_cStub.lo \
+	sidl_rmi_InstanceRegistry_cStub.lo \
+	sidl_rmi_Invocation_cStub.lo \
+	sidl_rmi_MalformedURLException_cStub.lo \
+	sidl_rmi_NetworkException_cStub.lo \
+	sidl_rmi_NoRouteToHostException_cStub.lo \
+	sidl_rmi_NoServerException_cStub.lo \
+	sidl_rmi_ObjectDoesNotExistException_cStub.lo \
+	sidl_rmi_ProtocolException_cStub.lo \
+	sidl_rmi_ProtocolFactory_cStub.lo sidl_rmi_Response_cStub.lo \
+	sidl_rmi_Return_cStub.lo sidl_rmi_ServerInfo_cStub.lo \
+	sidl_rmi_ServerRegistry_cStub.lo sidl_rmi_TicketBook_cStub.lo \
+	sidl_rmi_Ticket_cStub.lo sidl_rmi_TimeOutException_cStub.lo \
+	sidl_rmi_UnexpectedCloseException_cStub.lo \
+	sidl_rmi_UnknownHostException_cStub.lo \
+	sidl_RuntimeException_cStub.lo sidl_SIDLException_cStub.lo
+am_libsidlstub_chpl_la_OBJECTS = $(am__objects_1)
+libsidlstub_chpl_la_OBJECTS = $(am_libsidlstub_chpl_la_OBJECTS)
 SCRIPTS = $(bin_SCRIPTS) $(noinst_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -187,8 +222,9 @@ YLWRAP = $(top_srcdir)/config/ylwrap
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN     " $@;
-SOURCES = $(braid_scanner_la_SOURCES)
-DIST_SOURCES = $(braid_scanner_la_SOURCES)
+SOURCES = $(braid_scanner_la_SOURCES) $(libsidlstub_chpl_la_SOURCES)
+DIST_SOURCES = $(braid_scanner_la_SOURCES) \
+	$(libsidlstub_chpl_la_SOURCES)
 AM_V_DVIPS = $(am__v_DVIPS_$(V))
 am__v_DVIPS_ = $(am__v_DVIPS_$(AM_DEFAULT_VERBOSITY))
 am__v_DVIPS_0 = @echo "  DVIPS   " $@;
@@ -355,6 +391,7 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 BABEL_CFLAGS = @BABEL_CFLAGS@
+BABEL_INCLUDEDIR = @BABEL_INCLUDEDIR@
 BABEL_LIBS = @BABEL_LIBS@
 BABEL_PREFIX = @BABEL_PREFIX@
 BABEL_SRCDIR = @BABEL_SRCDIR@
@@ -514,18 +551,18 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_17)
-
 # the nobase_ prefix prevents path stripping during install
-nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_SOURCES)
+nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
 noinst_PYTHON = 
 
 ########################################################################
 # Babel functionality: 
 
 # Runtime support files
-nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl
-BUILT_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py \
-	braid/legal.py chpl/sidl.chpl
+nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl \
+	$(SIDLSTUB_HDRS)
+BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) chpl/sidl.chpl \
+	$(SIDLSTUB_SRCS)
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
 bin_SCRIPTS = braid/braid braid/headerize
 TESTS = $(am__append_1) $(am__append_2)
@@ -569,6 +606,7 @@ PYTHON_SOURCES = \
 	braid/sidl_token.py \
 	braid/splicer.py
 
+BUILT_PYTHON_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
 GRAMMARS = braid/ir.def braid/sidl.def
 braid_scanner_la_SOURCES = braid/scanner.l
 braid_scanner_la_CPPFLAGS = $(PYTHONINC)
@@ -673,6 +711,195 @@ BABEL_TESTNAMES = \
 
 @ENABLE_INTEROP_REGRESSION_TRUE@STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
 @ENABLE_INTEROP_REGRESSION_TRUE@ALLTESTS = $(STATIC_TESTS)
+SIDLSTUB_SRCS = \
+  chpl/sidl_BaseClass_cStub.c \
+  chpl/sidl_BaseException_cStub.c \
+  chpl/sidl_BaseInterface_cStub.c \
+  chpl/sidl_CastException_cStub.c \
+  chpl/sidl_ClassInfo_cStub.c \
+  chpl/sidl_ClassInfoI_cStub.c \
+  chpl/sidl_DFinder_cStub.c \
+  chpl/sidl_DLL_cStub.c \
+  chpl/sidl_EnfPolicy_cStub.c \
+  chpl/sidl_Finder_cStub.c \
+  chpl/sidl_InvViolation_cStub.c \
+  chpl/sidl_io_Deserializer_cStub.c \
+  chpl/sidl_io_IOException_cStub.c \
+  chpl/sidl_io_Serializable_cStub.c \
+  chpl/sidl_io_Serializer_cStub.c \
+  chpl/sidl_LangSpecificException_cStub.c \
+  chpl/sidl_Loader_cStub.c \
+  chpl/sidl_MemAllocException_cStub.c \
+  chpl/sidl_NotImplementedException_cStub.c \
+  chpl/sidl_PostViolation_cStub.c \
+  chpl/sidl_PreViolation_cStub.c \
+  chpl/sidl_rmi_BindException_cStub.c \
+  chpl/sidl_rmi_Call_cStub.c \
+  chpl/sidl_rmi_ConnectException_cStub.c \
+  chpl/sidl_rmi_ConnectRegistry_cStub.c \
+  chpl/sidl_rmi_InstanceHandle_cStub.c \
+  chpl/sidl_rmi_InstanceRegistry_cStub.c \
+  chpl/sidl_rmi_Invocation_cStub.c \
+  chpl/sidl_rmi_MalformedURLException_cStub.c \
+  chpl/sidl_rmi_NetworkException_cStub.c \
+  chpl/sidl_rmi_NoRouteToHostException_cStub.c \
+  chpl/sidl_rmi_NoServerException_cStub.c \
+  chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c \
+  chpl/sidl_rmi_ProtocolException_cStub.c \
+  chpl/sidl_rmi_ProtocolFactory_cStub.c \
+  chpl/sidl_rmi_Response_cStub.c \
+  chpl/sidl_rmi_Return_cStub.c \
+  chpl/sidl_rmi_ServerInfo_cStub.c \
+  chpl/sidl_rmi_ServerRegistry_cStub.c \
+  chpl/sidl_rmi_TicketBook_cStub.c \
+  chpl/sidl_rmi_Ticket_cStub.c \
+  chpl/sidl_rmi_TimeOutException_cStub.c \
+  chpl/sidl_rmi_UnexpectedCloseException_cStub.c \
+  chpl/sidl_rmi_UnknownHostException_cStub.c \
+  chpl/sidl_RuntimeException_cStub.c \
+  chpl/sidl_SIDLException_cStub.c
+
+SIDLSTUB_HDRS = \
+  chpl/sidl_BaseClass_cStub.h \
+  chpl/sidl_BaseClass_IOR.h \
+  chpl/sidl_BaseClass_Stub.h \
+  chpl/sidl_BaseException_cStub.h \
+  chpl/sidl_BaseException_IOR.h \
+  chpl/sidl_BaseException_Stub.h \
+  chpl/sidl_BaseInterface_cStub.h \
+  chpl/sidl_BaseInterface_IOR.h \
+  chpl/sidl_BaseInterface_Stub.h \
+  chpl/sidl_CastException_cStub.h \
+  chpl/sidl_CastException_IOR.h \
+  chpl/sidl_CastException_Stub.h \
+  chpl/sidl_ClassInfo_cStub.h \
+  chpl/sidl_ClassInfoI_cStub.h \
+  chpl/sidl_ClassInfoI_IOR.h \
+  chpl/sidl_ClassInfo_IOR.h \
+  chpl/sidl_ClassInfoI_Stub.h \
+  chpl/sidl_ClassInfo_Stub.h \
+  chpl/sidl_DFinder_cStub.h \
+  chpl/sidl_DFinder_IOR.h \
+  chpl/sidl_DFinder_Stub.h \
+  chpl/sidl_DLL_cStub.h \
+  chpl/sidl_DLL_IOR.h \
+  chpl/sidl_DLL_Stub.h \
+  chpl/sidl_EnfPolicy_cStub.h \
+  chpl/sidl_EnfPolicy_IOR.h \
+  chpl/sidl_EnfPolicy_Stub.h \
+  chpl/sidl_Finder_cStub.h \
+  chpl/sidl_Finder_IOR.h \
+  chpl/sidl_Finder_Stub.h \
+  chpl/sidl.h \
+  chpl/sidl_InvViolation_cStub.h \
+  chpl/sidl_InvViolation_IOR.h \
+  chpl/sidl_InvViolation_Stub.h \
+  chpl/sidl_io_Deserializer_cStub.h \
+  chpl/sidl_io_Deserializer_IOR.h \
+  chpl/sidl_io_Deserializer_Stub.h \
+  chpl/sidl_io_IOException_cStub.h \
+  chpl/sidl_io_IOException_IOR.h \
+  chpl/sidl_io_IOException_Stub.h \
+  chpl/sidl_io_Serializable_cStub.h \
+  chpl/sidl_io_Serializable_IOR.h \
+  chpl/sidl_io_Serializable_Stub.h \
+  chpl/sidl_io_Serializer_cStub.h \
+  chpl/sidl_io_Serializer_IOR.h \
+  chpl/sidl_io_Serializer_Stub.h \
+  chpl/sidl_LangSpecificException_cStub.h \
+  chpl/sidl_LangSpecificException_IOR.h \
+  chpl/sidl_LangSpecificException_Stub.h \
+  chpl/sidl_Loader_cStub.h \
+  chpl/sidl_Loader_IOR.h \
+  chpl/sidl_Loader_Stub.h \
+  chpl/sidl_MemAllocException_cStub.h \
+  chpl/sidl_MemAllocException_IOR.h \
+  chpl/sidl_MemAllocException_Stub.h \
+  chpl/sidl_NotImplementedException_cStub.h \
+  chpl/sidl_NotImplementedException_IOR.h \
+  chpl/sidl_NotImplementedException_Stub.h \
+  chpl/sidl_PostViolation_cStub.h \
+  chpl/sidl_PostViolation_IOR.h \
+  chpl/sidl_PostViolation_Stub.h \
+  chpl/sidl_PreViolation_cStub.h \
+  chpl/sidl_PreViolation_IOR.h \
+  chpl/sidl_PreViolation_Stub.h \
+  chpl/sidl_rmi_BindException_cStub.h \
+  chpl/sidl_rmi_BindException_IOR.h \
+  chpl/sidl_rmi_BindException_Stub.h \
+  chpl/sidl_rmi_Call_cStub.h \
+  chpl/sidl_rmi_Call_IOR.h \
+  chpl/sidl_rmi_Call_Stub.h \
+  chpl/sidl_rmi_ConnectException_cStub.h \
+  chpl/sidl_rmi_ConnectException_IOR.h \
+  chpl/sidl_rmi_ConnectException_Stub.h \
+  chpl/sidl_rmi_ConnectRegistry_cStub.h \
+  chpl/sidl_rmi_ConnectRegistry_IOR.h \
+  chpl/sidl_rmi_ConnectRegistry_Stub.h \
+  chpl/sidl_rmi_InstanceHandle_cStub.h \
+  chpl/sidl_rmi_InstanceHandle_IOR.h \
+  chpl/sidl_rmi_InstanceHandle_Stub.h \
+  chpl/sidl_rmi_InstanceRegistry_cStub.h \
+  chpl/sidl_rmi_InstanceRegistry_IOR.h \
+  chpl/sidl_rmi_InstanceRegistry_Stub.h \
+  chpl/sidl_rmi_Invocation_cStub.h \
+  chpl/sidl_rmi_Invocation_IOR.h \
+  chpl/sidl_rmi_Invocation_Stub.h \
+  chpl/sidl_rmi_MalformedURLException_cStub.h \
+  chpl/sidl_rmi_MalformedURLException_IOR.h \
+  chpl/sidl_rmi_MalformedURLException_Stub.h \
+  chpl/sidl_rmi_NetworkException_cStub.h \
+  chpl/sidl_rmi_NetworkException_IOR.h \
+  chpl/sidl_rmi_NetworkException_Stub.h \
+  chpl/sidl_rmi_NoRouteToHostException_cStub.h \
+  chpl/sidl_rmi_NoRouteToHostException_IOR.h \
+  chpl/sidl_rmi_NoRouteToHostException_Stub.h \
+  chpl/sidl_rmi_NoServerException_cStub.h \
+  chpl/sidl_rmi_NoServerException_IOR.h \
+  chpl/sidl_rmi_NoServerException_Stub.h \
+  chpl/sidl_rmi_ObjectDoesNotExistException_cStub.h \
+  chpl/sidl_rmi_ObjectDoesNotExistException_IOR.h \
+  chpl/sidl_rmi_ObjectDoesNotExistException_Stub.h \
+  chpl/sidl_rmi_ProtocolException_cStub.h \
+  chpl/sidl_rmi_ProtocolException_IOR.h \
+  chpl/sidl_rmi_ProtocolException_Stub.h \
+  chpl/sidl_rmi_ProtocolFactory_cStub.h \
+  chpl/sidl_rmi_ProtocolFactory_IOR.h \
+  chpl/sidl_rmi_ProtocolFactory_Stub.h \
+  chpl/sidl_rmi_Response_cStub.h \
+  chpl/sidl_rmi_Response_IOR.h \
+  chpl/sidl_rmi_Response_Stub.h \
+  chpl/sidl_rmi_Return_cStub.h \
+  chpl/sidl_rmi_Return_IOR.h \
+  chpl/sidl_rmi_Return_Stub.h \
+  chpl/sidl_rmi_ServerInfo_cStub.h \
+  chpl/sidl_rmi_ServerInfo_IOR.h \
+  chpl/sidl_rmi_ServerInfo_Stub.h \
+  chpl/sidl_rmi_ServerRegistry_cStub.h \
+  chpl/sidl_rmi_ServerRegistry_IOR.h \
+  chpl/sidl_rmi_ServerRegistry_Stub.h \
+  chpl/sidl_rmi_TicketBook_cStub.h \
+  chpl/sidl_rmi_TicketBook_IOR.h \
+  chpl/sidl_rmi_TicketBook_Stub.h \
+  chpl/sidl_rmi_Ticket_cStub.h \
+  chpl/sidl_rmi_Ticket_IOR.h \
+  chpl/sidl_rmi_Ticket_Stub.h \
+  chpl/sidl_rmi_TimeOutException_cStub.h \
+  chpl/sidl_rmi_TimeOutException_IOR.h \
+  chpl/sidl_rmi_TimeOutException_Stub.h \
+  chpl/sidl_rmi_UnexpectedCloseException_cStub.h \
+  chpl/sidl_rmi_UnexpectedCloseException_IOR.h \
+  chpl/sidl_rmi_UnexpectedCloseException_Stub.h \
+  chpl/sidl_rmi_UnknownHostException_cStub.h \
+  chpl/sidl_rmi_UnknownHostException_IOR.h \
+  chpl/sidl_rmi_UnknownHostException_Stub.h \
+  chpl/sidl_RuntimeException_cStub.h \
+  chpl/sidl_RuntimeException_IOR.h \
+  chpl/sidl_RuntimeException_Stub.h \
+  chpl/sidl_SIDLException_cStub.h \
+  chpl/sidl_SIDLException_IOR.h \
+  chpl/sidl_SIDLException_Stub.h
+
 
 # Recursive make considered harmful
 DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
@@ -681,6 +908,9 @@ DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
 info_TEXINFOS = doc/braid.texi
 dist_man_MANS = $(srcdir)/doc/braid.1
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
+lib_LTLIBRARIES = libsidlstub_chpl.la
+libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
+AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -688,7 +918,7 @@ all: $(BUILT_SOURCES)
 .SUFFIXES: .c .chpl .chpl$(EXEEXT) .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sidl .sidl$(EXEEXT)
 am--refresh:
 	@:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/chapel-patches/Makefile.include $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/chpl/Makefile.include $(srcdir)/chapel-patches/Makefile.include $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -736,6 +966,39 @@ regression/interop/build-tracker.sh: $(top_builddir)/config.status $(top_srcdir)
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 regression/interop/driver.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/driver.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	list2=; for p in $$list; do \
+	  if test -f $$p; then \
+	    list2="$$list2 $$p"; \
+	  else :; fi; \
+	done; \
+	test -z "$$list2" || { \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
+	}
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
+	done
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; \
+	locs=`for p in $$list; do echo $$p; done | \
+	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
+	      sort -u`; \
+	test -z "$$locs" || { \
+	  echo rm -f $${locs}; \
+	  rm -f $${locs}; \
+	}
 install-nobase_pyexecLTLIBRARIES: $(nobase_pyexec_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(pyexecdir)" || $(MKDIR_P) "$(DESTDIR)$(pyexecdir)"
@@ -780,6 +1043,8 @@ braid/$(am__dirstamp):
 	@: > braid/$(am__dirstamp)
 braid/scanner.la: $(braid_scanner_la_OBJECTS) $(braid_scanner_la_DEPENDENCIES) $(EXTRA_braid_scanner_la_DEPENDENCIES) braid/$(am__dirstamp)
 	$(AM_V_CCLD)$(braid_scanner_la_LINK) -rpath $(pyexecdir)/braid $(braid_scanner_la_OBJECTS) $(braid_scanner_la_LIBADD) $(LIBS)
+libsidlstub_chpl.la: $(libsidlstub_chpl_la_OBJECTS) $(libsidlstub_chpl_la_DEPENDENCIES) $(EXTRA_libsidlstub_chpl_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK) -rpath $(libdir) $(libsidlstub_chpl_la_OBJECTS) $(libsidlstub_chpl_la_LIBADD) $(LIBS)
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
@@ -847,6 +1112,144 @@ distclean-compile:
 
 braid_scanner_la-scanner.lo: scanner.c
 	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(braid_scanner_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o braid_scanner_la-scanner.lo `test -f 'scanner.c' || echo '$(srcdir)/'`scanner.c
+
+sidl_BaseClass_cStub.lo: chpl/sidl_BaseClass_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseClass_cStub.lo `test -f 'chpl/sidl_BaseClass_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseClass_cStub.c
+
+sidl_BaseException_cStub.lo: chpl/sidl_BaseException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseException_cStub.lo `test -f 'chpl/sidl_BaseException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseException_cStub.c
+
+sidl_BaseInterface_cStub.lo: chpl/sidl_BaseInterface_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseInterface_cStub.lo `test -f 'chpl/sidl_BaseInterface_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseInterface_cStub.c
+
+sidl_CastException_cStub.lo: chpl/sidl_CastException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_CastException_cStub.lo `test -f 'chpl/sidl_CastException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_CastException_cStub.c
+
+sidl_ClassInfo_cStub.lo: chpl/sidl_ClassInfo_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_ClassInfo_cStub.lo `test -f 'chpl/sidl_ClassInfo_cStub.c' || echo '$(srcdir)/'`chpl/sidl_ClassInfo_cStub.c
+
+sidl_ClassInfoI_cStub.lo: chpl/sidl_ClassInfoI_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_ClassInfoI_cStub.lo `test -f 'chpl/sidl_ClassInfoI_cStub.c' || echo '$(srcdir)/'`chpl/sidl_ClassInfoI_cStub.c
+
+sidl_DFinder_cStub.lo: chpl/sidl_DFinder_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_DFinder_cStub.lo `test -f 'chpl/sidl_DFinder_cStub.c' || echo '$(srcdir)/'`chpl/sidl_DFinder_cStub.c
+
+sidl_DLL_cStub.lo: chpl/sidl_DLL_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_DLL_cStub.lo `test -f 'chpl/sidl_DLL_cStub.c' || echo '$(srcdir)/'`chpl/sidl_DLL_cStub.c
+
+sidl_EnfPolicy_cStub.lo: chpl/sidl_EnfPolicy_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_EnfPolicy_cStub.lo `test -f 'chpl/sidl_EnfPolicy_cStub.c' || echo '$(srcdir)/'`chpl/sidl_EnfPolicy_cStub.c
+
+sidl_Finder_cStub.lo: chpl/sidl_Finder_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_Finder_cStub.lo `test -f 'chpl/sidl_Finder_cStub.c' || echo '$(srcdir)/'`chpl/sidl_Finder_cStub.c
+
+sidl_InvViolation_cStub.lo: chpl/sidl_InvViolation_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_InvViolation_cStub.lo `test -f 'chpl/sidl_InvViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_InvViolation_cStub.c
+
+sidl_io_Deserializer_cStub.lo: chpl/sidl_io_Deserializer_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Deserializer_cStub.lo `test -f 'chpl/sidl_io_Deserializer_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Deserializer_cStub.c
+
+sidl_io_IOException_cStub.lo: chpl/sidl_io_IOException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_IOException_cStub.lo `test -f 'chpl/sidl_io_IOException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_IOException_cStub.c
+
+sidl_io_Serializable_cStub.lo: chpl/sidl_io_Serializable_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Serializable_cStub.lo `test -f 'chpl/sidl_io_Serializable_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Serializable_cStub.c
+
+sidl_io_Serializer_cStub.lo: chpl/sidl_io_Serializer_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Serializer_cStub.lo `test -f 'chpl/sidl_io_Serializer_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Serializer_cStub.c
+
+sidl_LangSpecificException_cStub.lo: chpl/sidl_LangSpecificException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_LangSpecificException_cStub.lo `test -f 'chpl/sidl_LangSpecificException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_LangSpecificException_cStub.c
+
+sidl_Loader_cStub.lo: chpl/sidl_Loader_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_Loader_cStub.lo `test -f 'chpl/sidl_Loader_cStub.c' || echo '$(srcdir)/'`chpl/sidl_Loader_cStub.c
+
+sidl_MemAllocException_cStub.lo: chpl/sidl_MemAllocException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_MemAllocException_cStub.lo `test -f 'chpl/sidl_MemAllocException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_MemAllocException_cStub.c
+
+sidl_NotImplementedException_cStub.lo: chpl/sidl_NotImplementedException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_NotImplementedException_cStub.lo `test -f 'chpl/sidl_NotImplementedException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_NotImplementedException_cStub.c
+
+sidl_PostViolation_cStub.lo: chpl/sidl_PostViolation_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_PostViolation_cStub.lo `test -f 'chpl/sidl_PostViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_PostViolation_cStub.c
+
+sidl_PreViolation_cStub.lo: chpl/sidl_PreViolation_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_PreViolation_cStub.lo `test -f 'chpl/sidl_PreViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_PreViolation_cStub.c
+
+sidl_rmi_BindException_cStub.lo: chpl/sidl_rmi_BindException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_BindException_cStub.lo `test -f 'chpl/sidl_rmi_BindException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_BindException_cStub.c
+
+sidl_rmi_Call_cStub.lo: chpl/sidl_rmi_Call_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Call_cStub.lo `test -f 'chpl/sidl_rmi_Call_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Call_cStub.c
+
+sidl_rmi_ConnectException_cStub.lo: chpl/sidl_rmi_ConnectException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ConnectException_cStub.lo `test -f 'chpl/sidl_rmi_ConnectException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ConnectException_cStub.c
+
+sidl_rmi_ConnectRegistry_cStub.lo: chpl/sidl_rmi_ConnectRegistry_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ConnectRegistry_cStub.lo `test -f 'chpl/sidl_rmi_ConnectRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ConnectRegistry_cStub.c
+
+sidl_rmi_InstanceHandle_cStub.lo: chpl/sidl_rmi_InstanceHandle_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_InstanceHandle_cStub.lo `test -f 'chpl/sidl_rmi_InstanceHandle_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_InstanceHandle_cStub.c
+
+sidl_rmi_InstanceRegistry_cStub.lo: chpl/sidl_rmi_InstanceRegistry_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_InstanceRegistry_cStub.lo `test -f 'chpl/sidl_rmi_InstanceRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_InstanceRegistry_cStub.c
+
+sidl_rmi_Invocation_cStub.lo: chpl/sidl_rmi_Invocation_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Invocation_cStub.lo `test -f 'chpl/sidl_rmi_Invocation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Invocation_cStub.c
+
+sidl_rmi_MalformedURLException_cStub.lo: chpl/sidl_rmi_MalformedURLException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_MalformedURLException_cStub.lo `test -f 'chpl/sidl_rmi_MalformedURLException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_MalformedURLException_cStub.c
+
+sidl_rmi_NetworkException_cStub.lo: chpl/sidl_rmi_NetworkException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NetworkException_cStub.lo `test -f 'chpl/sidl_rmi_NetworkException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NetworkException_cStub.c
+
+sidl_rmi_NoRouteToHostException_cStub.lo: chpl/sidl_rmi_NoRouteToHostException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NoRouteToHostException_cStub.lo `test -f 'chpl/sidl_rmi_NoRouteToHostException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NoRouteToHostException_cStub.c
+
+sidl_rmi_NoServerException_cStub.lo: chpl/sidl_rmi_NoServerException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NoServerException_cStub.lo `test -f 'chpl/sidl_rmi_NoServerException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NoServerException_cStub.c
+
+sidl_rmi_ObjectDoesNotExistException_cStub.lo: chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ObjectDoesNotExistException_cStub.lo `test -f 'chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c
+
+sidl_rmi_ProtocolException_cStub.lo: chpl/sidl_rmi_ProtocolException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ProtocolException_cStub.lo `test -f 'chpl/sidl_rmi_ProtocolException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ProtocolException_cStub.c
+
+sidl_rmi_ProtocolFactory_cStub.lo: chpl/sidl_rmi_ProtocolFactory_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ProtocolFactory_cStub.lo `test -f 'chpl/sidl_rmi_ProtocolFactory_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ProtocolFactory_cStub.c
+
+sidl_rmi_Response_cStub.lo: chpl/sidl_rmi_Response_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Response_cStub.lo `test -f 'chpl/sidl_rmi_Response_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Response_cStub.c
+
+sidl_rmi_Return_cStub.lo: chpl/sidl_rmi_Return_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Return_cStub.lo `test -f 'chpl/sidl_rmi_Return_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Return_cStub.c
+
+sidl_rmi_ServerInfo_cStub.lo: chpl/sidl_rmi_ServerInfo_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ServerInfo_cStub.lo `test -f 'chpl/sidl_rmi_ServerInfo_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ServerInfo_cStub.c
+
+sidl_rmi_ServerRegistry_cStub.lo: chpl/sidl_rmi_ServerRegistry_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ServerRegistry_cStub.lo `test -f 'chpl/sidl_rmi_ServerRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ServerRegistry_cStub.c
+
+sidl_rmi_TicketBook_cStub.lo: chpl/sidl_rmi_TicketBook_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_TicketBook_cStub.lo `test -f 'chpl/sidl_rmi_TicketBook_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_TicketBook_cStub.c
+
+sidl_rmi_Ticket_cStub.lo: chpl/sidl_rmi_Ticket_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Ticket_cStub.lo `test -f 'chpl/sidl_rmi_Ticket_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Ticket_cStub.c
+
+sidl_rmi_TimeOutException_cStub.lo: chpl/sidl_rmi_TimeOutException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_TimeOutException_cStub.lo `test -f 'chpl/sidl_rmi_TimeOutException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_TimeOutException_cStub.c
+
+sidl_rmi_UnexpectedCloseException_cStub.lo: chpl/sidl_rmi_UnexpectedCloseException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_UnexpectedCloseException_cStub.lo `test -f 'chpl/sidl_rmi_UnexpectedCloseException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_UnexpectedCloseException_cStub.c
+
+sidl_rmi_UnknownHostException_cStub.lo: chpl/sidl_rmi_UnknownHostException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_UnknownHostException_cStub.lo `test -f 'chpl/sidl_rmi_UnknownHostException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_UnknownHostException_cStub.c
+
+sidl_RuntimeException_cStub.lo: chpl/sidl_RuntimeException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_RuntimeException_cStub.lo `test -f 'chpl/sidl_RuntimeException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_RuntimeException_cStub.c
+
+sidl_SIDLException_cStub.lo: chpl/sidl_SIDLException_cStub.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_SIDLException_cStub.lo `test -f 'chpl/sidl_SIDLException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_SIDLException_cStub.c
 
 .l.c:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
@@ -1537,7 +1940,7 @@ check: $(BUILT_SOURCES)
 all-am: Makefile $(INFO_DEPS) $(LTLIBRARIES) $(SCRIPTS) $(MANS) \
 		$(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1581,8 +1984,9 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
-clean-am: clean-aminfo clean-generic clean-libtool clean-local \
-	clean-nobase_pyexecLTLIBRARIES mostlyclean-am
+clean-am: clean-aminfo clean-generic clean-libLTLIBRARIES \
+	clean-libtool clean-local clean-nobase_pyexecLTLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -1605,8 +2009,7 @@ info-am: $(INFO_DEPS)
 install-data-am: install-info-am install-man \
 	install-nobase_includeHEADERS install-nobase_pythonPYTHON \
 	install-pythonPYTHON
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
+
 install-dvi: install-dvi-am
 
 install-dvi-am: $(DVIS)
@@ -1621,7 +2024,8 @@ install-dvi-am: $(DVIS)
 	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dvidir)'"; \
 	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dvidir)" || exit $$?; \
 	done
-install-exec-am: install-binSCRIPTS install-nobase_pyexecLTLIBRARIES
+install-exec-am: install-binSCRIPTS install-libLTLIBRARIES \
+	install-nobase_pyexecLTLIBRARIES
 
 install-html: install-html-am
 
@@ -1730,7 +2134,7 @@ ps: ps-am
 ps-am: $(PSS)
 
 uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
-	uninstall-info-am uninstall-man \
+	uninstall-info-am uninstall-libLTLIBRARIES uninstall-man \
 	uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
@@ -1738,33 +2142,34 @@ uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
 
 uninstall-man: uninstall-man1
 
-.MAKE: all check check-am check-html install install-am \
-	install-data-am install-strip recheck recheck-html
+.MAKE: all check check-am check-html install install-am install-strip \
+	recheck recheck-html
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-TESTS check-am \
 	check-html clean clean-aminfo clean-cscope clean-generic \
-	clean-libtool clean-local clean-nobase_pyexecLTLIBRARIES \
-	cscope cscopelist ctags dist dist-all dist-bzip2 dist-gzip \
-	dist-info dist-lzip dist-lzma dist-shar dist-tarZ dist-xz \
-	dist-zip distcheck distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-local \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binSCRIPTS install-data install-data-am \
-	install-data-hook install-dvi install-dvi-am install-exec \
+	clean-libLTLIBRARIES clean-libtool clean-local \
+	clean-nobase_pyexecLTLIBRARIES cscope cscopelist ctags dist \
+	dist-all dist-bzip2 dist-gzip dist-info dist-lzip dist-lzma \
+	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-local distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-binSCRIPTS install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-man1 \
-	install-nobase_includeHEADERS install-nobase_pyexecLTLIBRARIES \
-	install-nobase_pythonPYTHON install-pdf install-pdf-am \
-	install-ps install-ps-am install-pythonPYTHON install-strip \
-	installcheck installcheck-am installcheck-binSCRIPTS \
-	installdirs maintainer-clean maintainer-clean-aminfo \
+	install-info-am install-libLTLIBRARIES install-man \
+	install-man1 install-nobase_includeHEADERS \
+	install-nobase_pyexecLTLIBRARIES install-nobase_pythonPYTHON \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-pythonPYTHON install-strip installcheck \
+	installcheck-am installcheck-binSCRIPTS installdirs \
+	maintainer-clean maintainer-clean-aminfo \
 	maintainer-clean-generic mostlyclean mostlyclean-aminfo \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am recheck recheck-html tags uninstall \
 	uninstall-am uninstall-binSCRIPTS uninstall-dvi-am \
-	uninstall-html-am uninstall-info-am uninstall-man \
-	uninstall-man1 uninstall-nobase_includeHEADERS \
+	uninstall-html-am uninstall-info-am uninstall-libLTLIBRARIES \
+	uninstall-man uninstall-man1 uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
 	uninstall-pythonPYTHON
@@ -1904,18 +2309,14 @@ chpl/sidl.chpl: chpl/array.inc chpl/barray.inc chpl/array_support.inc $(nobase_p
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd chpl && \
           env PYTHONPATH=../braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
-            -cchpl $(SIDL_PATH)/sidl.sidl --makefile
+            -cchpl $(SIDL_PATH)/sidl.sidl
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array_support.inc >>$@
 
-#lib_LIBRARIES = libsidl.la
-#libsidl.la: chpl/sidl.chpl
-#	$(MAKE) -C chpl 
-
-install-data-hook:
-	@cp chpl/*.[ch] $(includedir)/chpl/
+# Rules to build the Chapel stubs for the SIDL runtime
+$(SIDLSTUB_SRCS): chpl/sidl.chpl
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
