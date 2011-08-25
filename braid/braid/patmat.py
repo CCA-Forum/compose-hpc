@@ -89,7 +89,7 @@
 #
 # </pre>
 
-import re
+import re, types
 
 def unzip(lst):
     """
@@ -97,7 +97,7 @@ def unzip(lst):
     """
     return [a for a, b in lst], [b for a, b in lst]
 
-class Variable:
+class Variable(object):
     """
     A logical variable for use with \c match and \c unify.
     """
@@ -172,10 +172,12 @@ def member_chk(a, l):
 def unbind(bindings):
     """
     Remove all variable bindings recorded in \c bindings.
+    \return always \c False
     """
     for var in bindings:
 	var.binding = None
     bindings = []
+    return False
 
 def unify(a, b, bindings):
     """
@@ -192,41 +194,77 @@ def unify(a, b, bindings):
     >>> A = Variable(); B = Variable(); unify((1,(2,3),3), (1,(A,B),B), [])
     True
     """
-    if isinstance(a, Variable): # Variable
-	if a.free():
-	    a.bind(b, bindings)
-	    return True
-        else:
-            a = a.binding
-    if isinstance(b, Variable): # Variable
-	if b.free():
+
+    # # unoptimized version
+    #
+    # if isinstance(a, Variable): # Variable
+    #     if a.free():
+    #         a.bind(b, bindings)
+    #         return True
+    #     else:
+    #         a = a.binding
+    # if isinstance(b, Variable): # Variable
+    #     if b.free():
+    #         b.bind(a, bindings)
+    #         return True
+    #     else:
+    #         b = b.binding
+    # if isinstance(a, tuple): # Term
+    #     if isinstance(b, tuple): # Term
+    #         if len(a) != len(b):
+    #     	unbind(bindings)
+    #     	return False
+    #         for i in range(0, len(a)):
+    #     	if not unify(a[i], b[i], bindings):
+    #     	    unbind(bindings)
+    #     	    return False
+    #         return True
+    #     else: # Atom
+    #         unbind(bindings)
+    #         return False
+    # else: # Atom
+    #     if isinstance(b, tuple): # Term
+    #         unbind(bindings)
+    #         return False
+    #     else: # Atom
+    #         if a == b:
+    #     	return True
+    #         else:
+    #     	unbind(bindings)
+    #     	return False
+    
+    type_b = type(b)
+    if type_b == Variable: # Variable
+	if b.binding == None:
 	    b.bind(a, bindings)
 	    return True
         else:
             b = b.binding
-    if isinstance(a, tuple): # Term
-	if isinstance(b, tuple): # Term
+    type_a = type(a)
+    if type_a == Variable: # Variable
+	if a.binding == None:
+	    a.bind(b, bindings)
+	    return True
+        else:
+            a = a.binding
+    if type_a == types.TupleType: # Term
+	if type_b == types.TupleType: # Term
 	    if len(a) != len(b):
-		unbind(bindings)
-		return False
+		return unbind(bindings)
 	    for i in range(0, len(a)):
 		if not unify(a[i], b[i], bindings):
-		    unbind(bindings)
 		    return False
 	    return True
 	else: # Atom
-	    unbind(bindings)
-	    return False
+	    return unbind(bindings)
     else: # Atom
-	if isinstance(b, tuple): # Term
-	    unbind(bindings)
-	    return False
+	if type_b == types.TupleType: # Term
+	    return unbind(bindings)
 	else: # Atom
 	    if a == b:
 		return True
 	    else:
-		unbind(bindings)
-		return False
+		return unbind(bindings)
 
 class matcher(object):
     """
