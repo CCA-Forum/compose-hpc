@@ -1748,7 +1748,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
             elif (sidl.scoped_id, Prefix, Name, Ext):
-                return '%s%s' % (gen_dot_sep(Prefix+Name), gen(Ext))
+                return '%s%s' % (gen_dot_sep(Prefix+[Name]), gen(Ext))
 
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
             elif (sidl.method_name, Name, []):   return gen(Name)
