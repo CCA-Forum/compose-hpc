@@ -85,7 +85,7 @@ proc testD() {
   }
 
   tracker.writeComment("Class D2: via interface A", sidl_ex);
-  var d2 = Inherit.D_static.wrap_D(cast_Inherit_D(a.as_Inherit_A()), sidl_ex);
+  var d2 = Inherit.D_static.wrap_D(Inherit_A_cast_Inherit_D(a.as_Inherit_A()), sidl_ex);
   part_no += 1;
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting A to interface D2", sidl_ex);

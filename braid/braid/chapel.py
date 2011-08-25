@@ -76,6 +76,13 @@ def qual_id(scoped_id, sep='_'):
     _, prefix, name, ext = scoped_id
     return sep.join(prefix+[name])+ext
 
+def epv_qname(scoped_id, sep='_'):
+    """
+    get rid of the __epv suffix when constructing a qual_id
+    """
+    _, prefix, name, _ = scoped_id
+    return sep.join(prefix+[name[:-5]])
+
 def babel_object_type(package, name):
     """
     \return the SIDL node for the type of a Babel object 'name'
@@ -130,7 +137,6 @@ def vcall(name, args, ci):
                                             ir.Struct_item(epv, 'd_epv'))),
                 ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args))
 
-
 @accepts(str, str)
 def write_to(filename, string):
     """
@@ -171,6 +177,7 @@ class Chapel(object):
         during the traversal of the SIDL tree.
         """
         def __init__(self, name, symbol_table, is_interface, is_abstract,
+                     has_static_fns,
                      stub_parent=None,
                      skel_parent=None):
             
@@ -180,7 +187,7 @@ class Chapel(object):
             self.chpl_static_stub = ChapelFile(stub_parent)            
             self.chpl_static_skel = ChapelFile(skel_parent)            
             self.skel = CFile()
-            self.epv = EPV(name, symbol_table)
+            self.epv = EPV(name, symbol_table, has_static_fns)
             self.ior = CFile()
             self.obj = None
             self.is_interface = is_interface
@@ -255,15 +262,8 @@ class Chapel(object):
             # Qualified name including Chapel modules
             mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
             mod_name = '.'.join(symbol_table.prefix[1:]+[name])
-            chpl_stub = ChapelFile()
-            ci = self.ClassInfo(name, symbol_table, is_interface, 
-                                member_chk(sidl.abstract, self.class_attrs),
-                                stub_parent=chpl_stub)
-            chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
-            chpl_stub.cstub.genh(ir.Import('sidlType'))
-            chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
-            chpl_stub.cstub.genh(ir.Import('chpltypes'))
-            self.gen_default_methods(symbol_table, extends, implements, ci)
+
+            self.has_static_methods = False
 
             # Consolidate all methods, defined and inherited
             all_names = set()
@@ -282,6 +282,9 @@ class Chapel(object):
                     return method[2][1]+method[2][2]
 
                 def add_method(m):
+                    if member_chk(sidl.static, sidl.method_method_attrs(m)):
+                        self.has_static_methods = True
+
                     if not full_method_name(m) in all_names:
                         all_names.add(full_method_name(m))
                         all_methods.append(m)
@@ -333,6 +336,22 @@ class Chapel(object):
 
             scan_class(extends, implements, methods)
 
+            # Initialize all class-specific code generation data structures
+            chpl_stub = ChapelFile()
+            ci = self.ClassInfo(name, symbol_table, is_interface, 
+                                member_chk(sidl.abstract, self.class_attrs),
+                                self.has_static_methods,
+                                stub_parent=chpl_stub)
+            chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
+            chpl_stub.cstub.genh(ir.Import('sidlType'))
+            chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
+            chpl_stub.cstub.genh(ir.Import('chpltypes'))
+            if self.has_static_methods:
+                chpl_stub.cstub.new_def(
+                    externals((sidl.scoped_id, symbol_table.prefix, name, '')))
+
+            self.gen_default_methods(symbol_table, extends, implements, ci)
+
             # recurse to generate method code
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
             gen1(all_methods, ci)
@@ -346,16 +365,16 @@ class Chapel(object):
             chpl_defs = chpl_stub
             chpl_stub = ChapelFile(chpl_defs)
             chpl_stub.new_def('use sidl;')
-            extrns = ChapelScope(chpl_stub)
+            extrns = ChapelScope(chpl_stub, relative_indent=0)
 
             def gen_extern_casts(baseclass):
                 base = qual_id(baseclass)
-                mod_base = '.'.join(baseclass[1][1:]+[base])
+                mod_base = '.'.join(baseclass[1]+[base])
                 ex = 'inout ex: sidl_BaseException__object'
                 extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {3}__object;'
                                .format(base, mod_qname, ex, mod_base))
-                extrns.new_def('_extern proc cast_{1}(in ior: {0}__object): {2}__object;'
-                               .format(mod_base, qname, mod_qname))
+                extrns.new_def('_extern proc {3}_cast_{1}(in ior: {0}__object): {2}__object;'
+                               .format(mod_base, qname, mod_qname, base))
 
             parent_classes = []
             extern_hier_visited = []
@@ -740,10 +759,11 @@ class Chapel(object):
                                                        "getStaticEPV", [], "")),
                                                        "getStaticEPV")] 
                       if data.epv.has_static_fns else []) +
-                      [ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
-                                                       ir.Struct('sidl_BaseClass__epv', [],''),
-                                                       "getSuperEPV", [], "")),
-                                                       "getSuperEPV"),
+                      [ir.Struct_item(
+                        ir.Pointer_type(
+                            ir.Fn_decl([], ir.Pointer_type(ir.Struct('sidl_BaseClass__epv', [],'')),
+                                       "getSuperEPV", [], "")),
+                        "getSuperEPV"),
                        ir.Struct_item(ir.pt_int, "d_ior_major_version"),
                        ir.Struct_item(ir.pt_int, "d_ior_minor_version")
                        ],
@@ -1092,7 +1112,7 @@ class Chapel(object):
             # Cast functions for the IOR
             ci.ior.genh('#define _cast_{0}(ior,ex) ((struct {0}__object*)((*ior->d_epv->f__cast)(ior,"{1}",ex)))'
                        .format(base, qual_id(scope, '.')))
-            ci.ior.genh('#define cast_{0}{1}(ior) ((struct {1}__object*)'
+            ci.ior.genh('#define {1}_cast_{0}(ior) ((struct {1}__object*)'
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
                        .format(cname, base))
         
@@ -1161,7 +1181,11 @@ class Chapel(object):
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.external))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_sepv_ir()))
+
+        sepv = ci.epv.get_sepv_ir() 
+        if sepv:
+            ci.ior.gen(ir.Type_decl(sepv))
+
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__init',
             babel_epv_args([], [ir.Arg([], ir.inout, ir.void_ptr, 'data')],
                            ci.epv.symbol_table, ci.epv.name),
@@ -1402,7 +1426,6 @@ static const unsigned char chpl_char_lut[512] = {
 '''
 
 def externals(scopedid):
-    prefix = scopedid[1]+[scopedid[2][:-5]] # get rid of '__epv'
     return '''
 #include "sidlOps.h"
 
@@ -1438,7 +1461,7 @@ static const struct {a}__sepv *_sepv = NULL;
 // Reset point to static functions.
 #define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
-'''.format(a='_'.join(prefix), b='.'.join(prefix))
+'''.format(a=qual_id(scopedid), b=qual_id(scopedid, '_'))
 
 # FIXME: this is a hack to create each stub only once
 stubs_generated = set()
@@ -1567,7 +1590,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         _, _ , _, (_, (_, impl_decl), _) = VCallExpr
 
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
-    sname = '_'.join(scoped_id[1]+[Name, 'stub'])
+    sname = '_'.join([epv_qname(scoped_id), Name, 'stub'])
 
     retval_arg = []
     pre_call = []
@@ -1578,11 +1601,6 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     retval_expr, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
     cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
     
-    
-    static = member_chk(sidl.static, Attrs)
-    if static:
-        scope.cstub.optional.add(externals(scoped_id))
-
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
@@ -1713,13 +1731,13 @@ class EPV(object):
     Babel entry point vector for virtual method calls.
     Also contains the SEPV which is used for all static functions.
     """
-    def __init__(self, name, symbol_table):
+    def __init__(self, name, symbol_table, has_static_fns):
         self.methods = []
         self.static_methods = []
         self.name = name
         self.symbol_table = symbol_table
         self.finalized = False
-        self.has_static_fns = False
+        self.has_static_fns = has_static_fns
 
     def add_method(self, method):
         """
@@ -1738,8 +1756,6 @@ class EPV(object):
             attrs.discard(sidl.abstract)
             attrs.discard(sidl.final)
             attrs = list(attrs)
-            if sidl.static in attrs:
-                self.has_static_fns = True
             args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(attrs, typ, name, args, DocComment)
 
@@ -2052,7 +2068,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 # Emit a C stub for that
                 _, s_id, _, _ = S
                 retval_arg = generate_method_stub(scope, node, s_id)
-                stubname = '_'.join(s_id[1]+[re.sub('^f_', '', Name),'stub'])
+                stubname = '_'.join([epv_qname(s_id),re.sub('^f_', '', Name),'stub'])
                 if retval_arg:
                     scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
                     scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
@@ -2065,7 +2081,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 # Emit a C stub for that
                 _, s_id, _, _ = S
                 retval_arg = generate_method_stub(scope, node, s_id)
-                stubname = '_'.join(s_id[1]+[re.sub('^f_', '', Name),'stub'])
+                stubname = '_'.join([epv_qname(s_id), re.sub('^f_', '', Name),'stub'])
                 if retval_arg:
                     scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
                     scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
