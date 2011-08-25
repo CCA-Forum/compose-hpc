@@ -789,7 +789,7 @@ class Chapel(object):
             if is_obj_type(symbol_table, typ):
                 ctype = ior_type(symbol_table, typ)
                 if mode <> sidl.out:
-                    cname = name + '.self_' + typ[1][-1]
+                    cname = name + '.self_' + typ[2]
 
                 if mode <> sidl.in_:
                     cname = '_IOR_' + name
@@ -797,9 +797,9 @@ class Chapel(object):
                     pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
                     
                     # wrap the C type in a native Chapel object
-                    chpl_class_name = typ[1][-1]
-                    mod_chpl_class_name = '.'.join(typ[1][:-1]+[chpl_class_name])
-                    conv = ir.Call('.'.join(typ[1]) + '_static.wrap_' + chpl_class_name, [cname, chpl_param_ex_name])
+                    chpl_class_name = typ[2]
+                    mod_chpl_class_name = '.'.join(typ[1]+[chpl_class_name])
+                    conv = ir.Call('.'.join(typ[1]+[typ[2]]) + '_static.wrap_' + chpl_class_name, [cname, chpl_param_ex_name])
                     
                     if name == 'retval':
                         post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, mod_chpl_class_name), name)))
@@ -1087,7 +1087,7 @@ class Chapel(object):
             # Cast functions for the IOR
             ci.ior.genh('#define _cast_{0}(ior,ex) ((struct {0}__object*)((*ior->d_epv->f__cast)(ior,"{1}",ex)))'
                        .format(base, '.'.join(scope[1]+[scope[2]])))
-            ci.ior.genh('#define cast_{0}(ior) ((struct {1}__object*)'
+            ci.ior.genh('#define cast_{0}{1}(ior) ((struct {1}__object*)'
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
                        .format(cname, base))
         
@@ -1140,7 +1140,7 @@ class Chapel(object):
             refs.sort()
             for loop_ref in refs:
                 add_forward_defn(loop_ref)
-        
+
         for ext in extends:
             gen_cast(ext[1])
 
@@ -1396,7 +1396,8 @@ static const unsigned char chpl_char_lut[512] = {
 };
 '''
 
-def externals(prefix):
+def externals(scopedid):
+    prefix = scopedid[1]+[scopedid[2][:-5]] # get rid of '__epv'
     return '''
 // Hold pointer to IOR functions.
 static const struct {a}__external *_externals = NULL;
@@ -1435,7 +1436,7 @@ static const struct {a}__sepv *_sepv = NULL;
 # FIXME: this is a hack to create each stub only once
 stubs_generated = set()
 
-def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
+def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     """
     Generate the stub for a specific method in C (cStub).
 
@@ -1535,23 +1536,13 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
             #call_name = ir.Sign_extend(64, name)
             pass
             
-            
-        # SELF
-        # cf. babel_stub_args
-        #elif name == 'ior':
-        #    typ = typ[1]
-        #    #call_name = '*ior'
-        # FIXME Why is the struct wrapped inside two pointers even though it is an in argument?
-        # elif typ[0] == ir.pointer_type and name != 'self' and mode == sidl.in_ and typ[1][0] == ir.pointer_type and typ[1][1][0] == ir.struct:
-        #     typ = typ[1]
-
         # ARRAYS
         elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
             import pdb; pdb.set_trace()
 
         # We should find a cleaner way of implementing this
         if name == 'self' and member_chk(ir.pure, attrs):
-            call_name = '(({0}*)((struct sidl_BaseInterface__object*)self)->d_object)' \
+            call_name = '(({0})((struct sidl_BaseInterface__object*)self)->d_object)' \
                         .format(c_gen(typ))
 
         return call_name, (arg, attrs, mode, typ, name)
@@ -1569,7 +1560,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
         _, _ , _, (_, (_, impl_decl), _) = VCallExpr
 
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
-    sname = '_'.join(prefix+[Name, 'stub'])
+    sname = '_'.join(scoped_id[1]+[Name, 'stub'])
 
     retval_arg = []
     pre_call = []
@@ -1583,7 +1574,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), prefix):
     
     static = member_chk(sidl.static, Attrs)
     if static:
-        scope.cstub.optional.add(externals(prefix))
+        scope.cstub.optional.add(externals(scoped_id))
 
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
@@ -1625,7 +1616,8 @@ def ior_type(symbol_table, t):
     else return \c t.
     """
     if (t[0] == sidl.scoped_id and symbol_table[t][0] in [sidl.class_, sidl.interface]):
-        return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
+    #    return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
+        return ir_babel_object_type(t[1], t[2])
 
     else: return t
 
@@ -1768,7 +1760,7 @@ class EPV(object):
         """
 
         self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'_epv', '')
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__epv', '')
         return ir.Struct(name,
             [ir.Struct_item(itype, iname)
              for itype, iname in map(get_type_name, self.methods)],
@@ -1780,7 +1772,7 @@ class EPV(object):
         """
 
         self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'_sepv', '')
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__sepv', '')
         return ir.Struct(name,
             [ir.Struct_item(itype, iname)
              for itype, iname in map(get_type_name, self.static_methods)],
@@ -1791,14 +1783,14 @@ class EPV(object):
         """
         return an s-expression of the EPV's (incomplete) type
         """
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'_epv', '')
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__epv', '')
         return ir.Struct(name, [], 'Entry Point Vector (EPV)')
 
     def get_sepv_type(self):
         """
         return an s-expression of the SEPV's (incomplete) type
         """
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'_sepv', '')
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__sepv', '')
         return ir.Struct(name, [], 'Static Entry Point Vector (SEPV)')
 
 
@@ -2045,9 +2037,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.call, (ir.deref, (ir.get_struct_item, S, _, (ir.struct_item, _, Name))), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
-                _, (_, prefix, _, _), _, _ = S
-                retval_arg = generate_method_stub(scope, node, prefix)
-                stubname = '_'.join(prefix+[re.sub('^f_', '', Name),'stub'])
+                _, s_id, _, _ = S
+                retval_arg = generate_method_stub(scope, node, s_id)
+                stubname = '_'.join(s_id[1]+[re.sub('^f_', '', Name),'stub'])
                 if retval_arg:
                     scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
                     scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
@@ -2058,9 +2050,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.call, (ir.get_struct_item, S, _, (ir.struct_item, _, Name)), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
-                _, (_, prefix, _, _), _, _ = S
-                retval_arg = generate_method_stub(scope, node, prefix)
-                stubname = '_'.join(prefix+[re.sub('^f_', '', Name),'stub'])
+                _, s_id, _, _ = S
+                retval_arg = generate_method_stub(scope, node, s_id)
+                stubname = '_'.join(s_id[1]+[re.sub('^f_', '', Name),'stub'])
                 if retval_arg:
                     scope.pre_def(gen(ir.Var_decl(retval_arg, '_retval')))
                     scope.pre_def(gen(ir.Assignment('_retval', ir.Call(stubname, Args+retval_arg))))
