@@ -499,7 +499,7 @@ class Chapel(object):
 
             def gen_cast(base):
                 qbase = qual_id(base)
-                mod_base = '.'.join(base[1][1:]+[qbase])  
+                mod_base = '.'.join(base[1]+[qbase])  
                 chpl_gen(
                     (ir.fn_defn, [], (ir.typedef_type, '%s__object' % mod_base),
                      'as_'+qbase, [],
