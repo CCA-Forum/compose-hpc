@@ -1250,7 +1250,7 @@ class CCodeGenerator(ClikeCodeGenerator):
         'int':         "int",
         'long':        "long",
         'opaque':      "void*",
-        'string':      "char*",
+        'string':      "const char*",
         'enum':        "enum",
         'struct':      "struct"
         }

@@ -649,7 +649,7 @@ class Chapel(object):
         if not data.is_interface:
             builtin(sidl.void, '_ctor', [])
             builtin(sidl.void, '_ctor2',
-                    [inarg(sidl.void, 'private_data')])
+                    [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
             builtin(sidl.void, '_dtor', [])
             builtin(sidl.void, '_load', [])
 
@@ -1399,6 +1399,8 @@ static const unsigned char chpl_char_lut[512] = {
 def externals(scopedid):
     prefix = scopedid[1]+[scopedid[2][:-5]] # get rid of '__epv'
     return '''
+#include "sidlOps.h"
+
 // Hold pointer to IOR functions.
 static const struct {a}__external *_externals = NULL;
 
@@ -1663,7 +1665,7 @@ def lower_type_ir(symbol_table, sidl_type):
             return lower_type_ir(symbol_table, symbol_table[sidl_type])
         
         elif (sidl.void):                        return ir.pt_void
-        elif (ir.void_ptr):                      return ir.pt_void
+        elif (ir.void_ptr):                      return ir.void_ptr
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
         elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
