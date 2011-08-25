@@ -621,7 +621,7 @@ class Chapel(object):
                 raise Exception("match error")
         return data
 
-    def gen_default_methods(self, symbol_table, extends, implements, data):
+    def gen_default_methods(self, symbol_table, extends, implements, ci):
         """
         Generate default Babel object methods such as _cast() Also
         generates other IOR data structures such as the _object and
@@ -632,13 +632,13 @@ class Chapel(object):
             return struct, c_gen(scoped_id), items, doc
 
         def builtin(t, name, args):
-            data.epv.add_method(
+            ci.epv.add_method(
                 sidl.Method(t, sidl.Method_name(name, ''), [],
                             args, [], [], [], [], 
                             'Implicit built-in method: '+name))
 
         def static_builtin(t, name, args):
-            data.epv.add_method(
+            ci.epv.add_method(
                 sidl.Method(t, sidl.Method_name(name, ''), [sidl.static],
                             args, [], [], [], [], 
                             'Implicit built-in method: '+name))
@@ -670,7 +670,7 @@ class Chapel(object):
         builtin(sidl.void, '_dump_stats', 
                 [inarg(sidl.pt_string, 'filename'),
                  inarg(sidl.pt_string, 'prefix')])
-        if not data.is_interface:
+        if not ci.is_interface:
             builtin(sidl.void, '_ctor', [])
             builtin(sidl.void, '_ctor2',
                     [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
@@ -698,11 +698,11 @@ class Chapel(object):
                  inarg(sidl.pt_string, 'prefix')])
 
 
-        prefix = data.epv.symbol_table.prefix
+        prefix = ci.epv.symbol_table.prefix
         # cstats
         cstats = []
-        data.cstats = ir.Struct(
-            ir.Scoped_id(prefix, data.epv.name+'__cstats', ''),
+        ci.cstats = ir.Struct(
+            ir.Scoped_id(prefix, ci.epv.name+'__cstats', ''),
             [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")],
             'The controls and statistics structure')
 
@@ -714,12 +714,13 @@ class Chapel(object):
                 [1], # not a pointer, it is an embedded struct
                 'd_inherit_'+baseclass[2]))
 
-        with_sidl_baseclass = not data.is_interface and data.epv.name <> 'BaseClass'
+        with_sidl_baseclass = not ci.is_interface and ci.epv.name <> 'BaseClass'
         
         # pointers to the base class' EPV
         for _, ext in extends:
-            gen_inherits(ext)
-            with_sidl_baseclass = False
+            if ext[2] <> 'BaseInterface':
+                gen_inherits(ext)
+                with_sidl_baseclass = False
 
         # pointers to the implemented interface's EPV
         for _, impl in implements:
@@ -731,34 +732,34 @@ class Chapel(object):
                 ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
                                "d_sidl_baseclass"))
 
-        if with_sidl_baseclass and not data.is_abstract:
-            cstats = [ir.Struct_item(unscope(data.cstats), "d_cstats")]
+        if not ci.is_interface and not ci.is_abstract:
+            cstats = [ir.Struct_item(unscope(ci.cstats), "d_cstats")]
 
             
-        data.obj = \
-            ir.Struct(ir.Scoped_id(prefix, data.epv.name+'__object', ''),
+        ci.obj = \
+            ir.Struct(ir.Scoped_id(prefix, ci.epv.name+'__object', ''),
                       baseclass+
                       inherits+
-                      [ir.Struct_item(ir.Pointer_type(unscope(data.epv.get_type())), "d_epv")]+
+                      [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), "d_epv")]+
                        cstats+
                        [ir.Struct_item(ir.Pointer_type(ir.pt_void),
-                                       'd_object' if data.is_interface else
+                                       'd_object' if ci.is_interface else
                                        'd_data')],
                        'The class object structure')
-        data.external = \
-            ir.Struct(ir.Scoped_id(prefix, data.epv.name+'__external', ''),
+        ci.external = \
+            ir.Struct(ir.Scoped_id(prefix, ci.epv.name+'__external', ''),
                       [ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
-                                                       ir.Pointer_type(data.obj),
+                                                       ir.Pointer_type(ci.obj),
                                                        "createObject", [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
                                                            ir.Arg([], sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)],
                                                        "")),
                                                        "createObject")]+
                       ([ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
-                                                       ir.Pointer_type(unscope(data.epv.get_sepv_type())),
+                                                       ir.Pointer_type(unscope(ci.epv.get_sepv_type())),
                                                        "getStaticEPV", [], "")),
                                                        "getStaticEPV")] 
-                      if data.epv.has_static_fns else []) +
+                      if ci.epv.has_static_fns else []) +
                       [ir.Struct_item(
                         ir.Pointer_type(
                             ir.Fn_decl([], ir.Pointer_type(ir.Struct('sidl_BaseClass__epv', [],'')),
