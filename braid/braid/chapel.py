@@ -67,6 +67,15 @@ def strip_common(prefix, a):
         prefix = prefix[1:]
     return a
 
+def qual_id(scoped_id, sep='_'):
+    """
+    Return the qualified name of a ScopedId in the form "prefix1.prefix2.name"+ext.
+    \arg scoped_id the identifier
+    \arg sep the separation character to use (default="_")
+    """
+    _, prefix, name, ext = scoped_id
+    return sep.join(prefix+[name])+ext
+
 def babel_object_type(package, name):
     """
     \return the SIDL node for the type of a Babel object 'name'
@@ -96,10 +105,6 @@ def ir_babel_exception_type():
     \return the IR node for the Babel exception type
     """
     return ir_babel_object_type(['sidl'], 'BaseException')
-
-def get_name(interface):
-    (scoped_id, prefix, name, ext) = interface
-    return '_'.join(prefix+[name])+ext
 
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
@@ -304,8 +309,8 @@ class Chapel(object):
                         for m in symbol_table[impl[1]][4]:
                             add_method(m)
 
-                for ext in extends:
-                    base = symbol_table[ext[1]]
+                for _, ext in extends:
+                    base = symbol_table[ext]
                     if base[0] == sidl.class_:
                         scan_class(sidl.class_extends(base), 
                                    sidl.class_implements(base), 
@@ -344,7 +349,7 @@ class Chapel(object):
             extrns = ChapelScope(chpl_stub)
 
             def gen_extern_casts(baseclass):
-                base = '_'.join(baseclass[1]+[baseclass[2]])
+                base = qual_id(baseclass)
                 mod_base = '.'.join(baseclass[1][1:]+[base])
                 ex = 'inout ex: sidl_BaseException__object'
                 extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {3}__object;'
@@ -354,16 +359,16 @@ class Chapel(object):
 
             parent_classes = []
             extern_hier_visited = []
-            for ext in extends:
-                sidl.visit_hierarchy(ext[1], gen_extern_casts, symbol_table, 
+            for _, ext in extends:
+                sidl.visit_hierarchy(ext, gen_extern_casts, symbol_table, 
                                      extern_hier_visited)
-                parent_classes += strip_common(symbol_table.prefix, ext[1][1])
+                parent_classes += strip_common(symbol_table.prefix, ext[1])
 
             parent_interfaces = []
-            for impl in implements:
-                sidl.visit_hierarchy(impl[1], gen_extern_casts, symbol_table,  
+            for _, impl in implements:
+                sidl.visit_hierarchy(impl, gen_extern_casts, symbol_table,  
                                      extern_hier_visited)
-                parent_interfaces += strip_common(symbol_table.prefix, impl[1][1])
+                parent_interfaces += strip_common(symbol_table.prefix, impl[1])
 
             inherits = ''
             interfaces = ''
@@ -474,21 +479,22 @@ class Chapel(object):
                      'return the current IOR pointer'), chpl_class)
 
             def gen_cast(base):
+                qbase = qual_id(base)
+                mod_base = '.'.join(base[1][1:]+[qbase])  
                 chpl_gen(
-                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % mod_qname),
-                     'as_'+qname, [],
+                    (ir.fn_defn, [], (ir.typedef_type, '%s__object' % mod_base),
+                     'as_'+qbase, [],
                      ['var ex: sidl_BaseException__object;',
-                      ('return %s(this.' + self_field_name + ', ex);') % '_'.join(['_cast']+base[1])],
+                      ('return _cast_%s(this.' + self_field_name + ', ex);') % qbase],
                      'Create a down-casted version of the IOR pointer for\n'
                      'use with the alternate constructor'), chpl_class)
 
             gen_self_cast()
             casts_generated = [symbol_table.prefix+[name]]
-            for ext in extends:
-                sidl.visit_hierarchy(ext[1], gen_cast, symbol_table, casts_generated)
-            for impl in implements:
-                sidl.visit_hierarchy(impl[1], 
-                                     gen_cast, symbol_table, casts_generated)
+            for _, ext in extends:
+                sidl.visit_hierarchy(ext, gen_cast, symbol_table, casts_generated)
+            for _, impl in implements:
+                sidl.visit_hierarchy(impl, gen_cast, symbol_table, casts_generated)
 
             chpl_class.new_def(chpl_defs.get_defs())
             
@@ -692,13 +698,13 @@ class Chapel(object):
         with_sidl_baseclass = not data.is_interface and data.epv.name <> 'BaseClass'
         
         # pointers to the base class' EPV
-        for ext in extends:
-            gen_inherits(ext[1])
+        for _, ext in extends:
+            gen_inherits(ext)
             with_sidl_baseclass = False
 
         # pointers to the implemented interface's EPV
-        for impl in implements:
-            gen_inherits(impl[1])
+        for _, impl in implements:
+            gen_inherits(impl)
 
         baseclass = []
         if with_sidl_baseclass:
@@ -728,14 +734,13 @@ class Chapel(object):
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
                                                            ir.Arg([], sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)],
                                                        "")),
-                                                       "createObject"),
-                       # FIXME: only if contains static methods
-                       ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
+                                                       "createObject")]+
+                      ([ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
                                                        ir.Pointer_type(unscope(data.epv.get_sepv_type())),
                                                        "getStaticEPV", [], "")),
-                                                       "getStaticEPV"),
-
-                       ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
+                                                       "getStaticEPV")] 
+                      if data.epv.has_static_fns else []) +
+                      [ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
                                                        ir.Struct('sidl_BaseClass__epv', [],''),
                                                        "getSuperEPV", [], "")),
                                                        "getSuperEPV"),
@@ -798,7 +803,8 @@ class Chapel(object):
                     # wrap the C type in a native Chapel object
                     chpl_class_name = typ[2]
                     mod_chpl_class_name = '.'.join(typ[1]+[chpl_class_name])
-                    conv = ir.Call('.'.join(typ[1]+[typ[2]]) + '_static.wrap_' + chpl_class_name, [cname, chpl_param_ex_name])
+                    conv = ir.Call(qual_id(typ, '.') + '_static.wrap_' + chpl_class_name, 
+                                   [cname, chpl_param_ex_name])
                     
                     if name == 'retval':
                         post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, mod_chpl_class_name), name)))
@@ -1081,11 +1087,11 @@ class Chapel(object):
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
 
         def gen_cast(scope):
-            base = '_'.join(scope[1]+[scope[2]])
+            base = qual_id(scope)
             ci.ior.genh(ir.Import(base+'_IOR'))
             # Cast functions for the IOR
             ci.ior.genh('#define _cast_{0}(ior,ex) ((struct {0}__object*)((*ior->d_epv->f__cast)(ior,"{1}",ex)))'
-                       .format(base, '.'.join(scope[1]+[scope[2]])))
+                       .format(base, qual_id(scope, '.')))
             ci.ior.genh('#define cast_{0}{1}(ior) ((struct {1}__object*)'
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
                        .format(cname, base))
@@ -1101,7 +1107,7 @@ class Chapel(object):
                     pass
                 elif typ[0] == sidl.scoped_id:
                     # Symbol
-                    ctype = '_'.join(typ[1]+[typ[2]])
+                    ctype = qual_id(typ)
                 elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
                     ctype = get_ctype(typ[1])    
                 elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
@@ -1117,11 +1123,11 @@ class Chapel(object):
             refs = ['sidl_BaseException', 'sidl_BaseInterface']
             
             # lookup extends/impls clause
-            for ext in extends:
-                refs.append('_'.join(ext[1][1]+[ext[1][2]]))
+            for _, ext in extends:
+                refs.append(qual_id(ext))
 
-            for impl in implements:
-                refs.append('_'.join(impl[1][1]+[impl[1][2]]))
+            for _, impl in implements:
+                refs.append(qual_id(impl))
                     
             # lookup method args and return types
             for loop_method in methods:
@@ -1140,11 +1146,11 @@ class Chapel(object):
             for loop_ref in refs:
                 add_forward_defn(loop_ref)
 
-        for ext in extends:
-            gen_cast(ext[1])
+        for _, ext in extends:
+            gen_cast(ext)
 
-        for impl in implements:
-            gen_cast(impl[1])
+        for _, impl in implements:
+            gen_cast(impl)
                 
         # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
                 
@@ -1713,6 +1719,7 @@ class EPV(object):
         self.name = name
         self.symbol_table = symbol_table
         self.finalized = False
+        self.has_static_fns = False
 
     def add_method(self, method):
         """
@@ -1731,6 +1738,8 @@ class EPV(object):
             attrs.discard(sidl.abstract)
             attrs.discard(sidl.final)
             attrs = list(attrs)
+            if sidl.static in attrs:
+                self.has_static_fns = True
             args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(attrs, typ, name, args, DocComment)
 
@@ -1771,6 +1780,9 @@ class EPV(object):
         """
         return an s-expression of the SEPV declaration
         """
+
+        if not self.has_static_fns:
+            return ''
 
         self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__sepv', '')
