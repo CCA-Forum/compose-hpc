@@ -87,7 +87,7 @@ $(builddir)/regression/interop/%/libimpl1.la: $(top_builddir)/regression/interop
 # FIXME If we should encounter a race condition with this rule, it is
 # because libimpl.la is not the last file to be built by
 # build-server.sh
-$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile
+$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile $(nobase_python_PYTHON)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # ----------------------------------------------------------------------

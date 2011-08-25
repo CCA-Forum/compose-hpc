@@ -2229,7 +2229,7 @@ clean-braid:
 # FIXME If we should encounter a race condition with this rule, it is
 # because libimpl.la is not the last file to be built by
 # build-server.sh
-@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile
+@ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile $(nobase_python_PYTHON)
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 @ENABLE_INTEROP_REGRESSION_TRUE@run-gantlet: $(check_DATA)
