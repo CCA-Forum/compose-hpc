@@ -1199,7 +1199,8 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)), Name):
                 # yes, both Names should be identical
-                return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
+                args = gen_comma_sep(Args)
+                return "%s (*%s)(%s);"%(gen(Type), gen(Name), args if args else 'void')
 
             elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
 
