@@ -1,5 +1,5 @@
 AC_PREREQ(2.65)
-AC_INIT([Braid],[0.2.1],[components@llnl.gov],
+AC_INIT([Braid],[0.2.2],[components@llnl.gov],
         [braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
 AC_CONFIG_MACRO_DIR([m4])

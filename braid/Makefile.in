@@ -76,14 +76,11 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_9 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
 @BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_10 = F03
 @BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_11 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
-
-#if BABEL_LANG_JAVA
-#  languages += Java
-#  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
-#endif
-@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_12 = Python
-@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_13 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
-@ENABLE_DOCUMENTATION_TRUE@am__append_14 = \
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_12 = Java
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_13 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_14 = Python
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+@ENABLE_DOCUMENTATION_TRUE@am__append_16 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/*.*        \
@@ -91,7 +88,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 
 
 # add Backports
-@PYTHON_VERSION_2_6_TRUE@am__append_15 = contrib/argparse-1.1/argparse.py
+@PYTHON_VERSION_2_6_TRUE@am__append_17 = contrib/argparse-1.1/argparse.py
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
@@ -553,7 +550,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
-python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_15)
+python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_17)
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
 noinst_PYTHON = 
@@ -590,7 +587,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
-	$(am__append_14) doc/man_header.txt $(CHPL_RUNTIME_FILES) \
+	$(am__append_16) doc/man_header.txt $(CHPL_RUNTIME_FILES) \
 	chpl/darray.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
@@ -697,13 +694,15 @@ BABEL_TESTNAMES = \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_9) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_11) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_13) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@languages = C \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_4) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_6) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_8) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_10) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_12)
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_12) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_14)
 
 # ----------------------------------------------------------------------
 # This is an alternate way of invoking the regression tests via gantlet
@@ -2297,7 +2296,7 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
-	rm -rf chpl/sidl_*.[ch]
+	rm -rf chpl/sidl_*.[ch] chpl/sidl.h
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
