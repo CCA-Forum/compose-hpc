@@ -69,7 +69,7 @@ the installation process:
 ### User-visible dependencies
 If you just want to compile and install BRAID, you will need:
 - Python:		 Version 2.6 or higher
-- GNU flex, gcc, ld, Perl, AWK, sed
+- gcc, ld, Perl, AWK, sed
 
 If you want to run the regression tests, you will also need:
 - Babel:		 Version 2.0 or higher
@@ -84,7 +84,7 @@ If you want to run the regression tests, you will also need:
 				 (only needed if you intend to modify [ir,sidl].def)
 - Doxygen:		 Version 1.6 or higher 
 				 (disable with ./configure --disable-documentation)
-
+- GNU flex
 
 
 Development status                                
