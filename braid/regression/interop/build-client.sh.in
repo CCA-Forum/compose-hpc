@@ -62,22 +62,22 @@ for libdir in `ls -1 -d ../lib*`; do
 	  cat >runChapel2Java.sh <<EOF
 env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}:$libdir" \
     CLASSPATH="../libJava:@BABEL_PREFIX@/lib/sidl-@BABEL_VERSION@.jar:@BABEL_PREFIX@/lib/sidlstub_@BABEL_VERSION@.jar:.:$libdir" \
-    SIDL_DLL_PATH="../libJava/libimpl.scl;@BABEL_PREFIX@/lib/libsidlstub_java.scl;@BABEL_PREFIX@/lib/libsidl.scl;../../../runtime/sidlx/libsidlx.scl;../../output/libC/libOutput.scl" \
+    SIDL_DLL_PATH="../libJava/libimpl.scl;@BABEL_PREFIX@/lib/libsidlstub_java.scl;@BABEL_PREFIX@/lib/libsidl.scl;../../../runtime/sidlx/libsidlx.scl;../../output/libC/libimpl.scl" \
       ./runChapel2$language 
 EOF
 	  ;;
       Python)
 	  cat >runChapel2Python.sh <<EOF
 env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-    PYTHONPATH="../libPython:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')"`:$PYTHONPATH" \
-    SIDL_DLL_PATH="../libPython/libimpl.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
+    PYTHONPATH="../libPython:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')"`:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@BABEL_PREFIX@',plat_specific=1) + ':' + get_python_lib(prefix='@BABEL_PREFIX@')"`$PYTHONPATH" \
+    SIDL_DLL_PATH="../libPython/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
     ./runChapel2$language
 EOF
 	  ;;
       *)
 	  cat >runChapel2$language.sh <<EOF
 env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-    SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libOutput.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
+    SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
     ./runChapel2$language
 EOF
 	  ;;

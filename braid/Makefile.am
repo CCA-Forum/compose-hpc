@@ -60,6 +60,7 @@ dist_man_MANS = $(srcdir)/doc/braid.1
 
 # We are distributing the compiled manpage so we don't depend on rst2man
 # Insert the output of braid --help into the MAN page.
+EXTRA_DIST += doc/man_header.txt
 $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
 	$(AM_V_GEN)
 	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
@@ -71,11 +72,13 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
                -e 's/pos/OPTIONS\n=======\n\npos/' >>braid.txt
 	@echo >>braid.txt
 	@cat $(srcdir)/COPYRIGHT >>braid.txt
-	@if which rst2man >/dev/null; then \
-		rst2man -v braid.txt $@; \
-	else \
-		echo "**WARNING rst2man not installed, did not update $@"; \
-	fi
+	@if test -w $@; then \
+             if which rst2man >/dev/null; then \
+                 rst2man -v braid.txt $@; \
+             else echo "**WARNING rst2man not installed, did not update $@"; \
+             fi \
+         else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
+         fi
 	@rm -f braid.txt
 
 distclean-local:
@@ -85,7 +88,7 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
-	rm -rf chpl/sidl_*.[ch]
+	rm -rf chpl/sidl_*.[ch] chpl/sidl.h
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
@@ -110,12 +113,13 @@ nobase_include_HEADERS += \
   chpl/sidl.chpl \
   $(SIDLSTUB_HDRS)
 
+CHPL_RUNTIME_FILES = chpl/array.inc chpl/barray.inc chpl/array_support.inc
 BUILT_SOURCES += chpl/sidl.chpl $(SIDLSTUB_SRCS)
-EXTRA_DIST += chpl/array.inc chpl/barray.inc chpl/darray.inc
+EXTRA_DIST += $(CHPL_RUNTIME_FILES) chpl/darray.inc
 
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 
-chpl/sidl.chpl: chpl/array.inc chpl/barray.inc chpl/array_support.inc $(nobase_python_PYTHON)
+chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(MKDIR_P) chpl
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
