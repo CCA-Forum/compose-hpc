@@ -40,9 +40,10 @@ DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
 if ENABLE_DOCUMENTATION
 EXTRA_DIST+= \
 	doc/html/index.html \
-	doc/latex/*.pdf     \
 	doc/html/*.*        \
 	doc/html/search/*.*
+#	doc/latex/*.pdf     # I say this is just useless bloat
+
 braid/braid: $(BUILT_SOURCES) doc/html/index.html
 endif
 

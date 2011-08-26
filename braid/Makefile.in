@@ -82,7 +82,6 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
 @ENABLE_DOCUMENTATION_TRUE@am__append_16 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
-@ENABLE_DOCUMENTATION_TRUE@	doc/latex/*.pdf     \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/*.*        \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/search/*.*
 
@@ -377,9 +376,9 @@ am__remove_distdir = \
     || { find "$(distdir)" -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr "$(distdir)"; }; }
 am__post_remove_distdir = $(am__remove_distdir)
-DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.bz2
+DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.bz2 $(distdir).tar.xz
 GZIP_ENV = --best
-DIST_TARGETS = dist-bzip2 dist-gzip
+DIST_TARGETS = dist-xz dist-bzip2 dist-gzip
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
@@ -1837,7 +1836,6 @@ dist-lzip: distdir
 dist-lzma: distdir
 	tardir=$(distdir) && $(am__tar) | lzma -9 -c >$(distdir).tar.lzma
 	$(am__post_remove_distdir)
-
 dist-xz: distdir
 	tardir=$(distdir) && $(am__tar) | XZ_OPT=$${XZ_OPT--9} xz -c >$(distdir).tar.xz
 	$(am__post_remove_distdir)
@@ -2259,6 +2257,8 @@ clean-braid:
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
 
 # ----------------------------------------------------------------------
+#	doc/latex/*.pdf     # I say this is just useless bloat
+
 @ENABLE_DOCUMENTATION_TRUE@braid/braid: $(BUILT_SOURCES) doc/html/index.html
 
 .PHONY: doc

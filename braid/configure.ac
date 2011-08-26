@@ -7,8 +7,8 @@ CCA_DIAGNOSE_INIT(toolcheck.log)
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE([foreign 1.11 dist-bzip2 parallel-tests color-tests silent-rules 
-  std-options])
+AM_INIT_AUTOMAKE([foreign 1.11 dist-bzip2 dist-xz parallel-tests
+  color-tests silent-rules std-options])
 dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
 AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
