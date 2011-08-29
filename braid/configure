@@ -17492,3 +17492,29 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ===============================" >&5
+$as_echo "===============================" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:     Summary                    " >&5
+$as_echo "    Summary                    " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ===============================" >&5
+$as_echo "===============================" >&6; }
+if test -z "${BABEL_PREFIX}"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Babel:     NO" >&5
+$as_echo "    Babel:     NO" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Babel:     YES (${BABEL_PREFIX})" >&5
+$as_echo "    Babel:     YES (${BABEL_PREFIX})" >&6; }
+fi
+if test -z "${CHAPEL_ROOT}"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Chapel:    NO" >&5
+$as_echo "    Chapel:    NO" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Chapel:    YES (${CHAPEL_ROOT})" >&5
+$as_echo "    Chapel:    YES (${CHAPEL_ROOT})" >&6; }
+       { $as_echo "$as_me:${as_lineno-$LINENO}: result:   **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh" >&5
+$as_echo "  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh" >&6; }
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ===============================" >&5
+$as_echo "===============================" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: BRAID configured successfully!" >&5
+$as_echo "BRAID configured successfully!" >&6; }
