@@ -84,8 +84,7 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
          fi
 	@rm -f braid.txt
 
-distclean-local:
-	rm -f toolcheck.log
+CLEANFILES = toolcheck.log
 
 clean-local: clean-braid
 	rm -rf doc/html
