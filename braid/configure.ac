@@ -163,3 +163,15 @@ AC_CONFIG_FILES([Makefile
 
 AC_OUTPUT
 
+AC_MSG_RESULT([===============================])
+AC_MSG_RESULT([    Summary                    ])
+AC_MSG_RESULT([===============================])
+AS_IF([test -z "${BABEL_PREFIX}"], 
+      AC_MSG_RESULT([    Babel:     NO]),
+      AC_MSG_RESULT([    Babel:     YES (${BABEL_PREFIX})]))
+AS_IF([test -z "${CHAPEL_ROOT}"], 
+      AC_MSG_RESULT([    Chapel:    NO]),
+      [AC_MSG_RESULT([    Chapel:    YES (${CHAPEL_ROOT})])
+       AC_MSG_RESULT([  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh])])
+AC_MSG_RESULT([===============================])
+AC_MSG_RESULT([BRAID configured successfully!])
