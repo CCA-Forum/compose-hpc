@@ -4,6 +4,8 @@
 #include "Annotation.h"
 #include "sexp.h"
 
+typedef struct sexpr sexpr_t;
+
 using namespace std;
 
 /**

@@ -5,7 +5,7 @@
 int main(int argc, char **argv) {
   string s = "I am a test.";
 
-  KVAnnotation kva(s, null);
-  SXAnnotation sxa(s, null);
+  KVAnnotation kva(s, NULL);
+  SXAnnotation sxa(s, NULL);
 
 }

@@ -16,12 +16,16 @@ using namespace std;
  * implements the key-value pair mapping is not exposed.
  */
 class KVAnnotation : public Annotation {
- private:
-  map<string, string> kvmap;
  public:
+  typedef map<string, const string> key_value_map;
+
   KVAnnotation(string s, SgNode *n); 
 
   const string *lookup(string key);
+
+ private:
+  key_value_map kvmap;
+
 };
 
 #endif // __KVANNOTATION_H__
