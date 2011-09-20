@@ -1,0 +1,6 @@
+- define configuration file format
+- configuration file reader
+- key-value parser
+- s-expression parser
+- C++ object for ROSE annotation tool
+- ROSE comment pass
