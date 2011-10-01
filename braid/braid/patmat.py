@@ -91,12 +91,6 @@
 
 import re, types
 
-def unzip(lst):
-    """
-    Like zip(*lst), but works also for empty lists.
-    """
-    return [a for a, b in lst], [b for a, b in lst]
-
 class Variable(object):
     """
     A logical variable for use with \c match and \c unify.
