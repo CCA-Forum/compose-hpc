@@ -82,31 +82,38 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     (_, Attrs, Type, Name, Args, DocComment) = impl_decl
     sname = '_'.join([epv_qname(scoped_id), Name, 'stub'])
 
-    # convert arguments to/from IOR
+    # convert arguments to/from IOR using proxy variables
     pre_call = []
     post_call = []
     opt = scope.cstub.optional
     map(lambda arg: chpl_to_ior(pre_call,  opt, arg), filter(incoming, Args))
     map(lambda arg: ior_to_chpl(post_call, opt, arg), filter(outgoing, Args))
-    cstub_decl_args = map(ir_type_to_chpl, Args)
+    cstub_decl_args = map(ir_arg_to_chpl, Args)
 
     retval_arg = []
     # return value type conversion -- treat it as an out argument
     rarg = (ir.arg, [], ir.out, Type, '_retval')
-    retval_proxy = chpl_to_ior(post_call, opt, rarg)
-    crarg = ir_type_to_chpl(rarg)
-    _,_,_,ctype,_ = crarg
+    ior_to_chpl(post_call, opt, rarg)
+    crarg = ir_arg_to_chpl(rarg)
+    _,_,_,ctype,_ = rarg
 
     # Proxy declarations / revised names of call arguments
     call_args = []
     decls = []
-    for    (_,_,_,c_t,name),         (_,_,_,chpl_t,_) in (
+    for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
         zip([crarg]+cstub_decl_args, [rarg]+Args)):
-        if c_t <> chpl_t:
+        if chpl_t <> c_t or name == 'self' and member_chk(ir.pure, attrs):
+            # FIXME see comment in chpl_to_ior
             name = '_proxy_'+name
-            decls.append(ir.Stmt(ir.Var_decl(chpl_t, name)))
+            decls.append(ir.Stmt(ir.Var_decl(c_t, name)))
+            if mode <> sidl.in_: 
+                name = ir.Pointer_expr(name)
+
         call_args.append(name)
-    call_args = call_args[1:] # get rid of retval
+
+    # get rid of retval in call args
+    retval_name = call_args[0] if isinstance(call_args[0], str) else call_args[0][1]
+    call_args = call_args[1:]
 
     cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
     
@@ -114,7 +121,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
         pre_call.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
-        body = [ir.Stmt(ir.Assignment(retval_proxy,
+        body = [ir.Stmt(ir.Assignment(retval_name,
                                       ir.Call(VCallExpr, call_args)))]
         post_call.append(ir.Stmt(ir.Return('_retval')))
 

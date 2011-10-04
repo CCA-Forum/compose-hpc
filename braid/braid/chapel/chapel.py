@@ -1475,7 +1475,7 @@ def lower_type_ir(symbol_table, sidl_type):
         elif (ir.void_ptr):                      return ir.void_ptr
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
-        elif (sidl.primitive_type, sidl.bool):   return ir.pt_int
+        elif (sidl.primitive_type, sidl.bool):   return ir.Typedef_type('sidl_bool')
         elif (sidl.primitive_type, sidl.long):   return ir.Typedef_type('int64_t')
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
         elif (sidl.enum, _, _, _):               return ir.Typedef_type('int64_t')

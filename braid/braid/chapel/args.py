@@ -41,7 +41,10 @@ static const unsigned char chpl_char_lut[512] = {
 };
 '''
 
-def ir_type_to_chpl((arg, attrs, mode, typ, name)):
+def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
+    return arg, attrs, mode, ir_type_to_chpl(typ), name
+
+def ir_type_to_chpl(typ):
     mapping = {
         ir.pt_void:     ir.pt_void,
         ir.pt_bool:     ir.Typedef_type('_Bool'),
@@ -56,9 +59,11 @@ def ir_type_to_chpl((arg, attrs, mode, typ, name)):
         sidl.pt_opaque: ir.Pointer_type(ir.pt_void)
         }
     try:
-        return arg, attrs, mode, mapping[typ], name
+        return mapping[typ]
     except:
-        return arg, attrs, mode, typ, name
+        if typ[0] == ir.enum: 
+            return ir.Typedef_type('int64_t')
+        return typ
    
 
 def incoming((arg, attrs, mode, typ, name)):
@@ -72,7 +77,7 @@ def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
     """
     Extract name and generate argument conversions by appending convs
     """
-    proxy_name = name
+    from cgen import c_gen
     deref = ref = ''
     accessor = '.'
     if mode <> sidl.in_ and name <> '_retval':
@@ -85,11 +90,8 @@ def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
     # BOOL
     if typ == sidl.pt_bool:
         convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-        convs.append((ir.stmt, '_proxy_{n} = (int){p}{n}'
-                         .format(n=name, p=deref)))
-
-        proxy_name = ref+'_proxy_'+name
-        # Bypass the bool -> int conversion for the stub decl
+        convs.append((ir.stmt, '_proxy_{n} = ({typ}){p}{n}'
+                      .format(n=name, p=deref, typ=c_gen(sidl.pt_bool))))
 
     # CHAR
     elif typ == sidl.pt_char:
@@ -98,7 +100,6 @@ def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
         convs.append((ir.stmt, '_proxy_{n} = (int){p}{n}[0]'
                          .format(n=name, p=deref)))
 
-        proxy_name = ref+'_proxy_'+name
         optional.add(char_lut)
 
     # COMPLEX - 32/64 Bit components
@@ -109,7 +110,7 @@ def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
 
     elif typ[0] == sidl.enum:
         # No special treatment for enums, rely on chpl runtime to set it
-        #proxy_name = ir.Sign_extend(64, name)
+        convs.append(ir.Stmt(ir.Assignment('_proxy_'+name, ir.Sign_extend(64, name))))
         pass
 
     # ARRAYS
@@ -118,18 +119,14 @@ def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
 
     # We should find a cleaner way of implementing this
     if name == 'self' and member_chk(ir.pure, attrs):
-        from cgen import c_gen
-        proxy_name = '(({0})((struct sidl_BaseInterface__object*)self)->d_object)' \
-                    .format(c_gen(typ))
-
-    return proxy_name
+        convs.append(ir.Stmt(ir.Assignment('_proxy_'+name, '(({0})((struct sidl_BaseInterface__object*)self)->d_object)'.format(c_gen(typ)))))
 
 
 def ior_to_chpl(convs, optional, (arg, attrs, mode, typ, name)):
     """
     Extract name and generate argument conversions by appending convs
     """
-    proxy_name = name
+    from cgen import c_gen
     deref = ref = ''
     accessor = '.'
     if mode <> sidl.in_ and name <> '_retval':
@@ -143,13 +140,11 @@ def ior_to_chpl(convs, optional, (arg, attrs, mode, typ, name)):
     if typ == sidl.pt_bool:
         convs.append(ir.Comment(
             'sidl_bool is an int, but chapel bool is a char/_Bool'))
-        from cgen import c_gen
         convs.append((ir.stmt, '{p}{n} = ({typ})_proxy_{n}'
-                          .format(p=deref, n=name, typ=c_gen(sidl.pt_bool))))
+                          .format(p=deref, n=name, typ=c_gen(ir_type_to_chpl(sidl.pt_bool)))))
 
-        proxy_name = ref+'_proxy_'+name
         # Bypass the bool -> int conversion for the stub decl
-        typ = (ir.typedef_type, '_Bool')
+        #typ = (ir.typedef_type, '_Bool')
 
     # CHAR
     elif typ == sidl.pt_char:
@@ -161,7 +156,6 @@ def ior_to_chpl(convs, optional, (arg, attrs, mode, typ, name)):
         convs.append((ir.stmt,
                           '{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_proxy_{n}]'
                           .format(p=deref, n=name)))
-        proxy_name = ref+'_proxy_'+name
         optional.add(char_lut)
 
     # STRING
@@ -187,7 +181,7 @@ def ior_to_chpl(convs, optional, (arg, attrs, mode, typ, name)):
 
     elif typ[0] == sidl.enum:
         # No special treatment for enums, rely on chpl runtime to set it
-        #proxy_name = ir.Sign_extend(64, name)
+        convs.append(ir.Stmt(ir.Assignment('_proxy_'+name, ir.Sign_extend(64, name))))
         pass
 
     # ARRAYS
