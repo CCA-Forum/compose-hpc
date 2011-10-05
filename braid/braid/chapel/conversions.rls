@@ -1,0 +1,86 @@
+# -*- python -*-
+
+chpl.vcall @ chpl -> ior.vcall @ C : cost(1)
+
+# BOOL
+ior.bool @ C -> chpl.bool @ C : cost(0)
+    convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
+    convs.append((ir.stmt, '_proxy_{n} = ({typ}){p}{n}'
+                  .format(n=c0.name, p=c0.deref, typ=c_gen(ir.pt_bool))))
+
+chpl.bool @ C -> ior.bool @ C : cost(0)
+    convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
+    convs.append((ir.stmt, '{p}{n} = ({typ})_proxy_{n}'
+                  .format(p=c0.deref, n=name, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
+
+ior.string @ C -> ior.char @ C : cost(0)
+    bogus
+
+# CHAR
+ior.char @ C -> chpl.char : cost(1)
+    convs.append(ir.Comment('in chapel, a char is a string of length 1'))
+    convs.append((ir.stmt, '_proxy_{n} = (int){p}{n}[0]'.format(n=c0.name, p=c0.deref)))
+    optional.add(char_lut)
+
+chpl.char @ C -> ior.char : cost(1)
+    convs.append(ir.Comment('in chapel, a char is a string of length 1'))
+    # we can't allocate a new string, this would leak memory
+    convs.append((ir.stmt, '{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_proxy_{n}]'
+                  .format(p=c0.name.deref, n=c0.name)))
+    optional.add(char_lut)
+
+# COMPLEX - 32/64 Bit components
+ior.fcomplex @ C -> chpl.fcomplex : cost(1)
+    fmt = {'n':c0.name, 'a': '->' if c0.deref else '.' }
+    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(n=c0.name)))
+    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(n=c0.name)))
+
+ior.dcomplex @ C -> chpl.dcomplex : cost(1)
+    fmt = {'n':c0.name, 'a': '->' if c0.deref else '.' }
+    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(n=c0.name)))
+    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(n=c0.name)))
+
+chpl.dcomplex @ C -> ior.dcomplex : cost(1)
+    fmt = {'n':c0.name, 'a': '->' if c0.deref else '.' }
+    convs.append((ir.stmt, '{n}{a}re = _proxy_{n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '{n}{a}im = _proxy_{n}.imaginary'.format(**fmt)))
+
+chpl.dcomplex @ C -> ior.dcomplex : cost(1)
+    fmt = {'n':c0.name, 'a': '->' if c0.deref else '.' }
+    convs.append((ir.stmt, '{n}{a}re = _proxy_{n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '{n}{a}im = _proxy_{n}.imaginary'.format(**fmt)))
+
+# ENUM
+ior.enum @ C -> chpl.enum: cost(1)
+    # No special treatment for enums, rely on chpl runtime to set it
+    convs.append(ir.Stmt(ir.Assignment('_proxy_'+c0.name, ir.Sign_extend(64, c0.name))))
+
+chpl.enum @ C -> ior.enum: cost(1)
+    convs.append(ir.Stmt(ir.Assignment(c0.name, '_proxy_'+c0.name)))
+
+# SELF
+ior.* @ C -> upcast(ior.*): cost(1)
+    # We should find a cleaner way of implementing this
+    #if c0.name == 'self' and member_chk(ir.pure, attrs):
+    convs.append(ir.Stmt(ir.Assignment('_proxy_'+c0.name, '(({0})((struct sidl_BaseInterface__object*)self)->d_object)'.format(c_gen(typ)))))
+    return '_proxy_'+c0.name
+
+
+# STRING
+ior.str @C -> chpl.str: cost(0)
+    pass
+chpl.str @C -> ior.str: cost(1)
+    # Convert null pointer into empty string
+    convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(n=c0.name, p=c0.deref))) 
+
+# INT
+ior.int @C -> chpl.int: cost(0)
+    pass
+chpl.int @C -> ior.int: cost(0)
+    pass
+
+# LONG
+ior.long @C -> chpl.long: cost(0)
+    pass
+chpl.long @C -> ior.long: cost(0)
+    pass
