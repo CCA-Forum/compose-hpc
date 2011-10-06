@@ -13,8 +13,16 @@ chpl.bool @ C -> ior.bool @ C : cost(0)
     convs.append((ir.stmt, '{p}{n} = ({typ})_proxy_{n}'
                   .format(p=c0.deref, n=name, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
-ior.string @ C -> ior.char @ C : cost(0)
+ior.str @ C -> chpl.char @ C : cost(3)
     bogus
+
+ior.str @ C -> ior.char @ C : cost(4)
+    bogus1
+
+ior.str @ C -> ior.char @ C : cost(3)
+    bogus0
+
+chpl.char @ C -> chpl.Char : cost(0)
 
 # CHAR
 ior.char @ C -> chpl.char : cost(1)
@@ -71,7 +79,7 @@ ior.str @C -> chpl.str: cost(0)
     pass
 chpl.str @C -> ior.str: cost(1)
     # Convert null pointer into empty string
-    convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(n=c0.name, p=c0.deref))) 
+    convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(n=c0.name, p=c0.deref)))
 
 # INT
 ior.int @C -> chpl.int: cost(0)

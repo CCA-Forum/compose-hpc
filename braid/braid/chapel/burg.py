@@ -22,11 +22,11 @@ for line in f.readlines():
             pass #print line
         else:
             state = 'base'
-       
+
     if state == 'base':
         if not re.match(r'\s', line[0]):
             # new rule
-            m = re.match('(.*)@(.+)->(.*?)(@(.+))?:cost\((\d+)\)', 
+            m = re.match('(.*)@(.+)->(.*?)(@(.+))?:cost\((\d+)\)',
                          re.sub('\s','', line))
             if not m: error('Bad rule syntax\n'+line)
 
@@ -59,19 +59,28 @@ for line in f.readlines():
 
 def label(node):
     if isinstance(node, tuple):
-        c0_labels = label(node[0])
-        my_labels = c0_labels[0]
+        c0_labels = label(node[1])
+        my_labels = c0_labels
+        thisnode = node[0]
     else:
         # FIXME replace this with a hardcoded array
         my_labels = { node: ((node, '<terminal>', 0), 0) }
+        thisnode = node
 
     def current_cost(target):
-        for (t, _, _), cost in my_labels.values():
-            if target == t: 
+        for (t, src, _), cost in my_labels.values():
+            if target == t:
                 #print "current_cost(%s) = %s"%(target,cost);
                 return cost
         return 2**16
 
+    if thisnode in nonterminals:
+        error('node %r is a non-terminal symbol'%thisnode)
+
+    print "label(%s):"%thisnode
+    #print "my_labels: ", my_labels
+
+    visited = set()
     fix = False
     while not fix:
         fix = True
@@ -79,32 +88,50 @@ def label(node):
             target, src, cost = r
             try:
                 _, basecost = my_labels[src]
-                # does it pay of to add this rule?
-                if cost < current_cost(target):
+                # does it pay off to add this rule?
+                if cost < current_cost(target) and target not in visited:
+                    visited.add(src)
                     my_labels[target] = (r, cost)
-                    #print 'my_labels[',target,'] = ',(r, cost)
+                    print '    my_labels[',target,'] = ',(r, cost)
                     fix = False
             except: pass
+
+    # debug output
+    for r, cost in my_labels.values():
+        print '   ', r, ':', cost
 
     if isinstance(node, tuple):
         return my_labels, c0_labels
     else: return my_labels
 
-def reducetree(label):
+def reducetree(label, target):
     if isinstance(label, tuple):
-        reducetree(label[1])
-    else: my_labels = label
+        my_labels = label[0]
+    else:
+        my_labels = label
 
-    cheapest = None
-    min_cost = 2**16
-    for r, cost in my_labels.values():
-        if cost < min_cost:
-            cheapest = r
+    # cheapest = None
+    # min_cost = 2**16
+    # for r, cost in my_labels.values():
+    #     if cost < min_cost:
+    #         cheapest = r
+    # if cheapest:
+    #     _, next_target, _ = cheapest
+    #     print repr(cheapest)
+    while target in my_labels:
+        r, cost = my_labels[target]
+        del my_labels[target]
 
-    
+        _, target, _ = r
+        print r, cost
+
+    if isinstance(label, tuple):
+        reducetree(label[1], target)
+
+
 
 try:
-    print repr(label('chpl.char'))
+    reducetree(label(('chpl.Char')), 'ior.str')
 except:
     # Invoke the post-mortem debugger
     import pdb, sys
