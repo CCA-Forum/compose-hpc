@@ -8,15 +8,19 @@ else
   BACKPORTS=
 endif
 python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py
-PYTHONPATH=$(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs
+PYTHONPATH=$(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(srcdir)
 
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = \
 	braid/braid.py \
-	braid/chapel.py \
+	braid/chapel/__init__.py \
+	braid/chapel/cgen.py \
+	braid/chapel/chapel.py \
+	braid/chapel/args.py \
 	braid/codegen.py \
 	braid/config.py \
 	braid/ior_template.py \
+	braid/lists.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \

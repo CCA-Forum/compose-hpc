@@ -1241,7 +1241,7 @@ class CCodeGenerator(ClikeCodeGenerator):
 
     type_map = {
         'void':        "void",
-        'bool':        "_Bool",
+        'bool':        "sidl_bool",
         'char':        "char",
         # FIXME: this should move into another pass
         'dcomplex':    "struct sidl_dcomplex",
