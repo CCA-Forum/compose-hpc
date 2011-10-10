@@ -57,7 +57,7 @@ void CommentVisitor::visit(SgNode *node) {
     if(preprocInfo != NULL) {
       AttachedPreprocessingInfoType::iterator i;
       for(i=preprocInfo->begin(); i != preprocInfo->end(); i++) {
-        switch ((*i)->getTypeOfDirective()) {
+    	  switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT: {
             string comment = remove_c_comment_marks((*i)->getString());
             handle_comment(comment,locatedNode,inpFile,fileCount);

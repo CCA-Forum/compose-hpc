@@ -20,14 +20,13 @@ autoAnnotOption = ""
 
 try:
     autoAnnotOption = sys.argv[3]
-except:
-    print ""
+except: pass
+    
 
 sindex = 0
 try:
     sindex = filePath.rindex("/")+1
-except ValueError:
-    print ""
+except ValueError: pass
     
 fileName = filePath[sindex:]
 filePath = filePath[0:sindex]
@@ -38,7 +37,7 @@ if filePath: os.chdir(filePath)
 paulHome = os.environ.get("PAUL_HOME")
 paul = paulHome+"/paul"
 linkerPath = paulHome+"/blas2cublas/linker"
-simpleTrans = paulHome+"/blas2cublas/SimpleTranslator"
+simpleTrans = paulHome+"/SimpleTranslator"
 autoAnnot = paulHome+"/blas2cublas/addAnnot.cocci"
 
 linkFile = open(linkerPath, mode='r')
@@ -48,7 +47,7 @@ link = ""
 for line in linkFile:
     if line.startswith('%'): link += line[line.index("%")+1:].strip()
         
-linkFile.close
+linkFile.close()
 
 inc = sys.argv[2]
 if(inc == "MKL"):
@@ -68,7 +67,7 @@ if(not (autoAnnotOption=="PAUL")):
 	os.system("%s -rose:skipfinalCompileStep %s %s" %(simpleTrans,fileName,linker))
 
 	if(len(autoAnnotOption) != 0):
-	    os.system("spatch %s -cocci_file %s rose_%s -o rose_trans_%s > /dev/null" %(cocciOptions,autoAnnot,fileName,fileName))
+	    os.system("spatch %s -sp_file %s rose_%s -o rose_trans_%s > /dev/null" %(cocciOptions,autoAnnot,fileName,fileName))
 	    os.system("sed -i 's/%s/%s/g' rose_trans_%s" %("*\/;","*\/",fileName))
 	else:
 	    os.system("cp rose_%s rose_trans_%s" %(fileName,fileName))
@@ -85,7 +84,7 @@ blasCocci = "rose_trans_%s_blasCalls.cocci" %(fName)
 if(os.path.exists(blasCocci)):
     print "Transforming rose_trans_%s.%s" %(fName,extension)
 
-    os.system("spatch %s -cocci_file  %s rose_trans_%s.%s\
+    os.system("spatch %s -sp_file  %s rose_trans_%s.%s\
               -o rose_trans_%s_cublas.cu > /dev/null" %(cocciOptions,blasCocci,fName,extension,fName))
 
     if(len(link) != 0):

@@ -7,7 +7,7 @@
 
 - Works with C++ code too.
 
-- Coccinelle version (1.0.0-rc4) is needed
+- Coccinelle version (> 1.0.0-rc4) is needed
   for this transformation to work as desired.
 
 - Tranformations involving BLAS level 1,2 routines have not
@@ -86,7 +86,7 @@ Running a sample transformation
   to run the transformation.
 
 - The options to this script are
-  ./Blas2Cublas.py path-to-file BLAS_OPTION autoAnnot 
+  ./Blas2Cublas.py path-to-file BLAS_OPTION AnnotOptions 
    where AnnotOptions={autoAnnot, autoAnnotNstop, PAUL} 
 
   where BLAS_OPTION is one of {MKL,BLAS} which 

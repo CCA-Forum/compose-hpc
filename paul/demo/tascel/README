@@ -1,0 +1,91 @@
+---------TASCEL TRANSFORMATION README------------
+
+- Environment variables needed:
+
+  PAUL_HOME (path to paul/demo folder),
+  ROSE_HOME (path to ROSE installation),
+  BOOST_HOME (path to BOOST installation)
+
+- Coccinelle version (> 1.0.0-rc4) is needed
+  for this transformation to work as desired.
+
+- The input test file to be transformed should COMPILE
+  without any errors. Forward declarations (or header includes)
+  for any external/library function calls are mandatory for the 
+  transformation to be successful.
+  - See tascel/tests/twoel_0.c for example.
+
+
+Running a sample transformation
+-------------------------------
+- The script Tascel.py in paul/demo folder is used
+  to run the transformation.
+
+- The options to this script are
+  ./Tascel.py path-to-input-file AnnotOptions 
+   where AnnotOptions={autoAnnot, autoAnnotNstop, PAUL} 
+ 
+   - Currently automatically annotations is not supported.
+     and hence AnnotOptions should be empty.
+
+- python Tascel.py tascel/tests/twoel_0.c  (not providing AnnotOptions)
+
+
+Actions performed by the Tascel.py script
+----------------------------------------------
+
+  - Assume test.c is the source file.
+  - A SimpleTranslator built using ROSE processes the input file
+    builds an AST and unparses it to generate rose_test.c
+  - If autoAnnot option is provided rose_test.c is annotated
+    and a new file rose_trans_test.c is generated with all
+    desired calls (like next_4chunk()) annotated. If autoAnnot is not provided
+    rose_trans_test.c would be a simple duplicate of rose_test.c
+  - rose_trans_test.c is processed by PAUL and rose_trans_test_tascel.cocci
+      is generated. This .cocci file is used by coccinelle
+      to generate the final transformed code containing the transformed code
+      named rose_trans_test_tascel.c
+
+  NOTE: This script could be run from any location on your machine.
+        All the files generated as part of the transformation are
+        placed in the same directory as the original source file.
+
+
+Linking options
+---------------
+
+- The original input file provided may need to be
+  linked against libraries which the TASCEL transformation
+  is unaware of. If these options are provided in the file
+  $(PAUL_HOME)/tascel/linker, the transformed
+  code will be compiled by the Tascel.py script 
+  (THIS COMPILATION FEATURE IS NOT SUPPORTED CURRENTLY). 
+
+Example for BLAS code (also found in linker file):
+% -L$ATLAS_HOME/lib -lcblas -latlas
+
+NOTE: The line with options must start with %
+
+- If no include and/or library paths along with other required 
+  libraries are given, the transformed code is left for the user
+  to be compiled.
+
+
+Work in Progress
+----------------
+
+- The transformations are applied in a series of steps thereby
+  producing multiple versions of the transformed code, where each
+  version is a step towards the final desired transformation.
+  Currently only the intial version has been developed.
+
+- Developing the other versions.
+
+
+Please email ajay@csc.lsu.edu with any feedback.
+
+
+
+
+
+
