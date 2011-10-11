@@ -1,5 +1,7 @@
 # -*- python -*-
 
+%action arguments: (convs, optionals)
+
 chpl.vcall @ chpl -> ior.vcall @ C : cost(1)
 
 # BOOL
@@ -14,13 +16,13 @@ chpl.bool @ C -> ior.bool @ C : cost(0)
                   .format(p=c0.deref, n=name, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
 ior.str @ C -> chpl.char @ C : cost(3)
-    bogus
+    pass
 
 ior.str @ C -> ior.char @ C : cost(4)
-    bogus1
+    pass
 
 ior.str @ C -> ior.char @ C : cost(3)
-    bogus0
+    pass
 
 chpl.char @ C -> chpl.Char : cost(0)
 
@@ -67,7 +69,7 @@ chpl.enum @ C -> ior.enum: cost(1)
     convs.append(ir.Stmt(ir.Assignment(c0.name, '_proxy_'+c0.name)))
 
 # SELF
-ior.* @ C -> upcast(ior.*): cost(1)
+ior.baseobject @ C -> upcast(ior.object): cost(1)
     # We should find a cleaner way of implementing this
     #if c0.name == 'self' and member_chk(ir.pure, attrs):
     convs.append(ir.Stmt(ir.Assignment('_proxy_'+c0.name, '(({0})((struct sidl_BaseInterface__object*)self)->d_object)'.format(c_gen(typ)))))
