@@ -86,7 +86,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     pre_call = []
     post_call = []
     opt = scope.cstub.optional
-    map(lambda arg: chpl_to_ior(pre_call,  opt, arg), filter(incoming, Args))
+    map(lambda (_,_,_, typ, name): conv.codegen(('chpl', typ), typ, pre_call,  opt), filter(incoming, Args))
     map(lambda arg: ior_to_chpl(post_call, opt, arg), filter(outgoing, Args))
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 

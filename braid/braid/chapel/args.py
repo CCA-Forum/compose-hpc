@@ -72,7 +72,6 @@ def incoming((arg, attrs, mode, typ, name)):
 def outgoing((arg, attrs, mode, typ, name)):
     return mode <> sidl.in_
 
-
 def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
     """
     Extract name and generate argument conversions by appending convs

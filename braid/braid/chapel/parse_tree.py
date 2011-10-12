@@ -28,7 +28,7 @@ import lex, yacc
 
 tokens = ( 'IDENT', 'LPAREN', 'RPAREN', 'COMMA', )
 t_ignore = ' \t\f' # White Space
-t_IDENT  = r'\w+'
+t_IDENT  = r'[\w\.]+'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_COMMA = ','
