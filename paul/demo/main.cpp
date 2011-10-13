@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   string filename = argv[1];
   string exfile = filename;
 
-  // Extract input source file name from a relative/abosulte path.
+  // Extract input source file name from a relative/absolute path.
   size_t fn = filename.find_last_of("/");
   if(fn != string::npos) exfile = filename.substr(fn+1,filename.length());
 
