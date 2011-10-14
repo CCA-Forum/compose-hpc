@@ -1,1 +1,1 @@
-__all__ = ['chapel', 'cgen', 'args']
+__all__ = ['chapel', 'chpl', 'cgen', 'args']

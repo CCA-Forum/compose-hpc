@@ -16,11 +16,15 @@ PYTHON_SOURCES = \
 	braid/chapel/__init__.py \
 	braid/chapel/cgen.py \
 	braid/chapel/chapel.py \
+	braid/chapel/chpl.py \
 	braid/chapel/args.py \
+	braid/burg.py \
 	braid/codegen.py \
 	braid/config.py \
+	braid/ior.py \
 	braid/ior_template.py \
 	braid/lists.py \
+	braid/parse_tree.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
@@ -28,13 +32,17 @@ PYTHON_SOURCES = \
 	braid/sidl_token.py \
 	braid/splicer.py
 
-BUILT_PYTHON_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
+BUILT_PYTHON_SOURCES = \
+	braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py \
+	$(builddir)/braid/chapel/conversions.py
+
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
 BUILT_SOURCES += $(BUILT_PYTHON_SOURCES)
 GRAMMARS = braid/ir.def braid/sidl.def
+BURG_RULES = braid/chapel/conversions.burg
 
-bin_SCRIPTS += braid/braid braid/headerize
+bin_SCRIPTS += braid/braid braid/headerize braid/burg.py
 
 nobase_pyexec_LTLIBRARIES += braid/scanner.la
 braid_scanner_la_SOURCES = braid/scanner.l
@@ -83,11 +91,7 @@ SIDL_TESTS= \
 
 EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py braid/headerize
 
-##SIDL_TESTS=$(patsubst %.sidl,../regression/parser/%.sidl, $(SIDL_NAMES))
-
-#UNIT_TOKENS = $(patsubst %.py,%.unit, $(python_PYTHON))
-# Most of the Python files contain doctest tests
-# see
+# Most of the Python files contain doctest tests, see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
 if ENABLE_REGRESSION
 TESTS += $(PYTHON_SOURCES) $(SIDL_TESTS)
@@ -102,9 +106,6 @@ AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
 $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 	env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) -m doctest $<
 
-## $(builddir)/%.success: $(srcdir)/%.sidl braid
-##	braid/braid $<
-
 $(builddir)/braid/parsetab.pyc: braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
 	@echo "  GEN  [sidl parser tables]"
 	@rm -f $@
@@ -118,6 +119,14 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 	@echo "license = '''">>$@
 	@cat $< >>$@
 	@echo "'''">>$@
+
+# Code generators
+%.py: %.burg $(srcdir)/braid/burg.py
+	@$(MKDIR_P) `dirname $@`
+	$(AM_V_GEN) env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) \
+		$(srcdir)/braid/burg.py $< -o $@
+
+$(builddir)/braid/chapel/conversions.py: $(srcdir)/braid/chapel/conversions.burg
 
 # We keep this file in srcdir because we only regenerate them if the
 # user has swipl installed

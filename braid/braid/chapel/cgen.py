@@ -31,7 +31,7 @@
 # </pre>
 #
 import ir, sidl
-from args import *
+# from args import *
 from chapel import *
 from patmat import *
 from lists import *
@@ -40,6 +40,7 @@ from codegen import (
     SourceFile, CFile, Scope, generator, accepts,
     sep_by
 )
+import conversions as conv
 
 def drop(lst):
     """
@@ -58,6 +59,36 @@ def epv_qname(scoped_id, sep='_'):
 # FIXME: this is a non-reentrant hack to create each stub only once
 stubs_generated = set()
 
+def incoming((arg, attrs, mode, typ, name)):
+    return mode <> sidl.out
+
+def outgoing((arg, attrs, mode, typ, name)):
+    return mode <> sidl.in_
+
+def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
+    return arg, attrs, mode, ir_type_to_chpl(typ), name
+
+def ir_type_to_chpl(typ):
+    mapping = {
+        ir.pt_void:     ir.pt_void,
+        ir.pt_bool:     ir.Typedef_type('_Bool'),
+        ir.pt_string:   ir.const_str,
+        ir.pt_int:      ir.Typedef_type('int32_t'),
+        ir.pt_long:     ir.Typedef_type('int64_t'),
+        ir.pt_char:     ir.const_str,
+        ir.pt_fcomplex: ir.Typedef_type('_complex64'), 
+        ir.pt_dcomplex: ir.Typedef_type('_complex128'),
+        ir.pt_float:    ir.pt_float,
+        ir.pt_double:   ir.pt_double,
+        sidl.pt_opaque: ir.Pointer_type(ir.pt_void)
+        }
+    try:
+        return mapping[typ]
+    except:
+        if typ[0] == ir.enum: 
+            return ir.Typedef_type('int64_t')
+        return typ
+
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     """
     Generate the stub for a specific method in C (cStub).
@@ -73,7 +104,6 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         else:
             return (arg, attrs, mode, typ, name)
 
-
     if VCallExpr[0] == ir.deref:
         _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
     else:
@@ -86,14 +116,20 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     pre_call = []
     post_call = []
     opt = scope.cstub.optional
-    map(lambda (_,_,_, typ, name): conv.codegen(('chpl', typ), typ, pre_call,  opt), filter(incoming, Args))
-    map(lambda arg: ior_to_chpl(post_call, opt, arg), filter(outgoing, Args))
+    # IN
+    map(lambda (arg,attr,mode, typ, name): 
+        conv.codegen((('chpl', typ), name), typ, pre_call, opt), 
+        filter(incoming, Args))
+    # OUT
+    map(lambda (arg,attr,mode, typ, name):
+        conv.codegen((('chpl', typ), name), typ, post_call, opt), 
+        filter(outgoing, Args))
+
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 
     retval_arg = []
     # return value type conversion -- treat it as an out argument
-    rarg = (ir.arg, [], ir.out, Type, '_retval')
-    ior_to_chpl(post_call, opt, rarg)
+    conv.codegen((('chpl', Type), '_retval'), Type, post_call, opt)
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,ctype,_ = rarg
 

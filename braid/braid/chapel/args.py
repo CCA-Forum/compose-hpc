@@ -66,12 +66,6 @@ def ir_type_to_chpl(typ):
         return typ
    
 
-def incoming((arg, attrs, mode, typ, name)):
-    return mode <> sidl.out
-
-def outgoing((arg, attrs, mode, typ, name)):
-    return mode <> sidl.in_
-
 def chpl_to_ior(convs, optional, (arg, attrs, mode, typ, name)):
     """
     Extract name and generate argument conversions by appending convs

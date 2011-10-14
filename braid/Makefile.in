@@ -60,9 +60,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	config/install-sh config/ltmain.sh config/missing \
 	config/py-compile config/texinfo.tex config/ylwrap scanner.c
 
-#UNIT_TOKENS = $(patsubst %.py,%.unit, $(python_PYTHON))
-# Most of the Python files contain doctest tests
-# see
+# Most of the Python files contain doctest tests, see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
 @ENABLE_REGRESSION_TRUE@am__append_1 = $(PYTHON_SOURCES) $(SIDL_TESTS)
 @ENABLE_INTEROP_REGRESSION_TRUE@am__append_2 = $(BABEL_TESTS)
@@ -550,6 +548,7 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_17)
+
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
 noinst_PYTHON = 
@@ -563,7 +562,7 @@ nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl \
 BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) chpl/sidl.chpl \
 	$(SIDLSTUB_SRCS)
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
-bin_SCRIPTS = braid/braid braid/headerize
+bin_SCRIPTS = braid/braid braid/headerize braid/burg.py
 TESTS = $(am__append_1) $(am__append_2)
 TEST_EXTENSIONS = .py .sidl $(am__append_3)
 
@@ -601,11 +600,15 @@ PYTHON_SOURCES = \
 	braid/chapel/__init__.py \
 	braid/chapel/cgen.py \
 	braid/chapel/chapel.py \
+	braid/chapel/chpl.py \
 	braid/chapel/args.py \
+	braid/burg.py \
 	braid/codegen.py \
 	braid/config.py \
+	braid/ior.py \
 	braid/ior_template.py \
 	braid/lists.py \
+	braid/parse_tree.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
@@ -613,8 +616,12 @@ PYTHON_SOURCES = \
 	braid/sidl_token.py \
 	braid/splicer.py
 
-BUILT_PYTHON_SOURCES = braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py
+BUILT_PYTHON_SOURCES = \
+	braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py \
+	$(builddir)/braid/chapel/conversions.py
+
 GRAMMARS = braid/ir.def braid/sidl.def
+BURG_RULES = braid/chapel/conversions.burg
 braid_scanner_la_SOURCES = braid/scanner.l
 braid_scanner_la_CPPFLAGS = $(PYTHONINC)
 braid_scanner_la_LDFLAGS = -avoid-version -module
@@ -2200,6 +2207,14 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 	@cat $< >>$@
 	@echo "'''">>$@
 
+# Code generators
+%.py: %.burg $(srcdir)/braid/burg.py
+	@$(MKDIR_P) `dirname $@`
+	$(AM_V_GEN) env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) \
+		$(srcdir)/braid/burg.py $< -o $@
+
+$(builddir)/braid/chapel/conversions.py: $(srcdir)/braid/chapel/conversions.burg
+
 # We keep this file in srcdir because we only regenerate them if the
 # user has swipl installed
 $(srcdir)/braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
@@ -2314,7 +2329,7 @@ chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd chpl && \
-          env PYTHONPATH=../braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
+          env PYTHONPATH=../braid:../braid/chapel:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
             -cchpl $(SIDL_PATH)/sidl.sidl
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
