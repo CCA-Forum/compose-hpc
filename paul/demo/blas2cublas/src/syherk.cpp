@@ -106,8 +106,8 @@ void handleSYHERK(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, s
 			cA = uPrefix + "_cA";
 			cocciStream << "+ int "<<cA<<"; \n";
 			cocciStream << "+ char "<<cuTrans<<"; \n";
-			cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'N\'; \n";
-			cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'T\'; \n";
+			cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'T\'; \n";
+			cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'N\'; \n";
 			cocciStream << "+ else if("<<cblasTrans<<" == CblasConjTrans) "<<cuTrans<<" = \'C\'; \n\n";
 			cocciStream << "+ if("<<cuTrans<<" == CblasNoTrans) { "<<rA<<" = n; "<<cA<<" = k; } \n";
 			cocciStream << "+ else { "<<rA<<" = k; "<<cA<<" = n; } \n\n";

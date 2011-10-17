@@ -123,31 +123,20 @@ void handleTRSMM(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, st
 
 		}
 
-		if(isRowMajor){
-			if(    cblasTrans  == "CblasTrans")     cuTrans = "\'N\'";
-			else if(cblasTrans == "CblasNoTrans")   cuTrans = "\'T\'";
-			else if(cblasTrans == "CblasConjTrans") cuTrans = "\'C\'";
-			else{
-				cuTrans = uPrefix + "_trans";
-				cocciStream << "+ char "<<cuTrans<<"; \n";
-				cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'N\'; \n";
-				cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'T\'; \n";
-				cocciStream << "+ else if("<<cblasTrans<<" == CblasConjTrans) "<<cuTrans<<" = \'C\'; \n\n";
-
-			}
-		}
+		if(    cblasTrans  == "CblasTrans")     cuTrans = "\'T\'";
+		else if(cblasTrans == "CblasNoTrans")   cuTrans = "\'N\'";
+		else if(cblasTrans == "CblasConjTrans") cuTrans = "\'C\'";
 		else{
-			if(    cblasTrans  == "CblasTrans")     cuTrans = "\'T\'";
-			else if(cblasTrans == "CblasNoTrans")   cuTrans = "\'N\'";
-			else if(cblasTrans == "CblasConjTrans") cuTrans = "\'C\'";
-			else{
-				cuTrans = uPrefix + "_trans";
-				cocciStream << "+ char "<<cuTrans<<"; \n";
-				cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'T\'; \n";
-				cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'N\'; \n";
-				cocciStream << "+ else if("<<cblasTrans<<" == CblasConjTrans) "<<cuTrans<<" = \'C\'; \n\n";
+			cuTrans = uPrefix + "_trans";
+			cocciStream << "+ char "<<cuTrans<<"; \n";
+			cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'T\'; \n";
+			cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'N\'; \n";
+			cocciStream << "+ else if("<<cblasTrans<<" == CblasConjTrans) "<<cuTrans<<" = \'C\'; \n\n";
 
-			}
+		}
+
+		if(isRowMajor){
+			RowMajorWarning(cocciStream,true);
 		}
 
 		if(cblasUplo == "CblasUpper") cuUplo = "\'U\'";

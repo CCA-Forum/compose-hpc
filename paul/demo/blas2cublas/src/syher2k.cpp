@@ -117,8 +117,8 @@ void handleSYHER2K(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, 
 			cB = uPrefix + "_cB";
 			cocciStream << "+ int "<<cB<<"; \n";
 			cocciStream << "+ char "<<cuTrans<<"; \n";
-			cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'N\'; \n";
-			cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'T\'; \n";
+			cocciStream << "+ if("<<cblasTrans<<" == CblasTrans) "<<cuTrans<<" = \'T\'; \n";
+			cocciStream << "+ else if("<<cblasTrans<<" == CblasNoTrans) "<<cuTrans<<" = \'N\'; \n";
 			cocciStream << "+ else if("<<cblasTrans<<" == CblasConjTrans) "<<cuTrans<<" = \'C\'; \n\n";
 			cocciStream << "+ if("<<cuTrans<<" == CblasNoTrans) { "<<rA<<" = n; "<<cA<<" = k; "<<rB<<" = n; "<<cB<<" = k; } \n";
 			cocciStream << "+ else { "<<rA<<" = k; "<<cA<<" = n; "<<rB<<" = k; "<<cB<<" = n; } \n\n";
