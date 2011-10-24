@@ -1,11 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef int bool;
 int nbfn, ichunk, g_counter, icut1, icut2, icut3, icut4, g_fock, newtask, maxnbfn, g_schwarz, g_dens, tol2e;
 
 int GA_Nodeid();
 int next_4chunk(int *,int *,int *,int *,int *,int *);
-void GA_Zero(int);
+void GA_Zero(int );
+long gettask();
+int translate_task(long ,int *,int *,int *,int *,int *,int *);
+bool is_task_local(int, int *, int *, int, int *, int *);
+void NGA_Get(int,int *,int *,double (*)[10],int *);
+void clean_chunk(double (*)[10]);
+void g(double*,int,int,int,int);
+void NGA_Acc(int,int *,int *,double (*)[10],int *,double *);
+long NGA_Read_inc(int,int *,int);
+int NGA_Locate_region(int, int *, int *, int *, int *);
 
 void twoel(double *schwmax, double *etwo)
 {
@@ -14,15 +24,13 @@ void twoel(double *schwmax, double *etwo)
   double s_ij[ichunk][ichunk], s_kl[ichunk][ichunk];
   double one;
       
-  long long int ijkls, ijcnt,klcnt,ijklcnt;
+  long long int ijcnt,klcnt,ijklcnt;
   int lo[4],hi[4],lo_ik[2],hi_ik[2],lo_jl[2],hi_jl[2];
   int i,j,k,l,iloc,jloc,kloc,lloc,ld,ich,it,jt,kt,lt;
   int dotask, accum;
 
   int itask;
   double gg;
-
-  //     add in the two-electron contribution to the fock matrix;
 
   one = 1.00;
   ijcnt = icut1;
@@ -48,13 +56,14 @@ void twoel(double *schwmax, double *etwo)
     hi_jl[0] = hi[1];
     hi_jl[1] = hi[3];
 
-    NGA_Get(g_schwarz, lo, hi, s_ij, &ich); // Get two tiles of the Schwarz matrix
+    /*% TASCEL version=0 */
+    NGA_Get(g_schwarz, lo, hi, s_ij, &ich); 
     NGA_Get(g_schwarz, &lo[2], &hi[2], s_kl, &ich);
-    NGA_Get(g_dens, &lo[2], &hi[2], d_kl, &ich); // Get two tiles of the density matrix
-    NGA_Get(g_dens, lo_jl, hi_jl, d_jl, &ich); // NOTE: coordinates are different
+    NGA_Get(g_dens, &lo[2], &hi[2], d_kl, &ich); 
+    NGA_Get(g_dens, lo_jl, hi_jl, d_jl, &ich); 
 
     itask = itask + 1;
-    clean_chunk(f_ij); // zero accumulate buffers
+    clean_chunk(f_ij); 
     clean_chunk(f_ik);
 
     for (i = lo[0]; i <= hi[0]; i++) {
@@ -103,8 +112,6 @@ void twoel(double *schwmax, double *etwo)
   if (icut3 > 0)
     return;
 
-  //    no integrals may be calculated if there is no work for;
-  //    this node (ichunk too big), or, something is wrong;
   printf("no two-electron integrals computed by node %d\n", GA_Nodeid());
   printf("\n"); 
   return;
@@ -202,4 +209,4 @@ int translate_task(long int itask, int *lo, int *hi, int *ilo, int *jlo, int *kl
     ret = 0;
 
   return ret;
-} // translate_task
+}

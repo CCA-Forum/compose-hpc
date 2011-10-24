@@ -45,7 +45,13 @@ Transform *Transform::get_transform(SgLocatedNode *theroot,Annotation *ann) {
 TascelTransform::TascelTransform(Annotation *a,SgLocatedNode *p)
 : Transform(p) {
 	Dynamic *chkVersion = a->get_attrib("version");
-	if(chkVersion!=NULL) version = atoi(a->get_attrib("version")->string_value().c_str());
+	if(chkVersion!=NULL) {
+		version = atoi(a->get_attrib("version")->string_value().c_str());
+		if(version<0 || version>3){
+			cerr << "TASCEL transformation error : unrecognized version specified. " << endl;
+			exit(1);
+		}
+	}
 	else {
 		cerr << "TASCEL transformation error : version not specified. " << endl;
 		exit(1);
@@ -107,7 +113,7 @@ void TascelTransform::generate(string inpFile, int *fileCount) {
 
 	ROSE_ASSERT(functionCallExp != NULL);
 	// As of now there could be only one function(next_4chunk) call that is annotated.
-	ROSE_ASSERT(counter == 1);
+	//ROSE_ASSERT(counter == 1);
 
 	// Get name of the tascel routine.
 	SgFunctionSymbol *funcSym = functionCallExp->getAssociatedFunctionSymbol();
@@ -161,8 +167,7 @@ void TascelTransform::generate(string inpFile, int *fileCount) {
 }
 
 void MainTascelTransform(ofstream &cocciFptr,string &fname,int version,SgExprListExp *fArgs){
-	string version0 = "next_4chunk";
-	if(fname.compare(version0)==0) handleTascelTransform(cocciFptr,fname,version,fArgs);
+	handleTascelTransform(cocciFptr,fname,version,fArgs);
 }
 
 void AbsorbStructTransform::generate(string inpFile, int *fileCount) {

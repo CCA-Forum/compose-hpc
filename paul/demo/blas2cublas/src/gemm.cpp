@@ -76,10 +76,24 @@ void handleGEMM(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor, st
 	if(checkBlasCallType){
 		// C BLAS interface is used
 
+		string chkAlloc = "chkAlloc_"+uPrefix;
 		cocciStream << "+  /* Allocate device memory */  \n";
-		cocciStream << "+  cublasAlloc(rA*cA, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
-		cocciStream << "+  cublasAlloc(cA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_B);  \n";
-		cocciStream << "+  cublasAlloc(rA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_C);  \n\n";
+		cocciStream << "+  int "<<chkAlloc<<";\n";
+		cocciStream << "+  "<<chkAlloc<<" = cublasAlloc(rA*cA, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
+		cocciStream << "+  if("<<chkAlloc<<" != CUBLAS_STATUS_SUCCESS) {\n";
+		cocciStream << "+   	   printf(\"Error allocating memory on device for array "<<uPrefix<<"_A !!\\n\");\n";
+		cocciStream << "+          return -1;\n";
+		cocciStream << "+  }\n";
+		cocciStream << "+  "<<chkAlloc<<" = cublasAlloc(cA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_B);  \n";
+		cocciStream << "+  if("<<chkAlloc<<" != CUBLAS_STATUS_SUCCESS) {\n";
+		cocciStream << "+   	   printf(\"Error allocating memory on device for array "<<uPrefix<<"_B !!\\n\");\n";
+		cocciStream << "+          return -1;\n";
+		cocciStream << "+  }\n";
+		cocciStream << "+  "<<chkAlloc<<" = cublasAlloc(rA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_C);  \n\n";
+		cocciStream << "+  if("<<chkAlloc<<" != CUBLAS_STATUS_SUCCESS) {\n";
+		cocciStream << "+   	   printf(\"Error allocating memory on device for array "<<uPrefix<<"_C !!\\n\");\n";
+		cocciStream << "+          return -1;\n";
+		cocciStream << "+  }\n";
 		cocciStream << "+  /* Copy matrices to device */     \n";
 		cocciStream << "+  cublasSetMatrix ( rA, cA, sizeType_"<<uPrefix<<", (void *)"<<matARef<<", rA, (void *) "<<uPrefix<<"_A, rA);  \n";
 		cocciStream << "+  cublasSetMatrix ( cA, cB, sizeType_"<<uPrefix<<", (void *)"<<matBRef<<", cA, (void *) "<<uPrefix<<"_B, cA);  \n\n";

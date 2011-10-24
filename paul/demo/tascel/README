@@ -22,13 +22,24 @@ Running a sample transformation
   to run the transformation.
 
 - The options to this script are
-  ./Tascel.py path-to-input-file AnnotOptions 
+  ./Tascel.py path-to-input-file version AnnotOptions 
    where AnnotOptions={autoAnnot, autoAnnotNstop, PAUL} 
  
    - Currently automatically annotations is not supported.
      and hence AnnotOptions should be empty.
+   - Currently the version number is only used in the second
+     step of the transformation where C++ code is introduced.
 
-- python Tascel.py tascel/tests/twoel_0.c  (not providing AnnotOptions)
+- python Tascel.py tascel/tests/twoel_0.c  0 (not providing AnnotOptions)
+  produces rose_trans_twoel_0.c which is equivalent to twoel_1.c without
+  annotations that drive the transformation to produce the subsequent version (twoel_2.C)
+  
+- python Tascel.py tascel/tests/twoel_1.c  1
+  produces rose_trans_twoel_1.C which is equivalent to twoel_2.C (and twoel_3.C
+  from the original sources). This version is converted to C++ code 
+  and this code is further modified (manually for now) so that the ROSE frontend could
+  process it without any errors when the transformation tries to generate the final
+  version. 
 
 
 Actions performed by the Tascel.py script
@@ -77,9 +88,8 @@ Work in Progress
 - The transformations are applied in a series of steps thereby
   producing multiple versions of the transformed code, where each
   version is a step towards the final desired transformation.
-  Currently only the intial version has been developed.
-
-- Developing the other versions.
+  Currently, prototypes for all versions except the final one
+  have been developed.
 
 
 Please email ajay@csc.lsu.edu with any feedback.

@@ -16,9 +16,11 @@ if len(sys.argv) <= 1:
 filePath = sys.argv[1]
 
 autoAnnotOption = ""
+version = 0
 
 try:
-    autoAnnotOption = sys.argv[2]
+    version = sys.argv[2]
+    autoAnnotOption = sys.argv[3]
 except:
     pass
 
@@ -28,6 +30,7 @@ try:
 except ValueError:
     pass
     
+print 'version = ' + str(version)
 fileName = filePath[sindex:]
 filePath = filePath[0:sindex]
 
@@ -79,8 +82,23 @@ if(os.path.exists(tascelCocci)):
     print "Transforming rose_trans_%s.%s" %(fName,extension)
 
     os.system("spatch %s -sp_file  %s rose_trans_%s.%s\
-              -o rose_trans_%s_tascel.c > /dev/null" %(cocciOptions,tascelCocci,fName,extension,fName))
+              -o rose_trans_%s_tascel.%s > /dev/null" %(cocciOptions,tascelCocci,fName,extension,fName,extension))
 
+    if str(version)=="1":
+        csrc="rose_trans_%s_tascel.c" %(fName)
+        cdest="rose_trans_%s_tascel.C" %(fName)
+        os.system("cp %s %s" %(csrc,cdest))
+        oldLine = "\/\/TASCELSEDREP " 
+        replaceLine = ""
+        
+        os.system("sed -i 's/%s/%s/g' %s" %(oldLine.strip(),replaceLine.strip(),cdest)) 
+        
+        oldLine = "TASCELSEDREP +" 
+        replaceLine = ""
+        
+        os.system("sed -i 's/%s/%s/g' %s" %(oldLine.strip(),replaceLine.strip(),cdest)) 
+        
+        
     if(len(link) != 0):
         print "\nCompiling rose_trans_%s_tascel.cu ..." %(fName)
         compileTascel = "gcc rose_trans_%s_tascel.cu -o rose_trans_%s_tascel %s" %(fName,fName,linker)
