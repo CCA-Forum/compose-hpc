@@ -257,6 +257,7 @@ MAKEINFOHTML = $(MAKEINFO) --html
 AM_MAKEINFOHTMLFLAGS = $(AM_MAKEINFOFLAGS)
 DVIPS = dvips
 am__python_PYTHON_DIST = $(top_srcdir)/contrib/ply/yacc.py \
+	$(top_srcdir)/contrib/ply/lex.py \
 	contrib/argparse-1.1/argparse.py
 py_compile = $(top_srcdir)/config/py-compile
 man1dir = $(mandir)/man1
@@ -547,7 +548,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
-python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py $(am__append_17)
+python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py \
+	$(top_srcdir)/contrib/ply/lex.py $(am__append_17)
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
@@ -599,7 +601,7 @@ PYTHON_SOURCES = \
 	braid/braid.py \
 	braid/chapel/__init__.py \
 	braid/chapel/cgen.py \
-	braid/chapel/chapel.py \
+	braid/chapel/backend.py \
 	braid/chapel/chpl.py \
 	braid/chapel/args.py \
 	braid/burg.py \
@@ -618,7 +620,7 @@ PYTHON_SOURCES = \
 
 BUILT_PYTHON_SOURCES = \
 	braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py \
-	$(builddir)/braid/chapel/conversions.py
+	$(builddir)/braid/conversions.py
 
 GRAMMARS = braid/ir.def braid/sidl.def
 BURG_RULES = braid/chapel/conversions.burg
@@ -2208,12 +2210,10 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 	@echo "'''">>$@
 
 # Code generators
-%.py: %.burg $(srcdir)/braid/burg.py
+$(builddir)/braid/conversions.py: $(srcdir)/braid/chapel/conversions.burg $(srcdir)/braid/burg.py
 	@$(MKDIR_P) `dirname $@`
 	$(AM_V_GEN) env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) \
 		$(srcdir)/braid/burg.py $< -o $@
-
-$(builddir)/braid/chapel/conversions.py: $(srcdir)/braid/chapel/conversions.burg
 
 # We keep this file in srcdir because we only regenerate them if the
 # user has swipl installed
@@ -2294,7 +2294,8 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
 	$(AM_V_GEN)
 	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
                      -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
-	@sh $(top_builddir)/braid/braid --help \
+	@env PYTHONPATH=braid:$(top_srcdir)/braid:braid/.libs:$(PYTHONPATH) $(PYTHON) \
+	   $(top_srcdir)/braid/braid.py --help \
 	|  sed -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
                -e 's/:$$/\n~~~~~~~~~~~~~~~~~~~~\n\n/' \
                -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
@@ -2324,12 +2325,14 @@ clean-local: clean-braid
 		done; \
 	fi
 
+# We list only one of the files as target, otherwise make -j will run
+# havoc and try to make all of them in parallel
 chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(MKDIR_P) chpl
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd chpl && \
-          env PYTHONPATH=../braid:../braid/chapel:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
+          env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
             -cchpl $(SIDL_PATH)/sidl.sidl
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@

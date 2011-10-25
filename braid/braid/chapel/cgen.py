@@ -31,8 +31,7 @@
 # </pre>
 #
 import ir, sidl
-# from args import *
-from chapel import *
+from backend import *
 from patmat import *
 from lists import *
 from codegen import (
@@ -66,28 +65,7 @@ def outgoing((arg, attrs, mode, typ, name)):
     return mode <> sidl.in_
 
 def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
-    return arg, attrs, mode, ir_type_to_chpl(typ), name
-
-def ir_type_to_chpl(typ):
-    mapping = {
-        ir.pt_void:     ir.pt_void,
-        ir.pt_bool:     ir.Typedef_type('_Bool'),
-        ir.pt_string:   ir.const_str,
-        ir.pt_int:      ir.Typedef_type('int32_t'),
-        ir.pt_long:     ir.Typedef_type('int64_t'),
-        ir.pt_char:     ir.const_str,
-        ir.pt_fcomplex: ir.Typedef_type('_complex64'), 
-        ir.pt_dcomplex: ir.Typedef_type('_complex128'),
-        ir.pt_float:    ir.pt_float,
-        ir.pt_double:   ir.pt_double,
-        sidl.pt_opaque: ir.Pointer_type(ir.pt_void)
-        }
-    try:
-        return mapping[typ]
-    except:
-        if typ[0] == ir.enum: 
-            return ir.Typedef_type('int64_t')
-        return typ
+    return arg, attrs, mode, conv.ir_type_to_chpl(typ), name
 
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     """
@@ -116,22 +94,27 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     pre_call = []
     post_call = []
     opt = scope.cstub.optional
+
+    def deref(mode):
+        return '' if mode == sidl.in_ else '*'
+
     # IN
-    map(lambda (arg,attr,mode, typ, name): 
-        conv.codegen((('chpl', typ), name), typ, pre_call, opt), 
+    map(lambda (arg, attr, mode, typ, name): 
+        conv.codegen((('chpl', typ), name), typ, pre_call, opt, deref(mode)), 
         filter(incoming, Args))
     # OUT
-    map(lambda (arg,attr,mode, typ, name):
-        conv.codegen((('chpl', typ), name), typ, post_call, opt), 
+    map(lambda (arg, attr, mode, typ, name):
+        conv.codegen((typ, name), ('chpl', typ), post_call, opt, deref(mode)), 
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 
     retval_arg = []
     # return value type conversion -- treat it as an out argument
-    conv.codegen((('chpl', Type), '_retval'), Type, post_call, opt)
+    rarg = ir.Arg([], ir.out, Type, '_retval')
+    conv.codegen((Type, '_retval'), ('chpl', Type), post_call, opt, '')
     crarg = ir_arg_to_chpl(rarg)
-    _,_,_,ctype,_ = rarg
+    _,_,_,chpltype,_ = crarg
 
     # Proxy declarations / revised names of call arguments
     call_args = []
@@ -151,12 +134,12 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     retval_name = call_args[0] if isinstance(call_args[0], str) else call_args[0][1]
     call_args = call_args[1:]
 
-    cstub_decl = ir.Fn_decl([], ctype, sname, cstub_decl_args, DocComment)
+    cstub_decl = ir.Fn_decl([], chpltype, sname, cstub_decl_args, DocComment)
     
     if Type == ir.pt_void:
         body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
     else:
-        pre_call.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
+        pre_call.append(ir.Stmt(ir.Var_decl(chpltype, '_retval')))
         body = [ir.Stmt(ir.Assignment(retval_name,
                                       ir.Call(VCallExpr, call_args)))]
         post_call.append(ir.Stmt(ir.Return('_retval')))
@@ -165,11 +148,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     if sname not in stubs_generated:
         stubs_generated.add(sname)
         c_gen([cstub_decl,
-           ir.Fn_defn([], ctype, sname, cstub_decl_args,
+           ir.Fn_defn([], chpltype, sname, cstub_decl_args,
                       list(decls)+pre_call+body+post_call, DocComment)], scope.cstub)
 
     # Chapel _extern declaration
-    chplstub_decl = ir.Fn_decl([], ctype, sname, map(obj_by_value, cstub_decl_args), DocComment)
+    chplstub_decl = ir.Fn_decl([], chpltype, sname, map(obj_by_value, cstub_decl_args), DocComment)
     scope.new_def('_extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
@@ -413,8 +396,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.arg, Attrs, Mode, (sidl.rarray, Scalar_type, Dimension, Extents), Name):
                 (arg_mode, arg_name) = (gen(Mode), gen(Name))
                 # rarray type will include a new domain variable definition
-                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=Name)
-                arg_type = '[?' + chpl_dom_var_name + '] ' + gen(Scalar_type)
+                arg_type = '[?_babel_dom_%s] %s'%(Name, gen(Scalar_type))
                 return '%s %s: %s'%(arg_mode, arg_name, arg_type)
                 
             elif (sidl.arg, Attrs, Mode, Type, Name):

@@ -857,7 +857,7 @@ class Chapel(object):
                 chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
                 chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
                 
-                # sanity check on input arra:yensure domain is rectangular
+                # sanity check on input array: ensure domain is rectangular
                 pre_call.append(ir.Stmt(ir.Call('performSanityCheck',
                     [chpl_dom_var_name, '"{arg_name}"'.format(arg_name=arg_name)])))
                 # ensure we are working with a 'local' array

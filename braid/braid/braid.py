@@ -27,7 +27,7 @@
 
 import argparse, re, sys
 import sidl_parser, sidl_symbols, codegen, config, legal
-from chapel import *
+import chapel.backend as chpl_be
 
 def braid(args):
     for sidl_file in args.sidl_files:
@@ -46,8 +46,8 @@ def braid(args):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             print "FIXME Handle imports here after injection of sidl runtime"
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            chapel.Chapel(sidl_file, sidl_ast, symtab,
-                          args.makefile, args.verbose).generate_client()
+            chpl_be.Chapel(sidl_file, sidl_ast, symtab,
+                           args.makefile, args.verbose).generate_client()
         else:
             print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
             exit(1)
@@ -58,8 +58,8 @@ def braid(args):
         elif re.match(r'([cC]hapel)|(chpl)', args.server):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            chapel.Chapel(sidl_file, sidl_ast, symtab,
-                          args.makefile, args.verbose).generate_server()
+            chpl_be.Chapel(sidl_file, sidl_ast, symtab,
+                           args.makefile, args.verbose).generate_server()
         else:
             print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
             exit(1)

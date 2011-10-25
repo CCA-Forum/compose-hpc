@@ -7,7 +7,7 @@ if PYTHON_VERSION_2_6
 else
   BACKPORTS=
 endif
-python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py
+python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py $(top_srcdir)/contrib/ply/lex.py
 PYTHONPATH=$(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(srcdir)
 
 # list all Python source files that also contain unit tests
@@ -15,7 +15,7 @@ PYTHON_SOURCES = \
 	braid/braid.py \
 	braid/chapel/__init__.py \
 	braid/chapel/cgen.py \
-	braid/chapel/chapel.py \
+	braid/chapel/backend.py \
 	braid/chapel/chpl.py \
 	braid/chapel/args.py \
 	braid/burg.py \
@@ -34,7 +34,7 @@ PYTHON_SOURCES = \
 
 BUILT_PYTHON_SOURCES = \
 	braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py \
-	$(builddir)/braid/chapel/conversions.py
+	$(builddir)/braid/conversions.py
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
@@ -121,12 +121,10 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 	@echo "'''">>$@
 
 # Code generators
-%.py: %.burg $(srcdir)/braid/burg.py
+$(builddir)/braid/conversions.py: $(srcdir)/braid/chapel/conversions.burg $(srcdir)/braid/burg.py
 	@$(MKDIR_P) `dirname $@`
 	$(AM_V_GEN) env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) \
 		$(srcdir)/braid/burg.py $< -o $@
-
-$(builddir)/braid/chapel/conversions.py: $(srcdir)/braid/chapel/conversions.burg
 
 # We keep this file in srcdir because we only regenerate them if the
 # user has swipl installed

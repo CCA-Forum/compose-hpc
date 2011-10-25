@@ -2,7 +2,38 @@
 # Process this file with burg.py
 %action arguments: (convs, optionals, deref)
 #------------------------------------------------------------------------
-import ior, chapel.chpl as chpl, ir
+import ior, ir, sidl
+import chapel.chpl as chpl
+from codegen import CCodeGenerator, CFile
+
+def c_gen(ir, scope=None):
+    if scope == None:
+        scope = CFile()
+    return CCodeGenerator().generate(ir, scope)
+
+
+def ir_type_to_chpl(typ):
+    mapping = {
+        ir.pt_void:     ir.pt_void,
+        ir.pt_bool:     ir.Typedef_type('_Bool'),
+        ir.pt_string:   ir.const_str,
+        ir.pt_int:      ir.pt_int, #ir.Typedef_type('int32_t'),
+        ir.pt_long:     ir.pt_long, #ir.Typedef_type('int64_t'),
+        ir.pt_char:     ir.const_str,
+        ir.pt_fcomplex: ir.Typedef_type('_complex64'), 
+        ir.pt_dcomplex: ir.Typedef_type('_complex128'),
+        ir.pt_float:    ir.pt_float,
+        ir.pt_double:   ir.pt_double,
+        sidl.pt_opaque: ir.Pointer_type(ir.pt_void)
+        }
+    try:
+        return mapping[typ]
+    except:
+        if typ[0] == ir.enum: 
+            return ir.Typedef_type('int64_t')
+        return typ
+
+
 char_lut = '''
 /* This burial ground of bytes is used for char [in]out arguments. */
 static const unsigned char chpl_char_lut[512] = {
@@ -23,7 +54,7 @@ ior.bool @ C -> chpl.bool @ C : cost(0)
 chpl.bool @ C -> ior.bool @ C : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
     convs.append((ir.stmt, '{p}{n} = ({typ})_proxy_{n}'
-                  .format(p=deref, n=name, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
+                  .format(p=deref, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
 # ior.string @ C -> chpl.char @ C : cost(3)
 #     pass
@@ -46,21 +77,21 @@ chpl.char @ C -> ior.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     convs.append((ir.stmt, '{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_proxy_{n}]'
-                  .format(p=a0.deref, n=a0)))
+                  .format(p=deref, n=a0)))
     optionals.add(char_lut)
 
 # COMPLEX - 32/64 Bit components
 ior.fcomplex @ C -> chpl.fcomplex : cost(1)
     fmt = {'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(n=a0)))
-    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(n=a0)))
+    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(**fmt)))
+    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(**fmt)))
 
 ior.dcomplex @ C -> chpl.dcomplex : cost(1)
     fmt = {'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(n=a0)))
-    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(n=a0)))
+    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(**fmt)))
+    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(**fmt)))
 
-chpl.dcomplex @ C -> ior.dcomplex : cost(1)
+chpl.fcomplex @ C -> ior.fcomplex : cost(1)
     fmt = {'n':a0, 'a': '->' if deref else '.' }
     convs.append((ir.stmt, '{n}{a}re = _proxy_{n}.real'.format(**fmt)))
     convs.append((ir.stmt, '{n}{a}im = _proxy_{n}.imaginary'.format(**fmt)))
@@ -103,4 +134,8 @@ chpl.int @C -> ior.int: cost(0)
 ior.long @C -> chpl.long: cost(0)
     pass
 chpl.long @C -> ior.long: cost(0)
+    pass
+
+# VOID return type
+chpl.void @C -> ior.void:cost(0)
     pass

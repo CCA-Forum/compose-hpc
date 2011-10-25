@@ -68,7 +68,8 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
 	$(AM_V_GEN)
 	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
                      -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
-	@sh $(top_builddir)/braid/braid --help \
+	@env PYTHONPATH=braid:$(top_srcdir)/braid:braid/.libs:$(PYTHONPATH) $(PYTHON) \
+	   $(top_srcdir)/braid/braid.py --help \
 	|  sed -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
                -e 's/:$$/\n~~~~~~~~~~~~~~~~~~~~\n\n/' \
                -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
@@ -121,12 +122,14 @@ EXTRA_DIST += $(CHPL_RUNTIME_FILES) chpl/darray.inc
 
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 
+# We list only one of the files as target, otherwise make -j will run
+# havoc and try to make all of them in parallel
 chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(MKDIR_P) chpl
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd chpl && \
-          env PYTHONPATH=../braid:../braid/chapel:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
+          env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
             -cchpl $(SIDL_PATH)/sidl.sidl
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
