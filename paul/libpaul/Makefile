@@ -14,24 +14,34 @@ CFLAGS += -I$(BOOSTINSTALL)/include
 LDFLAGS += -L$(BOOSTINSTALL)/lib
 endif
 
-EXEC=annotation_test
-CCFILES=KVAnnotation.cpp SXAnnotation.cpp ${EXEC}.cpp 
-HFILES=KVAnnotation.h SXAnnotation.h Annotation.h
-OFILES=$(patsubst %.cc,%.o,${CCFILES})
+EXEC=test_PaulDecorate
+CCHELPERS=KVAnnotationValue.cpp SXAnnotationValue.cpp Dynamic.cpp \
+          PaulDecorate.cpp
+CCFILES=${EXEC}.cpp ${CCHELPERS}
+
+HFILES=$(patsubst %.cpp,%.h,${CCHELPERS})
+OFILES=$(patsubst %.cpp,%.o,${CCFILES})
 LIBS=-lrose
+LIBS+=-lfl          # Flex!
+LIBS+=-lsexp        # sexpr lib
 CXX=g++
 SOURCES=${CCFILES}
 OUTS=$(addprefix out/, $(basename $(notdir ${SOURCES})))
 OUTS_O=$(addprefix out-o/, $(basename $(notdir ${SOURCES})))
 
+# CFLAGS += -Wall -O2 -ansi
+
 .PHONY: main
 main: ${EXEC}
 
-${EXEC}: ${OFILES}
+${EXEC}: ${OFILES} scanner.o parser.o
 	${CXX} $^ ${CFLAGS} ${LDFLAGS} ${LIBS} -o $@
 
 %.o: %.cc ${HFILES}
-	${CXX} -Wall -O2 -ansi ${CFLAGS} -c $<
+	${CXX} ${CFLAGS} -c $<
+
+%.o: %.cpp ${HFILES}
+	${CXX} ${CFLAGS} -c $<
 
 run: out
 
@@ -46,6 +56,22 @@ out/%: out/%.c
 
 .PHONY: mpibuild
 mpibuild: ${OUTS}
+
+# Build parser & scanner
+
+CC        = g++
+
+scanner.o: scanner.c scanner.h parser.h
+	$(CC) -c $(CFLAGS) scanner.c -o $@
+
+scanner.c scanner.h: scanner.l
+	flex $<
+
+parser.c parser.h : parser.y lemon
+	./lemon -q $<
+
+lemon: lemon.c
+	gcc lemon.c -o lemon
 
 # Create skeletons via outlining, not removing
 
