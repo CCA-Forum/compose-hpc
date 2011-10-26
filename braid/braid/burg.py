@@ -72,6 +72,8 @@ if __name__ == '__main__':
 # Specification: %s
 # DO NOT EDIT!
 
+debug = False
+
 '''%args.output)
 
 
@@ -110,9 +112,9 @@ if __name__ == '__main__':
                 # new rule
 
                 # we are using the following grammar:
-                # target @lang -> src @lang? : cost(c)
+                # target @lang <-- src @lang? : cost(c)
                 #      code
-                m = re.match('(.*)@(.+)->(.*?)(@(.+))?:cost\((\d+)\)',
+                m = re.match('(.*)@(.+)<--(.*?)(@(.+))?:cost\((\d+)\)',
                              re.sub('\s','', line))
                 if not m: error('Bad rule syntax\n'+line)
 
@@ -170,7 +172,7 @@ from parse_tree import *
 def labelx(tree):
     return label1(parse_tree(tree.replace('.','_')))
 
-def label(node):
+def label(node, debug):
     """
     Find a cost-minimal cover of the tree \c tree using the the rules
     defined in the global variable \c rules.
@@ -202,8 +204,9 @@ def label(node):
     #	print '**WARNING: node %r is a non-terminal symbol'%functor
     #	# exit(1)
 
-    #print 'label(%s):'%str(functor)
-    #print "my_labels: ", my_labels
+    if debug:
+        print 'label(%s):'%str(functor)
+        print "my_labels: ", my_labels
 
     visited = set()
     fixpoint = False
@@ -238,9 +241,11 @@ def label(node):
 		#print '    my_labels[',target,'] = ',(r, cost)
 		fixpoint = False
 
-    # debug output
-    #for r, cost in my_labels.values():
-    #    print '   ', r, ':', cost
+    if debug:
+        for r, cost in my_labels.values():
+            print '   ', r, ':', cost
+    #if len(my_labels) == 0:
+    #     print '**ERROR: no labelling found for <%s>'%repr(node)
 
     return tuple([my_labels]+child_labels+[data])
 
@@ -262,7 +267,8 @@ def reducetree(label, target, *args):
             del my_labels[target]
      
             _, target, _, action = r
-            # print r, cost
+            if debug:
+                print r, cost
             try:
                 action(*tuple(list(args)+[label[-1]]))
             except:
@@ -273,7 +279,7 @@ def reducetree(label, target, *args):
             success = True
 
         if not success:
-	    print "**ERROR: no cover found! <%r>", target
+	    print "**ERROR: no cover found! <%r>"%target
             #import pdb; pdb.set_trace()
 
     except TypeError:
@@ -285,9 +291,10 @@ def reducetree(label, target, *args):
 def codegen(src, target, *args):
     if len(args) <> action_arity:
         import pdb; pdb.set_trace()
-    labels = label(src)
-    # print 'labels = ', labels
-    # print 'cost-optimal cover:'
+    labels = label(src, debug)
+    if debug:
+        print 'labels = ', labels
+        print 'cost-optimal cover:'
     return reducetree(labels, target, *args)
 
 if __name__ == '__main__':

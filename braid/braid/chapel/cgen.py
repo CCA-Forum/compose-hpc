@@ -31,6 +31,7 @@
 # </pre>
 #
 import ir, sidl
+import chpl, ior
 from backend import *
 from patmat import *
 from utils import *
@@ -95,8 +96,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     post_call = []
     opt = scope.cstub.optional
 
-    def deref(mode):
+    def deref(mode): 
         return '' if mode == sidl.in_ else '*'
+
 
     # IN
     map(lambda (arg, attr, mode, typ, name): 
@@ -123,14 +125,19 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     decls = []
     for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
         zip([crarg]+cstub_decl_args, [rarg]+Args)):
-        if chpl_t <> c_t or name == 'self' and member_chk(ir.pure, attrs):
+        if chpl_t <> c_t:
             # FIXME see comment in chpl_to_ior
             name = '_proxy_'+name
             decls.append(ir.Stmt(ir.Var_decl(c_t, name)))
             if mode <> sidl.in_: 
                 name = ir.Pointer_expr(name)
 
-        call_args.append(name)
+        if name == 'self' and member_chk(ir.pure, attrs): # part of the hack for self dereferencing
+            upcast = ('({0}*)(((struct sidl_BaseInterface__object*)self)->d_object)'
+                      .format(c_gen(c_t[1])))
+            call_args.append(upcast)
+        else:
+            call_args.append(name)
 
     # get rid of retval in call args
     retval_name = call_args[0] if isinstance(call_args[0], str) else call_args[0][1]
@@ -139,11 +146,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     cstub_decl = ir.Fn_decl([], chpltype, sname, cstub_decl_args, DocComment)
     
     if Type == ir.pt_void:
-        body = [ir.Stmt(ir.Call(VCallExpr, call_args))]
+        body = [ir.Stmt((ir.call, VCallExpr, call_args))]
     else:
         pre_call.append(ir.Stmt(ir.Var_decl(chpltype, '_retval')))
         body = [ir.Stmt(ir.Assignment(retval_name,
-                                      ir.Call(VCallExpr, call_args)))]
+                                      (ir.call, VCallExpr, call_args)))]
         post_call.append(ir.Stmt(ir.Return('_retval')))
 
     # Generate the C code into the scope's associated cStub

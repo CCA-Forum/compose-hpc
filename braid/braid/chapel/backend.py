@@ -31,7 +31,7 @@
 # </pre>
 #
 
-import config, ior_template, ir, os, re, sidl, tempfile, types
+import config, ior, ior_template, ir, os, re, sidl, tempfile, types
 from utils import *
 from patmat import *
 from cgen import *
@@ -424,7 +424,7 @@ class Chapel(object):
                     (ir.fn_defn, [], ir.pt_void,
                      'init_' + name,
                      [wrapped_ex_arg],
-                     create_body, 'Psuedo-Constructor to initialize the IOR object'), chpl_class)
+                     create_body, 'Pseudo-Constructor to initialize the IOR object'), chpl_class)
                 # Create a static function to create the object using create()
                 wrap_static_defn = (ir.fn_defn, [], mod_name,
                     'create_' + name,

@@ -1,5 +1,5 @@
 # type definitions for the conversion code generator
-import ir
+import ir, ior
 bool     = 'chpl', ir.pt_bool
 char     = 'chpl', ir.pt_char
 int      = 'chpl', ir.pt_int
@@ -17,3 +17,4 @@ array    = 'chpl', 'ir.array'
 rarray   = 'chpl', 'ir.rarray'
 object   = 'chpl', 'ir.object'
 struct   = 'chpl', 'ir.struct'
+baseobject = 'chpl', 'ir.baseobject'

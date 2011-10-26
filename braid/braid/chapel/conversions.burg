@@ -31,6 +31,8 @@ def ir_type_to_chpl(typ):
     except:
         if typ[0] == ir.enum: 
             return ir.Typedef_type('int64_t')
+        if typ[0] == 'upcast': # part of the hack for self dereferencing
+            return typ[1]
         return typ
 
 
@@ -43,26 +45,26 @@ static const unsigned char chpl_char_lut[512] = {
 #------------------------------------------------------------------------
 %rules:
 
-#chpl.vcall @ chpl -> ior.vcall @ C : cost(1)
+#chpl.vcall @ chpl <-- ior.vcall @ C : cost(1)
 
 # BOOL
-ior.bool @ C -> chpl.bool @ C : cost(0)
+ior.bool @ C <-- chpl.bool @ C : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
     convs.append((ir.stmt, '{dest} = ({typ}){p}{n}'
                   .format(dest=dest, n=a0, p=deref, typ=c_gen(ir.pt_bool))))
 
-chpl.bool @ C -> ior.bool @ C : cost(0)
+chpl.bool @ C <-- ior.bool @ C : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
     convs.append((ir.stmt, '{p}{dest} = ({typ}){n}'
                   .format(dest=dest, p=deref, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
 # CHAR
-ior.char @ C -> chpl.char : cost(1)
+ior.char @ C <-- chpl.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     convs.append((ir.stmt, '{dest} = (int){p}{n}[0]'.format(dest=dest, n=a0, p=deref)))
     optionals.add(char_lut)
 
-chpl.char @ C -> ior.char : cost(1)
+chpl.char @ C <-- ior.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     convs.append((ir.stmt, '{p}{dest} = (const char*)&chpl_char_lut[2*(unsigned char){n}]'
@@ -70,63 +72,63 @@ chpl.char @ C -> ior.char : cost(1)
     optionals.add(char_lut)
 
 # COMPLEX - 32/64 Bit components
-ior.fcomplex @ C -> chpl.fcomplex : cost(1)
+ior.fcomplex @ C <-- chpl.fcomplex : cost(1)
     fmt = {'dest':dest, 'n':a0, 'a': '->' if deref else '.' }
     convs.append((ir.stmt, '{dest}.real = {n}{a}re'.format(**fmt)))
     convs.append((ir.stmt, '{dest}.imaginary = {n}{a}im'.format(**fmt)))
 
-ior.dcomplex @ C -> chpl.dcomplex : cost(1)
+ior.dcomplex @ C <-- chpl.dcomplex : cost(1)
     fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
     convs.append((ir.stmt, '{dest}.real = {n}{a}re'.format(**fmt)))
     convs.append((ir.stmt, '{dest}.imaginary = {n}{a}im'.format(**fmt)))
 
-chpl.fcomplex @ C -> ior.fcomplex : cost(1)
+chpl.fcomplex @ C <-- ior.fcomplex : cost(1)
     fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
     convs.append((ir.stmt, '{dest}{a}re = {n}.real'.format(**fmt)))
     convs.append((ir.stmt, '{dest}{a}im = {n}.imaginary'.format(**fmt)))
 
-chpl.dcomplex @ C -> ior.dcomplex : cost(1)
+chpl.dcomplex @ C <-- ior.dcomplex : cost(1)
     fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
     convs.append((ir.stmt, '{dest}{a}re = {n}.real'.format(**fmt)))
     convs.append((ir.stmt, '{dest}{a}im = {n}.imaginary'.format(**fmt)))
 
 # ENUM
-ior.enum @ C -> chpl.enum: cost(1)
+ior.enum @ C <-- chpl.enum: cost(1)
     # No special treatment for enums, rely on chpl runtime to set it
     convs.append(ir.Stmt(ir.Assignment(dest, ir.Sign_extend(64, a0))))
 
-chpl.enum @ C -> ior.enum: cost(1)
+chpl.enum @ C <-- ior.enum: cost(1)
     convs.append(ir.Stmt(ir.Assignment(dest, a0)))
 
 # SELF
-ior.baseobject @ C -> upcast(ior.object): cost(1)
-    # We should find a cleaner way of implementing this
-    #if a0 == 'self' and member_chk(ir.pure, attrs):
-    convs.append(ir.Stmt(ir.Assignment(dest, '(({0})((struct sidl_BaseInterface__object*)self)->d_object)'.format(c_gen(typ)))))
-    return dest
-
+# ior.baseobject @ C <-- upcast(chpl.baseobject): cost(1)
+#     # We should find a cleaner way of implementing this
+#     #if a0 == 'self' and member_chk(ir.pure, attrs):
+#     import pdb; pdb.set_trace()
+#     convs.append(ir.Stmt(ir.Assignment(dest, '(({0})((struct sidl_BaseInterface__object*)self)<--d_object)'.format(c_gen(typ)))))
+#     return dest
 
 # STRING
-ior.string @C -> chpl.string: cost(0)
+ior.string @C <-- chpl.string: cost(0)
     convs.append(ir.Stmt(ir.Assignment(dest, deref+a0)))
 
-chpl.string @C -> ior.string: cost(1)
+chpl.string @C <-- ior.string: cost(1)
     # Convert null pointer into empty string
     convs.append(ir.Stmt(ir.Assignment(deref+dest, a0)))
     convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(p=deref,n=dest)))
 
 # INT
-ior.int @C -> chpl.int: cost(0)
+ior.int @C <-- chpl.int: cost(0)
     pass
-chpl.int @C -> ior.int: cost(0)
+chpl.int @C <-- ior.int: cost(0)
     pass
 
 # LONG
-ior.long @C -> chpl.long: cost(0)
+ior.long @C <-- chpl.long: cost(0)
     pass
-chpl.long @C -> ior.long: cost(0)
+chpl.long @C <-- ior.long: cost(0)
     pass
 
 # VOID return type
-chpl.void @C -> ior.void:cost(0)
+chpl.void @C <-- ior.void:cost(0)
     pass
