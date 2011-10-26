@@ -53,6 +53,7 @@
 import re, string, sys
 import ir, sidl
 from patmat import matcher, Variable, match, unify, member
+from utils import *
 
 languages = ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
 
@@ -108,6 +109,7 @@ def generate(language, ir_code, debug=False):
         import pdb
         print sys.exc_info()
         print sys.exc_info()
+
         if debug:
             pdb.post_mortem()
         else: 
@@ -127,48 +129,6 @@ def generator(fn):
         return r
 
     return wrapped
-
-def accepts(*types):
-    """
-    Enforce function argument types. 
-    Taken from directly from pep-0318.
-    """
-    def check_accepts(f):
-        assert len(types) == f.func_code.co_argcount
-        def new_f(*args, **kwds):
-            for (a, t) in zip(args, types):
-                assert isinstance(a, t), \
-                       "arg %r does not match %s" % (a,t)
-            return f(*args, **kwds)
-        new_f.func_name = f.func_name
-        return new_f
-    return check_accepts
-
-def returns(rtype):
-    """
-    Enforce function return types. 
-    Taken from directly from pep-0318.
-    """
-    def check_returns(f):
-        def new_f(*args, **kwds):
-            result = f(*args, **kwds)
-            assert isinstance(result, rtype), \
-                   "return value %r does not match %s" % (result,rtype)
-            return result
-        new_f.func_name = f.func_name
-        return new_f
-    return check_returns
-
-def sep_by(separator, strings):
-    """
-    Similar to \c string.join() but appends the separator also after
-    the last element, if any.
-    """
-    if len(strings) > 0:
-        return separator.join(strings+[''])
-    else:
-        return ''
-
 
 class Scope(object):
     """

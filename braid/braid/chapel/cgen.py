@@ -33,7 +33,7 @@
 import ir, sidl
 from backend import *
 from patmat import *
-from lists import *
+from utils import *
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
     SourceFile, CFile, Scope, generator, accepts,
@@ -100,11 +100,13 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
     # IN
     map(lambda (arg, attr, mode, typ, name): 
-        conv.codegen((('chpl', typ), name), typ, pre_call, opt, deref(mode)), 
+        conv.codegen((('chpl', typ), name), typ, 
+                     pre_call, opt, deref(mode), '_proxy_'+name), 
         filter(incoming, Args))
     # OUT
     map(lambda (arg, attr, mode, typ, name):
-        conv.codegen((typ, name), ('chpl', typ), post_call, opt, deref(mode)), 
+        conv.codegen((typ, '_proxy_'+name), ('chpl', typ), 
+                     post_call, opt, deref(mode), name), 
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
@@ -112,7 +114,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     retval_arg = []
     # return value type conversion -- treat it as an out argument
     rarg = ir.Arg([], ir.out, Type, '_retval')
-    conv.codegen((Type, '_retval'), ('chpl', Type), post_call, opt, '')
+    conv.codegen((Type, '_proxy__retval'), ('chpl', Type), post_call, opt, '', '_retval')
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,chpltype,_ = crarg
 
@@ -149,7 +151,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         stubs_generated.add(sname)
         c_gen([cstub_decl,
            ir.Fn_defn([], chpltype, sname, cstub_decl_args,
-                      list(decls)+pre_call+body+post_call, DocComment)], scope.cstub)
+                      decls+pre_call+body+post_call, DocComment)], scope.cstub)
 
     # Chapel _extern declaration
     chplstub_decl = ir.Fn_decl([], chpltype, sname, map(obj_by_value, cstub_decl_args), DocComment)

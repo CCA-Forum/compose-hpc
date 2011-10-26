@@ -465,7 +465,7 @@ PL_LIBS = @PL_LIBS@
 PYTHON = @PYTHON@
 PYTHONINC = @PYTHONINC@
 PYTHONLIB = @PYTHONLIB@
-PYTHONPATH = $(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(srcdir)
+PYTHONPATH = $(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(top_srcdir)/braid
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
 PYTHON_PREFIX = @PYTHON_PREFIX@
@@ -609,14 +609,14 @@ PYTHON_SOURCES = \
 	braid/config.py \
 	braid/ior.py \
 	braid/ior_template.py \
-	braid/lists.py \
 	braid/parse_tree.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
 	braid/sidl_symbols.py \
 	braid/sidl_token.py \
-	braid/splicer.py
+	braid/splicer.py \
+	braid/utils.py
 
 BUILT_PYTHON_SOURCES = \
 	braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py \

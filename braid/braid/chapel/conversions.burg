@@ -1,6 +1,6 @@
 # -*- python -*-
 # Process this file with burg.py
-%action arguments: (convs, optionals, deref)
+%action arguments: (convs, optionals, deref, dest)
 #------------------------------------------------------------------------
 import ior, ir, sidl
 import chapel.chpl as chpl
@@ -48,81 +48,72 @@ static const unsigned char chpl_char_lut[512] = {
 # BOOL
 ior.bool @ C -> chpl.bool @ C : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-    convs.append((ir.stmt, '_proxy_{n} = ({typ}){p}{n}'
-                  .format(n=a0, p=deref, typ=c_gen(ir.pt_bool))))
+    convs.append((ir.stmt, '{dest} = ({typ}){p}{n}'
+                  .format(dest=dest, n=a0, p=deref, typ=c_gen(ir.pt_bool))))
 
 chpl.bool @ C -> ior.bool @ C : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-    convs.append((ir.stmt, '{p}{n} = ({typ})_proxy_{n}'
-                  .format(p=deref, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
-
-# ior.string @ C -> chpl.char @ C : cost(3)
-#     pass
-#  
-# ior.string @ C -> ior.char @ C : cost(4)
-#     pass
-#  
-# ior.string @ C -> ior.char @ C : cost(3)
-#     pass
-#  
-# chpl.char @ C -> chpl.Char : cost(0)
+    convs.append((ir.stmt, '{p}{dest} = ({typ}){n}'
+                  .format(dest=dest, p=deref, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
 # CHAR
 ior.char @ C -> chpl.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
-    convs.append((ir.stmt, '_proxy_{n} = (int){p}{n}[0]'.format(n=a0, p=deref)))
+    convs.append((ir.stmt, '{dest} = (int){p}{n}[0]'.format(dest=dest, n=a0, p=deref)))
     optionals.add(char_lut)
 
 chpl.char @ C -> ior.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
-    convs.append((ir.stmt, '{p}{n} = (const char*)&chpl_char_lut[2*(unsigned char)_proxy_{n}]'
-                  .format(p=deref, n=a0)))
+    convs.append((ir.stmt, '{p}{dest} = (const char*)&chpl_char_lut[2*(unsigned char){n}]'
+                  .format(dest=dest, p=deref, n=a0)))
     optionals.add(char_lut)
 
 # COMPLEX - 32/64 Bit components
 ior.fcomplex @ C -> chpl.fcomplex : cost(1)
-    fmt = {'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(**fmt)))
-    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(**fmt)))
+    fmt = {'dest':dest, 'n':a0, 'a': '->' if deref else '.' }
+    convs.append((ir.stmt, '{dest}.real = {n}{a}re'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.imaginary = {n}{a}im'.format(**fmt)))
 
 ior.dcomplex @ C -> chpl.dcomplex : cost(1)
-    fmt = {'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '_proxy_{n}.real = {n}{a}re'.format(**fmt)))
-    convs.append((ir.stmt, '_proxy_{n}.imaginary = {n}{a}im'.format(**fmt)))
+    fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
+    convs.append((ir.stmt, '{dest}.real = {n}{a}re'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.imaginary = {n}{a}im'.format(**fmt)))
 
 chpl.fcomplex @ C -> ior.fcomplex : cost(1)
-    fmt = {'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '{n}{a}re = _proxy_{n}.real'.format(**fmt)))
-    convs.append((ir.stmt, '{n}{a}im = _proxy_{n}.imaginary'.format(**fmt)))
+    fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
+    convs.append((ir.stmt, '{dest}{a}re = {n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}{a}im = {n}.imaginary'.format(**fmt)))
 
 chpl.dcomplex @ C -> ior.dcomplex : cost(1)
-    fmt = {'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '{n}{a}re = _proxy_{n}.real'.format(**fmt)))
-    convs.append((ir.stmt, '{n}{a}im = _proxy_{n}.imaginary'.format(**fmt)))
+    fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
+    convs.append((ir.stmt, '{dest}{a}re = {n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}{a}im = {n}.imaginary'.format(**fmt)))
 
 # ENUM
 ior.enum @ C -> chpl.enum: cost(1)
     # No special treatment for enums, rely on chpl runtime to set it
-    convs.append(ir.Stmt(ir.Assignment('_proxy_'+a0, ir.Sign_extend(64, a0))))
+    convs.append(ir.Stmt(ir.Assignment(dest, ir.Sign_extend(64, a0))))
 
 chpl.enum @ C -> ior.enum: cost(1)
-    convs.append(ir.Stmt(ir.Assignment(a0, '_proxy_'+a0)))
+    convs.append(ir.Stmt(ir.Assignment(dest, a0)))
 
 # SELF
 ior.baseobject @ C -> upcast(ior.object): cost(1)
     # We should find a cleaner way of implementing this
     #if a0 == 'self' and member_chk(ir.pure, attrs):
-    convs.append(ir.Stmt(ir.Assignment('_proxy_'+a0, '(({0})((struct sidl_BaseInterface__object*)self)->d_object)'.format(c_gen(typ)))))
-    return '_proxy_'+a0
+    convs.append(ir.Stmt(ir.Assignment(dest, '(({0})((struct sidl_BaseInterface__object*)self)->d_object)'.format(c_gen(typ)))))
+    return dest
 
 
 # STRING
 ior.string @C -> chpl.string: cost(0)
-    pass
+    convs.append(ir.Stmt(ir.Assignment(dest, deref+a0)))
+
 chpl.string @C -> ior.string: cost(1)
     # Convert null pointer into empty string
-    convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(n=a0, p=deref)))
+    convs.append(ir.Stmt(ir.Assignment(deref+dest, a0)))
+    convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(p=deref,n=dest)))
 
 # INT
 ior.int @C -> chpl.int: cost(0)

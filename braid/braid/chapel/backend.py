@@ -32,7 +32,7 @@
 #
 
 import config, ior_template, ir, os, re, sidl, tempfile, types
-from lists import *
+from utils import *
 from patmat import *
 from cgen import *
 
