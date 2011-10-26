@@ -1004,20 +1004,20 @@ class CFile(SourceFile):
         \param filename   The name of the header file. If provided, construct an
         \c \#ifdef guard using this filename.
         """
-        s = sep_by('\n', self._header)
+        s = self._sep.join(self._header)
         if filename:
             guard = re.sub(r'[/.]', '_', string.upper(filename))
             s = sep_by('\n', ['#ifndef __%s__'%guard,
                               '#define __%s__'%guard,
                               s,
                               '#endif'])
-        return s
+        return s+'\n'
 
     def dot_c(self):
         """
         Return a string of the c file declarations
         """
-        return self._sep.join(self._defs)
+        return ' '*self.indent_level+self._sep.join(self._defs)
 
     def new_global_def(self, defn):
         """
