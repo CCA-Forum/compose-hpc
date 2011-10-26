@@ -52,6 +52,10 @@ Run some tests:
 
 % ./test_PaulDecorate tests/test1.cpp
 
+Note that you need to have the appropriate LD_LIBRARY_PATH (or, on Mac,
+DYLD_LIBRARY_PATH) set up in order to find the ROSE, BOOST, and JVM shared
+libraries.
+
 We also have standalone testers for the annotation objects,
 independent of ROSE.  These are good for testing the annotaitons in
 isolation to avoid inducing bugs outside of them during the
