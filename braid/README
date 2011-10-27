@@ -71,7 +71,7 @@ will work just fine. Below is the step-by-step break-down of the the
 installation process:
 	
 
-	tar xvf braid-0.2.2.tar.bz2 && cd braid-0.2.2
+	tar xvf braid-0.2.3.tar.bz2 && cd braid-0.2.3
     mkdir build && cd build
     ../configure --prefix=<INSTALL_PATH>
     make [-j<N>] && make install
@@ -82,7 +82,7 @@ installation process:
 
 ### Patching the Chapel compiler
 
-You will need to patch your Chapel 1.3.0 compiler using the following
+You will need to patch your Chapel 1.4.0 compiler using the following
 command _after_ running ./configure:
 
     bash <builddir>/patch-chapel-compiler.sh
