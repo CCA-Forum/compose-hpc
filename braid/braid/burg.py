@@ -172,26 +172,34 @@ from parse_tree import *
 def labelx(tree):
     return label1(parse_tree(tree.replace('.','_')))
 
-def label(node, debug):
+def label(args):
     """
     Find a cost-minimal cover of the tree \c tree using the the rules
     defined in the global variable \c rules.
 
-    We assume that \c node is a tuple containing of 
-    \c (functor, child1, child2, <data>)
+    We assume that \c args is a tuple containing of 
+    \c (node, child_name1, child_name2, other_data, ....)
+    where node is a tuple containting of 
+    (functor, child1, child2, ...)
+
+    The purpose of data is to pass extra arguments to the actions,
+    e.g., the file to print to.
     """
-    data = node[-1]
-    if isinstance(node, str): import pdb; pdb.set_trace()
+
+    data = list(args[1:])
+    if isinstance(args, str): import pdb; pdb.set_trace()
+    node = args[0]
     functor = node[0]
-    arity = len(node[0])
+    arity = len(node)
     if arity < 0: import pdb; pdb.set_trace()
     if arity > 0:
-	child_labels = map(label, node[1:-1])
+        if isinstance(node, str): import pdb; pdb.set_trace()
+	child_labels = map(label, zip(node[1:], data))
 	# FIXME (performance) replace this with a hardcoded array
 	my_labels = dict()
     else: # arity == 0
         child_labels = []
-	my_labels = { node: ((node, '<terminal>', 0, no_action), 0) }
+	my_labels = { args: ((args, '<terminal>', 0, no_action), 0) }
 
     def current_cost(target):
 	for (t, src, _, action), cost in my_labels.values():
@@ -200,12 +208,12 @@ def label(node, debug):
 		return cost
 	return 2**16
 
-    #if functor in nonterminals:
-    #	print '**WARNING: node %r is a non-terminal symbol'%functor
+    #if node in nonterminals:
+    #	print '**WARNING: node %r is a non-terminal symbol'%node
     #	# exit(1)
 
     if debug:
-        print 'label(%s):'%str(functor)
+        print 'label(%s):'%str(node)
         print "my_labels: ", my_labels
 
     visited = set()
@@ -213,23 +221,55 @@ def label(node, debug):
     while not fixpoint:
 	fixpoint = True
 	for r in rules:
+            # find all rules that take a src that this node can offer,
+            # either through its parameters or via the target of
+            # another rule already selected for this node
+
 	    target, src, cost, action = r
 
 	    #print 'src =', src
-	    #import pdb; pdb.set_trace()
+            def equiv(src, node):
+                # *) we only check that the arity is at least covering
+                #    the src sink, any excess arguments will be
+                #    silently carried along as a means to pass around
+                #    extra data in compound types.
+                n = len(src)-1
+                for i in range(0, n):
+                    if src[i] <> node[i]:
+                        return False
+                if src[n] <> node[n][0]: # last arg, but ignore excess args
+                    return False
+                return True
+
+            # is the arity compatible?
             if arity and not (isinstance(src, tuple)
-			      and len(src) == arity
-			      and (src[0] == functor 
-                                or src == functor)):
+			      and len(src) == arity  # have the same arity
+			      and src[0] == node): # compound
+
                 # sadly there's an ambiguity between compound types
                 # and n-ary nonterminals
-		continue # not compatible
+                if equiv(src, node): 
+                    # re-adjust the node to its actual length (without
+                    # the extra arguments); yes, this is ugly.
+                    # But it adds convenience for the user
+                    arity = 0
+                    node = tuple(list(node[:-1])+[node[-1][0]])
+                    if isinstance(node, str): import pdb; pdb.set_trace()
 
+                    args1 = tuple([node]+data)
+                    my_labels = { args1: ((args1, '<terminal>', 0, no_action), 0) }
+                else:
+               	    continue # not compatible
+
+            if len(node[1])>1 and node[1][0] == 'enum': import pdb; pdb.set_trace()
+
+            # can we reach the rule's src sink from our node?
 	    if arity == 0:
 		try:    _, basecost = my_labels[src]
 		except: continue # rule does not match
 
-	    for i in range(1, arity):
+	    # can we reach the rule's argument src sinks from our node?
+            for i in range(1, arity):
 		try:    _, basecost = child_labels[src[i][0]]
 		except: continue # rule does not match
 
@@ -245,9 +285,9 @@ def label(node, debug):
         for r, cost in my_labels.values():
             print '   ', r, ':', cost
     #if len(my_labels) == 0:
-    #     print '**ERROR: no labelling found for <%s>'%repr(node)
+    #     print '**ERROR: no labelling found for <%s>'%repr(args)
 
-    return tuple([my_labels]+child_labels+[data])
+    return tuple([my_labels]+data)
 
 def reducetreex(label, target, *args):
     return reducetree1(label, target.replace('.','_'), *args)
@@ -291,7 +331,7 @@ def reducetree(label, target, *args):
 def codegen(src, target, *args):
     if len(args) <> action_arity:
         import pdb; pdb.set_trace()
-    labels = label(src, debug)
+    labels = label(src)
     if debug:
         print 'labels = ', labels
         print 'cost-optimal cover:'
