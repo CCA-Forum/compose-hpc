@@ -50,7 +50,7 @@
   /*   int32_t (*d_arraytype)(void); */
   /* }; */
 
-  _extern record sidl__array {
+  extern record sidl__array {
     /* int32_t                         *d_lower; */
     /* int32_t                         *d_upper; */
     /* int32_t                         *d_stride; */
@@ -93,7 +93,7 @@
    * the macros in the header file sidlArray.h.
    */
 # define SIDL_ARRAY(C_TYPE, CHAPEL_TYPE)                                                \
-  _extern class sidl_##C_TYPE##__array {                                                \
+  extern class sidl_##C_TYPE##__array {                                                \
      var d_metadata: sidl__array;                                                       \
      var d_firstElement: opaque;                                                        \
    };                                                                                   \
@@ -107,15 +107,15 @@
    * want to retain the array beyond that point you will need to run			\
    * smartCopy().									\
    */											\
-  _extern proc C_TYPE##_ptr(inout firstElement: CHAPEL_TYPE): opaque;			\
-  _extern proc sidl_##C_TYPE##__array_init(                                             \
+  extern proc C_TYPE##_ptr(inout firstElement: CHAPEL_TYPE): opaque;			\
+  extern proc sidl_##C_TYPE##__array_init(                                             \
                    inout firstElement: CHAPEL_TYPE,                                     \
                    inout sidl_array: sidl_##C_TYPE##__array,				\
                    in dimen: int(32),							\
                    inout lower: int(32),						\
                    inout upper: int(32),						\
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
-  _extern proc sidl_##C_TYPE##__array_borrow(						\
+  extern proc sidl_##C_TYPE##__array_borrow(						\
                    in firstElement: opaque,						\
                    in dimen: int(32),							\
                    inout lower: int(32),						\
@@ -213,7 +213,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return the dimension of the array.
      */
     proc dim(): int(32) {
-      _extern proc sidlArrayDim(inout array: sidl__array): int(32);
+      extern proc sidlArrayDim(inout array: sidl__array): int(32);
       return sidlArrayDim(self.d_metadata);
     }
     //#define sidlArrayDim(array) (((const struct sidl__array *)(array))->d_dimen)
@@ -226,7 +226,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
 
     proc lower(in ind: int(32)): int(32) {
-      _extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
+      extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(self.d_metadata, ind);
     }
     //#define sidlLower(array,ind) (((const struct sidl__array *)(array))->d_lower[(ind)])
@@ -237,7 +237,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * sidlUpper(array,ind).
      */
     proc upper(in ind: int(32)): int(32) {
-      _extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
+      extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlUpper(self.d_metadata, ind);
     }
     //#define sidlUpper(array,ind) (((const struct sidl__array *)(array))->d_upper[(ind)])
@@ -246,7 +246,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Macro to return the number of elements in dimension ind of an array.
      */
     proc length(in ind: int(32)): int(32) {
-      _extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
+      extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLength(self.d_metadata, ind);
     }
     //#define sidlLength(array,ind) (sidlUpper((array),(ind)) - sidlLower((array),(ind)) + 1)
@@ -257,7 +257,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * ind, add sidlStride(array,ind).
      */
     proc stride(in ind: int(32)): int(32) {
-      _extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
+      extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlStride(self.d_metadata, ind);
     }
     //#define sidlStride(array,ind) (((const struct sidl__array *)(array))->d_stride[(ind)])
@@ -268,7 +268,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * not use ++ or -- on arguments to this macro.
      */
     proc arrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
-      _extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
+      extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
       return sidlArrayDimCalc(self.d_metadata, ind, v);
     }
     //#define sidlArrayDimCalc(array, ind, var) (sidlStride(array,ind)*((var) - sidlLower(array,ind)))
@@ -290,8 +290,8 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     //#define sidlArrayElem1(array, ind1) \
     //  (*(sidlArrayAddr1(array,ind1)))
-    _extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32)): ScalarType;
-    _extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32),
+    extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32)): ScalarType;
+    extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32),
                                 in val: int(32)): ScalarType;
 
     proc get(in ind: int(32)): ScalarType      { return sidlArrayElem1(self, ind); }
@@ -579,7 +579,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * into methods aren't guaranteed to exist after the method call.
      */
     proc smartCopy() {
-      _extern proc chpl_sidl__array_smartCopy(inout a: sidl__array);
+      extern proc chpl_sidl__array_smartCopy(inout a: sidl__array);
       chpl_sidl__array_smartCopy(self.d_metadata);
     }
     //struct sidl__array *
@@ -591,7 +591,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return true iff the array is destroyed
      */
     proc deleteRef() {
-      _extern proc chpl_sidl__array_deleteRef(inout a: sidl__array);
+      extern proc chpl_sidl__array_deleteRef(inout a: sidl__array);
       chpl_sidl__array_deleteRef(self.d_metadata);
     }
     //void
@@ -644,7 +644,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * array.  A NULL array argument causes 0 to be returned.
      */
     proc isColumnOrder() {
-      _extern proc chpl_sidl__array_isColumnOrder(inout a: sidl__array): bool;
+      extern proc chpl_sidl__array_isColumnOrder(inout a: sidl__array): bool;
       return chpl_sidl__array_isColumnOrder(self.d_metadata);
     }
     //sidl_bool
@@ -655,7 +655,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * array.  A NULL array argument causes 0 to be returned.
      */
     proc isRowOrder() {
-      _extern proc chpl_sidl__array_isRowOrder(inout a: sidl__array): bool;
+      extern proc chpl_sidl__array_isRowOrder(inout a: sidl__array): bool;
       return chpl_sidl__array_isRowOrder(self.d_metadata);
     }
     //sidl_bool

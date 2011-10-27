@@ -6,8 +6,8 @@ use DefaultRectangular;
 // The generic borrowed data class
 ///////////////////////////////////////////////////////////////////////////
 
-_extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
-_extern proc deallocateData(opData: opaque): opaque;
+extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
+extern proc deallocateData(opData: opaque): opaque;
 
 // dynamic data block class
 pragma "data class"
@@ -37,11 +37,11 @@ class _borrowedData {
 /**
  * Sample signatures of methods to allocate memory externally.
  *
- * _extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
+ * extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
  *
- * _extern proc deallocateData(bData: opaque);
+ * extern proc deallocateData(bData: opaque);
  *
- * _extern proc getBorrowedData(): opaque;
+ * extern proc getBorrowedData(): opaque;
  *
  */
 
@@ -589,7 +589,7 @@ proc isBorrowedArray(in a: [?aDom]): bool {
 // Start example use of borrowed array
 ///////////////////////////////////////////////////////////////////////////
 //
-// _extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
+// extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
 //
 // type arrayIndexType = int(32);
 // type arrayElmntType = real(64);

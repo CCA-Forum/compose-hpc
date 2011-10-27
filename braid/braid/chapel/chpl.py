@@ -1,5 +1,5 @@
 # type definitions for the conversion code generator
-import ir, ior
+import ir, sidl
 bool     = 'chpl', ir.pt_bool
 char     = 'chpl', ir.pt_char
 int      = 'chpl', ir.pt_int
@@ -12,9 +12,7 @@ string   = 'chpl', ir.pt_string
 void_ptr = 'chpl', ir.void_ptr
 void     = 'chpl', ir.pt_void
 # dummy types for aggregate types
-enum     = 'chpl', 'ir.enum'
-array    = 'chpl', 'ir.array'
-rarray   = 'chpl', 'ir.rarray'
-object   = 'chpl', 'ir.object'
-struct   = 'chpl', 'ir.struct'
-baseobject = 'chpl', 'ir.baseobject'
+enum     = 'chpl', ir.enum
+array    = 'chpl', sidl.array
+rarray   = 'chpl', sidl.rarray
+struct   = 'chpl', sidl.struct

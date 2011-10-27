@@ -94,6 +94,7 @@ chpl.dcomplex @ C <-- ior.dcomplex : cost(1)
 
 # ENUM
 ior.enum @ C <-- chpl.enum: cost(1)
+    import pdb; pdb.set_trace()
     # No special treatment for enums, rely on chpl runtime to set it
     convs.append(ir.Stmt(ir.Assignment(dest, ir.Sign_extend(64, a0))))
 

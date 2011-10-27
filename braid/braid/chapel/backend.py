@@ -40,8 +40,8 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
-extern_def_is_not_null = '_extern proc IS_NOT_NULL(in aRef): bool;'
-extern_def_set_to_null = '_extern proc SET_TO_NULL(inout aRef);'
+extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
+extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_exception = 'BaseException'
 chpl_local_exception_var = '_ex'
 
@@ -340,7 +340,7 @@ class Chapel(object):
             gen1(all_methods, ci)
 
             # Stub (in Chapel)
-            # Chapel supports C structs via the _extern keyword,
+            # Chapel supports C structs via the extern keyword,
             # but they must be typedef'ed in a header file that
             # must be passed to the chpl compiler.
             typedefs = self.class_typedefs(qname, symbol_table)
@@ -354,9 +354,9 @@ class Chapel(object):
                 base = qual_id(baseclass)
                 mod_base = '.'.join(baseclass[1]+[base])
                 ex = 'inout ex: sidl_BaseException__object'
-                extrns.new_def('_extern proc _cast_{0}(in ior: {1}__object, {2}): {3}__object;'
+                extrns.new_def('extern proc _cast_{0}(in ior: {1}__object, {2}): {3}__object;'
                                .format(base, mod_qname, ex, mod_base))
-                extrns.new_def('_extern proc {3}_cast_{1}(in ior: {0}__object): {2}__object;'
+                extrns.new_def('extern proc {3}_cast_{1}(in ior: {0}__object): {2}__object;'
                                .format(mod_base, qname, mod_qname, base))
 
             parent_classes = []
@@ -380,11 +380,11 @@ class Chapel(object):
                 interfaces = ' /*' + ', '.join(parent_interfaces) + '*/ '
 
             # extern declaration for the IOR
-            chpl_stub.new_def('_extern record %s__object {'%qname)
+            chpl_stub.new_def('extern record %s__object {'%qname)
             chpl_stub.new_def('};')
 
             chpl_stub.new_def(extrns)
-            chpl_stub.new_def('_extern proc %s__createObject('%qname+
+            chpl_stub.new_def('extern proc %s__createObject('%qname+
                                  'd_data: int, '+
                                  'inout ex: sidl_BaseException__object)'+
                                  ': %s__object;'%mod_qname)
@@ -1065,7 +1065,7 @@ class Chapel(object):
             #                        callee, cdecl_args, DocComment)
             # extern_decl = ir.Fn_decl([], ctype,
             #                          callee, map(obj_by_value, cdecl_args), DocComment)
-            # ci.chpl_static_stub.new_def('_extern '+chpl_gen(extern_decl)+';')
+            # ci.chpl_static_stub.new_def('extern '+chpl_gen(extern_decl)+';')
             # chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
             chpl_gen(defn, ci.chpl_static_stub)
         else:
@@ -1221,9 +1221,9 @@ class Chapel(object):
                 self.pkg_chpl_skel.new_def('use sidl;')
                 objname = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name]) + '_Impl'
 
-                self.pkg_chpl_skel.new_def('_extern record %s__object { var d_data: %s; };'
+                self.pkg_chpl_skel.new_def('extern record %s__object { var d_data: %s; };'
                                            %(qname,objname))
-                self.pkg_chpl_skel.new_def('_extern proc %s__createObject('%qname+
+                self.pkg_chpl_skel.new_def('extern proc %s__createObject('%qname+
                                      'd_data: int, '+
                                      'inout ex: sidl_BaseException__object)'+
                                      ': %s__object;'%qname)

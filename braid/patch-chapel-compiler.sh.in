@@ -62,6 +62,6 @@ popd
 echo "**clean"
 make -C @CHAPEL_ROOT@ clean 
 echo "**compiling"
-make -C @CHAPEL_ROOT@ CHPL_COMM=@CHPL_COMM@
+make -C @CHAPEL_ROOT@ CHPL_COMM=@CHAPEL_COMM@
 
 

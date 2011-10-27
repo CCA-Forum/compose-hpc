@@ -99,16 +99,16 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     def deref(mode): 
         return '' if mode == sidl.in_ else '*'
 
-
     # IN
     map(lambda (arg, attr, mode, typ, name): 
-        conv.codegen((('chpl', typ), name), typ, 
-                     pre_call, opt, deref(mode), '_proxy_'+name), 
+          conv.codegen((('chpl', typ), name), typ, 
+                       pre_call, opt, deref(mode), '_proxy_'+name), 
         filter(incoming, Args))
+
     # OUT
     map(lambda (arg, attr, mode, typ, name):
-        conv.codegen((typ, '_proxy_'+name), ('chpl', typ), 
-                     post_call, opt, deref(mode), name), 
+          conv.codegen((typ, '_proxy_'+name), ('chpl', typ), 
+                       post_call, opt, deref(mode), name), 
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
@@ -160,9 +160,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
            ir.Fn_defn([], chpltype, sname, cstub_decl_args,
                       decls+pre_call+body+post_call, DocComment)], scope.cstub)
 
-    # Chapel _extern declaration
+    # Chapel extern declaration
     chplstub_decl = ir.Fn_decl([], chpltype, sname, map(obj_by_value, cstub_decl_args), DocComment)
-    scope.new_def('_extern '+chpl_gen(chplstub_decl)+';')
+    scope.new_def('extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
 

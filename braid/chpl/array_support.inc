@@ -1,7 +1,7 @@
 // -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 // TODO Remove all debug prints when done
 
-_extern proc getOpaqueData(inout inData): opaque;
+extern proc getOpaqueData(inout inData): opaque;
 
 proc performSanityCheck(aDom: domain, varName: string) {
   if (!isRectangularDom(aDom)) {
@@ -83,7 +83,7 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
 proc syncNonLocalArray(inout src:[], inout target: [?targetDom])
     where isRectangularDom(targetDom) {
 
-  _extern proc isSameOpaqueData(a: opaque, b: opaque): bool;
+  extern proc isSameOpaqueData(a: opaque, b: opaque): bool;
 
   var arrayCopyReqd = false;
   if (here.id != targetDom.locale.id) {

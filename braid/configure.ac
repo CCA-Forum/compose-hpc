@@ -104,12 +104,12 @@ AX_WITH_PROG(CHAPEL, chpl)
 AS_IF([test -x "${CHAPEL}"],
     [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
      AC_MSG_RESULT([using $CHAPEL (version $CHAPEL_VERSION)])
-     AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.3.0], 
+     AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.4.0], 
          [AC_SUBST([CHAPEL], ["$CHAPEL"])
  	  CHAPEL_ROOT=`dirname \`dirname \\\`dirname $CHAPEL\\\`\``
           AC_SUBST([CHAPEL_ROOT], [$CHAPEL_ROOT])
           AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])],
-	 [AC_MSG_NOTICE([Chapel version < 1.3 is too old])
+	 [AC_MSG_NOTICE([Chapel version < 1.4 is too old])
           AC_SUBST([CHAPEL], [])])
      AS_IF([test -n "$CHPL_COMM" ],
           [AC_SUBST([CHAPEL_COMM], [$CHPL_COMM])
