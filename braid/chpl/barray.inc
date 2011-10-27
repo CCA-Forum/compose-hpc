@@ -118,13 +118,13 @@ class BorrowedRectangularDom: BaseRectangularDom {
       yield i;
   }
 
-  iter these(param tag: iterator) where tag == iterator.leader {
+  iter these(param tag: iterKind) where tag == iterKind.leader {
     for i in this.rectDom.these(tag) do
       yield i;
   }
 
-  iter these(param tag: iterator, follower) where tag == iterator.follower {
-    for i in this.rectDom.these(tag, follower) do
+  iter these(param tag: iterKind, followThis) where tag == iterKind.follower {
+    for i in this.rectDom.these(tag, followThis) do
       yield i;
   }
 
@@ -291,15 +291,15 @@ class BorrowedRectangularArr: BaseArr {
     }
   }
 
-  iter these(param tag: iterator) where tag == iterator.leader {
+  iter these(param tag: iterKind) where tag == iterKind.leader {
     for follower in dom.these(tag) do
       yield follower;
   }
 
-  iter these(param tag: iterator, follower) var where tag == iterator.follower {
+  iter these(param tag: iterKind, followThis) var where tag == iterKind.follower {
     if debugDefaultDist then
       writeln("*** In array follower code:"); // [\n", this, "]");
-    for i in dom.these(tag=iterator.follower, follower) {
+    for i in dom.these(tag=iterKind.follower, followThis) {
       __primitive("noalias pragma");
       yield dsiAccess(i);
     }

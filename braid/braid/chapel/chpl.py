@@ -16,3 +16,4 @@ enum     = 'chpl', ir.enum
 array    = 'chpl', sidl.array
 rarray   = 'chpl', sidl.rarray
 struct   = 'chpl', sidl.struct
+pointer_type = 'chpl', ir.pointer_type

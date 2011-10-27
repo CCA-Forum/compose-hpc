@@ -99,15 +99,25 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     def deref(mode): 
         return '' if mode == sidl.in_ else '*'
 
+    def strip(typ):
+        # strip unncessesary details from aggregate types
+        if (typ[0] == ir.enum or
+            typ[0] == sidl.array or
+            typ[0] == sidl.rarray or
+            typ[0] == ir.pointer_type or
+            typ[0] == ir.struct):
+            return typ[0]
+        return typ
+
     # IN
     map(lambda (arg, attr, mode, typ, name): 
-          conv.codegen((('chpl', typ), name), typ, 
+          conv.codegen((('chpl', strip(typ)), name), strip(typ), 
                        pre_call, opt, deref(mode), '_proxy_'+name), 
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((typ, '_proxy_'+name), ('chpl', typ), 
+          conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)), 
                        post_call, opt, deref(mode), name), 
         filter(outgoing, Args))
 
@@ -116,7 +126,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     retval_arg = []
     # return value type conversion -- treat it as an out argument
     rarg = ir.Arg([], ir.out, Type, '_retval')
-    conv.codegen((Type, '_proxy__retval'), ('chpl', Type), post_call, opt, '', '_retval')
+    conv.codegen((strip(Type), '_proxy__retval'), ('chpl', strip(Type)), post_call, opt, '', '_retval')
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,chpltype,_ = crarg
 

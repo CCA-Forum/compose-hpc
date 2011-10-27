@@ -63,9 +63,9 @@ CHAPEL_TYPEDEF(sidl_BaseInterface__array)
 #define isSameOpaqueData(in1, in2) (getOpaqueData(in1) == getOpaqueData(in2))
         
 // void* allocateData(int typeSize, int numElements) 
-#define allocateData(typeSize, numElements) (chpl_malloc(numElements, typeSize, CHPL_RT_MD_ARRAY_ELEMENTS, 67, "chpl_sidl_array.h"))
+#define allocateData(typeSize, numElements) (chpl_mem_allocMany(numElements, typeSize, CHPL_RT_MD_ARRAY_ELEMENTS, 67, "chpl_sidl_array.h"))
 
 // void deallocateData(void* bData) 
-#define deallocateData(bData) (chpl_free(bData, 70, "chpl_sidl_array.h"))
+#define deallocateData(bData) (chpl_mem_free(bData, 70, "chpl_sidl_array.h"))
         
 #endif

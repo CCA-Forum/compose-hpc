@@ -1400,7 +1400,7 @@ def externals(scopedid):
 // Hold pointer to IOR functions.
 static const struct {a}__external *_externals = NULL;
 
-extern const struct {a}__external* {a}__externals();
+extern const struct {a}__external* {a}__externals(void);
 
 // Lookup the symbol to get the IOR functions.
 static const struct {a}__external* _loadIOR(void)
@@ -1757,7 +1757,7 @@ CHAPEL_MAKE_MEM=default
 # CHAPEL_MAKE_COMM=none
 CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
 CHAPEL_MAKE_COMPILER=gnu
-CHAPEL_MAKE_TASKS=fifo
+CHAPEL_MAKE_TASKS=none
 CHAPEL_MAKE_THREADS=pthreads
 
 ifeq ($(CHAPEL_MAKE_COMM),gasnet)
@@ -1769,7 +1769,7 @@ endif
 CHPL=chpl --fast
 # CHPL=chpl --print-commands --print-passes
 
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_H=\"tasks-fifo.h\" -DCHPL_THREADS_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
 
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread -lsidlstub_chpl
 

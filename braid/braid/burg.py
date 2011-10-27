@@ -190,7 +190,7 @@ def label(args):
     if isinstance(args, str): import pdb; pdb.set_trace()
     node = args[0]
     functor = node[0]
-    arity = len(node)
+    arity = len(node) if isinstance(node, tuple) else 0
     if arity < 0: import pdb; pdb.set_trace()
     if arity > 0:
         if isinstance(node, str): import pdb; pdb.set_trace()
@@ -228,38 +228,15 @@ def label(args):
 	    target, src, cost, action = r
 
 	    #print 'src =', src
-            def equiv(src, node):
-                # *) we only check that the arity is at least covering
-                #    the src sink, any excess arguments will be
-                #    silently carried along as a means to pass around
-                #    extra data in compound types.
-                n = len(src)-1
-                for i in range(0, n):
-                    if src[i] <> node[i]:
-                        return False
-                if src[n] <> node[n][0]: # last arg, but ignore excess args
-                    return False
-                return True
 
             # is the arity compatible?
             if arity and not (isinstance(src, tuple)
 			      and len(src) == arity  # have the same arity
-			      and src[0] == node): # compound
-
+			      and (src[0] == node    # compound
+                                or src == node)):    # aggregate
                 # sadly there's an ambiguity between compound types
                 # and n-ary nonterminals
-                if equiv(src, node): 
-                    # re-adjust the node to its actual length (without
-                    # the extra arguments); yes, this is ugly.
-                    # But it adds convenience for the user
-                    arity = 0
-                    node = tuple(list(node[:-1])+[node[-1][0]])
-                    if isinstance(node, str): import pdb; pdb.set_trace()
-
-                    args1 = tuple([node]+data)
-                    my_labels = { args1: ((args1, '<terminal>', 0, no_action), 0) }
-                else:
-               	    continue # not compatible
+               	continue # not compatible
 
             if len(node[1])>1 and node[1][0] == 'enum': import pdb; pdb.set_trace()
 
