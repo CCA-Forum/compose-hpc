@@ -51,7 +51,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
-	$(top_srcdir)/configure \
+	$(top_srcdir)/braid/pyburg.in $(top_srcdir)/configure \
 	$(top_srcdir)/regression/interop/build-client.sh.in \
 	$(top_srcdir)/regression/interop/build-server.sh.in \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
@@ -108,7 +108,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = braid/braid braid/config.py Doxyfile \
+CONFIG_CLEAN_FILES = braid/braid braid/config.py braid/pyburg Doxyfile \
 	patch-chapel-compiler.sh regression/interop/build-client.sh \
 	regression/interop/build-server.sh \
 	regression/interop/build-tracker.sh \
@@ -564,7 +564,7 @@ nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl \
 BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) chpl/sidl.chpl \
 	$(SIDLSTUB_SRCS)
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
-bin_SCRIPTS = braid/braid braid/headerize braid/burg.py
+bin_SCRIPTS = braid/braid braid/headerize braid/pyburg
 TESTS = $(am__append_1) $(am__append_2)
 TEST_EXTENSIONS = .py .sidl $(am__append_3)
 
@@ -971,6 +971,8 @@ $(am__aclocal_m4_deps):
 braid/braid: $(top_builddir)/config.status $(top_srcdir)/braid/braid.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 braid/config.py: $(top_builddir)/config.status $(top_srcdir)/braid/config.py.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+braid/pyburg: $(top_builddir)/config.status $(top_srcdir)/braid/pyburg.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

@@ -944,7 +944,7 @@ class Chapel(object):
         chpl_args.extend(Args)
         
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
-                           Except, From, Requires, Ensures, DocComment))
+                           Except, From, Requires, Ensures, DocComment), True)
 
         abstract = member_chk(sidl.abstract, Attrs)
         final = member_chk(sidl.final, Attrs)
@@ -1160,6 +1160,9 @@ class Chapel(object):
         sepv = ci.epv.get_sepv_ir() 
         if sepv:
             ci.ior.gen(ir.Type_decl(sepv))
+
+        ci.ior.gen(ir.Type_decl(ci.epv.get_pre_epv_ir()))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_post_epv_ir()))
 
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__init',
             babel_epv_args([], [ir.Arg([], ir.inout, ir.void_ptr, 'data')],
@@ -1513,23 +1516,29 @@ def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
 class EPV(object):
     """
     Babel entry point vector for virtual method calls.
-    Also contains the SEPV which is used for all static functions.
+
+    Also contains the SEPV, which is used for all static functions, as
+    well as the pre- and post-epv for the hooks implementation.
+
     """
     def __init__(self, name, symbol_table, has_static_fns):
         self.methods = []
         self.static_methods = []
+        self.pre_methods = []
+        self.post_methods = []
         self.name = name
         self.symbol_table = symbol_table
         self.finalized = False
         self.has_static_fns = has_static_fns
 
-    def add_method(self, method):
+    def add_method(self, method, with_hooks=False):
         """
         add another (SIDL) method to the vector
         """
         def to_fn_decl((_sidl_method, Type,
                         (Method_name, Name, Extension),
-                        Attrs, Args, Except, From, Requires, Ensures, DocComment)):
+                        Attrs, Args, Except, From, Requires, Ensures, DocComment),
+                       suffix=''):
             typ = lower_ir(self.symbol_table, Type)
             if typ[0] == ir.struct:
                 typ = ir.Pointer_type(typ)
@@ -1541,7 +1550,7 @@ class EPV(object):
             attrs.discard(sidl.final)
             attrs = list(attrs)
             args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
-            return ir.Fn_decl(attrs, typ, name, args, DocComment)
+            return ir.Fn_decl(attrs, typ, name+suffix, args, DocComment)
 
         if self.finalized:
             import pdb; pdb.set_trace()
@@ -1550,6 +1559,9 @@ class EPV(object):
             self.static_methods.append(to_fn_decl(method))
         else:
             self.methods.append(to_fn_decl(method))
+        if with_hooks:
+            self.pre_methods.append(to_fn_decl(method, '_pre'))
+            self.post_methods.append(to_fn_decl(method, '_post'))
         return self
 
     def find_method(self, method):
@@ -1590,6 +1602,28 @@ class EPV(object):
             [ir.Struct_item(itype, iname)
              for itype, iname in map(get_type_name, self.static_methods)],
                          'Static Entry Point Vector (SEPV)')
+
+    def get_pre_epv_ir(self):
+        """
+        return an s-expression of the pre_EPV declaration
+        """
+        self.finalized = True
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__pre_epv', '')
+        return ir.Struct(name,
+            [ir.Struct_item(itype, iname)
+             for itype, iname in map(get_type_name, self.pre_methods)],
+                         'Pre Hooks Entry Point Vector (pre_EPV)')
+
+    def get_post_epv_ir(self):
+        """
+        return an s-expression of the post_EPV declaration
+        """
+        self.finalized = True
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__post_epv', '')
+        return ir.Struct(name,
+            [ir.Struct_item(itype, iname)
+             for itype, iname in map(get_type_name, self.post_methods)],
+                         'Pre Hooks Entry Point Vector (post_EPV)')
 
 
     def get_type(self):

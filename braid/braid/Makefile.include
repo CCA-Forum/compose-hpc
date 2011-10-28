@@ -42,7 +42,7 @@ BUILT_SOURCES += $(BUILT_PYTHON_SOURCES)
 GRAMMARS = braid/ir.def braid/sidl.def
 BURG_RULES = braid/chapel/conversions.burg
 
-bin_SCRIPTS += braid/braid braid/headerize braid/burg.py
+bin_SCRIPTS += braid/braid braid/headerize braid/pyburg
 
 nobase_pyexec_LTLIBRARIES += braid/scanner.la
 braid_scanner_la_SOURCES = braid/scanner.l
