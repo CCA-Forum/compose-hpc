@@ -96,6 +96,12 @@ def ir_babel_exception_type():
     """
     return ir_babel_object_type(['sidl'], 'BaseException')
 
+def set_method_attr(attr, (Method, Type, (MName,  Name, Extension), Attrs, Args,
+                         Except, From, Requires, Ensures, DocComment)):
+    return (Method, Type, (MName,  Name, Extension), [attr]+Attrs, Args,
+                         Except, From, Requires, Ensures, DocComment)
+
+
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
 
@@ -252,7 +258,7 @@ class Chapel(object):
             all_names = set()
             all_methods = []
 
-            def scan_class(extends, implements, methods):
+            def scan_class(extends, implements, methods, toplevel=False):
                 """
                 Recursively resolve the inheritance hierarchy
                 """
@@ -264,13 +270,37 @@ class Chapel(object):
                     """
                     return method[2][1]+method[2][2]
 
-                def add_method(m):
+                def update_method(m):
+                    """
+                    replace the element with m's name and args with m
+                    used to set the hooks attribute after the fact in
+                    case we realize the methad has been overridden
+                    """
+                    (_, _, (_, name, _), _, args, _, _, _, _, _) = m
+
+                    i = 0
+                    for i in range(len(all_methods)):
+                        (_, _, (_, name1, _), _, args1, _, _, _, _, _) = all_methods[i]
+                        if (name1, args1) == (name, args):
+                            all_methods[i] = m
+                            return
+                    #raise ('?')
+
+                def add_method(m, with_hooks=False):
                     if member_chk(sidl.static, sidl.method_method_attrs(m)):
                         self.has_static_methods = True
 
                     if not full_method_name(m) in all_names:
                         all_names.add(full_method_name(m))
+                        if with_hooks:
+                            m = set_method_attr(ir.hooks, m)
+
                         all_methods.append(m)
+                    else:
+                        if with_hooks:
+                            # override: need to update the hooks entry
+                            update_method(set_method_attr(ir.hooks, m))
+
 
                 def remove_method(m):
                     """
@@ -288,12 +318,13 @@ class Chapel(object):
                         if (name1, args1) == (name, args):
                             del all_methods[i]
                             all_names.remove(full_method_name(m))
-                            break
+                            return
+                    #raise('?')
 
                 def scan_protocols(implements):
                     for impl in implements:
                         for m in symbol_table[impl[1]][4]:
-                            add_method(m)
+                            add_method(m, toplevel and not is_abstract)
 
                 for _, ext in extends:
                     base = symbol_table[ext]
@@ -306,23 +337,22 @@ class Chapel(object):
                                    [], 
                                    sidl.interface_methods(base))
                     else: raise("?")
-                    #scan_protocols(base[3])
-                    #for m in base[5]:
-                    #    add_method(m)
 
                 scan_protocols(implements)
 
                 for m in methods:
                     if m[6]: # from clause
                         remove_method(m)
-                    add_method(m)
+                    #print name, m[2], toplevel
+                    add_method(m, toplevel)
 
-            scan_class(extends, implements, methods)
+            is_abstract = member_chk(sidl.abstract, self.class_attrs)
+            scan_class(extends, implements, methods, True)
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
             ci = self.ClassInfo(name, symbol_table, is_interface, 
-                                member_chk(sidl.abstract, self.class_attrs),
+                                is_abstract,
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
@@ -722,13 +752,14 @@ class Chapel(object):
                        'The class object structure')
         ci.external = \
             ir.Struct(ir.Scoped_id(prefix, ci.epv.name+'__external', ''),
-                      [ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
+                      ([ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
                                                        ir.Pointer_type(ci.obj),
                                                        "createObject", [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
                                                            ir.Arg([], sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)],
                                                        "")),
-                                                       "createObject")]+
+                                                       "createObject")] 
+                      if not ci.is_abstract else []) +
                       ([ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
                                                        ir.Pointer_type(unscope(ci.epv.get_sepv_type())),
                                                        "getStaticEPV", [], "")),
@@ -944,7 +975,7 @@ class Chapel(object):
         chpl_args.extend(Args)
         
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
-                           Except, From, Requires, Ensures, DocComment), True)
+                           Except, From, Requires, Ensures, DocComment))
 
         abstract = member_chk(sidl.abstract, Attrs)
         final = member_chk(sidl.final, Attrs)
@@ -1156,13 +1187,14 @@ class Chapel(object):
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.external))
         ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_pre_epv_ir()))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_post_epv_ir()))
 
         sepv = ci.epv.get_sepv_ir() 
         if sepv:
             ci.ior.gen(ir.Type_decl(sepv))
-
-        ci.ior.gen(ir.Type_decl(ci.epv.get_pre_epv_ir()))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_post_epv_ir()))
+            ci.ior.gen(ir.Type_decl(ci.epv.get_pre_sepv_ir()))
+            ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
 
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__init',
             babel_epv_args([], [ir.Arg([], ir.inout, ir.void_ptr, 'data')],
@@ -1524,8 +1556,12 @@ class EPV(object):
     def __init__(self, name, symbol_table, has_static_fns):
         self.methods = []
         self.static_methods = []
+        # hooks
         self.pre_methods = []
         self.post_methods = []
+        self.static_pre_methods = []
+        self.static_post_methods = []
+
         self.name = name
         self.symbol_table = symbol_table
         self.finalized = False
@@ -1557,11 +1593,14 @@ class EPV(object):
 
         if member_chk(sidl.static, method[3]):
             self.static_methods.append(to_fn_decl(method))
+            if member_chk(ir.hooks, method[3]):
+                self.static_pre_methods.append(to_fn_decl(method, '_pre'))
+                self.static_post_methods.append(to_fn_decl(method, '_post'))
         else:
             self.methods.append(to_fn_decl(method))
-        if with_hooks:
-            self.pre_methods.append(to_fn_decl(method, '_pre'))
-            self.post_methods.append(to_fn_decl(method, '_post'))
+            if member_chk(ir.hooks, method[3]):
+                self.pre_methods.append(to_fn_decl(method, '_pre'))
+                self.post_methods.append(to_fn_decl(method, '_post'))
         return self
 
     def find_method(self, method):
@@ -1624,6 +1663,44 @@ class EPV(object):
             [ir.Struct_item(itype, iname)
              for itype, iname in map(get_type_name, self.post_methods)],
                          'Pre Hooks Entry Point Vector (post_EPV)')
+
+    nonempty = ir.Struct_item(ir.pt_char, 'd_not_empty')
+
+    def get_pre_sepv_ir(self):
+        """
+        return an s-expression of the pre_SEPV declaration
+        """
+        if not self.has_static_fns:
+            return None
+
+        self.finalized = True
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__pre_sepv', '')
+
+        if self.static_post_methods:
+            entries = [ir.Struct_item(itype, iname)
+                       for itype, iname in 
+                       map(get_type_name, self.static_pre_methods)]
+        else:
+            entries = [self.nonempty]
+        return ir.Struct(name, entries, 'Pre Hooks Entry Point Vector (pre_EPV)')
+
+    def get_post_sepv_ir(self):
+        """
+        return an s-expression of the post_SEPV declaration
+        """
+        if not self.has_static_fns:
+            return None
+
+        self.finalized = True
+        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__post_sepv', '')
+
+        if self.static_post_methods:
+            entries = [ir.Struct_item(itype, iname)
+                       for itype, iname in 
+                       map(get_type_name, self.static_post_methods)]
+        else:
+            entries = [self.nonempty]
+        return ir.Struct(name, entries, 'Post Hooks Entry Point Vector (post_EPV)')
 
 
     def get_type(self):

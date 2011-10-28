@@ -75,7 +75,7 @@
 #   Fn_decl = fn_decl([Attr], Type, Id, [Arg], DocComment),
 #   Fn_defn = fn_defn([Attr], Type, Id, [Arg], [Stmt], DocComment),
 #   Arg = arg([Attr], Mode, Type, Id),
-#   Attr = (static | pure),
+#   Attr = (static | pure | hooks),
 #   Mode = (in | out | inout),
 #   Type = ( Primitive_type
 # 	 | Pointer_type
@@ -144,6 +144,7 @@ fn_defn = 'fn_defn'
 get_struct_item = 'get_struct_item'
 goto = 'goto'
 gt = 'gt'
+hooks = 'hooks'
 if_ = 'if'
 import_ = 'import'
 in_ = 'in'
@@ -232,6 +233,8 @@ def Fn_defn(*args):
             if a == static:
                 pass
             elif a == pure:
+                pass
+            elif a == hooks:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -322,6 +325,8 @@ def Fn_decl(*args):
             if a == static:
                 pass
             elif a == pure:
+                pass
+            elif a == hooks:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -781,6 +786,8 @@ def Arg(*args):
                 pass
             elif a == pure:
                 pass
+            elif a == hooks:
+                pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
                 print "**GRAMMAR ERROR in argument a = %s"%repr(a)
@@ -1086,7 +1093,7 @@ def Pointer_expr(*args):
         raise Exception("Grammar Error")
     return tuple(['pointer_expr']+list(args))
 
-# skipping \c Attr= (static|pure)
+# skipping \c Attr= (static|pure|hooks)
 # skipping \c Mode= (in|out|inout)
 def Pointer_type(*args):
     """
@@ -2835,7 +2842,7 @@ def pointer_expr_varRefExpr(arg):
     else: return arg[1]
 
 
-# skipping \c Attr= (static|pure)
+# skipping \c Attr= (static|pure|hooks)
 # skipping \c Mode= (in|out|inout)
 def pointer_type_type(arg):
     """

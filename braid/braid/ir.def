@@ -83,7 +83,7 @@
   Fn_decl = fn_decl([Attr], Type, Id, [Arg], DocComment),
   Fn_defn = fn_defn([Attr], Type, Id, [Arg], [Stmt], DocComment),
   Arg = arg([Attr], Mode, Type, Id),
-  Attr = (static | pure),
+  Attr = (static | pure | hooks),
   Mode = (in | out | inout),
   Type = ( Primitive_type
 	 | Pointer_type
