@@ -99,6 +99,8 @@ paul_tag_map read_paul_conf(string fname) {
   return tagmap;
 }
 
+/**
+
 int main(int argc, char **argv) {
   paul_tag_map ptm;
 
@@ -112,3 +114,5 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+**/

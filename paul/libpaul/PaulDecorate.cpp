@@ -3,6 +3,7 @@
 #include "SXAnnotationValue.h"
 #include "KVAnnotationValue.h"
 #include "PaulDecorate.h"
+#include "PaulConfReader.h"
 
 #define C_COMMENT         (1)
 #define CPP_COMMENT       (2)
@@ -13,9 +14,13 @@ using namespace std;
 //// Comment Visitor - code for traversing the comments ////////////////////////
 
 class CommentVisitor : public AstSimpleProcessing {
+private:
+  paul_tag_map tagmap;
 protected:
   void virtual visit(SgNode *node);
 public:
+  void setTagMap(paul_tag_map ptm) { tagmap = ptm; }
+
   CommentVisitor() {
   }
 };
@@ -40,7 +45,7 @@ string annotation_text(const string s) {
 
 string annotAttributeString ("ANNOT");
 
-void handle_comment(const string s, SgLocatedNode *node) {
+void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
   if(is_annotation(s)) {
     string ann_text = annotation_text(s);
 
@@ -57,21 +62,47 @@ void handle_comment(const string s, SgLocatedNode *node) {
     string value_text = ann_text.substr(i+1);
 
     // create the annotation value
-      // FIXME: Add code that looks up tag in config file to see which type
-      // of AnnotationValue we should create.
 
-    KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
+    paul_tag_map::iterator ptm_it;
 
-    // create the annotation
-    Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
+    ptm_it = tagmap.find(tag);
+    
+    if (ptm_it != tagmap.end()) {
+      if ((*ptm_it).second == "key-value") {
+        KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
 
-    // add the annotation to the node:
-    node->addNewAttribute (annotAttributeString, pAnn);
+        // create the annotation
+        Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
 
-    // tracing for now:
-    cerr << "Tag: " << pAnn->getTag()
-         << " ; Value: " << pAnn->getValueString()
-         << endl;
+        // add the annotation to the node:
+        node->addNewAttribute (annotAttributeString, pAnn);
+
+        // tracing for now:
+        cerr << "KV --- Tag: " << pAnn->getTag()
+             << " ; Value: " << pAnn->getValueString()
+             << endl;
+      } else if ((*ptm_it).second == "s-expression") {
+        SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
+
+        // create the annotation
+        Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
+
+        // add the annotation to the node:
+        node->addNewAttribute (annotAttributeString, pAnn);
+
+        // tracing for now:
+        cerr << "SX --- Tag: " << pAnn->getTag()
+             << " ; Value: " << pAnn->getValueString()
+             << endl;
+
+      } else {
+        cerr << "UNSUPPORTED ANNOTATION FORMAT :: " << (*ptm_it).second << endl;
+      }
+    } else {
+      // tag wasn't found
+      cerr << "Tag (" << tag << ") encountered not present in configuration file." << endl;
+    }
+
 
   }
 }
@@ -87,12 +118,12 @@ void CommentVisitor::visit(SgNode *node) {
     	  switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT: {
             string comment = remove_c_comment_marks((*i)->getString());
-            handle_comment(comment,locatedNode);
+            handle_comment(comment,locatedNode,tagmap);
             break;
           }
           case CPP_COMMENT: {
             string comment = remove_cpp_comment_marks((*i)->getString());
-            handle_comment(comment,locatedNode);
+            handle_comment(comment,locatedNode,tagmap);
             break;
           }
         }
@@ -103,10 +134,14 @@ void CommentVisitor::visit(SgNode *node) {
 
 //////////////////////////
 
-void paulDecorate (SgProject* project)
+void paulDecorate (SgProject* project, string conf_fname)
 {
-
   CommentVisitor v;
+
+  if (conf_fname != "") {
+    paul_tag_map ptm = read_paul_conf(conf_fname);
+    v.setTagMap(ptm);
+  }
 
   v.traverseInputFiles(project,preorder);    // FIXME:?
 }

@@ -11,7 +11,7 @@ int main( int argc, char * argv[] )
   ROSE_ASSERT (sageProject != NULL);
 
   // decorate the AST with the PAUL annotations
-  paulDecorate (sageProject);
+  paulDecorate (sageProject, "example.paulconf");
 
  // Run internal consistency tests on AST
   AstTests::runAllTests(sageProject);

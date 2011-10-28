@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void paulDecorate (SgProject* sageProject) ;
+void paulDecorate (SgProject* sageProject, string conf_fname) ;
 
 extern string annotAttributeString;
 

@@ -16,7 +16,7 @@ endif
 
 EXEC=test_PaulDecorate
 CCHELPERS=KVAnnotationValue.cpp SXAnnotationValue.cpp Dynamic.cpp \
-          PaulDecorate.cpp
+          PaulDecorate.cpp PaulConfReader.cpp
 CCFILES=${EXEC}.cpp ${CCHELPERS}
 
 HFILES=$(patsubst %.cpp,%.h,${CCHELPERS})
