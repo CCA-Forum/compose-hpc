@@ -153,6 +153,7 @@ AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION,
 AC_CONFIG_FILES([Makefile 
   braid/braid 
   braid/config.py 
+  braid/pyburg 
   Doxyfile
   patch-chapel-compiler.sh
   regression/interop/build-client.sh
