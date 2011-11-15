@@ -3,7 +3,7 @@
 using namespace std;
 
 void handleGBMV(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, string fname, string uPrefix, SgExprListExp* fArgs){
-	
+
 	string lenXY="";
 
 	ostringstream cocciStream;
@@ -73,7 +73,7 @@ void handleGBMV(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, str
 
 		if(isRowMajor){
 			if(    cblasTrans  == "CblasTrans")    { cbTrans = "\'N\'"; lenXY = "n"; }
-			else if(cblasTrans == "CblasNoTrans")  { cbTrans = "\'T\'"; lenXY = "m"; } 
+			else if(cblasTrans == "CblasNoTrans")  { cbTrans = "\'T\'"; lenXY = "m"; }
 			else if(cblasTrans == "CblasConjTrans") { cbTrans = "\'C\'"; lenXY = "m"; }
 			else{
 				cbTrans = uPrefix + "_trans";

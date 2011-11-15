@@ -1,13 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include "PaulConfReader.h"
 
 using namespace std;
 
 const int  max_line_length = 512;
 const bool verbose         = true;
-
-typedef map<const string, string> paul_tag_map;
 
 void log(string s) {
   if (verbose) {
@@ -100,6 +99,8 @@ paul_tag_map read_paul_conf(string fname) {
   return tagmap;
 }
 
+/**
+
 int main(int argc, char **argv) {
   paul_tag_map ptm;
 
@@ -113,3 +114,5 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+**/

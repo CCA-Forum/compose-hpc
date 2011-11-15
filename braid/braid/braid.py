@@ -26,7 +26,8 @@
 # Welcome to Braid/Babel 2!
 
 import argparse, re, sys
-import sidl_parser, sidl_symbols, codegen, chapel, config, legal
+import sidl_parser, sidl_symbols, codegen, config, legal
+from chapel import *
 
 def braid(args):
     for sidl_file in args.sidl_files:

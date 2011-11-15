@@ -76,10 +76,24 @@ void handleGEMM(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor, st
 	if(checkBlasCallType){
 		// C BLAS interface is used
 
+		string chkAlloc = "chkAlloc_"+uPrefix;
 		cocciStream << "+  /* Allocate device memory */  \n";
-		cocciStream << "+  cublasAlloc(rA*cA, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
-		cocciStream << "+  cublasAlloc(cA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_B);  \n";
-		cocciStream << "+  cublasAlloc(rA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_C);  \n\n";
+		cocciStream << "+  int "<<chkAlloc<<";\n";
+		cocciStream << "+  "<<chkAlloc<<" = cublasAlloc(rA*cA, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_A);  \n";
+		cocciStream << "+  if("<<chkAlloc<<" != CUBLAS_STATUS_SUCCESS) {\n";
+		cocciStream << "+   	   printf(\"Error allocating memory on device for array "<<uPrefix<<"_A !!\\n\");\n";
+		cocciStream << "+          return -1;\n";
+		cocciStream << "+  }\n";
+		cocciStream << "+  "<<chkAlloc<<" = cublasAlloc(cA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_B);  \n";
+		cocciStream << "+  if("<<chkAlloc<<" != CUBLAS_STATUS_SUCCESS) {\n";
+		cocciStream << "+   	   printf(\"Error allocating memory on device for array "<<uPrefix<<"_B !!\\n\");\n";
+		cocciStream << "+          return -1;\n";
+		cocciStream << "+  }\n";
+		cocciStream << "+  "<<chkAlloc<<" = cublasAlloc(rA*cB, sizeType_"<<uPrefix<<", (void**)&"<<uPrefix<<"_C);  \n\n";
+		cocciStream << "+  if("<<chkAlloc<<" != CUBLAS_STATUS_SUCCESS) {\n";
+		cocciStream << "+   	   printf(\"Error allocating memory on device for array "<<uPrefix<<"_C !!\\n\");\n";
+		cocciStream << "+          return -1;\n";
+		cocciStream << "+  }\n";
 		cocciStream << "+  /* Copy matrices to device */     \n";
 		cocciStream << "+  cublasSetMatrix ( rA, cA, sizeType_"<<uPrefix<<", (void *)"<<matARef<<", rA, (void *) "<<uPrefix<<"_A, rA);  \n";
 		cocciStream << "+  cublasSetMatrix ( cA, cB, sizeType_"<<uPrefix<<", (void *)"<<matBRef<<", cA, (void *) "<<uPrefix<<"_B, cA);  \n\n";
@@ -88,60 +102,38 @@ void handleGEMM(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor, st
 		string cbTransA = "";
 		string cbTransB = "";
 
-		if(isRowMajor){
-			if(    cblasTransA  == "CblasTrans")     cbTransA = "\'N\'";
-			else if(cblasTransA == "CblasNoTrans")   cbTransA = "\'T\'";
-			else if(cblasTransA == "CblasConjTrans") cbTransA = "\'C\'";
-			else{
-				cbTransA = uPrefix + "_transA";
-				cocciStream << "+ char "<<cbTransA<<"; \n";
-				cocciStream << "+ if("<<cblasTransA<<" == CblasTrans) "<<cbTransA<<" = \'N\'; \n";
-				cocciStream << "+ else if("<<cblasTransA<<" == CblasNoTrans) "<<cbTransA<<" = \'T\'; \n";
-				cocciStream << "+ else if("<<cblasTransA<<" == CblasConjTrans) "<<cbTransA<<" = \'C\'; \n\n";
-
-			}
-
-			if(     cblasTransB == "CblasTrans")     cbTransB = "\'N\'";
-			else if(cblasTransB == "CblasNoTrans")   cbTransB = "\'T\'";
-			else if(cblasTransB == "CblasConjTrans") cbTransB = "\'C\'";
-			else{
-				cbTransB = uPrefix + "_transB";
-				cocciStream << "+ char "<<cbTransB<<"; \n";
-				cocciStream << "+ if("<<cblasTransB<<" == CblasTrans) "<<cbTransB<<" = \'N\'; \n";
-				cocciStream << "+ else if("<<cblasTransB<<" == CblasNoTrans) "<<cbTransB<<" = \'T\'; \n";
-				cocciStream << "+ else if("<<cblasTransB<<" == CblasConjTrans) "<<cbTransB<<" = \'C\'; \n\n";
-			}
-		}
-
+		if(    cblasTransA  == "CblasTrans")     cbTransA = "\'T\'";
+		else if(cblasTransA == "CblasNoTrans")   cbTransA = "\'N\'";
+		else if(cblasTransA == "CblasConjTrans") cbTransA = "\'C\'";
 		else{
-			if(    cblasTransA  == "CblasTrans")     cbTransA = "\'T\'";
-			else if(cblasTransA == "CblasNoTrans")   cbTransA = "\'N\'";
-			else if(cblasTransA == "CblasConjTrans") cbTransA = "\'C\'";
-			else{
-				cbTransA = uPrefix + "_transA";
-				cocciStream << "+ char "<<cbTransA<<"; \n";
-				cocciStream << "+ if("<<cblasTransA<<" == CblasTrans) "<<cbTransA<<" = \'T\'; \n";
-				cocciStream << "+ else if("<<cblasTransA<<" == CblasNoTrans) "<<cbTransA<<" = \'N\'; \n";
-				cocciStream << "+ else if("<<cblasTransA<<" == CblasConjTrans) "<<cbTransA<<" = \'C\'; \n\n";
+			cbTransA = uPrefix + "_transA";
+			cocciStream << "+ char "<<cbTransA<<"; \n";
+			cocciStream << "+ if("<<cblasTransA<<" == CblasTrans) "<<cbTransA<<" = \'T\'; \n";
+			cocciStream << "+ else if("<<cblasTransA<<" == CblasNoTrans) "<<cbTransA<<" = \'N\'; \n";
+			cocciStream << "+ else if("<<cblasTransA<<" == CblasConjTrans) "<<cbTransA<<" = \'C\'; \n\n";
 
-			}
-
-			if(     cblasTransB == "CblasTrans")     cbTransB = "\'T\'";
-			else if(cblasTransB == "CblasNoTrans")   cbTransB = "\'N\'";
-			else if(cblasTransB == "CblasConjTrans") cbTransB = "\'C\'";
-			else{
-				cbTransB = uPrefix + "_transB";
-				cocciStream << "+ char "<<cbTransB<<"; \n";
-				cocciStream << "+ if("<<cblasTransB<<" == CblasTrans) "<<cbTransB<<" = \'T\'; \n";
-				cocciStream << "+ else if("<<cblasTransB<<" == CblasNoTrans) "<<cbTransB<<" = \'N\'; \n";
-				cocciStream << "+ else if("<<cblasTransB<<" == CblasConjTrans) "<<cbTransB<<" = \'C\'; \n\n";
-			}
 		}
 
-		cocciStream << "+ "<<cublasCall<<"("<<cbTransA<<","<<cbTransB<<",rA,cB,cA,alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_B,ldb,beta,"<<uPrefix<<"_C,ldc);\n\n";
+		if(     cblasTransB == "CblasTrans")     cbTransB = "\'T\'";
+		else if(cblasTransB == "CblasNoTrans")   cbTransB = "\'N\'";
+		else if(cblasTransB == "CblasConjTrans") cbTransB = "\'C\'";
+		else{
+			cbTransB = uPrefix + "_transB";
+			cocciStream << "+ char "<<cbTransB<<"; \n";
+			cocciStream << "+ if("<<cblasTransB<<" == CblasTrans) "<<cbTransB<<" = \'T\'; \n";
+			cocciStream << "+ else if("<<cblasTransB<<" == CblasNoTrans) "<<cbTransB<<" = \'N\'; \n";
+			cocciStream << "+ else if("<<cblasTransB<<" == CblasConjTrans) "<<cbTransB<<" = \'C\'; \n\n";
+		}
+
+		if(isRowMajor){
+			cocciStream << "+ "<<cublasCall<<"("<<cbTransA<<","<<cbTransB<<",cB,rA,cA,alpha,"<<uPrefix<<"_B,cB,"<<uPrefix<<"_A,cA,beta,"<<uPrefix<<"_C,cB);\n\n";
+		}
+		else{
+			cocciStream << "+ "<<cublasCall<<"("<<cbTransA<<","<<cbTransB<<",rA,cB,cA,alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_B,ldb,beta,"<<uPrefix<<"_C,ldc);\n\n";
+		}
+
 		cocciStream << "+  /* Copy result array back to host */  \n";
 		cocciStream << "+  cublasSetMatrix( rA, cB, sizeType_"<<uPrefix<<", (void *) "<<uPrefix<<"_C, rA, (void *)"<<matCRef<<", rA);  \n";
-			   
 	}
 
 	else{

@@ -1,10 +1,8 @@
-#ifndef __SXANNOTATION_H__
-#define __SXANNOTATION_H__
+#ifndef __SXANNOTATIONVALUE_H__
+#define __SXANNOTATIONVALUE_H__
 
 #include "Annotation.h"
 #include "sexp.h"
-
-typedef struct sexpr sexpr_t;
 
 using namespace std;
 
@@ -18,13 +16,24 @@ using namespace std;
  *       stl strings or a BOOST-based string under the covers instead of
  *       the cstring code currently in there.
  */
-class SXAnnotation : public Annotation {
+class SXAnnotationValue : public AnnotationValue {
  protected:
-  sexpr_t *sx;
+  sexp_t *sx;
 
  public:
-  SXAnnotation(string s, SgNode *n);
-  sexpr_t *getExpression();
+  SXAnnotationValue(string s);
+
+  sexp_t *getExpression()
+  {
+   return sx;
+  }
+
+  void print ();
+
+  friend SXAnnotationValue* isSXAnnotationValue( AnnotationValue *p);
+
 };
 
-#endif // __SXANNOTATION_H__
+SXAnnotationValue* isSXAnnotationValue( AnnotationValue *p);
+
+#endif // __SXANNOTATIONVALUE_H__

@@ -2,44 +2,51 @@
 #include <iostream>
 #include <stdlib.h>
 #include <assert.h>
+#include <map>
+
+#include "Dynamic.h"
 #include "parser.h"
-#include "Annotation.h"
 
 using namespace std;
+
+typedef string Key;
+typedef Dynamic *Value;
+typedef map<Key,Value> KeyValueMap;
+
 }
 
-%extra_argument   { Annotation **ann }
+%extra_argument   { KeyValueMap **kvm }
 %token_type       { char * }
 %token_destructor { free($$); }
-%type kvpairs     { Annotation * }
-%type key         { char * }
-%type value       { Dynamic * }
+%type kvpairs     { KeyValueMap *}
+%type key         { Key *}
+%type value       { Value }
 
-%syntax_error { 
+%syntax_error {
   printf("Syntax error!\n");
   exit(1);
 }
 
 %parse_failure {
-  *ann = NULL;
+  fprintf(stderr,"Giving up.  Parser is lost...\n");
 }
 
-program ::= ID(K) kvpairs(A). {
-  A->set_id(K);
-  *ann = A;
+program ::= kvpairs(S) . {
+  *kvm = S;
 }
+
 
 kvpairs(Q) ::= kvpairs(S) key(K) EQ value(V) . {
   Q = S;
-  Q->add_attrib(K,V);
+  (*Q)[*K] = V;
 }
 
 kvpairs(Q) ::= . {
-  Q = new Annotation();
+  Q = new KeyValueMap;
 }
 
 key(K) ::= ID(A) . {
-  K = A;
+  K = new string (A);
 }
 
 value(V) ::= ID(A) . {

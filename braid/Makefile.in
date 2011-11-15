@@ -466,7 +466,7 @@ PL_LIBS = @PL_LIBS@
 PYTHON = @PYTHON@
 PYTHONINC = @PYTHONINC@
 PYTHONLIB = @PYTHONLIB@
-PYTHONPATH = $(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs
+PYTHONPATH = $(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(srcdir)
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
 PYTHON_PREFIX = @PYTHON_PREFIX@
@@ -598,10 +598,14 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = \
 	braid/braid.py \
-	braid/chapel.py \
+	braid/chapel/__init__.py \
+	braid/chapel/cgen.py \
+	braid/chapel/chapel.py \
+	braid/chapel/args.py \
 	braid/codegen.py \
 	braid/config.py \
 	braid/ior_template.py \
+	braid/lists.py \
 	braid/patmat.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
@@ -910,6 +914,7 @@ DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
 
 info_TEXINFOS = doc/braid.texi
 dist_man_MANS = $(srcdir)/doc/braid.1
+CLEANFILES = toolcheck.log
 CHPL_RUNTIME_FILES = chpl/array.inc chpl/barray.inc chpl/array_support.inc
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 lib_LTLIBRARIES = libsidlstub_chpl.la
@@ -1973,6 +1978,7 @@ mostlyclean-generic:
 	-test -z "$(TEST_SUITE_LOG)" || rm -f $(TEST_SUITE_LOG)
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -1995,7 +2001,7 @@ distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-local distclean-tags
+	distclean-libtool distclean-tags
 
 dvi: dvi-am
 
@@ -2155,18 +2161,17 @@ uninstall-man: uninstall-man1
 	dist-all dist-bzip2 dist-gzip dist-info dist-lzip dist-lzma \
 	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
 	distclean-compile distclean-generic distclean-libtool \
-	distclean-local distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-binSCRIPTS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLTLIBRARIES install-man \
-	install-man1 install-nobase_includeHEADERS \
-	install-nobase_pyexecLTLIBRARIES install-nobase_pythonPYTHON \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-pythonPYTHON install-strip installcheck \
-	installcheck-am installcheck-binSCRIPTS installdirs \
-	maintainer-clean maintainer-clean-aminfo \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-binSCRIPTS install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-man1 \
+	install-nobase_includeHEADERS install-nobase_pyexecLTLIBRARIES \
+	install-nobase_pythonPYTHON install-pdf install-pdf-am \
+	install-ps install-ps-am install-pythonPYTHON install-strip \
+	installcheck installcheck-am installcheck-binSCRIPTS \
+	installdirs maintainer-clean maintainer-clean-aminfo \
 	maintainer-clean-generic mostlyclean mostlyclean-aminfo \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am recheck recheck-html tags uninstall \
@@ -2289,9 +2294,6 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
          else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
          fi
 	@rm -f braid.txt
-
-distclean-local:
-	rm -f toolcheck.log
 
 clean-local: clean-braid
 	rm -rf doc/html

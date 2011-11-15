@@ -1,9 +1,11 @@
 #include "Transforms.h"
 #include "blas2cublas/src/blas2cublas.h"
+#include "tascel/src/tascel.h"
 
 using namespace SageInterface;
 
 void handleBlasCalls(ofstream&, string&, SgExprListExp *, string);
+void MainTascelTransform(ofstream&, string&, int, SgExprListExp *);
 void cublasHeaderInsert(ofstream&);
 
 bool fileExists(const std::string& filename)
@@ -24,9 +26,13 @@ Transform *Transform::get_transform(SgLocatedNode *theroot,Annotation *ann) {
 	if(ann->get_id() == "ABSORB_STRUCT_ARRAY") {
 		return new AbsorbStructTransform(ann,theroot);
 	}
-        // Identify Blas to CUDA Blas transformation in the annotation provided.
+	// Identify Blas to CUDA Blas transformation in the annotation provided.
 	else if(ann->get_id() == "BLAS_TO_CUBLAS") {
 		return new BlasToCublasTransform(ann,theroot);
+	}
+	// Identify TASCEL transformations
+	else if(ann->get_id() == "TASCEL"){
+		return new TascelTransform(ann,theroot);
 	}
 	else {
 		cerr << "Unknown annotation: " << ann->get_id()  << endl;
@@ -34,13 +40,32 @@ Transform *Transform::get_transform(SgLocatedNode *theroot,Annotation *ann) {
 	}
 }
 
-//To handle BLAS to CUBLAS transformations
+//Validate TASCEL annotation options
+
+TascelTransform::TascelTransform(Annotation *a,SgLocatedNode *p)
+: Transform(p) {
+	Dynamic *chkVersion = a->get_attrib("version");
+	if(chkVersion!=NULL) {
+		version = atoi(a->get_attrib("version")->string_value().c_str());
+		if(version<0 || version>3){
+			cerr << "TASCEL transformation error : unrecognized version specified. " << endl;
+			exit(1);
+		}
+	}
+	else {
+		cerr << "TASCEL transformation error : version not specified. " << endl;
+		exit(1);
+	}
+}
+
+
+//Validate BLAS to CUBLAS annotation options.
 
 BlasToCublasTransform::BlasToCublasTransform(Annotation *a,SgLocatedNode *p)
 : Transform(p) {
 	// Get prefix - which is the user provided prefix (to avoid name
-        // clashes in transformed code) for new variables introduced 
-        // (that to point to gpu memory) as part of the transformation.
+	// clashes in transformed code) for new variables introduced
+	// (that to point to gpu memory) as part of the transformation.
 	// Report error and quit if prefix is not provided.
 	Dynamic *chkPrefix = a->get_attrib("prefix");
 	if(chkPrefix!=NULL) arrayPrefix = a->get_attrib("prefix")->string_value();
@@ -69,78 +94,152 @@ AbsorbStructTransform::AbsorbStructTransform(Annotation *a,SgLocatedNode *p)
 
 }
 
-void AbsorbStructTransform::generate(string inpFile, int *fileCount) {
-  SgClassDeclaration *clsDecl = isSgClassDeclaration(root);
-  cerr << "Generating ABSORB_STRUCT_ARRAY for struct "
-       << clsDecl->get_mangled_name().str() 
-       << endl;
-  if(!clsDecl) {
-    cerr << "ABSORB_STRUCT_ARRAY must be attached to a struct, found"
-         << root->class_name() 
-         << endl;
-    exit(1);
-  }
-  SgClassDefinition *def = clsDecl->get_definition();
-  int n = def->get_members().size();
-  
-  cout << "@def@"                                      << endl;
-  cout << "identifier s;"                              << endl;
-  for(int i=1; i <= n; i++) {
-    cout << "identifier x" << i << ";"                 << endl;
-    cout << "type T" << i << ";"                       << endl;
-  }
-  cout << "@@"                                         << endl;
-  cout << "struct s {"                                 << endl;
-  for(int i=1; i <= n; i++) {
-    cout << "- T" << i << " x" << i << ";"             << endl;
-    cout << "+ T" << i << " *x" << i << ";"            << endl;
-  }
-  cout << "};"                                         << endl;
-  cout                                                 << endl;
-  cout << "@decl@"                                     << endl;
-  cout << "identifier def.s,k;"                        << endl;
-  cout << "@@"                                         << endl;
-  cout << "- struct s *k;"                             << endl;
-  cout << "+ struct s k;"                              << endl;
-  cout                                                 << endl;
-  cout << "@@"                                         << endl;
-  cout << "function foo;"                              << endl;
-  cout << "identifier def.s,k,x;"                      << endl;
-  cout << "expression E1;"                             << endl;
-  cout << "@@"                                         << endl;
-  cout << "foo(...,"                                   << endl;
-  cout << "- struct s *k"                              << endl;
-  cout << "+ struct s k"                               << endl;
-  cout << ",...) {"                                    << endl;
-  cout << "<..."                                       << endl;
-  cout << "- k[E1].x"                                  << endl;
-  cout << "+ k.x[E1]"                                  << endl;
-  cout << "...>"                                       << endl;
-  cout << "}"                                          << endl;
-  cout                                                 << endl;
-  cout << "@@"                                         << endl;
-  cout << "identifier decl.k,def.s;"                   << endl;
-  for(int i=1; i <= n; i++) {
-    cout << "identifier def.x" << i << ";"             << endl;
-    cout << "type def.T" << i << ";"                   << endl;
-  }
-  cout << "expression E;"                              << endl;
-  cout << "@@"                                         << endl;
-  cout << "- k = malloc(E * sizeof(struct s));"        << endl;
-  for(int i=1; i <= n; i++) {
-    cout << "+ k.x" << i << " = malloc(E * sizeof(T" << i << "));" << endl;
-  }
-  cout << "..."                                        << endl;
-  cout << "- free(k);"                                 << endl;
-  for(int i=1; i <= n; i++) {
-    cout << "+ free(k.x" << i << ");"                  << endl;
-  }
+void TascelTransform::generate(string inpFile, int *fileCount) {
+
+	// Get the node (next_4chunk call) associated with the annotation.
+	SgExprStatement *es = isSgExprStatement(root);
+
+	// Build a list of function calls within the subtree rooted at the annotated node.
+	Rose_STL_Container<SgNode*> functionCallList = NodeQuery::querySubTree (root,V_SgFunctionCallExp);
+
+	int counter = 0;
+	SgFunctionCallExp* functionCallExp = NULL;
+	for (Rose_STL_Container<SgNode*>::iterator i = functionCallList.begin(); i != functionCallList.end(); i++)
+	{
+		// Build a pointer to the current type so that we can call the get_name() member function.
+		functionCallExp = isSgFunctionCallExp(*i);
+		counter++;
+	}
+
+	ROSE_ASSERT(functionCallExp != NULL);
+	// As of now there could be only one function(next_4chunk) call that is annotated.
+	//ROSE_ASSERT(counter == 1);
+
+	// Get name of the tascel routine.
+	SgFunctionSymbol *funcSym = functionCallExp->getAssociatedFunctionSymbol();
+	SgName funcName = funcSym->get_name();
+	string &fname = (&funcName)->getString();
+
+	// Get argument list for the call.
+	SgExprListExp *fArgs = functionCallExp->get_args();
+	// Get number of arguments.
+	size_t nArgs = fArgs->get_numberOfTraversalSuccessors();
+
+	// Generate name for the coccinelle rules
+	// file that needs to be generated.
+	// inpFile provides the input source file name
+	// that is to be transformed.
+	string cocciFile = inpFile + "_tascel.cocci";
+
+	// File pointer for the coccinelle rules file.
+	ofstream cocciFptr;
+
+	// The coccinelle rules file does not exist or
+	// was not already created when handling the
+	// first annotated (to be transformed) TASCEL call
+	if(!fileExists(cocciFile) || *fileCount == 0)
+	{
+		//So create the file
+		cocciFptr.open(cocciFile.c_str());
+		// Insert header include rules
+		// just once when the coccinelle rules
+		// file is created.
+		//tascelHeaderInsert(cocciFptr);
+		//Reset fileCount.
+		*fileCount = -1;
+	}
+
+	// Coccinelle rules file exists because it was
+	// created when handling the intial annotated
+	// BLAS call.
+	else{
+		cocciFptr.open(cocciFile.c_str(), ios::app);
+		cocciFptr << "\n\n\n";
+	}
+
+	// Main function that identifies the TASCEL routine
+	// and calls various other functions that generate the
+	// appropriate cocccinelle rules.
+	MainTascelTransform(cocciFptr,fname,version,fArgs);
+
+	// Close coccinelle rules file.
+	if(cocciFptr.is_open()) cocciFptr.close();
 }
 
+void MainTascelTransform(ofstream &cocciFptr,string &fname,int version,SgExprListExp *fArgs){
+	handleTascelTransform(cocciFptr,fname,version,fArgs);
+}
 
+void AbsorbStructTransform::generate(string inpFile, int *fileCount) {
+	SgClassDeclaration *clsDecl = isSgClassDeclaration(root);
+	cerr << "Generating ABSORB_STRUCT_ARRAY for struct "
+			<< clsDecl->get_mangled_name().str()
+			<< endl;
+	if(!clsDecl) {
+		cerr << "ABSORB_STRUCT_ARRAY must be attached to a struct, found"
+				<< root->class_name()
+				<< endl;
+		exit(1);
+	}
+	SgClassDefinition *def = clsDecl->get_definition();
+	int n = def->get_members().size();
 
+	cout << "@def@"                                      << endl;
+	cout << "identifier s;"                              << endl;
+	for(int i=1; i <= n; i++) {
+		cout << "identifier x" << i << ";"                 << endl;
+		cout << "type T" << i << ";"                       << endl;
+	}
+	cout << "@@"                                         << endl;
+	cout << "struct s {"                                 << endl;
+	for(int i=1; i <= n; i++) {
+		cout << "- T" << i << " x" << i << ";"             << endl;
+		cout << "+ T" << i << " *x" << i << ";"            << endl;
+	}
+	cout << "};"                                         << endl;
+	cout                                                 << endl;
+	cout << "@decl@"                                     << endl;
+	cout << "identifier def.s,k;"                        << endl;
+	cout << "@@"                                         << endl;
+	cout << "- struct s *k;"                             << endl;
+	cout << "+ struct s k;"                              << endl;
+	cout                                                 << endl;
+	cout << "@@"                                         << endl;
+	cout << "function foo;"                              << endl;
+	cout << "identifier def.s,k,x;"                      << endl;
+	cout << "expression E1;"                             << endl;
+	cout << "@@"                                         << endl;
+	cout << "foo(...,"                                   << endl;
+	cout << "- struct s *k"                              << endl;
+	cout << "+ struct s k"                               << endl;
+	cout << ",...) {"                                    << endl;
+	cout << "<..."                                       << endl;
+	cout << "- k[E1].x"                                  << endl;
+	cout << "+ k.x[E1]"                                  << endl;
+	cout << "...>"                                       << endl;
+	cout << "}"                                          << endl;
+	cout                                                 << endl;
+	cout << "@@"                                         << endl;
+	cout << "identifier decl.k,def.s;"                   << endl;
+	for(int i=1; i <= n; i++) {
+		cout << "identifier def.x" << i << ";"             << endl;
+		cout << "type def.T" << i << ";"                   << endl;
+	}
+	cout << "expression E;"                              << endl;
+	cout << "@@"                                         << endl;
+	cout << "- k = malloc(E * sizeof(struct s));"        << endl;
+	for(int i=1; i <= n; i++) {
+		cout << "+ k.x" << i << " = malloc(E * sizeof(T" << i << "));" << endl;
+	}
+	cout << "..."                                        << endl;
+	cout << "- free(k);"                                 << endl;
+	for(int i=1; i <= n; i++) {
+		cout << "+ free(k.x" << i << ");"                  << endl;
+	}
+}
 
 void BlasToCublasTransform::generate(string inpFile, int *fileCount){
+	cout << root->unparseToCompleteString() << endl;
 
 	// Get the node (blas call) associated with the annotation.
 	SgExprStatement *es = isSgExprStatement(root);
@@ -170,7 +269,7 @@ void BlasToCublasTransform::generate(string inpFile, int *fileCount){
 	// was not already created when handling the
 	// first annotated BLAS call, which means
 	// this is the first annotated BLAS call that
-        // is being processed.
+	// is being processed.
 	if(!fileExists(cocciFile) || *fileCount == 0)
 	{
 		//So create the file
@@ -216,7 +315,7 @@ void handleBlasCalls(ofstream &cocciFptr,string &fname,SgExprListExp *fArgs, str
 	// since this interface allows user to specify whether the
 	// arrays are treated to be stored in row/column major format.
 	bool checkBlasCallType = (fname.find("cblas") != npos);
-	
+
 	if(checkBlasCallType){
 		// (If possible) Get array storage format specified
 		string cblasOrder  = fArgs->get_traversalSuccessorByIndex(0)->unparseToString();
@@ -226,9 +325,9 @@ void handleBlasCalls(ofstream &cocciFptr,string &fname,SgExprListExp *fArgs, str
 	/* --------------- BLAS 3 CALLS -----------------*/
 
 	if( fname.find("scgemm") != npos ||
-            fname.find("dzgemm") != npos ||  
-            fname.find("scgemv") != npos || 
-            fname.find("dzgemv") != npos ){
+			fname.find("dzgemm") != npos ||
+			fname.find("scgemv") != npos ||
+			fname.find("dzgemv") != npos ){
 		cerr << "These routines are only provided by the Intel MKL library\n\
 			 and are not handled by the CUDA BLAS library."  << endl;
 	}
@@ -308,7 +407,7 @@ void handleBlasCalls(ofstream &cocciFptr,string &fname,SgExprListExp *fArgs, str
 
 	// Handle asum, amin, amax, nrm2 routines.
 	else if(fname.find("asum") != npos || fname.find("nrm2") != npos ||
-		fname.find("amin") != npos || fname.find("amax") != npos)
+			fname.find("amin") != npos || fname.find("amax") != npos)
 
 		; //handleSumNrm2Aminmax(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs);
 
@@ -341,8 +440,8 @@ void handleBlasCalls(ofstream &cocciFptr,string &fname,SgExprListExp *fArgs, str
 
 	// Report error in an unknown BLAS call is annotated and quit the transformation.
 	else{
-	     cerr << "Unknown BLAS call: " << fname << endl;
-	     exit(1);
+		cerr << "Unknown BLAS call: " << fname << endl;
+		exit(1);
 	}
 }
 

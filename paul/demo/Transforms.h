@@ -21,6 +21,13 @@ public:
   virtual void generate(string, int*);
 };
 
+class TascelTransform : public Transform {
+public:
+  int version;
+  TascelTransform(Annotation *a, SgLocatedNode *root);
+  virtual void generate(string, int*);
+};
+
 class BlasToCublasTransform : public Transform {
 public:
   // prefix for variables introduced
