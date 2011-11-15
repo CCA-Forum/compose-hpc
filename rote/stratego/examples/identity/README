@@ -1,0 +1,2 @@
+A very simple Stratego program that will read a term, apply no transformation
+(i.e., the identity transform), and then write the result.
