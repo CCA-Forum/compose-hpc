@@ -1,2 +1,3 @@
 *.o
 identity
+rose_input.cpp

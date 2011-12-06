@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 
-./identity -i test.trm
+c2term -i input.c > input.trm
+sed -i -e s/\'/\"/g input.trm
+./identity -i input.trm > output.trm
+sed -i -e s/\"/\'/g output.trm 
+term2c output.trm
+
