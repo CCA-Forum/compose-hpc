@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-strc -i basic.str -la stratego-lib
+strc -i basic.str -Xcc -g -la stratego-lib

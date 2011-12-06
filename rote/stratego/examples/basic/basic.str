@@ -1,4 +1,11 @@
-module identity-io
+module mod
 imports libstrategolib
+signature
+    sorts A B C D E
+    constructors
+        add_op : A * A * A * A -> B
+rules
+    R : add_op(a,b,c,d) -> add_op(b,a,c,d)
 strategies
-  main = io-wrap(id)
+    main = io-wrap(rewr)
+    rewr = oncetd(R)
