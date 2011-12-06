@@ -4,28 +4,36 @@ SOURCES    = scanner.l parser.y main.cpp \
 						 CommentVisitor.cpp \
 						 Transforms.cpp
 BIN       = paul
-ST        = blas2cublas/SimpleTranslator
+ST        = SimpleTranslator
 
 B2CBSRC   := $(wildcard blas2cublas/src/*.cpp)
 B2CBOBJ   := $(addprefix , $(B2CBSRC:.cpp=.o))
 
+TASCELSRC   := $(wildcard tascel/src/*.cpp)
+TASCELOBJ   := $(addprefix , $(TASCELSRC:.cpp=.o))
+
 B2CBLIB   = blas2cublas/src/libb2cb.a
+TASCELLIB = tascel/src/libtascel.a
 OBJECTS   = scanner.o parser.o Annotation.o Dynamic.o CommentVisitor.o main.o Transforms.o
 CC        = g++
 CFLAGS    = -I$(ROSE_HOME)/include -I$(BOOST_HOME)/include 
 LDFLAGS   = -L$(ROSE_HOME)/lib -L$(BOOST_HOME)/lib -lm -lfl -lrose 
 
-all: lemon $(SOURCES) $(ST) $(B2CBLIB) $(BIN) 
+all: lemon $(SOURCES) $(ST) $(B2CBLIB) $(TASCELLIB) $(BIN) 
 
 $(BIN): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) blas2cublas/src/libb2cb.a
+	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) blas2cublas/src/libb2cb.a tascel/src/libtascel.a
 
-$(ST):  blas2cublas/SimpleTranslator.C
-	$(CC) $(CFLAGS) blas2cublas/SimpleTranslator.C -o $@ $(LDFLAGS)
+$(ST):  SimpleTranslator.cpp
+	$(CC) $(CFLAGS) SimpleTranslator.cpp -o $@ $(LDFLAGS)
 
 $(B2CBLIB): $(B2CBOBJ) $(B2CBSRC:%.cpp=%.o)
 	rm -f $@
 	ar -cvq $@ $(B2CBSRC:%.cpp=%.o)
+	
+$(TASCELLIB): $(TASCELOBJ) $(TASCELSRC:%.cpp=%.o)
+	rm -f $@
+	ar -cvq $@ $(TASCELSRC:%.cpp=%.o)
 
 blas2cublas/src/%.o: %.cpp
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -53,4 +61,9 @@ clean:
 	       *.ti *.dot *~ 
 
 cleanb2cb:
-	rm -rf blas2cublas/src/*.o
+	rm -rf blas2cublas/src/*.o blas2cublas/src/libb2cb.a
+
+cleanTascel:
+	rm -rf tascel/src/*.o tascel/src/libtascel.a
+	
+cleanAll: clean cleanb2cb cleanTascel

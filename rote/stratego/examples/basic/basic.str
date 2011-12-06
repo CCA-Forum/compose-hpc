@@ -1,0 +1,4 @@
+module identity-io
+imports libstrategolib
+strategies
+  main = io-wrap(id)

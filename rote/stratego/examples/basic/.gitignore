@@ -1,0 +1,6 @@
+identity
+identity.c
+*.trm
+*.dep
+*.lo
+*.o

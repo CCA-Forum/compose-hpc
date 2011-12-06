@@ -1,0 +1,10 @@
+A very simple Stratego program that will 
+
+  1. Read a C program
+  2. Transform it into a term
+  3. Apply the identity transformation
+  4. Transform the output term back into a C program
+
+To run:
+./build.sh
+./run.sh

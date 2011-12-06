@@ -1,0 +1,5 @@
+// example :
+//% -L$BLAS_HOME/lib -lcblas -latlas
+// %--linker-options $MKL_LIB/libmkl_intel_ilp64.a,$MKL_LIB/libmkl_sequential.a,$MKL_LIB/libmkl_core.a,-lpthread -DMKL_ILP64 -m64 
+
+

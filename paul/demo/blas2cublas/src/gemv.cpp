@@ -120,7 +120,12 @@ void handleGEMV(ofstream &cocciFptr,bool checkBlasCallType, bool isRowMajor, str
 		cocciStream << "+  if(beta != 0) cublasSetVector ( "<<lenXY<<", sizeType_"<<uPrefix<<","<<vecYRef<<", incy, "<<uPrefix<<"_Y, incy);  \n\n";
 
 		cocciStream << "+  /* CUBLAS call */  \n";
-		cocciStream << "+  "<<cublasCall<<"("<<cbTrans<<",m, n, alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_X,incx,beta,"<<uPrefix<<"_Y,incy);  \n\n";
+		if(isRowMajor){
+			cocciStream << "+  "<<cublasCall<<"("<<cbTrans<<",n, m, alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_X,incx,beta,"<<uPrefix<<"_Y,incy);  \n\n";
+		}
+		else{
+			cocciStream << "+  "<<cublasCall<<"("<<cbTrans<<",m, n, alpha,"<<uPrefix<<"_A,lda,"<<uPrefix<<"_X,incx,beta,"<<uPrefix<<"_Y,incy);  \n\n";
+		}
 		cocciStream << "+  /* Copy result vector back to host */  \n";
 		cocciStream << "+  cublasSetVector ( "<<lenXY<<", sizeType_"<<uPrefix<<","<<uPrefix<<"_Y, incy, "<<vecYRef<<", incy);  \n";
 

@@ -1,6 +1,5 @@
 //=========================================================================================
 // Name        : SimpleTranslator.C
-// Author      : Ajay Panyala
 // Description : Simple Translator example from ROSE user manual.
 //=========================================================================================
 

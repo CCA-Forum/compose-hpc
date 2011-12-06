@@ -1,4 +1,6 @@
 ; comment lines start with semi and are ignored
+TEST1 key-value
+TEST3 key-value
 TAG_KV key-value
 TAG_SX        s-expression
 TAG_ER unknownparser              

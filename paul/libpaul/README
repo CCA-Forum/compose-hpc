@@ -1,17 +1,85 @@
+===============================================================
 libpaul : a library for flexible syntax source code annotations
-contact: matthew sottile (matt@galois.com)
-         geoff hulette (ghulett@sandia.gov)
+===============================================================
 
 1. Overview
+-----------
+
+*write me*
 
 2. Installation
+---------------
 
-2.1 Prerequisites
+First, make sure that the following libraries are installed:
+
+- ROSE.
+
+  http://www.rosecompiler.org/
+
+- BOOST (used to build ROSE).
+
+  http://www.boost.org/
+
+- SFSexpr (s-expression parser and data structure support).
+
+  http://sf.net/projects/sexpr/
+
+This code has been tested with the latest ROSE available on the SciDAC
+Outreach site as of mid-October 2011.  The BOOST version was 1.45.0 -
+any version that ROSE is compatible with will work.  The SFSexp
+library version used was 1.2.1.  Note that the SFSexp library doesn't
+have an install target, so you just aim at the source tree.  (Version
+of SFSexp with proper install and other common automake targets is on
+the way..)
+
+Once these are compiled/installed, set up your environment.  For
+example:
+
+% export ROSEINSTALL=/home/matt/packages/rose-latest/compileTree/
+% export BOOSTINSTALL=/home/matt/packages/boost_1_45_0/installTree/
+% export SEXPRINSTALL=/home/matt/packages/sexpr_1.2.1/src/
+
+Once these are in place, make the example:
+
+** TODO : currently need to say "make lemon", "make parser" and "make
+   scanner" before typing the general "make" in order to generate the
+   parser and scanner.  Need to set up dependencies in makefile to get
+   these to fire automatically. **
+
+% make
+
+Run some tests:
+
+% ./test_PaulDecorate tests/test1.cpp
+
+Note that you need to have the appropriate LD_LIBRARY_PATH (or, on Mac,
+DYLD_LIBRARY_PATH) set up in order to find the ROSE, BOOST, and JVM shared
+libraries.
+
+% export LD_LIBRARY_PATH=$ROSEINSTALL/lib:$BOOSTINSTALL/lib/:/usr/lib/jvm/java-6-sun/jre/lib/i386/server/
+
+We also have standalone testers for the annotation objects,
+independent of ROSE.  These are good for testing the annotaitons in
+isolation to avoid inducing bugs outside of them during the
+development process.  (E.g., hitting ROSE bugs while debugging an
+annotation object).
+
+% make EXEC=test_KVAnnotation
+% make EXEC=test_SVAnnotation
 
 3. Usage
+--------
+
+*write me*
 
 3.1 Example
+-----------
+
+*write me*
 
 4. FAQ
+------
 
+Q: Where is the FAQ?
+A: Not written.
 
