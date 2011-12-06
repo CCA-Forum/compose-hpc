@@ -1,11 +1,13 @@
 module mod
 imports libstrategolib
 signature
-    sorts A B C D E
-    constructors
-        add_op : A * A * A * A -> B
+  sorts E F A
+  constructors
+    file_info   : S * N * N -> F  
+    add_op      : E * E * A * F -> E
+    multiply_op : E * E * A * F -> E
 rules
-    R : add_op(a,b,c,d) -> add_op(b,a,c,d)
+    R : multiply_op(a,add_op(b,c,mult_ann,_),add_ann,_) -> add_op(multiply_op(a,b,mult_ann,file_info("compilerGenerated",0,0)),multiply_op(a,c,mult_ann,file_info("compilerGenerated",0,0)),add_ann,file_info("compilerGenerated",0,0))
 strategies
     main = io-wrap(rewr)
     rewr = oncetd(R)
