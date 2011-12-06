@@ -1,5 +1,5 @@
-identity
-identity.c
+basic
+basic.c
 *.trm
 *.dep
 *.lo
