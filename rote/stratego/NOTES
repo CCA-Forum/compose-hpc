@@ -1,0 +1,6 @@
+Generate default annotations for generated AST nodes:
+  
+  preprocessing_info([])
+  default_annotation(null,PPI),
+  analysis_info([]),
+  file_info('compilerGenerated',0,0)
