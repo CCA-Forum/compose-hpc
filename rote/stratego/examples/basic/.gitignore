@@ -1,5 +1,6 @@
 basic
 basic.c
+input.unparsed.c
 *.trm
 *.dep
 *.lo
