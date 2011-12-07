@@ -84,17 +84,18 @@ PKG_CHECK_MODULES(BABEL, [babel >= 2.0.0],
      AC_SUBST([BABEL_VERSION], [`$BABEL_PREFIX/bin/babel-config --query-var=VERSION`])
      BABEL_LANGS=`$BABEL_PREFIX/bin/babel-config --query-var=BABEL_SUPPORTED_LANGUAGES`
      AC_SUBST([BABEL_SUPPORTED_LANGUAGES], [$BABEL_LANGS])
-     AM_CONDITIONAL([BABEL_LANG_C], [echo $BABEL_LANGS |grep -q c])
-     AM_CONDITIONAL([BABEL_LANG_CXX], [echo $BABEL_LANGS |grep -q cxx])
-     AM_CONDITIONAL([BABEL_LANG_F77], [echo $BABEL_LANGS |grep -q f77])
-     AM_CONDITIONAL([BABEL_LANG_F90], [echo $BABEL_LANGS |grep -q f90])
-     AM_CONDITIONAL([BABEL_LANG_F03], [echo $BABEL_LANGS |grep -q f03])
-     AM_CONDITIONAL([BABEL_LANG_JAVA], [echo $BABEL_LANGS |grep -q java])
-     AM_CONDITIONAL([BABEL_LANG_PYTHON], [echo $BABEL_LANGS |grep -q python])
      AC_MSG_RESULT([using $BABEL_PREFIX/bin/babel])],
      [AC_MSG_NOTICE([Did not find Babel version 2 or later! 
 Please remember to set PKG_CONFIG_PATH accordingly.])
       AC_SUBST([HAVE_BABEL], 0)])
+
+AM_CONDITIONAL([BABEL_LANG_C], [echo $BABEL_LANGS |grep -q c])
+AM_CONDITIONAL([BABEL_LANG_CXX], [echo $BABEL_LANGS |grep -q cxx])
+AM_CONDITIONAL([BABEL_LANG_F77], [echo $BABEL_LANGS |grep -q f77])
+AM_CONDITIONAL([BABEL_LANG_F90], [echo $BABEL_LANGS |grep -q f90])
+AM_CONDITIONAL([BABEL_LANG_F03], [echo $BABEL_LANGS |grep -q f03])
+AM_CONDITIONAL([BABEL_LANG_JAVA], [echo $BABEL_LANGS |grep -q java])
+AM_CONDITIONAL([BABEL_LANG_PYTHON], [echo $BABEL_LANGS |grep -q python])
 
 ############################################################
 #
