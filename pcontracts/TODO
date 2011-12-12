@@ -1,0 +1,30 @@
+Tasks
+- Discuss options and trade-offs with D.Q./ROSE team
+  -- AST Annotations
+    (e.g., function node vs. basic block node vs. pre-/post-pend to bb vs. ?)
+  -- contract validations
+  -- Enforcement code generation
+
+- Implement new annotations
+                      PreconditionsClause
+                    /
+  ContractClause <|-- PostconditionsClause
+                    \
+                      InvariantsClause
+
+- Implement new parsers:
+                      PreconditionsParser
+                    /
+  ContractParser <|-- PostconditionsParser
+                    \
+                      InvariantsParser
+
+- Implement stand-alone enforcement library based on SIDL/Babel work
+
+- Extend libpaul/PaulDecorate (or revision) with support for new parsers
+  and new annotation node support
+  -- Depends on tag-parser generalizations and support for multiple 
+     annotation attributes per node as proposed at the coding camp
+
+
+Last Updated:  8 Dec 2011
