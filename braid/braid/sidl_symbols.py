@@ -302,3 +302,107 @@ class SymbolTable(object):
 
     def __repr__(self):
         return repr(self._symbol)
+
+
+from patmat import member_chk
+import ir
+def scan_methods(symbol_table, is_abstract,
+                 extends, implements, methods, 
+                 all_names, all_methods, flags, toplevel=False):
+    """
+    Recursively resolve the inheritance hierarchy and build a list of
+    all methods in their EPV order.
+    """
+
+    def set_method_attr(attr, (Method, Type, (MName,  Name, Extension), Attrs, Args,
+                               Except, From, Requires, Ensures, DocComment)):
+        return (Method, Type, (MName,  Name, Extension), [attr]+Attrs, Args,
+                Except, From, Requires, Ensures, DocComment)
+
+
+    def full_method_name(method):
+        """
+        Return the long name of a method (sans class/packages)
+        for sorting purposes.
+        """
+        return method[2][1]+method[2][2]
+
+    def update_method(m):
+        """
+        replace the element with m's name and args with m
+        used to set the hooks attribute after the fact in
+        case we realize the methad has been overridden
+        """
+        (_, _, (_, name, _), _, args, _, _, _, _, _) = m
+
+        i = 0
+        for i in range(len(all_methods)):
+            (_, _, (_, name1, _), _, args1, _, _, _, _, _) = all_methods[i]
+            if (name1, args1) == (name, args):
+                all_methods[i] = m
+                return
+        #raise ('?')
+
+    def add_method(m, with_hooks=False):
+        if member_chk(sidl.static, sidl.method_method_attrs(m)):
+            flags.has_static_methods = True
+
+        if not full_method_name(m) in all_names:
+            all_names.add(full_method_name(m))
+            if with_hooks:
+                m = set_method_attr(ir.hooks, m)
+
+            all_methods.append(m)
+        else:
+            if with_hooks:
+                # override: need to update the hooks entry
+                update_method(set_method_attr(ir.hooks, m))
+
+
+    def remove_method(m):
+        """
+        If we encounter a overloaded method with an extension,
+        we need to insert that new full name into the EPV, but
+        we also need to remove the original definition of that
+        function from the EPV.
+        """
+        (_, _, (_, name, _), _, args, _, _, _, _, _) = m
+
+        i = 0
+        for i in range(len(all_methods)):
+            m = all_methods[i]
+            (_, _, (_, name1, _), _, args1, _, _, _, _, _) = m
+            if (name1, args1) == (name, args):
+                del all_methods[i]
+                all_names.remove(full_method_name(m))
+                return
+        #raise('?')
+
+    def scan_protocols(implements):
+        for impl in implements:
+            for m in symbol_table[impl[1]][4]:
+                add_method(m, toplevel and not is_abstract)
+
+    for _, ext in extends:
+        base = symbol_table[ext]
+        if base[0] == sidl.class_:
+            scan_methods(symbol_table, is_abstract,
+                         sidl.class_extends(base), 
+                         sidl.class_implements(base), 
+                         sidl.class_methods(base),
+                         all_names, all_methods, flags)
+        elif base[0] == sidl.interface:
+            scan_methods(symbol_table, is_abstract,
+                         sidl.interface_extends(base), 
+                         [], 
+                         sidl.interface_methods(base),
+                         all_names, all_methods, flags)
+        else: raise("?")
+
+    scan_protocols(implements)
+
+    for m in methods:
+        if m[6]: # from clause
+            remove_method(m)
+        #print name, m[2], toplevel
+        add_method(m, toplevel)

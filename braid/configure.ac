@@ -64,7 +64,7 @@ AS_IF([test -x "$PERL"], [], AC_MSG_ERROR([perl is missing]))
 
 
 # DOXYGEN
-AX_WITH_PROG(DOXYGEN, doxygen) # used as sed replacement in the testsuite
+AX_WITH_PROG(DOXYGEN, doxygen)
 AS_IF([test -x "$DOXYGEN"], 
       [DOXYGEN_VERSION=`$DOXYGEN --version`
        AX_COMPARE_VERSION([$DOXYGEN_VERSION], ge, [1.6.0], 
@@ -136,12 +136,14 @@ Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
 PKG_CHECK_MODULES(PL, [pl >= 5.8.0],
     [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG pl --variable prefix`])
      AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
+     AC_SUBST([SWIPL_VERSION], [`${SWIPL} --version | awk '{print $3}'`])
      AC_MSG_RESULT([using ${SWIPL}])
     ],
     [# alternate pkg-config name
      PKG_CHECK_MODULES(SWIPL, [swipl >= 5.8.0], 
         [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG swipl --variable prefix`])
          AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
+         AC_SUBST([SWIPL_VERSION], [`${SWIPL} --version | awk '{print $3}'`])
 	],
 	[AC_MSG_NOTICE([Did not find SWI-Prolog version 5.8 or later! 
 Please remember to set PKG_CONFIG_PATH accordingly.
@@ -171,15 +173,18 @@ AC_CONFIG_FILES([Makefile
 
 AC_OUTPUT
 
-AC_MSG_RESULT([===============================])
-AC_MSG_RESULT([    Summary                    ])
-AC_MSG_RESULT([===============================])
+AC_MSG_RESULT([==============================================================])
+AC_MSG_RESULT([BRAID Configuration Summary                                   ])
+AC_MSG_RESULT([==============================================================])
+AS_IF([test -z "${SWIPL}"], 
+      AC_MSG_RESULT([    SWI-Prolog ....... NO]),
+      AC_MSG_RESULT([    SWI-Prolog ...... YES (${SWIPL_VERSION} in ${SWIPL})]))
 AS_IF([test -z "${BABEL_PREFIX}"], 
-      AC_MSG_RESULT([    Babel:     NO]),
-      AC_MSG_RESULT([    Babel:     YES (${BABEL_PREFIX})]))
+      AC_MSG_RESULT([    Babel ............ NO]),
+      AC_MSG_RESULT([    Babel ........... YES (${BABEL_VERSION} in ${BABEL_PREFIX})]))
 AS_IF([test -z "${CHAPEL_ROOT}"], 
-      AC_MSG_RESULT([    Chapel:    NO]),
-      [AC_MSG_RESULT([    Chapel:    YES (${CHAPEL_ROOT})])
+      AC_MSG_RESULT([    Chapel ........... NO]),
+      [AC_MSG_RESULT([    Chapel .......... YES (${CHAPEL_VERSION} in ${CHAPEL_ROOT})])
        AC_MSG_RESULT([  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh])])
-AC_MSG_RESULT([===============================])
+AC_MSG_RESULT([==============================================================])
 AC_MSG_RESULT([BRAID configured successfully!])

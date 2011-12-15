@@ -35,6 +35,7 @@ import config, ior, ior_template, ir, os, re, sidl, tempfile, types
 from utils import *
 from patmat import *
 from cgen import *
+from sidl_symbols import *
 
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
@@ -96,12 +97,6 @@ def ir_babel_exception_type():
     """
     return ir_babel_object_type(['sidl'], 'BaseException')
 
-def set_method_attr(attr, (Method, Type, (MName,  Name, Extension), Attrs, Args,
-                         Except, From, Requires, Ensures, DocComment)):
-    return (Method, Type, (MName,  Name, Extension), [attr]+Attrs, Args,
-                         Except, From, Requires, Ensures, DocComment)
-
-
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
 
@@ -155,8 +150,6 @@ def drop_rarray_ext_args(args):
             names.update(typ[3])
 
     return filter(lambda a: a[4] not in names, args)
-
-
 
 class Chapel(object):
     
@@ -222,7 +215,7 @@ class Chapel(object):
         \li do the work
         """
         try:
-            self.generate_server1(self.sidl_ast, None, self.symbol_table)
+            self.generate_server_pkg(self.sidl_ast, None, self.symbol_table)
             if self.create_makefile:
                 generate_server_makefile(self.sidl_file, self.pkgs, self.classes)
 
@@ -247,9 +240,9 @@ class Chapel(object):
             shared code for class/interface
             """
             # Qualified name (C Version)
-            qname = '_'.join(symbol_table.prefix+[name])  
+            qname = '_'.join(symbol_table.prefix+[name])
             # Qualified name including Chapel modules
-            mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
+            mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])
             mod_name = '.'.join(symbol_table.prefix[1:]+[name])
 
             self.has_static_methods = False
@@ -258,96 +251,10 @@ class Chapel(object):
             all_names = set()
             all_methods = []
 
-            def scan_class(extends, implements, methods, toplevel=False):
-                """
-                Recursively resolve the inheritance hierarchy
-                """
-
-                def full_method_name(method):
-                    """
-                    Return the long name of a method (sans class/packages)
-                    for sorting purposes.
-                    """
-                    return method[2][1]+method[2][2]
-
-                def update_method(m):
-                    """
-                    replace the element with m's name and args with m
-                    used to set the hooks attribute after the fact in
-                    case we realize the methad has been overridden
-                    """
-                    (_, _, (_, name, _), _, args, _, _, _, _, _) = m
-
-                    i = 0
-                    for i in range(len(all_methods)):
-                        (_, _, (_, name1, _), _, args1, _, _, _, _, _) = all_methods[i]
-                        if (name1, args1) == (name, args):
-                            all_methods[i] = m
-                            return
-                    #raise ('?')
-
-                def add_method(m, with_hooks=False):
-                    if member_chk(sidl.static, sidl.method_method_attrs(m)):
-                        self.has_static_methods = True
-
-                    if not full_method_name(m) in all_names:
-                        all_names.add(full_method_name(m))
-                        if with_hooks:
-                            m = set_method_attr(ir.hooks, m)
-
-                        all_methods.append(m)
-                    else:
-                        if with_hooks:
-                            # override: need to update the hooks entry
-                            update_method(set_method_attr(ir.hooks, m))
-
-
-                def remove_method(m):
-                    """
-                    If we encounter a overloaded method with an extension,
-                    we need to insert that new full name into the EPV, but
-                    we also need to remove the original definition of that
-                    function from the EPV.
-                    """
-                    (_, _, (_, name, _), _, args, _, _, _, _, _) = m
-
-                    i = 0
-                    for i in range(len(all_methods)):
-                        m = all_methods[i]
-                        (_, _, (_, name1, _), _, args1, _, _, _, _, _) = m
-                        if (name1, args1) == (name, args):
-                            del all_methods[i]
-                            all_names.remove(full_method_name(m))
-                            return
-                    #raise('?')
-
-                def scan_protocols(implements):
-                    for impl in implements:
-                        for m in symbol_table[impl[1]][4]:
-                            add_method(m, toplevel and not is_abstract)
-
-                for _, ext in extends:
-                    base = symbol_table[ext]
-                    if base[0] == sidl.class_:
-                        scan_class(sidl.class_extends(base), 
-                                   sidl.class_implements(base), 
-                                   sidl.class_methods(base))
-                    elif base[0] == sidl.interface:
-                        scan_class(sidl.interface_extends(base), 
-                                   [], 
-                                   sidl.interface_methods(base))
-                    else: raise("?")
-
-                scan_protocols(implements)
-
-                for m in methods:
-                    if m[6]: # from clause
-                        remove_method(m)
-                    #print name, m[2], toplevel
-                    add_method(m, toplevel)
-
             is_abstract = member_chk(sidl.abstract, self.class_attrs)
-            scan_class(extends, implements, methods, True)
+            scan_methods(symbol_table, is_abstract, 
+                         extends, implements, methods, 
+                         all_names, all_methods, self, True)
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
@@ -1208,12 +1115,123 @@ class Chapel(object):
 
     
     @matcher(globals(), debug=False)
-    def generate_server1(self, node, data, symbol_table):
+    def generate_server_pkg(self, node, data, symbol_table):
         """
         SERVER SERVER SERVER SERVER SERVER SERVER SERVER SERVER SERVER SERVER
         """
-        def gen(node):         return self.generate_server1(node, data, symbol_table)
-        def gen1(node, data1): return self.generate_server1(node, data1, symbol_table)
+        def gen(node):         return self.generate_server_pkg(node, data, symbol_table)
+        def gen1(node, data1): return self.generate_server_pkg(node, data1, symbol_table)
+
+        def generate_class_stub(name, methods, extends, doc_comment,
+                                is_interface, implements=[]):
+            """
+            shared code for class/interface
+            """
+
+            # Qualified name (C Version)
+            qname = '_'.join(symbol_table.prefix+[name])  
+            # Qualified name including Chapel modules
+            mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
+            mod_name = '.'.join(symbol_table.prefix[1:]+[name])
+
+            self.has_static_methods = False
+
+            # Consolidate all methods, defined and inherited
+            all_names = set()
+            all_methods = []
+
+            is_abstract = member_chk(sidl.abstract, self.class_attrs)
+            scan_methods(symbol_table, is_abstract,
+                         extends, implements, methods, 
+                         all_names, all_methods, self, True)
+
+            # Initialize all class-specific code generation data structures
+            chpl_stub = ChapelFile()
+            ci = self.ClassInfo(name, symbol_table, is_interface, 
+                                is_abstract,
+                                self.has_static_methods,
+                                stub_parent=chpl_stub)
+            chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
+            chpl_stub.cstub.genh(ir.Import('sidlType'))
+            chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
+            chpl_stub.cstub.genh(ir.Import('chpltypes'))
+            if self.has_static_methods:
+                chpl_stub.cstub.new_def(
+                    externals((sidl.scoped_id, symbol_table.prefix, name, '')))
+
+            self.gen_default_methods(symbol_table, extends, implements, ci)
+
+            # recurse to generate method code
+            #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
+            gen1(all_methods, ci)
+
+            self.generate_ior(ci, extends, implements, all_methods)
+
+            # IOR
+            write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
+            write_to(qname+'_IOR.c', ci.ior.dot_c())
+
+            # The server-side stub is used for, e.g., the
+            # babelized Array-init functions
+
+            # Stub (in C)
+            cstub = chpl_stub.cstub
+            cstub.gen(ir.Import(qname+'_cStub'))
+            # Stub Header
+            write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
+            # Stub C-file
+            write_to(qname+'_cStub.c', cstub.dot_c())
+
+            # Skeleton (in Chapel)
+            skel = ci.chpl_skel
+            self.pkg_chpl_skel.gen(ir.Import('.'.join(symbol_table.prefix)))
+
+            typedefs = self.class_typedefs(qname, symbol_table)
+            write_to(qname+'_Skel.h', typedefs.dot_h(qname+'_Skel.h'))
+
+            self.pkg_chpl_skel.new_def('use sidl;')
+            objname = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name]) + '_Impl'
+
+            self.pkg_chpl_skel.new_def('extern record %s__object { var d_data: %s; };'
+                                       %(qname,objname))
+            self.pkg_chpl_skel.new_def('extern proc %s__createObject('%qname+
+                                 'd_data: int, '+
+                                 'inout ex: sidl_BaseException__object)'+
+                                 ': %s__object;'%qname)
+            self.pkg_chpl_skel.new_def(ci.chpl_skel)
+
+
+            # Skeleton (in C)
+            cskel = ci.chpl_skel.cstub
+            cskel.gen(ir.Import('stdint'))                
+            cskel.gen(ir.Import(qname+'_Skel'))
+            cskel.gen(ir.Import(qname+'_IOR'))
+            cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
+                                   [ir.Stmt(ir.Call('_load', []))], ''))
+            epv_t = ci.epv.get_ir()
+            cskel.gen(ir.Fn_decl([], ir.pt_void, 'ctor', [], ''))
+            cskel.gen(ir.Fn_decl([], ir.pt_void, 'dtor', [], ''))
+            cskel.gen(ir.Fn_defn(
+                [], ir.pt_void, qname+'__set_epv',
+                [ir.Arg([], ir.out, epv_t, 'epv'),
+                 ir.Arg([], ir.out, epv_t, 'pre_epv'),
+                 ir.Arg([], ir.out, epv_t, 'post_epv')],
+                [ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor', 'ctor'),
+                 ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor2', '0'),
+                 ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__dtor', 'dtor')], ''))
+
+            # Skel Header
+            write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
+            # Skel C-file
+            write_to(qname+'_Skel.c', cskel.dot_c())
+
+            # Impl
+            print "FIXME: update the impl file between the splicer blocks"
+            #write_to(qname+'_Impl.chpl', str(ci.impl))
+
+            # Makefile
+            self.classes.append(qname)
+
 
         if not symbol_table:
             raise Exception()
@@ -1224,77 +1242,12 @@ class Chapel(object):
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                qname = '_'.join(symbol_table.prefix+[Name])                
-                ci = self.ClassInfo(Name, symbol_table, False, None, self.pkg_chpl_skel)
-                ci.chpl_skel.cstub.genh(ir.Import(qname+'_IOR'))
-                self.gen_default_methods(symbol_table, Extends, Implementes, ci)
-                gen1(Methods, ci)
-                self.generate_ior(ci, Extends, Implements, Methods)
+                generate_class_stub(Name, Methods, Extends, DocComment, False, Implements)
 
-                # IOR
-                write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
-                write_to(qname+'_IOR.c', ci.ior.dot_c())
-
-                # The server-side stub is used for, e.g., the
-                # babelized Array-init functions
-
-                # Stub (in C)
-                cstub = ci.chpl_stub.cstub
-                cstub.gen(ir.Import(qname+'_cStub'))
-                # Stub Header
-                write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
-                # Stub C-file
-                write_to(qname+'_cStub.c', cstub.dot_c())
-
-                # Skeleton (in Chapel)
-                skel = ci.chpl_skel
-                self.pkg_chpl_skel.gen(ir.Import('.'.join(symbol_table.prefix)))
-
-                typedefs = self.class_typedefs(qname, symbol_table)
-                write_to(qname+'_Skel.h', typedefs.dot_h(qname+'_Skel.h'))
-
-                self.pkg_chpl_skel.new_def('use sidl;')
-                objname = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name]) + '_Impl'
-
-                self.pkg_chpl_skel.new_def('extern record %s__object { var d_data: %s; };'
-                                           %(qname,objname))
-                self.pkg_chpl_skel.new_def('extern proc %s__createObject('%qname+
-                                     'd_data: int, '+
-                                     'inout ex: sidl_BaseException__object)'+
-                                     ': %s__object;'%qname)
-                self.pkg_chpl_skel.new_def(ci.chpl_skel)
-
-
-                # Skeleton (in C)
-                cskel = ci.chpl_skel.cstub
-                cskel.gen(ir.Import('stdint'))                
-                cskel.gen(ir.Import(qname+'_Skel'))
-                cskel.gen(ir.Import(qname+'_IOR'))
-                cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
-                                       [ir.Stmt(ir.Call('_load', []))], ''))
-                epv_t = ci.epv.get_ir()
-                cskel.gen(ir.Fn_decl([], ir.pt_void, 'ctor', [], ''))
-                cskel.gen(ir.Fn_decl([], ir.pt_void, 'dtor', [], ''))
-                cskel.gen(ir.Fn_defn(
-                    [], ir.pt_void, qname+'__set_epv',
-                    [ir.Arg([], ir.out, epv_t, 'epv'),
-                     ir.Arg([], ir.out, epv_t, 'pre_epv'),
-                     ir.Arg([], ir.out, epv_t, 'post_epv')],
-                    [ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor', 'ctor'),
-                     ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor2', '0'),
-                     ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__dtor', 'dtor')], ''))
-                
-                # Skel Header
-                write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
-                # Skel C-file
-                write_to(qname+'_Skel.c', cskel.dot_c())
-
-                # Impl
-                print "FIXME: update the impl file between the splicer blocks"
-                #write_to(qname+'_Impl.chpl', str(ci.impl))
-
-                # Makefile
-                self.classes.append(qname)
+            elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
+                # Interfaces also have an IOR to be generated
+                expect(data, None)
+                generate_class_stub(Name, Methods, Extends, DocComment, is_interface=True)
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
@@ -1302,7 +1255,7 @@ class Chapel(object):
                 self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
 
                 self.pkg_enums = []
-                self.generate_server1(UserTypes, data, symbol_table[sidl.Scoped_id([], Name, '')])
+                self.generate_server_pkg(UserTypes, data, symbol_table[sidl.Scoped_id([], Name, '')])
                 self.pkg_chpl_skel.main_area.new_def('}\n')
                 qname = '_'.join(symbol_table.prefix+[Name])                
                 write_to(qname+'_Skel.chpl', str(self.pkg_chpl_skel))
@@ -1316,6 +1269,7 @@ class Chapel(object):
                 self.pkgs.append(qname)
 
             elif (sidl.user_type, Attrs, Cipse):
+                self.class_attrs = Attrs
                 gen(Cipse)
 
             elif (sidl.file, Requires, Imports, UserTypes):
@@ -1872,15 +1826,17 @@ CHAPEL_MAKE_TASKS=none
 CHAPEL_MAKE_THREADS=pthreads
 
 ifeq ($(CHAPEL_MAKE_COMM),gasnet)
-CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-gasnet-nodbg/substrate-udp
+CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-gasnet-nodbg/substrate-udp/seg-none
 else
-CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/comm-none/substrate-none
+CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-none/substrate-none/seg-none
 endif
 ####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
 CHPL=chpl --fast
 # CHPL=chpl --print-commands --print-passes
 
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
+include $(CHAPEL_ROOT)/make/Makefile.atomics
+
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include/atomics/$(CHPL_MAKE_ATOMICS) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
 
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread -lsidlstub_chpl
 
@@ -1956,11 +1912,23 @@ lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
 	  $(EXTRALIBS)
 
 $(PUREBABELGEN) $(BABELGEN) : babel-stamp
-	@if test -f $@; then \
-	    touch $@; \
-	else \
-	    rm -f babel-stamp ; \
-	    $(MAKE) babel-stamp; \
+# cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
+# Recover from the removal of $@
+	@if test -f $@; then :; else \
+	  trap 'rm -rf babel.lock babel-stamp' 1 2 13 15; \
+# mkdir is a portable test-and-set
+	  if mkdir babel.lock 2>/dev/null; then \
+# This code is being executed by the first process.
+	    rm -f babel-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) babel-stamp; \
+	    result=$$?; rm -rf babel.lock; exit $$result; \
+	  else \
+# This code is being executed by the follower processes.
+# Wait until the first process is done.
+	    while test -d babel.lock; do sleep 1; done; \
+# Succeed if and only if the first process succeeded.
+	    test -f babel-stamp; \
+	  fi; \
 	fi
 
 babel-stamp: $(SIDLFILE)
@@ -1976,9 +1944,8 @@ else
 	-rm -f $@
 	echo '<?xml version="1.0" ?>' > $@
 	echo '<scl>' >> $@
-	if test `uname` = "Darwin"; then scope="global"; else scope="local"; \
-	   fi ; \
-	  echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
+	if test `uname` = "Darwin"; then scope="global"; else scope="local"; fi ; \
+	echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
 	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$@
 	echo "  </library>" >>$@
 	echo "</scl>" >>$@
@@ -2027,9 +1994,8 @@ ifneq ($(IORSRCS),)
 	-mkdir -p $(LIBDIR)
 	echo '<?xml version="1.0" ?>' > $(LIBDIR)/lib$(LIBNAME).scl
 	echo '<scl>' >> $(LIBDIR)/lib$(LIBNAME).scl
-	if test `uname` = "Darwin"; then scope="global"; else scope="local"; \
-	   fi ; \
-	  echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
+	if test `uname` = "Darwin"; then scope="global"; else scope="local"; fi ; \
+	echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
 	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "  </library>" >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "</scl>" >>$(LIBDIR)/lib$(LIBNAME).scl
