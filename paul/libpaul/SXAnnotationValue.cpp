@@ -3,12 +3,11 @@
 
 SXAnnotationValue::SXAnnotationValue(string s)
 {
-  sx = parse_sexp ((char *) s.c_str(), s.size());
+  sx = SExpr::parse(s);
 }
 
 void SXAnnotationValue::print() {
-
-  cout << "length is " << sexp_list_length (sx) << endl;
+  cout << sx->toString() << endl;
 }
 
 SXAnnotationValue* isSXAnnotationValue( AnnotationValue *p) {

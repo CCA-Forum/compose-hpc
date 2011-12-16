@@ -1,10 +1,6 @@
 # Note: If the ROSE header and library files are not in standard places,
 # define ROSEINSTALL in your environment:
 
-ifdef SEXPRINSTALL
-CFLAGS += -I$(SEXPRINSTALL)
-LDFLAGS += -L$(SEXPRINSTALL)
-endif
 ifdef ROSEINSTALL
 CFLAGS += -I$(ROSEINSTALL)/include
 LDFLAGS += -L$(ROSEINSTALL)/lib
@@ -15,7 +11,7 @@ LDFLAGS += -L$(BOOSTINSTALL)/lib
 endif
 
 EXEC=test_PaulDecorate
-CCHELPERS=KVAnnotationValue.cpp SXAnnotationValue.cpp Dynamic.cpp \
+CCHELPERS=KVAnnotationValue.cpp ssexpr.cpp SXAnnotationValue.cpp Dynamic.cpp \
           PaulDecorate.cpp PaulConfReader.cpp
 CCFILES=${EXEC}.cpp ${CCHELPERS}
 
@@ -23,7 +19,6 @@ HFILES=$(patsubst %.cpp,%.h,${CCHELPERS})
 OFILES=$(patsubst %.cpp,%.o,${CCFILES})
 LIBS=-lrose
 LIBS+=-lfl          # Flex!
-LIBS+=-lsexp        # sexpr lib
 CXX=g++
 SOURCES=${CCFILES}
 OUTS=$(addprefix out/, $(basename $(notdir ${SOURCES})))
