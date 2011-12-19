@@ -1,0 +1,9 @@
+* mixed_context -> generates and solves a matrix using scalapack.
+* hw -> MPI hello world
+* hwloc-hello -> prints the processing unit the process is bound to
+* topo_check -> MPI hello world plus PU #
+* topo_disco -> gets topology information and prints it
+* mixed_hw -> MPI+OpenMP hello world where the first part has n processes 
+  and 1 thread per process, and then the second part uses n/m processes, and 
+  m threads per process.
+* mixed_skel -> prototype of calling and return models

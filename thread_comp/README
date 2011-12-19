@@ -1,0 +1,13 @@
+This directory contains a set of programs exploring the composition of different threaded models.  The code is experiemental and not guaranteed to work, unless otherwise noted.
+
+Below is a list of relevant files and their contents/intent.
+
+* mixed_context.c -> generates and solves a matrix using scalapack.
+* hw.c -> MPI hello world
+* hwloc-hello.c -> prints the processing unit the process is bound to
+* topo_check.c -> MPI hello world plus PU #
+* topo_disco.c -> gets topology information and prints it
+* mixed_hw.c -> MPI+OpenMP hello world where the first part has n processes 
+  and 1 thread per process, and then the second part uses n/m processes, and 
+  m threads per process.
+* mixed_skel.c -> prototype of calling and return models
