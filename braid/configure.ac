@@ -39,10 +39,10 @@ AC_ARG_ENABLE([doc_only],
 
 AS_IF([test x"$PYTHON_VERSION" == x2.6])
 AM_CONDITIONAL([PYTHON_VERSION_2_6], [test x"$PYTHON_VERSION" == x2.6])
-CCA_DIAGNOSE_BEGIN([PYTHON])
-LLNL_LIBXML_CONFIG
-LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
-CCA_DIAGNOSE_END([PYTHON])
+dnl CCA_DIAGNOSE_BEGIN([PYTHON])
+dnl LLNL_LIBXML_CONFIG
+dnl LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
+dnl CCA_DIAGNOSE_END([PYTHON])
 
 ############################################################
 #
@@ -135,7 +135,9 @@ Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
 #
 PKG_CHECK_MODULES(PL, [pl >= 5.8.0],
     [AC_SUBST([SWIPL_PREFIX], [`$PKG_CONFIG pl --variable prefix`])
-     AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])
+     AS_IF([test -x $SWIPL_PREFIX/bin/swipl],
+           [AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/swipl"])],
+           [AC_SUBST([SWIPL], ["${SWIPL_PREFIX}/bin/pl"])])
      AC_SUBST([SWIPL_VERSION], [`${SWIPL} --version | awk '{print $3}'`])
      AC_MSG_RESULT([using ${SWIPL}])
     ],
