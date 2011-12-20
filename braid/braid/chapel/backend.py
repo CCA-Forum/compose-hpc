@@ -97,6 +97,13 @@ def ir_babel_exception_type():
     """
     return ir_babel_object_type(['sidl'], 'BaseException')
 
+def ir_babel_baseinterface_type():
+    """
+    \return the IR node for the Babel exception type
+    """
+    return ir_babel_object_type(['sidl'], 'BaseInterface')
+
+
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
 
@@ -623,7 +630,7 @@ class Chapel(object):
             inherits.append(ir.Struct_item(
                 ir_babel_object_type(baseclass[1], baseclass[2])
                 [1], # not a pointer, it is an embedded struct
-                'd_inherit_'+baseclass[2]))
+                'd_'+str.lower(qual_id(baseclass))))
 
         with_sidl_baseclass = not ci.is_interface and ci.epv.name <> 'BaseClass'
         
@@ -1104,11 +1111,11 @@ class Chapel(object):
             ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
 
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__init',
-            babel_epv_args([], [ir.Arg([], ir.inout, ir.void_ptr, 'data')],
+            babel_static_ior_args([], [ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
                            ci.epv.symbol_table, ci.epv.name),
             "INIT: initialize a new instance of the class object."))
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__fini',
-            babel_epv_args([], [], ci.epv.symbol_table, ci.epv.name),
+            babel_static_ior_args([], [], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
         ci.ior.new_def(ior_template.text.format(
             Class = cname, Class_low = str.lower(cname)))
@@ -1670,6 +1677,18 @@ class EPV(object):
         """
         name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__sepv', '')
         return ir.Struct(name, [], 'Static Entry Point Vector (SEPV)')
+
+
+def babel_static_ior_args(attrs, args, symbol_table, class_name):
+    """
+    \return a SIDL -> Ir lowered version of 
+    [self]+args+(sidl_BaseInterface__object*)[*ex]
+    """
+    arg_self = [ir.Arg([], ir.in_, 
+                       ir_babel_object_type(symbol_table.prefix, class_name),
+                       'self')]
+    arg_ex = [ir.Arg([], sidl.inout, ir_babel_baseinterface_type(), chpl_local_exception_var)]
+    return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 
 def babel_epv_args(attrs, args, symbol_table, class_name):

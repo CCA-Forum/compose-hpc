@@ -492,7 +492,7 @@ void {Class}__init(
 
   if (ddata) {{
     self->d_data = ddata;
-    (*(self->d_epv->f__ctor2))(self/*FIXME!!!,ddata,_ex*/); SIDL_CHECK(*_ex);
+    (*(self->d_epv->f__ctor2))(self,ddata,_ex); SIDL_CHECK(*_ex);
   }} else {{ 
     (*(self->d_epv->f__ctor))(self,_ex); SIDL_CHECK(*_ex);
   }}
