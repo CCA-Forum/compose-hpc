@@ -69,12 +69,15 @@ if BABEL_LANG_PYTHON
   check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
 endif
 
+# if "BABEL_LANG_CHAPEL"
 #check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
 #check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
+# endif
 endif
 
+# We are only using one proxy target to circumvent the multi-target-parallel make issue
 $(builddir)/regression/interop/output/libC/GNUmakefile: $(top_builddir)/regression/interop/build-tracker.sh
 	@sh $< $(MAKE) $(MAKEFLAGS)
 
@@ -86,14 +89,14 @@ $(builddir)/regression/interop/%/libimpl1.la: $(top_builddir)/regression/interop
 
 # FIXME If we should encounter a race condition with this rule, it is
 # because libimpl.la is not the last file to be built by
-# build-server.sh
+# build-server.sh	
 $(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile $(nobase_python_PYTHON)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
+
+
 # ----------------------------------------------------------------------
-# This is an alternate way of invoking the regression tests via gantlet
-# End-users should use `make check' instead.
-# This prints better statistics about broken tests
+# Convenience targets
 RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
 		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
 		-d -k$(PACKAGE) #-c$(host)
@@ -101,6 +104,9 @@ RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
 STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
 ALLTESTS = $(STATIC_TESTS)
 
+# This is an alternate way of invoking the regression tests via gantlet
+# End-users should use `make check' instead.
+# This prints better statistics about broken tests
 run-gantlet: $(check_DATA)
 	if test "X$$PROFILE_NAME" = X; then \
 	    PROFILE_NAME="$(host)"; \

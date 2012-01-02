@@ -1935,17 +1935,17 @@ $(PUREBABELGEN) $(BABELGEN) : babel-stamp
 # Recover from the removal of $@
 	@if test -f $@; then :; else \
 	  trap 'rm -rf babel.lock babel-stamp' 1 2 13 15; \
-# mkdir is a portable test-and-set
+true "mkdir is a portable test-and-set"; \
 	  if mkdir babel.lock 2>/dev/null; then \
-# This code is being executed by the first process.
+true "This code is being executed by the first process."; \
 	    rm -f babel-stamp; \
 	    $(MAKE) $(AM_MAKEFLAGS) babel-stamp; \
 	    result=$$?; rm -rf babel.lock; exit $$result; \
 	  else \
-# This code is being executed by the follower processes.
-# Wait until the first process is done.
+true "This code is being executed by the follower processes."; \
+true "Wait until the first process is done."; \
 	    while test -d babel.lock; do sleep 1; done; \
-# Succeed if and only if the first process succeeded.
+true "Succeed if and only if the first process succeeded." ; \
 	    test -f babel-stamp; \
 	  fi; \
 	fi
@@ -1983,9 +1983,10 @@ ifeq ($(IMPLSRCS),)
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	$(CHPL) --library --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
 	headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
+	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c

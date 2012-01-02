@@ -60,12 +60,12 @@ AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_MSG_CHECKING([for perl])
 AX_WITH_PROG(PERL, perl) # used as sed replacement in the testsuite
-AS_IF([test -x "$PERL"], [], AC_MSG_ERROR([perl is missing]))
+AS_IF([test -n "$PERL" -a -x "$PERL"], [], AC_MSG_ERROR([perl is missing]))
 
 
 # DOXYGEN
 AX_WITH_PROG(DOXYGEN, doxygen)
-AS_IF([test -x "$DOXYGEN"], 
+AS_IF([test -n "$DOXYGEN" -a -x "$DOXYGEN"], 
       [DOXYGEN_VERSION=`$DOXYGEN --version`
        AX_COMPARE_VERSION([$DOXYGEN_VERSION], ge, [1.6.0], 
            [],
@@ -108,7 +108,7 @@ AM_CONDITIONAL([BABEL_LANG_PYTHON], [echo $BABEL_LANGS |grep -q python])
 # Chapel
 #
 AX_WITH_PROG(CHAPEL, chpl)
-AS_IF([test -x "${CHAPEL}"],
+AS_IF([test -n "$CHAPEL" -a -x "$CHAPEL"],
     [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
      AC_MSG_RESULT([using $CHAPEL (version $CHAPEL_VERSION)])
      AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.4.0], 
