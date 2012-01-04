@@ -546,8 +546,8 @@ def compile_matcher(f):
             for alloc in regalloc:
                 d = depthstr(j)
                 for i in range(0, len(alloc)):
-                    line = re.sub(r'(\W*)'+alloc[i],
-                                  r'\1_reg%s%d.binding' % (d, i), line)
+                    line = re.sub(r'(\W*)'+alloc[i]+r'(\W)',
+                                  r'\1_reg%s%d.binding\2' % (d, i), line)
                 j += 1
 
 	# copy the line to the output
