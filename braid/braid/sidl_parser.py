@@ -596,7 +596,7 @@ def p_structItem_1(p):
 
 def p_structItem_2(p):
     '''structItem : rarray SEMICOLON'''
-    p[0] = p[1]
+    p[0] = (sidl.struct_item, p[1], p[1][3])
 
 def p_class(p):
     '''class : CLASS name maybeExtendsOne implementsSomeAllLists LBRACE invariants methods RBRACE'''
