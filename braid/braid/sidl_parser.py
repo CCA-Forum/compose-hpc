@@ -478,7 +478,7 @@ def p_requires(p): # *
     consx(p)
 
 def p_require(p):
-    '''require : REQUIRE scopedID version SEMICOLON'''
+    '''require : REQUIRE scopedId version SEMICOLON'''
     p[0] = (sidl.require, p[2], p[3])
 
 def p_require_error(p):
@@ -491,12 +491,12 @@ def p_imports(p): # *
     consx(p)
 
 def p_import_1(p):
-    '''import : IMPORT scopedID SEMICOLON'''
+    '''import : IMPORT scopedId SEMICOLON'''
     print "FIXME: sidl_parser.p_import_1::process import"
     p[0] = (sidl.import_, p[2])
 
 def p_import_2(p):
-    '''import : IMPORT scopedID version SEMICOLON'''
+    '''import : IMPORT scopedId version SEMICOLON'''
     print "FIXME: sidl_parser.p_import_2::process import"
     p[0] = (sidl.import_, p[2], p[3])
 
@@ -654,29 +654,29 @@ def p_interface(p):
 
     p[0] = (sidl.interface, p[2], exts, (p[5]), (p[6]), scanner.last_doc_comment())
 
-def p_scopedIDs(p): # +
-    '''scopedIDs : scopedID
-                 | scopedID COMMA scopedIDs'''
+def p_scopedIds(p): # +
+    '''scopedIds : scopedId
+                 | scopedId COMMA scopedIds'''
     cons13(p)
 
 def p_extendsList(p):
     '''extendsList : empty
-                   | EXTENDS scopedIDs'''
+                   | EXTENDS scopedIds'''
     try2nd(p)
     p[0] = map(lambda x: (sidl.extends, x), p[0])
 
 def p_maybeExtendsOne(p):
     '''maybeExtendsOne : empty
-                       | EXTENDS scopedID'''
+                       | EXTENDS scopedId'''
     try2nd(p)
     if p[0]: p[0] = [(sidl.extends, p[0])]
 
 def p_implementsList(p):
-    '''implementsList : IMPLEMENTS scopedIDs'''
+    '''implementsList : IMPLEMENTS scopedIds'''
     p[0] = map(lambda x: (sidl.implements, x), p[2])
 
 def p_implementsAllList(p):
-    '''implementsAllList : IMPLEMENTS_ALL scopedIDs'''
+    '''implementsAllList : IMPLEMENTS_ALL scopedIds'''
     p[0] = map(lambda x: (sidl.implements_all, x), p[2])
 
 def p_method(p):
@@ -731,7 +731,7 @@ def p_maybeExceptClause(p):
     p[0] = p[1]
 
 def p_exceptClause(p):
-    '''exceptClause : THROWS scopedIDs'''
+    '''exceptClause : THROWS scopedIds'''
     p[0] = p[2]
 
 def p_maybeFromClause(p):
@@ -740,7 +740,7 @@ def p_maybeFromClause(p):
     p[0] = p[1]
 
 def p_fromClause(p):
-    '''fromClause : FROM scopedID'''
+    '''fromClause : FROM scopedId'''
     p[0] = (sidl.from_, p[2])
 
 def p_invariant(p):
@@ -823,7 +823,7 @@ def p_mode(p):
 def p_type(p):
     '''type : primitiveType
             | array
-            | scopedID'''
+            | scopedId'''
     p[0] = p[1]
 
 def p_primitiveType(p):
@@ -838,14 +838,14 @@ def p_primitiveType(p):
                      | STRING
                      | OPAQUE'''
     p[0] = (sidl.primitive_type, str.lower(p[1]))
-
+    
 def p_array(p):
     '''array : ARRAY LT scalarType dimension orientation GT'''
     p[0] = (sidl.array, p[3], p[4], p[5])
 
 def p_scalarType(p):
     '''scalarType : primitiveType
-                  | scopedID
+                  | scopedId
                   | empty'''
     p[0] = p[1]
 
@@ -1064,8 +1064,8 @@ def p_maybeSemicolon(p):
                       | empty'''
     pass
 
-def p_scopedID(p):
-    '''scopedID : maybeDot names empty
+def p_scopedId(p):
+    '''scopedId : maybeDot names empty
                 | maybeDot names EXTENSION'''
     if p[3] == []:
         p[0] = (sidl.scoped_id, (p[2][:-1]), p[2][-1], '')

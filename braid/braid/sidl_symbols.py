@@ -64,22 +64,22 @@ def build_symbol_table(node, symbol_table, verbose=True):
     with match(node):
         if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
             symbol_table[Name] = \
-                ( sidl.class_, (sidl.scoped_id, symbol_table.prefix, Name, []),
+                ( sidl.class_, (sidl.scoped_id, symbol_table.prefix, Name, ''),
                   Extends, Implements, Invariants, Methods )
 
         elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
             symbol_table[Name] = \
-                ( sidl.interface, (sidl.scoped_id, symbol_table.prefix, Name, []),
+                ( sidl.interface, (sidl.scoped_id, symbol_table.prefix, Name, ''),
                   Extends, Invariants, Methods )
 
         elif (sidl.enum, Name, Items, DocComment):
             symbol_table[Name] = node
 
-        elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
-            symbol_table[Names[-1]] = \
+        elif (sidl.struct, Name, Items, DocComment):
+            symbol_table[Name] = \
                 ( sidl.struct,
-                  (sidl.scoped_id, symbol_table.prefix+Prefix, Name, Ext),
-                  Items )
+                  ( sidl.scoped_id, symbol_table.prefix, Name, ''), Items, 
+                  DocComment )
 
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):

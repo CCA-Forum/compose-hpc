@@ -12,12 +12,12 @@
 # Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
-# 
+#
 # Contributors/Acknowledgements:
 #
 # Summer interns at LLNL:
-# * 2010, 2011 Shams Imam <shams@rice.edu> 
-#   contributed argument conversions, r-array handling, exception handling, 
+# * 2010, 2011 Shams Imam <shams@rice.edu>
+#   contributed argument conversions, r-array handling, exception handling,
 #   distributed arrays, the patches to the Chapel compiler, ...
 #
 # LLNL-CODE-473891.
@@ -37,7 +37,7 @@ from patmat import *
 from utils import *
 from codegen import (
     ClikeCodeGenerator, CCodeGenerator,
-    SourceFile, CFile, Scope, generator, accepts,
+    SourceFile, CFile, CCompoundStmt, Scope, generator, accepts,
     sep_by
 )
 import conversions as conv
@@ -96,7 +96,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     post_call = []
     opt = scope.cstub.optional
 
-    def deref(mode): 
+    def deref(mode):
         return '' if mode == sidl.in_ else '*'
 
     def strip(typ):
@@ -110,15 +110,15 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         return typ
 
     # IN
-    map(lambda (arg, attr, mode, typ, name): 
-          conv.codegen((('chpl', strip(typ)), name), strip(typ), 
-                       pre_call, opt, deref(mode), '_proxy_'+name), 
+    map(lambda (arg, attr, mode, typ, name):
+          conv.codegen((('chpl', strip(typ)), name), strip(typ),
+                       pre_call, opt, deref(mode), '_proxy_'+name),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)), 
-                       post_call, opt, deref(mode), name), 
+          conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)),
+                       post_call, opt, deref(mode), name),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
@@ -139,7 +139,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
             # FIXME see comment in chpl_to_ior
             name = '_proxy_'+name
             decls.append(ir.Stmt(ir.Var_decl(c_t, name)))
-            if mode <> sidl.in_: 
+            if mode <> sidl.in_:
                 name = ir.Pointer_expr(name)
 
         if name == 'self' and member_chk(ir.pure, attrs): # part of the hack for self dereferencing
@@ -154,7 +154,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     call_args = call_args[1:]
 
     cstub_decl = ir.Fn_decl([], chpltype, sname, cstub_decl_args, DocComment)
-    
+
     if Type == ir.pt_void:
         body = [ir.Stmt((ir.call, VCallExpr, call_args))]
     else:
@@ -179,14 +179,14 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 class ChapelFile(SourceFile):
     """
     Particularities:
-    
+
     * Chapel files also have a cstub which is used to output code that
       can not otherwise be expressed in Chapel.
 
     * The main_area member denotes the space that defaults to the
       module's main() function.
     """
-    
+
     def __init__(self, parent=None, relative_indent=0):
         super(ChapelFile, self).__init__(
             parent, relative_indent, separator='\n')
@@ -210,8 +210,8 @@ class ChapelFile(SourceFile):
         if self.parent:
             main = ''
         else: # output main only at the toplevel
-            main = str(self.main_area) 
-            
+            main = str(self.main_area)
+
         h_indent = ''
         d_indent = ''
         m_indent = ''
@@ -228,13 +228,13 @@ class ChapelFile(SourceFile):
 
     def get_decls(self):
         h_indent = ''
-        if len(self._header) > 0: 
+        if len(self._header) > 0:
             h_indent=self._sep
         return ''.join([h_indent, sep_by(';'+self._sep, self._header)])
 
     def get_defs(self):
         d_indent = ''
-        if len(self._defs) > 0:   
+        if len(self._defs) > 0:
             d_indent=self._sep
         return ''.join([d_indent, sep_by(self._sep, self._defs)])
 
@@ -257,7 +257,7 @@ class ChapelScope(ChapelFile):
             terminator = ';\n';
         else:
             terminator = ''
-            
+
         return self._sep.join(self._header+self._defs)+terminator
 
 class ChapelLine(ChapelFile):
@@ -323,7 +323,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             comp_stmt = ChapelFile(scope, relative_indent=4)
             s = str(self.generate(body, comp_stmt))
             return new_def(scope._sep.join(['',prefix+s,suffix]))
-        
+
         @accepts(str, str, str)
         def new_scope1(prefix, body, suffix):
             '''used for things like enumerator'''
@@ -331,6 +331,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
         def gen_comma_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
+
+        def gen_semicolon_sep(defs):
+            return self.gen_in_scope(defs, Scope(relative_indent=2, separator=';\n'))+';'
 
         def gen_ws_sep(defs):
             return self.gen_in_scope(defs, Scope(relative_indent=0, separator=' '))
@@ -349,7 +352,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         int64 = 'int64_t'
         fcomplex = '_complex64'
         dcomplex = '_complex128'
-        
+
         val = self.generate_non_tuple(node, scope)
         if val <> None:
             return val
@@ -357,7 +360,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         with match(node):
             if (ir.fn_defn, Attrs, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s) {'%
-                          (gen_comment(DocComment), 
+                          (gen_comment(DocComment),
                            gen(Name), gen_comma_sep(Args)),
                           Body,
                           '}')
@@ -365,7 +368,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.fn_defn, Attrs, Type, Name, Args, Body, DocComment):
                 new_scope('%sproc %s(%s): %s {'%
-                          (gen_comment(DocComment), 
+                          (gen_comment(DocComment),
                            gen(Name), gen_comma_sep(Args),
                            gen(Type)),
                           Body,
@@ -412,13 +415,14 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return '/*FIXME: CONST*/'+gen(Type)
 
             # Special handling of rarray types
-            elif (sidl.arg, Attrs, Mode, (sidl.rarray, Scalar_type, Dimension, Extents), Name):
+            elif (ir.arg, Attrs, Mode, (sidl.rarray, Scalar_type, Dimension, Extents), Name):
                 (arg_mode, arg_name) = (gen(Mode), gen(Name))
                 # rarray type will include a new domain variable definition
                 arg_type = '[?_babel_dom_%s] %s'%(Name, gen(Scalar_type))
                 return '%s %s: %s'%(arg_mode, arg_name, arg_type)
-                
-            elif (sidl.arg, Attrs, Mode, Type, Name):
+
+            elif (ir.arg, Attrs, Mode, Type, Name):
+                #print n
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
@@ -442,7 +446,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 # ignore wrongfully introduced pointers
                 # -> actually I should fix generate_method_stub instead
                 return gen(Type)
-                
+
             elif (ir.typedef_type, cbool):
                 return "bool"
 
@@ -451,23 +455,37 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.typedef_type, int64):
                 return "int(64)"
-            
+
             elif (ir.typedef_type, fcomplex):
                 return "complex(64)"
-            
+
             elif (ir.typedef_type, dcomplex):
                 return "complex(128)"
-            
+
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
+                #print 'prefix %s, name %s, ext %s' %(Prefix, Name, Ext)
                 return '.'.join(Prefix+['_'.join(Prefix+[Name])])
+
+            elif (ir.struct, Name, Items, DocComment):
+                return Name
+
+            elif (ir.type_decl, (ir.struct, Name, Items, DocComment)):
+#                def unprefix(s):
+#                    # FIXME!!! this is broken. Use a proper scopedID
+#                    # instead once the paper is out
+#                   return '_'.join((s.split('_')[1:]))
+                
+                itemdecls = gen_semicolon_sep(map(lambda i: ir.Var_decl(i[1], i[2]), Items))
+                return gen_comment(DocComment)+str(new_scope1('record %s {\n'%gen(Name), 
+                                                              itemdecls, '\n}'))
 
             elif (ir.var_decl, Type, Name):
                 return 'var %s: %s'%(gen(Name), gen(Type))
 
-            elif (ir.var_decl_init, (ir.typedef_type, "inferred_type"), Name, Initializer): 
+            elif (ir.var_decl_init, (ir.typedef_type, "inferred_type"), Name, Initializer):
                 return 'var %s = %s'%(gen(Name), gen(Initializer))
 
-            elif (ir.var_decl_init, Type, Name, Initializer): 
+            elif (ir.var_decl_init, Type, Name, Initializer):
                 return 'var %s: %s = %s'%(gen(Name), gen(Type), gen(Initializer))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
@@ -476,29 +494,30 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 # Manually transform the Items
                 enum_transformed = False
                 used_states = []
-                for loop_item in Items: 
-                    if (len(loop_item) == 3): 
+                for loop_item in Items:
+                    if (len(loop_item) == 3):
                         used_states.append(loop_item[2])
                     else:
                         enum_transformed = True
-                
+
                 items_to_use = Items
                 if enum_transformed:
-                    # Explicitly state the enum values as Chapel enums start at 1
+                    # Explicitly initialize the enum values, since
+                    # Chapel enums start at 1
                     new_items = []
                     avail_state = 0
-                    for loop_item in Items: 
+                    for loop_item in Items:
                         if (len(loop_item) == 3):
                             new_items.append(loop_item)
                         else:
-                            while avail_state in used_states: 
+                            while avail_state in used_states:
                                 avail_state = avail_state + 1
                             new_items.append(ir.Enumerator(loop_item[1], avail_state))
                             used_states.append(avail_state)
                     items_to_use = new_items
-                    
+
                 return new_scope1('enum %s {'%gen(Name), gen_comma_sep(items_to_use), '}')
-            
+
             elif (ir.import_, Name): new_def('use %s;'%Name)
 
             elif (sidl.custom_attribute, Id):       return gen(Id)

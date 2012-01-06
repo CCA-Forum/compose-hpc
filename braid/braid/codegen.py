@@ -39,12 +39,12 @@
 # Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
-#  
+#
 # LLNL-CODE-473891.
 # All rights reserved.
-#  
-# This file is part of BRAID. For details, see 
-# http://compose-hpc.sourceforge.net/. 
+#
+# This file is part of BRAID. For details, see
+# http://compose-hpc.sourceforge.net/.
 # Please read the COPYRIGHT file for Our Notice and
 # for the BSD License.
 #
@@ -59,48 +59,48 @@ languages = ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
 
 def generate(language, ir_code, debug=False):
     """
-    Call the appropriate generate() function.  
+    Call the appropriate generate() function.
 
     \param language One of
     \c ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
-    
+
     \param ir_code  Intermediate representation input.
     \param debug    Turn on patmat debugging.
     \return         string
 
     >>> generate('C', ir.Plus(1, 2))
     '1 + 2'
-    >>> [generate(lang, 1) for lang in languages] 
+    >>> [generate(lang, 1) for lang in languages]
     ['1', '1', '1', '1', '1', '1', '1']
-    >>> [generate(lang, ir.Plus(1, 2)) for lang in languages] 
+    >>> [generate(lang, ir.Plus(1, 2)) for lang in languages]
     ['1 + 2', '1 + 2', '1 + 2', '1 + 2', '1 + 2', '1 + 2', '1 + 2']
     """
     # apparently CPython does not implement proper tail recursion
     sys.setrecursionlimit(max(sys.getrecursionlimit(), 2**16))
 
     try:
-        if language == "C": 
+        if language == "C":
             return str(CCodeGenerator().generate(ir_code, CFile()))
 
-        elif language == "CXX": 
+        elif language == "CXX":
             return str(CXXCodeGenerator().generate(ir_code, CXXFile()))
 
-        elif language == "F77": 
+        elif language == "F77":
             return str(Fortran77CodeGenerator().generate(ir_code, F77File()))
 
-        elif language == "F90": 
+        elif language == "F90":
             return str(Fortran90CodeGenerator().generate(ir_code, F90File()))
 
-        elif language == "F03": 
+        elif language == "F03":
             return str(Fortran03CodeGenerator().generate(ir_code, F03File()))
 
-        elif language == "Python": 
+        elif language == "Python":
             return str(PythonCodeGenerator().generate(ir_code, PythonFile()))
 
-        elif language == "Java": 
+        elif language == "Java":
             return str(JavaCodeGenerator().generate(ir_code, JavaFile()))
 
-        elif language == "SIDL": 
+        elif language == "SIDL":
             return str(SIDLCodeGenerator().generate(ir_code, SIDLFile()))
 
         else: raise Exception("unknown language")
@@ -112,7 +112,7 @@ def generate(language, ir_code, debug=False):
 
         if debug:
             pdb.post_mortem()
-        else: 
+        else:
             exit(1)
 
 def generator(fn):
@@ -155,9 +155,9 @@ class Scope(object):
     create a child \c Scope object with a different indentation.
 
     """
-    def __init__(self, 
-                 parent=None, 
-                 relative_indent=0, 
+    def __init__(self,
+                 parent=None,
+                 relative_indent=0,
                  separator='\n',
                  max_line_length=80):
         """
@@ -262,14 +262,14 @@ class Scope(object):
         # Macros need the line-joiner backslash
         if string[0] == '#': sep = '\\\n'
         else: sep = '\n'
-        
+
         tokens = string.split(' ')
         number_of_quotes = 0
         in_quote = False
         while len(tokens) > 0:
             line = ""
             took_token = False
-            while (len(tokens) > 0 and 
+            while (len(tokens) > 0 and
                    ((len(line)+len(tokens[0]) < self._max_line_length)
                     or in_quote)):
                 number_of_quotes += tokens[0].count('"')
@@ -279,9 +279,9 @@ class Scope(object):
                 if len(tokens): line += ' '
 
             if not took_token:
-                line += tokens.pop(0)                
+                line += tokens.pop(0)
                 if len(tokens): line += ' '
-                
+
             lines += [line]
 
         il = self.indent_level + max(self.relative_indent, 2) # toplevel
@@ -337,7 +337,7 @@ class GenericCodeGenerator(object):
     Classes inheriting from this one are expected to provide
     type_map, un_op and bin_op.
     """
-    
+
     @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SourceFile()):
@@ -375,7 +375,7 @@ class GenericCodeGenerator(object):
         """
         if (isinstance(node, tuple)):
             return None
-            
+
         if (isinstance(node, list)):
             for defn in node:
                 scope.new_def(self.generate(defn, scope))
@@ -385,12 +385,12 @@ class GenericCodeGenerator(object):
         elif (isinstance(node, float)):   return str(node)
         elif (isinstance(node, complex)): return str(node)
         elif (isinstance(node, long)):    return str(node)
-        elif (isinstance(node, str)): 
+        elif (isinstance(node, str)):
             #print "FIXME: string `%s' encountered. Fix your generator"%node
             return node
         else:
             raise Exception("unexpected node type"+repr(node))
-        
+
 
     def gen_in_scope(self, defs, child_scope):
         """
@@ -432,12 +432,12 @@ class F77File(SourceFile):
         """
         if s == self:
             return self
-        
+
         # break long lines
         tokens = s.split()
         line = ' '*(self.relative_indent+indent)
-        while len(tokens) > 0: 
-            while (len(tokens) > 0 and 
+        while len(tokens) > 0:
+            while (len(tokens) > 0 and
                    len(line)+len(tokens[0]) < 62):
                 line += tokens.pop(0)+' '
             super(F77File, self).new_def(line)
@@ -459,15 +459,15 @@ class F77File(SourceFile):
         complete with indentation and newlines.
         """
         #print self._header, '+', self._defs, 'sep="',self._sep,'"'
-        #import pdb; pdb.set_trace()        
+        #import pdb; pdb.set_trace()
         data = ''
         label = False
         for defn in self.get_defs():
-            if label: 
+            if label:
                 label = False
-                data += defn+'\n'            
+                data += defn+'\n'
             elif defn[0] == '&': data += '     &      '+defn[1:]+'\n'
-            elif defn[0] == '@':       
+            elif defn[0] == '@':
                    label = True; data += ' %s    '% defn[1:]
             else:                data += '        '+defn+'\n'
 
@@ -480,7 +480,7 @@ class F77Scope(F77File):
             parent,
             relative_indent=parent.relative_indent+2)
         self._defs = [''] # start on a new line
-    
+
     def has_declaration_section(self):
         return False
 
@@ -526,7 +526,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         'pow':     'pow'
         }
 
-    un_op = { 
+    un_op = {
         'log_not': '.not.',
         'bit_not': '~'
         }
@@ -580,13 +580,13 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         val = self.generate_non_tuple(node, scope)
         if val <> None:
             return val
-        
+
         with match(node):
             if (ir.return_, Expr):
                 return "retval = %s" % gen(Expr)
 
             elif (ir.primitive_type, T): return type_map[T]
-            elif (ir.struct, (Package), (Name), DocComment): 
+            elif (ir.struct, (Package), (Name), DocComment):
                 return ("%s_%s"%(Package, Name)).lower()
 
             elif (ir.get_struct_item, Struct, Name, Item):
@@ -623,8 +623,8 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             elif (ir.do_while, Condition, Body):
                 label = scope.new_label()
                 gen(Body)
-                return new_scope('if (%s) then'%gen(Condition), 
-                                      (ir.stmt, (ir.goto, str(label))), 
+                return new_scope('if (%s) then'%gen(Condition),
+                                      (ir.stmt, (ir.goto, str(label))),
                                       'end if')
 
             elif (ir.if_, Condition, Body):
@@ -658,15 +658,15 @@ class F90File(SourceFile):
         """
         if s == self:
             return self
-        
+
         # split long lines
         tokens = str(s).split()
-        while len(tokens) > 0: 
+        while len(tokens) > 0:
             line = ' '*(self.relative_indent+indent)
-            while (len(tokens) > 0 and 
+            while (len(tokens) > 0 and
                    len(line)+len(tokens[0]) < 62):
                 line += tokens.pop(0)+' '
-            
+
             if len(tokens) > 0:
                 line += '&'
             super(F90File, self).new_def(line)
@@ -687,7 +687,7 @@ class F90Scope(F90File):
             parent,
             relative_indent=parent.relative_indent+2)
         self._defs = [''] # start on a new line
-    
+
     def has_declaration_section(self):
         return False
 
@@ -716,7 +716,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
         'pow':     'pow'
         }
 
-    un_op = { 
+    un_op = {
         'log_not': '.not.',
         'bit_not': '~'
         }
@@ -870,7 +870,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
     """
     Struct members: These types do not need to be accessed via a function call.
     """
-    struct_direct_access = ['dcomplex', 'double', 'fcomplex', 'float', 
+    struct_direct_access = ['dcomplex', 'double', 'fcomplex', 'float',
                             'int', 'long', 'enum']
 
     @generator
@@ -971,7 +971,10 @@ class CFile(SourceFile):
                               '#define __%s__'%guard,
                               s,
                               '#endif'])
-        return s+'\n'
+        if self._header:
+            return s+'\n'
+        else:
+            return ''
 
     def dot_c(self):
         """
@@ -1012,15 +1015,14 @@ class CFile(SourceFile):
 class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
-        super(CCompoundStmt, self).__init__(parent_scope, 
+        super(CCompoundStmt, self).__init__(parent_scope,
                                             relative_indent=2)
 
     def __str__(self):
         return (' {\n'
-                + ' '*self.indent_level 
                 + super(CCompoundStmt, self).__str__() +'\n'
                 + ' '*(self.indent_level-2) + '}')
-    
+
 class ClikeCodeGenerator(GenericCodeGenerator):
     """
     C-like code generator
@@ -1046,7 +1048,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         'pow':     'pow'
         }
 
-    un_op = { 
+    un_op = {
         'log_not': '!',
         'bit_not': '~'
         }
@@ -1098,7 +1100,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             return self.gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
 
         def gen_comment(doc_comment):
-            if doc_comment == '': 
+            if doc_comment == '':
                 return ''
             sep = '\n'+' '*scope.indent_level
             return (sep+' * ').join(['/**']+
@@ -1132,19 +1134,27 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
 
-            elif (ir.arg, Attr, ir.in_, Type, Name):                 
+            # do not make a pointer out of (in)out structs
+            # FIXME: shouldn't this be part of lower_ir? 
+            elif (ir.arg, Attr, ir.out, (ir.pointer_type, (ir.struct, _, _, _)), Name):
+                return '%s %s'% (gen(node[3]), gen(Name))
+
+            elif (ir.arg, Attr, ir.inout, (ir.pointer_type, (ir.struct, _, _, _)), Name):
+                return '%s %s'% (gen(node[3]), gen(Name))
+
+            elif (ir.arg, Attr, ir.in_, Type, Name):
                 return '%s %s'% (gen(Type), gen(Name))
 
-            elif (ir.arg, Attr, ir.out, Type, Name):                 
+            elif (ir.arg, Attr, ir.out, Type, Name):
                 return '%s %s'% (gen((ir.pointer_type, Type)), gen(Name))
 
-            elif (ir.arg, Attr, ir.inout, Type, Name):                 
+            elif (ir.arg, Attr, ir.inout, Type, Name):
                 return '%s %s'% (gen((ir.pointer_type, Type)), gen(Name))
 
-            elif (ir.var_decl, Type, Name): 
+            elif (ir.var_decl, Type, Name):
                 return declare_var(gen(Type), gen(Name))
 
-            elif (ir.call, (ir.deref, Name), Args): 
+            elif (ir.call, (ir.deref, Name), Args):
                 return '(*%s)(%s)' % (gen(Name), gen_comma_sep(Args))
 
             elif (ir.call, Name, Args):
@@ -1154,7 +1164,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                     return '%s(%s)' % (gen(Name), gen_comma_sep(Args))
 
             # FIXME should we use scoped_id instead of typedecl?
-            elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)): 
+            elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)):
                 return new_header_scope('struct %s'%gen(Name), StructItems)
 
             elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)), Name):
@@ -1176,7 +1186,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.enumerator, Name, Value):
                 return new_def(gen(Name)+" = "+gen(Value))
 
-            elif (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)): 
+            elif (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)):
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
@@ -1261,16 +1271,16 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return '_'.join(Prefix+[Name])
 
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
-                return gen(#(ir.pointer_type, 
+                return gen(#(ir.pointer_type,
                             (ir.struct, gen((ir.scoped_id, Prefix, Name, Ext)), Items, DocComment))
 
-            elif (ir.struct, Name, _, DocComment): 
+            elif (ir.struct, Name, _, DocComment):
                 return "struct %s"%gen(Name)
 
             elif (ir.sign_extend, Bits, Expr):
                 return "(int%d_t)%s"%(Bits, gen(Expr))
 
-            elif (ir.import_, Name): 
+            elif (ir.import_, Name):
                 return scope.new_global_def('#include <%s.h>'%Name)
 
             elif (ir.set_arg, Var, Expr): return '*%s = %s'%(gen(Var), gen(Expr))
@@ -1337,7 +1347,7 @@ class JavaFile(SourceFile):
     """
     def __init__(self):
         #FIXME: file sould be 0 and there should be a class and package scope
-        super(JavaFile, self).__init__(relative_indent=4) 
+        super(JavaFile, self).__init__(relative_indent=4)
 
 class JavaCodeGenerator(ClikeCodeGenerator):
     """
@@ -1386,7 +1396,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
 
         def deref((arg, struct, mode), structname):
             'dereference the holder object for inout and out arguments'
-            if mode == ir.in_: 
+            if mode == ir.in_:
                 return gen(structname)
             else:
                 s = get_function_scope()
@@ -1448,7 +1458,7 @@ class PythonFile(SourceFile):
         lines = []
         while len(tokens) > 0:
             line = ""
-            while (len(tokens) > 0 and 
+            while (len(tokens) > 0 and
                    len(line)+len(tokens[0]) < self._max_line_length):
                 line += tokens.pop(0)+' '
             lines += [line]
@@ -1491,7 +1501,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
         'pow':     'pow'
         }
 
-    un_op = { 
+    un_op = {
         'log_not': '.not.',
         'bit_not': '~'
         }
@@ -1539,7 +1549,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
 
             elif (ir.do_while, Condition, Body):
                 return new_block('while True', Body
-                                 +[(ir.if_, (ir.prefix_expr(ir.log_not, Condition), 
+                                 +[(ir.if_, (ir.prefix_expr(ir.log_not, Condition),
                                              (ir.stmt, ir.break_)))])
 
             elif (ir.if_, Condition, Body):
@@ -1619,13 +1629,13 @@ class SIDLCodeGenerator(GenericCodeGenerator):
         def gen_scope(pre, defs, post):
             sep = '\n'+' '*scope.indent_level
             new_def(pre+sep+
-                    gen_in_scope(defs, 
-                                 Scope(scope, 4, 
+                    gen_in_scope(defs,
+                                 Scope(scope, 4,
                                        separator=';\n'))+';'+
                     sep+post)
 
         def gen_comment(doc_comment):
-            if doc_comment == '': 
+            if doc_comment == '':
                 return ''
             sep = '\n'+' '*scope.indent_level
             return (sep+' * ').join(['/**']+
@@ -1660,7 +1670,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                           Usertypes,
                           '}')
 
-            elif (sidl.user_type, Attrs, Defn): 
+            elif (sidl.user_type, Attrs, Defn):
                 return gen_(Attrs)+gen(Defn)
 
             elif (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
@@ -1688,7 +1698,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 return gen_(Attrs) + '%s %s %s' % tmap(gen, (Mode, Typ, Name))
 
             elif (sidl.array, Typ, Dimension, Orientation):
-                return ('array<%s%s%s>' % 
+                return ('array<%s%s%s>' %
                         (gen(Typ), _comma_gen(Dimension), _comma_gen(Orientation)))
 
             elif (sidl.rarray, Typ, Dimension, Name, Extents):
@@ -1731,10 +1741,9 @@ class SIDLCodeGenerator(GenericCodeGenerator):
 if __name__ == '__main__':
     try:
         print str(generate('C', ir.Plus(1, 2)))
-        print [generate(lang, ir.Plus(1, 2)) for lang in ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]] 
+        print [generate(lang, ir.Plus(1, 2)) for lang in ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]]
     except:
         # Invoke the post-mortem debugger
         import pdb, sys
         print sys.exc_info()
         pdb.post_mortem()
-

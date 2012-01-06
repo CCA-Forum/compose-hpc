@@ -64,7 +64,7 @@ dist_man_MANS = $(srcdir)/doc/braid.1
 # We are distributing the compiled manpage so we don't depend on rst2man
 # Insert the output of braid --help into the MAN page.
 EXTRA_DIST += doc/man_header.txt
-$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
+$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile
 	$(AM_V_GEN)
 	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
                      -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
@@ -141,3 +141,4 @@ $(SIDLSTUB_SRCS): chpl/sidl.chpl
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
 AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
+AM_CFLAGS = -Werror

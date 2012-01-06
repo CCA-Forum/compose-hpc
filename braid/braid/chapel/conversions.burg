@@ -1,5 +1,7 @@
 # -*- python -*-
 # Process this file with burg.py
+#
+# Declaration of additional arguments for the rule actions
 %action arguments: (convs, optionals, deref, dest)
 #------------------------------------------------------------------------
 import ior, ir, sidl
@@ -31,7 +33,8 @@ def ir_type_to_chpl(typ):
     except:
         if typ[0] == ir.enum: 
             return ir.Typedef_type('int64_t')
-        if typ[0] == 'upcast': # part of the hack for self dereferencing
+        if typ[0] == 'upcast':
+            # part of the hack for self dereferencing
             return typ[1]
         return typ
 
@@ -44,8 +47,13 @@ static const unsigned char chpl_char_lut[512] = {
 '''
 #------------------------------------------------------------------------
 %rules:
+#------------------------------------------------------------------------
 
-#chpl.vcall @ chpl <-- ior.vcall @ C : cost(1)
+# Rule format
+# -----------
+#
+# chpl.vcall @ chpl <-- ior.vcall @ C : cost(1)
+#   actions
 
 # BOOL
 ior.bool @ C <-- chpl.bool @ C : cost(0)
@@ -137,4 +145,10 @@ chpl.pointer_type @C <-- ior.pointer_type :cost(0)
     pass
 
 ior.pointer_type @C <-- chpl.pointer_type :cost(0)
+    pass
+
+# STRUCT
+ior.struct @C <-- chpl.struct: cost(0)
+    pass
+chpl.struct @C <-- ior.struct: cost(0)
     pass

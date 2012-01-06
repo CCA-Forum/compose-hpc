@@ -6,12 +6,13 @@ BABEL_TESTS = \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl \
+  regression/interop/struct/runChapel/structtest.chpl \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
   regression/interop/overload/runChapel/overloadtest.chpl 
 
 BABEL_TESTNAMES = \
-  args arrays inherit strings exceptions ordering overload
+  args arrays inherit strings struct exceptions ordering overload
 
 EXTRA_DIST += $(BABEL_TESTS)
 

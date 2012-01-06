@@ -623,12 +623,13 @@ BABEL_TESTS = \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl \
+  regression/interop/struct/runChapel/structtest.chpl \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
   regression/interop/overload/runChapel/overloadtest.chpl 
 
 BABEL_TESTNAMES = \
-  args arrays inherit strings exceptions ordering overload
+  args arrays inherit strings struct exceptions ordering overload
 
 @ENABLE_INTEROP_REGRESSION_TRUE@CHPL_LOG_COMPILER = sh 
 # FIXME:
@@ -643,6 +644,7 @@ BABEL_TESTNAMES = \
 # regression/output and all the server libraries that are copied over
 # from Babel
 
+# if "BABEL_LANG_CHAPEL"
 #check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
 #check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
@@ -663,9 +665,7 @@ BABEL_TESTNAMES = \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_14)
 
 # ----------------------------------------------------------------------
-# This is an alternate way of invoking the regression tests via gantlet
-# End-users should use `make check' instead.
-# This prints better statistics about broken tests
+# Convenience targets
 @ENABLE_INTEROP_REGRESSION_TRUE@RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
 @ENABLE_INTEROP_REGRESSION_TRUE@		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
 @ENABLE_INTEROP_REGRESSION_TRUE@		-d -k$(PACKAGE) #-c$(host)
@@ -874,6 +874,7 @@ noinst_SCRIPTS = patch-chapel-compiler.sh.in
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
 AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
+AM_CFLAGS = -Werror
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -2477,7 +2478,9 @@ clean-braid:
 # This can be done more nicely... Problem is, we do not want to force
 # the dependency on swipl on the users
 	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi
+# endif
 
+# We are only using one proxy target to circumvent the multi-target-parallel make issue
 @ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/output/libC/GNUmakefile: $(top_builddir)/regression/interop/build-tracker.sh
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $(MAKE) $(MAKEFLAGS)
 
@@ -2489,10 +2492,13 @@ clean-braid:
 
 # FIXME If we should encounter a race condition with this rule, it is
 # because libimpl.la is not the last file to be built by
-# build-server.sh
+# build-server.sh	
 @ENABLE_INTEROP_REGRESSION_TRUE@$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile $(nobase_python_PYTHON)
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
+# This is an alternate way of invoking the regression tests via gantlet
+# End-users should use `make check' instead.
+# This prints better statistics about broken tests
 @ENABLE_INTEROP_REGRESSION_TRUE@run-gantlet: $(check_DATA)
 @ENABLE_INTEROP_REGRESSION_TRUE@	if test "X$$PROFILE_NAME" = X; then \
 @ENABLE_INTEROP_REGRESSION_TRUE@	    PROFILE_NAME="$(host)"; \
@@ -2528,7 +2534,7 @@ doc:
 
 doc/html/index.html:
 	$(MAKE) doc
-$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT
+$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile
 	$(AM_V_GEN)
 	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
                      -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
