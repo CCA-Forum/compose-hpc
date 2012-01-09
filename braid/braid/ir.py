@@ -58,7 +58,9 @@
 #   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 # 	   |plus|minus|times|divide|modulo|rem|pow),
 #   Un_op = ( is|log_not|bit_not ),
-#   Literal = ('STR' | 'FLOAT' | 'INT' | pure | result | Complex | true | false),
+#   Literal = (StringLiteral | 'FLOAT' | 'INT' | pure | result | Complex | Bool),
+#   StringLiteral = str('STR'),
+#   Bool = bool(true | false), % Python otherwise would treat ints and bools as the same thing
 #   Complex = complex('FLOAT', 'FLOAT'),
 #   Struct = struct((Scoped_id|Id), [Struct_item], DocComment),
 #   Struct_item = struct_item(Type, Id),
@@ -180,6 +182,7 @@ set_struct_item = 'set_struct_item'
 sign_extend = 'sign_extend'
 static = 'static'
 stmt = 'stmt'
+str = 'str'
 string = 'string'
 struct = 'struct'
 struct_item = 'struct_item'
@@ -399,7 +402,7 @@ def Goto(*args):
         print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], PythonTypes.StringType):
+    if isinstance(args[0], tuple) and args[0][0] == str:
         pass
     elif isinstance(args[0], PythonTypes.FloatType):
         pass
@@ -411,9 +414,7 @@ def Goto(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == complex:
         pass
-    elif args[0] == true:
-        pass
-    elif args[0] == false:
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == new:
         pass
@@ -462,7 +463,7 @@ def If(*args):
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], PythonTypes.StringType):
+    if isinstance(args[0], tuple) and args[0][0] == str:
         pass
     elif isinstance(args[0], PythonTypes.FloatType):
         pass
@@ -474,9 +475,7 @@ def If(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == complex:
         pass
-    elif args[0] == true:
-        pass
-    elif args[0] == false:
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == new:
         pass
@@ -540,7 +539,7 @@ def Return(*args):
         print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], PythonTypes.StringType):
+    if isinstance(args[0], tuple) and args[0][0] == str:
         pass
     elif isinstance(args[0], PythonTypes.FloatType):
         pass
@@ -552,9 +551,7 @@ def Return(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == complex:
         pass
-    elif args[0] == true:
-        pass
-    elif args[0] == false:
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == new:
         pass
@@ -602,7 +599,7 @@ def While(*args):
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], PythonTypes.StringType):
+    if isinstance(args[0], tuple) and args[0][0] == str:
         pass
     elif isinstance(args[0], PythonTypes.FloatType):
         pass
@@ -614,9 +611,7 @@ def While(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == complex:
         pass
-    elif args[0] == true:
-        pass
-    elif args[0] == false:
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == new:
         pass
@@ -696,7 +691,7 @@ def Do_while(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -708,9 +703,7 @@ def Do_while(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -922,7 +915,7 @@ def Struct_item(*args):
 # skipping \c Un_op= (is|log_not|bit_not)
 def INT():
     return INT
-# skipping \c Literal= (STR|FLOAT|INT|pure|result|\c Complex|true|false)
+# skipping \c Literal= (\c StringLiteral|FLOAT|INT|pure|result|\c Complex|\c Bool)
 def Complex(*args):
     """
     Construct a "complex" node. Valid arguments are 
@@ -949,6 +942,50 @@ def Complex(*args):
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['complex']+list(args))
+
+def Bool(*args):
+    """
+    Construct a "bool" node. Valid arguments are 
+    (True_()
+    |False_())
+    \return (\c "Bool", True_()
+    |False_())
+    """
+    f = Bool
+    if len(args) <> 1:
+        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if args[0] == true:
+        pass
+    elif args[0] == false:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['bool']+list(args))
+
+def Str(*args):
+    """
+    Construct a "str" node. Valid arguments are 
+    (STR())
+    \return (\c "StringLiteral", STR())
+    """
+    f = Str
+    if len(args) <> 1:
+        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], PythonTypes.StringType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['str']+list(args))
 
 def Scoped_id(*args):
     """
@@ -1254,7 +1291,7 @@ def Stmt(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == goto:
         pass
-    elif isinstance(args[0], PythonTypes.StringType):
+    elif isinstance(args[0], tuple) and args[0][0] == str:
         pass
     elif isinstance(args[0], PythonTypes.FloatType):
         pass
@@ -1266,9 +1303,7 @@ def Stmt(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == complex:
         pass
-    elif args[0] == true:
-        pass
-    elif args[0] == false:
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == new:
         pass
@@ -1367,7 +1402,7 @@ def Set_struct_item(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -1379,9 +1414,7 @@ def Set_struct_item(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -1423,7 +1456,7 @@ def Set_struct_item(*args):
         print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[3], PythonTypes.StringType):
+    if isinstance(args[3], tuple) and args[3][0] == str:
         pass
     elif isinstance(args[3], PythonTypes.FloatType):
         pass
@@ -1435,9 +1468,7 @@ def Set_struct_item(*args):
         pass
     elif isinstance(args[3], tuple) and args[3][0] == complex:
         pass
-    elif args[3] == true:
-        pass
-    elif args[3] == false:
+    elif isinstance(args[3], tuple) and args[3][0] == bool:
         pass
     elif isinstance(args[3], tuple) and args[3][0] == new:
         pass
@@ -1500,7 +1531,7 @@ def Assignment(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -1512,9 +1543,7 @@ def Assignment(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -1577,7 +1606,7 @@ def Set_arg(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -1589,9 +1618,7 @@ def Set_arg(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -1680,7 +1707,7 @@ def Infix_expr(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -1692,9 +1719,7 @@ def Infix_expr(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -1729,7 +1754,7 @@ def Infix_expr(*args):
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[2], PythonTypes.StringType):
+    if isinstance(args[2], tuple) and args[2][0] == str:
         pass
     elif isinstance(args[2], PythonTypes.FloatType):
         pass
@@ -1741,9 +1766,7 @@ def Infix_expr(*args):
         pass
     elif isinstance(args[2], tuple) and args[2][0] == complex:
         pass
-    elif args[2] == true:
-        pass
-    elif args[2] == false:
+    elif isinstance(args[2], tuple) and args[2][0] == bool:
         pass
     elif isinstance(args[2], tuple) and args[2][0] == new:
         pass
@@ -1802,7 +1825,7 @@ def Prefix_expr(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -1814,9 +1837,7 @@ def Prefix_expr(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -1871,7 +1892,7 @@ def Sign_extend(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -1883,9 +1904,7 @@ def Sign_extend(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -1994,7 +2013,7 @@ def Var_decl_init(*args):
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[2], PythonTypes.StringType):
+    if isinstance(args[2], tuple) and args[2][0] == str:
         pass
     elif isinstance(args[2], PythonTypes.FloatType):
         pass
@@ -2006,9 +2025,7 @@ def Var_decl_init(*args):
         pass
     elif isinstance(args[2], tuple) and args[2][0] == complex:
         pass
-    elif args[2] == true:
-        pass
-    elif args[2] == false:
+    elif isinstance(args[2], tuple) and args[2][0] == bool:
         pass
     elif isinstance(args[2], tuple) and args[2][0] == new:
         pass
@@ -2110,7 +2127,7 @@ def Get_struct_item(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.StringType):
+    if isinstance(args[1], tuple) and args[1][0] == str:
         pass
     elif isinstance(args[1], PythonTypes.FloatType):
         pass
@@ -2122,9 +2139,7 @@ def Get_struct_item(*args):
         pass
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
-    elif args[1] == true:
-        pass
-    elif args[1] == false:
+    elif isinstance(args[1], tuple) and args[1][0] == bool:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == new:
         pass
@@ -2179,7 +2194,7 @@ def Call(*args):
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], PythonTypes.StringType):
+    if isinstance(args[0], tuple) and args[0][0] == str:
         pass
     elif isinstance(args[0], PythonTypes.FloatType):
         pass
@@ -2191,9 +2206,7 @@ def Call(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == complex:
         pass
-    elif args[0] == true:
-        pass
-    elif args[0] == false:
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == new:
         pass
@@ -2230,7 +2243,7 @@ def Call(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], list):
         for a in args[1]:
-            if isinstance(a, PythonTypes.StringType):
+            if isinstance(a, tuple) and a[0] == str:
                 pass
             elif isinstance(a, PythonTypes.FloatType):
                 pass
@@ -2242,9 +2255,7 @@ def Call(*args):
                 pass
             elif isinstance(a, tuple) and a[0] == complex:
                 pass
-            elif a == true:
-                pass
-            elif a == false:
+            elif isinstance(a, tuple) and a[0] == bool:
                 pass
             elif isinstance(a, tuple) and a[0] == new:
                 pass
@@ -2719,7 +2730,7 @@ def struct_item_id(arg):
 # skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Bits=INT
-# skipping \c Literal= (STR|FLOAT|INT|pure|result|\c Complex|true|false)
+# skipping \c Literal= (\c StringLiteral|FLOAT|INT|pure|result|\c Complex|\c Bool)
 def complex_FLOAT(arg):
     """
     Accessor function.
@@ -2742,6 +2753,42 @@ def complex_FLOAT(arg):
     elif arg[0] <> 'complex':
         raise Exception("Grammar Error")
     else: return arg[2]
+
+
+def bool_true(arg):
+    """
+    Accessor function.
+    \return the "true" member of a "bool" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'bool':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def bool_false(arg):
+    """
+    Accessor function.
+    \return the "false" member of a "bool" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'bool':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def str_STR(arg):
+    """
+    Accessor function.
+    \return the "STR" member of a "str" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'str':
+        raise Exception("Grammar Error")
+    else: return arg[1]
 
 
 def scoped_id_modules(arg):
@@ -3471,7 +3518,6 @@ def const_type(arg):
 
 
  ## ir primitive types
-pt_bool = Primitive_type(bool)
 pt_bool     = Primitive_type(bool)
 pt_char     = Primitive_type(char)
 pt_int      = Primitive_type(int)

@@ -39,113 +39,119 @@ def sidl_code(n, datatype):
     }                                            
     """
     return sidl.File([], [], [sidl.User_type([],
-            sidl.Package(sidl.Id("s"), sidl.Version(1.0),
-             [sidl.User_type([], sidl.Struct(sidl.Scoped_id([sidl.Id('Vector')], ''),
+            sidl.Package("s", sidl.Version(1.0),
+             [sidl.User_type([], sidl.Struct(sidl.Scoped_id([], 'Vector', ''),
                                   [sidl.Struct_item(sidl.Primitive_type(datatype),
-                                                    sidl.Id('m%d'%i))
+                                                    ('m%d'%i))
                                    for i in range(1, n+1)])),
               sidl.User_type([], 
-               sidl.Class(sidl.Id("Benchmark"), [], [], [],
+               sidl.Class(("Benchmark"), [], [], [],
                 [sidl.Method(
                   sidl.Primitive_type(datatype), 
-                  sidl.Method_name(sidl.Id("run"), ''), [],
+                  sidl.Method_name(("run"), ''), [],
                   [sidl.Arg([], sidl.in_, 
-                            sidl.Scoped_id([sidl.Id("Vector")], ''), sidl.Id("a")),
+                            sidl.Scoped_id([], "Vector", ''), ("a")),
                    sidl.Arg([], sidl.inout,
-                            sidl.Scoped_id([sidl.Id("Vector")], ''), sidl.Id("b"))],
-                  [], [], [], [])
-                 ]))]))])
+                            sidl.Scoped_id([], "Vector", ''), ("b"))],
+                  [], [], [], [],
+                  'Run the benchmark')
+                  ],
+                   'Benchmark class'))],
+                'Benchmark package')
+        )])
 
 #-----------------------------------------------------------------------
 # benchmark kernels
 #-----------------------------------------------------------------------
 def dotproduct_expr(n, datatype):
     def add(a, b):
-        return ("+", a, b)
+        return ir.Plus(a, b)
 
     def item(name):
-        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+        return ir.Struct_item(ir.Primitive_type(datatype), (name))
 
-    a = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''),
-         [ir.Struct_item(ir.Primitive_type(datatype), ir.Id('m%d'%i)) for i in range(1, n+1)])
+    a = ir.Struct(ir.Scoped_id([("s")], ('Vector'), ''),
+         [ir.Struct_item(ir.Primitive_type(datatype), ('m%d'%i)) for i in range(1, n+1)], '')
     b = a
     e = reduce(add, map(lambda i:
                             ("*",
-                             ir.Get_struct_item(a, ir.Id("a"), 'm%d'%i),
-                             ir.Get_struct_item(b, ir.Id("b"), 'm%d'%i)),
+                             ir.Get_struct_item(a, (ir.deref, "a"), 'm%d'%i),
+                             ir.Get_struct_item(b, (ir.deref, "b"), 'm%d'%i)),
                         range(1, n+1)))
-    return ir.Stmt(('return', e))
+    return ir.Stmt(ir.Return(e))
 
 def const_access_expr(n, datatype):
     def add(a, b):
-        return ("+", a, b)
+        return ir.Plus(a, b)
 
     def item(name):
-        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+        return ir.Struct_item(ir.Primitive_type(datatype), (name))
 
-    t = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''), 
-         [ir.Struct_item(ir.Primitive_type(datatype), ir.Id('m%d'%i)) for i in range(1, n+1)])
+    t = ir.Struct(ir.Scoped_id([("s")], ('Vector'), ''), 
+         [ir.Struct_item(ir.Primitive_type(datatype), ('m%d'%i)) for i in range(1, n+1)], '')
     e = reduce(add, map(lambda i:
                             ("*",
-                             ir.Get_struct_item(t, ir.Id("a"), item('m%d'%(i%n+1))),
-			     ir.Get_struct_item(t, ir.Id("b"), item('m%d'%(i%n+1)))),
+                             ir.Get_struct_item(t, (ir.deref, "a"), item('m%d'%(i%n+1))),
+			     ir.Get_struct_item(t, (ir.deref, "b"), item('m%d'%(i%n+1)))),
                         range(1, 129)))
-    return ir.Stmt(('return', e))
+    return ir.Stmt(ir.Return(e))
 
 def reverse_expr(n, datatype):
     'b_i = a_{n-i}'
     def item(name):
-        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+        return ir.Struct_item(ir.Primitive_type(datatype), (name))
 
-    t = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''), 
-         [ir.Struct_item(ir.Primitive_type(datatype), ir.Id('m%d'%i)) for i in range(1, n+1)])
-    revs = [ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%i),
-                       ir.Get_struct_item(t, ir.Id("a"), item('m%d'%(n-i+1)))))
+    t = ir.Struct(ir.Scoped_id([("s")], ('Vector'), ''), 
+         [ir.Struct_item(ir.Primitive_type(datatype), ('m%d'%i)) for i in range(1, n+1)], '')
+    revs = [ir.Stmt(ir.Set_struct_item(t, (ir.deref, "b"), item('m%d'%i),
+                       ir.Get_struct_item(t, (ir.deref, "a"), item('m%d'%(n-i+1)))))
             for i in range(1, n+1)]
-    return revs+[ir.Stmt(('return', retval(n, datatype)))]
+    return revs+[ir.Stmt(ir.Return(retval(n, datatype)))]
 
 
 def nop_expr(n, datatype):
-    return ir.Stmt(('return', retval(n, datatype)))
+    return ir.Stmt(ir.Return(retval(n, datatype)))
 
 def bsort_expr(n, datatype):
     def assign(var, val):
         return ir.Stmt((ir.assignment, var, val))
 
     def item(name):
-        return ir.Struct_item(ir.Primitive_type(datatype), ir.Id(name))
+        return ir.Struct_item(ir.Primitive_type(datatype), (name))
 
-    t = ir.Struct(ir.Scoped_id([ir.Id("s"), ir.Id('Vector')], ''),
-            [item('m%d'%i) for i in range(1, n+1)])
-    a = ir.Arg(t, ir.in_)
-    b = ir.Arg(t, ir.inout)
-    copy = [ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%i),
-                      ir.Get_struct_item(t, ir.Id("a"), item('m%d'%i))))
+    t = ir.Struct(ir.Scoped_id([("s")], ('Vector'), ''),
+            [item('m%d'%i) for i in range(1, n+1)], '')
+    a = ir.Arg([], ir.in_, t, 'a')
+    b = ir.Arg([], ir.inout, t, 'b')
+    copy = [ir.Stmt(ir.Set_struct_item(t, (ir.deref, "b"), item('m%d'%i),
+                      ir.Get_struct_item(t, (ir.deref, "a"), item('m%d'%i))))
             for i in range(1, n+1)]
-    sort = [(ir.var_decl, (ir.type_, "bool"), ir.Id("swapped")),
-            (ir.var_decl, (ir.type_, "int"), ir.Id("tmp")),
-            (ir.do_while, ir.Id("swapped"),
+    sort = [(ir.var_decl, ir.pt_bool, ("swapped")),
+            (ir.var_decl, ir.pt_int, ("tmp")),
+            (ir.do_while, ("swapped"),
              # if A[i-1] > A[i]
-             [assign(ir.Id("swapped"), ir.false)]+
-             [[(ir.if_, ('>', ir.Get_struct_item(t, ir.Id("b"), item('m%d'%(i-1))),
-                              ir.Get_struct_item(t, ir.Id("b"), item('m%d'%i))),
+             [assign(("swapped"), ir.Bool(ir.false))]+
+             [[(ir.if_, 
+                (ir.Infix_expr(ir.gt, 
+                              ir.Get_struct_item(t, (ir.deref, "b"), item('m%d'%(i-1))),
+                              ir.Get_struct_item(t, (ir.deref, "b"), item('m%d'%i)))),
                 # swap( A[i-1], A[i] )
                 # swapped = true
-                [assign(ir.Id("tmp"), 
-                        ir.Get_struct_item(t, ir.Id("b"), item('m%d'%i))),
-                 ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%i),
-                           ir.Get_struct_item(t, ir.Id("b"), item('m%d'%(i-1))))),
-                 ir.Stmt(ir.Set_struct_item(t, ir.Id("b"), item('m%d'%(i-1)),
-                           ir.Id("tmp"))),
-                 assign(ir.Id("swapped"), ir.true)])]
+                [assign(("tmp"), 
+                        ir.Get_struct_item(t, (ir.deref, "b"), item('m%d'%i))),
+                 ir.Stmt(ir.Set_struct_item(t, (ir.deref, "b"), item('m%d'%i),
+                           ir.Get_struct_item(t, (ir.deref, "b"), item('m%d'%(i-1))))),
+                 ir.Stmt(ir.Set_struct_item(t, (ir.deref, "b"), item('m%d'%(i-1)),
+                           ("tmp"))),
+                 assign(("swapped"), ir.Bool(ir.true))])]
               for i in range(2, n+1)])]
-    return copy+sort+[ir.Stmt(('return', retval(n, datatype)))]
+    return copy+sort+[ir.Stmt(ir.Return(retval(n, datatype)))]
 
 def retval(n, datatype):
-    if datatype == "bool":     return (ir.true)
-    elif datatype == "int":  return (n)
+    if datatype == "bool":     return (ir.Bool(ir.true))
+    elif datatype == "int":    return (n)
     elif datatype == "float":  return (n)
-    elif datatype == "string": return (str(n))
+    elif datatype == "string": return (ir.Str(str(n)))
     else: raise
 
 #-----------------------------------------------------------------------
@@ -235,7 +241,6 @@ def main():
     args = cmdline.parse_args()
     i = args.i
     datatype = args.datatype
-    babel = 'babel' #args.babel
     expr = args.expr
     if expr == 'reverse':
         benchmark_expr = reverse_expr
@@ -252,7 +257,7 @@ def main():
     f = open('out/struct_%d_%s_%s.sidl'%(i,datatype,expr), "w")
     f.write(codegen.generate("SIDL", sidl_code(i, datatype)))
     f.close()
-    languages = ["C", "CXX", "F77", "F90", "F03", "Java", "Python"]
+    languages = ["C", "CXX", "F77", "F90", "F03", "Java", "Python"]  #, "Chapel" ]
     for lang in languages:
         ext = {"C"      : "c", 
                "CXX"    : "cxx",
@@ -260,21 +265,32 @@ def main():
                "F90"    : "F90",
                "F03"    : "F03",
                "Java"   : "java",
-               "Python" : "py"}
+               "Python" : "py",
+               "Chapel" : "chpl"}
         prefix = {"C"   : "s_", 
                "CXX"    : "s_",
                "F77"    : "s_",
                "F90"    : "s_",
                "F03"    : "s_",
                "Java"   : "s/",
-               "Python" : "s/"}
+               "Python" : "s/",
+               "Chapel" : "s_"}
+        babel={"C"      : "babel", 
+               "CXX"    : "babel",
+               "F77"    : "babel",
+               "F90"    : "babel",
+               "F03"    : "babel",
+               "Java"   : "babel",
+               "Python" : "babel",
+               "Chapel" : "braid"}
+
 
         print "generating", lang, i, datatype, expr, "..."
 
         cmd = """
           mkdir -p out/{lang}_{i}_{t}_{e} && cd out/{lang}_{i}_{t}_{e} &&
           {babel} -s{lang} --makefile ../struct_{i}_{t}_{e}.sidl
-          """.format(lang=lang,i=i,babel=babel,t=datatype,e=expr)
+          """.format(lang=lang,i=i,babel=babel[lang],t=datatype,e=expr)
         #print cmd
         subprocess.check_call(cmd, shell=True)
         impl = ("out/{lang}_{i}_{t}_{e}/{prefix}Benchmark_Impl.{ext}".
@@ -295,7 +311,7 @@ def main():
     cmd = """
       mkdir -p out/client_{i}_{t}_{e} && cd out/client_{i}_{t}_{e} &&
       {babel} -cC --makefile ../struct_{i}_{t}_{e}.sidl
-      """.format(i=i,babel=babel,t=datatype,e=expr)
+      """.format(i=i,babel=babel[lang],t=datatype,e=expr)
     #print cmd
     subprocess.check_call(cmd, shell=True)
     f = open('out/client_%d_%s_%s/main.c'%(i,datatype,expr), "w")
@@ -365,7 +381,7 @@ function count_insns {
 function medtime {
    # measure the median running user time
    rm -f $2.all
-   MAX=10
+   MAX=1 # 10
    for I in `seq $MAX`; do
      echo "measuring $1 ($3@$4,$5) [$I/$MAX]"
      # echo SIDL_DLL_PATH=$SIDL_DLL_PATH

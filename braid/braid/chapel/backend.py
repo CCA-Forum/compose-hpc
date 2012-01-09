@@ -894,7 +894,7 @@ class Chapel(object):
         ior_args = drop_rarray_ext_args(Args)
         
         chpl_args = []
-        chpl_args.extend(lower_ir(symbol_table, Args))
+        chpl_args.extend(lower_structs(symbol_table, Args))
         
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
                            Except, From, Requires, Ensures, DocComment))
@@ -1006,7 +1006,7 @@ class Chapel(object):
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
-        defn = (ir.fn_defn, [], lower_ir(symbol_table, Type), Name + Extension, chpl_args,
+        defn = (ir.fn_defn, [], lower_structs(symbol_table, Type), Name + Extension, chpl_args,
                 pre_call+call+post_call+return_stmt,
                 DocComment)
 
@@ -1263,6 +1263,11 @@ class Chapel(object):
                 # Interfaces also have an IOR to be generated
                 expect(data, None)
                 generate_class_stub(Name, Methods, Extends, DocComment, is_interface=True)
+
+            elif (sidl.struct, (Name), Items, DocComment):
+                # Generate Chapel skel
+                self.pkg_chpl_skel.gen(ir.Type_decl(lower_ir(symbol_table, node)))
+                self.pkg_enums_and_structs.append(node)
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
@@ -1535,6 +1540,50 @@ def lower_ir(symbol_table, sidl_term, header=None):
                 return map(low, Terms)
         else:
             raise Exception("lower_ir: Not implemented: " + str(sidl_term))
+
+@matcher(globals(), debug=False)
+def lower_structs(symbol_table, sidl_term):
+    """
+    FIXME paper hack ahead!!!
+    """
+    def low(sidl_term):
+        return lower_structs(symbol_table, sidl_term)
+
+    with match(sidl_term):   
+        if (sidl.arg, Attrs, Mode, (sidl.scoped_id, _, _, _), Name):
+            lowtype = low(sidl_term[3])
+            if lowtype[0] == ir.struct:
+                # struct arguments are passed as pointer, regardless of mode
+                lowtype = ir.Pointer_type(lowtype)
+            return (ir.arg, Attrs, Mode, lowtype, Name)
+
+        elif (sidl.arg, Attrs, Mode, Typ, Name):
+            return (ir.arg, Attrs, Mode, low(Typ), Name)
+
+        elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
+            # a nested Struct
+            return ir.Struct(qual_id(sidl_term[1]), low(Items), '')
+        elif (sidl.struct, Name, Items, DocComment):
+            #print 'Items=',Items, 'low(Items)=',low(Items)
+            qname = '_'.join(symbol_table.prefix+[Name])
+            return ir.Struct(qname, low(Items), '')
+
+        elif (sidl.struct_item, Type, Name):
+            return ir.Struct_item(lower_ir(symbol_table, Type), Name)
+
+        elif (sidl.scoped_id, Prefix, Name, Ext):
+            t = symbol_table[sidl_term]
+            if t[0] == ir.struct:
+                return low(t)
+            return sidl_term
+
+        elif (Terms):
+            if (isinstance(Terms, list)):
+                return map(low, Terms)
+            
+    return sidl_term
+
+
 
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
     return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name

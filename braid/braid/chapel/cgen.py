@@ -442,12 +442,18 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
 
+            elif (ir.pointer_type, (ir.primitive_type, ir.void)):
+                return "opaque"
+
             elif (ir.pointer_type, Type):
                 # ignore wrongfully introduced pointers
                 # -> actually I should fix generate_method_stub instead
                 return gen(Type)
 
             elif (ir.typedef_type, cbool):
+                return "bool"
+
+            elif (ir.typedef_type, 'sidl_bool'):
                 return "bool"
 
             elif (ir.typedef_type, int32):
@@ -469,12 +475,17 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.struct, Name, Items, DocComment):
                 return Name
 
+            elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
+                return "%s.%s"%(gen(StructName), gen(Item))
+
+            elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
+                return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
+
             elif (ir.type_decl, (ir.struct, Name, Items, DocComment)):
 #                def unprefix(s):
 #                    # FIXME!!! this is broken. Use a proper scopedID
 #                    # instead once the paper is out
 #                   return '_'.join((s.split('_')[1:]))
-                
                 itemdecls = gen_semicolon_sep(map(lambda i: ir.Var_decl(i[1], i[2]), Items))
                 return gen_comment(DocComment)+str(new_scope1('record %s {\n'%gen(Name), 
                                                               itemdecls, '\n}'))

@@ -103,6 +103,11 @@ def generate(language, ir_code, debug=False):
         elif language == "SIDL":
             return str(SIDLCodeGenerator().generate(ir_code, SIDLFile()))
 
+        elif language == "Chapel":
+            import chapel.cgen
+            return str(chapel.cgen.ChapelCodeGenerator().generate(
+                    ir_code, chapel.cgen.ChapelFile()))
+
         else: raise Exception("unknown language")
     except:
         # Invoke the post-mortem debugger
@@ -405,11 +410,15 @@ class GenericCodeGenerator(object):
         """
         \return the type of the item named \c item
         """
-        _, (_, _, _, items), _ = struct
+        _, _, items, _ = struct
         Type = Variable()
         for _ in member((ir.struct_item, Type, item), items):
             return Type.binding
         raise Exception("Struct has no member "+item)
+
+    def get_struct_type(self, struct):
+        _, (_, prefix, name, ext), _, _ = struct
+        return '_'.join(prefix+[name])
 
 # ----------------------------------------------------------------------
 # C      FORTRAN 77
@@ -531,6 +540,11 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
+    def get_type(self, typ):
+        if typ[0] == ir.primitive_type:
+            return self.type_map[typ[1]]
+        import pdb; pdb.set_trace()
+
     @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope):
@@ -555,6 +569,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             decl = self.get_type(typ)+' '+gen(name)
             if list(member(decl, s._header)) == []:
                 s.new_header_def(decl)
+            return ''
 
         def new_def(s):
             # print "new_def", s
@@ -585,21 +600,22 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             if (ir.return_, Expr):
                 return "retval = %s" % gen(Expr)
 
-            elif (ir.primitive_type, T): return type_map[T]
+            elif (ir.primitive_type, T): return self.type_map[T]
             elif (ir.struct, (Package), (Name), DocComment):
                 return ("%s_%s"%(Package, Name)).lower()
 
-            elif (ir.get_struct_item, Struct, Name, Item):
-                tmp = 'tmp_%s_%s'%(gen(Name), gen(Item))
-                declare_var(self.get_item_type(Struct, Item), tmp)
-                _, type_, _ = Struct
+            elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
+
+            elif (ir.get_struct_item, Struct, (ir.deref, Name), Item):
+                tmp = 'tmp_%s_%s'%(gen(Name), ir.struct_item_id(Item))
+                declare_var(ir.struct_item_type(Item), tmp)
                 pre_def('call %s_get_%s_f(%s, %s)' % (
-                        gen(self.get_type(type_)), gen(Item), gen(Name), tmp))
+                        gen(self.get_struct_type(Struct)), ir.struct_item_id(Item), gen(Name), tmp))
                 return tmp
 
-            elif (ir.set_struct_item, (_, Struct, _), Name, Item, Value):
+            elif (ir.set_struct_item, Struct, (ir.deref, Name), (ir.struct_item, _, Item), Value):
                 return 'call %s_set_%s_f(%s, %s)' % (
-                    gen(self.get_type(Struct)), gen(Item), gen(Name), gen(Value))
+                    gen(self.get_struct_type(Struct)), Item, gen(Name), gen(Value))
 
             elif (ir.fn_defn, Attrs, ir.void, Name, Args, Excepts, From, Requires, Ensures, Body):
                 return new_def('''
@@ -630,12 +646,13 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
 
-            elif (ir.var_decl, Type, Name): declare_var(Type, gen(Name))
+            elif (ir.var_decl, Type, Name): return declare_var(Type, gen(Name))
             elif (ir.goto, Label):    return 'goto '+Label
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.set_arg, Var, Expr):    return '%s = %s'%(gen(Var), gen(Expr))
-            elif (ir.true):           return '.true.'
-            elif (ir.false):          return '.false.'
+            elif (ir.bool, ir.true):           return '.true.'
+            elif (ir.bool, ir.false):          return '.false.'
+            elif (ir.str, S):             return "'%s'"%S
             elif (Expr):
                 return super(Fortran77CodeGenerator, self).generate(Expr, scope)
 
@@ -721,29 +738,30 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
         'bit_not': '~'
         }
 
-    @matcher(globals(), debug=False)
-    def get_type(self, node):
-        """\return a string with the type of the IR node \c node."""
-        with match(node):
-            if ('struct', Type, _): return Type
-            elif ('void'):        return "void"
-            elif ('bool'):        return "logical"
-            elif ('char'):        return "character (len=1)"
-            elif ('dcomplex'):    return "complex (kind=sidl_dcomplex)"
-            elif ('double'):      return "real (kind=sidl_double)"
-            elif ('fcomplex'):    return "complex (kind=sidl_fcomplex)"
-            elif ('float'):       return "real (kind=sidl_float)"
-            elif ('int'):         return "integer (kind=sidl_int)"
-            elif ('long'):        return "integer (kind=sidl_long)"
-            elif ('opaque'):      return "integer (kind=sidl_opaque)"
-            elif ('string'):      return "character (len=*)"
-            elif ('enum'):        return "integer (kind=sidl_enum)"
-            elif ('struct'):      return ""
-            elif ('class'):       return ""
-            elif ('interface'):   return ""
-            elif ('package'):     return ""
-            elif ('symbol'):      return ""
-            else: return super(Fortran90CodeGenerator, self).get_type(node)
+    type_map = {
+        'void':        "void",
+        'bool':        "logical",
+        'char':        "character (len=1)",
+        'dcomplex':    "complex (kind=sidl_dcomplex)",
+        'double':      "real (kind=sidl_double)",
+        'fcomplex':    "complex (kind=sidl_fcomplex)",
+        'float':       "real (kind=sidl_float)",
+        'int':         "integer (kind=sidl_int)",
+        'long':        "integer (kind=sidl_long)",
+        'opaque':      "integer (kind=sidl_opaque)",
+        'string':      "character (len=*)",
+        'enum':        "integer (kind=sidl_enum)",
+        'struct':      "integer*8",
+        'class':       "integer*8",
+        'interface':   "integer*8",
+        'package':     "void",
+        'symbol':      "integer*8"
+        }
+
+    def get_type(self, typ):
+        if typ[0] == ir.primitive_type:
+            return self.type_map[typ[1]]
+        import pdb; pdb.set_trace()
 
     @generator
     @matcher(globals(), debug=False)
@@ -757,6 +775,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             while not s.has_declaration_section():
                 s = s.parent
             s.new_header_def(self.get_type(typ)+' '+gen(name))
+            return ''
 
         def new_scope(prefix, body, suffix=''):
             '''used for things like if, for, ...'''
@@ -791,10 +810,12 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
             if ('return', Expr):
                 return "retval = %s" % gen(Expr)
 
-            elif (ir.get_struct_item, _, Name, Item):
+            elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
+
+            elif (ir.get_struct_item, _, (ir.deref, Name), (ir.struct_item, _, Item)):
                 return gen(Name)+'%'+gen(Item)
 
-            elif (ir.set_struct_item, _, Name, Item, Value):
+            elif (ir.set_struct_item, _, (ir.deref, Name), (ir.struct_item, _, Item), Value):
                 return gen(Name)+'%'+gen(Item)+' = '+gen(Value)
 
             elif (ir.fn_defn, Attrs, ir.void, Name, Args, Excepts, Froms, Requires, Ensures, Body):
@@ -818,12 +839,13 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
                 return scope
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s) then'%gen(Condition), Body, 'end if')
-            elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
+            elif (ir.var_decl, Type, Name): return declare_var(Type, gen(Name))
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.eq):             return '.eq.'
-            elif (ir.true):           return '.true.'
-            elif (ir.false):          return '.false.'
+            elif (ir.bool, ir.true):           return '.true.'
+            elif (ir.bool, ir.false):          return '.false.'
+            elif (ir.str, S):             return "'%s'"%S
             elif (Expr):
                 return super(Fortran90CodeGenerator, self).generate(Expr, scope)
 
@@ -843,29 +865,31 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
     """
     Fortran 2003 code generator
     """
-    @matcher(globals(), debug=False)
-    def get_type(self, node):
-        """\return a string with the type of the IR node \c node."""
-        with match(node):
-            if ('struct', Type, _): return Type
-            elif ('void'):        return "void"
-            elif ('bool'):        return "logical"
-            elif ('char'):        return "character (len=1)"
-            elif ('dcomplex'):    return "complex (kind=sidl_dcomplex)"
-            elif ('double'):      return "real (kind=sidl_double)"
-            elif ('fcomplex'):    return "complex (kind=sidl_fcomplex)"
-            elif ('float'):       return "real (kind=sidl_float)"
-            elif ('int'):         return "integer (kind=sidl_int)"
-            elif ('long'):        return "integer (kind=sidl_long)"
-            elif ('opaque'):      return "integer (kind=sidl_opaque)"
-            elif ('string'):      return "character (len=*)"
-            elif ('enum'):        return "integer (kind=sidl_enum)"
-            elif ('struct'):      return ""
-            elif ('class'):       return ""
-            elif ('interface'):   return ""
-            elif ('package'):     return ""
-            elif ('symbol'):      return ""
-            else: return super(Fortran03CodeGenerator, self).get_type(node)
+    type_map = {
+         'void':        "void",
+         'bool':        "logical",
+         'char':        "character (len=1)",
+         'dcomplex':    "complex (kind=sidl_dcomplex)",
+         'double':      "real (kind=sidl_double)",
+         'fcomplex':    "complex (kind=sidl_fcomplex)",
+         'float':       "real (kind=sidl_float)",
+         'int':         "integer (kind=sidl_int)",
+         'long':        "integer (kind=sidl_long)",
+         'opaque':      "integer (kind=sidl_opaque)",
+         'string':      "character (len=*)",
+         'enum':        "integer (kind=sidl_enum)",
+         'struct':      "",
+         'class':       "",
+         'interface':   "",
+         'package':     "",
+         'symbol':      ""
+         }
+
+    def get_type(self, typ):
+        if typ[0] == ir.primitive_type:
+            return self.type_map[typ[1]]
+        import pdb; pdb.set_trace()
+
 
     """
     Struct members: These types do not need to be accessed via a function call.
@@ -885,6 +909,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
             while not s.has_declaration_section():
                 s = s.parent
             s.new_header_def(self.get_type(typ)+' '+gen(name))
+            return ''
 
         def new_def(s):
             # print "new_def", s
@@ -902,15 +927,15 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
             if ('return', Expr):
                 return "retval = %s" % gen(Expr)
 
-            elif (ir.get_struct_item, Struct, Name, Item):
-                t = self.get_item_type(Struct, Item)
+            elif (ir.get_struct_item, Struct, (ir.deref, Name), (ir.struct_item, _, Item)):
+                t = Item[1]
                 if t in self.struct_direct_access:
                     return gen(Name)+'%'+gen(Item)
                 else:
                     return 'get_'+gen(Item)+'('+gen(Name)+')'
 
-            elif (ir.set_struct_item, Struct, Name, Item, Value):
-                t = self.get_item_type(Struct, Item)
+            elif (ir.set_struct_item, Struct, (ir.deref, Name), (ir.struct_item, _, Item), Value):
+                t = Item[1]
                 if t in self.struct_direct_access:
                     return gen(Name)+'%'+gen(Item)+" = "+gen(Value)
                 else:
@@ -931,9 +956,7 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
                   %s
                 end function %s
             ''' % (Typ, Name, gen(Args), gen(Body), Name)
-            elif (ir.var_decl, Type, Name): declare_var(gen(Type), gen(Name))
-            elif (ir.true):           return '.true.'
-            elif (ir.false):          return '.false.'
+            elif (ir.var_decl, Type, Name): return declare_var(Type, gen(Name))
             elif (Expr):
                 return super(Fortran03CodeGenerator, self).generate(Expr, scope)
 
@@ -1125,9 +1148,6 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                         gen_comment(DocComment),
                         gen(Type), gen(Name), gen_comma_sep(Args)), Body)
 
-            elif (ir.return_, Expr):
-                return "return %s" % gen(Expr)
-
             elif (ir.do_while, Condition, Body):
                 return new_scope('do', Body, ' while (%s);'%gen(Condition))
 
@@ -1196,10 +1216,11 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.typedef_type, Type): return Type
             elif (ir.comment, Comment):   return '/* %s */'%Comment
             elif (ir.return_, Expr):      return 'return '+gen(Expr)
-            elif (ir.log_not):        return '!'
-            elif (ir.eq):             return '=='
-            elif (ir.true):           return 'TRUE'
-            elif (ir.false):          return 'FALSE'
+            elif (ir.log_not):            return '!'
+            elif (ir.eq):                 return '=='
+            elif (ir.bool, ir.true):      return 'TRUE'
+            elif (ir.bool, ir.false):     return 'FALSE'
+            elif (ir.str, S):             return '"%s"'%S
             elif (Expr):
                 return super(ClikeCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
@@ -1225,7 +1246,8 @@ class CCodeGenerator(ClikeCodeGenerator):
         'enum':        "enum",
         'struct':      "struct"
         }
-
+    def get_type(self, irtype):
+        return self.type_map[irtype]
 
     @generator
     @matcher(globals(), debug=False)
@@ -1326,10 +1348,10 @@ class CXXCodeGenerator(CCodeGenerator):
             return scope.pre_def(s)
 
         with match(node):
-            if   (ir.get_struct_item, _, StructName, Item):
+            if   (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'.'+gen(Item)
 
-            elif (ir.set_struct_item, _, StructName, Item, Value):
+            elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.set_arg, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
@@ -1373,6 +1395,10 @@ class JavaCodeGenerator(ClikeCodeGenerator):
         'symbol':      ""
         }
 
+    def get_struct_type(self, struct):
+        _, (_, prefix, name, ext), _, _ = struct
+        return '.'.join(prefix+[name])
+
     @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=JavaFile()):
@@ -1402,7 +1428,7 @@ class JavaCodeGenerator(ClikeCodeGenerator):
                 s = get_function_scope()
                 tmp = '_held_'+gen(structname)
                 decl = '%s %s = %s.get();'%(
-                    self.get_type(struct), tmp, gen(structname))
+                    self.get_struct_type(struct), tmp, gen(structname))
                 if list(member(decl, s._header)) == []:
                     s.new_header_def(decl)
                 return tmp
@@ -1413,19 +1439,20 @@ class JavaCodeGenerator(ClikeCodeGenerator):
             return val
 
         with match(node):
-            if   (ir.primitive_type, Type): return type_map[Type]
+            if   (ir.primitive_type, Type): return self.type_map[Type]
 
-            elif (ir.get_struct_item, Type, StructName, Item):
-                return deref(Type, StructName)+'.'+gen(Item)
+            elif (ir.get_struct_item, Type, (ir.deref, StructName), (ir.struct_item, _, Item)):
+                ### FIXME rather sooner than later!!!!!
+                return deref((ir.arg, Type, ir.inout if StructName=='b' else ir.in_), StructName)+'.'+gen(Item)
 
-            elif (ir.set_struct_item, Type, StructName, Item, Value):
-                return deref(Type, StructName)+'.'+gen(Item)+' = '+gen(Value)
+            elif (ir.set_struct_item, Type, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
+                return deref((ir.arg, Type, ir.inout), StructName)+'.'+gen(Item)+' = '+gen(Value)
 
-            elif (ir.assignment, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
-            elif (ir.set_arg, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
+            #elif (ir.assignment, Var, Expr): return '%s.set(%s)'%(gen(Var), gen(Expr))
+            elif (ir.set_arg, Var, Expr):    return '%s.set(%s)'%(gen(Var), gen(Expr))
 
-            elif (ir.true):           return 'true'
-            elif (ir.false):          return 'false'
+            elif (ir.bool, ir.true):           return 'true'
+            elif (ir.bool, ir.false):          return 'false'
             elif (Expr):
                 return super(JavaCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
@@ -1452,6 +1479,7 @@ class PythonFile(SourceFile):
         """
         Break a string of Python code at max_line_length.
         """
+        if string == '': return ''
         tokens = string.split()
         indent = ('\\\n'+re.match(r'^\s*', tokens[0]).group(0) +
                   ' '*self.relative_indent)
@@ -1470,7 +1498,7 @@ class PythonIndentedBlock(PythonFile):
     def __init__(self, parent_scope):
         super(PythonIndentedBlock, self).__init__(
             parent_scope,
-            indent_level=parent_scope.indent_level+4)
+            relative_indent=4)
     def __str__(self):
         return (':\n'+
                 super(PythonIndentedBlock, self).__str__())
@@ -1541,16 +1569,19 @@ class PythonCodeGenerator(GenericCodeGenerator):
             elif ('return', Expr):
                 return "return(%s)" % gen(Expr)
 
-            elif (ir.get_struct_item, _, StructName, Item):
+            elif (ir.struct_item, Type, Name):
+                return gen(Name)
+
+            elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return gen(StructName)+'.'+gen(Item)
 
-            elif (ir.set_struct_item, _, StructName, Item, Value):
+            elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.do_while, Condition, Body):
                 return new_block('while True', Body
-                                 +[(ir.if_, (ir.prefix_expr(ir.log_not, Condition),
-                                             (ir.stmt, ir.break_)))])
+                                 +[(ir.if_, (ir.prefix_expr, ir.log_not, Condition),
+                                             (ir.stmt, ir.break_))])
 
             elif (ir.if_, Condition, Body):
                 return new_block('if %s'%gen(Condition), Body)
@@ -1559,8 +1590,9 @@ class PythonCodeGenerator(GenericCodeGenerator):
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.eq):             return '=='
-            elif (ir.true):           return 'True'
-            elif (ir.false):          return 'False'
+            elif (ir.bool, ir.true):           return 'True'
+            elif (ir.bool, ir.false):          return 'False'
+            elif (ir.str, S):                return "'%s'"%S
             elif (Expr):
                 return super(PythonCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")
