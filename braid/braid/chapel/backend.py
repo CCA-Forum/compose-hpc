@@ -31,7 +31,7 @@
 # </pre>
 #
 
-import config, ior, ior_template, ir, os, re, sidl, tempfile, types
+import config, ior, ior_template, ir, os, os.path, re, sidl, splicer, tempfile, types
 from utils import *
 from patmat import *
 from cgen import *
@@ -1166,6 +1166,7 @@ class Chapel(object):
                                 is_abstract,
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
+            ci.impl.gen(ir.Import('_'.join(symbol_table.prefix)))
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             chpl_stub.cstub.genh(ir.Import('sidlType'))
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
@@ -1241,8 +1242,18 @@ class Chapel(object):
             write_to(qname+'_Skel.c', cskel.dot_c())
 
             # Impl
-            print "FIXME: update the impl file between the splicer blocks"
-            write_to(qname+'_Impl.chpl', str(ci.impl))
+            #write_to(qname+'_Impl.chpl', str(ci.impl))
+            pkg_name = '_'.join(symbol_table.prefix)
+            impl = pkg_name+'_Impl.chpl'
+            if os.path.isfile(impl):
+                # FIXME: possible race condition, should use a file
+                # handle instead
+                # Preserve code written by the user
+                splicers = splicer.record(impl)
+                write_to(impl, str(ci.impl))
+                splicer.apply_all(impl, splicers)
+            else:
+                write_to(impl, str(ci.impl))
 
             # Makefile
             self.classes.append(qname)
@@ -1265,8 +1276,7 @@ class Chapel(object):
                 generate_class_stub(Name, Methods, Extends, DocComment, is_interface=True)
 
             elif (sidl.struct, (Name), Items, DocComment):
-                # Generate Chapel skel
-                self.pkg_chpl_skel.gen(ir.Type_decl(lower_ir(symbol_table, node)))
+                # record it for late
                 self.pkg_enums_and_structs.append(node)
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
@@ -1289,11 +1299,17 @@ class Chapel(object):
                     self.pkg_chpl_skel.main_area.new_def('}\n')
                     write_to(qname+'_Skel.chpl', str(self.pkg_chpl_skel))
 
+                pkg_chpl = ChapelFile()
                 pkg_h = CFile()
                 pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
                     pkg_h.gen(ir.Type_decl(lower_ir(pkg_symbol_table, es, pkg_h)))
+                    symtab = pkg_symbol_table._parent
+                    if symtab == None: symtab = SymbolTable()
+                    pkg_chpl.gen(ir.Type_decl(lower_ir(symtab, es)))
+
                 write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
+                write_to(qname+'.chpl', str(pkg_chpl))
 
                 # Makefile
                 self.pkgs.append(qname)
@@ -1872,7 +1888,7 @@ IORSRCS = {iorsrcs}
 SKELSRCS = {skelsrcs}
 STUBHDRS = #FIXME {stubhdrs}
 STUBSRCS = {stubsrcs}
-""".format(impls=' '.join([p+'.chpl'       for p in pkgs]),
+""".format(impls=' '.join([p+'_Impl.chpl'       for p in pkgs]),
            iorhdrs=' '.join([c+'_IOR.h'    for c in classes]),
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
            skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),

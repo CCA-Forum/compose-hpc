@@ -65,3 +65,81 @@ def replace(filename, splicer_name, text):
 
     src.close()
     dest.close()
+
+
+def record(filename):
+    """
+    Return a dict with the contents of all splicer blocks in the file
+    \c filename.
+    """
+    src = open(filename, 'r')
+    inside = False
+    splicer_name = ''
+    splicers = {}
+    for line in src:
+        m = re.match(r'.*DO-NOT-DELETE splicer\.begin\((.*)\).*', line)
+        if m:
+            splicer_name = m.group(1)
+            # print "splicer_block(%s)", splicer_name
+            splicer = []
+            inside = True
+        elif (inside and re.match(
+                r'.*DO-NOT-DELETE splicer\.end\(%s\).*'%splicer_name, line)):
+            inside = False
+            splicers[splicer_name] = splicer
+        elif inside:
+            splicer.extend(line)
+
+    if inside:
+        raise Exception("unclosed splicer block: "+splicer+name)
+    
+    src.close()
+    return splicers
+
+def apply_all(filename, splicers):
+    """
+    Apply the previously recorded splicers \c splicers to the file \c
+    filename.
+    """
+    # first make a backup of the old file
+    os.rename(filename, filename+'~')
+    dest = open(filename, 'w')
+    src = open(filename+'~', 'r')
+
+    all_splicers = set()
+    for s in splicers:
+        all_splicers.add(s)
+
+    splicer_name = ''
+    inside = False
+    did_replace = False
+    for line in src:
+        m = re.match(r'.*DO-NOT-DELETE splicer\.begin\((.*)\).*', line)
+        if m:
+            splicer_name = m.group(1)
+            block = splicers[splicer_name]
+            dest.write(line)
+            for l in block: 
+                dest.write(l)
+            inside = True
+            did_replace = True
+        elif (inside and re.match(
+                r'.*DO-NOT-DELETE splicer\.end\(%s\).*'%splicer_name, line)):
+            inside = False
+            all_splicers.remove(splicer_name)
+
+        if not inside:
+            dest.write(line)                
+                
+    if inside:
+        raise Exception("unclosed splicer block: "+splicer_name)
+
+    if not did_replace:
+        raise Exception("splicer block not found")
+
+    if len(all_splicers) > 0:
+        raise Exception("The following splicer blocks were not found: "
+                        +str(all_splicers))
+
+    src.close()
+    dest.close()

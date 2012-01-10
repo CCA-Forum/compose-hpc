@@ -274,7 +274,7 @@ def main():
                "F03"    : "s_",
                "Java"   : "s/",
                "Python" : "s/",
-               "Chapel" : "s_"}
+               "Chapel" : "s"}
         babel={"C"      : "babel", 
                "CXX"    : "babel",
                "F77"    : "babel",
@@ -293,16 +293,18 @@ def main():
           """.format(lang=lang,i=i,babel=babel[lang],t=datatype,e=expr)
         #print cmd
         subprocess.check_call(cmd, shell=True)
-        impl = ("out/{lang}_{i}_{t}_{e}/{prefix}Benchmark_Impl.{ext}".
+        impl = ("out/{lang}_{i}_{t}_{e}/{prefix}{name}.{ext}".
                 format(lang=lang, i=i, t=datatype, e=expr,
-                       ext=ext[lang], prefix=prefix[lang]))
+                       ext=ext[lang], prefix=prefix[lang], 
+                       name='_Impl' if lang == 'Chapel' else 'Benchmark_Impl'))
         if lang == "Python":
             splicer_block = "run"
         else: splicer_block = "s.Benchmark.run"
         code = codegen.generate(lang, benchmark_expr(i,datatype))
         if code == None:
             raise Exception('Code generation failed')
-        print "splicing", impl
+        #print "splicing", impl
+        #print code
         splicer.replace(impl, splicer_block, code) 
 
     print "-------------------------------------------------------------"
