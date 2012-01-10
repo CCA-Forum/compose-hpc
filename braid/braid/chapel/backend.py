@@ -1242,7 +1242,7 @@ class Chapel(object):
 
             # Impl
             print "FIXME: update the impl file between the splicer blocks"
-            #write_to(qname+'_Impl.chpl', str(ci.impl))
+            write_to(qname+'_Impl.chpl', str(ci.impl))
 
             # Makefile
             self.classes.append(qname)
@@ -1271,18 +1271,28 @@ class Chapel(object):
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
-                self.pkg_chpl_skel = ChapelFile()
-                self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
+                qname = '_'.join(symbol_table.prefix+[Name])
+                pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
+                if self.in_package:
+                    # nested modules are generated in-line
+                    self.pkg_chpl_stub.new_def('module %s {'%Name)
+                    self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
+                    self.pkg_chpl_stub.new_def('}')
+                else:
+                    # new file for the toplevel package
+                    self.pkg_chpl_skel = ChapelFile()
+                    self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
 
-                self.pkg_enums_and_structs = []
-                self.generate_server_pkg(UserTypes, data, symbol_table[sidl.Scoped_id([], Name, '')])
-                self.pkg_chpl_skel.main_area.new_def('}\n')
-                qname = '_'.join(symbol_table.prefix+[Name])                
-                write_to(qname+'_Skel.chpl', str(self.pkg_chpl_skel))
+                    self.pkg_enums_and_structs = []
+                    self.in_package = True
+                    self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
+                    self.pkg_chpl_skel.main_area.new_def('}\n')
+                    write_to(qname+'_Skel.chpl', str(self.pkg_chpl_skel))
 
                 pkg_h = CFile()
+                pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
-                    pkg_h.gen(ir.Type_decl(lower_ir(symbol_table, es)))
+                    pkg_h.gen(ir.Type_decl(lower_ir(pkg_symbol_table, es, pkg_h)))
                 write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
 
                 # Makefile
@@ -1293,6 +1303,7 @@ class Chapel(object):
                 gen(Cipse)
 
             elif (sidl.file, Requires, Imports, UserTypes):
+                self.in_package = False
                 gen(UserTypes)
 
             elif A:
@@ -1381,10 +1392,18 @@ class Chapel(object):
                 pre_call+call+post_call+return_stmt,
                 DocComment)
         chpldecl = (ir.fn_decl, [], Type, callee,
-                [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
-                DocComment)
+                    [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
+                    DocComment)
+        splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
+        chpldefn = (ir.fn_defn, [], Type, callee,
+                    [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
+                    [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
+                     ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
+                    DocComment)
+
         c_gen(chpldecl, ci.chpl_skel.cstub)
         c_gen(defn, ci.chpl_skel.cstub)
+        chpl_gen(chpldefn, ci.impl)
 
         ## create dummy call to bypass dead code elimination
         #def argvardecl((arg, attrs, mode, typ, name)):
@@ -2069,8 +2088,8 @@ ifeq ($(IMPLSRCS),)
 else
 .chpl.lo:
 	$(CHPL) --library --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
-	headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
-	perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
+	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
+	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \

@@ -257,7 +257,7 @@ def main():
     f = open('out/struct_%d_%s_%s.sidl'%(i,datatype,expr), "w")
     f.write(codegen.generate("SIDL", sidl_code(i, datatype)))
     f.close()
-    languages = ["C", "CXX", "F77", "F90", "F03", "Java", "Python"]  #, "Chapel" ]
+    languages = ["C", "CXX", "F77", "F90", "F03", "Java", "Python", "Chapel" ]
     for lang in languages:
         ext = {"C"      : "c", 
                "CXX"    : "cxx",
@@ -311,7 +311,7 @@ def main():
     cmd = """
       mkdir -p out/client_{i}_{t}_{e} && cd out/client_{i}_{t}_{e} &&
       {babel} -cC --makefile ../struct_{i}_{t}_{e}.sidl
-      """.format(i=i,babel=babel[lang],t=datatype,e=expr)
+      """.format(i=i,babel=babel["C"],t=datatype,e=expr)
     #print cmd
     subprocess.check_call(cmd, shell=True)
     f = open('out/client_%d_%s_%s/main.c'%(i,datatype,expr), "w")
