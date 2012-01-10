@@ -1154,13 +1154,13 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
 
-            # do not make a pointer out of (in)out structs
+            # do not make a pointer out of inout structs
             # FIXME: shouldn't this be part of lower_ir? 
-            elif (ir.arg, Attr, ir.out, (ir.pointer_type, (ir.struct, _, _, _)), Name):
-                return '%s %s'% (gen(node[3]), gen(Name))
-
+            #elif (ir.arg, Attr, ir.out, (ir.pointer_type, (ir.struct, _, _, _)), Name):
+            #   return '%s %s'% (gen(node[3]), gen(Name))
+            #
             elif (ir.arg, Attr, ir.inout, (ir.pointer_type, (ir.struct, _, _, _)), Name):
-                return '%s %s'% (gen(node[3]), gen(Name))
+               return '%s %s'% (gen(node[3]), gen(Name))
 
             elif (ir.arg, Attr, ir.in_, Type, Name):
                 return '%s %s'% (gen(Type), gen(Name))

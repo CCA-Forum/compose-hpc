@@ -675,7 +675,7 @@ class Chapel(object):
                                                        ir.Pointer_type(ci.obj),
                                                        "createObject", [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
-                                                           ir.Arg([], sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)],
+                                                           ir.Arg([], sidl.out, ir_babel_exception_type(), chpl_local_exception_var)],
                                                        "")),
                                                        "createObject")] 
                       if not ci.is_abstract else []) +
@@ -951,7 +951,7 @@ class Chapel(object):
 
         call_args = call_self + call_args + [chpl_local_exception_var]
         # Add the exception to the chapel method signature
-        chpl_args.append(ir.Arg([], ir.inout, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
+        chpl_args.append(ir.Arg([], ir.out, (ir.typedef_type, chpl_base_exception), chpl_param_ex_name))
         
 
         #if final:
@@ -1211,7 +1211,7 @@ class Chapel(object):
                                        %(qname,objname))
             self.pkg_chpl_skel.new_def('extern proc %s__createObject('%qname+
                                  'd_data: int, '+
-                                 'inout ex: sidl_BaseException__object)'+
+                                 'out ex: sidl_BaseException__object)'+
                                  ': %s__object;'%qname)
             self.pkg_chpl_skel.new_def(ci.chpl_skel)
 
@@ -1788,7 +1788,7 @@ def babel_static_ior_args(attrs, args, symbol_table, class_name):
     arg_self = [ir.Arg([], ir.in_, 
                        ir_babel_object_type(symbol_table.prefix, class_name),
                        'self')]
-    arg_ex = [ir.Arg([], sidl.inout, ir_babel_baseinterface_type(), chpl_local_exception_var)]
+    arg_ex = [ir.Arg([], sidl.out, ir_babel_baseinterface_type(), chpl_local_exception_var)]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 
@@ -1804,7 +1804,7 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
                     ir_babel_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], ir.inout, ir_babel_exception_type(), chpl_local_exception_var)]
+        [ir.Arg([], ir.out, ir_babel_exception_type(), chpl_local_exception_var)]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
@@ -1818,7 +1818,7 @@ def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
             ir.Arg(extra_attrs, sidl.in_, 
                 ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg(extra_attrs, sidl.inout, ir_babel_exception_type(), chpl_local_exception_var)]
+        [ir.Arg(extra_attrs, sidl.out, ir_babel_exception_type(), chpl_local_exception_var)]
     return arg_self+args+arg_ex
 
 
