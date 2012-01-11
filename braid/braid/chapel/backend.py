@@ -45,6 +45,34 @@ extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_exception = 'BaseException'
 chpl_local_exception_var = '_ex'
+chplmain_extras = r"""
+int handleNonstandardArg(int* argc, char* argv[], int argNum, 
+                         int32_t lineno, chpl_string filename) {
+  char* message = chpl_glom_strings(3, "Unexpected flag:  \"", argv[argNum], 
+                                    "\"");
+  chpl_error(message, lineno, filename);
+  return 0;
+}
+
+void printAdditionalHelp(void) {
+}
+
+char* chpl_executionCommand;
+
+static void recordExecutionCommand(int argc, char *argv[]) {
+  int i, length = 0;
+  for (i = 0; i < argc; i++) {
+    length += strlen(argv[i]) + 1;
+  }
+  chpl_executionCommand = (char*)chpl_mem_allocMany(length+1, sizeof(char), CHPL_RT_EXECUTION_COMMAND, 0, 0);
+  sprintf(chpl_executionCommand, "%s", argv[0]);
+  for (i = 1; i < argc; i++) {
+    strcat(chpl_executionCommand, " ");
+    strcat(chpl_executionCommand, argv[i]);
+  }
+}
+"""
+
 
 def strip_common(prefix, a):
     """
@@ -1242,7 +1270,7 @@ class Chapel(object):
             cskel.gen(ir.Import(qname+'_Skel'))
             cskel.gen(ir.Import(qname+'_IOR'))
             cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
-                                   [ir.Stmt(ir.Call('_load', []))], ''))
+                                   [ir.Comment("FIXME: [ir.Stmt(ir.Call('_load', []))")], ''))
 
             # set_epv ... Setup the EPV
             epv_t = ci.epv.get_ir()
@@ -1269,6 +1297,8 @@ class Chapel(object):
                  ir.Arg([], ir.out, pre_epv_t, 'pre_epv'),
                  ir.Arg([], ir.out, post_epv_t, 'post_epv')],
                 epv_init, ''))
+
+            write_to('_chplmain.c', chplmain_extras)
 
             # Skel Header
             write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
@@ -1444,12 +1474,11 @@ class Chapel(object):
                 pre_call+call+post_call+return_stmt,
                 DocComment)
         chpldecl = (ir.fn_decl, [], Type, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+lower_ir(ci.epv.symbol_table, Args),
+                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+lower_ir(ci.epv.symbol_table, Args),
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
-        chpldefn = (ir.fn_defn, #['export %s'%callee]
-                    [], Type, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
+        chpldefn = (ir.fn_defn, ['export %s'%callee], Type, callee,
+                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+Args,
                     [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
                     DocComment)
@@ -1985,36 +2014,36 @@ LIBDIR=$(PREFIX)/lib
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
 
+CHAPEL="""+config.CHAPEL+r"""
+CHPL_MAKE_HOME="""+config.CHAPEL_ROOT+r"""
+CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
+
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHAPEL_ROOT)/runtime/include -I$(SIDL_RUNTIME)/chpl
+INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)/chpl
 CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
-CHAPEL="""+config.CHAPEL+r"""
-CHAPEL_ROOT="""+config.CHAPEL_ROOT+r"""
 CHAPEL_MAKE_MEM=default
-# CHAPEL_MAKE_COMM=none
-CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
 CHAPEL_MAKE_COMPILER=gnu
 CHAPEL_MAKE_TASKS=none
 CHAPEL_MAKE_THREADS=pthreads
 
 ifeq ($(CHAPEL_MAKE_COMM),gasnet)
-CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-gasnet-nodbg/substrate-udp/seg-none
+CHAPEL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-gasnet-nodbg/substrate-udp/seg-none
 else
-CHAPEL_MAKE_SUBSTRATE_DIR=$(CHAPEL_ROOT)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-none/substrate-none/seg-none
+CHAPEL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-none/substrate-none/seg-none
 endif
-####    include $(CHAPEL_ROOT)/runtime/etc/Makefile.include
+####    include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 CHPL=chpl --fast
 # CHPL=chpl --print-commands --print-passes
 
-include $(CHAPEL_ROOT)/make/Makefile.atomics
+include $(CHPL_MAKE_HOME)/make/Makefile.atomics
 
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -I$(CHAPEL_ROOT)/runtime/include/tasks/fifo -I$(CHAPEL_ROOT)/runtime/include/threads/pthreads -I$(CHAPEL_ROOT)/runtime/include/comm/none -I$(CHAPEL_ROOT)/runtime/include/comp-gnu -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHAPEL_ROOT)/runtime/include/atomics/$(CHPL_MAKE_ATOMICS) -I$(CHAPEL_ROOT)/runtime/include -I. -Wno-all 
+CHPL_FLAGS=-std=c99 -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -I$(CHPL_MAKE_HOME)/runtime/include/tasks/fifo -I$(CHPL_MAKE_HOME)/runtime/include/threads/pthreads -I$(CHPL_MAKE_HOME)/runtime/include/comm/none -I$(CHPL_MAKE_HOME)/runtime/include/comp-gnu -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHPL_MAKE_HOME)/runtime/include/atomics/$(CHPL_MAKE_ATOMICS) -I$(CHPL_MAKE_HOME)/runtime/include -I. -Wno-all 
 
 CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread -lsidlstub_chpl
 
-CHPL_GASNET_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHAPEL_ROOT)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
+CHPL_GASNET_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
 CHPL_LAUNCHER_LDFLAGS=$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
@@ -2052,8 +2081,8 @@ $(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 	echo "#include \"config.h\""   >> $(IMPL).chpl.dir/config.c
 	echo "#include \"_config.c\""  >> $(IMPL).chpl.dir/config.c
 	babel-libtool --mode=compile --tag=CC $(CC) \
-          -std=c99 -I$(CHAPEL_ROOT)/runtime/include/$(CHPL_HOST_PLATFORM) \
-	  -I$(CHAPEL_ROOT)/runtime/include -I. \
+          -std=c99 -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
+	  -I$(CHPL_MAKE_HOME)/runtime/include -I. \
 	  $(IMPL).chpl.dir/config.c -c -o $@.lo
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $@.lo $(SERVER) \
@@ -2080,10 +2109,13 @@ $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
 	babel-libtool --mode=link --tag=CC $(CC) -o lib$(LIBNAME).la \
-	  -rpath $(LIBDIR) -release $(VERSION) \
+	  -static \
+          -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(CFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
+          $(CHPL_LDFLAGS) -lchpl \
 	  $(EXTRALIBS)
+ #-rpath $(LIBDIR) 
 
 $(PUREBABELGEN) $(BABELGEN) : babel-stamp
 # cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
@@ -2142,6 +2174,7 @@ else
 	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
+	echo '#include "../_chplmain.c"' >>$<.dir/_main.c
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c

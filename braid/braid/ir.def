@@ -66,7 +66,9 @@
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
-  Literal = (StringLiteral | 'FLOAT' | 'INT' | pure | result | Complex | Bool),
+  Literal = (StringLiteral | FloatLiteral | DoubleLiteral | 'INT' | pure | result | Complex | Bool),
+  FloatLiteral = float( 'FLOAT' ),
+  DoubleLiteral = double( 'FLOAT' ),
   StringLiteral = str('STR'),
   Bool = bool(true | false), % Python otherwise would treat ints and bools as the same thing
   Complex = complex('FLOAT', 'FLOAT'),

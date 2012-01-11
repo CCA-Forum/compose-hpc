@@ -537,6 +537,13 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.import_, Name): new_def('use %s;'%Name)
 
+
+            elif (ir.float, N):   
+                return str(N)+':real(32)'
+
+            elif (ir.double, N):   
+                return str(N)+':real(64)'
+
             elif (sidl.custom_attribute, Id):       return gen(Id)
             elif (sidl.method_name, Id, Extension): return gen(Id) + gen(Extension)
             elif (sidl.scoped_id, Prefix, Name, Ext):

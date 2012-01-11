@@ -58,7 +58,9 @@
 #   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
 # 	   |plus|minus|times|divide|modulo|rem|pow),
 #   Un_op = ( is|log_not|bit_not ),
-#   Literal = (StringLiteral | 'FLOAT' | 'INT' | pure | result | Complex | Bool),
+#   Literal = (StringLiteral | FloatLiteral | DoubleLiteral | 'INT' | pure | result | Complex | Bool),
+#   FloatLiteral = float( 'FLOAT' ),
+#   DoubleLiteral = double( 'FLOAT' ),
 #   StringLiteral = str('STR'),
 #   Bool = bool(true | false), % Python otherwise would treat ints and bools as the same thing
 #   Complex = complex('FLOAT', 'FLOAT'),
@@ -404,7 +406,9 @@ def Goto(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], tuple) and args[0][0] == str:
         pass
-    elif isinstance(args[0], PythonTypes.FloatType):
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
         pass
     elif isinstance(args[0], PythonTypes.IntType):
         pass
@@ -465,7 +469,9 @@ def If(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], tuple) and args[0][0] == str:
         pass
-    elif isinstance(args[0], PythonTypes.FloatType):
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
         pass
     elif isinstance(args[0], PythonTypes.IntType):
         pass
@@ -541,7 +547,9 @@ def Return(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], tuple) and args[0][0] == str:
         pass
-    elif isinstance(args[0], PythonTypes.FloatType):
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
         pass
     elif isinstance(args[0], PythonTypes.IntType):
         pass
@@ -601,7 +609,9 @@ def While(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], tuple) and args[0][0] == str:
         pass
-    elif isinstance(args[0], PythonTypes.FloatType):
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
         pass
     elif isinstance(args[0], PythonTypes.IntType):
         pass
@@ -693,7 +703,9 @@ def Do_while(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -915,7 +927,7 @@ def Struct_item(*args):
 # skipping \c Un_op= (is|log_not|bit_not)
 def INT():
     return INT
-# skipping \c Literal= (\c StringLiteral|FLOAT|INT|pure|result|\c Complex|\c Bool)
+# skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
 def Complex(*args):
     """
     Construct a "complex" node. Valid arguments are 
@@ -966,6 +978,46 @@ def Bool(*args):
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['bool']+list(args))
+
+def Double(*args):
+    """
+    Construct a "double" node. Valid arguments are 
+    (FLOAT())
+    \return (\c "DoubleLiteral", FLOAT())
+    """
+    f = Double
+    if len(args) <> 1:
+        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], PythonTypes.FloatType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['double']+list(args))
+
+def Float(*args):
+    """
+    Construct a "float" node. Valid arguments are 
+    (FLOAT())
+    \return (\c "FloatLiteral", FLOAT())
+    """
+    f = Float
+    if len(args) <> 1:
+        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], PythonTypes.FloatType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['float']+list(args))
 
 def Str(*args):
     """
@@ -1293,7 +1345,9 @@ def Stmt(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == str:
         pass
-    elif isinstance(args[0], PythonTypes.FloatType):
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
         pass
     elif isinstance(args[0], PythonTypes.IntType):
         pass
@@ -1404,7 +1458,9 @@ def Set_struct_item(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -1458,7 +1514,9 @@ def Set_struct_item(*args):
         raise Exception("Grammar Error")
     if isinstance(args[3], tuple) and args[3][0] == str:
         pass
-    elif isinstance(args[3], PythonTypes.FloatType):
+    elif isinstance(args[3], tuple) and args[3][0] == float:
+        pass
+    elif isinstance(args[3], tuple) and args[3][0] == double:
         pass
     elif isinstance(args[3], PythonTypes.IntType):
         pass
@@ -1533,7 +1591,9 @@ def Assignment(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -1608,7 +1668,9 @@ def Set_arg(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -1709,7 +1771,9 @@ def Infix_expr(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -1756,7 +1820,9 @@ def Infix_expr(*args):
         raise Exception("Grammar Error")
     if isinstance(args[2], tuple) and args[2][0] == str:
         pass
-    elif isinstance(args[2], PythonTypes.FloatType):
+    elif isinstance(args[2], tuple) and args[2][0] == float:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == double:
         pass
     elif isinstance(args[2], PythonTypes.IntType):
         pass
@@ -1827,7 +1893,9 @@ def Prefix_expr(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -1894,7 +1962,9 @@ def Sign_extend(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -2015,7 +2085,9 @@ def Var_decl_init(*args):
         raise Exception("Grammar Error")
     if isinstance(args[2], tuple) and args[2][0] == str:
         pass
-    elif isinstance(args[2], PythonTypes.FloatType):
+    elif isinstance(args[2], tuple) and args[2][0] == float:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == double:
         pass
     elif isinstance(args[2], PythonTypes.IntType):
         pass
@@ -2129,7 +2201,9 @@ def Get_struct_item(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == str:
         pass
-    elif isinstance(args[1], PythonTypes.FloatType):
+    elif isinstance(args[1], tuple) and args[1][0] == float:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == double:
         pass
     elif isinstance(args[1], PythonTypes.IntType):
         pass
@@ -2196,7 +2270,9 @@ def Call(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], tuple) and args[0][0] == str:
         pass
-    elif isinstance(args[0], PythonTypes.FloatType):
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
         pass
     elif isinstance(args[0], PythonTypes.IntType):
         pass
@@ -2245,7 +2321,9 @@ def Call(*args):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == str:
                 pass
-            elif isinstance(a, PythonTypes.FloatType):
+            elif isinstance(a, tuple) and a[0] == float:
+                pass
+            elif isinstance(a, tuple) and a[0] == double:
                 pass
             elif isinstance(a, PythonTypes.IntType):
                 pass
@@ -2730,7 +2808,7 @@ def struct_item_id(arg):
 # skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Bits=INT
-# skipping \c Literal= (\c StringLiteral|FLOAT|INT|pure|result|\c Complex|\c Bool)
+# skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
 def complex_FLOAT(arg):
     """
     Accessor function.
@@ -2775,6 +2853,30 @@ def bool_false(arg):
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
     elif arg[0] <> 'bool':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def double_FLOAT(arg):
+    """
+    Accessor function.
+    \return the "FLOAT" member of a "double" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'double':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def float_FLOAT(arg):
+    """
+    Accessor function.
+    \return the "FLOAT" member of a "float" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'float':
         raise Exception("Grammar Error")
     else: return arg[1]
 

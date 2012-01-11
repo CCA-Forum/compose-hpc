@@ -363,6 +363,8 @@ class GenericCodeGenerator(object):
             elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
+            elif (ir.float, N):             return str(N)
+            elif (ir.double, N):            return str(N)
             else: raise Exception("unhandled node: " + repr(node))
         return scope
 
@@ -387,7 +389,6 @@ class GenericCodeGenerator(object):
             return scope
 
         elif (isinstance(node, int)):     return str(node)
-        elif (isinstance(node, float)):   return str(node)
         elif (isinstance(node, complex)): return str(node)
         elif (isinstance(node, long)):    return str(node)
         elif (isinstance(node, str)):
@@ -1221,6 +1222,8 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.bool, ir.true):      return 'true'
             elif (ir.bool, ir.false):     return 'false'
             elif (ir.str, S):             return '"%s"'%S
+            elif (ir.float, N):           return str(N)+'f'
+            elif (ir.double, N):          return str(N)+'d'
             elif (Expr):
                 return super(ClikeCodeGenerator, self).generate(Expr, scope)
             else: raise Exception("match error")

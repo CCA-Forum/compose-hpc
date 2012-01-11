@@ -150,7 +150,7 @@ def bsort_expr(n, datatype):
 def retval(n, datatype):
     if datatype == "bool":     return (ir.Bool(ir.true))
     elif datatype == "int":    return (n)
-    elif datatype == "float":  return (n)
+    elif datatype == "float":  return (ir.Float(float(n)))
     elif datatype == "string": return (ir.Str(str(n)))
     else: raise
 
