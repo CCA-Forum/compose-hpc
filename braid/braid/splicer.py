@@ -88,7 +88,7 @@ def record(filename):
             inside = False
             splicers[splicer_name] = splicer
         elif inside:
-            splicer.extend(line)
+            splicer.append(line)
 
     if inside:
         raise Exception("unclosed splicer block: "+splicer+name)

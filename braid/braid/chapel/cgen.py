@@ -347,6 +347,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         def gen_comment(DocComment):
             return gen_doc_comment(DocComment, scope)
 
+        def gen_attrs(attrs):
+            return sep_by(' ', attrs)
+
         cbool = '_Bool'
         int32 = 'int32_t'
         int64 = 'int64_t'
@@ -359,16 +362,18 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
         with match(node):
             if (ir.fn_defn, Attrs, (ir.primitive_type, 'void'), Name, Args, Body, DocComment):
-                new_scope('%sproc %s(%s) {'%
+                new_scope('%s%sproc %s(%s) {'%
                           (gen_comment(DocComment),
+                           gen_attrs(Attrs),
                            gen(Name), gen_comma_sep(Args)),
                           Body,
                           '}')
                 new_def('')
 
             elif (ir.fn_defn, Attrs, Type, Name, Args, Body, DocComment):
-                new_scope('%sproc %s(%s): %s {'%
+                new_scope('%s%sproc %s(%s): %s {'%
                           (gen_comment(DocComment),
+                           gen_attrs(Attrs),
                            gen(Name), gen_comma_sep(Args),
                            gen(Type)),
                           Body,
@@ -491,13 +496,14 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                                               itemdecls, '\n}'))
 
             elif (ir.var_decl, Type, Name):
-                return 'var %s: %s'%(gen(Name), gen(Type))
+                return scope.new_header_def('var %s: %s'%(gen(Name), gen(Type)))
 
             elif (ir.var_decl_init, (ir.typedef_type, "inferred_type"), Name, Initializer):
-                return 'var %s = %s'%(gen(Name), gen(Initializer))
+                return scope.new_header_def('var %s = %s'%(gen(Name), gen(Initializer)))
 
             elif (ir.var_decl_init, Type, Name, Initializer):
-                return 'var %s: %s = %s'%(gen(Name), gen(Type), gen(Initializer))
+                return scope.new_header_def('var %s: %s = %s'%
+                                            (gen(Name), gen(Type), gen(Initializer)))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
 

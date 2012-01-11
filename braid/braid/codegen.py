@@ -1218,8 +1218,8 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.return_, Expr):      return 'return '+gen(Expr)
             elif (ir.log_not):            return '!'
             elif (ir.eq):                 return '=='
-            elif (ir.bool, ir.true):      return 'TRUE'
-            elif (ir.bool, ir.false):     return 'FALSE'
+            elif (ir.bool, ir.true):      return 'true'
+            elif (ir.bool, ir.false):     return 'false'
             elif (ir.str, S):             return '"%s"'%S
             elif (Expr):
                 return super(ClikeCodeGenerator, self).generate(Expr, scope)
@@ -1306,6 +1306,9 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return scope.new_global_def('#include <%s.h>'%Name)
 
             elif (ir.set_arg, Var, Expr): return '*%s = %s'%(gen(Var), gen(Expr))
+
+            elif (ir.bool, ir.true):      return 'TRUE'
+            elif (ir.bool, ir.false):     return 'FALSE'
 
             elif (Expr):
                 return super(CCodeGenerator, self).generate(Expr, scope)

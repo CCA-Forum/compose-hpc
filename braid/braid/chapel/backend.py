@@ -81,7 +81,7 @@ def babel_exception_type():
     """
     \return the SIDL node for the Babel exception type
     """
-    return babel_object_type(['sidl'], 'BaseException')
+    return babel_object_type(['sidl'], 'BaseInterface')
 
 def ir_babel_object_type(package, name):
     """
@@ -95,7 +95,7 @@ def ir_babel_exception_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir_babel_object_type(['sidl'], 'BaseException')
+    return ir_babel_object_type(['sidl'], 'BaseInterface')
 
 def ir_babel_baseinterface_type():
     """
@@ -1166,7 +1166,11 @@ class Chapel(object):
                                 is_abstract,
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
+            ci.impl.gen(ir.Import('sidl'))
             ci.impl.gen(ir.Import('_'.join(symbol_table.prefix)))
+            typedefs = self.class_typedefs(qname, symbol_table)
+            ci.chpl_skel.cstub._header.extend(typedefs._header)
+            ci.chpl_skel.cstub._defs.extend(typedefs._defs)
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             chpl_stub.cstub.genh(ir.Import('sidlType'))
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
@@ -1177,9 +1181,27 @@ class Chapel(object):
 
             self.gen_default_methods(symbol_table, extends, implements, ci)
 
-            # recurse to generate method code
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
-            gen1(all_methods, ci)
+            for method in all_methods:
+                (Method, Type, Name, Attrs, Args, 
+                 Except, From, Requires, Ensures, DocComment) = method
+                ci.epv.add_method((method, Type, Name, Attrs, 
+                                   drop_rarray_ext_args(Args),
+                                   Except, From, Requires, Ensures, DocComment))
+
+            # not very efficient...
+            def builtin(t, name, args):
+                methods.append(
+                    sidl.Method(t, sidl.Method_name(name, ''), [],
+                                args, [], [], [], [], 
+                                'Implicit built-in method: '+name))
+            builtin(sidl.void, '_ctor', [])
+            builtin(sidl.void, '_ctor2',
+                    [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
+            builtin(sidl.void, '_dtor', [])
+
+            # recurse to generate method code
+            gen1(methods, ci) #all_methods
 
             self.generate_ior(ci, extends, implements, all_methods)
 
@@ -1202,9 +1224,6 @@ class Chapel(object):
             skel = ci.chpl_skel
             self.pkg_chpl_skel.gen(ir.Import('.'.join(symbol_table.prefix)))
 
-            typedefs = self.class_typedefs(qname, symbol_table)
-            write_to(qname+'_Skel.h', typedefs.dot_h(qname+'_Skel.h'))
-
             self.pkg_chpl_skel.new_def('use sidl;')
             objname = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name]) + '_Impl'
 
@@ -1224,17 +1243,32 @@ class Chapel(object):
             cskel.gen(ir.Import(qname+'_IOR'))
             cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
                                    [ir.Stmt(ir.Call('_load', []))], ''))
+
+            # set_epv ... Setup the EPV
             epv_t = ci.epv.get_ir()
+            pre_epv_t = ci.epv.get_pre_epv_ir()
+            post_epv_t = ci.epv.get_post_epv_ir()
             cskel.gen(ir.Fn_decl([], ir.pt_void, 'ctor', [], ''))
             cskel.gen(ir.Fn_decl([], ir.pt_void, 'dtor', [], ''))
+
+            epv_init = []
+            for m in methods:
+                name = m[2][1]
+                def entry(epv_t, table, field, pointer):
+                    epv_init.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
+
+                entry(epv_t, 'epv', 'f_'+name, name+'_impl')
+                builtins = set(['_ctor', '_ctor2', '_dtor'])
+                if name not in builtins:
+                    entry(pre_epv_t, 'pre_epv', 'f_%s_pre'%name, 'NULL')
+                    entry(post_epv_t, 'post_epv', 'f_%s_post'%name, 'NULL')
+            
             cskel.gen(ir.Fn_defn(
                 [], ir.pt_void, qname+'__set_epv',
                 [ir.Arg([], ir.out, epv_t, 'epv'),
-                 ir.Arg([], ir.out, epv_t, 'pre_epv'),
-                 ir.Arg([], ir.out, epv_t, 'post_epv')],
-                [ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor', 'ctor'),
-                 ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__ctor2', '0'),
-                 ir.Set_struct_item_stmt(epv_t, ir.Deref('epv'), 'f__dtor', 'dtor')], ''))
+                 ir.Arg([], ir.out, pre_epv_t, 'pre_epv'),
+                 ir.Arg([], ir.out, post_epv_t, 'post_epv')],
+                epv_init, ''))
 
             # Skel Header
             write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
@@ -1360,9 +1394,9 @@ class Chapel(object):
          Except, From, Requires, Ensures, DocComment) = method
 
         ior_args = drop_rarray_ext_args(Args)
-
-        ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
-                           Except, From, Requires, Ensures, DocComment))
+        
+#        ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
+#                           Except, From, Requires, Ensures, DocComment))
 
         abstract = member_chk(sidl.abstract, Attrs)
         static = member_chk(sidl.static, Attrs)
@@ -1403,15 +1437,18 @@ class Chapel(object):
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
+        ior_args = drop_rarray_ext_args(Args)
+
         defn = (ir.fn_defn, [], Type, Name,
                 babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
                 pre_call+call+post_call+return_stmt,
                 DocComment)
         chpldecl = (ir.fn_decl, [], Type, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
+                    [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+lower_ir(ci.epv.symbol_table, Args),
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
-        chpldefn = (ir.fn_defn, [], Type, callee,
+        chpldefn = (ir.fn_defn, #['export %s'%callee]
+                    [], Type, callee,
                     [ir.Arg([], ir.in_, ir.void_ptr, 'this')]+Args,
                     [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
@@ -1502,8 +1539,6 @@ def lower_ir(symbol_table, sidl_term, header=None):
         elif (sidl.scoped_id, Prefix, Name, Ext):
             return low(symbol_table[sidl_term])
         
-#fixme: epv.add_method args do not get lowered!
-
         elif (sidl.void):                        return ir.pt_void
         elif (ir.void_ptr):                      return ir.void_ptr
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
@@ -1820,7 +1855,7 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
                     ir_babel_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], ir.out, ir_babel_exception_type(), chpl_local_exception_var)]
+        [ir.Arg([], ir.out, ir_babel_baseinterface_type(), chpl_local_exception_var)]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):

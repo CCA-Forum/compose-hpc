@@ -333,14 +333,15 @@ def main():
         m = re.match(r'^(all *:.*)$', line)
         if m:
             dest.write(m.group(1)+
-                       ' runC2C runC2CXX runC2F77 runC2F90 runC2F03 runC2Java runC2Python\n')
+                       ' runC2C runC2CXX runC2F77 runC2F90 runC2F03 '
+                       +'runC2Java runC2Python runC2Chapel\n')
             dest.write("CXX=`babel-config --query-var=CXX`\n"+
                        '\n'.join([
 """
 runC2{lang}: lib$(LIBNAME).la ../{lang}_{i}_{t}_{e}/libimpl.la main.lo
 \tbabel-libtool --mode=link $(CC) -static main.lo lib$(LIBNAME).la \
 \t    ../{lang}_{i}_{t}_{e}/libimpl.la -o runC2{lang}
-""".format(lang=lang, i=i, t=datatype, e=expr) for lang in languages[:6]]))
+""".format(lang=lang, i=i, t=datatype, e=expr) for lang in languages[:6]+languages[7:]]))
             dest.write("""
 runC2Python: lib$(LIBNAME).la ../Python_{i}_{t}_{e}/libimpl1.la main.lo
 \tbabel-libtool --mode=link $(CC) -static main.lo lib$(LIBNAME).la \
