@@ -40,10 +40,10 @@ def sidl_code(n, datatype):
     """
     return sidl.File([], [], [sidl.User_type([],
             sidl.Package("s", sidl.Version(1.0),
-             [sidl.User_type([], sidl.Struct(sidl.Scoped_id([], 'Vector', ''),
+             [sidl.User_type([], sidl.Struct('Vector',
                                   [sidl.Struct_item(sidl.Primitive_type(datatype),
                                                     ('m%d'%i))
-                                   for i in range(1, n+1)])),
+                                   for i in range(1, n+1)], 'our benchmark struct')),
               sidl.User_type([], 
                sidl.Class(("Benchmark"), [], [], [],
                 [sidl.Method(
@@ -356,13 +356,13 @@ runC2Python: lib$(LIBNAME).la ../Python_{i}_{t}_{e}/libimpl1.la main.lo
     print "generating benchmark script..."
     print "-------------------------------------------------------------"
     def numruns(t):
-        if t == 'string': 
+        if t == 'string' or expr == 'bsort': 
             return str(100001)
-        return str(1000001)
+        return     str(1000001)
 
     for lang in languages:
         f = open('out/client_%d_%s_%s/runC2%s.sh'%(i,datatype,expr, lang), 'w')
-        f.write(r"""#!/usr/bin/bash
+        f.write(r"""#!/bin/sh
 LIBDIR=`babel-config --query-var=libdir`
 PYTHON_VERSION=`babel-config --query-var=PYTHON_VERSION`
 PYTHONPATH_1=$LIBDIR/python$PYTHON_VERSION/site-packages:$PYTHONPATH
@@ -372,7 +372,7 @@ export LD_LIBRARY_PATH="$LIBDIR:$LD_LIBRARY_PATH"
 
 # echo "runC2{lang}({i})"
 
-function count_insns {
+count_insns () {
    # measure the number of instructions of $1, save output to $2.all
    # perform one run with only one iteration and subtract that from the result 
    # to eliminate startup time
@@ -382,7 +382,7 @@ function count_insns {
    grep instructions $2.perf | awk "{print \$1-$base}" >> $2.all
 }
 
-function medtime {
+medtime () {
    # measure the median running user time
    rm -f $2.all
    MAX=1 # 3 #### 10 see also 1:9 below!!!!!
@@ -410,7 +410,7 @@ medtime ./runC2{lang} out{lang} {i} {t} {e}
     # end for langs
 
     f = open('out/client_%d_%s_%s/combine.sh'%(i,datatype,expr), 'w')
-    f.write("#!/bin/sh") 
+    f.write("#!/bin/sh\n") 
     f.write("echo %d "%i+' '.join(['`cat out%s`'%lang 
                                    for lang in languages])+' >times\n')
     f.close()

@@ -37,7 +37,7 @@ sidls: $(SIDLS)
 
 compile: sidls 
 	$(MAKE) $(COMPILES)
-timings: #compile
+timings: compile
 	$(MAKE) $(TIMINGS) # execute timing measurements serially
 
 clean:
@@ -98,18 +98,18 @@ out/client_%/token: out/struct_%.sidl out/C_%/token out/Chapel_%/token out/CXX_%
 	touch $@
 
 out/client_%/outC: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2C.sh
+	@cd $(shell dirname $@) && sh runC2C.sh
 out/client_%/outCXX: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2CXX.sh
+	@cd $(shell dirname $@) && sh runC2CXX.sh
 out/client_%/outF77: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2F77.sh
+	@cd $(shell dirname $@) && sh runC2F77.sh
 out/client_%/outF90: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2F90.sh
+	@cd $(shell dirname $@) && sh runC2F90.sh
 out/client_%/outF03: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2F03.sh
+	@cd $(shell dirname $@) && sh runC2F03.sh
 out/client_%/outJava: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2Java.sh
+	@cd $(shell dirname $@) && sh runC2Java.sh
 out/client_%/outPython: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2Python.sh
+	@cd $(shell dirname $@) && sh runC2Python.sh
 out/client_%/outChapel: out/client_%/token
-	@cd $(shell dirname $@) && bash runC2Chapel.sh
+	@cd $(shell dirname $@) && sh runC2Chapel.sh
