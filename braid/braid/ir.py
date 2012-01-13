@@ -67,7 +67,7 @@
 #   Struct = struct((Scoped_id|Id), [Struct_item], DocComment),
 #   Struct_item = struct_item(Type, Id),
 #   Enum = enum(Id, [Enumerator], DocComment),
-#   Enumerator = ( enumerator(Id) | enumerator(Id, 'INT')),
+#   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
 #   VarRefExpr = ( Id
 # 	       | Pointer_expr
 # 	       | Deref
@@ -139,6 +139,7 @@ do_while = 'do_while'
 double = 'double'
 enum = 'enum'
 enumerator = 'enumerator'
+enumerator_value = 'enumerator_value'
 eq = 'eq'
 false = 'false'
 fcomplex = 'fcomplex'
@@ -1082,7 +1083,7 @@ def Scoped_id(*args):
 
 def STR():
     return STR
-# skipping \c Enumerator= (\c Enumerator|\c Enumerator)
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
 def Enum(*args):
     """
     Construct a "enum" node. Valid arguments are 
@@ -1105,7 +1106,7 @@ def Enum(*args):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == enumerator:
                 pass
-            elif isinstance(a, tuple) and a[0] == enumerator:
+            elif isinstance(a, tuple) and a[0] == enumerator_value:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -2154,13 +2155,13 @@ def Enumerator(*args):
         raise Exception("Grammar Error")
     return tuple(['enumerator']+list(args))
 
-def Enumerator(*args):
+def Enumerator_value(*args):
     """
-    Construct a "enumerator" node. Valid arguments are 
+    Construct a "enumerator_value" node. Valid arguments are 
     (\c Id(), INT())
-    \return (\c "Enumerator", \c Id(), INT())
+    \return (\c "Enumerator_value", \c Id(), INT())
     """
-    f = Enumerator
+    f = Enumerator_value
     if len(args) <> 2:
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
@@ -2179,7 +2180,7 @@ def Enumerator(*args):
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    return tuple(['enumerator']+list(args))
+    return tuple(['enumerator_value']+list(args))
 
 def Get_struct_item(*args):
     """
@@ -2930,7 +2931,7 @@ def scoped_id_extension(arg):
 
 
 # skipping \c DocComment=STR
-# skipping \c Enumerator= (\c Enumerator|\c Enumerator)
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
 def enum_id(arg):
     """
     Accessor function.
@@ -3511,26 +3512,26 @@ def enumerator_id(arg):
     else: return arg[1]
 
 
-def enumerator_id(arg):
+def enumerator_value_id(arg):
     """
     Accessor function.
-    \return the "id" member of a "enumerator" node.
+    \return the "id" member of a "enumerator_value" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
-    elif arg[0] <> 'enumerator':
+    elif arg[0] <> 'enumerator_value':
         raise Exception("Grammar Error")
     else: return arg[1]
 
 
-def enumerator_INT(arg):
+def enumerator_value_INT(arg):
     """
     Accessor function.
-    \return the "INT" member of a "enumerator" node.
+    \return the "INT" member of a "enumerator_value" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
-    elif arg[0] <> 'enumerator':
+    elif arg[0] <> 'enumerator_value':
         raise Exception("Grammar Error")
     else: return arg[2]
 

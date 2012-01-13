@@ -26,6 +26,7 @@
       \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{F03}   #5] {#4}; 
       \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{Java}  #5] {#4};  
       \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{Python}#5] {#4}; 
+      \addplot+[smooth] table[x expr=\thisrow{n}, y expr=\thisrow{Chapel}#5] {#4}; 
 
       \addlegendentry{C}  
       \addlegendentry{C++}
@@ -34,6 +35,7 @@
       \addlegendentry{F03}
       \addlegendentry{Java}
       \addlegendentry{Python}
+      \addlegendentry{Chapel}
     \end{loglogaxis}
   \end{tikzpicture}
 }

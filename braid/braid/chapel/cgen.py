@@ -529,7 +529,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                         else:
                             while avail_state in used_states:
                                 avail_state = avail_state + 1
-                            new_items.append(ir.Enumerator(loop_item[1], avail_state))
+                            new_items.append(ir.Enumerator_value(loop_item[1], avail_state))
                             used_states.append(avail_state)
                     items_to_use = new_items
 

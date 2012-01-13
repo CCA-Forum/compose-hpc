@@ -360,58 +360,61 @@ runC2Python: lib$(LIBNAME).la ../Python_{i}_{t}_{e}/libimpl1.la main.lo
             return str(100001)
         return str(1000001)
 
-    f = open('out/client_%d_%s_%s/runAll.sh'%(i,datatype,expr), 'w')
-    f.write(r"""#!/usr/bin/bash
-PYTHONPATH_1=$LIBDIR/python$PYTHON_VERSION/site-packages:$PYTHONPATH
+    for lang in languages:
+        f = open('out/client_%d_%s_%s/runC2%s.sh'%(i,datatype,expr, lang), 'w')
+        f.write(r"""#!/usr/bin/bash
 LIBDIR=`babel-config --query-var=libdir`
 PYTHON_VERSION=`babel-config --query-var=PYTHON_VERSION`
+PYTHONPATH_1=$LIBDIR/python$PYTHON_VERSION/site-packages:$PYTHONPATH
 SIDL_VERSION=`babel-config --query-var=VERSION`
 SIDL_DLL_PATH_1="$LIBDIR/libsidlstub_java.scl;$LIBDIR/libsidl.scl;$LIBDIR/libsidlx.scl"
 export LD_LIBRARY_PATH="$LIBDIR:$LD_LIBRARY_PATH"
 
-echo "runAll($i)"
+# echo "runC2{lang}({i})"
 
 function count_insns {
    # measure the number of instructions of $1, save output to $2.all
    # perform one run with only one iteration and subtract that from the result 
    # to eliminate startup time
-   perf stat -- $1 1 2>$2.base || (echo "FAIL" >$2; exit 1)
+   perf stat -- $1 1 2>$2.base || (echo "FAIL1" >$2; echo FAIL1; exit 1)
    base=`grep instructions $2.base | awk '{print $1}'`
-   perf stat -- $1 """+numruns(datatype)+r""" 2>$2.perf || (echo "FAIL" >$2; exit 1)
+   perf stat -- $1 """+numruns(datatype)+r""" 2>$2.perf || (echo "FAILN" >$2; echo FAILN; exit 1)
    grep instructions $2.perf | awk "{print \$1-$base}" >> $2.all
 }
 
 function medtime {
    # measure the median running user time
    rm -f $2.all
-   MAX=1 # 10
+   MAX=1 # 3 #### 10 see also 1:9 below!!!!!
    for I in `seq $MAX`; do
      echo "measuring $1 ($3@$4,$5) [$I/$MAX]"
-     # echo SIDL_DLL_PATH=$SIDL_DLL_PATH
-     # echo PYTHONPATH=$PYTHONPATH
-     # /usr/bin/time -f %U -a -o $2.all $1 || (echo "FAIL" >$2; exit 1)
      count_insns $1 $2
    done
    cat $2.all \
        | sort \
        | python -c 'import numpy,sys; \
            print numpy.mean( \
-             sorted(map(lambda x: float(x), sys.stdin.readlines()))[1:9])' \
+             sorted(map(lambda x: float(x), sys.stdin.readlines())) )#[1:9])' \
        >>$2
 }
 """)
-    for lang in languages:
         f.write('''
 rm -f out{lang}
 export SIDL_DLL_PATH="../{lang}_{i}_{t}_{e}/libimpl.scl;$SIDL_DLL_PATH_1"
 export PYTHONPATH="../Python_{i}_{t}_{e}:$PYTHONPATH_1"
-export CLASSPATH="../Java_{i}_{t}_{e}:$LIBDIR/sidl-$SIDL_VERSION.jar:$LIBDIR/sidlstub_$SIDL_VERSION.jar"
+export CLASSPATH="../Java_{i}_{t}_{e}:$LIBDIR/sidl-$SIDL_VERSION.jar:$LIBDIR:$LIBDIR/sidlstub_$SIDL_VERSION.jar"
+export BABEL_JVM_FLAGS=-XX:CompileThreshold=1
 medtime ./runC2{lang} out{lang} {i} {t} {e}
 '''.format(lang=lang,i=i,t=datatype,e=expr))
+        f.close()
+    # end for langs
 
+    f = open('out/client_%d_%s_%s/combine.sh'%(i,datatype,expr), 'w')
+    f.write("#!/bin/sh") 
     f.write("echo %d "%i+' '.join(['`cat out%s`'%lang 
                                    for lang in languages])+' >times\n')
     f.close()
+
 
 if __name__ == '__main__':
     try:

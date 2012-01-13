@@ -1,7 +1,7 @@
 BABELPATH=/home/prantl1/work/babel/install/bin
 PYTHONPATH=../../../../braid.build/braid:../../braid:../../../../install/lib/python2.6/site-packages:../../../../install/lib/python2.6/site-packages/braid
 
-NUMBERS=1 2 4 6 8 12 16 24 32 48 64 96 128 #256 512
+NUMBERS=96 128 1 2 4 6 8 12 16 24 32 48 64 #256 512
 #NUMBERS=$(shell seq 1 16) 18 20 $(shell seq 24 4 48) 64 96 128
 NUMBER_TYPES=$(patsubst %, %_float, $(NUMBERS)) \
              $(patsubst %, %_bool, $(NUMBERS)) \
@@ -18,7 +18,8 @@ TIMINGS=$(patsubst %,out/client_%/times, $(NUMBER_TYPE_EXPRS))
 
 TYPES=float bool string
 RESULTS=$(patsubst %, out/result_%_reverse.txt, $(TYPES)) \
-        $(patsubst %, out/result_%_nop.txt, $(TYPES)) 
+        $(patsubst %, out/result_%_nop.txt, $(TYPES)) \
+        out/result_int_bsort.txt
 
 .PHONY: clean all sidls compile timings
 
@@ -29,14 +30,14 @@ graph.pdf: graph.tex timings
 	env TEXINPUTS=~/sw/share/texmf//:$(TEXINPUTS) pdflatex -halt-on-error graph
 
 out/result_%.txt:
-	echo "n" "C" "CXX" "F77" "F90" "F03" "Java" "Python" >$@
+	echo "n C CXX F77 F90 F03 Java Python Chapel" >$@
 	cat out/client_*_$(patsubst out/result_%.txt,%,$@)/times |sort -g >>$@
 
 sidls: $(SIDLS)
 
 compile: sidls 
 	$(MAKE) $(COMPILES)
-timings: compile
+timings: #compile
 	$(MAKE) $(TIMINGS) # execute timing measurements serially
 
 clean:
@@ -52,11 +53,12 @@ out/struct_%.sidl:
 		$(shell echo $(patsubst out/struct_%.sidl,%,$@) | sed 's/.*_\(.*\)_.*/\1/') \
 		$(shell echo $(patsubst out/struct_%.sidl,%,$@) | sed 's/.*._//g') 
 
-out/client_%/times:
-	@cd $(patsubst %/times,%,$@) && \
-	 env PATH=$(BABELPATH):$(PATH) \
-	    PYTHONPATH=$(PYTHONPATH) \
-	    bash runAll.sh
+out/client_%/times: out/client_%/outC out/client_%/outCXX out/client_%/outF77 out/client_%/outF90 out/client_%/outF03 out/client_%/outJava out/client_%/outPython out/client_%/outChapel
+	cd $(shell dirname $@) && sh combine.sh
+#	@cd $(patsubst %/times,%,$@) && \
+#	 env PATH=$(BABELPATH):$(PATH) \
+#	    PYTHONPATH=$(PYTHONPATH) \
+#	    bash runAll.sh
 
 out/C_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
@@ -95,6 +97,19 @@ out/client_%/token: out/struct_%.sidl out/C_%/token out/Chapel_%/token out/CXX_%
 	$(MAKE) -C $(patsubst %/token,%,$@)  all
 	touch $@
 
-run:
-	env PYTHONPATH=../install/lib/python2.6/site-packages python benchgen.py \
-	  n /home/prantl1/work/babel/install/bin/babel
+out/client_%/outC: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2C.sh
+out/client_%/outCXX: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2CXX.sh
+out/client_%/outF77: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2F77.sh
+out/client_%/outF90: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2F90.sh
+out/client_%/outF03: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2F03.sh
+out/client_%/outJava: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2Java.sh
+out/client_%/outPython: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2Python.sh
+out/client_%/outChapel: out/client_%/token
+	@cd $(shell dirname $@) && bash runC2Chapel.sh

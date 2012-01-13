@@ -10,7 +10,7 @@ use sidl;
 config var bindir = "gantlet compatibility";
 
 var part_no: int = 0;
-var sidl_ex: BaseException = nil;
+var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 var magicNumber = 13;
 //tracker.setExpectations(76, sidl_ex);
@@ -53,7 +53,7 @@ proc clearstack(magicNumber: int): int
 }
 
 proc testC() {
-  var sidlEx: BaseException = nil;
+  var sidlEx: BaseInterface = nil;
   tracker.writeComment("Class C: starts...", sidlEx);
   var c = Inherit.C_static.create_C(sidlEx);
   tracker.writeComment("Class C:", sidlEx);
@@ -64,7 +64,7 @@ testC();
 
 
 proc testD() {
-  var sidlEx: BaseException = nil;
+  var sidlEx: BaseInterface = nil;
   tracker.writeComment("Class D: starts...", sidlEx);
 
   var d = Inherit.D_static.create_D(sidl_ex);

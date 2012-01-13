@@ -6,7 +6,7 @@ config var bindir = "gantlet compatibility";
 
 var failed: bool = false;
 var part_no: int = 0;
-var sidl_ex: BaseException = nil;
+var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 
 proc init_part() {
@@ -49,7 +49,7 @@ proc assertTrue(actual: bool, msg: string): bool
   var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
-  var baseEx: BaseException = nil;
+  var baseEx: BaseInterface = nil;
   var isExNotNil = (baseEx != nil);
   obj.getFib(10, 25, 200, 0, baseEx);
   isExNotNil = (baseEx != nil);
@@ -65,7 +65,7 @@ writeln();
   var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
-  var baseEx: BaseException = nil;
+  var baseEx: BaseInterface = nil;
   obj.getFib(-1, 10, 10, 0, baseEx);
   writeln("Expecting NegativeValueException, found baseEx = ", baseEx);
   var isExNotNil = (baseEx != nil);
@@ -81,7 +81,7 @@ writeln();
   var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
-  var baseEx: BaseException = nil;
+  var baseEx: BaseInterface = nil;
   obj.getFib(10, 1, 1000, 0, baseEx);
   writeln("Expecting TooDeepException, found baseEx = ", baseEx);
   // FIXME Need to catch the appropriate class of exception in try-catch-like block
@@ -98,7 +98,7 @@ writeln();
   var obj: Exceptions.Fib = Exceptions.Fib_static.create_Fib(sidl_ex);
 
   init_part();
-  var baseEx: BaseException = nil;
+  var baseEx: BaseInterface = nil;
   obj.getFib(10, 1000, 1, 0, baseEx);
   writeln("Expecting TooBigException, found baseEx = ", baseEx);
   // FIXME Need to catch the appropriate class of exception in try-catch-like block

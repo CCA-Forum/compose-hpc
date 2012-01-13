@@ -6,7 +6,7 @@ config var bindir = "gantlet compatibility";
 
 var failed: bool = false;
 var part_no: int = 0;
-var sidl_ex: BaseException = nil;
+var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 
 proc init_part() {

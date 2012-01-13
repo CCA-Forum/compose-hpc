@@ -43,7 +43,7 @@
 #   Id = 'STR',
 #   Doc_comment = 'STR',
 #   Enum = enum(Id, [Enumerator], Doc_comment),
-#   Enumerator = ( enumerator(Id) | enumerator(Id, 'INT')),
+#   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
 #   Struct = struct(Scoped_id, [Struct_item]),
 #   Struct_item = struct_item(Type_void, Id),
 #   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
@@ -67,9 +67,8 @@
 #   Assertion = assertion(Id, AssertExpr),
 #   Except = except([Scoped_id]),
 #   Ensure = ensure([Scoped_id]),
-#   Extends = extends([Scoped_id]),
-#   Arg = ( arg([Arg_attr], Mode, Type_void, Id)
-#         | rarg([Arg_attr], Mode, Rarray) ),
+#   Extends = extends(Scoped_id),
+#   Arg = arg([Arg_attr], Mode, (Type_void | Rarray), Id),
 #   Arg_attr = (copy | ['STR']),
 #   Custom_attr = ( custom_attribute('STR')
 #                 | custom_attribute_assoc('STR', 'STR')
@@ -82,9 +81,9 @@
 #   Scalar_type = (Primitive_type|Scoped_id),
 #   Dimension = 'INT',
 #   Orientation = (row_major|column_major),
-#   Rarray = rarray(Primitive_type, Dimension, Id, Extents),
+#   Rarray = rarray(Primitive_type, Dimension, Extents),
 #   Extents = SimpleIntExpression,
-#   SimpleIntExpression = 'INT', % resolved by the parser?
+#   SimpleIntExpression = ('INT' | Id), % FIXME
 #   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
 #                | prefix_expr(Un_op, AssertExpr)
 #                | fn_eval(Id, [Arg])
@@ -134,6 +133,7 @@ double = 'double'
 ensure = 'ensure'
 enum = 'enum'
 enumerator = 'enumerator'
+enumerator_value = 'enumerator_value'
 eq = 'eq'
 except_ = 'except'
 extends = 'extends'
@@ -176,7 +176,6 @@ pow = 'pow'
 prefix_expr = 'prefix_expr'
 primitive_type = 'primitive_type'
 pure = 'pure'
-rarg = 'rarg'
 rarray = 'rarray'
 rem = 'rem'
 require = 'require'
@@ -536,7 +535,7 @@ def Enum(*args):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == enumerator:
                 pass
-            elif isinstance(a, tuple) and a[0] == enumerator:
+            elif isinstance(a, tuple) and a[0] == enumerator_value:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -711,7 +710,7 @@ def Class(*args):
         raise Exception("Grammar Error")
     return tuple(['class']+list(args))
 
-# skipping \c Enumerator= (\c Enumerator|\c Enumerator)
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
 def Struct_item(*args):
     """
     Construct a "struct_item" node. Valid arguments are 
@@ -749,23 +748,16 @@ def Struct_item(*args):
 def Extends(*args):
     """
     Construct a "extends" node. Valid arguments are 
-    ([\c Scoped_id()])
-    \return (\c "Extends", [\c Scoped_id()])
+    (\c Scoped_id())
+    \return (\c "Extends", \c Scoped_id())
     """
     f = Extends
     if len(args) <> 1:
         print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
-        for a in args[0]:
-            if isinstance(a, tuple) and a[0] == scoped_id:
-                pass
-            else:
-                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == scoped_id:
+        pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
@@ -855,8 +847,6 @@ def Method(*args):
         for a in args[3]:
             if isinstance(a, tuple) and a[0] == arg:
                 pass
-            elif isinstance(a, tuple) and a[0] == rarg:
-                pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
                 print "**GRAMMAR ERROR in argument a = %s"%repr(a)
@@ -933,7 +923,77 @@ def Method(*args):
     return tuple(['method']+list(args))
 
 # skipping \c Method_attr= (oneway|local|static|abstract|final|nonblocking|copy)
-# skipping \c Arg= (\c Arg|\c Rarg)
+def Arg(*args):
+    """
+    Construct a "arg" node. Valid arguments are 
+    ([\c Arg_attr()], \c Mode(), \c Type_void()
+    |\c Rarray(), \c Id())
+    \return (\c "Arg", [\c Arg_attr()], \c Mode(), \c Type_void()
+    |\c Rarray(), \c Id())
+    """
+    f = Arg
+    if len(args) <> 4:
+        print "**GRAMMAR ERROR: expected 4 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], list):
+        for a in args[0]:
+            if a == copy:
+                pass
+            elif isinstance(a, list):
+                for a in a:
+                    if isinstance(a, PythonTypes.StringType):
+                        pass
+                    else:
+                        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+                        print "**GRAMMAR ERROR in argument a = %s"%repr(a)
+                        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                        raise Exception("Grammar Error")
+            else:
+                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
+                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                raise Exception("Grammar Error")
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if args[1] == in_:
+        pass
+    elif args[1] == out:
+        pass
+    elif args[1] == inout:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if args[2] == void:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == primitive_type:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == array:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == scoped_id:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == rarray:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[3], PythonTypes.StringType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['arg']+list(args))
+
 def Except(*args):
     """
     Construct a "except" node. Valid arguments are 
@@ -1087,16 +1147,15 @@ def Assertion(*args):
 
 # skipping \c AssertExpr= (\c Infix_expr|\c Prefix_expr|\c Fn_eval|\c Var_ref|\c Id|\c Literal)
 # skipping \c Arg_attr= (copy|[STR])
-# skipping \c Mode= (in|out|inout)
 def Rarray(*args):
     """
     Construct a "rarray" node. Valid arguments are 
-    (\c Primitive_type(), \c Dimension(), \c Id(), \c Extents())
-    \return (\c "Rarray", \c Primitive_type(), \c Dimension(), \c Id(), \c Extents())
+    (\c Primitive_type(), \c Dimension(), \c Extents())
+    \return (\c "Rarray", \c Primitive_type(), \c Dimension(), \c Extents())
     """
     f = Rarray
-    if len(args) <> 4:
-        print "**GRAMMAR ERROR: expected 4 arguments for a", f.__name__
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
     if isinstance(args[0], tuple) and args[0][0] == primitive_type:
@@ -1113,22 +1172,18 @@ def Rarray(*args):
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[2], PythonTypes.StringType):
+    if isinstance(args[2], PythonTypes.IntType):
+        pass
+    elif isinstance(args[2], PythonTypes.StringType):
         pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[3], PythonTypes.IntType):
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
     return tuple(['rarray']+list(args))
 
+# skipping \c Mode= (in|out|inout)
 def Array(*args):
     """
     Construct a "array" node. Valid arguments are 
@@ -1227,10 +1282,8 @@ def Primitive_type(*args):
 def INT():
     return INT
 # skipping \c Orientation= (row_major|column_major)
-def INT():
-    return INT
-def INT():
-    return INT
+# skipping \c Extents= \c SimpleIntExpression
+# skipping \c SimpleIntExpression= (INT|\c Id)
 # skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
@@ -1283,13 +1336,13 @@ def Enumerator(*args):
         raise Exception("Grammar Error")
     return tuple(['enumerator']+list(args))
 
-def Enumerator(*args):
+def Enumerator_value(*args):
     """
-    Construct a "enumerator" node. Valid arguments are 
+    Construct a "enumerator_value" node. Valid arguments are 
     (\c Id(), INT())
-    \return (\c "Enumerator", \c Id(), INT())
+    \return (\c "Enumerator_value", \c Id(), INT())
     """
-    f = Enumerator
+    f = Enumerator_value
     if len(args) <> 2:
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
@@ -1308,7 +1361,7 @@ def Enumerator(*args):
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    return tuple(['enumerator']+list(args))
+    return tuple(['enumerator_value']+list(args))
 
 def Implements(*args):
     """
@@ -1349,127 +1402,6 @@ def Implements_all(*args):
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['implements_all']+list(args))
-
-def Arg(*args):
-    """
-    Construct a "arg" node. Valid arguments are 
-    ([\c Arg_attr()], \c Mode(), \c Type_void(), \c Id())
-    \return (\c "Arg", [\c Arg_attr()], \c Mode(), \c Type_void(), \c Id())
-    """
-    f = Arg
-    if len(args) <> 4:
-        print "**GRAMMAR ERROR: expected 4 arguments for a", f.__name__
-        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
-        raise Exception("Grammar Error")
-    if isinstance(args[0], list):
-        for a in args[0]:
-            if a == copy:
-                pass
-            elif isinstance(a, list):
-                for a in a:
-                    if isinstance(a, PythonTypes.StringType):
-                        pass
-                    else:
-                        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                        print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                        raise Exception("Grammar Error")
-            else:
-                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                raise Exception("Grammar Error")
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if args[1] == in_:
-        pass
-    elif args[1] == out:
-        pass
-    elif args[1] == inout:
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if args[2] == void:
-        pass
-    elif isinstance(args[2], tuple) and args[2][0] == primitive_type:
-        pass
-    elif isinstance(args[2], tuple) and args[2][0] == array:
-        pass
-    elif isinstance(args[2], tuple) and args[2][0] == scoped_id:
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if isinstance(args[3], PythonTypes.StringType):
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    return tuple(['arg']+list(args))
-
-def Rarg(*args):
-    """
-    Construct a "rarg" node. Valid arguments are 
-    ([\c Arg_attr()], \c Mode(), \c Rarray())
-    \return (\c "Rarg", [\c Arg_attr()], \c Mode(), \c Rarray())
-    """
-    f = Rarg
-    if len(args) <> 3:
-        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
-        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
-        raise Exception("Grammar Error")
-    if isinstance(args[0], list):
-        for a in args[0]:
-            if a == copy:
-                pass
-            elif isinstance(a, list):
-                for a in a:
-                    if isinstance(a, PythonTypes.StringType):
-                        pass
-                    else:
-                        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                        print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                        raise Exception("Grammar Error")
-            else:
-                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                raise Exception("Grammar Error")
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if args[1] == in_:
-        pass
-    elif args[1] == out:
-        pass
-    elif args[1] == inout:
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if isinstance(args[2], tuple) and args[2][0] == rarray:
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    return tuple(['rarg']+list(args))
 
 def Custom_attribute(*args):
     """
@@ -1698,8 +1630,6 @@ def Fn_eval(*args):
     if isinstance(args[1], list):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == arg:
-                pass
-            elif isinstance(a, tuple) and a[0] == rarg:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -2170,7 +2100,7 @@ def class_doc_comment(arg):
     else: return arg[6]
 
 
-# skipping \c Enumerator= (\c Enumerator|\c Enumerator)
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
 def struct_item_type_void(arg):
     """
     Accessor function.
@@ -2196,10 +2126,10 @@ def struct_item_id(arg):
 
 
 # skipping \c Type_void= (void|\c Type)
-def extends_scoped_ids(arg):
+def extends_scoped_id(arg):
     """
     Accessor function.
-    \return the "scoped_ids" member of a "extends" node.
+    \return the "scoped_id" member of a "extends" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
@@ -2330,7 +2260,66 @@ def method_doc_comment(arg):
 
 
 # skipping \c Method_attr= (oneway|local|static|abstract|final|nonblocking|copy)
-# skipping \c Arg= (\c Arg|\c Rarg)
+def arg_arg_attrs(arg):
+    """
+    Accessor function.
+    \return the "arg_attrs" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def arg_mode(arg):
+    """
+    Accessor function.
+    \return the "mode" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def arg_type_void(arg):
+    """
+    Accessor function.
+    \return the "type_void" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def arg_rarray(arg):
+    """
+    Accessor function.
+    \return the "rarray" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def arg_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'arg':
+        raise Exception("Grammar Error")
+    else: return arg[4]
+
+
 def except_scoped_ids(arg):
     """
     Accessor function.
@@ -2419,7 +2408,6 @@ def assertion_assertExpr(arg):
 
 # skipping \c AssertExpr= (\c Infix_expr|\c Prefix_expr|\c Fn_eval|\c Var_ref|\c Id|\c Literal)
 # skipping \c Arg_attr= (copy|[STR])
-# skipping \c Mode= (in|out|inout)
 def rarray_primitive_type(arg):
     """
     Accessor function.
@@ -2444,18 +2432,6 @@ def rarray_dimension(arg):
     else: return arg[2]
 
 
-def rarray_id(arg):
-    """
-    Accessor function.
-    \return the "id" member of a "rarray" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarray':
-        raise Exception("Grammar Error")
-    else: return arg[3]
-
-
 def rarray_extents(arg):
     """
     Accessor function.
@@ -2465,9 +2441,10 @@ def rarray_extents(arg):
         raise Exception("Grammar Error")
     elif arg[0] <> 'rarray':
         raise Exception("Grammar Error")
-    else: return arg[4]
+    else: return arg[3]
 
 
+# skipping \c Mode= (in|out|inout)
 def array_scalar_type(arg):
     """
     Accessor function.
@@ -2628,7 +2605,7 @@ def primitive_type_opaque(arg):
 # skipping \c Dimension=INT
 # skipping \c Orientation= (row_major|column_major)
 # skipping \c Extents= \c SimpleIntExpression
-# skipping \c SimpleIntExpression=INT
+# skipping \c SimpleIntExpression= (INT|\c Id)
 # skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
@@ -2669,26 +2646,26 @@ def enumerator_id(arg):
     else: return arg[1]
 
 
-def enumerator_id(arg):
+def enumerator_value_id(arg):
     """
     Accessor function.
-    \return the "id" member of a "enumerator" node.
+    \return the "id" member of a "enumerator_value" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
-    elif arg[0] <> 'enumerator':
+    elif arg[0] <> 'enumerator_value':
         raise Exception("Grammar Error")
     else: return arg[1]
 
 
-def enumerator_INT(arg):
+def enumerator_value_INT(arg):
     """
     Accessor function.
-    \return the "INT" member of a "enumerator" node.
+    \return the "INT" member of a "enumerator_value" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
-    elif arg[0] <> 'enumerator':
+    elif arg[0] <> 'enumerator_value':
         raise Exception("Grammar Error")
     else: return arg[2]
 
@@ -2715,90 +2692,6 @@ def implements_all_scoped_id(arg):
     elif arg[0] <> 'implements_all':
         raise Exception("Grammar Error")
     else: return arg[1]
-
-
-def arg_arg_attrs(arg):
-    """
-    Accessor function.
-    \return the "arg_attrs" member of a "arg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'arg':
-        raise Exception("Grammar Error")
-    else: return arg[1]
-
-
-def arg_mode(arg):
-    """
-    Accessor function.
-    \return the "mode" member of a "arg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'arg':
-        raise Exception("Grammar Error")
-    else: return arg[2]
-
-
-def arg_type_void(arg):
-    """
-    Accessor function.
-    \return the "type_void" member of a "arg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'arg':
-        raise Exception("Grammar Error")
-    else: return arg[3]
-
-
-def arg_id(arg):
-    """
-    Accessor function.
-    \return the "id" member of a "arg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'arg':
-        raise Exception("Grammar Error")
-    else: return arg[4]
-
-
-def rarg_arg_attrs(arg):
-    """
-    Accessor function.
-    \return the "arg_attrs" member of a "rarg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarg':
-        raise Exception("Grammar Error")
-    else: return arg[1]
-
-
-def rarg_mode(arg):
-    """
-    Accessor function.
-    \return the "mode" member of a "rarg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarg':
-        raise Exception("Grammar Error")
-    else: return arg[2]
-
-
-def rarg_rarray(arg):
-    """
-    Accessor function.
-    \return the "rarray" member of a "rarg" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarg':
-        raise Exception("Grammar Error")
-    else: return arg[3]
 
 
 def custom_attribute_STR(arg):

@@ -214,7 +214,9 @@ class Scope(object):
         #print 'new_def', s
         if s <> [] and s <> self:
             self._defs.extend(self._pre_defs)
-            self._defs.append(self.break_line(str(s)))
+            if (not isinstance(s, str)):
+                s = self.break_line(str(s))
+            self._defs.append(s)
             self._defs.extend(self._post_defs)
             self._pre_defs = []
             self._post_defs = []
@@ -225,14 +227,18 @@ class Scope(object):
         Record a definition \c s to be added to \c defs before the
         next call of \c new_def.
         """
-        self._pre_defs.append(self.break_line(s))
+        if (not isinstance(s, str)):
+            s = self.break_line(str(s))
+        self._pre_defs.append(s)
 
     def post_def(self, s):
         """
         Record a definition \c s to be added to \c defs after the
         next call of \c new_def.
         """
-        self._post_defs.append(self.break_line(s))
+        if (not isinstance(s, str)):
+            s = self.break_line(str(s))
+        self._post_defs.append(s)
 
     def get_defs(self):
         """
@@ -1204,7 +1210,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.enumerator, Name):
                 return new_def(gen(Name))
 
-            elif (ir.enumerator, Name, Value):
+            elif (ir.enumerator_value, Name, Value):
                 return new_def(gen(Name)+" = "+gen(Value))
 
             elif (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)):
@@ -1490,6 +1496,7 @@ class PythonFile(SourceFile):
         indent = ('\\\n'+re.match(r'^\s*', tokens[0]).group(0) +
                   ' '*self.relative_indent)
         lines = []
+        print string, tokens
         while len(tokens) > 0:
             line = ""
             while (len(tokens) > 0 and
@@ -1536,7 +1543,7 @@ class PythonCodeGenerator(GenericCodeGenerator):
         }
 
     un_op = {
-        'log_not': '.not.',
+        'log_not': 'not',
         'bit_not': '~'
         }
 
@@ -1592,12 +1599,12 @@ class PythonCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_block('if %s'%gen(Condition), Body)
 
-            elif (ir.var_decl, Type, Name): return ''
+            elif (ir.var_decl, Type, Name):  return ''
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.set_arg,    Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
-            elif (ir.eq):             return '=='
-            elif (ir.bool, ir.true):           return 'True'
-            elif (ir.bool, ir.false):          return 'False'
+            elif (ir.eq):                    return '=='
+            elif (ir.bool, ir.true):         return 'True'
+            elif (ir.bool, ir.false):        return 'False'
             elif (ir.str, S):                return "'%s'"%S
             elif (Expr):
                 return super(PythonCodeGenerator, self).generate(Expr, scope)
@@ -1749,7 +1756,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.enumerator, Name):
                 return gen(Name)
 
-            elif (sidl.enumerator, Name, Value):
+            elif (sidl.enumerator_value, Name, Value):
                 return '%s = %s' % (gen(Name), gen(Value))
 
             elif (sidl.struct, Name, Items):
