@@ -597,7 +597,7 @@ def p_structItem_1(p):
 def p_structItem_2(p):
     '''structItem : rarray SEMICOLON'''
     # pull out the name
-    p[0] = sidl.Struct_item(sidl.Rarray([1][1], p[1][2], p[1][4]), p[1][3])
+    p[0] = sidl.Struct_item(sidl.Rarray(p[1][1], p[1][2], p[1][4]), p[1][3])
 
 def p_class(p):
     '''class : CLASS name maybeExtendsOne implementsSomeAllLists LBRACE invariants methods RBRACE'''
@@ -736,13 +736,10 @@ def p_exceptClause(p):
     p[0] = map(lambda x: sidl.Except([x]), p[2])
 
 def p_maybeFromClause(p):
-    '''maybeFromClause : fromClause
+    '''maybeFromClause : FROM scopedId
                        | empty'''
-    p[0] = p[1]
-
-def p_fromClause(p):
-    '''fromClause : FROM scopedId'''
-    p[0] = sidl.From(p[2])
+    try2nd(p)
+    if p[0]: p[0] = [sidl.From(p[0])]
 
 def p_invariant(p):
     '''invariant : INVARIANT assertion'''

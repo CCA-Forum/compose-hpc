@@ -44,7 +44,7 @@
 #   Doc_comment = 'STR',
 #   Enum = enum(Id, [Enumerator], Doc_comment),
 #   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
-#   Struct = struct(Scoped_id, [Struct_item]),
+#   Struct = struct(Id, [Struct_item], Doc_comment),
 #   Struct_item = struct_item(Type_void, Id),
 #   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
 #   Interface = interface(Id, [Extends], [Invariant], [Method], Doc_comment),
@@ -482,15 +482,15 @@ def Package(*args):
 def Struct(*args):
     """
     Construct a "struct" node. Valid arguments are 
-    (\c Scoped_id(), [\c Struct_item()])
-    \return (\c "Struct", \c Scoped_id(), [\c Struct_item()])
+    (\c Id(), [\c Struct_item()], \c Doc_comment())
+    \return (\c "Struct", \c Id(), [\c Struct_item()], \c Doc_comment())
     """
     f = Struct
-    if len(args) <> 2:
-        print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], tuple) and args[0][0] == scoped_id:
+    if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -509,6 +509,13 @@ def Struct(*args):
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], PythonTypes.StringType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['struct']+list(args))
@@ -1908,10 +1915,10 @@ def package_doc_comment(arg):
 # skipping \c Type_attr= (final|abstract)
 # skipping \c Custom_attr= (\c Custom_attribute|\c Custom_attribute_assoc)
 # skipping \c Cipse= (\c Class|\c Interface|\c Package|\c Struct|\c Enum)
-def struct_scoped_id(arg):
+def struct_id(arg):
     """
     Accessor function.
-    \return the "scoped_id" member of a "struct" node.
+    \return the "id" member of a "struct" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
@@ -1930,6 +1937,18 @@ def struct_struct_items(arg):
     elif arg[0] <> 'struct':
         raise Exception("Grammar Error")
     else: return arg[2]
+
+
+def struct_doc_comment(arg):
+    """
+    Accessor function.
+    \return the "doc_comment" member of a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct':
+        raise Exception("Grammar Error")
+    else: return arg[3]
 
 
 def enum_id(arg):

@@ -1759,7 +1759,8 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             elif (sidl.enumerator_value, Name, Value):
                 return '%s = %s' % (gen(Name), gen(Value))
 
-            elif (sidl.struct, Name, Items):
+            elif (sidl.struct, Name, Items, DocComment):
+                gen_comment(DocComment)
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
             elif (sidl.scoped_id, Prefix, Name, Ext):
