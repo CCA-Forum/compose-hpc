@@ -53,7 +53,7 @@
   Enum = enum(Id, [Enumerator], Doc_comment),
   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
   Struct = struct(Id, [Struct_item], Doc_comment),
-  Struct_item = struct_item(Type_void, Id),
+  Struct_item = struct_item( (Type_void | Rarray), Id),
   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
   Interface = interface(Id, [Extends], [Invariant], [Method], Doc_comment),
   Implements = ( implements(Scoped_id)

@@ -100,6 +100,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         return '' if mode == sidl.in_ else '*'
 
     def strip(typ):
+        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+            return ir.struct
+        if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
+            return ior.bool
         # strip unncessesary details from aggregate types
         if (typ[0] == ir.enum or
             typ[0] == sidl.array or
@@ -112,21 +116,23 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     # IN
     map(lambda (arg, attr, mode, typ, name):
           conv.codegen((('chpl', strip(typ)), name), strip(typ),
-                       pre_call, opt, deref(mode), '_proxy_'+name),
+                       pre_call, opt, deref(mode), '_proxy_'+name, typ),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
           conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)),
-                       post_call, opt, deref(mode), name),
+                       post_call, opt, deref(mode), name, typ),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 
     retval_arg = []
     # return value type conversion -- treat it as an out argument
+    #Wif Type[0] == ir.pointer_type: import pdb; pdb.set_trace()
     rarg = ir.Arg([], ir.out, Type, '_retval')
-    conv.codegen((strip(Type), '_proxy__retval'), ('chpl', strip(Type)), post_call, opt, '', '_retval')
+    conv.codegen((strip(Type), '_proxy__retval'), ('chpl', strip(Type)), 
+                 post_call, opt, '', '_retval', Type)
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,chpltype,_ = crarg
 
@@ -136,6 +142,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
         zip([crarg]+cstub_decl_args, [rarg]+Args)):
         if chpl_t <> c_t:
+            if c_t[0] == ir.pointer_type and c_t[1][0] == ir.struct:
+                # inefficient!!!
+                scope.cstub.optional.add(str(c_gen(ir.Type_decl(chpl_t))))
+                c_t = c_t[1]
+
             # FIXME see comment in chpl_to_ior
             name = '_proxy_'+name
             decls.append(ir.Stmt(ir.Var_decl(c_t, name)))

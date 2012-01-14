@@ -385,7 +385,7 @@ count_insns () {
 medtime () {
    # measure the median running user time
    rm -f $2.all
-   MAX=1 # 3 #### 10 see also 1:9 below!!!!!
+   MAX=10 #### 10 see also 1:9 below!!!!!
    for I in `seq $MAX`; do
      echo "measuring $1 ($3@$4,$5) [$I/$MAX]"
      count_insns $1 $2
@@ -394,7 +394,7 @@ medtime () {
        | sort \
        | python -c 'import numpy,sys; \
            print numpy.mean( \
-             sorted(map(lambda x: float(x), sys.stdin.readlines())) )#[1:9])' \
+             sorted(map(lambda x: float(x), sys.stdin.readlines()))[1:9])' \
        >>$2
 }
 """)

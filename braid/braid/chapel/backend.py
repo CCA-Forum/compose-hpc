@@ -765,7 +765,6 @@ class Chapel(object):
             """
             cname = name
             ctype = typ
-
             if is_obj_type(symbol_table, typ):
                 ctype = ior_type(symbol_table, typ)
                 if mode <> sidl.out:
@@ -790,7 +789,7 @@ class Chapel(object):
                         return_expr.append(name)
             
             elif is_struct_type(symbol_table, typ):
-                ctype = ir.Pointer_type(symbol_table[typ])
+                ctype = ir.Pointer_type(lower_structs(symbol_table, symbol_table[typ]))
 
             elif typ[0] == sidl.scoped_id:
                 # Other Symbol
@@ -1683,6 +1682,8 @@ def lower_structs(symbol_table, sidl_term):
             return ir.Struct(qname, low(Items), '')
 
         elif (sidl.struct_item, Type, Name):
+            #if Type == ('scoped_id', ['s'], 'Color', ''):
+            #    import pdb; pdb.set_trace()
             return ir.Struct_item(lower_ir(symbol_table, Type), Name)
 
         elif (sidl.scoped_id, Prefix, Name, Ext):
@@ -2077,7 +2078,7 @@ else
   SCLFILE=lib$(LIBNAME).scl
   BABELFLAG=--server=Chapel
   MODFLAG=-module
-  DCE=--no-dead-code-elimination # include everything in libimpl.la
+  DCE= #--no-dead-code-elimination # include everything in libimpl.la
 endif
 
 ifeq ($(CHAPEL_MAKE_COMM),gasnet)

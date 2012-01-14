@@ -199,7 +199,7 @@ def label(args):
 	my_labels = dict()
     else: # arity == 0
         child_labels = []
-	my_labels = { args: ((args, '<terminal>', 0, no_action), 0) }
+	my_labels = { args[0]: ((args, '<terminal>', 0, no_action), 0) }
 
     def current_cost(target):
 	for (t, src, _, action), cost in my_labels.values():

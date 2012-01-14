@@ -45,7 +45,7 @@
 #   Enum = enum(Id, [Enumerator], Doc_comment),
 #   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
 #   Struct = struct(Id, [Struct_item], Doc_comment),
-#   Struct_item = struct_item(Type_void, Id),
+#   Struct_item = struct_item( (Type_void | Rarray), Id),
 #   Class = class(Id, [Extends], [Implements], [Invariant], [Method], Doc_comment),
 #   Interface = interface(Id, [Extends], [Invariant], [Method], Doc_comment),
 #   Implements = ( implements(Scoped_id)
@@ -721,8 +721,10 @@ def Class(*args):
 def Struct_item(*args):
     """
     Construct a "struct_item" node. Valid arguments are 
-    (\c Type_void(), \c Id())
-    \return (\c "Struct_item", \c Type_void(), \c Id())
+    (\c Type_void()
+    |\c Rarray(), \c Id())
+    \return (\c "Struct_item", \c Type_void()
+    |\c Rarray(), \c Id())
     """
     f = Struct_item
     if len(args) <> 2:
@@ -736,6 +738,8 @@ def Struct_item(*args):
     elif isinstance(args[0], tuple) and args[0][0] == array:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == scoped_id:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -752,6 +756,42 @@ def Struct_item(*args):
     return tuple(['struct_item']+list(args))
 
 # skipping \c Type_void= (void|\c Type)
+def Rarray(*args):
+    """
+    Construct a "rarray" node. Valid arguments are 
+    (\c Primitive_type(), \c Dimension(), \c Extents())
+    \return (\c "Rarray", \c Primitive_type(), \c Dimension(), \c Extents())
+    """
+    f = Rarray
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == primitive_type:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], PythonTypes.IntType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], PythonTypes.IntType):
+        pass
+    elif isinstance(args[2], PythonTypes.StringType):
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['rarray']+list(args))
+
 def Extends(*args):
     """
     Construct a "extends" node. Valid arguments are 
@@ -1154,42 +1194,6 @@ def Assertion(*args):
 
 # skipping \c AssertExpr= (\c Infix_expr|\c Prefix_expr|\c Fn_eval|\c Var_ref|\c Id|\c Literal)
 # skipping \c Arg_attr= (copy|[STR])
-def Rarray(*args):
-    """
-    Construct a "rarray" node. Valid arguments are 
-    (\c Primitive_type(), \c Dimension(), \c Extents())
-    \return (\c "Rarray", \c Primitive_type(), \c Dimension(), \c Extents())
-    """
-    f = Rarray
-    if len(args) <> 3:
-        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
-        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
-        raise Exception("Grammar Error")
-    if isinstance(args[0], tuple) and args[0][0] == primitive_type:
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if isinstance(args[1], PythonTypes.IntType):
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    if isinstance(args[2], PythonTypes.IntType):
-        pass
-    elif isinstance(args[2], PythonTypes.StringType):
-        pass
-    else:
-        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-        raise Exception("Grammar Error")
-    return tuple(['rarray']+list(args))
-
 # skipping \c Mode= (in|out|inout)
 def Array(*args):
     """
@@ -2132,6 +2136,18 @@ def struct_item_type_void(arg):
     else: return arg[1]
 
 
+def struct_item_rarray(arg):
+    """
+    Accessor function.
+    \return the "rarray" member of a "struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'struct_item':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
 def struct_item_id(arg):
     """
     Accessor function.
@@ -2145,6 +2161,42 @@ def struct_item_id(arg):
 
 
 # skipping \c Type_void= (void|\c Type)
+def rarray_primitive_type(arg):
+    """
+    Accessor function.
+    \return the "primitive_type" member of a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'rarray':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def rarray_dimension(arg):
+    """
+    Accessor function.
+    \return the "dimension" member of a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'rarray':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def rarray_extents(arg):
+    """
+    Accessor function.
+    \return the "extents" member of a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'rarray':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
 def extends_scoped_id(arg):
     """
     Accessor function.
@@ -2427,42 +2479,6 @@ def assertion_assertExpr(arg):
 
 # skipping \c AssertExpr= (\c Infix_expr|\c Prefix_expr|\c Fn_eval|\c Var_ref|\c Id|\c Literal)
 # skipping \c Arg_attr= (copy|[STR])
-def rarray_primitive_type(arg):
-    """
-    Accessor function.
-    \return the "primitive_type" member of a "rarray" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarray':
-        raise Exception("Grammar Error")
-    else: return arg[1]
-
-
-def rarray_dimension(arg):
-    """
-    Accessor function.
-    \return the "dimension" member of a "rarray" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarray':
-        raise Exception("Grammar Error")
-    else: return arg[2]
-
-
-def rarray_extents(arg):
-    """
-    Accessor function.
-    \return the "extents" member of a "rarray" node.
-    """
-    if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
-    elif arg[0] <> 'rarray':
-        raise Exception("Grammar Error")
-    else: return arg[3]
-
-
 # skipping \c Mode= (in|out|inout)
 def array_scalar_type(arg):
     """

@@ -54,15 +54,11 @@ out/struct_%.sidl:
 		$(shell echo $(patsubst out/struct_%.sidl,%,$@) | sed 's/.*._//g') 
 
 out/client_%/times: out/client_%/outC out/client_%/outCXX out/client_%/outF77 out/client_%/outF90 out/client_%/outF03 out/client_%/outJava out/client_%/outPython out/client_%/outChapel
-	cd $(shell dirname $@) && sh combine.sh
-#	@cd $(patsubst %/times,%,$@) && \
-#	 env PATH=$(BABELPATH):$(PATH) \
-#	    PYTHONPATH=$(PYTHONPATH) \
-#	    bash runAll.sh
+	@cd $(shell dirname $@) && sh combine.sh
 
 out/C_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/Chapel_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
@@ -70,31 +66,31 @@ out/Chapel_%/token: out/struct_%.sidl
 	touch $@
 out/CXX_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/F77_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/F90_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/F03_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/Python_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/Java_%/token: out/struct_%.sidl
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 out/client_%/token: out/struct_%.sidl out/C_%/token out/Chapel_%/token out/CXX_%/token out/F77_%/token out/F90_%/token out/F03_%/token out/Python_%/token out/Java_%/token
 	env PATH=$(BABELPATH):$(PATH) \
-	$(MAKE) -C $(patsubst %/token,%,$@)  all
+	$(MAKE) -C $(patsubst %/token,%,$@)  all >/dev/null
 	touch $@
 
 out/client_%/outC: out/client_%/token

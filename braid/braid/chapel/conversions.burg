@@ -2,7 +2,7 @@
 # Process this file with burg.py
 #
 # Declaration of additional arguments for the rule actions
-%action arguments: (convs, optionals, deref, dest)
+%action arguments: (convs, optionals, deref, dest, full_type)
 #------------------------------------------------------------------------
 import ior, ir, sidl
 import chapel.chpl as chpl
@@ -15,6 +15,10 @@ def c_gen(ir, scope=None):
 
 
 def ir_type_to_chpl(typ):
+    """
+    Convert only the datatype \c typ into its chapel equivalent
+    TODO: could we also generate this from the spec below?
+    """
     mapping = {
         ir.pt_void:     ir.pt_void,
         ir.pt_bool:     ir.Typedef_type('_Bool'),
@@ -33,10 +37,52 @@ def ir_type_to_chpl(typ):
     except:
         if typ[0] == ir.enum: 
             return ir.Typedef_type('int64_t')
+        if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool': 
+            return ir.Typedef_type('_Bool')
         if typ[0] == 'upcast':
             # part of the hack for self dereferencing
             return typ[1]
+        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+            _, name, items, comment = typ[1]
+            items1 = map(ir_type_to_chpl, items)
+            if items1 <> items:
+                name = 'chpl_'+name
+                return ir.Struct(name, items1, comment)
+            return ir.Pointer_type(ir.Struct(name, items1, comment))
+        if typ[0] == ir.struct:
+            _, name, items, comment = typ
+            return ir.Struct(name, map(ir_type_to_chpl, items), comment)
+        if typ[0] == ir.struct_item:
+            return ir.Struct_item(ir_type_to_chpl(typ[1]),typ[2])
         return typ
+
+
+def strip(typ):
+#    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+#        return ir.struct
+    if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
+        return ior.bool
+    # strip unncessesary details from aggregate types
+    if (typ[0] == ir.enum or
+        typ[0] == sidl.array or
+        typ[0] == sidl.rarray or
+        typ[0] == ir.pointer_type or
+        typ[0] == ir.struct):
+        return typ[0]
+    return typ
+
+
+def copy_other_items(convs, items, a0, dest):
+    """
+    copy all struct items that need not to be converted
+    """
+    for _, typ, name in items:
+        if typ[0] == ir.struct:
+            copy_other_items(convs, ir.struct_struct_items(typ), a0+'.'+name, dest+'.'+name)
+
+        if ir_type_to_chpl(typ) == typ: # boy, is this inefficient!!
+            convs.append(ir.Stmt(ir.Assignment(dest+'.'+name, a0+'.'+name)))
+
 
 
 char_lut = '''
@@ -56,12 +102,12 @@ static const unsigned char chpl_char_lut[512] = {
 #   actions
 
 # BOOL
-ior.bool @ C <-- chpl.bool @ C : cost(0)
+ior.bool @ C <-- chpl.bool : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
     convs.append((ir.stmt, '{dest} = ({typ}){p}{n}'
                   .format(dest=dest, n=a0, p=deref, typ=c_gen(ir.pt_bool))))
 
-chpl.bool @ C <-- ior.bool @ C : cost(0)
+chpl.bool @ C <-- ior.bool : cost(0)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
     convs.append((ir.stmt, '{p}{dest} = ({typ}){n}'
                   .format(dest=dest, p=deref, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
@@ -149,6 +195,26 @@ ior.pointer_type @C <-- chpl.pointer_type :cost(0)
 
 # STRUCT
 ior.struct @C <-- chpl.struct: cost(0)
+    # FIXME: we will actually need dynamic costs for this    
+    items = ir.struct_struct_items(full_type[1]) 
+    base = dest+'->' if deref == '*' else dest+'.'
+    #if items: print 'items =', items
+    map(lambda (_, typ, name):
+          codegen((strip(typ), a0+'->'+name), ('chpl', strip(typ)),
+                  convs, optionals, '', base+name, (0,typ)), items)
+    
+    if convs:
+        copy_other_items(convs, items, a0, '(*%s)'%dest)
     pass
+
 chpl.struct @C <-- ior.struct: cost(0)
+    items = ir.struct_struct_items(full_type[1]) 
+    base = dest+'->' if deref == '*' else dest+'.'
+    #if items: print 'items =', items
+    map(lambda (_, typ, name):
+          codegen((('chpl', strip(typ)), a0+'.'+name), strip(typ),
+                  convs, optionals, '', base+name, (0,typ)), items)
+    if convs:
+        copy_other_items(convs, items, '(*%s)'%a0, dest)
+    #if items: print convs
     pass
