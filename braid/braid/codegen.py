@@ -901,8 +901,8 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
     """
     Struct members: These types do not need to be accessed via a function call.
     """
-    struct_direct_access = ['dcomplex', 'double', 'fcomplex', 'float',
-                            'int', 'long', 'enum']
+    struct_direct_access = set([ir.pt_dcomplex, ir.pt_double, ir.pt_fcomplex,
+                                ir.pt_float, ir.pt_int, ir.pt_long, ir.enum])
 
     @generator
     @matcher(globals(), debug=False)

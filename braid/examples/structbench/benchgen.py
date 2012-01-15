@@ -258,7 +258,7 @@ def main():
     f.write(codegen.generate("SIDL", sidl_code(i, datatype)))
     f.close()
     languages = ["C", "CXX", "F77", "F90", "F03", "Java", "Python", "Chapel" ]
-    for lang in languages:
+    for lang in reversed(languages):
         ext = {"C"      : "c", 
                "CXX"    : "cxx",
                "F77"    : "f",

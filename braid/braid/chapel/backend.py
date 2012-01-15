@@ -1287,7 +1287,7 @@ class Chapel(object):
                 def entry(epv_t, table, field, pointer):
                     epv_init.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
 
-                entry(epv_t, 'epv', 'f_'+name, name+'_impl')
+                entry(epv_t, 'epv', 'f_'+name, name+'_skel')
                 builtins = set(['_ctor', '_ctor2', '_dtor'])
                 if name not in builtins:
                     entry(pre_epv_t, 'pre_epv', 'f_%s_pre'%name, 'NULL')
@@ -1305,6 +1305,8 @@ class Chapel(object):
             # Skel Header
             write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
             # Skel C-file
+            for code in cskel.optional:
+                cskel.new_global_def(code)
             write_to(qname+'_Skel.c', cskel.dot_c())
 
             # Impl
@@ -1342,7 +1344,7 @@ class Chapel(object):
                 generate_class_stub(Name, Methods, Extends, DocComment, is_interface=True)
 
             elif (sidl.struct, (Name), Items, DocComment):
-                # record it for late
+                # record it for later
                 self.pkg_enums_and_structs.append(node)
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
@@ -1369,10 +1371,12 @@ class Chapel(object):
                 pkg_h = CFile()
                 pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
-                    pkg_h.gen(ir.Type_decl(lower_ir(pkg_symbol_table, es, pkg_h)))
+                    es_ior = lower_ir(pkg_symbol_table, es, pkg_h)
+                    es_chpl = conv.ir_type_to_chpl(es)
+                    pkg_h.gen(ir.Type_decl(es_ior))
                     symtab = pkg_symbol_table._parent
                     if symtab == None: symtab = SymbolTable()
-                    pkg_chpl.gen(ir.Type_decl(lower_ir(symtab, es)))
+                    pkg_chpl.gen(ir.Type_decl(es_chpl))
 
                 write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
                 write_to(qname+'.chpl', str(pkg_chpl))
@@ -1425,7 +1429,7 @@ class Chapel(object):
         (Method, Type, (MName,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
-        ior_args = drop_rarray_ext_args(Args)
+         #ior_args = drop_rarray_ext_args(Args)
         
 #        ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
 #                           Except, From, Requires, Ensures, DocComment))
@@ -1440,26 +1444,106 @@ class Chapel(object):
 
         pre_call = []
         post_call = []
-        call_args, cdecl_args = unzip(map(convert_arg, ior_args))
+        #call_args, cdecl_args = unzip(map(convert_arg, ior_args))
+        ior_args = lower_ir(symbol_table, Args)
+        ctype = lower_ir(symbol_table, Type)
         return_expr = []
         return_stmt = []
+        opt = ci.chpl_skel.cstub.optional
         #callee = ''.join(['.'.join(ci.epv.symbol_table.prefix+
         #                   [ci.epv.name]), '_Impl',
         #                  '_static' if static else '',
         #                  '.', Name, '_impl'])
         callee = Name+'_impl'
 
+        def deref(mode):
+            return '' if mode == sidl.in_ else '*'
+     
+        def strip(typ):
+            if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+                return ir.struct
+            if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
+                return ior.bool
+            # strip unncessesary details from aggregate types
+            if (typ[0] == ir.enum or
+                typ[0] == sidl.array or
+                typ[0] == sidl.rarray or
+                typ[0] == ir.pointer_type or
+                typ[0] == ir.struct):
+                return typ[0]
+            return typ
+     
+        # IN
+        map(lambda (arg, attr, mode, typ, name):
+              conv.codegen((('chpl', strip(typ)), name), strip(typ),
+                           pre_call, opt, '', '_IOR_'+name, typ),
+            filter(incoming, ior_args))
+     
+        # OUT
+        map(lambda (arg, attr, mode, typ, name):
+              conv.codegen((strip(typ), '_IOR_'+name), ('chpl', strip(typ)),
+                           post_call, opt, deref(mode), name, typ),
+            filter(outgoing, ior_args))
+
+        def pointerize_struct((arg, attr, mode, typ, name)):
+          # FIXME: this is borked.. instead we should remove this
+          # _and_ the code in codegenerater that strips the
+          # pointer_type again
+          if typ[0] == ir.struct:
+                return (arg, attr, mode, (ir.pointer_type, typ), name)
+          else: return (arg, attr, mode, typ, name)
+
+        cstub_decl_args = map(pointerize_struct, map(ir_arg_to_chpl, ior_args))
+     
+        retval_arg = []
+        # return value type conversion -- treat it as an out argument
+        #Wif Type[0] == ir.pointer_type: import pdb; pdb.set_trace()
+        rarg = ir.Arg([], ir.out, ctype, '_retval')
+        conv.codegen(('chpl', strip(ctype)), (strip(ctype), '_IOR__retval'),
+                     post_call, opt, '', '_retval', ctype)
+        crarg = ir_arg_to_chpl(rarg)
+        _,_,_,chpltype,_ = crarg
+     
+        # Proxy declarations / revised names of call arguments
+        call_args = []
+        decls = []
+        for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
+            zip([crarg]+cstub_decl_args, [rarg]+ior_args)):
+            if chpl_t <> c_t:
+                is_struct = False
+                proxy_t = chpl_t
+                if c_t[0] == ir.pointer_type and c_t[1][0] == ir.struct:
+                    # inefficient!!!
+                    opt.add(str(c_gen(ir.Type_decl(chpl_t[1]))))
+                    c_t = c_t[1]
+                    is_struct = True
+                    proxy_t = chpl_t[1]
+     
+                # FIXME see comment in chpl_to_ior
+                name = '_IOR_'+name
+                decls.append(ir.Stmt(ir.Var_decl(proxy_t, name)))
+                if mode <> sidl.in_ or is_struct:
+                    name = ir.Pointer_expr(name)
+     
+            if name == 'self' and member_chk(ir.pure, attrs): # part of the hack for self dereferencing
+                upcast = ('({0}*)(((struct sidl_BaseInterface__object*)self)->d_object)'
+                          .format(c_gen(c_t[1])))
+                call_args.append(upcast)
+            else:
+                call_args.append(name)
+
+
         if not static:
-            call_args = ['self->d_data']+call_args
+            call_args = ['self->d_data']+call_args[1:]
 
         if Type == sidl.void:
             Type = ir.pt_void
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
             if return_expr or post_call:
-                rvar = '_IOR_retval'
+                rvar = '_IOR__retval'
                 if not return_expr:
-                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
+                  #pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
                     rx = rvar
                 else:
                     rx = return_expr[0]
@@ -1471,15 +1555,15 @@ class Chapel(object):
 
         ior_args = drop_rarray_ext_args(Args)
 
-        defn = (ir.fn_defn, [], Type, Name,
+        defn = (ir.fn_defn, [], ctype, Name+'_skel',
                 babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
-                pre_call+call+post_call+return_stmt,
+                decls+pre_call+call+post_call+return_stmt,
                 DocComment)
-        chpldecl = (ir.fn_decl, [], Type, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+lower_ir(ci.epv.symbol_table, Args),
+        chpldecl = (ir.fn_decl, [], ctype, callee,
+                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+cstub_decl_args,
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
-        chpldefn = (ir.fn_defn, ['export %s'%callee], Type, callee,
+        chpldefn = (ir.fn_defn, ['export %s'%callee], ctype, callee,
                     [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+Args,
                     [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
