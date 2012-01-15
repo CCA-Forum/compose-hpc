@@ -934,16 +934,14 @@ class Fortran03CodeGenerator(Fortran90CodeGenerator):
             if ('return', Expr):
                 return "retval = %s" % gen(Expr)
 
-            elif (ir.get_struct_item, Struct, (ir.deref, Name), (ir.struct_item, _, Item)):
-                t = Item[1]
-                if t in self.struct_direct_access:
+            elif (ir.get_struct_item, Struct, (ir.deref, Name), (ir.struct_item, Type, Item)):
+                if Type in self.struct_direct_access:
                     return gen(Name)+'%'+gen(Item)
                 else:
                     return 'get_'+gen(Item)+'('+gen(Name)+')'
 
-            elif (ir.set_struct_item, Struct, (ir.deref, Name), (ir.struct_item, _, Item), Value):
-                t = Item[1]
-                if t in self.struct_direct_access:
+            elif (ir.set_struct_item, Struct, (ir.deref, Name), (ir.struct_item, Type, Item), Value):
+                if Type in self.struct_direct_access:
                     return gen(Name)+'%'+gen(Item)+" = "+gen(Value)
                 else:
                     return 'call set_%s(%s, %s)'%(gen(Item), gen(Name), gen(Value))
