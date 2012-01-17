@@ -198,11 +198,13 @@ ior.struct @C <-- chpl.struct: cost(0)
     # FIXME: we will actually need dynamic costs for this    
     items = ir.struct_struct_items(full_type[1]) 
     base = dest+'->' if deref == '*' else dest+'.'
-    #if items: print 'items =', items
+    # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((strip(typ), a0+'->'+name), ('chpl', strip(typ)),
                   convs, optionals, '', base+name, (0,typ)), items)
     
+    # if we need to convert one of the items, we need to convert all
+    # of them
     if convs:
         copy_other_items(convs, items, a0, '(*%s)'%dest)
     pass
@@ -210,11 +212,12 @@ ior.struct @C <-- chpl.struct: cost(0)
 chpl.struct @C <-- ior.struct: cost(0)
     items = ir.struct_struct_items(full_type[1]) 
     base = dest+'->' if deref == '*' else dest+'.'
-    #if items: print 'items =', items
+    # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((('chpl', strip(typ)), a0+'.'+name), strip(typ),
                   convs, optionals, '', base+name, (0,typ)), items)
+    # if we need to convert one of the items, we need to convert all
+    # of them
     if convs:
         copy_other_items(convs, items, '(*%s)'%a0, dest)
-    #if items: print convs
     pass

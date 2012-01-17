@@ -92,8 +92,8 @@ static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
 static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
 static struct sidl_BaseInterface__epv* s_par_epv__sidl_baseinterface;
 
-static struct {Class}__epv s_preEPV;
-static struct {Class}__epv s_postEPV;
+static struct {Class}__pre_epv s_preEPV;
+static struct {Class}__post_epv s_postEPV;
 
 /*
  * Declare EPV routines defined in the skeleton file.
