@@ -304,7 +304,7 @@ static void {Class}__init_epv(void)
 
   epv->f__cast                  = ior_{Class}__cast;
   epv->f__delete                = ior_{Class}__delete;
-  epv->f__exec                  = NULL; //ior_{Class}__exec;
+  epv->f__exec                  = ior_{Class}__exec;
   epv->f__getURL                = ior_{Class}__getURL;
   epv->f__raddRef               = ior_{Class}__raddRef;
   epv->f__isRemote              = ior_{Class}__isRemote;

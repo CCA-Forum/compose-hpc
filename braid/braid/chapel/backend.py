@@ -43,7 +43,6 @@ chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
 extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
-chpl_base_exception = 'BaseException'
 chpl_base_interface = 'BaseInterface'
 chpl_local_exception_var = '_ex'
 chplmain_extras = r"""
@@ -615,8 +614,8 @@ class Chapel(object):
 
         builtin(sidl.void, '_exec', [
                 inarg(sidl.pt_string, 'methodName'),
-                inarg(sidl.pt_opaque, 'FIXMEinArgs'),
-                inarg(sidl.pt_opaque, 'FIXMEoutArgs')])
+                inarg(babel_object_type(['sidl', 'rmi'], 'Call'), 'inArgs'),
+                inarg(babel_object_type(['sidl', 'rmi'], 'Return'), 'outArgs')])
 
         builtin(sidl.pt_string, '_getURL', [])
         builtin(sidl.void, '_raddRef', [])
@@ -728,14 +727,13 @@ class Chapel(object):
         typedefs._header = [
             '// Package header (enums, etc...)',
             '#include <stdint.h>',
+            '#include <complex.h>',
             '#include <%s.h>' % '_'.join(symbol_table.prefix),
             '#include <%s_IOR.h>'%qname,
             'typedef struct %s__object _%s__object;'%(qname, qname),
             'typedef _%s__object* %s__object;'%(qname, qname),
             '#ifndef SIDL_BASE_INTERFACE_OBJECT',
             '#define SIDL_BASE_INTERFACE_OBJECT',
-            'typedef struct sidl_BaseException__object _sidl_BaseException__object;',
-            'typedef _sidl_BaseException__object* sidl_BaseException__object;',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
@@ -1098,7 +1096,8 @@ class Chapel(object):
                 ci.ior.genh('struct ' + name + '__object;')
             
             add_forward_defn(cname)
-            refs = ['sidl_BaseException', 'sidl_BaseInterface']
+            refs = ['sidl_BaseException', 'sidl_BaseInterface', 
+                    'sidl_rmi_Call', 'sidl_rmi_Return']
             
             # lookup extends/impls clause
             for _, ext in extends:
@@ -1134,6 +1133,7 @@ class Chapel(object):
                 
         ci.ior.genh(ir.Import('stdint'))
         ci.ior.genh(ir.Import('chpl_sidl_array'))
+        ci.ior.genh(ir.Import('chpltypes'))
         gen_forward_references()
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
