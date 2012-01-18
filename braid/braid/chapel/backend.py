@@ -31,7 +31,7 @@
 # </pre>
 #
 
-import config, ior, ior_template, ir, os, os.path, re, sidl, splicer, tempfile, types
+import config, ior, ior_template, ir, os.path, re, sidl, splicer, types
 from utils import *
 from patmat import *
 from cgen import *
@@ -156,20 +156,6 @@ def vcall(name, args, ci):
                                             ir.Struct_item(epv, 'd_epv'))),
                 ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args))
 
-@accepts(str, str)
-def write_to(filename, string):
-    """
-    Create/Overwrite a file named \c filename with the contents of \c
-    string.
-    The file is written atomically.
-    """
-    f = tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.')
-    f.write(string)
-    #f.flush()
-    #os.fsync(f)
-    f.close()
-    os.rename(f.name, filename)
-
 def drop_rarray_ext_args(args):
     """
     Now here it's becoming funny: Since R-arrays are wrapped inside
@@ -193,19 +179,20 @@ class Chapel(object):
         Holder object for the code generation scopes and other data
         during the traversal of the SIDL tree.
         """
-        def __init__(self, name, symbol_table, is_interface, is_abstract,
+        def __init__(self, name, qualified_name,
+                     symbol_table, is_interface, is_abstract,
                      has_static_fns,
                      stub_parent=None,
                      skel_parent=None):
             
             self.impl = ChapelFile()
-            self.chpl_method_stub = ChapelFile(stub_parent, relative_indent=4)
-            self.chpl_skel = ChapelFile(skel_parent, relative_indent=0)
-            self.chpl_static_stub = ChapelFile(stub_parent)            
-            self.chpl_static_skel = ChapelFile(skel_parent)            
+            self.chpl_method_stub = ChapelFile(parent=stub_parent, relative_indent=4)
+            self.chpl_skel = ChapelFile(parent=skel_parent, relative_indent=0)
+            self.chpl_static_stub = ChapelFile(parent=stub_parent)            
+            self.chpl_static_skel = ChapelFile(parent=skel_parent)            
             self.skel = CFile()
             self.epv = EPV(name, symbol_table, has_static_fns)
-            self.ior = CFile()
+            self.ior = CFile(qualified_name+'_IOR')
             self.obj = None
             self.is_interface = is_interface
             self.is_abstract = is_abstract
@@ -235,6 +222,9 @@ class Chapel(object):
         """
         try:
             self.generate_client_pkg(self.sidl_ast, None, self.symbol_table)
+            if self.verbose:
+                import sys
+                sys.stdout.write("%s\r"%(' '*80))
             if self.create_makefile:
                 generate_client_makefile(self.sidl_file, self.classes)
         except:
@@ -280,6 +270,12 @@ class Chapel(object):
             mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])
             mod_name = '.'.join(symbol_table.prefix[1:]+[name])
 
+            if self.verbose:
+                import sys
+                sys.stdout.write('\r'+' '*80)
+                sys.stdout.write('\rgenerating glue code for %s'%mod_name)
+                sys.stdout.flush()
+
             self.has_static_methods = False
 
             # Consolidate all methods, defined and inherited
@@ -293,7 +289,7 @@ class Chapel(object):
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
-            ci = self.ClassInfo(name, symbol_table, is_interface, 
+            ci = self.ClassInfo(name, qname, symbol_table, is_interface, 
                                 is_abstract,
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
@@ -492,20 +488,19 @@ class Chapel(object):
 
             # IOR
             self.generate_ior(ci, extends, implements, all_methods)
-            write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
+            ci.ior.write()
 
             # Stub (in C)
             cstub = chpl_stub.cstub
+            cstub._name = qname+'_cStub'
             cstub.genh_top(ir.Import(qname+'_IOR'))
             for code in cstub.optional:
                 cstub.new_global_def(code)
 
-            cstub.gen(ir.Import(qname+'_cStub'))
+            cstub.gen(ir.Import(cstub._name))
 
-            # Stub Header
-            write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
-            # Stub C-file
-            write_to(qname+'_cStub.c', cstub.dot_c())
+            # C Stub
+            cstub.write()
 
             # Makefile
             self.classes.append(qname)
@@ -556,11 +551,11 @@ class Chapel(object):
                     # Makefile
                     self.pkgs.append(qname)
 
-                pkg_h = CFile()
+                pkg_h = CFile(qname)
                 pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
                     pkg_h.gen(ir.Type_decl(lower_ir(pkg_symbol_table, es, pkg_h)))
-                write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
+                pkg_h.write()
 
 
             elif (sidl.user_type, Attrs, Cipse):
@@ -1192,7 +1187,8 @@ class Chapel(object):
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
-            ci = self.ClassInfo(name, symbol_table, is_interface, 
+            ci = self.ClassInfo(name, qname, 
+                                symbol_table, is_interface, 
                                 is_abstract,
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
@@ -1236,19 +1232,16 @@ class Chapel(object):
             self.generate_ior(ci, extends, implements, all_methods)
 
             # IOR
-            write_to(qname+'_IOR.h', ci.ior.dot_h(qname+'_IOR.h'))
-            write_to(qname+'_IOR.c', ci.ior.dot_c())
+            ci.ior.write()
 
             # The server-side stub is used for, e.g., the
             # babelized Array-init functions
 
             # Stub (in C)
             cstub = chpl_stub.cstub
-            cstub.gen(ir.Import(qname+'_cStub'))
-            # Stub Header
-            write_to(qname+'_cStub.h', cstub.dot_h(qname+'_cStub.h'))
-            # Stub C-file
-            write_to(qname+'_cStub.c', cstub.dot_c())
+            cstub._name = qname+'_cStub'
+            cstub.gen(ir.Import(cstub._name))
+            cstub.write()
 
             # Skeleton (in Chapel)
             skel = ci.chpl_skel
@@ -1268,8 +1261,9 @@ class Chapel(object):
 
             # Skeleton (in C)
             cskel = ci.chpl_skel.cstub
+            cskel._name = qname+'_Skel'
             cskel.gen(ir.Import('stdint'))                
-            cskel.gen(ir.Import(qname+'_Skel'))
+            cskel.gen(ir.Import(cskel._name))
             cskel.gen(ir.Import(qname+'_IOR'))
             cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
                                    [ir.Comment("FIXME: [ir.Stmt(ir.Call('_load', []))")], ''))
@@ -1302,21 +1296,19 @@ class Chapel(object):
 
             write_to('_chplmain.c', chplmain_extras)
 
-            # Skel Header
-            write_to(qname+'_Skel.h', cskel.dot_h(qname+'_Skel.h'))
-            # Skel C-file
+            # C Skel
             for code in cskel.optional:
                 cskel.new_global_def(code)
-            write_to(qname+'_Skel.c', cskel.dot_c())
+            cskel.write()
 
             # Impl
             #write_to(qname+'_Impl.chpl', str(ci.impl))
             pkg_name = '_'.join(symbol_table.prefix)
             impl = pkg_name+'_Impl.chpl'
+            # Preserve code written by the user
             if os.path.isfile(impl):
-                # FIXME: possible race condition, should use a file
-                # handle instead
-                # Preserve code written by the user
+                # FIXME: this is a possible race condition, we should
+                # use a single file handle instead
                 splicers = splicer.record(impl)
                 write_to(impl, str(ci.impl))
                 splicer.apply_all(impl, splicers)
@@ -1358,17 +1350,17 @@ class Chapel(object):
                     self.pkg_chpl_stub.new_def('}')
                 else:
                     # new file for the toplevel package
-                    self.pkg_chpl_skel = ChapelFile()
+                    self.pkg_chpl_skel = ChapelFile(qname+'_Skel')
                     self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
 
                     self.pkg_enums_and_structs = []
                     self.in_package = True
                     self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
                     self.pkg_chpl_skel.main_area.new_def('}\n')
-                    write_to(qname+'_Skel.chpl', str(self.pkg_chpl_skel))
+                    self.pkg_chpl_skel.write()
 
-                pkg_chpl = ChapelFile()
-                pkg_h = CFile()
+                pkg_chpl = ChapelFile(qname)
+                pkg_h = CFile(qname)
                 pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
                     es_ior = lower_ir(pkg_symbol_table, es, pkg_h)
@@ -1378,8 +1370,8 @@ class Chapel(object):
                     if symtab == None: symtab = SymbolTable()
                     pkg_chpl.gen(ir.Type_decl(es_chpl))
 
-                write_to(qname+'.h', pkg_h.dot_h(qname+'.h'))
-                write_to(qname+'.chpl', str(pkg_chpl))
+                pkg_h.write()
+                pkg_chpl.write()
 
                 # Makefile
                 self.pkgs.append(qname)

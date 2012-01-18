@@ -79,3 +79,18 @@ def sep_by(separator, strings):
         return separator.join(strings+[''])
     else:
         return ''
+
+import os, tempfile
+@accepts(str, str)
+def write_to(filename, string):
+    """
+    Create/Overwrite a file named \c filename with the contents of \c
+    string.
+    The file is written atomically.
+    """
+    f = tempfile.NamedTemporaryFile(mode='w', delete=False, dir='.')
+    f.write(string)
+    #f.flush()
+    #os.fsync(f)
+    f.close()
+    os.rename(f.name, filename)

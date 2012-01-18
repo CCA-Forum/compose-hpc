@@ -22,7 +22,7 @@
 #
 # </pre>
 #
-from codegen import accepts, returns
+from utils import accepts, returns
 from patmat import matcher, match, member, unify, expect, Variable
 import sidl, types, sys
 
@@ -83,8 +83,11 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
-                print "Building symbols for package %s" \
-                      %'.'.join(symbol_table.prefix+[Name])
+                import sys
+                sys.stdout.write('\r'+' '*80)
+                sys.stdout.write("\rBuilding symbols for package %s" 
+                                 %'.'.join(symbol_table.prefix+[Name]))
+                sys.stdout.flush()
 
             symbol_table[Name] = SymbolTable(symbol_table,
                                              symbol_table.prefix+[Name])
@@ -136,8 +139,10 @@ def resolve_symbols(node, symbol_table, verbose=True):
         
         elif (sidl.package, Name, Version, UserTypes, DocComment):
             if (verbose):
-                print "Building symbols for package %s" \
-                      %'.'.join(symbol_table.prefix+[Name])
+                import sys
+                sys.stdout.write('\r'+' '*80)
+                sys.stdout.write("\rResolving symbols for package %s" 
+                                 %'.'.join(symbol_table.prefix+[Name]))
                 sys.stdout.flush()
 
             return (sidl.package, Name, Version,

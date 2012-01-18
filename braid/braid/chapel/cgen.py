@@ -198,9 +198,9 @@ class ChapelFile(SourceFile):
       module's main() function.
     """
 
-    def __init__(self, parent=None, relative_indent=0):
+    def __init__(self, name="", parent=None, relative_indent=0):
         super(ChapelFile, self).__init__(
-            parent, relative_indent, separator='\n')
+            name, parent, relative_indent, separator='\n')
         if parent:
             self.cstub = parent.cstub
             self.main_area = parent.main_area
@@ -257,10 +257,21 @@ class ChapelFile(SourceFile):
         """
         ChapelCodeGenerator().generate(ir, self)
 
+    def write(self):
+        """
+        Atomically write the ChapelFile and its cStub to disk, using the
+        basename provided in the constructor.
+        Empty files will not be created.
+        """
+        if self._defs or self._header:
+            write_to(self._name+'.chpl', str(self))
+        self.cstub.write()
+
 
 class ChapelScope(ChapelFile):
     def __init__(self, parent=None, relative_indent=4):
-        super(ChapelScope, self).__init__(parent, relative_indent)
+        super(ChapelScope, self).__init__(parent=parent, 
+                                          relative_indent=relative_indent)
 
     def __str__(self):
         if self.main_area == None:

@@ -313,11 +313,15 @@ class Scope(object):
 
 class SourceFile(Scope):
     """
-    This class represents a generic source file
+    This class represents a generic source file.
+    It's the base class for all other language-specific files.
     """
-    def __init__(self, parent=None, relative_indent=0, separator='\n'):
+    def __init__(self, name="", parent=None, relative_indent=0, separator='\n'):
+        self._name = name
         super(SourceFile, self).__init__(
-            parent, relative_indent, separator)
+            parent=parent, 
+            relative_indent=relative_indent, 
+            separator=separator)
 
     def has_declaration_section(self):
         return True
@@ -331,6 +335,13 @@ class SourceFile(Scope):
         #import pdb; pdb.set_trace()
         return (' '*self.relative_indent
                 +self._sep.join( self._header+self._defs ))
+
+    def write(self):
+        """
+        Atomically write the SourceFile to disk, using the name
+        provided in the constructor.
+        """
+        write_to(self._name, str(self))
 
 
 class Function(Scope):
@@ -673,7 +684,9 @@ class F90File(SourceFile):
     This class represents a Fortran 90 source file
     """
     def __init__(self,parent=None,relative_indent=2):
-        super(F90File, self).__init__(parent,relative_indent)
+        super(F90File, self).__init__(
+            parent=parent,
+            relative_indent=relative_indent)
 
     def new_def(self, s, indent=0):
         """
@@ -707,9 +720,8 @@ class F90File(SourceFile):
 class F90Scope(F90File):
     """Represents a list of statements in an indented block"""
     def __init__(self, parent):
-        super(F90Scope, self).__init__(
-            parent,
-            relative_indent=parent.relative_indent+2)
+        super(F90Scope, self).__init__(parent=parent,
+                                       relative_indent=parent.relative_indent+2)
         self._defs = [''] # start on a new line
 
     def has_declaration_section(self):
@@ -974,9 +986,9 @@ class CFile(SourceFile):
     """
     This class represents a C source file
     """
-    def __init__(self, parent=None, relative_indent=0):
+    def __init__(self, name="", parent=None, relative_indent=0):
         #FIXME should be 0 see java comment
-        super(CFile, self).__init__(parent, relative_indent)
+        super(CFile, self).__init__(name, parent, relative_indent)
 
     def __str__(self):
         """
@@ -1039,11 +1051,23 @@ class CFile(SourceFile):
         """
         self._header.insert(0, (str(CCodeGenerator().generate(ir, CFile()))))
 
+    def write(self):
+        """
+        Atomically write the CFile and its header to disk, using the
+        basename provided in the constructor.
+        Empty files will not be created.
+        """
+        cname = self._name+'.c'
+        hname = self._name+'.h'
+        if self._defs:   write_to(cname, self.dot_c())
+        if self._header: write_to(hname, self.dot_h(hname))
+
+
 
 class CCompoundStmt(CFile):
     """Represents a list of statements enclosed in braces {}"""
     def __init__(self, parent_scope):
-        super(CCompoundStmt, self).__init__(parent_scope,
+        super(CCompoundStmt, self).__init__(parent=parent_scope,
                                             relative_indent=2)
 
     def __str__(self):
@@ -1475,7 +1499,7 @@ class PythonFile(SourceFile):
     This class represents a Python source file
     """
     def __init__(self, parent=None, relative_indent=4):
-        super(PythonFile, self).__init__(parent, relative_indent)
+        super(PythonFile, self).__init__(parent=parent, relative_indent=relative_indent)
 
     def __str__(self):
         """
