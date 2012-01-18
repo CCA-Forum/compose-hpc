@@ -2861,6 +2861,25 @@ def var_ref_id(arg):
     else: return arg[1]
 
 
+ ## token overrides to simplify the parser
+log_or = '||'
+log_and = '&&'
+eq = '=='
+ne = '!='
+bit_or = '|'
+bit_and = '&'
+bit_xor = '^'
+lt = '<'
+gt = '>'
+lshift = '<<'
+rshift = '>>'
+plus = '+'
+minus = '_'
+times = '*'
+divide = '/'
+modulo = '%'
+rem = 'rem'
+pow = '**'
  ## sidl primitive types
 pt_bool = Primitive_type(bool)
 pt_bool     = Primitive_type(bool)

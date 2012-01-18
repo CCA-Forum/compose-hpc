@@ -316,6 +316,7 @@ class SourceFile(Scope):
     This class represents a generic source file.
     It's the base class for all other language-specific files.
     """
+    @accepts(object, str, object, int, str)
     def __init__(self, name="", parent=None, relative_indent=0, separator='\n'):
         self._name = name
         super(SourceFile, self).__init__(
@@ -332,7 +333,6 @@ class SourceFile(Scope):
         complete with indentation and newlines.
         """
         #print self._header, '+', self._defs, 'sep="',self._sep,'"'
-        #import pdb; pdb.set_trace()
         return (' '*self.relative_indent
                 +self._sep.join( self._header+self._defs ))
 
@@ -486,7 +486,6 @@ class F77File(SourceFile):
         complete with indentation and newlines.
         """
         #print self._header, '+', self._defs, 'sep="',self._sep,'"'
-        #import pdb; pdb.set_trace()
         data = ''
         label = False
         for defn in self.get_defs():
@@ -1720,8 +1719,6 @@ class SIDLCodeGenerator(GenericCodeGenerator):
 
         def tmap(f, l):
             return tuple(map(f, l))
-
-        #import pdb; pdb.set_trace()
 
         with match(node):
             if (sidl.file, Requires, Imports, Packages):

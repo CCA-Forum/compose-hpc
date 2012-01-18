@@ -198,6 +198,7 @@ class ChapelFile(SourceFile):
       module's main() function.
     """
 
+    @accepts(object, str, object, int)
     def __init__(self, name="", parent=None, relative_indent=0):
         super(ChapelFile, self).__init__(
             name, parent, relative_indent, separator='\n')
@@ -211,7 +212,8 @@ class ChapelFile(SourceFile):
             self.cstub.optional = set()
             # Tricky circular initialization
             self.main_area = None
-            self.main_area = ChapelScope(self, 0)
+            main_area = ChapelScope(self, 0)
+            self.main_area = main_area
 
     def __str__(self):
         """
@@ -342,7 +344,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         @accepts(str, list, str)
         def new_scope(prefix, body, suffix='\n'):
             '''used for things like if, while, ...'''
-            comp_stmt = ChapelFile(scope, relative_indent=4)
+            comp_stmt = ChapelFile(parent=scope, relative_indent=4)
             s = str(self.generate(body, comp_stmt))
             return new_def(scope._sep.join(['',prefix+s,suffix]))
 

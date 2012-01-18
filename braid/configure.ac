@@ -36,7 +36,7 @@ AC_ARG_ENABLE([doc_only],
    [use this if you *only* want to run `make doc' and don't have a recent enough python installation]),
    [AM_PATH_PYTHON([2.4],, [:])], 
    [AM_PATH_PYTHON([2.6])])
-
+AC_SUBST([CONFIGURED_PYTHONPATH], ["$PYTHONPATH"])
 AS_IF([test x"$PYTHON_VERSION" == x2.6])
 AM_CONDITIONAL([PYTHON_VERSION_2_6], [test x"$PYTHON_VERSION" == x2.6])
 CCA_DIAGNOSE_BEGIN([PYTHON])

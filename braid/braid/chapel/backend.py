@@ -289,6 +289,7 @@ class Chapel(object):
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
+            chpl_defs = ChapelScope(chpl_stub)
             ci = self.ClassInfo(name, qname, symbol_table, is_interface, 
                                 is_abstract,
                                 self.has_static_methods,
@@ -313,8 +314,6 @@ class Chapel(object):
             # must be passed to the chpl compiler.
             typedefs = self.class_typedefs(qname, symbol_table)
             write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
-            chpl_defs = chpl_stub
-            chpl_stub = ChapelFile(chpl_defs)
             chpl_stub.new_def('use sidl;')
             extrns = ChapelScope(chpl_stub, relative_indent=0)
 
@@ -481,14 +480,10 @@ class Chapel(object):
             chpl_stub.new_def(ci.chpl_method_stub)
             chpl_stub.new_def('}')
             
-            # This is important for the chapel stub, but we generate
-            # separate files for the cstubs
+            # Because of chapels implicit (filename-based)modules it
+            # is important for the chapel stub to be one file, but we
+            # generate separate files for the cstubs
             self.pkg_chpl_stub.new_def(chpl_stub)
-
-
-            # IOR
-            self.generate_ior(ci, extends, implements, all_methods)
-            ci.ior.write()
 
             # Stub (in C)
             cstub = chpl_stub.cstub
@@ -498,9 +493,12 @@ class Chapel(object):
                 cstub.new_global_def(code)
 
             cstub.gen(ir.Import(cstub._name))
-
-            # C Stub
             cstub.write()
+
+            # IOR
+            self.generate_ior(ci, extends, implements, all_methods)
+            ci.ior.write()
+
 
             # Makefile
             self.classes.append(qname)
@@ -722,7 +720,6 @@ class Chapel(object):
         typedefs._header = [
             '// Package header (enums, etc...)',
             '#include <stdint.h>',
-            '#include <complex.h>',
             '#include <%s.h>' % '_'.join(symbol_table.prefix),
             '#include <%s_IOR.h>'%qname,
             'typedef struct %s__object _%s__object;'%(qname, qname),
@@ -1489,7 +1486,6 @@ class Chapel(object):
      
         retval_arg = []
         # return value type conversion -- treat it as an out argument
-        #Wif Type[0] == ir.pointer_type: import pdb; pdb.set_trace()
         rarg = ir.Arg([], ir.out, ctype, '_retval')
         conv.codegen(('chpl', strip(ctype)), (strip(ctype), '_IOR__retval'),
                      post_call, opt, '', '_retval', ctype)
@@ -1753,13 +1749,10 @@ def lower_structs(symbol_table, sidl_term):
             # a nested Struct
             return ir.Struct(qual_id(sidl_term[1]), low(Items), '')
         elif (sidl.struct, Name, Items, DocComment):
-            #print 'Items=',Items, 'low(Items)=',low(Items)
             qname = '_'.join(symbol_table.prefix+[Name])
             return ir.Struct(qname, low(Items), '')
 
         elif (sidl.struct_item, Type, Name):
-            #if Type == ('scoped_id', ['s'], 'Color', ''):
-            #    import pdb; pdb.set_trace()
             return ir.Struct_item(lower_ir(symbol_table, Type), Name)
 
         elif (sidl.scoped_id, Prefix, Name, Ext):

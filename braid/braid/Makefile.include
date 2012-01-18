@@ -8,7 +8,6 @@ else
   BACKPORTS=
 endif
 python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py $(top_srcdir)/contrib/ply/lex.py
-PYTHONPATH=$(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(top_srcdir)/braid
 
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = \

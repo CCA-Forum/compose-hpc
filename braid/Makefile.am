@@ -1,4 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
+PYTHONPATH=$(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(top_srcdir)/braid:$(CONFIGURED_PYTHONPATH)
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON= 
 nobase_python_PYTHON= 

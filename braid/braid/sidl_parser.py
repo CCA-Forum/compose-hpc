@@ -743,7 +743,7 @@ def p_maybeFromClause(p):
 
 def p_invariant(p):
     '''invariant : INVARIANT assertion'''
-    p[0] = sidl.Invariant(p[1])
+    p[0] = sidl.Invariant(p[2])
 
 def p_requireAssertions(p):
     '''requireAssertions : REQUIRE assertions
