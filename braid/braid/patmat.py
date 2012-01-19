@@ -125,6 +125,19 @@ class Variable(object):
 	else:
 	    return str(self.binding)
 
+
+def unbind(bindings):
+    """
+    Remove all variable bindings recorded in \c bindings.
+    \return always \c False
+    """
+    for var in bindings:
+	var.binding = None
+
+    bindings = []
+    return False
+
+
 def match(a, b):
     """
     Unify the expression \c a with the expression \c b.
@@ -135,12 +148,14 @@ def match(a, b):
     """
     return unify(a, b, [])
 
+
 def expect(a, b):
     """
     Same as \c match(a,b), but raise an exception if the unification fails.
     """
     if not unify(a, b, []):
         raise Exception('type error (%s =/= %s)'%(str(a), str(b)))
+
 
 def member(a, l):
     """
@@ -163,16 +178,6 @@ def member_chk(a, l):
     """
     return list(member(a, l))
 
-def unbind(bindings):
-    """
-    Remove all variable bindings recorded in \c bindings.
-    \return always \c False
-    """
-    for var in bindings:
-	var.binding = None
-    bindings = []
-    return False
-
 def unify(a, b, bindings):
     """
     A basic unification algorithm without occurs-check
@@ -187,46 +192,7 @@ def unify(a, b, bindings):
     False
     >>> A = Variable(); B = Variable(); unify((1,(2,3),3), (1,(A,B),B), [])
     True
-    """
-
-    # # unoptimized version
-    #
-    # if isinstance(a, Variable): # Variable
-    #     if a.free():
-    #         a.bind(b, bindings)
-    #         return True
-    #     else:
-    #         a = a.binding
-    # if isinstance(b, Variable): # Variable
-    #     if b.free():
-    #         b.bind(a, bindings)
-    #         return True
-    #     else:
-    #         b = b.binding
-    # if isinstance(a, tuple): # Term
-    #     if isinstance(b, tuple): # Term
-    #         if len(a) != len(b):
-    #     	unbind(bindings)
-    #     	return False
-    #         for i in range(0, len(a)):
-    #     	if not unify(a[i], b[i], bindings):
-    #     	    unbind(bindings)
-    #     	    return False
-    #         return True
-    #     else: # Atom
-    #         unbind(bindings)
-    #         return False
-    # else: # Atom
-    #     if isinstance(b, tuple): # Term
-    #         unbind(bindings)
-    #         return False
-    #     else: # Atom
-    #         if a == b:
-    #     	return True
-    #         else:
-    #     	unbind(bindings)
-    #     	return False
-    
+    """    
     type_b = type(b)
     if type_b == Variable: # Variable
 	if b.binding == None:
@@ -259,6 +225,106 @@ def unify(a, b, bindings):
 		return True
 	    else:
 		return unbind(bindings)
+
+# def unify_unoptimized(a, b, bindings):
+#     # Unoptimized version
+    
+#     if isinstance(a, Variable): # Variable
+#         if a.free():
+#             a.bind(b, bindings)
+#             return True
+#         else:
+#             a = a.binding
+#     if isinstance(b, Variable): # Variable
+#         if b.free():
+#             b.bind(a, bindings)
+#             return True
+#         else:
+#             b = b.binding
+#     if isinstance(a, tuple): # Term
+#         if isinstance(b, tuple): # Term
+#             if len(a) != len(b):
+#         	unbind(bindings)
+#         	return False
+#             for i in range(0, len(a)):
+#         	if not unify(a[i], b[i], bindings):
+#         	    unbind(bindings)
+#         	    return False
+#             return True
+#         else: # Atom
+#             unbind(bindings)
+#             return False
+#     else: # Atom
+#         if isinstance(b, tuple): # Term
+#             unbind(bindings)
+#             return False
+#         else: # Atom
+#             if a == b:
+#         	return True
+#             else:
+#         	unbind(bindings)
+#         	return False
+
+
+# Turns out this is even worse
+# def match_opt(a, b):
+#     """
+#     optimized version of \c match. Assumes that a and b contain only
+#     unbound variables.
+#     """
+#     return unify_opt(a, b, [])
+#     # in this case bindings is a dict pointing to the values of a and b
+#     # bindings = dict()
+#     # success = unify_opt(a, b, bindings)
+#     # if success:
+#     #     for var, value in bindings.iteritems():
+#     #         var.binding = value
+#     # return success
+
+# def unify_opt(a, b, bindings):
+#     """
+#     optimized version of \c unified.
+#     """
+# Assumes that a and b contain only unbound variables.
+#     in this case bindings is a dict pointing to the values of a and b
+    
+#     type_b = type(b)
+#     if type_b == Variable: # Variable
+# 	try:
+#             b = bindings[b]
+#         except:
+# 	    bindings[b] = a
+# 	    return True
+#     type_a = type(a)
+#     if type_a == Variable: # Variable
+# 	try:
+#             a = bindings[a]
+#         except:
+# 	    bindings[a] = b
+# 	    return True
+#     if type_a == types.TupleType: # Term
+# 	if type_b == types.TupleType: # Term
+# 	    if len(a) != len(b):
+#                 bindings.clear()
+#                 return False
+# 	    for i in range(0, len(a)):
+# 		if not unify_opt(a[i], b[i], bindings):
+# 		    return False
+# 	    return True
+# 	else: # Atom
+#             bindings.clear()
+# 	    return False
+#     else: # Atom
+# 	if type_b == types.TupleType: # Term
+#             bindings.clear()
+# 	    return False
+# 	else: # Atom
+# 	    if a == b:
+# 		return True
+# 	    else:
+#                 bindings.clear()
+#                 return False
+
 
 class matcher(object):
     """

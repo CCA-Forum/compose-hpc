@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH BRAID 1 "2011-10-28" "0.2.4" "Compilers and Programming Languages"
+.TH BRAID 1 "2012-01-19" "0.2.4" "Compilers and Programming Languages"
 .SH NAME
 BRAID \- Next-generation high-performance language interoperability
 .
@@ -32,7 +32,443 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" -*- rst -*-
 .
-.SH SYNOPSIS
+.SH ## generate
+.SH 329 def generate(self, node, scope=ChapelFile())
+.IP "System Message: WARNING/2 (braid.txt:, line 21)"
+.
+Title underline too short.
+.sp
+.nf
+.ft C
+329 def generate(self, node, scope=ChapelFile())
+~~~~~~~~~~~~~~~~~~~~
+.ft P
+.fi
+.sp
+330     """
+331     This code generator is a bit unusual in that it accepts a
+332     hybrid of c sidl and c ir nodes.
+333     """
+334     def gen(node)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+335         return self.generate(node, scope)
+336
+337     def new_def(s)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+338         return scope.new_def(s)
+339
+340     def new_header_def(s)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+341         return scope.new_header_def(s)
+342
+343     @accepts(str, list, str)
+344     def new_scope(prefix, body, suffix=\(aqn\(aq)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+345         \(aq\(aq\(aqused for things like if, while, ...\(aq\(aq\(aq
+346         comp_stmt = ChapelFile(parent=scope, relative_indent=4)
+347         s = str(self.generate(body, comp_stmt))
+348         return new_def(scope._sep.join([\(aq\(aq,prefix+s,suffix]))
+349
+350     @accepts(str, str, str)
+351     def new_scope1(prefix, body, suffix)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+352         \(aq\(aq\(aqused for things like enumerator\(aq\(aq\(aq
+353         return scope.new_header_def(\(aq\(aq.join([prefix,body,suffix])+\(aq;\(aq)
+354
+355     def gen_comma_sep(defs)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+356         return self.gen_in_scope(defs, Scope(relative_indent=1, separator=\(aq,\(aq))
+357
+358     def gen_semicolon_sep(defs)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+359         return self.gen_in_scope(defs, Scope(relative_indent=2, separator=\(aq;n\(aq))+\(aq;\(aq
+360
+361     def gen_ws_sep(defs)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+362         return self.gen_in_scope(defs, Scope(relative_indent=0, separator=\(aq \(aq))
+363
+364     def gen_dot_sep(defs)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+365         return self.gen_in_scope(defs, Scope(relative_indent=0, separator=\(aq.\(aq))
+366
+367     def tmap(f, l)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+368         return tuple(map(f, l))
+369
+370     def gen_comment(DocComment)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+371         return gen_doc_comment(DocComment, scope)
+372
+373     def gen_attrs(attrs)
+~~~~~~~~~~~~~~~~~~~~
+.sp
+374         return sep_by(\(aq \(aq, attrs)
+375
+376     cbool = \(aq_Bool\(aq
+377     int32 = \(aqint32_t\(aq
+378     int64 = \(aqint64_t\(aq
+379     fcomplex = \(aq_complex64\(aq
+380     dcomplex = \(aq_complex128\(aq
+381
+382     val = self.generate_non_tuple(node, scope)
+383     if val <> None
+~~~~~~~~~~~~~~~~~~~~
+.sp
+384         return val
+385
+386     _reg0 = Variable(); _reg1 = Variable(); _reg2 = Variable(); _reg3 = Variable(); _reg4 = Variable(); _reg5 = Variable(); _reg6 = Variable()
+387     if match(node, (ir.fn_defn, _reg0, (ir.primitive_type, \(aqvoid\(aq), _reg1, _reg2, _reg3, _reg4))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+388         new_scope(\(aq%s%sproc %s(%s) {\(aq%
+389                   (gen_comment(_reg4.binding),
+390                    gen_attrs(_reg0.binding),
+391                    gen(_reg1.binding), gen_comma_sep(_reg2.binding)),
+392                   _reg3.binding,
+393                   \(aq}\(aq)
+394         new_def(\(aq\(aq)
+395
+396     elif match(node, (ir.fn_defn, _reg0, _reg1, _reg2, _reg3, _reg4, _reg5))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+397         new_scope(\(aq%s%sproc %s(%s): %s {\(aq%
+398                   (gen_comment(_reg5.binding),
+399                    gen_attrs(_reg0.binding),
+400                    gen(_reg2.binding), gen_comma_sep(_reg3.binding),
+401                    gen(_reg1.binding)),
+402                   _reg4.binding,
+403                   \(aq}\(aq)
+404         new_def(\(aq\(aq)
+405
+406     elif match(node, (ir.fn_decl, _reg0, (ir.primitive_type, \(aqvoid\(aq), _reg1, _reg2, _reg3))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+407         new_def(\(aqproc %s(%s)\(aq% (gen(_reg1.binding), gen_comma_sep(_reg2.binding)))
+408
+409     elif match(node, (ir.fn_decl, _reg0, _reg1, _reg2, _reg3, _reg4))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+410         new_def(\(aqproc %s(%s): %s\(aq%
+411                 (gen(_reg2.binding), gen_comma_sep(_reg3.binding), gen(_reg1.binding)))
+412
+413     elif match(node, (ir.call, (ir.deref, (ir.get_struct_item, _reg0, _reg1, (ir.struct_item, _reg2, _reg3))), _reg4))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+414                 # We can\(aqt do a function pointer call in Chapel
+415                 # Emit a C stub for that
+416         _, s_id, _, _ = _reg0.binding
+417         retval_arg = generate_method_stub(scope, node, s_id)
+418         stubname = \(aq_\(aq.join([epv_qname(s_id),re.sub(\(aq^f_\(aq, \(aq\(aq, _reg3.binding),\(aqstub\(aq])
+419         if retval_arg
+~~~~~~~~~~~~~~~~~~~~
+.sp
+420             scope.pre_def(gen(ir.Var_decl(retval_arg, \(aq_retval\(aq)))
+421             scope.pre_def(gen(ir.Assignment(\(aq_retval\(aq, ir.Call(stubname, _reg4.binding+retval_arg))))
+422             return \(aq_retval\(aq
+423         else
+~~~~~~~~~~~~~~~~~~~~
+.sp
+424             return gen(ir.Call(stubname, _reg4.binding))
+425
+426     elif match(node, (ir.call, (ir.get_struct_item, _reg0, _reg1, (ir.struct_item, _reg2, _reg3)), _reg4))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+427                 # We can\(aqt do a function pointer call in Chapel
+428                 # Emit a C stub for that
+429         _, s_id, _, _ = _reg0.binding
+430         retval_arg = generate_method_stub(scope, node, s_id)
+431         stubname = \(aq_\(aq.join([epv_qname(s_id), re.sub(\(aq^f_\(aq, \(aq\(aq, _reg3.binding),\(aqstub\(aq])
+432         if retval_arg
+~~~~~~~~~~~~~~~~~~~~
+.sp
+433             scope.pre_def(gen(ir.Var_decl(retval_arg, \(aq_retval\(aq)))
+434             scope.pre_def(gen(ir.Assignment(\(aq_retval\(aq, ir.Call(stubname, _reg4.binding+retval_arg))))
+435             return \(aq_retval\(aq
+436         else
+~~~~~~~~~~~~~~~~~~~~
+.sp
+437             return gen(ir.Call(stubname, _reg4.binding))
+438
+439     elif match(node, (ir.new, _reg0, _reg1))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+440         return \(aqnew %s(%s)\(aq%(gen(_reg0.binding), gen_comma_sep(_reg1.binding))
+441
+442     elif match(node, (ir.const, _reg0))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+443         return \(aq/\fIFIXME: CONST\fP/\(aq+gen(_reg0.binding)
+444
+445             # Special handling of rarray types
+446     elif match(node, (ir.arg, _reg0, _reg1, (sidl.rarray, _reg2, _reg3, _reg4), _reg5))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+447         (arg_mode, arg_name) = (gen(_reg1.binding), gen(_reg5.binding))
+448                 # rarray type will include a new domain variable definition
+449         arg_type = \(aq[?_babel_dom_%s] %s\(aq%(_reg5.binding, gen(_reg2.binding))
+450         return \(aq%s %s: %s\(aq%(arg_mode, arg_name, arg_type)
+451
+452     elif match(node, (ir.arg, _reg0, _reg1, _reg2, _reg3))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+453                 #print n
+454         return \(aq%s %s: %s\(aq%(gen(_reg1.binding), gen(_reg3.binding), gen(_reg2.binding))
+455
+456     elif match(node, (
+.nf
+sidl.class_
+.fi
+, (_reg0), _reg1, _reg2, _reg3, _reg4, _reg5, _reg6))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+457         return gen_comment(_reg6.binding)+\(aqclass \(aq+_reg0.binding
+458
+459     elif match(node, (sidl.array, [], [], []))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+460         return gen(ir.pt_void)+\(aq/\fIFIXME\fP/\(aq
+461
+462     elif match(node, (sidl.array, _reg0, _reg1, _reg2))
+~~~~~~~~~~~~~~~~~~~~
+.SH 463         if _reg0.binding[0] == ir.scoped_id
+.IP "System Message: WARNING/2 (braid.txt:, line 248)"
+.
+Title underline too short.
+.sp
+.nf
+.ft C
+463         if _reg0.binding[0] == ir.scoped_id
+~~~~~~~~~~~~~~~~~~~~
+.ft P
+.fi
+.sp
+464             ctype = \(aqBaseInterface\(aq
+465         else
+~~~~~~~~~~~~~~~~~~~~
+.sp
+466             ctype = _reg0.binding[1]
+467         return \(aqsidl.Array(%s, sidl_%s__array)\(aq%(gen(_reg0.binding), ctype)
+468         scope.cstub.optional.add(\(aq#include <sidl_%s_IOR.h>\(aq%ctype)
+469
+470     elif match(node, (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+471         return "string"
+472
+473     elif match(node, (ir.pointer_type, (ir.primitive_type, ir.void)))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+474         return "opaque"
+475
+476     elif match(node, (ir.pointer_type, _reg0))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+477                 # ignore wrongfully introduced pointers
+478                 # \-> actually I should fix generate_method_stub instead
+479         return gen(_reg0.binding)
+480
+481     elif match(node, (ir.typedef_type, cbool))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+482         return "bool"
+483
+484     elif match(node, (ir.typedef_type, \(aqsidl_bool\(aq))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+485         return "bool"
+486
+487     elif match(node, (ir.typedef_type, int32))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+488         return "int(32)"
+489
+490     elif match(node, (ir.typedef_type, int64))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+491         return "int(64)"
+492
+493     elif match(node, (ir.typedef_type, fcomplex))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+494         return "complex(64)"
+495
+496     elif match(node, (ir.typedef_type, dcomplex))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+497         return "complex(128)"
+498
+499     elif match(node, (ir.struct, (ir.scoped_id, _reg0, _reg1, _reg2), _reg3, _reg4))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+500                 #print \(aqprefix %s, name %s, ext %s\(aq %(Prefix, Name, Ext)
+501         return \(aq.\(aq.join(_reg0.binding+[\(aq_\(aq.join(_reg0.binding+[_reg1.binding])])
+502
+503     elif match(node, (ir.struct, _reg0, _reg1, _reg2))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+504         return _reg0.binding
+505
+506     elif match(node, (ir.get_struct_item, _reg0, (ir.deref, _reg1), (ir.struct_item, _reg2, _reg3)))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+507         return "%s.%s"%(gen(_reg1.binding), gen(_reg3.binding))
+508
+509     elif match(node, (ir.set_struct_item, _reg0, (ir.deref, _reg1), (ir.struct_item, _reg2, _reg3), _reg4))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+510         return gen(_reg1.binding)+\(aq.\(aq+gen(_reg3.binding)+\(aq = \(aq+gen(_reg4.binding)
+511
+512     elif match(node, (ir.type_decl, (ir.struct, _reg0, _reg1, _reg2)))
+~~~~~~~~~~~~~~~~~~~~
+.SH 513 #                def unprefix(s)
+.IP "System Message: WARNING/2 (braid.txt:, line 346)"
+.
+Title underline too short.
+.sp
+.nf
+.ft C
+513 #                def unprefix(s)
+~~~~~~~~~~~~~~~~~~~~
+.ft P
+.fi
+.sp
+514 #                    # FIXME!!! this is broken. Use a proper scopedID
+515 #                    # instead once the paper is out
+516 #                   return \(aq_\(aq.join((s.split(\(aq_\(aq)[1:]))
+517         itemdecls = gen_semicolon_sep(map(lambda i: ir.Var_decl(i[1], i[2]), _reg1.binding))
+518         return gen_comment(_reg2.binding)+str(new_scope1(\(aqrecord %s {n\(aq%gen(_reg0.binding),
+519                                                       itemdecls, \(aqn}\(aq))
+520
+521     elif match(node, (ir.var_decl, _reg0, _reg1))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+522         return scope.new_header_def(\(aqvar %s: %s\(aq%(gen(_reg1.binding), gen(_reg0.binding)))
+523
+524     elif match(node, (ir.var_decl_init, (ir.typedef_type, "inferred_type"), _reg0, _reg1))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+525         return scope.new_header_def(\(aqvar %s = %s\(aq%(gen(_reg0.binding), gen(_reg1.binding)))
+526
+527     elif match(node, (ir.var_decl_init, _reg0, _reg1, _reg2))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+528         return scope.new_header_def(\(aqvar %s: %s = %s\(aq%
+529                                     (gen(_reg1.binding), gen(_reg0.binding), gen(_reg2.binding)))
+530
+531     elif match(node, (ir.enum, _reg0, _reg1, _reg2)):         return gen(_reg0.binding)
+532
+533     elif match(node, (ir.type_decl, (ir.enum, _reg0, _reg1, _reg2)))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+534                 # Manually transform the Items
+535         enum_transformed = False
+536         used_states = []
+537         for loop_item in _reg1.binding
+~~~~~~~~~~~~~~~~~~~~
+.SH 538             if (len(loop_item) == 3)
+.IP "System Message: WARNING/2 (braid.txt:, line 389)"
+.
+Title underline too short.
+.sp
+.nf
+.ft C
+538             if (len(loop_item) == 3)
+~~~~~~~~~~~~~~~~~~~~
+.ft P
+.fi
+.sp
+539                 used_states.append(loop_item[2])
+540             else
+~~~~~~~~~~~~~~~~~~~~
+.sp
+541                 enum_transformed = True
+542
+543         items_to_use = _reg1.binding
+544         if enum_transformed
+~~~~~~~~~~~~~~~~~~~~
+.sp
+545                     # Explicitly initialize the enum values, since
+546                     # Chapel enums start at 1
+547             new_items = []
+548             avail_state = 0
+549             for loop_item in _reg1.binding
+~~~~~~~~~~~~~~~~~~~~
+.SH 550                 if (len(loop_item) == 3)
+.IP "System Message: WARNING/2 (braid.txt:, line 413)"
+.
+Title underline too short.
+.sp
+.nf
+.ft C
+550                 if (len(loop_item) == 3)
+~~~~~~~~~~~~~~~~~~~~
+.ft P
+.fi
+.sp
+551                     new_items.append(loop_item)
+552                 else
+~~~~~~~~~~~~~~~~~~~~
+.SH 553                     while avail_state in used_states
+.IP "System Message: WARNING/2 (braid.txt:, line 422)"
+.
+Title underline too short.
+.sp
+.nf
+.ft C
+553                     while avail_state in used_states
+~~~~~~~~~~~~~~~~~~~~
+.ft P
+.fi
+.sp
+554                         avail_state = avail_state + 1
+555                     new_items.append(ir.Enumerator_value(loop_item[1], avail_state))
+556                     used_states.append(avail_state)
+557             items_to_use = new_items
+558
+559         return new_scope1(\(aqenum %s {\(aq%gen(_reg0.binding), gen_comma_sep(items_to_use), \(aq}\(aq)
+560
+561     elif match(node, (
+.nf
+ir.import_
+.fi
+, _reg0)):         new_def(\(aquse %s;\(aq%_reg0.binding)
+562
+563
+564     elif match(node, (ir.float, _reg0)):
+565         return str(_reg0.binding)+\(aq:real(32)\(aq
+566
+567     elif match(node, (ir.double, _reg0)):
+568         return str(_reg0.binding)+\(aq:real(64)\(aq
+569
+570     elif match(node, (sidl.custom_attribute, _reg0)):               return gen(_reg0.binding)
+571     elif match(node, (sidl.method_name, _reg0, _reg1)):         return gen(_reg0.binding) + gen(_reg1.binding)
+572     elif match(node, (sidl.scoped_id, _reg0, _reg1, _reg2))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+573         return \(aq.\(aq.join(_reg0.binding+[_reg1.binding])
+574     elif match(node, (_reg0))
+~~~~~~~~~~~~~~~~~~~~
+.sp
+575         return super(ChapelCodeGenerator, self).generate(_reg0.binding, scope)
+576
+577     else
+~~~~~~~~~~~~~~~~~~~~
+.sp
+578         raise Exception(\(aqmatch error\(aq)
+579     return scope
+580
+.SS SYNOPSIS
 .INDENT 0.0
 .INDENT 3.5
 .INDENT 0.0
@@ -44,20 +480,20 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .UNINDENT
 .UNINDENT
-.SH DESCRIPTION
+.SS DESCRIPTION
 .sp
 Braid 0.2.4 \- Do magically wonderful things with SIDL (scientific interface
 definition language) files. [This version of BRAID was configured on tux314,
-Fri Oct 28 10:31:10 PDT 2011.]
-.SH OPTIONS
-.SS positional arguments
+Thu Jan 19 10:59:48 PST 2012.]
+.SS OPTIONS
+.SH positional arguments
 .INDENT 0.0
 .INDENT 3.5
 .sp
 <file.sidl>           SIDL files to use as input
 .UNINDENT
 .UNINDENT
-.SS optional arguments
+.SH optional arguments
 .INDENT 0.0
 .INDENT 3.5
 .INDENT 0.0
@@ -112,7 +548,7 @@ print more debug info
 .UNINDENT
 .sp
 Please report bugs to <\fI\%components@llnl.gov\fP>.
-.SH COPYRIGHT NOTICE
+.SS COPYRIGHT NOTICE
 .sp
 Copyright (c) 2011, Lawrence Livermore National Security, LLC.
 Produced at the Lawrence Livermore National Laboratory.
@@ -183,6 +619,13 @@ those of the United States Government or Lawrence Livermore
 National Security, LLC, and shall not be used for advertising or
 product endorsement purposes.
 .UNINDENT
+.SH Docutils System Messages
+.IP "System Message: ERROR/3 (braid.txt:, line 228)"
+.
+Unknown target name: "sidl.class".
+.IP "System Message: ERROR/3 (braid.txt:, line 425)"
+.
+Unknown target name: "ir.import".
 .\" Generated by docutils manpage writer.
 .\" 
 .

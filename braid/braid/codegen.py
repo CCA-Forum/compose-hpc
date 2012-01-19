@@ -52,7 +52,7 @@
 
 import re, string, sys
 import ir, sidl
-from patmat import matcher, Variable, match, unify, member
+from patmat import *
 from utils import *
 
 languages = ["C", "CXX", "F77", "F90", "F03", "Python", "Java"]
