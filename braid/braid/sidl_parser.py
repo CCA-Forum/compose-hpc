@@ -479,7 +479,7 @@ def p_requires(p): # *
 
 def p_require(p):
     '''require : REQUIRE scopedId version SEMICOLON'''
-    p[0] = sidl.Require(p[2], p[3])
+    p[0] = sidl.Requires(p[2], p[3])
 
 def p_require_error(p):
     '''require : REQUIRE error version SEMICOLON'''
@@ -733,7 +733,7 @@ def p_maybeExceptClause(p):
 
 def p_exceptClause(p):
     '''exceptClause : THROWS scopedIds'''
-    p[0] = map(lambda x: sidl.Except([x]), p[2])
+    p[0] = map(lambda x: sidl.Except(x), p[2])
 
 def p_maybeFromClause(p):
     '''maybeFromClause : FROM scopedId
@@ -748,12 +748,12 @@ def p_invariant(p):
 def p_requireAssertions(p):
     '''requireAssertions : REQUIRE assertions
                          | empty empty'''
-    p[0] = map(lambda x: sidl.Require([x]), p[2])
+    p[0] = map(lambda x: sidl.Require(x), p[2])
 
 def p_ensureAssertions(p):
     '''ensureAssertions : ENSURE assertions
                         | empty empty'''
-    p[0] = map(lambda x: sidl.Ensure([x]), p[2])
+    p[0] = map(lambda x: sidl.Ensure(x), p[2])
 
 def p_assertions(p): # +
     '''assertions : assertion
@@ -918,7 +918,7 @@ def p_assertExpr_1(p):
 def p_assertExpr_2(p):
     '''assertExpr : orExpr IMPLIES orExpr
                   | orExpr IFF orExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidl.Infix_expr(str.lower(p[2]), p[1], p[3])
 
 # TODO:
 #   simplify the grammar by using the following declaration
@@ -942,7 +942,7 @@ def p_orExpr_1(p):
 def p_orExpr_2(p):
     '''orExpr : andExpr LOGICAL_OR orExpr
               | andExpr LOGICAL_XOR orExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidl.Infix_expr('log_'+str.lower(p[2]), p[1], p[3])
 
 def p_andExpr_1(p):
     '''andExpr : bitwiseExpr'''
@@ -950,7 +950,7 @@ def p_andExpr_1(p):
 
 def p_andExpr_2(p):
     '''andExpr : bitwiseExpr LOGICAL_AND andExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidl.Infix_expr('log_'+str.lower(p[2]), p[1], p[3])
 
 def p_bitwiseExpr_1(p):
     '''bitwiseExpr : equalityExpr'''
@@ -1023,7 +1023,7 @@ def p_unaryExpr_1(p):
     '''unaryExpr : IS funcEval
                  | NOT funcEval
                  | TILDE funcEval'''
-    p[0] = sidl.Prefix_expr(p[1], p[2])
+    p[0] = sidl.Prefix_expr(str.lower(p[1]), p[2])
 
 def p_unaryExpr_2(p):
     '''unaryExpr : funcEval'''

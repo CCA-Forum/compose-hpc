@@ -28,9 +28,9 @@
 #\verbatim
 # 
 # [
-#   _File = file([Require], [Import], [User_type]),
+#   _File = file([Requires], [Import], [User_type]),
 #   Version = version('STR' | 'FLOAT' | 'INT'),
-#   Require = require(Scoped_id, Version),
+#   Requires = requires(Scoped_id, Version),
 #   Import = import(Scoped_id, Version),
 #   Package = package(Id, Version, [User_type], Doc_comment),
 #   User_type = user_type([(Type_attr|Custom_attr)], Cipse),
@@ -65,9 +65,10 @@
 #   From = from(Scoped_id),
 #   Invariant = invariant(Assertion),
 #   Assertion = assertion(Id, AssertExpr),
-#   Except = except([Scoped_id]),
-#   Ensure = ensure([Scoped_id]),
+#   Except = except(Scoped_id),
 #   Extends = extends(Scoped_id),
+#   Ensure = ensure(Assertion),
+#   Require = require(Assertion),
 #   Arg = arg([Arg_attr], Mode, (Type_void | Rarray), Id),
 #   Arg_attr = (copy | ['STR']),
 #   Custom_attr = ( custom_attribute('STR')
@@ -86,13 +87,13 @@
 #   SimpleIntExpression = ('INT' | Id), % FIXME
 #   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
 #                | prefix_expr(Un_op, AssertExpr)
-#                | fn_eval(Id, [Arg])
+#                | fn_eval(Id, [AssertExpr])
 #                | var_ref(Id)
 #                | Id
 #                | Literal
 #                ),
-#   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
-#           |plus|minus|times|divide|modulo|rem|pow),
+#   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge
+# 	   |lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff),
 #   Un_op = ( is|log_not|bit_not ),
 #   Scoped_id = scoped_id([Module], Id, Extension),
 #   Module = 'STR',
@@ -143,9 +144,12 @@ final = 'final'
 float = 'float'
 fn_eval = 'fn_eval'
 from_ = 'from'
+ge = 'ge'
 gt = 'gt'
+iff = 'iff'
 implements = 'implements'
 implements_all = 'implements_all'
+implies = 'implies'
 import_ = 'import'
 in_ = 'in'
 infix_expr = 'infix_expr'
@@ -154,6 +158,7 @@ int = 'int'
 interface = 'interface'
 invariant = 'invariant'
 is_ = 'is'
+le = 'le'
 local = 'local'
 log_and = 'log_and'
 log_not = 'log_not'
@@ -179,6 +184,7 @@ pure = 'pure'
 rarray = 'rarray'
 rem = 'rem'
 require = 'require'
+requires = 'requires'
 result = 'result'
 row_major = 'row_major'
 rshift = 'rshift'
@@ -196,13 +202,13 @@ void = 'void'
 
 ## Constructor definitions
 
-def Require(*args):
+def Requires(*args):
     """
-    Construct a "require" node. Valid arguments are 
+    Construct a "requires" node. Valid arguments are 
     (\c Scoped_id(), \c Version())
-    \return (\c "Require", \c Scoped_id(), \c Version())
+    \return (\c "Requires", \c Scoped_id(), \c Version())
     """
-    f = Require
+    f = Requires
     if len(args) <> 2:
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
@@ -221,7 +227,7 @@ def Require(*args):
         print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    return tuple(['require']+list(args))
+    return tuple(['requires']+list(args))
 
 def Import(*args):
     """
@@ -303,8 +309,8 @@ def User_type(*args):
 def File(*args):
     """
     Construct a "file" node. Valid arguments are 
-    ([\c Require()], [\c Import()], [\c User_type()])
-    \return (\c "_File", [\c Require()], [\c Import()], [\c User_type()])
+    ([\c Requires()], [\c Import()], [\c User_type()])
+    \return (\c "_File", [\c Requires()], [\c Import()], [\c User_type()])
     """
     f = File
     if len(args) <> 3:
@@ -313,7 +319,7 @@ def File(*args):
         raise Exception("Grammar Error")
     if isinstance(args[0], list):
         for a in args[0]:
-            if isinstance(a, tuple) and a[0] == require:
+            if isinstance(a, tuple) and a[0] == requires:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -1044,23 +1050,16 @@ def Arg(*args):
 def Except(*args):
     """
     Construct a "except" node. Valid arguments are 
-    ([\c Scoped_id()])
-    \return (\c "Except", [\c Scoped_id()])
+    (\c Scoped_id())
+    \return (\c "Except", \c Scoped_id())
     """
     f = Except
     if len(args) <> 1:
         print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
-        for a in args[0]:
-            if isinstance(a, tuple) and a[0] == scoped_id:
-                pass
-            else:
-                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == scoped_id:
+        pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
@@ -1088,26 +1087,39 @@ def From(*args):
         raise Exception("Grammar Error")
     return tuple(['from']+list(args))
 
+def Require(*args):
+    """
+    Construct a "require" node. Valid arguments are 
+    (\c Assertion())
+    \return (\c "Require", \c Assertion())
+    """
+    f = Require
+    if len(args) <> 1:
+        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == assertion:
+        pass
+    else:
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
+        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['require']+list(args))
+
 def Ensure(*args):
     """
     Construct a "ensure" node. Valid arguments are 
-    ([\c Scoped_id()])
-    \return (\c "Ensure", [\c Scoped_id()])
+    (\c Assertion())
+    \return (\c "Ensure", \c Assertion())
     """
     f = Ensure
     if len(args) <> 1:
         print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
-        for a in args[0]:
-            if isinstance(a, tuple) and a[0] == scoped_id:
-                pass
-            else:
-                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
-                raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == assertion:
+        pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
@@ -1295,7 +1307,7 @@ def INT():
 # skipping \c Orientation= (row_major|column_major)
 # skipping \c Extents= \c SimpleIntExpression
 # skipping \c SimpleIntExpression= (INT|\c Id)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
 def STR():
@@ -1490,6 +1502,10 @@ def Infix_expr(*args):
         pass
     elif args[0] == gt:
         pass
+    elif args[0] == le:
+        pass
+    elif args[0] == ge:
+        pass
     elif args[0] == lshift:
         pass
     elif args[0] == rshift:
@@ -1507,6 +1523,10 @@ def Infix_expr(*args):
     elif args[0] == rem:
         pass
     elif args[0] == pow:
+        pass
+    elif args[0] == implies:
+        pass
+    elif args[0] == iff:
         pass
     else:
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -1623,8 +1643,8 @@ def Prefix_expr(*args):
 def Fn_eval(*args):
     """
     Construct a "fn_eval" node. Valid arguments are 
-    (\c Id(), [\c Arg()])
-    \return (\c "Fn_eval", \c Id(), [\c Arg()])
+    (\c Id(), [\c AssertExpr()])
+    \return (\c "Fn_eval", \c Id(), [\c AssertExpr()])
     """
     f = Fn_eval
     if len(args) <> 2:
@@ -1640,7 +1660,27 @@ def Fn_eval(*args):
         raise Exception("Grammar Error")
     if isinstance(args[1], list):
         for a in args[1]:
-            if isinstance(a, tuple) and a[0] == arg:
+            if isinstance(a, tuple) and a[0] == infix_expr:
+                pass
+            elif isinstance(a, tuple) and a[0] == prefix_expr:
+                pass
+            elif isinstance(a, tuple) and a[0] == fn_eval:
+                pass
+            elif isinstance(a, tuple) and a[0] == var_ref:
+                pass
+            elif isinstance(a, PythonTypes.StringType):
+                pass
+            elif isinstance(a, PythonTypes.IntType):
+                pass
+            elif isinstance(a, PythonTypes.FloatType):
+                pass
+            elif isinstance(a, PythonTypes.StringType):
+                pass
+            elif a == pure:
+                pass
+            elif a == result:
+                pass
+            elif isinstance(a, tuple) and a[0] == complex:
                 pass
             else:
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -1674,26 +1714,26 @@ def Var_ref(*args):
         raise Exception("Grammar Error")
     return tuple(['var_ref']+list(args))
 
-def require_scoped_id(arg):
+def requires_scoped_id(arg):
     """
     Accessor function.
-    \return the "scoped_id" member of a "require" node.
+    \return the "scoped_id" member of a "requires" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
-    elif arg[0] <> 'require':
+    elif arg[0] <> 'requires':
         raise Exception("Grammar Error")
     else: return arg[1]
 
 
-def require_version(arg):
+def requires_version(arg):
     """
     Accessor function.
-    \return the "version" member of a "require" node.
+    \return the "version" member of a "requires" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
-    elif arg[0] <> 'require':
+    elif arg[0] <> 'requires':
         raise Exception("Grammar Error")
     else: return arg[2]
 
@@ -2391,10 +2431,10 @@ def arg_id(arg):
     else: return arg[4]
 
 
-def except_scoped_ids(arg):
+def except_scoped_id(arg):
     """
     Accessor function.
-    \return the "scoped_ids" member of a "except" node.
+    \return the "scoped_id" member of a "except" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
@@ -2415,10 +2455,22 @@ def from_scoped_id(arg):
     else: return arg[1]
 
 
-def ensure_scoped_ids(arg):
+def require_assertion(arg):
     """
     Accessor function.
-    \return the "scoped_ids" member of a "ensure" node.
+    \return the "assertion" member of a "require" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'require':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def ensure_assertion(arg):
+    """
+    Accessor function.
+    \return the "assertion" member of a "ensure" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
@@ -2641,7 +2693,7 @@ def primitive_type_opaque(arg):
 # skipping \c Orientation= (row_major|column_major)
 # skipping \c Extents= \c SimpleIntExpression
 # skipping \c SimpleIntExpression= (INT|\c Id)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
 # skipping \c Module=STR
@@ -2837,10 +2889,10 @@ def fn_eval_id(arg):
     else: return arg[1]
 
 
-def fn_eval_args(arg):
+def fn_eval_assertExprs(arg):
     """
     Accessor function.
-    \return the "args" member of a "fn_eval" node.
+    \return the "assertExprs" member of a "fn_eval" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
@@ -2862,8 +2914,7 @@ def var_ref_id(arg):
 
 
  ## token overrides to simplify the parser
-log_or = '||'
-log_and = '&&'
+bit_not = '~'
 eq = '=='
 ne = '!='
 bit_or = '|'
@@ -2871,6 +2922,8 @@ bit_and = '&'
 bit_xor = '^'
 lt = '<'
 gt = '>'
+le = '<='
+ge = '>='
 lshift = '<<'
 rshift = '>>'
 plus = '+'

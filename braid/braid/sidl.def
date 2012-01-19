@@ -36,9 +36,9 @@
 %%# In alternatives, atoms must come first: atom|complex(something).
 %%# Prefix an underscore to suppress singleton warnings.
 [
-  _File = file([Require], [Import], [User_type]),
+  _File = file([Requires], [Import], [User_type]),
   Version = version('STR' | 'FLOAT' | 'INT'),
-  Require = require(Scoped_id, Version),
+  Requires = requires(Scoped_id, Version),
   Import = import(Scoped_id, Version),
   Package = package(Id, Version, [User_type], Doc_comment),
   User_type = user_type([(Type_attr|Custom_attr)], Cipse),
@@ -73,9 +73,10 @@
   From = from(Scoped_id),
   Invariant = invariant(Assertion),
   Assertion = assertion(Id, AssertExpr),
-  Except = except([Scoped_id]),
-  Ensure = ensure([Scoped_id]),
+  Except = except(Scoped_id),
   Extends = extends(Scoped_id),
+  Ensure = ensure(Assertion),
+  Require = require(Assertion),
   Arg = arg([Arg_attr], Mode, (Type_void | Rarray), Id),
   Arg_attr = (copy | ['STR']),
   Custom_attr = ( custom_attribute('STR')
@@ -94,13 +95,13 @@
   SimpleIntExpression = ('INT' | Id), % FIXME
   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
                | prefix_expr(Un_op, AssertExpr)
-               | fn_eval(Id, [Arg])
+               | fn_eval(Id, [AssertExpr])
                | var_ref(Id)
                | Id
                | Literal
                ),
-  Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
-          |plus|minus|times|divide|modulo|rem|pow),
+  Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge
+	   |lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff),
   Un_op = ( is|log_not|bit_not ),
   Scoped_id = scoped_id([Module], Id, Extension),
   Module = 'STR',
@@ -108,8 +109,7 @@
   Complex = complex('FLOAT', 'FLOAT')
 ].
 % ## token overrides to simplify the parser
-%log_or = '||'
-%log_and = '&&'
+%bit_not = '~'
 %eq = '=='
 %ne = '!='
 %bit_or = '|'
@@ -117,6 +117,8 @@
 %bit_xor = '^'
 %lt = '<'
 %gt = '>'
+%le = '<='
+%ge = '>='
 %lshift = '<<'
 %rshift = '>>'
 %plus = '+'

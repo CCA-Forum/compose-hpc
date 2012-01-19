@@ -23,7 +23,7 @@
 # </pre>
 #
 from utils import accepts, returns
-from patmat import matcher, match, member, unify, expect, Variable
+from patmat import *
 import sidl, types, sys
 
 def resolve(ast, verbose=True):
