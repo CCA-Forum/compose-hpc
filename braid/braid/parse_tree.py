@@ -4,6 +4,7 @@
 #
 # This is a trivial parser for compound expressions of the form
 # a(b(c),d).
+# It returns a python tuple.
 #
 # Please report bugs to <adrian@llnl.gov>.
 #
@@ -52,4 +53,9 @@ lexer = lex.lex(debug=0,optimize=0)
 parser = yacc.yacc(optimize=0, debug=0)
 
 def parse_tree(s):
+    """
+    Parser for compound expressions of the form
+    a(b(c),d) and return a python tuple 
+    ('a', ('b', 'c'), 'd').
+    """
     return parser.parse(lexer=lexer, input=s)

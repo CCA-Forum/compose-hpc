@@ -266,66 +266,6 @@ def unify(a, b, bindings):
 #         	return False
 
 
-# Turns out this is even worse
-# def match_opt(a, b):
-#     """
-#     optimized version of \c match. Assumes that a and b contain only
-#     unbound variables.
-#     """
-#     return unify_opt(a, b, [])
-#     # in this case bindings is a dict pointing to the values of a and b
-#     # bindings = dict()
-#     # success = unify_opt(a, b, bindings)
-#     # if success:
-#     #     for var, value in bindings.iteritems():
-#     #         var.binding = value
-#     # return success
-
-# def unify_opt(a, b, bindings):
-#     """
-#     optimized version of \c unified.
-#     """
-# Assumes that a and b contain only unbound variables.
-#     in this case bindings is a dict pointing to the values of a and b
-    
-#     type_b = type(b)
-#     if type_b == Variable: # Variable
-# 	try:
-#             b = bindings[b]
-#         except:
-# 	    bindings[b] = a
-# 	    return True
-#     type_a = type(a)
-#     if type_a == Variable: # Variable
-# 	try:
-#             a = bindings[a]
-#         except:
-# 	    bindings[a] = b
-# 	    return True
-#     if type_a == types.TupleType: # Term
-# 	if type_b == types.TupleType: # Term
-# 	    if len(a) != len(b):
-#                 bindings.clear()
-#                 return False
-# 	    for i in range(0, len(a)):
-# 		if not unify_opt(a[i], b[i], bindings):
-# 		    return False
-# 	    return True
-# 	else: # Atom
-#             bindings.clear()
-# 	    return False
-#     else: # Atom
-# 	if type_b == types.TupleType: # Term
-#             bindings.clear()
-# 	    return False
-# 	else: # Atom
-# 	    if a == b:
-# 		return True
-# 	    else:
-#                 bindings.clear()
-#                 return False
-
-
 class matcher(object):
     """
     A decorator to perform the pattern matching transformation
@@ -379,7 +319,7 @@ def compile_matcher(f):
 
     The function is written to a file <f.__name__>_matcher.py
     \bug not any more
-    \bug with match() and expect() cannot span multiple lines
+    \bug 'with match()' and expect() cannot span multiple lines
     \bug string literals are not recognized by the parser
     \todo Once we are happy with the syntax, 
           rewrite this using the proper Python AST rewriting mechanisms
@@ -391,6 +331,31 @@ def compile_matcher(f):
 	if re.match(r'.*\t.*', s):
 	    raise Exception('Sorry... the input contains tabs:\n'+line)
 	return len(re.match(r'^\s*', s).group(0))
+
+    def tuple_len(tuple_str):
+        """
+        \return the arity of the tuple represented in string
+        we expect the tuple to be wrapped in parentheses
+        TODO: use a proper python parser for this
+        """
+        l = 1
+        depth_par = -1 # ignore outermost parentheses
+        depth_str1 = 0
+        depth_str2 = 0
+        valid = False
+        for char in tuple_str:
+            if   char == ',' and depth_str1+depth_str2 == 0 and depth_par == 0: l += 1
+            elif char == '(' and depth_str1+depth_str2 == 0: depth_par += 1; valid = True
+            elif char == ')' and depth_str1+depth_str2 == 0: depth_par -= 1
+            elif char == "'" and depth_str2 == 0: 
+                if depth_str1 == 0: depth_str1 = 1
+                else: depth_str1 = 0
+            elif char == '"' and depth_str1 == 0:
+                if depth_str2 == 0: depth_str2 = 1
+                else: depth_str2 = 0
+        assert(depth_par+depth_str1+depth_str2 == -1)
+        if not valid: return -1
+        return l
 
     def scan_variables(rexpr):
 	"""
@@ -516,6 +481,17 @@ def compile_matcher(f):
 	while len(withindent) > 0 and il <= withindent[-1]:
 	    # insert registers declarations
 	    decls = get_vardecls()
+
+            # if indexing:
+            #     ind = ' '*(withindent[-1])
+            #     dest.append(ind+'}')
+            #     dest.append(ind+'try:')
+            #     dest.append(ind+'    index[%s]()'%lexpr[-1])
+            #     dest.append(ind+'    _success = True')
+            #     dest.append(ind+'except:')
+            #     dest.append(ind+'    _success = False')
+            #     dest.append(ind+'if _success: pass # "else" may follow here')
+
 	    # put all in one line, so we don't mess with the line numbering
 	    insert_line(withbegin[-1],
 			' '*(withindent[-1]) + '; '.join(decls) + '\n')
@@ -546,7 +522,11 @@ def compile_matcher(f):
 	    regalloc.append([])
 	    withindent.append(il)
 	    withbegin.append(num_lines.read()-1)
-	    line = ""
+	    line = ' '*il+\
+                '_len = len({lexpr}) if isinstance({lexpr}, tuple) else -1\n'.format(lexpr=lexpr[-1])
+            # if indexing:
+            #     last_functor = None
+            #     line = ' '*il+'_patmat_index = {'
 
 	# expect() is handled completely in here
         # putting expect here is still half-baked...
@@ -589,12 +569,26 @@ def compile_matcher(f):
 
 		if m:
 		    rexpr = m.group(4)
-		    regalloc[-1] = []
-		    line = '%s%s %smatch(%s, %s):' \
-			% (m.group(1), m.group(2),
-			   patmat_prefix,
-			   lexpr[-1],
-			   scan_variables(rexpr))
+                    # if indexing:
+                    #     functor = re.match(r'^\(+([^,]+)', rexpr).group(1)
+                    #     if functor <> last_functor:
+                    #         last_functor = functor
+                    #         dest.append("%s: lambda\n"%functor)
+                    #         el_if = 'if'
+
+                    # the test for _len is an optimization and can
+                    # be omitted safely
+                    tl = tuple_len(rexpr)
+                    optimization = '' if tl == 1 else ('%s==_len and' % tl)
+
+                    regalloc[-1] = []
+                    line = '%s%s %s %smatch(%s, %s):' \
+                        % (m.group(1), m.group(2),
+                           optimization,
+                           patmat_prefix,
+                           lexpr[-1],
+                           scan_variables(rexpr))
+
 		    # substitute registers for variables
                     line = substitute_registers(line, depthstr(len(lexpr)-1))
 		    # split off the part behind the ':' and append it

@@ -572,9 +572,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.method_name, Id, Extension): return gen(Id) + gen(Extension)
             elif (sidl.scoped_id, Prefix, Name, Ext):
                 return '.'.join(Prefix+[Name])
-            elif (Expr):
-                return super(ChapelCodeGenerator, self).generate(Expr, scope)
 
             else:
-                raise Exception('match error')
+                return super(ChapelCodeGenerator, self).generate(node, scope)
         return scope
