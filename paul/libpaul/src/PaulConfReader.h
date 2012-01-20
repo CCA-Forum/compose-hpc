@@ -2,6 +2,7 @@
 #define __PAULCONFREADER_H__
 
 #include <map>
+#include <string>
 
 using namespace std;
 
