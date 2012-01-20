@@ -486,18 +486,18 @@ class F77File(SourceFile):
         complete with indentation and newlines.
         """
         #print self._header, '+', self._defs, 'sep="',self._sep,'"'
-        data = ''
+        data = []
         label = False
         for defn in self.get_defs():
             if label:
                 label = False
-                data += defn+'\n'
-            elif defn[0] == '&': data += '     &      '+defn[1:]+'\n'
+                data.append(defn+'\n')
+            elif defn[0] == '&': data.extend(['     &      ', defn[1:], '\n'])
             elif defn[0] == '@':
-                   label = True; data += ' %s    '% defn[1:]
-            else:                data += '        '+defn+'\n'
+                   label = True; data.extend([' ', defn[1:],'    '])
+            else:                data.extend(['        ', defn, '\n'])
 
-        return data
+        return ''.join(data)
 
 class F77Scope(F77File):
     """Represents a list of statements in an indented block"""
@@ -714,7 +714,7 @@ class F90File(SourceFile):
         Perform the actual translation into a readable string,
         complete with indentation and newlines.
         """
-        return '\n'.join(self._header+self._defs)+'\n'
+        return '%s\n'%'\n'.join(self._header+self._defs)
 
 class F90Scope(F90File):
     """Represents a list of statements in an indented block"""
@@ -1070,9 +1070,9 @@ class CCompoundStmt(CFile):
                                             relative_indent=2)
 
     def __str__(self):
-        return (' {\n'
-                + super(CCompoundStmt, self).__str__() +'\n'
-                + ' '*(self.indent_level-2) + '}')
+        return ' {\n%s\n%s}' % (
+            super(CCompoundStmt, self).__str__(),
+            ' '*(self.indent_level-2))
 
 class ClikeCodeGenerator(GenericCodeGenerator):
     """
@@ -1154,9 +1154,10 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             if doc_comment == '':
                 return ''
             sep = '\n'+' '*scope.indent_level
-            return (sep+' * ').join(['/**']+
-                                   re.split('\n\s*', doc_comment)
-                                   )+sep+' */'+sep
+            return ''.join([(sep+' * ').join(['/**']+
+                                             re.split('\n\s*', doc_comment)), 
+                            sep,' */', 
+                            sep])
 
         with match(node):
             if (ir.stmt, Expr):
@@ -1232,7 +1233,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return new_def(gen(Name))
 
             elif (ir.enumerator_value, Name, Value):
-                return new_def(gen(Name)+" = "+gen(Value))
+                return new_def("%s = %s" %(gen(Name), gen(Value)))
 
             elif (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)):
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
@@ -1309,15 +1310,15 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return "%s->%s"%(gen(StructName), gen(Item))
 
             elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
-                return gen(StructName)+'->'+gen(Item)+' = '+gen(Value)
+                return '%s->%s = %s' %(gen(StructName), gen(Item), gen(Value))
 
             #FIXME: add a SIDL->C step that rewrites the SIDL struct accesses to use struct pointers
 
             elif (ir.get_struct_item, _, StructName, (ir.struct_item, _, Item)):
-                return gen(StructName)+'.'+gen(Item)
+                return '%s.%s' % (gen(StructName), gen(Item))
 
             elif (ir.set_struct_item, _, StructName, (ir.struct_item, _, Item), Value):
-                return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
+                return '%s.%s = %s' % (gen(StructName), gen(Item), gen(Value))
 
             elif (ir.scoped_id, Prefix, Name, Ext):
                 return '_'.join(Prefix+[Name])
@@ -1505,8 +1506,10 @@ class PythonFile(SourceFile):
         Perform the actual translation into a readable string,
         complete with indentation and newlines.
         """
-        return ' '*self.indent_level+(
-            '\n'+' '*self.indent_level).join(self._header+self._defs)+'\n'
+        return '%s%s\n'% (
+            ' '*self.indent_level,
+            ('\n'+' '*self.indent_level).join(self._header+self._defs)
+            )
 
     def break_line(self, string):
         """

@@ -347,6 +347,7 @@ CHAPEL = @CHAPEL@
 CHAPEL_COMM = @CHAPEL_COMM@
 CHAPEL_ROOT = @CHAPEL_ROOT@
 CHAPEL_VERSION = @CHAPEL_VERSION@
+CONFIGURED_PYTHONPATH = @CONFIGURED_PYTHONPATH@
 CONFIGURE_DATE = @CONFIGURE_DATE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -409,7 +410,7 @@ PL_LIBS = @PL_LIBS@
 PYTHON = @PYTHON@
 PYTHONINC = @PYTHONINC@
 PYTHONLIB = @PYTHONLIB@
-PYTHONPATH = $(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(top_srcdir)/braid
+PYTHONPATH = $(top_srcdir)/contrib/ply:$(BACKPORTS):.libs:$(builddir)/braid/.libs:$(top_srcdir)/braid:$(CONFIGURED_PYTHONPATH)
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
 PYTHON_PREFIX = @PYTHON_PREFIX@
@@ -623,13 +624,14 @@ BABEL_TESTS = \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl \
-  regression/interop/struct/runChapel/structtest.chpl \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
   regression/interop/overload/runChapel/overloadtest.chpl 
 
+#  regression/interop/struct/runChapel/structtest.chpl \
+#
 BABEL_TESTNAMES = \
-  args arrays inherit strings struct exceptions ordering overload
+  args arrays inherit strings exceptions ordering overload #struct 
 
 @ENABLE_INTEROP_REGRESSION_TRUE@CHPL_LOG_COMPILER = sh 
 # FIXME:
@@ -2577,7 +2579,7 @@ chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd chpl && \
           env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
-            -cchpl $(SIDL_PATH)/sidl.sidl
+            -cchpl $(SIDL_PATH)/sidl.sidl --verbose # --profile
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@

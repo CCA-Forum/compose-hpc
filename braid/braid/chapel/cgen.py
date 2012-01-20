@@ -282,7 +282,7 @@ class ChapelScope(ChapelFile):
         else:
             terminator = ''
 
-        return self._sep.join(self._header+self._defs)+terminator
+        return '%s%s'%(self._sep.join(self._header+self._defs), terminator)
 
 class ChapelLine(ChapelFile):
     def __init__(self, parent=None, relative_indent=4):
@@ -455,7 +455,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
-                return gen_comment(DocComment)+'class '+Name
+                return '%sclass %s' % (gen_comment(DocComment), Name)
 
             elif (sidl.array, [], [], []):
                 return gen(ir.pt_void)+'/*FIXME*/'

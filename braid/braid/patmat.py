@@ -211,7 +211,7 @@ def unify(a, b, bindings):
 	if type_b == types.TupleType: # Term
 	    if len(a) != len(b):
 		return unbind(bindings)
-	    for i in range(0, len(a)):
+	    for i in xrange(0, len(a)):
 		if not unify(a[i], b[i], bindings):
 		    return False
 	    return True
@@ -265,6 +265,17 @@ def unify(a, b, bindings):
 #         	unbind(bindings)
 #         	return False
 
+
+def unify_tuptup(a, b, bindings, length):
+    """
+    Optimized special case often appearing in matcher(): both \c a and
+    \c b are tuples of length \c length.
+    """
+    for i in xrange(0, length):
+        if not unify(a[i], b[i], bindings):
+            unbind(bindings)
+            return False
+    return True
 
 class matcher(object):
     """
@@ -414,8 +425,11 @@ def compile_matcher(f):
 	else: return chr(n+ord('a'))
 
     def append_line(line):
-	num_lines.inc()
-	dest.append(line[base_indent:])
+        if bucket <> None:
+            bucket.append('    '+line[base_indent:])
+        else:
+            num_lines.inc()
+            dest.append(line[base_indent:])
 
     def insert_line(pos, line):
 	num_lines.inc()
@@ -454,12 +468,16 @@ def compile_matcher(f):
     while re.match(r'^\s*@', src[n]):
         n += 1 # skip decorators
     
+    bucket = None
     append_line(src[n])
 
     # FIXME: wouldn't one stack with a tuple/class of these be nicer?
+    # and even better: couldn't we just recurse when we encounter a with block?
+
     # stacks
     lexpr = [] # lhs expr of current match block
     numregs = [] # number of simulatneously live variables
+    buckets = [] # sorting buckets for the matching rules
     regalloc = [] # associating variables with registers
     withbegin = [] # beginning of current with block
     withindent = [] # indent level of current with block
@@ -482,20 +500,34 @@ def compile_matcher(f):
 	    # insert registers declarations
 	    decls = get_vardecls()
 
-            # if indexing:
-            #     ind = ' '*(withindent[-1])
-            #     dest.append(ind+'}')
-            #     dest.append(ind+'try:')
-            #     dest.append(ind+'    index[%s]()'%lexpr[-1])
-            #     dest.append(ind+'    _success = True')
-            #     dest.append(ind+'except:')
-            #     dest.append(ind+'    _success = False')
-            #     dest.append(ind+'if _success: pass # "else" may follow here')
-
-	    # put all in one line, so we don't mess with the line numbering
+	    # put all vardecls in one line, so we don't mess with the line numbering
 	    insert_line(withbegin[-1],
 			' '*(withindent[-1]) + '; '.join(decls) + '\n')
 
+            # output the rules in decreasing order
+            insert_line(withbegin[-1],' '*(withindent[-1])+
+                        '_len = len({lexpr}) if isinstance({lexpr}, tuple) else -1\n'
+                        .format(lexpr=lexpr[-1]))
+            
+            ind = ' '*(withindent[-1]-base_indent)
+            s = [ind+'_NO_MATCH = False\n']
+            else_notmatch = ' '*(withindent[-1]-base_indent+4)+ \
+                'else: _NO_MATCH = True\n'
+            first = True
+            for l, rules in reversed(sorted(buckets[-1].items())):
+                if not first: s.append(else_notmatch)
+                s.append(ind+'%sif _len == %d:\n'%('' if first else 'el',l))
+                s.extend(rules)
+                first = False
+            if not first: # had at least 1
+                s.append(else_notmatch)
+
+            s.append(ind+'else: _NO_MATCH = True\n')
+            s.append(ind+'if not _NO_MATCH: pass\n')
+            dest.insert(withbegin[-1]+2, ''.join(s))
+
+            # cleanup
+            buckets.pop()
 	    matchindent.pop()
 	    withindent.pop()
 	    withbegin.pop()
@@ -522,11 +554,9 @@ def compile_matcher(f):
 	    regalloc.append([])
 	    withindent.append(il)
 	    withbegin.append(num_lines.read()-1)
-	    line = ' '*il+\
-                '_len = len({lexpr}) if isinstance({lexpr}, tuple) else -1\n'.format(lexpr=lexpr[-1])
-            # if indexing:
-            #     last_functor = None
-            #     line = ' '*il+'_patmat_index = {'
+	    line = ''
+            bucket = None
+            buckets.append(dict())
 
 	# expect() is handled completely in here
         # putting expect here is still half-baked...
@@ -568,26 +598,40 @@ def compile_matcher(f):
 		m = re.match(r'^('+' '*matchind+r')((el)?if) +(.*):(.*)$', line)
 
 		if m:
+                    el_if = m.group(1)
 		    rexpr = m.group(4)
-                    # if indexing:
-                    #     functor = re.match(r'^\(+([^,]+)', rexpr).group(1)
-                    #     if functor <> last_functor:
-                    #         last_functor = functor
-                    #         dest.append("%s: lambda\n"%functor)
-                    #         el_if = 'if'
 
-                    # the test for _len is an optimization and can
-                    # be omitted safely
+                    # we are sorting the match operations by tuple length
                     tl = tuple_len(rexpr)
-                    optimization = '' if tl == 1 else ('%s==_len and' % tl)
+                    if tl > 1: 
+                        # prepare a new sorting bucket
+                        if tl not in buckets[-1].keys():
+                            buckets[-1][tl] = []
+                            el_if = 'if'
+                        else:
+                            el_if = 'elif'
+                        bucket = buckets[-1][tl]
 
-                    regalloc[-1] = []
-                    line = '%s%s %s %smatch(%s, %s):' \
-                        % (m.group(1), m.group(2),
-                           optimization,
-                           patmat_prefix,
-                           lexpr[-1],
-                           scan_variables(rexpr))
+                        # the optimized matching rule
+                        regalloc[-1] = []
+                        line = '%s%s %sunify_tuptup(%s, %s, [], %d):' \
+                            % (m.group(1), el_if,
+                               patmat_prefix,
+                               lexpr[-1],
+                               scan_variables(rexpr),
+                               tl)
+
+                    else: 
+                        bucket = None
+                        el_if = 'elif'
+
+                        # the generic matching rule
+                        regalloc[-1] = []
+                        line = '%s%s %sunify(%s, %s, []):' \
+                            % (m.group(1), el_if,
+                               patmat_prefix,
+                               lexpr[-1],
+                               scan_variables(rexpr))
 
 		    # substitute registers for variables
                     line = substitute_registers(line, depthstr(len(lexpr)-1))
@@ -597,6 +641,10 @@ def compile_matcher(f):
 			append_line(line)
 			line = ' '*il+then
 		    line += '\n'
+                else:
+                    if re.match(r'^'+' '*matchind+r'else.*$', line):
+                        bucket = None
+
 
 	# every time
 	if len(withbegin) > 0:

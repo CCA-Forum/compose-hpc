@@ -178,8 +178,8 @@ def consolidate_packages(node):
                         (ut, attr, (pkg, name, version, usertypes, doc_comment)) = p
 
                         if Version <> version:
-                            print "** WARNING: Version mismatch in %s:"\
-                                  "'%s' vs. '%s'"% Name, Version, version
+                            print "** WARNING: Version mismatch in %s: '%s' vs. '%s'" \
+                                % (Name, Version, version)
 
                         packages[Name] = ut, attr, (pkg, name, version,
                                                     usertypes+UTs, doc_comment)
