@@ -1,5 +1,4 @@
 #!/bin/sh
 
-libtoolize
-automake --add-missing
-autoreconf
+mkdir -p m4
+autoreconf -i
