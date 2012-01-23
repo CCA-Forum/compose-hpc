@@ -37,20 +37,16 @@ CXX=g++
 
 all: $(LIBPAUL)
 
-.PHONY: $(LIBPAUL)
-
 $(LIBPAUL): scanner.o parser.o ${OBJECTS}
-	${CXX} $^ ${CFLAGS} ${LDFLAGS} ${LIBS} -o $@
+	ar cru libpaul.a *.o
 
 %.o: %.cpp ${HFILES}
 	${CXX} ${CFLAGS} -c $<
 
 # Build parser & scanner
 
-CC        = g++
-
 scanner.o: scanner.c scanner.h parser.h
-	$(CC) -c $(CFLAGS) scanner.c -o $@
+	${CXX} -c $(CFLAGS) scanner.c -o $@
 
 scanner.c scanner.h: scanner.l
 	flex $<
@@ -59,13 +55,14 @@ parser.c parser.h : parser.y lemon
 	./lemon -q $<
 
 parser.o: parser.c parser.h
-	$(CC) -c $(CFLAGS) parser.c -o $@
+	${CXX} -c $(CFLAGS) parser.c -o $@
 
 lemon: lemon.c
-	gcc lemon.c -o lemon
+	cc lemon.c -o lemon
 
 clean:
 	rm -f *.o
 	rm -f *~
 	rm -f lemon
 	rm -f parser.c parser.h scanner.c scanner.h
+	rm -f libpaul.a

@@ -16,8 +16,8 @@ SOURCES=$(test_KVAnnotation_SOURCES) $(test_SXAnnotation_SOURCES)
 OBJECTS = $(patsubst %.cpp,%.o,${SOURCES})
 
 LIBS=-lrose
+LIBS+=-lpaul 
 LIBS+=-lfl
-LIBS+=-lpaul
 
 LDFLAGS += -L../src
 CFLAGS += -I../src
