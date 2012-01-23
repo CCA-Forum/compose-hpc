@@ -9,10 +9,10 @@ LDFLAGS += -L$(ROSEDIR)/lib
 CFLAGS += -I$(BOOSTDIR)/include
 LDFLAGS += -L$(BOOSTDIR)/lib
 
-bin_programs = test_KVAnnotation test_SXAnnotation
+bin_PROGRAMS = test_KVAnnotation test_SXAnnotation
 test_KVAnnotation_SOURCES = test_KVAnnotation.cpp
 test_SXAnnotation_SOURCES = test_SXAnnotation.cpp
-SOURCES=$(test_KVAnnotation_SOURCES) $(test_SXAnnotation_SOURCES)
+SOURCES=test_KVAnnotation.cpp test_SXAnnotation.cpp
 OBJECTS = $(patsubst %.cpp,%.o,${SOURCES})
 
 LIBS=-lrose
