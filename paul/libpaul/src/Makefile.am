@@ -9,6 +9,8 @@ boost_install = @BOOSTDIR@
 ##
 ##
 # set up compiler and linker flags
+CFLAGS += -Wall
+
 CFLAGS += -I$(ROSEDIR)/include
 LDFLAGS += -L$(ROSEDIR)/lib
 

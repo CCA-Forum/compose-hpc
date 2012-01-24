@@ -172,7 +172,10 @@ void CommentVisitor::visit(SgNode *node) {
             string comment = remove_f_comment_marks((*i)->getString());
             handle_comment(comment,locatedNode,tagmap);
             break;
-          }
+	  }
+	  default:
+	    // ignore other non-comment preprocessor stuff
+	    break;
         }
       }
     }
