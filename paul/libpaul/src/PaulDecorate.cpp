@@ -155,7 +155,6 @@ void CommentVisitor::visit(SgNode *node) {
     if(preprocInfo != NULL) {
       AttachedPreprocessingInfoType::iterator i;
       for(i=preprocInfo->begin(); i != preprocInfo->end(); i++) {
-          cerr << "COMMENTVISITOR: directive type == " << (*i)->getTypeOfDirective() << endl;
     	  switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT: {
             string comment = remove_c_comment_marks((*i)->getString());
