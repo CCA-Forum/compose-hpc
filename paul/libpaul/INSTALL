@@ -1,0 +1,7 @@
+From scratch:
+
+% sh ./autogen.sh
+% ./configure --with-rosedir=[where_you_put_rose]
+% make
+
+
