@@ -2,6 +2,7 @@
 #include "rose.h"
 #include "SXAnnotationValue.h"
 #include "KVAnnotationValue.h"
+#include "PlainAnnotationValue.h"
 #include "PaulDecorate.h"
 #include "PaulConfReader.h"
 
@@ -53,8 +54,6 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
   if(is_annotation(s)) {
     string ann_text = annotation_text(s);
 
-    cerr << "Annotation=" << ann_text << endl;
-
     // split into the TAG and Value
     // FIXME: Make much more robust!
     //  - assumes tag exists
@@ -70,6 +69,9 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
     paul_tag_map::iterator ptm_it;
 
     ptm_it = tagmap.find(tag);
+
+    // first, lookup annotation
+    Annotation *pAnn = (Annotation *)node->getAttribute(tag);
     
     if (ptm_it != tagmap.end()) {
       if ((*ptm_it).second == "key-value") {
@@ -77,8 +79,6 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
 	// key-value pair annotation
 	//
         KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
-
-        Annotation *pAnn = (Annotation *)node->getAttribute(tag);
 
 	if (pAnn == NULL) {
 	  // create the annotation
@@ -100,17 +100,40 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
 	//
         SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
 
-        // create the annotation
-        Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
+	if (pAnn == NULL) {
+	  // create the annotation
+	  pAnn = new Annotation(value_text, node, tag, pValue);
 
-        // add the annotation to the node:
-        node->addNewAttribute (tag, pAnn);
+	  // add the annotation to the node:
+	  node->addNewAttribute (tag, pAnn);
+	} else {
+	  // need to merge with original annotation
+	  SXAnnotationValue *original = (SXAnnotationValue *)pAnn->getValue();
+
+	  // do the merge
+	  original->merge(pValue);
+	}
 
       } else if ((*ptm_it).second == "plain") {
 	//
 	// plain annotation
 	//
-	
+	PlainAnnotationValue *pValue = new PlainAnnotationValue(value_text);
+
+	if (pAnn == NULL) {
+	  // create the annotation
+	  pAnn = new Annotation(value_text, node, tag, pValue);
+
+	  // add the annotation to the node:
+	  node->addNewAttribute (tag, pAnn);
+	} else {
+	  // need to merge with original annotation
+	  PlainAnnotationValue *original = 
+	    (PlainAnnotationValue *)pAnn->getValue();
+
+	  // do the merge
+	  original->merge(pValue);
+	}
 
       } else {
         cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING):: " << 
@@ -121,8 +144,6 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
       cerr << "Tag (" << tag << 
 	") encountered not present in configuration file." << endl;
     }
-
-
   }
 }
 
