@@ -18,7 +18,7 @@ test_SXAnnotation_SOURCES = test_SXAnnotation.cpp
 SOURCES=example_traversal.cpp test_KVAnnotation.cpp test_SXAnnotation.cpp \
 	test_PaulDecorate.cpp
 OBJECTS = $(patsubst %.cpp,%.o,${SOURCES})
-EXTRA_DIST=example.paulconf
+EXTRA_DIST=example.paulconf inputs
 
 LIBS=-lrose
 LIBS+=-lpaul 
