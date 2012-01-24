@@ -9,13 +9,11 @@ LDFLAGS += -L$(ROSEDIR)/lib
 CFLAGS += -I$(BOOSTDIR)/include
 LDFLAGS += -L$(BOOSTDIR)/lib
 
-bin_PROGRAMS = test_KVAnnotation test_SXAnnotation test1 test2 test3
-test1_SOURCES = test1.cpp
-test2_SOURCES = test2.cpp
-test3_SOURCES = test3.cpp
+bin_PROGRAMS = test_KVAnnotation test_SXAnnotation test_PaulDecorate
 test_KVAnnotation_SOURCES = test_KVAnnotation.cpp
+test_PaulDecorate_SOURCES = test_PaulDecorate.cpp
 test_SXAnnotation_SOURCES = test_SXAnnotation.cpp
-SOURCES=test_KVAnnotation.cpp test_SXAnnotation.cpp test1.cpp test2.cpp test3.cpp
+SOURCES=test_KVAnnotation.cpp test_SXAnnotation.cpp test_PaulDecorate.cpp
 OBJECTS = $(patsubst %.cpp,%.o,${SOURCES})
 EXTRA_DIST=example.paulconf
 
@@ -33,13 +31,7 @@ all: $(bin_programs)
 test_SXAnnotation: test_SXAnnotation.o
 	${CXX} $^ ${CFLAGS} ${LDFLAGS} ${LIBS} -o $@
 
-test1: test1.o
-	${CXX} $^ ${CFLAGS} ${LDFLAGS} ${LIBS} -o $@
-
-test2: test2.o
-	${CXX} $^ ${CFLAGS} ${LDFLAGS} ${LIBS} -o $@
-
-test3: test3.o
+test_PaulDecorate: test_PaulDecorate.o
 	${CXX} $^ ${CFLAGS} ${LDFLAGS} ${LIBS} -o $@
 
 test_KVAnnotation: test_KVAnnotation.o

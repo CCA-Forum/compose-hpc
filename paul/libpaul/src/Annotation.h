@@ -6,13 +6,11 @@
 
 using namespace std;
 
-/**
+/*!
  AnnotationValue is a polymorphic class for subclassing the 'sum type' for each
  of the types of annotations.
- */
-
+*/
 class AnnotationValue {
-  virtual void dummy() {}   // C++ Why do we need this?
   virtual void merge(AnnotationValue *other) {}
 };
 
