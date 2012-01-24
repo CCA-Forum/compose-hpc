@@ -7,6 +7,8 @@
 
 #define C_COMMENT         (1)
 #define CPP_COMMENT       (2)
+#define FTN_COMMENT       (3)
+#define F90_COMMENT       (4)
 #define ANNOTATION_PREFIX ('%')
 
 using namespace std;
@@ -33,6 +35,10 @@ string remove_cpp_comment_marks(const string s) {
 
 string remove_c_comment_marks(const string s) {
   return s.substr(2,s.size() - 4);
+}
+
+string remove_f_comment_marks(const string s) {
+  return s.substr(1);
 }
 
 bool is_annotation(const string s) {
@@ -115,6 +121,7 @@ void CommentVisitor::visit(SgNode *node) {
     if(preprocInfo != NULL) {
       AttachedPreprocessingInfoType::iterator i;
       for(i=preprocInfo->begin(); i != preprocInfo->end(); i++) {
+          cerr << "COMMENTVISITOR: directive type == " << (*i)->getTypeOfDirective() << endl;
     	  switch ((*i)->getTypeOfDirective()) {
           case C_COMMENT: {
             string comment = remove_c_comment_marks((*i)->getString());
@@ -123,6 +130,12 @@ void CommentVisitor::visit(SgNode *node) {
           }
           case CPP_COMMENT: {
             string comment = remove_cpp_comment_marks((*i)->getString());
+            handle_comment(comment,locatedNode,tagmap);
+            break;
+          }
+          case FTN_COMMENT:
+          case F90_COMMENT: {
+            string comment = remove_f_comment_marks((*i)->getString());
             handle_comment(comment,locatedNode,tagmap);
             break;
           }
