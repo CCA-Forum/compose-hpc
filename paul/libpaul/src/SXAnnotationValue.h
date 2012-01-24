@@ -27,6 +27,8 @@ class SXAnnotationValue : public AnnotationValue {
 
   friend SXAnnotationValue* isSXAnnotationValue( AnnotationValue *p);
 
+  void merge( SXAnnotationValue* other);
+
 };
 
 SXAnnotationValue* isSXAnnotationValue( AnnotationValue *p);

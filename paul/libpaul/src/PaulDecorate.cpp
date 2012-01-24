@@ -49,8 +49,6 @@ string annotation_text(const string s) {
   return s.substr(1);
 }
 
-string annotAttributeString ("ANNOT");
-
 void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
   if(is_annotation(s)) {
     string ann_text = annotation_text(s);
@@ -77,16 +75,24 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
       if ((*ptm_it).second == "key-value") {
         KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
 
-        // create the annotation
-        Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
+        Annotation *pAnn = (Annotation *)node->getAttribute(tag);
 
-        // add the annotation to the node:
-        node->addNewAttribute (annotAttributeString, pAnn);
+	if (pAnn == NULL) {
+	  // create the annotation
+	  pAnn = new Annotation(value_text, node, tag, pValue);
 
-        // tracing for now:
-        cerr << "KV --- Tag: " << pAnn->getTag()
-             << " ; Value: " << pAnn->getValueString()
-             << endl;
+	  // add the annotation to the node:
+	  node->addNewAttribute (tag, pAnn);
+	} else {
+	  cerr << "Annotation collision : merging." << endl;
+
+	  // need to merge with original annotation
+	  KVAnnotationValue *original = (KVAnnotationValue *)pAnn->getValue();
+
+	  // do the merge
+	  original->merge(pValue);
+	}
+
       } else if ((*ptm_it).second == "s-expression") {
         SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
 
@@ -94,12 +100,7 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
         Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
 
         // add the annotation to the node:
-        node->addNewAttribute (annotAttributeString, pAnn);
-
-        // tracing for now:
-        cerr << "SX --- Tag: " << pAnn->getTag()
-             << " ; Value: " << pAnn->getValueString()
-             << endl;
+        node->addNewAttribute (tag, pAnn);
 
       } else {
         cerr << "UNSUPPORTED ANNOTATION FORMAT :: " << (*ptm_it).second << endl;

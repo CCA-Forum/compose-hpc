@@ -13,6 +13,7 @@ using namespace std;
 
 class AnnotationValue {
   virtual void dummy() {}   // C++ Why do we need this?
+  virtual void merge(AnnotationValue *other) {}
 };
 
 /**

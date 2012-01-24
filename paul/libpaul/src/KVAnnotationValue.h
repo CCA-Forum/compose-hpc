@@ -27,6 +27,8 @@ class KVAnnotationValue : public AnnotationValue {
 
   friend KVAnnotationValue* isKVAnnotationValue( AnnotationValue *p);
 
+  void merge( KVAnnotationValue* other);
+
  private:
 
   // FIXME: Duplicated From parser.y
