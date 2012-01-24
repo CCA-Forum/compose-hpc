@@ -56,10 +56,10 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
     cerr << "Annotation=" << ann_text << endl;
 
     // split into the TAG and Value
-      // FIXME: Make much more robust!
-      //  - assumes tag exists
-      //  - assumes no preceding whitespace on tag
-      //  - assumes single space separator between tag & value
+    // FIXME: Make much more robust!
+    //  - assumes tag exists
+    //  - assumes no preceding whitespace on tag
+    //  - assumes single space separator between tag & value
 
     string::size_type i = ann_text.find(" ");
     string tag = ann_text.substr(0,i);
@@ -73,6 +73,9 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
     
     if (ptm_it != tagmap.end()) {
       if ((*ptm_it).second == "key-value") {
+	//
+	// key-value pair annotation
+	//
         KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
 
         Annotation *pAnn = (Annotation *)node->getAttribute(tag);
@@ -84,8 +87,6 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
 	  // add the annotation to the node:
 	  node->addNewAttribute (tag, pAnn);
 	} else {
-	  cerr << "Annotation collision : merging." << endl;
-
 	  // need to merge with original annotation
 	  KVAnnotationValue *original = (KVAnnotationValue *)pAnn->getValue();
 
@@ -94,6 +95,9 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
 	}
 
       } else if ((*ptm_it).second == "s-expression") {
+	//
+	// s-expression annotation
+	//
         SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
 
         // create the annotation
@@ -102,12 +106,20 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
         // add the annotation to the node:
         node->addNewAttribute (tag, pAnn);
 
+      } else if ((*ptm_it).second == "plain") {
+	//
+	// plain annotation
+	//
+	
+
       } else {
-        cerr << "UNSUPPORTED ANNOTATION FORMAT :: " << (*ptm_it).second << endl;
+        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING):: " << 
+	  (*ptm_it).second << endl;
       }
     } else {
       // tag wasn't found
-      cerr << "Tag (" << tag << ") encountered not present in configuration file." << endl;
+      cerr << "Tag (" << tag << 
+	") encountered not present in configuration file." << endl;
     }
 
 

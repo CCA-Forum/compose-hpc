@@ -35,8 +35,6 @@ class Annotation : public AstAttribute {
   Annotation
     (const string s, SgLocatedNode *n, const string tag, AnnotationValue *v)
   {
-   //std::cout << "DEBUG: Annotation " << tag << " \"" << s << '"' << std::endl;
-
     originalValue = s;
     originalNode = n;
     tagName = tag;

@@ -22,9 +22,9 @@ LDFLAGS += -L$(BOOSTDIR)/lib
 lib_LIBRARIES = libpaul.a
 libpaul_a_SOURCES = \
         KVAnnotationValue.cpp ssexpr.cpp SXAnnotationValue.cpp Dynamic.cpp \
-        PaulDecorate.cpp PaulConfReader.cpp \
+        PlainAnnotationValue.cpp PaulDecorate.cpp PaulConfReader.cpp \
         Annotation.h KVAnnotationValue.h ssexpr.h SXAnnotationValue.h \
-	PaulConfReader.h PaulDecorate.h Dynamic.h
+	PaulConfReader.h PaulDecorate.h Dynamic.h PlainAnnotationValue.h
 EXTRA_DIST=scanner.l parser.y lempar.c lemon.c
 LIBPAUL=$(lib_LIBRARIES)
 SOURCES=$(libpaul_a_SOURCES)
