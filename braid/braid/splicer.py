@@ -138,8 +138,10 @@ def apply_all(filename, splicers):
         raise Exception("splicer block not found")
 
     if len(all_splicers) > 0:
-        raise Exception("The following splicer blocks were not found: "
-                        +str(all_splicers))
+        print "**ERROR: The following splicer blocks were not found in %s: " % filename
+        for x in all_splicers: 
+            print x
+        exit(1)
 
     src.close()
     dest.close()
