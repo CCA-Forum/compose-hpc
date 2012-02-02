@@ -1444,16 +1444,14 @@ class Chapel(object):
         #                  '_static' if static else '',
         #                  '.', Name, '_impl'])
         callee = Name+'_impl'
-
-        def deref(mode):
-            return '' if mode == sidl.in_ else '*'
      
         def strip(typ):
             if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
                 return ir.struct
             if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
                 return ior.bool
-            # strip unncessesary details from aggregate types
+            # strip unncessesary details from aggregate types so the
+            # code generator isn't confused
             if (typ[0] == ir.enum or
                 typ[0] == sidl.array or
                 typ[0] == sidl.rarray or
@@ -1464,14 +1462,14 @@ class Chapel(object):
      
         # IN
         map(lambda (arg, attr, mode, typ, name):
-              conv.codegen((('chpl', strip(typ)), name), strip(typ),
-                           pre_call, opt, '', '_IOR_'+name, typ),
+              conv.codegen((strip(typ), name), ('chpl', strip(typ)),
+                           pre_call, opt, '_IOR_'+name, typ),
             filter(incoming, ior_args))
      
         # OUT
         map(lambda (arg, attr, mode, typ, name):
-              conv.codegen((strip(typ), '_IOR_'+name), ('chpl', strip(typ)),
-                           post_call, opt, deref(mode), name, typ),
+              conv.codegen((('chpl', strip(typ)), '_IOR_'+name), strip(typ),
+                           post_call, opt, '*'+name, typ),
             filter(outgoing, ior_args))
 
         def pointerize_struct((arg, attr, mode, typ, name)):
@@ -1488,7 +1486,7 @@ class Chapel(object):
         # return value type conversion -- treat it as an out argument
         rarg = ir.Arg([], ir.out, ctype, '_retval')
         conv.codegen(('chpl', strip(ctype)), (strip(ctype), '_IOR__retval'),
-                     post_call, opt, '', '_retval', ctype)
+                     post_call, opt, '_retval', ctype)
         crarg = ir_arg_to_chpl(rarg)
         _,_,_,chpltype,_ = crarg
      
@@ -1547,9 +1545,9 @@ class Chapel(object):
                 babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
                 decls+pre_call+call+post_call+return_stmt,
                 DocComment)
-        chpldecl = (ir.fn_decl, [], ctype, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+cstub_decl_args,
-                    DocComment)
+        #chpldecl = (ir.fn_decl, [], ctype, callee,
+        #            [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+cstub_decl_args,
+        #            DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         chpldefn = (ir.fn_defn, ['export %s'%callee], ctype, callee,
                     [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+Args,
@@ -1557,23 +1555,10 @@ class Chapel(object):
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
                     DocComment)
 
-        c_gen(chpldecl, ci.chpl_skel.cstub)
+        #c_gen(chpldecl, ci.chpl_skel.cstub)
         c_gen(defn, ci.chpl_skel.cstub)
         chpl_gen(chpldefn, ci.impl)
 
-        ## create dummy call to bypass dead code elimination
-        #def argvardecl((arg, attrs, mode, typ, name)):
-        #    return ir.Var_decl(typ, name)
-        #argdecls = map(argvardecl, Args)
-        #def get_arg_name((arg, attrs, mode, typ, name)):
-        #    return name
-        #dcall = ir.Call(Name, [] if static else ['obj']+map(get_arg_name, Args)+[chpl_local_exception_var])
-        #ci.chpl_skel.main_area.new_def('{\n')
-        #ci.chpl_skel.main_area.new_def('var obj: %s__object;\n'%
-        #                               '_'.join(ci.epv.symbol_table.prefix+[ci.epv.name]))
-        #ci.chpl_skel.main_area.new_def('var ex: sidl_BaseInterface__object;\n')
-        #chpl_gen(argdecls+[dcall], ci.chpl_skel.main_area)
-        #ci.chpl_skel.main_area.new_def('}\n')
 
 
 

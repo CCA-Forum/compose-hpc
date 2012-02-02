@@ -168,10 +168,12 @@ debug = False
 
 #print 'rules = ', repr(rules)
 from parse_tree import *
+from utils import *
 
 def labelx(tree):
     return label1(parse_tree(tree.replace('.','_')))
 
+@accepts(tuple)
 def label(args):
     """
     Find a cost-minimal cover of the tree \c tree using the the rules
@@ -194,23 +196,23 @@ def label(args):
     if arity < 0: import pdb; pdb.set_trace()
     if arity > 0:
         if isinstance(node, str): import pdb; pdb.set_trace()
-	child_labels = map(label, zip(node[1:], data))
-	# FIXME (performance) replace this with a hardcoded array
-	my_labels = dict()
+        child_labels = map(label, zip(node[1:], data))
+        # FIXME (performance) replace this with a hardcoded array
+        my_labels = dict()
     else: # arity == 0
         child_labels = []
-	my_labels = { args[0]: ((args, '<terminal>', 0, no_action), 0) }
+        my_labels = { args[0]: ((args, '<terminal>', 0, no_action), 0) }
 
     def current_cost(target):
-	for (t, src, _, action), cost in my_labels.values():
-	    if target == t:
-		#print "current_cost(%s) = %s"%(target,cost);
-		return cost
-	return 2**16
+        for (t, src, _, action), cost in my_labels.values():
+            if target == t:
+                #print "current_cost(%s) = %s"%(target,cost);
+                return cost
+        return 2**16
 
     #if node in nonterminals:
-    #	print '**WARNING: node %r is a non-terminal symbol'%node
-    #	# exit(1)
+    #   print '**WARNING: node %r is a non-terminal symbol'%node
+    #   # exit(1)
 
     if debug:
         print 'label(%s):'%str(node)
@@ -219,44 +221,44 @@ def label(args):
     visited = set()
     fixpoint = False
     while not fixpoint:
-	fixpoint = True
-	for r in rules:
+        fixpoint = True
+        for r in rules:
             # find all rules that take a src that this node can offer,
             # either through its parameters or via the target of
             # another rule already selected for this node
 
-	    target, src, cost, action = r
+            target, src, cost, action = r
 
-	    #print 'src =', src
+            #print 'src =', src
 
             # is the arity compatible?
             if arity and not (isinstance(src, tuple)
-			      and len(src) == arity  # have the same arity
-			      and (src[0] == node    # compound
+                              and len(src) == arity  # have the same arity
+                              and (src[0] == node    # compound
                                 or src == node)):    # aggregate
                 # sadly there's an ambiguity between compound types
                 # and n-ary nonterminals
-               	continue # not compatible
+                continue # not compatible
 
             if len(node[1])>1 and node[1][0] == 'enum': import pdb; pdb.set_trace()
 
             # can we reach the rule's src sink from our node?
-	    if arity == 0:
-		try:    _, basecost = my_labels[src]
-		except: continue # rule does not match
+            if arity == 0:
+                try:    _, basecost = my_labels[src]
+                except: continue # rule does not match
 
-	    # can we reach the rule's argument src sinks from our node?
+            # can we reach the rule's argument src sinks from our node?
             for i in range(1, arity):
-		try:    _, basecost = child_labels[src[i][0]]
-		except: continue # rule does not match
+                try:    _, basecost = child_labels[src[i][0]]
+                except: continue # rule does not match
 
-	    # decide whether it pays off to add this rule
-	    if cost < current_cost(target) and target not in visited:
-	    #if src not in visited:
-		visited.add(src)
-		my_labels[target] = (r, cost)
-		#print '    my_labels[',target,'] = ',(r, cost)
-		fixpoint = False
+            # decide whether it pays off to add this rule
+            if cost < current_cost(target) and target not in visited:
+            #if src not in visited:
+                visited.add(src)
+                my_labels[target] = (r, cost)
+                #print '    my_labels[',target,'] = ',(r, cost)
+                fixpoint = False
 
     if debug:
         for r, cost in my_labels.values():
@@ -265,9 +267,6 @@ def label(args):
     #     print '**ERROR: no labelling found for <%s>'%repr(args)
 
     return tuple([my_labels]+data)
-
-def reducetreex(label, target, *args):
-    return reducetree1(label, target.replace('.','_'), *args)
 
 def reducetree(label, target, *args):
     """
@@ -296,14 +295,14 @@ def reducetree(label, target, *args):
             success = True
 
         if not success:
-	    print "**ERROR: no cover found! <%r>"%target
+            print "**ERROR: no cover found! <%r>"%target
             #import pdb; pdb.set_trace()
 
     except TypeError:
         pass # non-hashable
 
     for i in range(1, len(label)-1): # for each children
-	reducetree(label[i], target, *args)
+        reducetree(label[i], target, *args)
 
 def codegen(src, target, *args):
     if len(args) <> action_arity:
@@ -316,15 +315,15 @@ def codegen(src, target, *args):
 
 if __name__ == '__main__':
     try:
-	codegen((chpl.char, 'test'), ior.char, [], set(), '*')
-	#reducetree(label(('chpl.Char')), 'ior.str', [], set())
-	#print
-	#reducetree(label('upcast(ior.object)'), 'ior.baseobject', [], set())
+        codegen((chpl.char, 'test'), ior.char, [], set(), '*')
+        #reducetree(label(('chpl.Char')), 'ior.str', [], set())
+        #print
+        #reducetree(label('upcast(ior.object)'), 'ior.baseobject', [], set())
     except:
-	# Invoke the post-mortem debugger
-	import pdb, sys
-	print sys.exc_info()
-	pdb.post_mortem()
+        # Invoke the post-mortem debugger
+        import pdb, sys
+        print sys.exc_info()
+        pdb.post_mortem()
 
 ''')
 

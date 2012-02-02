@@ -2,7 +2,7 @@
 # Process this file with burg.py
 #
 # Declaration of additional arguments for the rule actions
-%action arguments: (convs, optionals, deref, dest, full_type)
+%action arguments: (convs, optionals, dest, full_type)
 #------------------------------------------------------------------------
 import ior, ir, sidl
 import chapel.chpl as chpl
@@ -102,49 +102,49 @@ static const unsigned char chpl_char_lut[512] = {
 #   actions
 
 # BOOL
-ior.bool @ C <-- chpl.bool : cost(0)
+ior.bool @ C <-- chpl.bool : cost(1)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-    convs.append((ir.stmt, '{dest} = ({typ}){p}{n}'
-                  .format(dest=dest, n=a0, p=deref, typ=c_gen(ir.pt_bool))))
+    convs.append((ir.stmt, '{dest} = ({typ}){n}'
+                  .format(dest=dest, n=a0, typ=c_gen(ir.pt_bool))))
 
-chpl.bool @ C <-- ior.bool : cost(0)
+chpl.bool @ C <-- ior.bool : cost(1)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-    convs.append((ir.stmt, '{p}{dest} = ({typ}){n}'
-                  .format(dest=dest, p=deref, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
+    convs.append((ir.stmt, '{dest} = ({typ}){n}'
+                  .format(dest=dest, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
 # CHAR
 ior.char @ C <-- chpl.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
-    convs.append((ir.stmt, '{dest} = (int){p}{n}[0]'.format(dest=dest, n=a0, p=deref)))
+    convs.append((ir.stmt, '{dest} = (int){n}[0]'.format(dest=dest, n=a0)))
     optionals.add(char_lut)
 
 chpl.char @ C <-- ior.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
-    convs.append((ir.stmt, '{p}{dest} = (const char*)&chpl_char_lut[2*(unsigned char){n}]'
-                  .format(dest=dest, p=deref, n=a0)))
+    convs.append((ir.stmt, '{dest} = (const char*)&chpl_char_lut[2*(unsigned char){n}]'
+                  .format(dest=dest, n=a0)))
     optionals.add(char_lut)
 
 # COMPLEX - 32/64 Bit components
-ior.fcomplex @ C <-- chpl.fcomplex : cost(1)
-    fmt = {'dest':dest, 'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '{dest}.real = {n}{a}re'.format(**fmt)))
-    convs.append((ir.stmt, '{dest}.imaginary = {n}{a}im'.format(**fmt)))
+ior.fcomplex @ C <-- chpl.fcomplex : cost(2)
+    fmt = {'dest':dest, 'n':a0}
+    convs.append((ir.stmt, '{dest}.real = ({n}).re'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.imaginary = ({n}).im'.format(**fmt)))
 
-ior.dcomplex @ C <-- chpl.dcomplex : cost(1)
-    fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '{dest}.real = {n}{a}re'.format(**fmt)))
-    convs.append((ir.stmt, '{dest}.imaginary = {n}{a}im'.format(**fmt)))
+ior.dcomplex @ C <-- chpl.dcomplex : cost(2)
+    fmt = {'dest':dest,'n':a0}
+    convs.append((ir.stmt, '{dest}.real = ({n}).re'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.imaginary = ({n}).im'.format(**fmt)))
 
-chpl.fcomplex @ C <-- ior.fcomplex : cost(1)
-    fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '{dest}{a}re = {n}.real'.format(**fmt)))
-    convs.append((ir.stmt, '{dest}{a}im = {n}.imaginary'.format(**fmt)))
+chpl.fcomplex @ C <-- ior.fcomplex : cost(2)
+    fmt = {'dest':dest,'n':a0}
+    convs.append((ir.stmt, '({dest}).re = {n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '({dest}).im = {n}.imaginary'.format(**fmt)))
 
-chpl.dcomplex @ C <-- ior.dcomplex : cost(1)
-    fmt = {'dest':dest,'n':a0, 'a': '->' if deref else '.' }
-    convs.append((ir.stmt, '{dest}{a}re = {n}.real'.format(**fmt)))
-    convs.append((ir.stmt, '{dest}{a}im = {n}.imaginary'.format(**fmt)))
+chpl.dcomplex @ C <-- ior.dcomplex : cost(2)
+    fmt = {'dest':dest,'n':a0}
+    convs.append((ir.stmt, '({dest}).re = {n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '({dest}).im = {n}.imaginary'.format(**fmt)))
 
 # ENUM
 ior.enum @ C <-- chpl.enum: cost(1)
@@ -164,12 +164,12 @@ chpl.enum @ C <-- ior.enum: cost(1)
 
 # STRING
 ior.string @C <-- chpl.string: cost(0)
-    convs.append(ir.Stmt(ir.Assignment(dest, deref+a0)))
+    convs.append(ir.Stmt(ir.Assignment(dest, a0)))
 
 chpl.string @C <-- ior.string: cost(1)
     # Convert null pointer into empty string
-    convs.append(ir.Stmt(ir.Assignment(deref+dest, a0)))
-    convs.append((ir.stmt, 'if ({p}{n} == NULL) {p}{n} = ""'.format(p=deref,n=dest)))
+    convs.append(ir.Stmt(ir.Assignment(dest, a0)))
+    convs.append((ir.stmt, 'if ({n} == NULL) {n} = ""'.format(n=dest)))
 
 # INT
 ior.int @C <-- chpl.int: cost(0)
@@ -197,11 +197,10 @@ ior.pointer_type @C <-- chpl.pointer_type :cost(0)
 ior.struct @C <-- chpl.struct: cost(0)
     # FIXME: we will actually need dynamic costs for this    
     items = ir.struct_struct_items(full_type[1]) 
-    base = dest+'->' if deref == '*' else dest+'.'
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((strip(typ), a0+'->'+name), ('chpl', strip(typ)),
-                  convs, optionals, '', base+name, (0,typ)), items)
+                  convs, optionals, '', dest+'.'+name, (0,typ)), items)
     
     # if we need to convert one of the items, we need to convert all
     # of them
@@ -211,11 +210,10 @@ ior.struct @C <-- chpl.struct: cost(0)
 
 chpl.struct @C <-- ior.struct: cost(0)
     items = ir.struct_struct_items(full_type[1]) 
-    base = dest+'->' if deref == '*' else dest+'.'
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((('chpl', strip(typ)), a0+'.'+name), strip(typ),
-                  convs, optionals, '', base+name, (0,typ)), items)
+                  convs, optionals, '', dest+'.', (0,typ)), items)
     # if we need to convert one of the items, we need to convert all
     # of them
     if convs:

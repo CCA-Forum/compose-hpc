@@ -104,7 +104,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
             return ir.struct
         if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
             return ior.bool
-        # strip unncessesary details from aggregate types
+        # strip unnecessary details from aggregate types
         if (typ[0] == ir.enum or
             typ[0] == sidl.array or
             typ[0] == sidl.rarray or
@@ -115,14 +115,14 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
     # IN
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((('chpl', strip(typ)), name), strip(typ),
-                       pre_call, opt, deref(mode), '_proxy_'+name, typ),
+          conv.codegen((('chpl', strip(typ)), deref(mode)+name), strip(typ),
+                       pre_call, opt, '_proxy_'+name, typ),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
           conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)),
-                       post_call, opt, deref(mode), name, typ),
+                       post_call, opt, '*'+name, typ),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
@@ -132,7 +132,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     #Wif Type[0] == ir.pointer_type: import pdb; pdb.set_trace()
     rarg = ir.Arg([], ir.out, Type, '_retval')
     conv.codegen((strip(Type), '_proxy__retval'), ('chpl', strip(Type)), 
-                 post_call, opt, '', '_retval', Type)
+                 post_call, opt, '_retval', Type)
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,chpltype,_ = crarg
 
