@@ -20,31 +20,17 @@ First, make sure that the following libraries are installed:
 
   http://www.boost.org/
 
-- SFSexpr (s-expression parser and data structure support).
-
-  http://sf.net/projects/sexpr/
-
 This code has been tested with the latest ROSE available on the SciDAC
 Outreach site as of mid-October 2011.  The BOOST version was 1.45.0 -
-any version that ROSE is compatible with will work.  The SFSexp
-library version used was 1.2.1.  Note that the SFSexp library doesn't
-have an install target, so you just aim at the source tree.  (Version
-of SFSexp with proper install and other common automake targets is on
-the way..)
+any version that ROSE is compatible with will work.
 
 Once these are compiled/installed, set up your environment.  For
 example:
 
 % export ROSEINSTALL=/home/matt/packages/rose-latest/compileTree/
 % export BOOSTINSTALL=/home/matt/packages/boost_1_45_0/installTree/
-% export SEXPRINSTALL=/home/matt/packages/sexpr_1.2.1/src/
 
 Once these are in place, make the example:
-
-** TODO : currently need to say "make lemon", "make parser" and "make
-   scanner" before typing the general "make" in order to generate the
-   parser and scanner.  Need to set up dependencies in makefile to get
-   these to fire automatically. **
 
 % make
 

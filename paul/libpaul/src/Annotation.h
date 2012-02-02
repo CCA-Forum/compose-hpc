@@ -6,13 +6,12 @@
 
 using namespace std;
 
-/**
+/*!
  AnnotationValue is a polymorphic class for subclassing the 'sum type' for each
  of the types of annotations.
- */
-
+*/
 class AnnotationValue {
-  virtual void dummy() {}   // C++ Why do we need this?
+  virtual void merge(AnnotationValue *other) {}
 };
 
 /**
@@ -36,8 +35,6 @@ class Annotation : public AstAttribute {
   Annotation
     (const string s, SgLocatedNode *n, const string tag, AnnotationValue *v)
   {
-   //std::cout << "DEBUG: Annotation " << tag << " \"" << s << '"' << std::endl;
-
     originalValue = s;
     originalNode = n;
     tagName = tag;

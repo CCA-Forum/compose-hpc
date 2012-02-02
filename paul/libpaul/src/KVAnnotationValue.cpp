@@ -43,6 +43,18 @@ KVAnnotationValue::KeyValueMap *KVAnnotationValue::parse(const string input) {
   return result;
 }
 
+void KVAnnotationValue::merge(KVAnnotationValue *other) {
+  if (other == NULL)
+    return;
+
+  for (KeyValueMap::iterator it = other->kvmap->begin();
+       it != other->kvmap->end();
+       it++) {
+    cerr << "Merging in key: " << it->first << endl;
+    (*kvmap)[it->first] = it->second;
+  }
+}
+
 void KVAnnotationValue::print ()
 {
   typedef KeyValueMap::const_iterator CI;

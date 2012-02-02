@@ -2,11 +2,14 @@
 #include "rose.h"
 #include "SXAnnotationValue.h"
 #include "KVAnnotationValue.h"
+#include "PlainAnnotationValue.h"
 #include "PaulDecorate.h"
 #include "PaulConfReader.h"
 
 #define C_COMMENT         (1)
 #define CPP_COMMENT       (2)
+#define FTN_COMMENT       (3)
+#define F90_COMMENT       (4)
 #define ANNOTATION_PREFIX ('%')
 
 using namespace std;
@@ -35,6 +38,10 @@ string remove_c_comment_marks(const string s) {
   return s.substr(2,s.size() - 4);
 }
 
+string remove_f_comment_marks(const string s) {
+  return s.substr(1);
+}
+
 bool is_annotation(const string s) {
   return s[0] == ANNOTATION_PREFIX;
 }
@@ -43,19 +50,15 @@ string annotation_text(const string s) {
   return s.substr(1);
 }
 
-string annotAttributeString ("ANNOT");
-
 void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
   if(is_annotation(s)) {
     string ann_text = annotation_text(s);
 
-    cerr << "Annotation=" << ann_text << endl;
-
     // split into the TAG and Value
-      // FIXME: Make much more robust!
-      //  - assumes tag exists
-      //  - assumes no preceding whitespace on tag
-      //  - assumes single space separator between tag & value
+    // FIXME: Make much more robust!
+    //  - assumes tag exists
+    //  - assumes no preceding whitespace on tag
+    //  - assumes single space separator between tag & value
 
     string::size_type i = ann_text.find(" ");
     string tag = ann_text.substr(0,i);
@@ -66,44 +69,81 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
     paul_tag_map::iterator ptm_it;
 
     ptm_it = tagmap.find(tag);
+
+    // first, lookup annotation
+    Annotation *pAnn = (Annotation *)node->getAttribute(tag);
     
     if (ptm_it != tagmap.end()) {
       if ((*ptm_it).second == "key-value") {
+	//
+	// key-value pair annotation
+	//
         KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
 
-        // create the annotation
-        Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
+	if (pAnn == NULL) {
+	  // create the annotation
+	  pAnn = new Annotation(value_text, node, tag, pValue);
 
-        // add the annotation to the node:
-        node->addNewAttribute (annotAttributeString, pAnn);
+	  // add the annotation to the node:
+	  node->addNewAttribute (tag, pAnn);
+	} else {
+	  // need to merge with original annotation
+	  KVAnnotationValue *original = (KVAnnotationValue *)pAnn->getValue();
 
-        // tracing for now:
-        cerr << "KV --- Tag: " << pAnn->getTag()
-             << " ; Value: " << pAnn->getValueString()
-             << endl;
+	  // do the merge
+	  original->merge(pValue);
+	}
+
       } else if ((*ptm_it).second == "s-expression") {
+	//
+	// s-expression annotation
+	//
         SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
 
-        // create the annotation
-        Annotation *pAnn = new Annotation(value_text, node, tag, pValue);
+	if (pAnn == NULL) {
+	  // create the annotation
+	  pAnn = new Annotation(value_text, node, tag, pValue);
 
-        // add the annotation to the node:
-        node->addNewAttribute (annotAttributeString, pAnn);
+	  // add the annotation to the node:
+	  node->addNewAttribute (tag, pAnn);
+	} else {
+	  // need to merge with original annotation
+	  SXAnnotationValue *original = (SXAnnotationValue *)pAnn->getValue();
 
-        // tracing for now:
-        cerr << "SX --- Tag: " << pAnn->getTag()
-             << " ; Value: " << pAnn->getValueString()
-             << endl;
+	  // do the merge
+	  original->merge(pValue);
+	}
+
+      } else if ((*ptm_it).second == "plain") {
+	//
+	// plain annotation
+	//
+	PlainAnnotationValue *pValue = new PlainAnnotationValue(value_text);
+
+	if (pAnn == NULL) {
+	  // create the annotation
+	  pAnn = new Annotation(value_text, node, tag, pValue);
+
+	  // add the annotation to the node:
+	  node->addNewAttribute (tag, pAnn);
+	} else {
+	  // need to merge with original annotation
+	  PlainAnnotationValue *original = 
+	    (PlainAnnotationValue *)pAnn->getValue();
+
+	  // do the merge
+	  original->merge(pValue);
+	}
 
       } else {
-        cerr << "UNSUPPORTED ANNOTATION FORMAT :: " << (*ptm_it).second << endl;
+        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING):: " << 
+	  (*ptm_it).second << endl;
       }
     } else {
       // tag wasn't found
-      cerr << "Tag (" << tag << ") encountered not present in configuration file." << endl;
+      cerr << "Tag (" << tag << 
+	") encountered not present in configuration file." << endl;
     }
-
-
   }
 }
 
@@ -126,6 +166,15 @@ void CommentVisitor::visit(SgNode *node) {
             handle_comment(comment,locatedNode,tagmap);
             break;
           }
+          case FTN_COMMENT:
+          case F90_COMMENT: {
+            string comment = remove_f_comment_marks((*i)->getString());
+            handle_comment(comment,locatedNode,tagmap);
+            break;
+	  }
+	  default:
+	    // ignore other non-comment preprocessor stuff
+	    break;
         }
       }
     }

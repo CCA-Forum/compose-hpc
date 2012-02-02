@@ -1,4 +1,5 @@
 ; comment lines start with semi and are ignored
+EXAMPLE key-value
 TEST1 key-value
 TEST3 key-value
 TAG_KV key-value
