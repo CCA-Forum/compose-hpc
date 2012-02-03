@@ -8,8 +8,8 @@ BABEL_TESTS = \
   regression/interop/strings/runChapel/stringstest.chpl \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
-  regression/interop/overload/runChapel/overloadtest.chpl 
-#  regression/interop/struct/runChapel/structtest.chpl 
+  regression/interop/overload/runChapel/overloadtest.chpl \
+  regression/interop/struct/runChapel/structtest.chpl 
 
 BABEL_TESTNAMES = \
   args arrays inherit strings exceptions ordering overload #struct 
