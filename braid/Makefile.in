@@ -626,10 +626,9 @@ BABEL_TESTS = \
   regression/interop/strings/runChapel/stringstest.chpl \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
-  regression/interop/overload/runChapel/overloadtest.chpl 
+  regression/interop/overload/runChapel/overloadtest.chpl \
+  regression/interop/struct/runChapel/structtest.chpl 
 
-#  regression/interop/struct/runChapel/structtest.chpl \
-#
 BABEL_TESTNAMES = \
   args arrays inherit strings exceptions ordering overload #struct 
 
@@ -648,7 +647,6 @@ BABEL_TESTNAMES = \
 
 # if "BABEL_LANG_CHAPEL"
 #check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
-#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_5) \
@@ -657,6 +655,7 @@ BABEL_TESTNAMES = \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_11) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_13) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/regression/interop/args/libChapel/libimpl.la \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@languages = C \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_4) \

@@ -9,8 +9,7 @@ BABEL_TESTS = \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
   regression/interop/overload/runChapel/overloadtest.chpl 
-#  regression/interop/struct/runChapel/structtest.chpl \
-#
+#  regression/interop/struct/runChapel/structtest.chpl 
 
 BABEL_TESTNAMES = \
   args arrays inherit strings exceptions ordering overload #struct 
@@ -73,7 +72,7 @@ endif
 
 # if "BABEL_LANG_CHAPEL"
 #check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
-#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
+check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 # endif

@@ -7,6 +7,9 @@
 #
 # Please report bugs to <adrian@llnl.gov>.
 #
+# Notes:
+# 
+#
 # \authors <pre>
 #
 # Copyright (c) 2011, Lawrence Livermore National Security, LLC.
@@ -744,6 +747,14 @@ class Chapel(object):
         \param method        s-expression of the method's SIDL declaration
         \param symbol_table  the symbol table of the SIDL file
         \param ci            a ClassInfo object
+
+        The code generation proceeds in two big steps, one is here and
+        creates a Chapel stub in Chapel that does as much of the
+        argument -> IOR conversion as possible, but we also generate a
+        secon stub in C. It might be possible to move the bulk of
+        argument conversions into small C functions or macros for each
+        type, but at least the virtual call can only be implemented in
+        C (or in a macro).
         """
 
         def low(sidl_term):
@@ -1190,7 +1201,11 @@ class Chapel(object):
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
             ci.impl.gen(ir.Import('sidl'))
-            ci.impl.gen(ir.Import('_'.join(symbol_table.prefix)))
+            
+            #ci.impl.gen(ir.Import('_'.join(symbol_table.prefix)))
+            ci.impl.new_def(gen_doc_comment(doc_comment, chpl_stub)+
+                            'class %s_Impl {'%qname)
+
             typedefs = self.class_typedefs(qname, symbol_table)
             ci.chpl_skel.cstub._header.extend(typedefs._header)
             ci.chpl_skel.cstub._defs.extend(typedefs._defs)
@@ -1223,15 +1238,17 @@ class Chapel(object):
                     [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
             builtin(sidl.void, '_dtor', [])
 
+
             # recurse to generate method code
             gen1(methods, ci) #all_methods
 
-            self.generate_ior(ci, extends, implements, all_methods)
+            ci.impl.new_def('}')
 
             # IOR
+            self.generate_ior(ci, extends, implements, all_methods)
             ci.ior.write()
 
-            # The server-side stub is used for, e.g., the
+            # The server-side stub is used for thinks like the
             # babelized Array-init functions
 
             # Stub (in C)
@@ -1299,7 +1316,6 @@ class Chapel(object):
             cskel.write()
 
             # Impl
-            #write_to(qname+'_Impl.chpl', str(ci.impl))
             pkg_name = '_'.join(symbol_table.prefix)
             impl = pkg_name+'_Impl.chpl'
             # Preserve code written by the user
