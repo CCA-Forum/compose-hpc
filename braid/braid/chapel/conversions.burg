@@ -128,23 +128,23 @@ chpl.char @ C <-- ior.char : cost(1)
 # COMPLEX - 32/64 Bit components
 ior.fcomplex @ C <-- chpl.fcomplex : cost(2)
     fmt = {'dest':dest, 'n':a0}
-    convs.append((ir.stmt, '{dest}.real = ({n}).re'.format(**fmt)))
-    convs.append((ir.stmt, '{dest}.imaginary = ({n}).im'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.real = {n}.re'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.imaginary = {n}.im'.format(**fmt)))
 
 ior.dcomplex @ C <-- chpl.dcomplex : cost(2)
     fmt = {'dest':dest,'n':a0}
-    convs.append((ir.stmt, '{dest}.real = ({n}).re'.format(**fmt)))
-    convs.append((ir.stmt, '{dest}.imaginary = ({n}).im'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.real = {n}.re'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.imaginary = {n}.im'.format(**fmt)))
 
 chpl.fcomplex @ C <-- ior.fcomplex : cost(2)
     fmt = {'dest':dest,'n':a0}
-    convs.append((ir.stmt, '({dest}).re = {n}.real'.format(**fmt)))
-    convs.append((ir.stmt, '({dest}).im = {n}.imaginary'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.re = {n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.im = {n}.imaginary'.format(**fmt)))
 
 chpl.dcomplex @ C <-- ior.dcomplex : cost(2)
     fmt = {'dest':dest,'n':a0}
-    convs.append((ir.stmt, '({dest}).re = {n}.real'.format(**fmt)))
-    convs.append((ir.stmt, '({dest}).im = {n}.imaginary'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.re = {n}.real'.format(**fmt)))
+    convs.append((ir.stmt, '{dest}.im = {n}.imaginary'.format(**fmt)))
 
 # ENUM
 ior.enum @ C <-- chpl.enum: cost(1)

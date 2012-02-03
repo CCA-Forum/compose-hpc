@@ -1436,7 +1436,6 @@ class Chapel(object):
         #call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         ior_args = lower_ir(symbol_table, Args)
         ctype = lower_ir(symbol_table, Type)
-        return_expr = []
         return_stmt = []
         opt = ci.chpl_skel.cstub.optional
         #callee = ''.join(['.'.join(ci.epv.symbol_table.prefix+
@@ -1445,6 +1444,9 @@ class Chapel(object):
         #                  '.', Name, '_impl'])
         callee = Name+'_impl'
      
+        def deref(mode, name):
+            return name if mode == sidl.in_ else '(*%s)'%name
+
         def strip(typ):
             if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
                 return ir.struct
@@ -1462,15 +1464,27 @@ class Chapel(object):
      
         # IN
         map(lambda (arg, attr, mode, typ, name):
-              conv.codegen((strip(typ), name), ('chpl', strip(typ)),
-                           pre_call, opt, '_IOR_'+name, typ),
+              conv.codegen((strip(typ), deref(mode, name)), ('chpl', strip(typ)),
+                           pre_call, opt, '_CHPL_'+name, typ),
             filter(incoming, ior_args))
      
         # OUT
         map(lambda (arg, attr, mode, typ, name):
-              conv.codegen((('chpl', strip(typ)), '_IOR_'+name), strip(typ),
-                           post_call, opt, '*'+name, typ),
+              conv.codegen((('chpl', strip(typ)), '_CHPL_'+name), strip(typ),
+                           post_call, opt, '(*%s)'%name, typ),
             filter(outgoing, ior_args))
+
+        decls = []
+        call_args = []
+        retval_arg = []
+        # return value type conversion -- treat it as an out argument
+        rarg = ir.Arg([], ir.out, ctype, '_retval')
+        conv.codegen((('chpl', strip(ctype)), '_CHPL__retval'), strip(ctype),
+                     post_call, opt, '_retval', ctype)
+        crarg = ir_arg_to_chpl(rarg)
+        _,_,_,chpltype,_ = crarg
+        if Type <> sidl.void:
+            decls.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
 
         def pointerize_struct((arg, attr, mode, typ, name)):
           # FIXME: this is borked.. instead we should remove this
@@ -1481,18 +1495,9 @@ class Chapel(object):
           else: return (arg, attr, mode, typ, name)
 
         cstub_decl_args = map(pointerize_struct, map(ir_arg_to_chpl, ior_args))
-     
-        retval_arg = []
-        # return value type conversion -- treat it as an out argument
-        rarg = ir.Arg([], ir.out, ctype, '_retval')
-        conv.codegen(('chpl', strip(ctype)), (strip(ctype), '_IOR__retval'),
-                     post_call, opt, '_retval', ctype)
-        crarg = ir_arg_to_chpl(rarg)
-        _,_,_,chpltype,_ = crarg
+
      
         # Proxy declarations / revised names of call arguments
-        call_args = []
-        decls = []
         for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
             zip([crarg]+cstub_decl_args, [rarg]+ior_args)):
             if chpl_t <> c_t:
@@ -1506,7 +1511,7 @@ class Chapel(object):
                     proxy_t = chpl_t[1]
      
                 # FIXME see comment in chpl_to_ior
-                name = '_IOR_'+name
+                name = '_CHPL_'+name
                 decls.append(ir.Stmt(ir.Var_decl(proxy_t, name)))
                 if mode <> sidl.in_ or is_struct:
                     name = ir.Pointer_expr(name)
@@ -1526,16 +1531,10 @@ class Chapel(object):
             Type = ir.pt_void
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
-            if return_expr or post_call:
-                rvar = '_IOR__retval'
-                if not return_expr:
-                  #pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
-                    rx = rvar
-                else:
-                    rx = return_expr[0]
-                    
+            if post_call:
+                rvar = '_retval'
                 call = [ir.Stmt(ir.Assignment(rvar, ir.Call(callee, call_args)))]
-                return_stmt = [ir.Stmt(ir.Return(rx))]
+                return_stmt = [ir.Stmt(ir.Return(rvar))]
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
@@ -1545,9 +1544,9 @@ class Chapel(object):
                 babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
                 decls+pre_call+call+post_call+return_stmt,
                 DocComment)
-        #chpldecl = (ir.fn_decl, [], ctype, callee,
-        #            [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+cstub_decl_args,
-        #            DocComment)
+        chpldecl = (ir.fn_decl, [], ctype, callee,
+                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+cstub_decl_args,
+                    DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         chpldefn = (ir.fn_defn, ['export %s'%callee], ctype, callee,
                     [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+Args,
@@ -1555,7 +1554,7 @@ class Chapel(object):
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
                     DocComment)
 
-        #c_gen(chpldecl, ci.chpl_skel.cstub)
+        c_gen(chpldecl, ci.chpl_skel.cstub)
         c_gen(defn, ci.chpl_skel.cstub)
         chpl_gen(chpldefn, ci.impl)
 

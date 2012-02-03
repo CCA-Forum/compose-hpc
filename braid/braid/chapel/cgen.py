@@ -96,8 +96,8 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     post_call = []
     opt = scope.cstub.optional
 
-    def deref(mode):
-        return '' if mode == sidl.in_ else '*'
+    def deref(mode, name):
+        return name if mode == sidl.in_ else '(*%s)'%name
 
     def strip(typ):
         if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
@@ -115,14 +115,14 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
     # IN
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((('chpl', strip(typ)), deref(mode)+name), strip(typ),
+          conv.codegen((('chpl', strip(typ)), deref(mode, name)), strip(typ),
                        pre_call, opt, '_proxy_'+name, typ),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
           conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)),
-                       post_call, opt, '*'+name, typ),
+                       post_call, opt, '(*%s)'%name, typ),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
