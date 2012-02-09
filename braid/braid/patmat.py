@@ -505,7 +505,7 @@ def compile_matcher(f):
 			' '*(withindent[-1]) + '; '.join(decls) + '\n')
 
             # output the rules in decreasing order
-            insert_line(withbegin[-1],' '*(withindent[-1])+
+            insert_line(withbegin[-1], ' '*(withindent[-1])+
                         '_len = len({lexpr}) if isinstance({lexpr}, tuple) else -1\n'
                         .format(lexpr=lexpr[-1]))
             
@@ -516,7 +516,7 @@ def compile_matcher(f):
             first = True
             for l, rules in reversed(sorted(buckets[-1].items())):
                 if not first: s.append(else_notmatch)
-                s.append(ind+'%sif _len == %d:\n'%('' if first else 'el',l))
+                s.append(ind+'%sif _len == %d:\n'%('' if first else 'el', l))
                 s.extend(rules)
                 first = False
             if not first: # had at least 1

@@ -33,7 +33,7 @@
 # </pre>
 #
 import argparse, re
-from parse_tree import *
+from parse_tree import parse_tree
 
 def error(msg):
     print '**ERROR', msg

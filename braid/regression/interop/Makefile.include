@@ -12,7 +12,7 @@ BABEL_TESTS = \
   regression/interop/struct/runChapel/structtest.chpl 
 
 BABEL_TESTNAMES = \
-  args arrays inherit strings exceptions ordering overload #struct 
+  args arrays inherit strings exceptions ordering overload struct 
 
 EXTRA_DIST += $(BABEL_TESTS)
 

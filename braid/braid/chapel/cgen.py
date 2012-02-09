@@ -30,9 +30,8 @@
 #
 # </pre>
 #
-import ir, sidl
-import chpl, ior
-from backend import *
+import ir, sidl, re
+import ior
 from patmat import *
 from utils import *
 from codegen import (
@@ -227,7 +226,6 @@ class ChapelFile(SourceFile):
 
         h_indent = ''
         d_indent = ''
-        m_indent = ''
         if len(self._header)   > 0: h_indent=self._sep
         if len(self._defs)     > 0: d_indent=self._sep
 

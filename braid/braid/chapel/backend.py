@@ -34,10 +34,11 @@
 # </pre>
 #
 
-import config, ior, ior_template, ir, os.path, re, sidl, splicer, types
+import config, ior, ior_template, ir, os.path, sidl, splicer
 from utils import *
 from patmat import *
-from cgen import *
+from codegen import (CFile)
+from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, gen_doc_comment)
 from sidl_symbols import *
 
 chpl_data_var_template = '_babel_data_{arg_name}'
@@ -756,9 +757,6 @@ class Chapel(object):
         type, but at least the virtual call can only be implemented in
         C (or in a macro).
         """
-
-        def low(sidl_term):
-            return lower_ir(symbol_table, sidl_term)
 
         def convert_arg((arg, attrs, mode, typ, name)):
             """
