@@ -34,7 +34,7 @@ EXTRA_DIST= \
 # Recursive make considered harmful
 include braid/Makefile.include
 include regression/interop/Makefile.include
-include chpl/Makefile.include
+include runtime/Makefile.include
 include chapel-patches/Makefile.include
 
 DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
@@ -92,7 +92,7 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
-	rm -rf chpl/sidl_*.[ch] chpl/sidl.h
+	rm -rf runtime/sidl_*.[ch] runtime/sidl.h
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
@@ -113,33 +113,33 @@ endif
 
 # Runtime support files
 nobase_include_HEADERS += \
-  chpl/chpl_sidl_array.h \
-  chpl/sidl.chpl \
+  runtime/chpl_sidl_array.h \
+  runtime/sidl.chpl \
   $(SIDLSTUB_HDRS)
 
-CHPL_RUNTIME_FILES = chpl/array.inc chpl/barray.inc chpl/array_support.inc
-BUILT_SOURCES += chpl/sidl.chpl $(SIDLSTUB_SRCS)
-EXTRA_DIST += $(CHPL_RUNTIME_FILES) chpl/darray.inc
+CHPL_RUNTIME_FILES = runtime/array.inc runtime/barray.inc runtime/array_support.inc
+BUILT_SOURCES += runtime/sidl.chpl $(SIDLSTUB_SRCS)
+EXTRA_DIST += $(CHPL_RUNTIME_FILES) runtime/darray.inc
 
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 
 # We list only one of the files as target, otherwise make -j will run
 # havoc and try to make all of them in parallel
-chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
-	@$(MKDIR_P) chpl
+runtime/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
+	@$(MKDIR_P) runtime
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
-	@cd chpl && \
+	@cd runtime && \
           env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
             -cchpl $(SIDL_PATH)/sidl.sidl --verbose # --profile
 	@echo "generating Chapel array extensions"
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array_support.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/array.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/barray.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/array_support.inc >>$@
 
 # Rules to build the Chapel stubs for the SIDL runtime
-$(SIDLSTUB_SRCS): chpl/sidl.chpl
+$(SIDLSTUB_SRCS): runtime/sidl.chpl
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
-AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
+AM_CPPFLAGS = -I$(builddir)/runtime -I$(srcdir)/runtime -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
 AM_CFLAGS = -Werror

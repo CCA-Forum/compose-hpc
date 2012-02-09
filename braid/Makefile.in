@@ -47,9 +47,9 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/braid/Makefile.include \
 	$(srcdir)/chapel-patches/Makefile.include \
-	$(srcdir)/chpl/Makefile.include \
 	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
+	$(srcdir)/runtime/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
 	$(top_srcdir)/braid/pyburg.in $(top_srcdir)/configure \
 	$(top_srcdir)/regression/interop/build-client.sh.in \
@@ -355,6 +355,7 @@ CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DOT = @DOT@
 DOXYGEN = @DOXYGEN@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
@@ -505,9 +506,9 @@ noinst_PYTHON =
 # Babel functionality: 
 
 # Runtime support files
-nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl \
+nobase_include_HEADERS = runtime/chpl_sidl_array.h runtime/sidl.chpl \
 	$(SIDLSTUB_HDRS)
-BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) chpl/sidl.chpl \
+BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) runtime/sidl.chpl \
 	$(SIDLSTUB_SRCS)
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
 bin_SCRIPTS = braid/braid braid/headerize braid/pyburg
@@ -535,7 +536,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
 	$(am__append_16) doc/man_header.txt $(CHPL_RUNTIME_FILES) \
-	chpl/darray.inc
+	runtime/darray.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -674,193 +675,193 @@ BABEL_TESTNAMES = \
 @ENABLE_INTEROP_REGRESSION_TRUE@STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
 @ENABLE_INTEROP_REGRESSION_TRUE@ALLTESTS = $(STATIC_TESTS)
 SIDLSTUB_SRCS = \
-  chpl/sidl_BaseClass_cStub.c \
-  chpl/sidl_BaseException_cStub.c \
-  chpl/sidl_BaseInterface_cStub.c \
-  chpl/sidl_CastException_cStub.c \
-  chpl/sidl_ClassInfo_cStub.c \
-  chpl/sidl_ClassInfoI_cStub.c \
-  chpl/sidl_DFinder_cStub.c \
-  chpl/sidl_DLL_cStub.c \
-  chpl/sidl_EnfPolicy_cStub.c \
-  chpl/sidl_Finder_cStub.c \
-  chpl/sidl_InvViolation_cStub.c \
-  chpl/sidl_io_Deserializer_cStub.c \
-  chpl/sidl_io_IOException_cStub.c \
-  chpl/sidl_io_Serializable_cStub.c \
-  chpl/sidl_io_Serializer_cStub.c \
-  chpl/sidl_LangSpecificException_cStub.c \
-  chpl/sidl_Loader_cStub.c \
-  chpl/sidl_MemAllocException_cStub.c \
-  chpl/sidl_NotImplementedException_cStub.c \
-  chpl/sidl_PostViolation_cStub.c \
-  chpl/sidl_PreViolation_cStub.c \
-  chpl/sidl_rmi_BindException_cStub.c \
-  chpl/sidl_rmi_Call_cStub.c \
-  chpl/sidl_rmi_ConnectException_cStub.c \
-  chpl/sidl_rmi_ConnectRegistry_cStub.c \
-  chpl/sidl_rmi_InstanceHandle_cStub.c \
-  chpl/sidl_rmi_InstanceRegistry_cStub.c \
-  chpl/sidl_rmi_Invocation_cStub.c \
-  chpl/sidl_rmi_MalformedURLException_cStub.c \
-  chpl/sidl_rmi_NetworkException_cStub.c \
-  chpl/sidl_rmi_NoRouteToHostException_cStub.c \
-  chpl/sidl_rmi_NoServerException_cStub.c \
-  chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c \
-  chpl/sidl_rmi_ProtocolException_cStub.c \
-  chpl/sidl_rmi_ProtocolFactory_cStub.c \
-  chpl/sidl_rmi_Response_cStub.c \
-  chpl/sidl_rmi_Return_cStub.c \
-  chpl/sidl_rmi_ServerInfo_cStub.c \
-  chpl/sidl_rmi_ServerRegistry_cStub.c \
-  chpl/sidl_rmi_TicketBook_cStub.c \
-  chpl/sidl_rmi_Ticket_cStub.c \
-  chpl/sidl_rmi_TimeOutException_cStub.c \
-  chpl/sidl_rmi_UnexpectedCloseException_cStub.c \
-  chpl/sidl_rmi_UnknownHostException_cStub.c \
-  chpl/sidl_RuntimeException_cStub.c \
-  chpl/sidl_SIDLException_cStub.c
+  runtime/sidl_BaseClass_cStub.c \
+  runtime/sidl_BaseException_cStub.c \
+  runtime/sidl_BaseInterface_cStub.c \
+  runtime/sidl_CastException_cStub.c \
+  runtime/sidl_ClassInfo_cStub.c \
+  runtime/sidl_ClassInfoI_cStub.c \
+  runtime/sidl_DFinder_cStub.c \
+  runtime/sidl_DLL_cStub.c \
+  runtime/sidl_EnfPolicy_cStub.c \
+  runtime/sidl_Finder_cStub.c \
+  runtime/sidl_InvViolation_cStub.c \
+  runtime/sidl_io_Deserializer_cStub.c \
+  runtime/sidl_io_IOException_cStub.c \
+  runtime/sidl_io_Serializable_cStub.c \
+  runtime/sidl_io_Serializer_cStub.c \
+  runtime/sidl_LangSpecificException_cStub.c \
+  runtime/sidl_Loader_cStub.c \
+  runtime/sidl_MemAllocException_cStub.c \
+  runtime/sidl_NotImplementedException_cStub.c \
+  runtime/sidl_PostViolation_cStub.c \
+  runtime/sidl_PreViolation_cStub.c \
+  runtime/sidl_rmi_BindException_cStub.c \
+  runtime/sidl_rmi_Call_cStub.c \
+  runtime/sidl_rmi_ConnectException_cStub.c \
+  runtime/sidl_rmi_ConnectRegistry_cStub.c \
+  runtime/sidl_rmi_InstanceHandle_cStub.c \
+  runtime/sidl_rmi_InstanceRegistry_cStub.c \
+  runtime/sidl_rmi_Invocation_cStub.c \
+  runtime/sidl_rmi_MalformedURLException_cStub.c \
+  runtime/sidl_rmi_NetworkException_cStub.c \
+  runtime/sidl_rmi_NoRouteToHostException_cStub.c \
+  runtime/sidl_rmi_NoServerException_cStub.c \
+  runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c \
+  runtime/sidl_rmi_ProtocolException_cStub.c \
+  runtime/sidl_rmi_ProtocolFactory_cStub.c \
+  runtime/sidl_rmi_Response_cStub.c \
+  runtime/sidl_rmi_Return_cStub.c \
+  runtime/sidl_rmi_ServerInfo_cStub.c \
+  runtime/sidl_rmi_ServerRegistry_cStub.c \
+  runtime/sidl_rmi_TicketBook_cStub.c \
+  runtime/sidl_rmi_Ticket_cStub.c \
+  runtime/sidl_rmi_TimeOutException_cStub.c \
+  runtime/sidl_rmi_UnexpectedCloseException_cStub.c \
+  runtime/sidl_rmi_UnknownHostException_cStub.c \
+  runtime/sidl_RuntimeException_cStub.c \
+  runtime/sidl_SIDLException_cStub.c
 
 SIDLSTUB_HDRS = \
-  chpl/sidl_BaseClass_cStub.h \
-  chpl/sidl_BaseClass_IOR.h \
-  chpl/sidl_BaseClass_Stub.h \
-  chpl/sidl_BaseException_cStub.h \
-  chpl/sidl_BaseException_IOR.h \
-  chpl/sidl_BaseException_Stub.h \
-  chpl/sidl_BaseInterface_cStub.h \
-  chpl/sidl_BaseInterface_IOR.h \
-  chpl/sidl_BaseInterface_Stub.h \
-  chpl/sidl_CastException_cStub.h \
-  chpl/sidl_CastException_IOR.h \
-  chpl/sidl_CastException_Stub.h \
-  chpl/sidl_ClassInfo_cStub.h \
-  chpl/sidl_ClassInfoI_cStub.h \
-  chpl/sidl_ClassInfoI_IOR.h \
-  chpl/sidl_ClassInfo_IOR.h \
-  chpl/sidl_ClassInfoI_Stub.h \
-  chpl/sidl_ClassInfo_Stub.h \
-  chpl/sidl_DFinder_cStub.h \
-  chpl/sidl_DFinder_IOR.h \
-  chpl/sidl_DFinder_Stub.h \
-  chpl/sidl_DLL_cStub.h \
-  chpl/sidl_DLL_IOR.h \
-  chpl/sidl_DLL_Stub.h \
-  chpl/sidl_EnfPolicy_cStub.h \
-  chpl/sidl_EnfPolicy_IOR.h \
-  chpl/sidl_EnfPolicy_Stub.h \
-  chpl/sidl_Finder_cStub.h \
-  chpl/sidl_Finder_IOR.h \
-  chpl/sidl_Finder_Stub.h \
-  chpl/sidl.h \
-  chpl/sidl_InvViolation_cStub.h \
-  chpl/sidl_InvViolation_IOR.h \
-  chpl/sidl_InvViolation_Stub.h \
-  chpl/sidl_io_Deserializer_cStub.h \
-  chpl/sidl_io_Deserializer_IOR.h \
-  chpl/sidl_io_Deserializer_Stub.h \
-  chpl/sidl_io_IOException_cStub.h \
-  chpl/sidl_io_IOException_IOR.h \
-  chpl/sidl_io_IOException_Stub.h \
-  chpl/sidl_io_Serializable_cStub.h \
-  chpl/sidl_io_Serializable_IOR.h \
-  chpl/sidl_io_Serializable_Stub.h \
-  chpl/sidl_io_Serializer_cStub.h \
-  chpl/sidl_io_Serializer_IOR.h \
-  chpl/sidl_io_Serializer_Stub.h \
-  chpl/sidl_LangSpecificException_cStub.h \
-  chpl/sidl_LangSpecificException_IOR.h \
-  chpl/sidl_LangSpecificException_Stub.h \
-  chpl/sidl_Loader_cStub.h \
-  chpl/sidl_Loader_IOR.h \
-  chpl/sidl_Loader_Stub.h \
-  chpl/sidl_MemAllocException_cStub.h \
-  chpl/sidl_MemAllocException_IOR.h \
-  chpl/sidl_MemAllocException_Stub.h \
-  chpl/sidl_NotImplementedException_cStub.h \
-  chpl/sidl_NotImplementedException_IOR.h \
-  chpl/sidl_NotImplementedException_Stub.h \
-  chpl/sidl_PostViolation_cStub.h \
-  chpl/sidl_PostViolation_IOR.h \
-  chpl/sidl_PostViolation_Stub.h \
-  chpl/sidl_PreViolation_cStub.h \
-  chpl/sidl_PreViolation_IOR.h \
-  chpl/sidl_PreViolation_Stub.h \
-  chpl/sidl_rmi_BindException_cStub.h \
-  chpl/sidl_rmi_BindException_IOR.h \
-  chpl/sidl_rmi_BindException_Stub.h \
-  chpl/sidl_rmi_Call_cStub.h \
-  chpl/sidl_rmi_Call_IOR.h \
-  chpl/sidl_rmi_Call_Stub.h \
-  chpl/sidl_rmi_ConnectException_cStub.h \
-  chpl/sidl_rmi_ConnectException_IOR.h \
-  chpl/sidl_rmi_ConnectException_Stub.h \
-  chpl/sidl_rmi_ConnectRegistry_cStub.h \
-  chpl/sidl_rmi_ConnectRegistry_IOR.h \
-  chpl/sidl_rmi_ConnectRegistry_Stub.h \
-  chpl/sidl_rmi_InstanceHandle_cStub.h \
-  chpl/sidl_rmi_InstanceHandle_IOR.h \
-  chpl/sidl_rmi_InstanceHandle_Stub.h \
-  chpl/sidl_rmi_InstanceRegistry_cStub.h \
-  chpl/sidl_rmi_InstanceRegistry_IOR.h \
-  chpl/sidl_rmi_InstanceRegistry_Stub.h \
-  chpl/sidl_rmi_Invocation_cStub.h \
-  chpl/sidl_rmi_Invocation_IOR.h \
-  chpl/sidl_rmi_Invocation_Stub.h \
-  chpl/sidl_rmi_MalformedURLException_cStub.h \
-  chpl/sidl_rmi_MalformedURLException_IOR.h \
-  chpl/sidl_rmi_MalformedURLException_Stub.h \
-  chpl/sidl_rmi_NetworkException_cStub.h \
-  chpl/sidl_rmi_NetworkException_IOR.h \
-  chpl/sidl_rmi_NetworkException_Stub.h \
-  chpl/sidl_rmi_NoRouteToHostException_cStub.h \
-  chpl/sidl_rmi_NoRouteToHostException_IOR.h \
-  chpl/sidl_rmi_NoRouteToHostException_Stub.h \
-  chpl/sidl_rmi_NoServerException_cStub.h \
-  chpl/sidl_rmi_NoServerException_IOR.h \
-  chpl/sidl_rmi_NoServerException_Stub.h \
-  chpl/sidl_rmi_ObjectDoesNotExistException_cStub.h \
-  chpl/sidl_rmi_ObjectDoesNotExistException_IOR.h \
-  chpl/sidl_rmi_ObjectDoesNotExistException_Stub.h \
-  chpl/sidl_rmi_ProtocolException_cStub.h \
-  chpl/sidl_rmi_ProtocolException_IOR.h \
-  chpl/sidl_rmi_ProtocolException_Stub.h \
-  chpl/sidl_rmi_ProtocolFactory_cStub.h \
-  chpl/sidl_rmi_ProtocolFactory_IOR.h \
-  chpl/sidl_rmi_ProtocolFactory_Stub.h \
-  chpl/sidl_rmi_Response_cStub.h \
-  chpl/sidl_rmi_Response_IOR.h \
-  chpl/sidl_rmi_Response_Stub.h \
-  chpl/sidl_rmi_Return_cStub.h \
-  chpl/sidl_rmi_Return_IOR.h \
-  chpl/sidl_rmi_Return_Stub.h \
-  chpl/sidl_rmi_ServerInfo_cStub.h \
-  chpl/sidl_rmi_ServerInfo_IOR.h \
-  chpl/sidl_rmi_ServerInfo_Stub.h \
-  chpl/sidl_rmi_ServerRegistry_cStub.h \
-  chpl/sidl_rmi_ServerRegistry_IOR.h \
-  chpl/sidl_rmi_ServerRegistry_Stub.h \
-  chpl/sidl_rmi_TicketBook_cStub.h \
-  chpl/sidl_rmi_TicketBook_IOR.h \
-  chpl/sidl_rmi_TicketBook_Stub.h \
-  chpl/sidl_rmi_Ticket_cStub.h \
-  chpl/sidl_rmi_Ticket_IOR.h \
-  chpl/sidl_rmi_Ticket_Stub.h \
-  chpl/sidl_rmi_TimeOutException_cStub.h \
-  chpl/sidl_rmi_TimeOutException_IOR.h \
-  chpl/sidl_rmi_TimeOutException_Stub.h \
-  chpl/sidl_rmi_UnexpectedCloseException_cStub.h \
-  chpl/sidl_rmi_UnexpectedCloseException_IOR.h \
-  chpl/sidl_rmi_UnexpectedCloseException_Stub.h \
-  chpl/sidl_rmi_UnknownHostException_cStub.h \
-  chpl/sidl_rmi_UnknownHostException_IOR.h \
-  chpl/sidl_rmi_UnknownHostException_Stub.h \
-  chpl/sidl_RuntimeException_cStub.h \
-  chpl/sidl_RuntimeException_IOR.h \
-  chpl/sidl_RuntimeException_Stub.h \
-  chpl/sidl_SIDLException_cStub.h \
-  chpl/sidl_SIDLException_IOR.h \
-  chpl/sidl_SIDLException_Stub.h
+  runtime/sidl_BaseClass_cStub.h \
+  runtime/sidl_BaseClass_IOR.h \
+  runtime/sidl_BaseClass_Stub.h \
+  runtime/sidl_BaseException_cStub.h \
+  runtime/sidl_BaseException_IOR.h \
+  runtime/sidl_BaseException_Stub.h \
+  runtime/sidl_BaseInterface_cStub.h \
+  runtime/sidl_BaseInterface_IOR.h \
+  runtime/sidl_BaseInterface_Stub.h \
+  runtime/sidl_CastException_cStub.h \
+  runtime/sidl_CastException_IOR.h \
+  runtime/sidl_CastException_Stub.h \
+  runtime/sidl_ClassInfo_cStub.h \
+  runtime/sidl_ClassInfoI_cStub.h \
+  runtime/sidl_ClassInfoI_IOR.h \
+  runtime/sidl_ClassInfo_IOR.h \
+  runtime/sidl_ClassInfoI_Stub.h \
+  runtime/sidl_ClassInfo_Stub.h \
+  runtime/sidl_DFinder_cStub.h \
+  runtime/sidl_DFinder_IOR.h \
+  runtime/sidl_DFinder_Stub.h \
+  runtime/sidl_DLL_cStub.h \
+  runtime/sidl_DLL_IOR.h \
+  runtime/sidl_DLL_Stub.h \
+  runtime/sidl_EnfPolicy_cStub.h \
+  runtime/sidl_EnfPolicy_IOR.h \
+  runtime/sidl_EnfPolicy_Stub.h \
+  runtime/sidl_Finder_cStub.h \
+  runtime/sidl_Finder_IOR.h \
+  runtime/sidl_Finder_Stub.h \
+  runtime/sidl.h \
+  runtime/sidl_InvViolation_cStub.h \
+  runtime/sidl_InvViolation_IOR.h \
+  runtime/sidl_InvViolation_Stub.h \
+  runtime/sidl_io_Deserializer_cStub.h \
+  runtime/sidl_io_Deserializer_IOR.h \
+  runtime/sidl_io_Deserializer_Stub.h \
+  runtime/sidl_io_IOException_cStub.h \
+  runtime/sidl_io_IOException_IOR.h \
+  runtime/sidl_io_IOException_Stub.h \
+  runtime/sidl_io_Serializable_cStub.h \
+  runtime/sidl_io_Serializable_IOR.h \
+  runtime/sidl_io_Serializable_Stub.h \
+  runtime/sidl_io_Serializer_cStub.h \
+  runtime/sidl_io_Serializer_IOR.h \
+  runtime/sidl_io_Serializer_Stub.h \
+  runtime/sidl_LangSpecificException_cStub.h \
+  runtime/sidl_LangSpecificException_IOR.h \
+  runtime/sidl_LangSpecificException_Stub.h \
+  runtime/sidl_Loader_cStub.h \
+  runtime/sidl_Loader_IOR.h \
+  runtime/sidl_Loader_Stub.h \
+  runtime/sidl_MemAllocException_cStub.h \
+  runtime/sidl_MemAllocException_IOR.h \
+  runtime/sidl_MemAllocException_Stub.h \
+  runtime/sidl_NotImplementedException_cStub.h \
+  runtime/sidl_NotImplementedException_IOR.h \
+  runtime/sidl_NotImplementedException_Stub.h \
+  runtime/sidl_PostViolation_cStub.h \
+  runtime/sidl_PostViolation_IOR.h \
+  runtime/sidl_PostViolation_Stub.h \
+  runtime/sidl_PreViolation_cStub.h \
+  runtime/sidl_PreViolation_IOR.h \
+  runtime/sidl_PreViolation_Stub.h \
+  runtime/sidl_rmi_BindException_cStub.h \
+  runtime/sidl_rmi_BindException_IOR.h \
+  runtime/sidl_rmi_BindException_Stub.h \
+  runtime/sidl_rmi_Call_cStub.h \
+  runtime/sidl_rmi_Call_IOR.h \
+  runtime/sidl_rmi_Call_Stub.h \
+  runtime/sidl_rmi_ConnectException_cStub.h \
+  runtime/sidl_rmi_ConnectException_IOR.h \
+  runtime/sidl_rmi_ConnectException_Stub.h \
+  runtime/sidl_rmi_ConnectRegistry_cStub.h \
+  runtime/sidl_rmi_ConnectRegistry_IOR.h \
+  runtime/sidl_rmi_ConnectRegistry_Stub.h \
+  runtime/sidl_rmi_InstanceHandle_cStub.h \
+  runtime/sidl_rmi_InstanceHandle_IOR.h \
+  runtime/sidl_rmi_InstanceHandle_Stub.h \
+  runtime/sidl_rmi_InstanceRegistry_cStub.h \
+  runtime/sidl_rmi_InstanceRegistry_IOR.h \
+  runtime/sidl_rmi_InstanceRegistry_Stub.h \
+  runtime/sidl_rmi_Invocation_cStub.h \
+  runtime/sidl_rmi_Invocation_IOR.h \
+  runtime/sidl_rmi_Invocation_Stub.h \
+  runtime/sidl_rmi_MalformedURLException_cStub.h \
+  runtime/sidl_rmi_MalformedURLException_IOR.h \
+  runtime/sidl_rmi_MalformedURLException_Stub.h \
+  runtime/sidl_rmi_NetworkException_cStub.h \
+  runtime/sidl_rmi_NetworkException_IOR.h \
+  runtime/sidl_rmi_NetworkException_Stub.h \
+  runtime/sidl_rmi_NoRouteToHostException_cStub.h \
+  runtime/sidl_rmi_NoRouteToHostException_IOR.h \
+  runtime/sidl_rmi_NoRouteToHostException_Stub.h \
+  runtime/sidl_rmi_NoServerException_cStub.h \
+  runtime/sidl_rmi_NoServerException_IOR.h \
+  runtime/sidl_rmi_NoServerException_Stub.h \
+  runtime/sidl_rmi_ObjectDoesNotExistException_cStub.h \
+  runtime/sidl_rmi_ObjectDoesNotExistException_IOR.h \
+  runtime/sidl_rmi_ObjectDoesNotExistException_Stub.h \
+  runtime/sidl_rmi_ProtocolException_cStub.h \
+  runtime/sidl_rmi_ProtocolException_IOR.h \
+  runtime/sidl_rmi_ProtocolException_Stub.h \
+  runtime/sidl_rmi_ProtocolFactory_cStub.h \
+  runtime/sidl_rmi_ProtocolFactory_IOR.h \
+  runtime/sidl_rmi_ProtocolFactory_Stub.h \
+  runtime/sidl_rmi_Response_cStub.h \
+  runtime/sidl_rmi_Response_IOR.h \
+  runtime/sidl_rmi_Response_Stub.h \
+  runtime/sidl_rmi_Return_cStub.h \
+  runtime/sidl_rmi_Return_IOR.h \
+  runtime/sidl_rmi_Return_Stub.h \
+  runtime/sidl_rmi_ServerInfo_cStub.h \
+  runtime/sidl_rmi_ServerInfo_IOR.h \
+  runtime/sidl_rmi_ServerInfo_Stub.h \
+  runtime/sidl_rmi_ServerRegistry_cStub.h \
+  runtime/sidl_rmi_ServerRegistry_IOR.h \
+  runtime/sidl_rmi_ServerRegistry_Stub.h \
+  runtime/sidl_rmi_TicketBook_cStub.h \
+  runtime/sidl_rmi_TicketBook_IOR.h \
+  runtime/sidl_rmi_TicketBook_Stub.h \
+  runtime/sidl_rmi_Ticket_cStub.h \
+  runtime/sidl_rmi_Ticket_IOR.h \
+  runtime/sidl_rmi_Ticket_Stub.h \
+  runtime/sidl_rmi_TimeOutException_cStub.h \
+  runtime/sidl_rmi_TimeOutException_IOR.h \
+  runtime/sidl_rmi_TimeOutException_Stub.h \
+  runtime/sidl_rmi_UnexpectedCloseException_cStub.h \
+  runtime/sidl_rmi_UnexpectedCloseException_IOR.h \
+  runtime/sidl_rmi_UnexpectedCloseException_Stub.h \
+  runtime/sidl_rmi_UnknownHostException_cStub.h \
+  runtime/sidl_rmi_UnknownHostException_IOR.h \
+  runtime/sidl_rmi_UnknownHostException_Stub.h \
+  runtime/sidl_RuntimeException_cStub.h \
+  runtime/sidl_RuntimeException_IOR.h \
+  runtime/sidl_RuntimeException_Stub.h \
+  runtime/sidl_SIDLException_cStub.h \
+  runtime/sidl_SIDLException_IOR.h \
+  runtime/sidl_SIDLException_Stub.h
 
 
 # Recursive make considered harmful
@@ -870,11 +871,11 @@ DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
 info_TEXINFOS = doc/braid.texi
 dist_man_MANS = $(srcdir)/doc/braid.1
 CLEANFILES = toolcheck.log
-CHPL_RUNTIME_FILES = chpl/array.inc chpl/barray.inc chpl/array_support.inc
+CHPL_RUNTIME_FILES = runtime/array.inc runtime/barray.inc runtime/array_support.inc
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
-AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
+AM_CPPFLAGS = -I$(builddir)/runtime -I$(srcdir)/runtime -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
 AM_CFLAGS = -Werror
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -883,7 +884,7 @@ all: $(BUILT_SOURCES)
 .SUFFIXES: .c .chpl .chpl$(EXEEXT) .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sidl .sidl$(EXEEXT)
 am--refresh:
 	@:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/chpl/Makefile.include $(srcdir)/chapel-patches/Makefile.include $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/runtime/Makefile.include $(srcdir)/chapel-patches/Makefile.include $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -1144,373 +1145,373 @@ braid_scanner_la-scanner.lo: scanner.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(braid_scanner_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o braid_scanner_la-scanner.lo `test -f 'scanner.c' || echo '$(srcdir)/'`scanner.c
 
-sidl_BaseClass_cStub.lo: chpl/sidl_BaseClass_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_BaseClass_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_BaseClass_cStub.Tpo -c -o sidl_BaseClass_cStub.lo `test -f 'chpl/sidl_BaseClass_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseClass_cStub.c
+sidl_BaseClass_cStub.lo: runtime/sidl_BaseClass_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_BaseClass_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_BaseClass_cStub.Tpo -c -o sidl_BaseClass_cStub.lo `test -f 'runtime/sidl_BaseClass_cStub.c' || echo '$(srcdir)/'`runtime/sidl_BaseClass_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_BaseClass_cStub.Tpo $(DEPDIR)/sidl_BaseClass_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_BaseClass_cStub.c' object='sidl_BaseClass_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_BaseClass_cStub.c' object='sidl_BaseClass_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseClass_cStub.lo `test -f 'chpl/sidl_BaseClass_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseClass_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseClass_cStub.lo `test -f 'runtime/sidl_BaseClass_cStub.c' || echo '$(srcdir)/'`runtime/sidl_BaseClass_cStub.c
 
-sidl_BaseException_cStub.lo: chpl/sidl_BaseException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_BaseException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_BaseException_cStub.Tpo -c -o sidl_BaseException_cStub.lo `test -f 'chpl/sidl_BaseException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseException_cStub.c
+sidl_BaseException_cStub.lo: runtime/sidl_BaseException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_BaseException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_BaseException_cStub.Tpo -c -o sidl_BaseException_cStub.lo `test -f 'runtime/sidl_BaseException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_BaseException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_BaseException_cStub.Tpo $(DEPDIR)/sidl_BaseException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_BaseException_cStub.c' object='sidl_BaseException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_BaseException_cStub.c' object='sidl_BaseException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseException_cStub.lo `test -f 'chpl/sidl_BaseException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseException_cStub.lo `test -f 'runtime/sidl_BaseException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_BaseException_cStub.c
 
-sidl_BaseInterface_cStub.lo: chpl/sidl_BaseInterface_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_BaseInterface_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_BaseInterface_cStub.Tpo -c -o sidl_BaseInterface_cStub.lo `test -f 'chpl/sidl_BaseInterface_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseInterface_cStub.c
+sidl_BaseInterface_cStub.lo: runtime/sidl_BaseInterface_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_BaseInterface_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_BaseInterface_cStub.Tpo -c -o sidl_BaseInterface_cStub.lo `test -f 'runtime/sidl_BaseInterface_cStub.c' || echo '$(srcdir)/'`runtime/sidl_BaseInterface_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_BaseInterface_cStub.Tpo $(DEPDIR)/sidl_BaseInterface_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_BaseInterface_cStub.c' object='sidl_BaseInterface_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_BaseInterface_cStub.c' object='sidl_BaseInterface_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseInterface_cStub.lo `test -f 'chpl/sidl_BaseInterface_cStub.c' || echo '$(srcdir)/'`chpl/sidl_BaseInterface_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_BaseInterface_cStub.lo `test -f 'runtime/sidl_BaseInterface_cStub.c' || echo '$(srcdir)/'`runtime/sidl_BaseInterface_cStub.c
 
-sidl_CastException_cStub.lo: chpl/sidl_CastException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_CastException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_CastException_cStub.Tpo -c -o sidl_CastException_cStub.lo `test -f 'chpl/sidl_CastException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_CastException_cStub.c
+sidl_CastException_cStub.lo: runtime/sidl_CastException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_CastException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_CastException_cStub.Tpo -c -o sidl_CastException_cStub.lo `test -f 'runtime/sidl_CastException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_CastException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_CastException_cStub.Tpo $(DEPDIR)/sidl_CastException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_CastException_cStub.c' object='sidl_CastException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_CastException_cStub.c' object='sidl_CastException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_CastException_cStub.lo `test -f 'chpl/sidl_CastException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_CastException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_CastException_cStub.lo `test -f 'runtime/sidl_CastException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_CastException_cStub.c
 
-sidl_ClassInfo_cStub.lo: chpl/sidl_ClassInfo_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_ClassInfo_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_ClassInfo_cStub.Tpo -c -o sidl_ClassInfo_cStub.lo `test -f 'chpl/sidl_ClassInfo_cStub.c' || echo '$(srcdir)/'`chpl/sidl_ClassInfo_cStub.c
+sidl_ClassInfo_cStub.lo: runtime/sidl_ClassInfo_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_ClassInfo_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_ClassInfo_cStub.Tpo -c -o sidl_ClassInfo_cStub.lo `test -f 'runtime/sidl_ClassInfo_cStub.c' || echo '$(srcdir)/'`runtime/sidl_ClassInfo_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_ClassInfo_cStub.Tpo $(DEPDIR)/sidl_ClassInfo_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_ClassInfo_cStub.c' object='sidl_ClassInfo_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_ClassInfo_cStub.c' object='sidl_ClassInfo_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_ClassInfo_cStub.lo `test -f 'chpl/sidl_ClassInfo_cStub.c' || echo '$(srcdir)/'`chpl/sidl_ClassInfo_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_ClassInfo_cStub.lo `test -f 'runtime/sidl_ClassInfo_cStub.c' || echo '$(srcdir)/'`runtime/sidl_ClassInfo_cStub.c
 
-sidl_ClassInfoI_cStub.lo: chpl/sidl_ClassInfoI_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_ClassInfoI_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_ClassInfoI_cStub.Tpo -c -o sidl_ClassInfoI_cStub.lo `test -f 'chpl/sidl_ClassInfoI_cStub.c' || echo '$(srcdir)/'`chpl/sidl_ClassInfoI_cStub.c
+sidl_ClassInfoI_cStub.lo: runtime/sidl_ClassInfoI_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_ClassInfoI_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_ClassInfoI_cStub.Tpo -c -o sidl_ClassInfoI_cStub.lo `test -f 'runtime/sidl_ClassInfoI_cStub.c' || echo '$(srcdir)/'`runtime/sidl_ClassInfoI_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_ClassInfoI_cStub.Tpo $(DEPDIR)/sidl_ClassInfoI_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_ClassInfoI_cStub.c' object='sidl_ClassInfoI_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_ClassInfoI_cStub.c' object='sidl_ClassInfoI_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_ClassInfoI_cStub.lo `test -f 'chpl/sidl_ClassInfoI_cStub.c' || echo '$(srcdir)/'`chpl/sidl_ClassInfoI_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_ClassInfoI_cStub.lo `test -f 'runtime/sidl_ClassInfoI_cStub.c' || echo '$(srcdir)/'`runtime/sidl_ClassInfoI_cStub.c
 
-sidl_DFinder_cStub.lo: chpl/sidl_DFinder_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_DFinder_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_DFinder_cStub.Tpo -c -o sidl_DFinder_cStub.lo `test -f 'chpl/sidl_DFinder_cStub.c' || echo '$(srcdir)/'`chpl/sidl_DFinder_cStub.c
+sidl_DFinder_cStub.lo: runtime/sidl_DFinder_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_DFinder_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_DFinder_cStub.Tpo -c -o sidl_DFinder_cStub.lo `test -f 'runtime/sidl_DFinder_cStub.c' || echo '$(srcdir)/'`runtime/sidl_DFinder_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_DFinder_cStub.Tpo $(DEPDIR)/sidl_DFinder_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_DFinder_cStub.c' object='sidl_DFinder_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_DFinder_cStub.c' object='sidl_DFinder_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_DFinder_cStub.lo `test -f 'chpl/sidl_DFinder_cStub.c' || echo '$(srcdir)/'`chpl/sidl_DFinder_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_DFinder_cStub.lo `test -f 'runtime/sidl_DFinder_cStub.c' || echo '$(srcdir)/'`runtime/sidl_DFinder_cStub.c
 
-sidl_DLL_cStub.lo: chpl/sidl_DLL_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_DLL_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_DLL_cStub.Tpo -c -o sidl_DLL_cStub.lo `test -f 'chpl/sidl_DLL_cStub.c' || echo '$(srcdir)/'`chpl/sidl_DLL_cStub.c
+sidl_DLL_cStub.lo: runtime/sidl_DLL_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_DLL_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_DLL_cStub.Tpo -c -o sidl_DLL_cStub.lo `test -f 'runtime/sidl_DLL_cStub.c' || echo '$(srcdir)/'`runtime/sidl_DLL_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_DLL_cStub.Tpo $(DEPDIR)/sidl_DLL_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_DLL_cStub.c' object='sidl_DLL_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_DLL_cStub.c' object='sidl_DLL_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_DLL_cStub.lo `test -f 'chpl/sidl_DLL_cStub.c' || echo '$(srcdir)/'`chpl/sidl_DLL_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_DLL_cStub.lo `test -f 'runtime/sidl_DLL_cStub.c' || echo '$(srcdir)/'`runtime/sidl_DLL_cStub.c
 
-sidl_EnfPolicy_cStub.lo: chpl/sidl_EnfPolicy_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_EnfPolicy_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_EnfPolicy_cStub.Tpo -c -o sidl_EnfPolicy_cStub.lo `test -f 'chpl/sidl_EnfPolicy_cStub.c' || echo '$(srcdir)/'`chpl/sidl_EnfPolicy_cStub.c
+sidl_EnfPolicy_cStub.lo: runtime/sidl_EnfPolicy_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_EnfPolicy_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_EnfPolicy_cStub.Tpo -c -o sidl_EnfPolicy_cStub.lo `test -f 'runtime/sidl_EnfPolicy_cStub.c' || echo '$(srcdir)/'`runtime/sidl_EnfPolicy_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_EnfPolicy_cStub.Tpo $(DEPDIR)/sidl_EnfPolicy_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_EnfPolicy_cStub.c' object='sidl_EnfPolicy_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_EnfPolicy_cStub.c' object='sidl_EnfPolicy_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_EnfPolicy_cStub.lo `test -f 'chpl/sidl_EnfPolicy_cStub.c' || echo '$(srcdir)/'`chpl/sidl_EnfPolicy_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_EnfPolicy_cStub.lo `test -f 'runtime/sidl_EnfPolicy_cStub.c' || echo '$(srcdir)/'`runtime/sidl_EnfPolicy_cStub.c
 
-sidl_Finder_cStub.lo: chpl/sidl_Finder_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_Finder_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_Finder_cStub.Tpo -c -o sidl_Finder_cStub.lo `test -f 'chpl/sidl_Finder_cStub.c' || echo '$(srcdir)/'`chpl/sidl_Finder_cStub.c
+sidl_Finder_cStub.lo: runtime/sidl_Finder_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_Finder_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_Finder_cStub.Tpo -c -o sidl_Finder_cStub.lo `test -f 'runtime/sidl_Finder_cStub.c' || echo '$(srcdir)/'`runtime/sidl_Finder_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_Finder_cStub.Tpo $(DEPDIR)/sidl_Finder_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_Finder_cStub.c' object='sidl_Finder_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_Finder_cStub.c' object='sidl_Finder_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_Finder_cStub.lo `test -f 'chpl/sidl_Finder_cStub.c' || echo '$(srcdir)/'`chpl/sidl_Finder_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_Finder_cStub.lo `test -f 'runtime/sidl_Finder_cStub.c' || echo '$(srcdir)/'`runtime/sidl_Finder_cStub.c
 
-sidl_InvViolation_cStub.lo: chpl/sidl_InvViolation_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_InvViolation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_InvViolation_cStub.Tpo -c -o sidl_InvViolation_cStub.lo `test -f 'chpl/sidl_InvViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_InvViolation_cStub.c
+sidl_InvViolation_cStub.lo: runtime/sidl_InvViolation_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_InvViolation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_InvViolation_cStub.Tpo -c -o sidl_InvViolation_cStub.lo `test -f 'runtime/sidl_InvViolation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_InvViolation_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_InvViolation_cStub.Tpo $(DEPDIR)/sidl_InvViolation_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_InvViolation_cStub.c' object='sidl_InvViolation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_InvViolation_cStub.c' object='sidl_InvViolation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_InvViolation_cStub.lo `test -f 'chpl/sidl_InvViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_InvViolation_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_InvViolation_cStub.lo `test -f 'runtime/sidl_InvViolation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_InvViolation_cStub.c
 
-sidl_io_Deserializer_cStub.lo: chpl/sidl_io_Deserializer_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_Deserializer_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_Deserializer_cStub.Tpo -c -o sidl_io_Deserializer_cStub.lo `test -f 'chpl/sidl_io_Deserializer_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Deserializer_cStub.c
+sidl_io_Deserializer_cStub.lo: runtime/sidl_io_Deserializer_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_Deserializer_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_Deserializer_cStub.Tpo -c -o sidl_io_Deserializer_cStub.lo `test -f 'runtime/sidl_io_Deserializer_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_Deserializer_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_io_Deserializer_cStub.Tpo $(DEPDIR)/sidl_io_Deserializer_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_io_Deserializer_cStub.c' object='sidl_io_Deserializer_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_io_Deserializer_cStub.c' object='sidl_io_Deserializer_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Deserializer_cStub.lo `test -f 'chpl/sidl_io_Deserializer_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Deserializer_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Deserializer_cStub.lo `test -f 'runtime/sidl_io_Deserializer_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_Deserializer_cStub.c
 
-sidl_io_IOException_cStub.lo: chpl/sidl_io_IOException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_IOException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_IOException_cStub.Tpo -c -o sidl_io_IOException_cStub.lo `test -f 'chpl/sidl_io_IOException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_IOException_cStub.c
+sidl_io_IOException_cStub.lo: runtime/sidl_io_IOException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_IOException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_IOException_cStub.Tpo -c -o sidl_io_IOException_cStub.lo `test -f 'runtime/sidl_io_IOException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_IOException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_io_IOException_cStub.Tpo $(DEPDIR)/sidl_io_IOException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_io_IOException_cStub.c' object='sidl_io_IOException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_io_IOException_cStub.c' object='sidl_io_IOException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_IOException_cStub.lo `test -f 'chpl/sidl_io_IOException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_IOException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_IOException_cStub.lo `test -f 'runtime/sidl_io_IOException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_IOException_cStub.c
 
-sidl_io_Serializable_cStub.lo: chpl/sidl_io_Serializable_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_Serializable_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_Serializable_cStub.Tpo -c -o sidl_io_Serializable_cStub.lo `test -f 'chpl/sidl_io_Serializable_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Serializable_cStub.c
+sidl_io_Serializable_cStub.lo: runtime/sidl_io_Serializable_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_Serializable_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_Serializable_cStub.Tpo -c -o sidl_io_Serializable_cStub.lo `test -f 'runtime/sidl_io_Serializable_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_Serializable_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_io_Serializable_cStub.Tpo $(DEPDIR)/sidl_io_Serializable_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_io_Serializable_cStub.c' object='sidl_io_Serializable_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_io_Serializable_cStub.c' object='sidl_io_Serializable_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Serializable_cStub.lo `test -f 'chpl/sidl_io_Serializable_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Serializable_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Serializable_cStub.lo `test -f 'runtime/sidl_io_Serializable_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_Serializable_cStub.c
 
-sidl_io_Serializer_cStub.lo: chpl/sidl_io_Serializer_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_Serializer_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_Serializer_cStub.Tpo -c -o sidl_io_Serializer_cStub.lo `test -f 'chpl/sidl_io_Serializer_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Serializer_cStub.c
+sidl_io_Serializer_cStub.lo: runtime/sidl_io_Serializer_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_io_Serializer_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_io_Serializer_cStub.Tpo -c -o sidl_io_Serializer_cStub.lo `test -f 'runtime/sidl_io_Serializer_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_Serializer_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_io_Serializer_cStub.Tpo $(DEPDIR)/sidl_io_Serializer_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_io_Serializer_cStub.c' object='sidl_io_Serializer_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_io_Serializer_cStub.c' object='sidl_io_Serializer_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Serializer_cStub.lo `test -f 'chpl/sidl_io_Serializer_cStub.c' || echo '$(srcdir)/'`chpl/sidl_io_Serializer_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_io_Serializer_cStub.lo `test -f 'runtime/sidl_io_Serializer_cStub.c' || echo '$(srcdir)/'`runtime/sidl_io_Serializer_cStub.c
 
-sidl_LangSpecificException_cStub.lo: chpl/sidl_LangSpecificException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_LangSpecificException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_LangSpecificException_cStub.Tpo -c -o sidl_LangSpecificException_cStub.lo `test -f 'chpl/sidl_LangSpecificException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_LangSpecificException_cStub.c
+sidl_LangSpecificException_cStub.lo: runtime/sidl_LangSpecificException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_LangSpecificException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_LangSpecificException_cStub.Tpo -c -o sidl_LangSpecificException_cStub.lo `test -f 'runtime/sidl_LangSpecificException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_LangSpecificException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_LangSpecificException_cStub.Tpo $(DEPDIR)/sidl_LangSpecificException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_LangSpecificException_cStub.c' object='sidl_LangSpecificException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_LangSpecificException_cStub.c' object='sidl_LangSpecificException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_LangSpecificException_cStub.lo `test -f 'chpl/sidl_LangSpecificException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_LangSpecificException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_LangSpecificException_cStub.lo `test -f 'runtime/sidl_LangSpecificException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_LangSpecificException_cStub.c
 
-sidl_Loader_cStub.lo: chpl/sidl_Loader_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_Loader_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_Loader_cStub.Tpo -c -o sidl_Loader_cStub.lo `test -f 'chpl/sidl_Loader_cStub.c' || echo '$(srcdir)/'`chpl/sidl_Loader_cStub.c
+sidl_Loader_cStub.lo: runtime/sidl_Loader_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_Loader_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_Loader_cStub.Tpo -c -o sidl_Loader_cStub.lo `test -f 'runtime/sidl_Loader_cStub.c' || echo '$(srcdir)/'`runtime/sidl_Loader_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_Loader_cStub.Tpo $(DEPDIR)/sidl_Loader_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_Loader_cStub.c' object='sidl_Loader_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_Loader_cStub.c' object='sidl_Loader_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_Loader_cStub.lo `test -f 'chpl/sidl_Loader_cStub.c' || echo '$(srcdir)/'`chpl/sidl_Loader_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_Loader_cStub.lo `test -f 'runtime/sidl_Loader_cStub.c' || echo '$(srcdir)/'`runtime/sidl_Loader_cStub.c
 
-sidl_MemAllocException_cStub.lo: chpl/sidl_MemAllocException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_MemAllocException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_MemAllocException_cStub.Tpo -c -o sidl_MemAllocException_cStub.lo `test -f 'chpl/sidl_MemAllocException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_MemAllocException_cStub.c
+sidl_MemAllocException_cStub.lo: runtime/sidl_MemAllocException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_MemAllocException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_MemAllocException_cStub.Tpo -c -o sidl_MemAllocException_cStub.lo `test -f 'runtime/sidl_MemAllocException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_MemAllocException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_MemAllocException_cStub.Tpo $(DEPDIR)/sidl_MemAllocException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_MemAllocException_cStub.c' object='sidl_MemAllocException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_MemAllocException_cStub.c' object='sidl_MemAllocException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_MemAllocException_cStub.lo `test -f 'chpl/sidl_MemAllocException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_MemAllocException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_MemAllocException_cStub.lo `test -f 'runtime/sidl_MemAllocException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_MemAllocException_cStub.c
 
-sidl_NotImplementedException_cStub.lo: chpl/sidl_NotImplementedException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_NotImplementedException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_NotImplementedException_cStub.Tpo -c -o sidl_NotImplementedException_cStub.lo `test -f 'chpl/sidl_NotImplementedException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_NotImplementedException_cStub.c
+sidl_NotImplementedException_cStub.lo: runtime/sidl_NotImplementedException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_NotImplementedException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_NotImplementedException_cStub.Tpo -c -o sidl_NotImplementedException_cStub.lo `test -f 'runtime/sidl_NotImplementedException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_NotImplementedException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_NotImplementedException_cStub.Tpo $(DEPDIR)/sidl_NotImplementedException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_NotImplementedException_cStub.c' object='sidl_NotImplementedException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_NotImplementedException_cStub.c' object='sidl_NotImplementedException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_NotImplementedException_cStub.lo `test -f 'chpl/sidl_NotImplementedException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_NotImplementedException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_NotImplementedException_cStub.lo `test -f 'runtime/sidl_NotImplementedException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_NotImplementedException_cStub.c
 
-sidl_PostViolation_cStub.lo: chpl/sidl_PostViolation_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_PostViolation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_PostViolation_cStub.Tpo -c -o sidl_PostViolation_cStub.lo `test -f 'chpl/sidl_PostViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_PostViolation_cStub.c
+sidl_PostViolation_cStub.lo: runtime/sidl_PostViolation_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_PostViolation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_PostViolation_cStub.Tpo -c -o sidl_PostViolation_cStub.lo `test -f 'runtime/sidl_PostViolation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_PostViolation_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_PostViolation_cStub.Tpo $(DEPDIR)/sidl_PostViolation_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_PostViolation_cStub.c' object='sidl_PostViolation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_PostViolation_cStub.c' object='sidl_PostViolation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_PostViolation_cStub.lo `test -f 'chpl/sidl_PostViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_PostViolation_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_PostViolation_cStub.lo `test -f 'runtime/sidl_PostViolation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_PostViolation_cStub.c
 
-sidl_PreViolation_cStub.lo: chpl/sidl_PreViolation_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_PreViolation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_PreViolation_cStub.Tpo -c -o sidl_PreViolation_cStub.lo `test -f 'chpl/sidl_PreViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_PreViolation_cStub.c
+sidl_PreViolation_cStub.lo: runtime/sidl_PreViolation_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_PreViolation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_PreViolation_cStub.Tpo -c -o sidl_PreViolation_cStub.lo `test -f 'runtime/sidl_PreViolation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_PreViolation_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_PreViolation_cStub.Tpo $(DEPDIR)/sidl_PreViolation_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_PreViolation_cStub.c' object='sidl_PreViolation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_PreViolation_cStub.c' object='sidl_PreViolation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_PreViolation_cStub.lo `test -f 'chpl/sidl_PreViolation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_PreViolation_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_PreViolation_cStub.lo `test -f 'runtime/sidl_PreViolation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_PreViolation_cStub.c
 
-sidl_rmi_BindException_cStub.lo: chpl/sidl_rmi_BindException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_BindException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_BindException_cStub.Tpo -c -o sidl_rmi_BindException_cStub.lo `test -f 'chpl/sidl_rmi_BindException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_BindException_cStub.c
+sidl_rmi_BindException_cStub.lo: runtime/sidl_rmi_BindException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_BindException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_BindException_cStub.Tpo -c -o sidl_rmi_BindException_cStub.lo `test -f 'runtime/sidl_rmi_BindException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_BindException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_BindException_cStub.Tpo $(DEPDIR)/sidl_rmi_BindException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_BindException_cStub.c' object='sidl_rmi_BindException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_BindException_cStub.c' object='sidl_rmi_BindException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_BindException_cStub.lo `test -f 'chpl/sidl_rmi_BindException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_BindException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_BindException_cStub.lo `test -f 'runtime/sidl_rmi_BindException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_BindException_cStub.c
 
-sidl_rmi_Call_cStub.lo: chpl/sidl_rmi_Call_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Call_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Call_cStub.Tpo -c -o sidl_rmi_Call_cStub.lo `test -f 'chpl/sidl_rmi_Call_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Call_cStub.c
+sidl_rmi_Call_cStub.lo: runtime/sidl_rmi_Call_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Call_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Call_cStub.Tpo -c -o sidl_rmi_Call_cStub.lo `test -f 'runtime/sidl_rmi_Call_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Call_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_Call_cStub.Tpo $(DEPDIR)/sidl_rmi_Call_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_Call_cStub.c' object='sidl_rmi_Call_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_Call_cStub.c' object='sidl_rmi_Call_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Call_cStub.lo `test -f 'chpl/sidl_rmi_Call_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Call_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Call_cStub.lo `test -f 'runtime/sidl_rmi_Call_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Call_cStub.c
 
-sidl_rmi_ConnectException_cStub.lo: chpl/sidl_rmi_ConnectException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ConnectException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ConnectException_cStub.Tpo -c -o sidl_rmi_ConnectException_cStub.lo `test -f 'chpl/sidl_rmi_ConnectException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ConnectException_cStub.c
+sidl_rmi_ConnectException_cStub.lo: runtime/sidl_rmi_ConnectException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ConnectException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ConnectException_cStub.Tpo -c -o sidl_rmi_ConnectException_cStub.lo `test -f 'runtime/sidl_rmi_ConnectException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ConnectException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ConnectException_cStub.Tpo $(DEPDIR)/sidl_rmi_ConnectException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ConnectException_cStub.c' object='sidl_rmi_ConnectException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ConnectException_cStub.c' object='sidl_rmi_ConnectException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ConnectException_cStub.lo `test -f 'chpl/sidl_rmi_ConnectException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ConnectException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ConnectException_cStub.lo `test -f 'runtime/sidl_rmi_ConnectException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ConnectException_cStub.c
 
-sidl_rmi_ConnectRegistry_cStub.lo: chpl/sidl_rmi_ConnectRegistry_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ConnectRegistry_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ConnectRegistry_cStub.Tpo -c -o sidl_rmi_ConnectRegistry_cStub.lo `test -f 'chpl/sidl_rmi_ConnectRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ConnectRegistry_cStub.c
+sidl_rmi_ConnectRegistry_cStub.lo: runtime/sidl_rmi_ConnectRegistry_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ConnectRegistry_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ConnectRegistry_cStub.Tpo -c -o sidl_rmi_ConnectRegistry_cStub.lo `test -f 'runtime/sidl_rmi_ConnectRegistry_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ConnectRegistry_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ConnectRegistry_cStub.Tpo $(DEPDIR)/sidl_rmi_ConnectRegistry_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ConnectRegistry_cStub.c' object='sidl_rmi_ConnectRegistry_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ConnectRegistry_cStub.c' object='sidl_rmi_ConnectRegistry_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ConnectRegistry_cStub.lo `test -f 'chpl/sidl_rmi_ConnectRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ConnectRegistry_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ConnectRegistry_cStub.lo `test -f 'runtime/sidl_rmi_ConnectRegistry_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ConnectRegistry_cStub.c
 
-sidl_rmi_InstanceHandle_cStub.lo: chpl/sidl_rmi_InstanceHandle_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_InstanceHandle_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_InstanceHandle_cStub.Tpo -c -o sidl_rmi_InstanceHandle_cStub.lo `test -f 'chpl/sidl_rmi_InstanceHandle_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_InstanceHandle_cStub.c
+sidl_rmi_InstanceHandle_cStub.lo: runtime/sidl_rmi_InstanceHandle_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_InstanceHandle_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_InstanceHandle_cStub.Tpo -c -o sidl_rmi_InstanceHandle_cStub.lo `test -f 'runtime/sidl_rmi_InstanceHandle_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_InstanceHandle_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_InstanceHandle_cStub.Tpo $(DEPDIR)/sidl_rmi_InstanceHandle_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_InstanceHandle_cStub.c' object='sidl_rmi_InstanceHandle_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_InstanceHandle_cStub.c' object='sidl_rmi_InstanceHandle_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_InstanceHandle_cStub.lo `test -f 'chpl/sidl_rmi_InstanceHandle_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_InstanceHandle_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_InstanceHandle_cStub.lo `test -f 'runtime/sidl_rmi_InstanceHandle_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_InstanceHandle_cStub.c
 
-sidl_rmi_InstanceRegistry_cStub.lo: chpl/sidl_rmi_InstanceRegistry_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_InstanceRegistry_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_InstanceRegistry_cStub.Tpo -c -o sidl_rmi_InstanceRegistry_cStub.lo `test -f 'chpl/sidl_rmi_InstanceRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_InstanceRegistry_cStub.c
+sidl_rmi_InstanceRegistry_cStub.lo: runtime/sidl_rmi_InstanceRegistry_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_InstanceRegistry_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_InstanceRegistry_cStub.Tpo -c -o sidl_rmi_InstanceRegistry_cStub.lo `test -f 'runtime/sidl_rmi_InstanceRegistry_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_InstanceRegistry_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_InstanceRegistry_cStub.Tpo $(DEPDIR)/sidl_rmi_InstanceRegistry_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_InstanceRegistry_cStub.c' object='sidl_rmi_InstanceRegistry_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_InstanceRegistry_cStub.c' object='sidl_rmi_InstanceRegistry_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_InstanceRegistry_cStub.lo `test -f 'chpl/sidl_rmi_InstanceRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_InstanceRegistry_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_InstanceRegistry_cStub.lo `test -f 'runtime/sidl_rmi_InstanceRegistry_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_InstanceRegistry_cStub.c
 
-sidl_rmi_Invocation_cStub.lo: chpl/sidl_rmi_Invocation_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Invocation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Invocation_cStub.Tpo -c -o sidl_rmi_Invocation_cStub.lo `test -f 'chpl/sidl_rmi_Invocation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Invocation_cStub.c
+sidl_rmi_Invocation_cStub.lo: runtime/sidl_rmi_Invocation_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Invocation_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Invocation_cStub.Tpo -c -o sidl_rmi_Invocation_cStub.lo `test -f 'runtime/sidl_rmi_Invocation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Invocation_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_Invocation_cStub.Tpo $(DEPDIR)/sidl_rmi_Invocation_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_Invocation_cStub.c' object='sidl_rmi_Invocation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_Invocation_cStub.c' object='sidl_rmi_Invocation_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Invocation_cStub.lo `test -f 'chpl/sidl_rmi_Invocation_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Invocation_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Invocation_cStub.lo `test -f 'runtime/sidl_rmi_Invocation_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Invocation_cStub.c
 
-sidl_rmi_MalformedURLException_cStub.lo: chpl/sidl_rmi_MalformedURLException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_MalformedURLException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_MalformedURLException_cStub.Tpo -c -o sidl_rmi_MalformedURLException_cStub.lo `test -f 'chpl/sidl_rmi_MalformedURLException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_MalformedURLException_cStub.c
+sidl_rmi_MalformedURLException_cStub.lo: runtime/sidl_rmi_MalformedURLException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_MalformedURLException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_MalformedURLException_cStub.Tpo -c -o sidl_rmi_MalformedURLException_cStub.lo `test -f 'runtime/sidl_rmi_MalformedURLException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_MalformedURLException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_MalformedURLException_cStub.Tpo $(DEPDIR)/sidl_rmi_MalformedURLException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_MalformedURLException_cStub.c' object='sidl_rmi_MalformedURLException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_MalformedURLException_cStub.c' object='sidl_rmi_MalformedURLException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_MalformedURLException_cStub.lo `test -f 'chpl/sidl_rmi_MalformedURLException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_MalformedURLException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_MalformedURLException_cStub.lo `test -f 'runtime/sidl_rmi_MalformedURLException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_MalformedURLException_cStub.c
 
-sidl_rmi_NetworkException_cStub.lo: chpl/sidl_rmi_NetworkException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_NetworkException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_NetworkException_cStub.Tpo -c -o sidl_rmi_NetworkException_cStub.lo `test -f 'chpl/sidl_rmi_NetworkException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NetworkException_cStub.c
+sidl_rmi_NetworkException_cStub.lo: runtime/sidl_rmi_NetworkException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_NetworkException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_NetworkException_cStub.Tpo -c -o sidl_rmi_NetworkException_cStub.lo `test -f 'runtime/sidl_rmi_NetworkException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_NetworkException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_NetworkException_cStub.Tpo $(DEPDIR)/sidl_rmi_NetworkException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_NetworkException_cStub.c' object='sidl_rmi_NetworkException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_NetworkException_cStub.c' object='sidl_rmi_NetworkException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NetworkException_cStub.lo `test -f 'chpl/sidl_rmi_NetworkException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NetworkException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NetworkException_cStub.lo `test -f 'runtime/sidl_rmi_NetworkException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_NetworkException_cStub.c
 
-sidl_rmi_NoRouteToHostException_cStub.lo: chpl/sidl_rmi_NoRouteToHostException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_NoRouteToHostException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_NoRouteToHostException_cStub.Tpo -c -o sidl_rmi_NoRouteToHostException_cStub.lo `test -f 'chpl/sidl_rmi_NoRouteToHostException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NoRouteToHostException_cStub.c
+sidl_rmi_NoRouteToHostException_cStub.lo: runtime/sidl_rmi_NoRouteToHostException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_NoRouteToHostException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_NoRouteToHostException_cStub.Tpo -c -o sidl_rmi_NoRouteToHostException_cStub.lo `test -f 'runtime/sidl_rmi_NoRouteToHostException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_NoRouteToHostException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_NoRouteToHostException_cStub.Tpo $(DEPDIR)/sidl_rmi_NoRouteToHostException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_NoRouteToHostException_cStub.c' object='sidl_rmi_NoRouteToHostException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_NoRouteToHostException_cStub.c' object='sidl_rmi_NoRouteToHostException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NoRouteToHostException_cStub.lo `test -f 'chpl/sidl_rmi_NoRouteToHostException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NoRouteToHostException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NoRouteToHostException_cStub.lo `test -f 'runtime/sidl_rmi_NoRouteToHostException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_NoRouteToHostException_cStub.c
 
-sidl_rmi_NoServerException_cStub.lo: chpl/sidl_rmi_NoServerException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_NoServerException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_NoServerException_cStub.Tpo -c -o sidl_rmi_NoServerException_cStub.lo `test -f 'chpl/sidl_rmi_NoServerException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NoServerException_cStub.c
+sidl_rmi_NoServerException_cStub.lo: runtime/sidl_rmi_NoServerException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_NoServerException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_NoServerException_cStub.Tpo -c -o sidl_rmi_NoServerException_cStub.lo `test -f 'runtime/sidl_rmi_NoServerException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_NoServerException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_NoServerException_cStub.Tpo $(DEPDIR)/sidl_rmi_NoServerException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_NoServerException_cStub.c' object='sidl_rmi_NoServerException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_NoServerException_cStub.c' object='sidl_rmi_NoServerException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NoServerException_cStub.lo `test -f 'chpl/sidl_rmi_NoServerException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_NoServerException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_NoServerException_cStub.lo `test -f 'runtime/sidl_rmi_NoServerException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_NoServerException_cStub.c
 
-sidl_rmi_ObjectDoesNotExistException_cStub.lo: chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ObjectDoesNotExistException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ObjectDoesNotExistException_cStub.Tpo -c -o sidl_rmi_ObjectDoesNotExistException_cStub.lo `test -f 'chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c
+sidl_rmi_ObjectDoesNotExistException_cStub.lo: runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ObjectDoesNotExistException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ObjectDoesNotExistException_cStub.Tpo -c -o sidl_rmi_ObjectDoesNotExistException_cStub.lo `test -f 'runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ObjectDoesNotExistException_cStub.Tpo $(DEPDIR)/sidl_rmi_ObjectDoesNotExistException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c' object='sidl_rmi_ObjectDoesNotExistException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c' object='sidl_rmi_ObjectDoesNotExistException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ObjectDoesNotExistException_cStub.lo `test -f 'chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ObjectDoesNotExistException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ObjectDoesNotExistException_cStub.lo `test -f 'runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ObjectDoesNotExistException_cStub.c
 
-sidl_rmi_ProtocolException_cStub.lo: chpl/sidl_rmi_ProtocolException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ProtocolException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ProtocolException_cStub.Tpo -c -o sidl_rmi_ProtocolException_cStub.lo `test -f 'chpl/sidl_rmi_ProtocolException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ProtocolException_cStub.c
+sidl_rmi_ProtocolException_cStub.lo: runtime/sidl_rmi_ProtocolException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ProtocolException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ProtocolException_cStub.Tpo -c -o sidl_rmi_ProtocolException_cStub.lo `test -f 'runtime/sidl_rmi_ProtocolException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ProtocolException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ProtocolException_cStub.Tpo $(DEPDIR)/sidl_rmi_ProtocolException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ProtocolException_cStub.c' object='sidl_rmi_ProtocolException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ProtocolException_cStub.c' object='sidl_rmi_ProtocolException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ProtocolException_cStub.lo `test -f 'chpl/sidl_rmi_ProtocolException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ProtocolException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ProtocolException_cStub.lo `test -f 'runtime/sidl_rmi_ProtocolException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ProtocolException_cStub.c
 
-sidl_rmi_ProtocolFactory_cStub.lo: chpl/sidl_rmi_ProtocolFactory_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ProtocolFactory_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ProtocolFactory_cStub.Tpo -c -o sidl_rmi_ProtocolFactory_cStub.lo `test -f 'chpl/sidl_rmi_ProtocolFactory_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ProtocolFactory_cStub.c
+sidl_rmi_ProtocolFactory_cStub.lo: runtime/sidl_rmi_ProtocolFactory_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ProtocolFactory_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ProtocolFactory_cStub.Tpo -c -o sidl_rmi_ProtocolFactory_cStub.lo `test -f 'runtime/sidl_rmi_ProtocolFactory_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ProtocolFactory_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ProtocolFactory_cStub.Tpo $(DEPDIR)/sidl_rmi_ProtocolFactory_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ProtocolFactory_cStub.c' object='sidl_rmi_ProtocolFactory_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ProtocolFactory_cStub.c' object='sidl_rmi_ProtocolFactory_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ProtocolFactory_cStub.lo `test -f 'chpl/sidl_rmi_ProtocolFactory_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ProtocolFactory_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ProtocolFactory_cStub.lo `test -f 'runtime/sidl_rmi_ProtocolFactory_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ProtocolFactory_cStub.c
 
-sidl_rmi_Response_cStub.lo: chpl/sidl_rmi_Response_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Response_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Response_cStub.Tpo -c -o sidl_rmi_Response_cStub.lo `test -f 'chpl/sidl_rmi_Response_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Response_cStub.c
+sidl_rmi_Response_cStub.lo: runtime/sidl_rmi_Response_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Response_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Response_cStub.Tpo -c -o sidl_rmi_Response_cStub.lo `test -f 'runtime/sidl_rmi_Response_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Response_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_Response_cStub.Tpo $(DEPDIR)/sidl_rmi_Response_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_Response_cStub.c' object='sidl_rmi_Response_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_Response_cStub.c' object='sidl_rmi_Response_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Response_cStub.lo `test -f 'chpl/sidl_rmi_Response_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Response_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Response_cStub.lo `test -f 'runtime/sidl_rmi_Response_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Response_cStub.c
 
-sidl_rmi_Return_cStub.lo: chpl/sidl_rmi_Return_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Return_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Return_cStub.Tpo -c -o sidl_rmi_Return_cStub.lo `test -f 'chpl/sidl_rmi_Return_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Return_cStub.c
+sidl_rmi_Return_cStub.lo: runtime/sidl_rmi_Return_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Return_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Return_cStub.Tpo -c -o sidl_rmi_Return_cStub.lo `test -f 'runtime/sidl_rmi_Return_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Return_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_Return_cStub.Tpo $(DEPDIR)/sidl_rmi_Return_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_Return_cStub.c' object='sidl_rmi_Return_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_Return_cStub.c' object='sidl_rmi_Return_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Return_cStub.lo `test -f 'chpl/sidl_rmi_Return_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Return_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Return_cStub.lo `test -f 'runtime/sidl_rmi_Return_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Return_cStub.c
 
-sidl_rmi_ServerInfo_cStub.lo: chpl/sidl_rmi_ServerInfo_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ServerInfo_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ServerInfo_cStub.Tpo -c -o sidl_rmi_ServerInfo_cStub.lo `test -f 'chpl/sidl_rmi_ServerInfo_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ServerInfo_cStub.c
+sidl_rmi_ServerInfo_cStub.lo: runtime/sidl_rmi_ServerInfo_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ServerInfo_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ServerInfo_cStub.Tpo -c -o sidl_rmi_ServerInfo_cStub.lo `test -f 'runtime/sidl_rmi_ServerInfo_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ServerInfo_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ServerInfo_cStub.Tpo $(DEPDIR)/sidl_rmi_ServerInfo_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ServerInfo_cStub.c' object='sidl_rmi_ServerInfo_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ServerInfo_cStub.c' object='sidl_rmi_ServerInfo_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ServerInfo_cStub.lo `test -f 'chpl/sidl_rmi_ServerInfo_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ServerInfo_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ServerInfo_cStub.lo `test -f 'runtime/sidl_rmi_ServerInfo_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ServerInfo_cStub.c
 
-sidl_rmi_ServerRegistry_cStub.lo: chpl/sidl_rmi_ServerRegistry_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ServerRegistry_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ServerRegistry_cStub.Tpo -c -o sidl_rmi_ServerRegistry_cStub.lo `test -f 'chpl/sidl_rmi_ServerRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ServerRegistry_cStub.c
+sidl_rmi_ServerRegistry_cStub.lo: runtime/sidl_rmi_ServerRegistry_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_ServerRegistry_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_ServerRegistry_cStub.Tpo -c -o sidl_rmi_ServerRegistry_cStub.lo `test -f 'runtime/sidl_rmi_ServerRegistry_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ServerRegistry_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_ServerRegistry_cStub.Tpo $(DEPDIR)/sidl_rmi_ServerRegistry_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_ServerRegistry_cStub.c' object='sidl_rmi_ServerRegistry_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_ServerRegistry_cStub.c' object='sidl_rmi_ServerRegistry_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ServerRegistry_cStub.lo `test -f 'chpl/sidl_rmi_ServerRegistry_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_ServerRegistry_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_ServerRegistry_cStub.lo `test -f 'runtime/sidl_rmi_ServerRegistry_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_ServerRegistry_cStub.c
 
-sidl_rmi_TicketBook_cStub.lo: chpl/sidl_rmi_TicketBook_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_TicketBook_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_TicketBook_cStub.Tpo -c -o sidl_rmi_TicketBook_cStub.lo `test -f 'chpl/sidl_rmi_TicketBook_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_TicketBook_cStub.c
+sidl_rmi_TicketBook_cStub.lo: runtime/sidl_rmi_TicketBook_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_TicketBook_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_TicketBook_cStub.Tpo -c -o sidl_rmi_TicketBook_cStub.lo `test -f 'runtime/sidl_rmi_TicketBook_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_TicketBook_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_TicketBook_cStub.Tpo $(DEPDIR)/sidl_rmi_TicketBook_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_TicketBook_cStub.c' object='sidl_rmi_TicketBook_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_TicketBook_cStub.c' object='sidl_rmi_TicketBook_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_TicketBook_cStub.lo `test -f 'chpl/sidl_rmi_TicketBook_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_TicketBook_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_TicketBook_cStub.lo `test -f 'runtime/sidl_rmi_TicketBook_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_TicketBook_cStub.c
 
-sidl_rmi_Ticket_cStub.lo: chpl/sidl_rmi_Ticket_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Ticket_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Ticket_cStub.Tpo -c -o sidl_rmi_Ticket_cStub.lo `test -f 'chpl/sidl_rmi_Ticket_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Ticket_cStub.c
+sidl_rmi_Ticket_cStub.lo: runtime/sidl_rmi_Ticket_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_Ticket_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_Ticket_cStub.Tpo -c -o sidl_rmi_Ticket_cStub.lo `test -f 'runtime/sidl_rmi_Ticket_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Ticket_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_Ticket_cStub.Tpo $(DEPDIR)/sidl_rmi_Ticket_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_Ticket_cStub.c' object='sidl_rmi_Ticket_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_Ticket_cStub.c' object='sidl_rmi_Ticket_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Ticket_cStub.lo `test -f 'chpl/sidl_rmi_Ticket_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_Ticket_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_Ticket_cStub.lo `test -f 'runtime/sidl_rmi_Ticket_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_Ticket_cStub.c
 
-sidl_rmi_TimeOutException_cStub.lo: chpl/sidl_rmi_TimeOutException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_TimeOutException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_TimeOutException_cStub.Tpo -c -o sidl_rmi_TimeOutException_cStub.lo `test -f 'chpl/sidl_rmi_TimeOutException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_TimeOutException_cStub.c
+sidl_rmi_TimeOutException_cStub.lo: runtime/sidl_rmi_TimeOutException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_TimeOutException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_TimeOutException_cStub.Tpo -c -o sidl_rmi_TimeOutException_cStub.lo `test -f 'runtime/sidl_rmi_TimeOutException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_TimeOutException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_TimeOutException_cStub.Tpo $(DEPDIR)/sidl_rmi_TimeOutException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_TimeOutException_cStub.c' object='sidl_rmi_TimeOutException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_TimeOutException_cStub.c' object='sidl_rmi_TimeOutException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_TimeOutException_cStub.lo `test -f 'chpl/sidl_rmi_TimeOutException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_TimeOutException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_TimeOutException_cStub.lo `test -f 'runtime/sidl_rmi_TimeOutException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_TimeOutException_cStub.c
 
-sidl_rmi_UnexpectedCloseException_cStub.lo: chpl/sidl_rmi_UnexpectedCloseException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_UnexpectedCloseException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_UnexpectedCloseException_cStub.Tpo -c -o sidl_rmi_UnexpectedCloseException_cStub.lo `test -f 'chpl/sidl_rmi_UnexpectedCloseException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_UnexpectedCloseException_cStub.c
+sidl_rmi_UnexpectedCloseException_cStub.lo: runtime/sidl_rmi_UnexpectedCloseException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_UnexpectedCloseException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_UnexpectedCloseException_cStub.Tpo -c -o sidl_rmi_UnexpectedCloseException_cStub.lo `test -f 'runtime/sidl_rmi_UnexpectedCloseException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_UnexpectedCloseException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_UnexpectedCloseException_cStub.Tpo $(DEPDIR)/sidl_rmi_UnexpectedCloseException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_UnexpectedCloseException_cStub.c' object='sidl_rmi_UnexpectedCloseException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_UnexpectedCloseException_cStub.c' object='sidl_rmi_UnexpectedCloseException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_UnexpectedCloseException_cStub.lo `test -f 'chpl/sidl_rmi_UnexpectedCloseException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_UnexpectedCloseException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_UnexpectedCloseException_cStub.lo `test -f 'runtime/sidl_rmi_UnexpectedCloseException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_UnexpectedCloseException_cStub.c
 
-sidl_rmi_UnknownHostException_cStub.lo: chpl/sidl_rmi_UnknownHostException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_UnknownHostException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_UnknownHostException_cStub.Tpo -c -o sidl_rmi_UnknownHostException_cStub.lo `test -f 'chpl/sidl_rmi_UnknownHostException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_UnknownHostException_cStub.c
+sidl_rmi_UnknownHostException_cStub.lo: runtime/sidl_rmi_UnknownHostException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_rmi_UnknownHostException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_rmi_UnknownHostException_cStub.Tpo -c -o sidl_rmi_UnknownHostException_cStub.lo `test -f 'runtime/sidl_rmi_UnknownHostException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_UnknownHostException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_rmi_UnknownHostException_cStub.Tpo $(DEPDIR)/sidl_rmi_UnknownHostException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_rmi_UnknownHostException_cStub.c' object='sidl_rmi_UnknownHostException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_rmi_UnknownHostException_cStub.c' object='sidl_rmi_UnknownHostException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_UnknownHostException_cStub.lo `test -f 'chpl/sidl_rmi_UnknownHostException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_rmi_UnknownHostException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_rmi_UnknownHostException_cStub.lo `test -f 'runtime/sidl_rmi_UnknownHostException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_rmi_UnknownHostException_cStub.c
 
-sidl_RuntimeException_cStub.lo: chpl/sidl_RuntimeException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_RuntimeException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_RuntimeException_cStub.Tpo -c -o sidl_RuntimeException_cStub.lo `test -f 'chpl/sidl_RuntimeException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_RuntimeException_cStub.c
+sidl_RuntimeException_cStub.lo: runtime/sidl_RuntimeException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_RuntimeException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_RuntimeException_cStub.Tpo -c -o sidl_RuntimeException_cStub.lo `test -f 'runtime/sidl_RuntimeException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_RuntimeException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_RuntimeException_cStub.Tpo $(DEPDIR)/sidl_RuntimeException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_RuntimeException_cStub.c' object='sidl_RuntimeException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_RuntimeException_cStub.c' object='sidl_RuntimeException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_RuntimeException_cStub.lo `test -f 'chpl/sidl_RuntimeException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_RuntimeException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_RuntimeException_cStub.lo `test -f 'runtime/sidl_RuntimeException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_RuntimeException_cStub.c
 
-sidl_SIDLException_cStub.lo: chpl/sidl_SIDLException_cStub.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_SIDLException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_SIDLException_cStub.Tpo -c -o sidl_SIDLException_cStub.lo `test -f 'chpl/sidl_SIDLException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_SIDLException_cStub.c
+sidl_SIDLException_cStub.lo: runtime/sidl_SIDLException_cStub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sidl_SIDLException_cStub.lo -MD -MP -MF $(DEPDIR)/sidl_SIDLException_cStub.Tpo -c -o sidl_SIDLException_cStub.lo `test -f 'runtime/sidl_SIDLException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_SIDLException_cStub.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sidl_SIDLException_cStub.Tpo $(DEPDIR)/sidl_SIDLException_cStub.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='chpl/sidl_SIDLException_cStub.c' object='sidl_SIDLException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='runtime/sidl_SIDLException_cStub.c' object='sidl_SIDLException_cStub.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_SIDLException_cStub.lo `test -f 'chpl/sidl_SIDLException_cStub.c' || echo '$(srcdir)/'`chpl/sidl_SIDLException_cStub.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sidl_SIDLException_cStub.lo `test -f 'runtime/sidl_SIDLException_cStub.c' || echo '$(srcdir)/'`runtime/sidl_SIDLException_cStub.c
 
 .l.c:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
@@ -2560,7 +2561,7 @@ clean-local: clean-braid
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
-	rm -rf chpl/sidl_*.[ch] chpl/sidl.h
+	rm -rf runtime/sidl_*.[ch] runtime/sidl.h
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
 		cd $(builddir) && \
                 rm -rf $(BABEL_TESTS) \
@@ -2572,20 +2573,20 @@ clean-local: clean-braid
 
 # We list only one of the files as target, otherwise make -j will run
 # havoc and try to make all of them in parallel
-chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
-	@$(MKDIR_P) chpl
+runtime/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
+	@$(MKDIR_P) runtime
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
-	@cd chpl && \
+	@cd runtime && \
           env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
             -cchpl $(SIDL_PATH)/sidl.sidl --verbose # --profile
 	@echo "generating Chapel array extensions"
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array.inc >>$@
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/barray.inc >>$@
-	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/array_support.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/array.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/barray.inc >>$@
+	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/array_support.inc >>$@
 
 # Rules to build the Chapel stubs for the SIDL runtime
-$(SIDLSTUB_SRCS): chpl/sidl.chpl
+$(SIDLSTUB_SRCS): runtime/sidl.chpl
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
