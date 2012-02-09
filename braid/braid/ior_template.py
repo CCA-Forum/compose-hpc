@@ -1,3 +1,5 @@
+## @package ior_template
+# template for IOR C code
 text = r"""
 /*
  * Begin: RMI includes

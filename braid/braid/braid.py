@@ -23,7 +23,79 @@
 # </pre>
 #
 # \mainpage
-# Welcome to Braid/Babel 2!
+# <h1>Welcome to Braid!</h1>
+# (a.k.a. Babel 3)
+#
+# This is BRAID, the <b>B</b>RAID system for <b>r</b>ewriting
+# <b>a</b>bstract <b>i</b>ntermediate <b>d</b>escriptions, a new tool
+# that has a command line interface similar to that of Babel. BRAID is
+# implemented in Python, making it very portable itself.  BRAID is a
+# multi-faceted, term-based system for generating language
+# interoperability glue code designed and developed as part of the
+# COMPOSE-HPC project (http://compose-hpc.sourceforge.net/) to be a
+# reusable component of software composability tools.
+#
+# From a user's perspective, BRAID is the tool that generates glue
+# code for parallel PGAS languages, while Babel handles traditional
+# HPC languages. Eventually, we intend to make this distinction
+# invisible to the end user by launching both through the same front
+# end.  Our Chapel language interoperability tool is the first of
+# several applications envisioned for BRAID including optimized
+# language bindings for a reduced set of languages and building
+# multi-language interfaces to code without SIDL interface
+# descriptions.
+#
+# The most important difference between BRAID and Babel is how the
+# language backends are designed: In Babel each code generator is a
+# fixed-function Java class that builds all the glue code out of
+# strings. BRAID, on the other hand, creates glue code in a high-level
+# <em>language-independent</em> intermediate representation (IR). This
+# intermediate representation is then passed to a code generator which
+# translates it into actual high-level code. At the moment there are
+# code generators for C and Chapel, and also initial versions for
+# Fortran, Java and Python. This architecture offers a higher
+# flexibility than the static approach of Babel: For example,
+# (object-)method calls in Babel need to be resolved by looking up the
+# address of the method in a virtual function pointer table. Since
+# Chapel has no means of dealing with function pointers (it implements
+# its own object system instead), BRAID's Chapel code generator will
+# generate a piece of C code to do the virtual function call <em>on
+# the fly</em>, and place a static call to this helper function in
+# lieu of the virtual function call.
+# 
+# Using this system we can reduce the number of times the language
+# barrier is crossed to the minimum, leading to more code generated in
+# the higher-level language, which again enables the compiler to do a
+# better job at optimizing the program.
+#
+# Similar to Babel, BRAID can also be instructed to generate a
+# <em>Makefile</em> that is used to compile both program and glue code
+# and link them with any server libraries.  The Chapel compiler works
+# by first translating the complete program into C and then invoking
+# the system C compiler to create an executable binary. The Makefile
+# created by BRAID intercepts this process after the C files have been
+# generated and builds a
+# <em>libtool</em>(http://www.gnu.org/software/libtool/) library
+# instead. Libtool libraries contain both regular (<tt>.o</tt>) and
+# position-independent (<tt>.so</tt>) versions of all the object
+# files, which can be used for static and dynamic linking,
+# respectively.
+#
+# The Chapel language already has basic support for interfacing with C
+# code via the <tt>extern</tt> keyword. BRAID uses this interface as
+# an entry point to open up the language for all the other languages
+# supported by Babel.
+#
+#
+# <h2>Further Reading</h2>
+#
+# Adrian Prantl, Thomas Epperly, Shams Imam, Vivek Sarkar<br/>
+# <a href="http://pgas11.rice.edu/papers/PrantlEtAl-Chapel-Interoperability-PGAS11.pdf">
+# Interfacing Chapel with Traditional HPC Programming Languages</a><br/>
+# <em>PGAS 2011: Fifth Conference on Partitioned Global Address Space
+# Programming Models</em>, October 2011.
+#
+
 
 import argparse, re, sys
 import sidl_parser, sidl_symbols, codegen, config, legal

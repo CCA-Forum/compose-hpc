@@ -1,3 +1,4 @@
+## @package chapel.chpl 
 # type definitions for the conversion code generator
 import ir, sidl
 bool     = 'chpl', ir.pt_bool

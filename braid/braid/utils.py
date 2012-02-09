@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package lists
+## @package utils
 #
 # Some often use list-manipulation functions and type-checking
 # decorators.

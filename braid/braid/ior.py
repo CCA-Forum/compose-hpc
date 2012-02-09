@@ -1,3 +1,4 @@
+## @package ior
 # type definitions for the conversion code generator
 import ir, sidl
 bool     = ir.pt_bool

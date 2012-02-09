@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package chapel
+## @package chapel.cgen
 #
-# Babel functionality for the Chapel PGAS language
-# http://chapel.cray.com/
+# BRAID code generator implementation for Chapel
 #
 # Please report bugs to <adrian@llnl.gov>.
 #

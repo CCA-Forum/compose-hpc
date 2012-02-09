@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package sidl_parser
+## @package parse_tree
 #
 # This is a trivial parser for compound expressions of the form
 # a(b(c),d).

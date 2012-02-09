@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- python -*-
 ## @package codegen
-# Several code generators.
+# BRAID code generators for C, C++, F77-2003, Python, and Java.
 #
 # General design principles (a.k.a. lessons learned from Babel code generators
 #

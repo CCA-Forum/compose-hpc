@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- python -*-
-## @package chapel
+## @package chapel.backend
 #
-# Babel functionality for the Chapel PGAS language
-# http://chapel.cray.com/
+# SIDL -> Chapel driver
 #
 # Please report bugs to <adrian@llnl.gov>.
 #
@@ -39,7 +38,7 @@ from utils import *
 from patmat import *
 from codegen import (CFile)
 from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, gen_doc_comment)
-from sidl_symbols import *
+from sidl_symbols import scan_methods
 
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
@@ -1256,7 +1255,6 @@ class Chapel(object):
             cstub.write()
 
             # Skeleton (in Chapel)
-            skel = ci.chpl_skel
             self.pkg_chpl_skel.gen(ir.Import('.'.join(symbol_table.prefix)))
 
             self.pkg_chpl_skel.new_def('use sidl;')
