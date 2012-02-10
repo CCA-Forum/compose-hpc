@@ -222,7 +222,7 @@ ior.struct @C <-- chpl.struct: cost(0)
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((strip(typ), a0+'->'+name), ('chpl', strip(typ)),
-                  convs, optionals, '', dest+'.'+name, (0,typ)), items)
+                  convs, optionals, dest+'.'+name, (0,typ)), items)
     
     # if we need to convert one of the items, we need to convert all
     # of them
@@ -235,7 +235,7 @@ chpl.struct @C <-- ior.struct: cost(0)
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((('chpl', strip(typ)), a0+'.'+name), strip(typ),
-                  convs, optionals, '', dest+'.', (0,typ)), items)
+                  convs, optionals, dest+'.', (0,typ)), items)
     # if we need to convert one of the items, we need to convert all
     # of them
     if convs:

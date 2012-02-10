@@ -307,6 +307,7 @@ def reducetree(label, target, *args):
 def codegen(src, target, *args):
     if len(args) <> action_arity:
         import pdb; pdb.set_trace()
+        raise Exception()
     labels = label(src)
     if debug:
         print 'labels = ', labels
