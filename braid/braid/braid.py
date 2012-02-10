@@ -90,8 +90,10 @@
 # BRAID is released under the BSD License.
 #
 # <h2>Authors</h2> 
-# Braid was written by Adrian Prantl at the Lawrence
-# Livermore National Laboratory.
+# Copyright (c) 2011, Lawrence Livermore National Security, LLC.<br/>
+# Produced at the Lawrence Livermore National Laboratory.<br/>
+# Written by Adrian Prantl <adrian@llnl.gov>.<br/>
+# LLNL-CODE-473891. All rights reserved.<br/>
 # <h3>Interns</h3>
 # Shams Imam, Rice University
 #
@@ -179,10 +181,11 @@ def inject_sidl_runtime(sidl_ast, args):
 
 if __name__ == '__main__':
     cmdline = argparse.ArgumentParser(description=config.PACKAGE_STRING+'''
-- Do magically wonderful things with SIDL 
-(scientific interface definition language) files.
-[This version of BRAID was configured on %s, %s.]
-'''%(config.BUILD_MACHINE,config.CONFIGURE_DATE), 
+- Do magically wonderful things with SIDL (scientific interface
+  definition language) files.
+
+BRAID is a high-performance language interoperability tool that generates Babel-compatible bindings for the Chapel programming language. For details on using the command-line tool, please consult the Babel manual at https://computation.llnl.gov/casc/components/ .
+''',
     epilog="Please report bugs to <%s>."%config.PACKAGE_BUGREPORT)
 
     cmdline.add_argument('sidl_files', metavar='<file.sidl>', nargs='*',#type=file
@@ -227,6 +230,8 @@ For details, see {pkg_url}
         exit(0)
     if args.version:
         print config.PACKAGE_STRING
+        print '# This version of BRAID was configured on %s, %s.'%(
+            config.BUILD_MACHINE,config.CONFIGURE_DATE)
         exit(0)
     if len(args.sidl_files) == 0:
         cmdline.print_help()

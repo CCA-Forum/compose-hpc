@@ -37,55 +37,6 @@ include regression/interop/Makefile.include
 include runtime/Makefile.include
 include chapel-patches/Makefile.include
 
-DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
-  PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
-
-if ENABLE_DOCUMENTATION
-EXTRA_DIST+= \
-	doc/html/index.html \
-	doc/html/*.*        \
-	doc/html/search/*.*
-#	doc/latex/*.pdf     # I say this is just useless bloat
-
-braid/braid: $(BUILT_SOURCES) doc/html/index.html
-endif
-
-.PHONY: doc
-doc:
-	@echo "  GEN [doxygen documentation]"
-	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
-        || echo "Doxygen not found; SKIPPING"
-
-doc/html/index.html:
-	$(MAKE) doc
-
-info_TEXINFOS = doc/braid.texi
-dist_man_MANS = $(srcdir)/doc/braid.1
-
-# We are distributing the compiled manpage so we don't depend on rst2man
-# Insert the output of braid --help into the MAN page.
-EXTRA_DIST += doc/man_header.txt
-$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile
-	$(AM_V_GEN)
-	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
-                     -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
-	@env PYTHONPATH=braid:$(top_srcdir)/braid:braid/.libs:$(PYTHONPATH) $(PYTHON) \
-	   $(top_srcdir)/braid/braid.py --help \
-	|  sed -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
-               -e 's/:$$/\n~~~~~~~~~~~~~~~~~~~~\n\n/' \
-               -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
-               -e 's/pos/OPTIONS\n=======\n\npos/' >>braid.txt
-	@echo >>braid.txt
-	@cat $(srcdir)/COPYRIGHT >>braid.txt
-	@if test -w $@; then \
-             if which rst2man >/dev/null; then \
-                 rst2man -v braid.txt $@; \
-             else echo "**WARNING rst2man not installed, did not update $@"; \
-             fi \
-         else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
-         fi
-	@rm -f braid.txt
-
 CLEANFILES = toolcheck.log
 
 clean-local: clean-braid
@@ -108,8 +59,67 @@ if PYTHON_VERSION_2_6
   python_PYTHON += contrib/argparse-1.1/argparse.py
 endif
 
-########################################################################
+
+# Documentation
+# ------------------------------------------------------------------------
+.PHONY: doc
+doc:
+	@echo "  GEN [doxygen documentation]"
+	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
+        || echo "Doxygen not found; SKIPPING"
+
+doc/html/index.html:
+	$(MAKE) doc
+
+DISTCHECK_CONFIGURE_FLAGS=--disable-documentation \
+  PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
+
+if ENABLE_DOCUMENTATION
+EXTRA_DIST+= \
+	doc/html/index.html \
+	doc/html/*.*        \
+	doc/html/search/*.*
+#	doc/latex/*.pdf     # I say this is just useless bloat
+
+braid/braid: $(BUILT_SOURCES) doc/html/index.html
+endif
+
+info_TEXINFOS = doc/braid.texi
+dist_man_MANS = $(srcdir)/doc/braid.1
+
+# We are distributing the compiled manpage so we don't depend on rst2man
+# Insert the output of braid --help into the MAN page.
+EXTRA_DIST += doc/man_header.txt
+$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile README
+	$(AM_V_GEN)
+	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
+                     -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
+	@env PYTHONPATH=braid:$(top_srcdir)/braid:braid/.libs:$(PYTHONPATH) $(PYTHON) \
+	   $(top_srcdir)/braid/braid.py --help \
+	|  sed -e 's/braid\.py/braid/' \
+	       -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
+               -e 's/:$$/\n--------------------\n\n/' \
+               -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
+               -e 's/pos/OPTIONS\n=======\n\npos/' >braid-help.txt
+	@head -n 15 braid-help.txt >>braid.txt
+	@tail -n +6 $(srcdir)/README >>braid.txt
+	@tail -n +15 braid-help.txt >>braid.txt
+	@echo >>braid.txt
+	@cat $(srcdir)/COPYRIGHT >>braid.txt
+	@if test -w $@; then \
+             if which rst2man >/dev/null; then \
+                 rst2man -v braid.txt $@; \
+             else echo "**WARNING rst2man not installed, did not update $@"; \
+             fi \
+         else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
+         fi
+	@rm -f braid.txt braid-help.txt
+# ------------------------------------------------------------------------
+
+
+
 # Babel functionality: 
+# ------------------------------------------------------------------------
 
 # Runtime support files
 nobase_include_HEADERS += \

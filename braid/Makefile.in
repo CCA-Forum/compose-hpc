@@ -78,14 +78,14 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_13 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
 @BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_14 = Python
 @BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
-@ENABLE_DOCUMENTATION_TRUE@am__append_16 = \
+
+# add Backports
+@PYTHON_VERSION_2_6_TRUE@am__append_16 = contrib/argparse-1.1/argparse.py
+@ENABLE_DOCUMENTATION_TRUE@am__append_17 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/*.*        \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/search/*.*
 
-
-# add Backports
-@PYTHON_VERSION_2_6_TRUE@am__append_17 = contrib/argparse-1.1/argparse.py
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
@@ -496,14 +496,15 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py \
-	$(top_srcdir)/contrib/ply/lex.py $(am__append_17)
+	$(top_srcdir)/contrib/ply/lex.py $(am__append_16)
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
 noinst_PYTHON = 
+# ------------------------------------------------------------------------
 
-########################################################################
 # Babel functionality: 
+# ------------------------------------------------------------------------
 
 # Runtime support files
 nobase_include_HEADERS = runtime/chpl_sidl_array.h runtime/sidl.chpl \
@@ -535,7 +536,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
-	$(am__append_16) doc/man_header.txt $(CHPL_RUNTIME_FILES) \
+	$(am__append_17) doc/man_header.txt $(CHPL_RUNTIME_FILES) \
 	runtime/darray.inc
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
@@ -865,12 +866,12 @@ SIDLSTUB_HDRS = \
 
 
 # Recursive make considered harmful
+CLEANFILES = toolcheck.log
 DISTCHECK_CONFIGURE_FLAGS = --disable-documentation \
   PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig:$(PKG_CONFIG_PATH)
 
 info_TEXINFOS = doc/braid.texi
 dist_man_MANS = $(srcdir)/doc/braid.1
-CLEANFILES = toolcheck.log
 CHPL_RUNTIME_FILES = runtime/array.inc runtime/barray.inc runtime/array_support.inc
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 lib_LTLIBRARIES = libsidlstub_chpl.la
@@ -2524,38 +2525,6 @@ clean-braid:
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
 
 # ----------------------------------------------------------------------
-#	doc/latex/*.pdf     # I say this is just useless bloat
-
-@ENABLE_DOCUMENTATION_TRUE@braid/braid: $(BUILT_SOURCES) doc/html/index.html
-
-.PHONY: doc
-doc:
-	@echo "  GEN [doxygen documentation]"
-	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
-        || echo "Doxygen not found; SKIPPING"
-
-doc/html/index.html:
-	$(MAKE) doc
-$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile
-	$(AM_V_GEN)
-	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
-                     -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
-	@env PYTHONPATH=braid:$(top_srcdir)/braid:braid/.libs:$(PYTHONPATH) $(PYTHON) \
-	   $(top_srcdir)/braid/braid.py --help \
-	|  sed -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
-               -e 's/:$$/\n~~~~~~~~~~~~~~~~~~~~\n\n/' \
-               -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
-               -e 's/pos/OPTIONS\n=======\n\npos/' >>braid.txt
-	@echo >>braid.txt
-	@cat $(srcdir)/COPYRIGHT >>braid.txt
-	@if test -w $@; then \
-             if which rst2man >/dev/null; then \
-                 rst2man -v braid.txt $@; \
-             else echo "**WARNING rst2man not installed, did not update $@"; \
-             fi \
-         else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
-         fi
-	@rm -f braid.txt
 
 clean-local: clean-braid
 	rm -rf doc/html
@@ -2570,6 +2539,44 @@ clean-local: clean-braid
 	            rm -rf `dirname \`dirname $$f\``; \
 		done; \
 	fi
+
+# Documentation
+# ------------------------------------------------------------------------
+.PHONY: doc
+doc:
+	@echo "  GEN [doxygen documentation]"
+	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
+        || echo "Doxygen not found; SKIPPING"
+
+doc/html/index.html:
+	$(MAKE) doc
+#	doc/latex/*.pdf     # I say this is just useless bloat
+
+@ENABLE_DOCUMENTATION_TRUE@braid/braid: $(BUILT_SOURCES) doc/html/index.html
+$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile README
+	$(AM_V_GEN)
+	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
+                     -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
+	@env PYTHONPATH=braid:$(top_srcdir)/braid:braid/.libs:$(PYTHONPATH) $(PYTHON) \
+	   $(top_srcdir)/braid/braid.py --help \
+	|  sed -e 's/braid\.py/braid/' \
+	       -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
+               -e 's/:$$/\n--------------------\n\n/' \
+               -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
+               -e 's/pos/OPTIONS\n=======\n\npos/' >braid-help.txt
+	@head -n 15 braid-help.txt >>braid.txt
+	@tail -n +6 $(srcdir)/README >>braid.txt
+	@tail -n +15 braid-help.txt >>braid.txt
+	@echo >>braid.txt
+	@cat $(srcdir)/COPYRIGHT >>braid.txt
+	@if test -w $@; then \
+             if which rst2man >/dev/null; then \
+                 rst2man -v braid.txt $@; \
+             else echo "**WARNING rst2man not installed, did not update $@"; \
+             fi \
+         else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
+         fi
+	@rm -f braid.txt braid-help.txt
 
 # We list only one of the files as target, otherwise make -j will run
 # havoc and try to make all of them in parallel
