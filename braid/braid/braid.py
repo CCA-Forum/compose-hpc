@@ -86,6 +86,14 @@
 # an entry point to open up the language for all the other languages
 # supported by Babel.
 #
+# <h2>License</h2> 
+# BRAID is released under the BSD License.
+#
+# <h2>Authors</h2> 
+# Braid was written by Adrian Prantl at the Lawrence
+# Livermore National Laboratory.
+# <h3>Interns</h3>
+# Shams Imam, Rice University
 #
 # <h2>Further Reading</h2>
 #

@@ -45,17 +45,17 @@ def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
 
 def ir_type_to_chpl(typ):
     mapping = {
-        ir.pt_void:     ir.pt_void,
-        ir.pt_bool:     ir.Typedef_type('_Bool'),
-        ir.pt_string:   ir.const_str,
-        ir.pt_int:      ir.Typedef_type('int32_t'),
-        ir.pt_long:     ir.Typedef_type('int64_t'),
-        ir.pt_char:     ir.const_str,
-        ir.pt_fcomplex: ir.Typedef_type('_complex64'), 
-        ir.pt_dcomplex: ir.Typedef_type('_complex128'),
-        ir.pt_float:    ir.pt_float,
-        ir.pt_double:   ir.pt_double,
-        sidl.pt_opaque: ir.Pointer_type(ir.pt_void)
+        ir.pt_void:                   ir.pt_void,
+        ir.Typedef_type('sidl_bool'): ir.Typedef_type('_Bool'),
+        ir.pt_string:                 ir.const_str,
+        ir.pt_int:                    ir.Typedef_type('int32_t'),
+        ir.pt_long:                   ir.Typedef_type('int64_t'),
+        ir.pt_char:                   ir.const_str,
+        ir.pt_fcomplex:               ir.Typedef_type('_complex64'), 
+        ir.pt_dcomplex:               ir.Typedef_type('_complex128'),
+        ir.pt_float:                  ir.pt_float,
+        ir.pt_double:                 ir.pt_double,
+        sidl.pt_opaque:               ir.Pointer_type(ir.pt_void)
         }
     try:
         return mapping[typ]

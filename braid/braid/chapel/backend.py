@@ -34,11 +34,13 @@
 #
 
 import config, ior, ior_template, ir, os.path, sidl, splicer
-from utils import *
+from utils import write_to, unzip
 from patmat import *
 from codegen import (CFile)
-from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, gen_doc_comment)
+from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, incoming, outgoing, gen_doc_comment)
 from sidl_symbols import scan_methods
+from args import ir_arg_to_chpl
+import conversions as conv
 
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
@@ -928,7 +930,7 @@ class Chapel(object):
                            Except, From, Requires, Ensures, DocComment))
 
         abstract = member_chk(sidl.abstract, Attrs)
-        final = member_chk(sidl.final, Attrs)
+        #final = member_chk(sidl.final, Attrs)
         static = member_chk(sidl.static, Attrs)
 
         attrs = []
@@ -1176,8 +1178,8 @@ class Chapel(object):
             # Qualified name (C Version)
             qname = '_'.join(symbol_table.prefix+[name])  
             # Qualified name including Chapel modules
-            mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
-            mod_name = '.'.join(symbol_table.prefix[1:]+[name])
+            #mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
+            #mod_name = '.'.join(symbol_table.prefix[1:]+[name])
 
             self.has_static_methods = False
 
@@ -1437,13 +1439,15 @@ class Chapel(object):
 
         abstract = member_chk(sidl.abstract, Attrs)
         static = member_chk(sidl.static, Attrs)
-        final = member_chk(sidl.static, Attrs)
+        #final = member_chk(sidl.static, Attrs)
 
         if abstract:
             # nothing to be done for an abstract function
             return
 
+        decls = []
         pre_call = []
+        call_args = []
         post_call = []
         #call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         ior_args = lower_ir(symbol_table, Args)
@@ -1486,15 +1490,12 @@ class Chapel(object):
                            post_call, opt, '(*%s)'%name, typ),
             filter(outgoing, ior_args))
 
-        decls = []
-        call_args = []
-        retval_arg = []
-        # return value type conversion -- treat it as an out argument
+        # RETURN value type conversion -- treated just like an OUT argument
         rarg = ir.Arg([], ir.out, ctype, '_retval')
         conv.codegen((('chpl', strip(ctype)), '_CHPL__retval'), strip(ctype),
                      post_call, opt, '_retval', ctype)
-        crarg = ir_arg_to_chpl(rarg)
-        _,_,_,chpltype,_ = crarg
+        chpl_rarg = ir_arg_to_chpl(rarg)
+        _,_,_,chpltype,_ = chpl_rarg
         if Type <> sidl.void:
             decls.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
 
@@ -1506,12 +1507,12 @@ class Chapel(object):
                 return (arg, attr, mode, (ir.pointer_type, typ), name)
           else: return (arg, attr, mode, typ, name)
 
-        cstub_decl_args = map(pointerize_struct, map(ir_arg_to_chpl, ior_args))
+        chpl_args = map(pointerize_struct, map(ir_arg_to_chpl, ior_args))
 
      
         # Proxy declarations / revised names of call arguments
         for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
-            zip([crarg]+cstub_decl_args, [rarg]+ior_args)):
+            zip([chpl_rarg]+chpl_args, [rarg]+ior_args)):
             if chpl_t <> c_t:
                 is_struct = False
                 proxy_t = chpl_t
@@ -1528,7 +1529,8 @@ class Chapel(object):
                 if mode <> sidl.in_ or is_struct:
                     name = ir.Pointer_expr(name)
      
-            if name == 'self' and member_chk(ir.pure, attrs): # part of the hack for self dereferencing
+            if name == 'self' and member_chk(ir.pure, attrs):
+                # part of the hack for self dereferencing
                 upcast = ('({0}*)(((struct sidl_BaseInterface__object*)self)->d_object)'
                           .format(c_gen(c_t[1])))
                 call_args.append(upcast)
@@ -1539,14 +1541,14 @@ class Chapel(object):
         if not static:
             call_args = ['self->d_data']+call_args[1:]
 
+        # The actual function call
         if Type == sidl.void:
             Type = ir.pt_void
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
             if post_call:
-                rvar = '_retval'
-                call = [ir.Stmt(ir.Assignment(rvar, ir.Call(callee, call_args)))]
-                return_stmt = [ir.Stmt(ir.Return(rvar))]
+                call = [ir.Stmt(ir.Assignment('_CHPL__retval', ir.Call(callee, call_args)))]
+                return_stmt = [ir.Stmt(ir.Return('_retval'))]
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
@@ -1556,8 +1558,8 @@ class Chapel(object):
                 babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
                 decls+pre_call+call+post_call+return_stmt,
                 DocComment)
-        chpldecl = (ir.fn_decl, [], ctype, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+cstub_decl_args,
+        chpldecl = (ir.fn_decl, [], chpltype, callee,
+                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+chpl_args,
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         chpldefn = (ir.fn_defn, ['export %s'%callee], ctype, callee,
@@ -1813,6 +1815,7 @@ class EPV(object):
 
         if self.finalized:
             import pdb; pdb.set_trace()
+            raise Exception()
 
         if member_chk(sidl.static, method[3]):
             self.static_methods.append(to_fn_decl(method))
@@ -1836,6 +1839,7 @@ class EPV(object):
             if name == 'f_'+method:
                 return fn_decl, attrs, typ, name[2:], args, doc
         import pdb; pdb.set_trace()
+        raise Exception()
         return None
 
     def get_ir(self):
