@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH BRAID 1 "2012-02-10" "0.2.4" "Compilers and Programming Languages"
+.TH BRAID 1 "2012-02-14" "0.2.4" "Compilers and Programming Languages"
 .SH NAME
 BRAID \- Next-generation high-performance language interoperability
 .
@@ -169,6 +169,28 @@ export MPIRUN_CMD="srun \-ppdebug \-N %N %P %A" # you can customize this
 \&./program
 .ft P
 .fi
+.sp
+Those are substitutions made by Chapel (or GASnet), here is a list
+taken from one of the Chapel\-internal Makefiles
+.sp
+# The following substitutions are performed:
+#   %P = program executable name
+#   %N = requested node count
+#   %A = program arguments
+#   %Q = program arguments w/ an extra level of quotes
+#   %D = the current working directory
+#   %H = hostfile (if any)
+CONDUIT_RUNCMD = mpirun \-np %N %P %A
+.sp
+The way I understand it SLURM provides the mpirun launcher on the
+machines it manages. Chapel/GASnet uses this mechanism to trick SLURM
+into launching processes on multiple nodes. If you compiled Chapel
+with the \(aqibv\(aq conduit, however, no actual communication will be done
+over MPI, instead GASnet will directly use the Infiniband network to
+exchange data between nodes.
+.sp
+Using Infiniband directly is supposed to perform better because MPI
+apparently does not do one\-sided communication well.
 .SS Patching the Chapel compiler
 .sp
 You will need to patch your Chapel 1.4.0 compiler using the following

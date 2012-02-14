@@ -109,6 +109,29 @@ new processes via SLURM::
     ./program
 
 
+Those are substitutions made by Chapel (or GASnet), here is a list
+taken from one of the Chapel-internal Makefiles
+
+# The following substitutions are performed:
+#   %P = program executable name
+#   %N = requested node count
+#   %A = program arguments
+#   %Q = program arguments w/ an extra level of quotes
+#   %D = the current working directory
+#   %H = hostfile (if any)
+CONDUIT_RUNCMD = mpirun -np %N %P %A
+
+The way I understand it SLURM provides the mpirun launcher on the
+machines it manages. Chapel/GASnet uses this mechanism to trick SLURM
+into launching processes on multiple nodes. If you compiled Chapel
+with the 'ibv' conduit, however, no actual communication will be done
+over MPI, instead GASnet will directly use the Infiniband network to
+exchange data between nodes.
+
+Using Infiniband directly is supposed to perform better because MPI
+apparently does not do one-sided communication well.
+
+
 Patching the Chapel compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You will need to patch your Chapel 1.4.0 compiler using the following
