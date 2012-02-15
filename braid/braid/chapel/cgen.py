@@ -92,10 +92,17 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     # convert arguments to/from IOR using proxy variables
     pre_call = []
     post_call = []
+    retval_arg = []
     opt = scope.cstub.optional
 
-    def deref(mode, name):
-        return name if mode == sidl.in_ else '(*%s)'%name
+    def deref(mode, typ, name):
+        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+            return name+'->'
+        elif typ[0] ==  ir.struct:
+            return name+'->'
+        elif mode == sidl.in_:
+            return name 
+        else: return '(*%s)'%name
 
     def strip(typ):
         if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
@@ -113,25 +120,26 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
     # IN
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((('chpl', strip(typ)), deref(mode, name)), strip(typ),
-                       pre_call, opt, '_proxy_'+name, typ),
+          conv.codegen((('chpl', strip(typ)), deref(mode, typ, name)), strip(typ),
+                       pre_call, opt, '_ior_'+name, typ),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((strip(typ), '_proxy_'+name), ('chpl', strip(typ)),
+          conv.codegen((strip(typ), '_ior_'+name), ('chpl', strip(typ)),
                        post_call, opt, '(*%s)'%name, typ),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 
-    retval_arg = []
-    # return value type conversion -- treat it as an out argument
+    # RETURN value type conversion -- treated like an out argument
     #Wif Type[0] == ir.pointer_type: import pdb; pdb.set_trace()
     rarg = ir.Arg([], ir.out, Type, '_retval')
-    conv.codegen((strip(Type), '_proxy__retval'), ('chpl', strip(Type)), 
+    conv.codegen((strip(Type), '_ior__retval'), ('chpl', strip(Type)), 
                  post_call, opt, '_retval', Type)
     crarg = ir_arg_to_chpl(rarg)
+#    print str(c_gen(crarg)) # they get different names so comparison will fail
+#    print str(c_gen(rarg))
     _,_,_,chpltype,_ = crarg
 
     # Proxy declarations / revised names of call arguments
@@ -140,15 +148,17 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
         zip([crarg]+cstub_decl_args, [rarg]+Args)):
         if chpl_t <> c_t:
+            need_deref = False
             if c_t[0] == ir.pointer_type and c_t[1][0] == ir.struct:
-                # inefficient!!!
-                scope.cstub.optional.add(str(c_gen(ir.Type_decl(chpl_t))))
+                # # inefficient!!!
+                # scope.cstub.optional.add(str(c_gen(ir.Type_decl(chpl_t[1]))))
                 c_t = c_t[1]
+                need_deref = True
 
             # FIXME see comment in chpl_to_ior
-            name = '_proxy_'+name
+            name = '_ior_'+name
             decls.append(ir.Stmt(ir.Var_decl(c_t, name)))
-            if mode <> sidl.in_:
+            if mode <> sidl.in_ or need_deref:
                 name = ir.Pointer_expr(name)
 
         if name == 'self' and member_chk(ir.pure, attrs): # part of the hack for self dereferencing
@@ -287,6 +297,7 @@ class ChapelLine(ChapelFile):
 
     def __str__(self):
         return self._sep.join(self._header+self._defs)
+
 
 def chpl_gen(ir, scope=None):
     if scope == None:

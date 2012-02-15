@@ -1188,8 +1188,8 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             #elif (ir.arg, Attr, ir.out, (ir.pointer_type, (ir.struct, _, _, _)), Name):
             #   return '%s %s'% (gen(node[3]), gen(Name))
             #
-            elif (ir.arg, Attr, ir.inout, (ir.pointer_type, (ir.struct, _, _, _)), Name):
-               return '%s %s'% (gen(node[3]), gen(Name))
+            #elif (ir.arg, Attr, ir.inout, (ir.pointer_type, (ir.struct, _, _, _)), Name):
+            #   return '%s %s'% (gen(node[3]), gen(Name))
 
             elif (ir.arg, Attr, ir.in_, Type, Name):
                 return '%s %s'% (gen(Type), gen(Name))

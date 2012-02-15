@@ -551,7 +551,6 @@ PYTHON_SOURCES = \
 	braid/chapel/cgen.py \
 	braid/chapel/backend.py \
 	braid/chapel/chpl.py \
-	braid/chapel/args.py \
 	braid/burg.py \
 	braid/codegen.py \
 	braid/config.py \

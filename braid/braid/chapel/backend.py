@@ -177,7 +177,22 @@ def drop_rarray_ext_args(args):
 
     return filter(lambda a: a[4] not in names, args)
 
+def struct_ior_names((struct, name, items, docstring)):
+    """
+    Append '__data' to a struct's name and all nested structs' names. 
+    """
+    def f((item, typ, name)):
+        if typ[0] == ir.struct:
+            return item, struct_ior_names(typ), name
+        else: return item, typ, name
+
+    return struct, name+'__data', map(f, items), docstring
+
+
 class Chapel(object):
+    """
+    This class provides the methods to transform SIDL to IR.
+    """
     
     class ClassInfo(object):
         """
@@ -490,14 +505,16 @@ class Chapel(object):
             # generate separate files for the cstubs
             self.pkg_chpl_stub.new_def(chpl_stub)
 
-            # Stub (in C)
+            # Stub (in C), the order is somewhat sensitive
             cstub = chpl_stub.cstub
             cstub._name = qname+'_cStub'
             cstub.genh_top(ir.Import(qname+'_IOR'))
+            cstub.gen(ir.Import(cstub._name))
             for code in cstub.optional:
                 cstub.new_global_def(code)
 
-            cstub.gen(ir.Import(cstub._name))
+            pkg_name = '_'.join(symbol_table.prefix)
+            cstub.gen(ir.Import(pkg_name))
             cstub.write()
 
             # IOR
@@ -521,8 +538,8 @@ class Chapel(object):
 
             elif (sidl.struct, (Name), Items, DocComment):
                 # Generate Chapel stub
-                self.pkg_chpl_stub.gen(ir.Type_decl(lower_ir(symbol_table, node)))
-                self.pkg_enums_and_structs.append(node)
+                self.pkg_chpl_stub.gen(ir.Type_decl(lower_ir(symbol_table, node, struct_suffix='')))
+                self.pkg_enums_and_structs.append(struct_ior_names(node))
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
@@ -556,8 +573,16 @@ class Chapel(object):
 
                 pkg_h = CFile(qname)
                 pkg_h.genh(ir.Import('sidlType'))
+                pkg_h.genh(ir.Import('chpltypes'))
                 for es in self.pkg_enums_and_structs:
-                    pkg_h.gen(ir.Type_decl(lower_ir(pkg_symbol_table, es, pkg_h)))
+                    es_ior = lower_ir(pkg_symbol_table, es, header=pkg_h)
+                    pkg_h.gen(ir.Type_decl(es_ior))
+                    # generate also the chapel version of the struct, if different
+                    if es[0] == sidl.struct:
+                        es_chpl = conv.ir_type_to_chpl(es_ior)
+                        if es_chpl <> es_ior: 
+                            pkg_h.gen(ir.Type_decl(es_chpl))
+
                 pkg_h.write()
 
 
@@ -763,43 +788,46 @@ class Chapel(object):
             """
             Extract name and generate argument conversions
             """
-            cname = name
-            ctype = typ
+            iorname = name
+            iortype = typ
             if is_obj_type(symbol_table, typ):
-                ctype = ior_type(symbol_table, typ)
+                iortype = ior_type(symbol_table, typ)
                 if mode <> sidl.out:
-                    cname = name + '.self_' + typ[2]
+                    iorname = name + '.self_' + typ[2]
 
                 if mode <> sidl.in_:
-                    cname = '_IOR_' + name
+                    iorname = '_IOR_' + name
                     
-                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                    pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
                     
                     # wrap the C type in a native Chapel object
                     chpl_class_name = typ[2]
                     mod_chpl_class_name = '.'.join(typ[1]+[chpl_class_name])
                     conv = ir.Call(qual_id(typ, '.') + '_static.wrap_' + chpl_class_name, 
-                                   [cname, chpl_param_ex_name])
+                                   [iorname, chpl_param_ex_name])
                     
-                    if name == 'retval':
-                        post_call.append(ir.Stmt(ir.Var_decl((ir.typedef_type, mod_chpl_class_name), name)))
+                    if name == '_retval':
+                        post_call.append(ir.Stmt(ir.Var_decl(
+                                    (ir.typedef_type, mod_chpl_class_name), name)))
                     post_call.append(ir.Stmt(ir.Assignment(name, conv)))
                     
-                    if name == 'retval':
+                    if name == '_retval':
                         return_expr.append(name)
             
             elif is_struct_type(symbol_table, typ):
-                ctype = ir.Pointer_type(lower_structs(symbol_table, symbol_table[typ]))
+                iortype = lower_ir(symbol_table, symbol_table[typ])
+                if (mode == sidl.in_):
+                    iortype = ir.Pointer_type(iortype)
 
             elif typ[0] == sidl.scoped_id:
                 # Other Symbol
-                ctype = symbol_table[typ]
+                iortype = symbol_table[typ]
 
             elif typ == sidl.void:
-                ctype = ir.pt_void
+                iortype = ir.pt_void
 
             elif typ == sidl.opaque:
-                ctype = ir.Pointer_type(ir.pt_void)
+                iortype = ir.Pointer_type(ir.pt_void)
 
             elif typ == (sidl.array, [], [] ,[]): # Generic array
                 return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
@@ -809,20 +837,20 @@ class Chapel(object):
                     t = 'BaseInterface'
                 else:
                     t = typ[1][1]
-                ctype = ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
+                iortype = ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
                 if mode <> sidl.out:
-                    cname = name+'.self'
+                    iorname = name+'.self'
 
                 if mode <> sidl.in_:
-                    cname = '_IOR_' + name
+                    iorname = '_IOR_' + name
                     # wrap the C type in a native Chapel object
-                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, cname)))
+                    pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
                     if mode == sidl.inout:
-                        pre_call.append(ir.Stmt(ir.Assignment(cname, name+'.self')))
+                        pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.self')))
 
-                    conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, cname])
+                    conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, iorname])
                     
-                    if name == 'retval':
+                    if name == '_retval':
                         return_expr.append(conv)
                     else:
                         post_call.append(ir.Stmt(ir.Assignment(name, conv)))
@@ -834,7 +862,7 @@ class Chapel(object):
                 # get the type of the scalar element
                 #convert_el_res = convert_arg((arg, attrs, mode, typ[1], name))
                 #print convert_el_res
-                ctype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
+                iortype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
                 arg_name = name# convert_el_res[0]
                 chpl_data_var_name = chpl_data_var_template.format(arg_name=arg_name)
                 chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
@@ -860,7 +888,7 @@ class Chapel(object):
                     chpl_wrapper_barray_name = "_babel_wrapped_local_{arg}_barray".format(arg=arg_name)
                     post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_sarray_name,
                         ir.Call("new Array", ["{arg}.eltType".format(arg=arg_name),
-                                 ctype[1], chpl_wrapper_ior_name]))))
+                                 iortype[1], chpl_wrapper_ior_name]))))
                     post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_barray_name,
                         ir.Call("createBorrowedArray{dim}d".format(dim=typ[2]), [chpl_wrapper_sarray_name]))))
                     post_call.append(ir.Stmt(ir.Call('syncNonLocalArray',
@@ -891,14 +919,14 @@ class Chapel(object):
             var {a}upper = {a}lus(1);
             var {a}stride = {a}lus(2);
             
-            var _babel_wrapped_local_{arg}: {ctype} = {ctype}_borrow(
+            var _babel_wrapped_local_{arg}: {iortype} = {iortype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
                 {a}rank,
                 {a}lower[1],
                 {a}upper[1],
                 {a}stride[1])""".format(a='_babel_%s_'%arg_name,
                                          arg=arg_name,
-                                         ctype=ctype[1],
+                                         iortype=iortype[1],
                                          stype=typ[1][1]))
                 
                 pre_call.append(sidl_wrapping)
@@ -907,9 +935,9 @@ class Chapel(object):
                 # reference the lowest element of the array using the domain
                 #call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
                 #return (call_expr_str, convert_el_res[1])
-                return '_babel_wrapped_local_'+arg_name, (arg, attrs, mode, ctype, name)
+                return '_babel_wrapped_local_'+arg_name, (arg, attrs, mode, iortype, name)
                 
-            return cname, (arg, attrs, mode, ctype, name)
+            return iorname, (arg, attrs, mode, iortype, name)
 
         def obj_by_value((arg, attrs, mode, typ, name)):
             if is_obj_type(symbol_table, typ):
@@ -924,7 +952,7 @@ class Chapel(object):
         ior_args = drop_rarray_ext_args(Args)
         
         chpl_args = []
-        chpl_args.extend(lower_structs(symbol_table, Args))
+        chpl_args.extend(lower_ir(symbol_table, Args, struct_suffix='', structs_only=True))
         
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
                            Except, From, Requires, Ensures, DocComment))
@@ -968,10 +996,10 @@ class Chapel(object):
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         
         # return value type conversion -- treat it as an out argument
-        _, (_,_,_,ctype,_) = convert_arg((ir.arg, [], ir.out, Type, 'retval'))
+        _, (_,_,_,iortype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
 
         cdecl_args = babel_stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
-        cdecl = ir.Fn_decl(attrs, ctype, Name + Extension, cdecl_args, DocComment)
+        cdecl = ir.Fn_decl(attrs, iortype, Name + Extension, cdecl_args, DocComment)
 
         if static:
             call_self = []
@@ -1024,9 +1052,12 @@ class Chapel(object):
             call = [ir.Stmt(ir.Call(callee, call_args))]
         else:
             if return_expr or post_call:
-                rvar = '_IOR_retval'
-                if not return_expr:
-                    pre_call.append(ir.Stmt(ir.Var_decl(ctype, rvar)))
+                rvar = '_IOR__retval'
+                if not return_expr:                                
+                    if iortype[0] == ir.struct:
+                        iortype = lower_ir(symbol_table, symbol_table[Type], struct_suffix='')
+
+                    pre_call.append(ir.Stmt(ir.Var_decl(iortype, rvar)))
                     rx = rvar
                 else:
                     rx = return_expr[0]
@@ -1036,7 +1067,10 @@ class Chapel(object):
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
-        defn = (ir.fn_defn, [], lower_structs(symbol_table, Type), Name + Extension, chpl_args,
+
+        defn = (ir.fn_defn, [], 
+                lower_ir(symbol_table, Type, struct_suffix='', structs_only=True),
+                Name + Extension, chpl_args,
                 pre_call+call+post_call+return_stmt,
                 DocComment)
 
@@ -1044,9 +1078,9 @@ class Chapel(object):
             # # FIXME final functions still _may_ have a cstub
             # # FIXME can we reuse cdecl for this?
             # # see the __attribute__ hack below
-            # impl_decl = ir.Fn_decl([], ctype,
+            # impl_decl = ir.Fn_decl([], iortype,
             #                        callee, cdecl_args, DocComment)
-            # extern_decl = ir.Fn_decl([], ctype,
+            # extern_decl = ir.Fn_decl([], iortype,
             #                          callee, map(obj_by_value, cdecl_args), DocComment)
             # ci.chpl_static_stub.new_def('extern '+chpl_gen(extern_decl)+';')
             # chpl_stub.cstub.new_header_def('extern '+str(c_gen(impl_decl))+';')
@@ -1059,7 +1093,7 @@ class Chapel(object):
         Generate the IOR header file in C.
         """
         prefix = '_'.join(ci.epv.symbol_table.prefix)
-        cname = '_'.join([prefix, ci.epv.name])
+        iorname = '_'.join([prefix, ci.epv.name])
         ci.ior.genh(ir.Import(prefix))
         ci.ior.genh(ir.Import('sidl'))
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
@@ -1072,7 +1106,7 @@ class Chapel(object):
                        .format(base, qual_id(scope, '.')))
             ci.ior.genh('#define {1}_cast_{0}(ior) ((struct {1}__object*)'
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
-                       .format(cname, base))
+                       .format(iorname, base))
         
         def gen_forward_references():
             
@@ -1097,7 +1131,7 @@ class Chapel(object):
                 ci.ior.genh('struct ' + name + '__array;')
                 ci.ior.genh('struct ' + name + '__object;')
             
-            add_forward_defn(cname)
+            add_forward_defn(iorname)
             refs = ['sidl_BaseException', 'sidl_BaseInterface', 
                     'sidl_rmi_Call', 'sidl_rmi_Return']
             
@@ -1150,15 +1184,15 @@ class Chapel(object):
             ci.ior.gen(ir.Type_decl(ci.epv.get_pre_sepv_ir()))
             ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
 
-        ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__init',
+        ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__init',
             babel_static_ior_args([], [ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
                            ci.epv.symbol_table, ci.epv.name),
             "INIT: initialize a new instance of the class object."))
-        ci.ior.gen(ir.Fn_decl([], ir.pt_void, cname+'__fini',
+        ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
             babel_static_ior_args([], [], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
         ci.ior.new_def(ior_template.text.format(
-            Class = cname, Class_low = str.lower(cname)))
+            Class = iorname, Class_low = str.lower(iorname)))
 
     
     @matcher(globals(), debug=False)
@@ -1348,7 +1382,7 @@ class Chapel(object):
 
             elif (sidl.struct, (Name), Items, DocComment):
                 # record it for later
-                self.pkg_enums_and_structs.append(node)
+                self.pkg_enums_and_structs.append(struct_ior_names(node))
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
@@ -1374,11 +1408,14 @@ class Chapel(object):
                 pkg_h = CFile(qname)
                 pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
-                    es_ior = lower_ir(pkg_symbol_table, es, pkg_h)
+                    es_ior = lower_ir(pkg_symbol_table, es, header=pkg_h)
                     es_chpl = conv.ir_type_to_chpl(es)
+                    if es[0] == sidl.struct:
+                        es_chpl = conv.ir_type_to_chpl(es_ior)
+
                     pkg_h.gen(ir.Type_decl(es_ior))
-                    symtab = pkg_symbol_table._parent
-                    if symtab == None: symtab = SymbolTable()
+                    #symtab = pkg_symbol_table._parent
+                    #if symtab == None: symtab = SymbolTable()
                     pkg_chpl.gen(ir.Type_decl(es_chpl))
 
                 pkg_h.write()
@@ -1423,9 +1460,9 @@ class Chapel(object):
             """
             Extract name and generate argument conversions
             """
-            cname = name
+            iorname = name
             ctype = typ
-            return cname, (arg, attrs, mode, typ, name)
+            return iorname, (arg, attrs, mode, typ, name)
 
 
         # Chapel skeleton
@@ -1614,8 +1651,8 @@ static const struct {a}__sepv *_sepv = NULL;
 '''.format(a=qual_id(scopedid), b=qual_id(scopedid, '_'))
 
 def notnone(fn):
-    def wrapped(*args):
-        r = fn(*args)
+    def wrapped(*args, **kw_args):
+        r = fn(*args, **kw_args)
         if r == None:
             print args
             print '---->', r
@@ -1626,28 +1663,35 @@ def notnone(fn):
 
 @notnone
 @matcher(globals(), debug=False)
-def lower_ir(symbol_table, sidl_term, header=None):
+def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', structs_only=False):
     """
     FIXME!! can we merge this with convert_arg??
     lower SIDL types into IR
 
     The idea is that no Chapel-specific code is in this function. It
     should provide a generic translation from SIDL -> IR.
+
+    @param structs_only    This is a broken design, but right now the
+                           Chapel code generator accepts some sidl
+                           node types such as array, rarray, and class.
+                           If True, then these types will not be lowered.
     """
     def low(sidl_term):
-        return lower_ir(symbol_table, sidl_term, header)
+        return lower_ir(symbol_table, sidl_term, header, struct_suffix, structs_only)
 
-#    print 'low(',sidl_term,')'
+    # print 'low(',sidl_term, ')'
+
     with match(sidl_term):
         if (sidl.arg, Attrs, Mode, (sidl.scoped_id, _, _, _), Name):
             lowtype = low(sidl_term[3])
-            if lowtype[0] == ir.struct:
+            if lowtype[0] == ir.struct and Mode == ir.in_:
                 # struct arguments are passed as pointer, regardless of mode
+                # unless they are a return value
                 lowtype = ir.Pointer_type(lowtype)
-            return ir.Arg(Attrs, Mode, lowtype, Name)
+            return (ir.arg, Attrs, Mode, lowtype, Name)
 
         elif (sidl.arg, Attrs, Mode, Typ, Name):
-            return ir.Arg(Attrs, Mode, low(Typ), Name)
+            return (ir.arg, Attrs, Mode, low(Typ), Name)
 
         elif (sidl.scoped_id, Prefix, Name, Ext):
             return low(symbol_table[sidl_term])
@@ -1663,16 +1707,31 @@ def lower_ir(symbol_table, sidl_term, header=None):
         # was: ir.Typedef_type('int64_t')
         elif (sidl.enumerator, _):               return sidl_term
         elif (sidl.enumerator, _, _):            return sidl_term
+
+
         elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
             # a nested Struct
-            return ir.Struct(qual_id(sidl_term[1]), low(Items), '')
+            return ir.Struct(qual_id(sidl_term[1])+struct_suffix, low(Items), '')
+
         elif (sidl.struct, Name, Items, DocComment):
-            #print 'Items=',Items, 'low(Items)=',low(Items)
             qname = '_'.join(symbol_table.prefix+[Name])
             return ir.Struct(qname, low(Items), '')
 
         elif (sidl.struct_item, Type, Name):
             return ir.Struct_item(low(Type), Name)
+
+        # elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
+        #     # a nested Struct
+        #     return ir.Struct(qual_id(sidl_term[1]), low(Items), '')
+        # elif (sidl.struct, Name, Items, DocComment):
+        #     #print 'Items=',Items, 'low(Items)=',low(Items)
+        #     qname = '_'.join(symbol_table.prefix+[Name])
+        #     return ir.Struct(qname, low(Items), '')
+
+        # elif (sidl.struct_item, Type, Name):
+        #     return ir.Struct_item(low(Type), Name)
+
+
 
         # elif (sidl.rarray, Scalar_type, Dimension, Extents):
         #     # Direct-call version (r-array IOR)
@@ -1680,6 +1739,7 @@ def lower_ir(symbol_table, sidl_term, header=None):
         #     # SIDL IOR version
         #     return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
         elif (sidl.rarray, Scalar_type, Dimension, Extents):
+            if structs_only: return sidl_term
             # Rarray appearing inside of a struct
             return ir.Pointer_type(Scalar_type)
 
@@ -1700,6 +1760,7 @@ def lower_ir(symbol_table, sidl_term, header=None):
             return ir.Pointer_type(ir.pt_void)
 
         elif (sidl.array, Scalar_type, Dimension, Orientation):
+            if structs_only: return sidl_term
             #return ir.Typedef_type('sidl__array')
             if Scalar_type[0] == ir.scoped_id:
                 # FIXME: this is oversimplified, it should actually be
@@ -1713,7 +1774,8 @@ def lower_ir(symbol_table, sidl_term, header=None):
             return ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
 
         elif (sidl.class_, ScopedId, _, _, _, _):
-            return ir_babel_object_type(ScopedId[1], ScopedId[2])
+            if structs_only: return qual_id(ScopedId, '.')
+            else: return ir_babel_object_type(ScopedId[1], ScopedId[2])
         
         elif (sidl.interface, ScopedId, _, _, _):
             return ir_babel_object_type(ScopedId[1], ScopedId[2])
@@ -1723,48 +1785,6 @@ def lower_ir(symbol_table, sidl_term, header=None):
                 return map(low, Terms)
         else:
             raise Exception("lower_ir: Not implemented: " + str(sidl_term))
-
-@matcher(globals(), debug=False)
-def lower_structs(symbol_table, sidl_term):
-    """
-    FIXME paper hack ahead!!!
-    """
-    def low(sidl_term):
-        return lower_structs(symbol_table, sidl_term)
-
-    with match(sidl_term):   
-        if (sidl.arg, Attrs, Mode, (sidl.scoped_id, _, _, _), Name):
-            lowtype = low(sidl_term[3])
-            if lowtype[0] == ir.struct:
-                # struct arguments are passed as pointer, regardless of mode
-                lowtype = ir.Pointer_type(lowtype)
-            return (ir.arg, Attrs, Mode, lowtype, Name)
-
-        elif (sidl.arg, Attrs, Mode, Typ, Name):
-            return (ir.arg, Attrs, Mode, low(Typ), Name)
-
-        elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
-            # a nested Struct
-            return ir.Struct(qual_id(sidl_term[1]), low(Items), '')
-        elif (sidl.struct, Name, Items, DocComment):
-            qname = '_'.join(symbol_table.prefix+[Name])
-            return ir.Struct(qname, low(Items), '')
-
-        elif (sidl.struct_item, Type, Name):
-            return ir.Struct_item(lower_ir(symbol_table, Type), Name)
-
-        elif (sidl.scoped_id, Prefix, Name, Ext):
-            t = symbol_table[sidl_term]
-            if t[0] == ir.struct:
-                return low(t)
-            return sidl_term
-
-        elif (Terms):
-            if (isinstance(Terms, list)):
-                return map(low, Terms)
-            
-    return sidl_term
-
 
 
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
@@ -1801,8 +1821,6 @@ class EPV(object):
                         Attrs, Args, Except, From, Requires, Ensures, DocComment),
                        suffix=''):
             typ = lower_ir(self.symbol_table, Type)
-            if typ[0] == ir.struct:
-                typ = ir.Pointer_type(typ)
             name = 'f_'+Name+Extension
 
             # discard the abstract/final attributes. Ir doesn't know them.
@@ -1840,7 +1858,6 @@ class EPV(object):
                 return fn_decl, attrs, typ, name[2:], args, doc
         import pdb; pdb.set_trace()
         raise Exception()
-        return None
 
     def get_ir(self):
         """

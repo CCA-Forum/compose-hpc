@@ -64,18 +64,33 @@ def ir_type_to_chpl(typ):
         if typ[0] == 'upcast':
             # part of the hack for self dereferencing
             return typ[1]
-        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
-            _, name, items, comment = typ[1]
-            items1 = map(ir_type_to_chpl, items)
-            if items1 <> items:
-                name = 'chpl_'+name
-                return ir.Struct(name, items1, comment)
-            return ir.Pointer_type(ir.Struct(name, items1, comment))
+        # if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+        #     _, name, items, comment = typ[1]
+        #     items1 = map(ir_type_to_chpl, items)
+        #     if items1 <> items:
+        #         name = 'chpl_'+name
+        #         return ir.Pointer_type(ir.Struct(name, items1, comment))
+        #     return ir.Pointer_type(ir.Struct(name, items1, comment))
+        # if typ[0] == ir.struct:
+        #     _, name, items, comment = typ
+        #     return ir.Struct(name, map(ir_type_to_chpl, items), comment)
+        if typ[0] == ir.pointer_type:
+             return ir.Pointer_type(ir_type_to_chpl(typ[1]))
+
         if typ[0] == ir.struct:
             _, name, items, comment = typ
-            return ir.Struct(name, map(ir_type_to_chpl, items), comment)
+            items1 = map(ir_type_to_chpl, items)
+            # User-defined structs are created in the IOR with an
+            # '__data' suffix, so we can use the actual name for the
+            # Chapel version of the struct.
+            if name[-6:] == '__data': 
+                name = name[:-6] # Wow, this is unelegant!
+
+            return ir.Struct(name, items1, comment)
+
         if typ[0] == ir.struct_item:
             return ir.Struct_item(ir_type_to_chpl(typ[1]),typ[2])
+
         return typ
 
 
@@ -84,7 +99,7 @@ def strip(typ):
 #        return ir.struct
     if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
         return ior.bool
-    # strip unncessesary details from aggregate types
+    # strip unnecessary details from aggregate types
     if (typ[0] == ir.enum or
         typ[0] == sidl.array or
         typ[0] == sidl.rarray or
@@ -100,12 +115,20 @@ def copy_other_items(convs, items, a0, dest):
     """
     for _, typ, name in items:
         if typ[0] == ir.struct:
-            copy_other_items(convs, ir.struct_struct_items(typ), a0+'.'+name, dest+'.'+name)
+            copy_other_items(convs, ir.struct_struct_items(typ), a0+name+'.', dest+'.'+name)
 
         if ir_type_to_chpl(typ) == typ: # boy, is this inefficient!!
-            convs.append(ir.Stmt(ir.Assignment(dest+'.'+name, a0+'.'+name)))
+            convs.append(ir.Stmt(ir.Assignment(dest+'.'+name, a0+name)))
+
+def get_struct_items(full_type):
+    t = full_type[1] if full_type[0] == ir.pointer_type else full_type
+    return ir.struct_struct_items(t) 
 
 
+def elem_access(typ):
+    if typ[0] == ir.struct:
+        return '.'
+    else: return ''
 
 char_lut = '''
 /* This burial ground of bytes is used for char [in]out arguments. */
@@ -218,26 +241,25 @@ ior.pointer_type @C <-- chpl.pointer_type :cost(0)
 # STRUCT
 ior.struct @C <-- chpl.struct: cost(0)
     # FIXME: we will actually need dynamic costs for this    
-    items = ir.struct_struct_items(full_type[1]) 
+    items = get_struct_items(full_type)
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
-          codegen((strip(typ), a0+'->'+name), ('chpl', strip(typ)),
-                  convs, optionals, dest+'.'+name, (0,typ)), items)
-    
+          codegen((('chpl', strip(typ)), a0+name+elem_access(typ)), strip(typ),
+                  convs, optionals, dest+'.'+name, typ), items)
     # if we need to convert one of the items, we need to convert all
     # of them
     if convs:
-        copy_other_items(convs, items, a0, '(*%s)'%dest)
+        copy_other_items(convs, items, a0, '%s'%dest)
     pass
 
 chpl.struct @C <-- ior.struct: cost(0)
-    items = ir.struct_struct_items(full_type[1]) 
+    items = get_struct_items(full_type)
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
-          codegen((('chpl', strip(typ)), a0+'.'+name), strip(typ),
-                  convs, optionals, dest+'.', (0,typ)), items)
+          codegen((strip(typ), a0+'.'+name), ('chpl', strip(typ)),
+                  convs, optionals, dest+'.'+name, typ), items)
     # if we need to convert one of the items, we need to convert all
     # of them
     if convs:
-        copy_other_items(convs, items, '(*%s)'%a0, dest)
+        copy_other_items(convs, items, '%s.'%a0, dest)
     pass
