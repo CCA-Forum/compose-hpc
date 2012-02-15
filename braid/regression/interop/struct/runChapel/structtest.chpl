@@ -12,6 +12,7 @@ var failed: bool = false;
 var part_no: int = 0;
 var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
+extern proc IS_NULL(in aRef): bool;
 
 proc init_part() {
   part_no += 1;
@@ -122,46 +123,46 @@ initCombined(c: s.s_Combined)
 proc
 checkSimple(s1: s.s_Simple) : bool
 {
-  // const double eps = 1.E-6;
+  const eps : real = 1.E-6;
 
-  // return ((s.d_bool &&
-  //          (s.d_char == '3') &&
-  //          (fabs(s.d_dcomplex.real - 3.14) < eps) &&
-  //          (fabs(s.d_dcomplex.imaginary - 3.14) < eps) &&
-  //          (fabs(s.d_double - 3.14) < eps) &&
-  //          (fabs(s.d_fcomplex.real - 3.1F) < eps) &&
-  //          (fabs(s.d_fcomplex.imaginary - 3.1F) < eps) &&
-  //          (fabs(s.d_float - 3.1F) < eps) &&
-  //          (s.d_int == 3) &&
-  //          (s.d_long == 3) &&
-  //          (s.d_opaque == NULL) &&
-  //          (s.get_d_enum() == s.s_Color_blue)));
+  return ((s1.d_bool &&
+           (s1.d_char == '3') &&
+           (abs(s1.d_dcomplex.re - 3.14) < eps) &&
+           (abs(s1.d_dcomplex.im - 3.14) < eps) &&
+           (abs(s1.d_double - 3.14) < eps) &&
+           (abs(s1.d_fcomplex.re - 3.1:real(32)) < eps) &&
+           (abs(s1.d_fcomplex.im - 3.1:real(32)) < eps) &&
+           (abs(s1.d_float - 3.1:real(32)) < eps) &&
+           (s1.d_int == 3) &&
+           (s1.d_long == 3) &&
+           (IS_NULL(s1.d_opaque)) &&
+           (s1.d_enum == s.Color.blue)));
 }
 
 proc
 checkSimpleInv(s1: s.s_Simple) : bool
 {
-  // const double eps = 1.E-6;
+  const eps : real = 1.E-6;
 
-  // return ((!s.d_bool &&
-  //          (s.d_char == '3') &&
-  //          (fabs(s.d_dcomplex.real - 3.14) < eps) &&
-  //          (fabs(s.d_dcomplex.imaginary + 3.14) < eps) &&
-  //          (fabs(s.d_double + 3.14) < eps) &&
-  //          (fabs(s.d_fcomplex.real - 3.1F) < eps) &&
-  //          (fabs(s.d_fcomplex.imaginary + 3.1F) < eps) &&
-  //          (fabs(s.d_float + 3.1F) < eps) &&
-  //          (s.d_int == -3) &&
-  //          (s.d_long == -3) &&
-  //          (s.d_opaque == NULL) &&
-  //          (s.get_d_enum() == s.s_Color_red)));
+  return ((!s1.d_bool &&
+           (s1.d_char == '3') &&
+           (abs(s1.d_dcomplex.re - 3.14) < eps) &&
+           (abs(s1.d_dcomplex.im + 3.14) < eps) &&
+           (abs(s1.d_double + 3.14) < eps) &&
+           (abs(s1.d_fcomplex.re - 3.1:real(32)) < eps) &&
+           (abs(s1.d_fcomplex.im + 3.1:real(32)) < eps) &&
+           (abs(s1.d_float + 3.1:real(32)) < eps) &&
+           (s1.d_int == -3) &&
+           (s1.d_long == -3) &&
+           (IS_NULL(s1.d_opaque)) &&
+           (s1.d_enum == s.Color.red)));
 }
 
 proc
 checkHard(h: s.s_Hard) : bool
 {
 //   //bool result = (h.get_d_string() == "Three");
-//   bool result = h.get_d_string()._not_nil();
+  var result : bool = false; //h.d_string != "";
 //   if (result) {
 //     ::sidl::array<string> str = h.get_d_string();
 //     result = result && (str.dimen() == 1);
@@ -192,13 +193,13 @@ checkHard(h: s.s_Hard) : bool
 //     result = result && oa[1]._not_nil() && oa[1].isType("sidl.BaseClass");
 //     result = result && oa[2]._not_nil() && oa[2].isType("sidl.BaseClass");
 //   }
-//   return result;
+   return result;
 }
 
 proc
 checkHardInv(h: s.s_Hard) :bool
 {
-  // bool result = h.get_d_string()._not_nil();
+  var result : bool = false; //h.d_string != "";
   // if (result) {
   //   ::sidl::array<string> str = h.get_d_string();
   //   result = result && (str.dimen() == 1);
@@ -213,13 +214,13 @@ checkHardInv(h: s.s_Hard) :bool
   // }
   // result = result && h.get_d_array()._not_nil();
   // if (result) {
-  //   const double eps = 1.E-5;
+  //   const eps : double = 1.E-5;
   //   ::sidl::array<double> da = h.get_d_array();
   //   result = result && (da.dimen() == 1);
   //   result = result && (da.length(0) == 3);
-  //   result = result && (fabs(da[0] - 3.0) < eps);
-  //   result = result && (fabs(da[1] - 2.0) < eps);
-  //   result = result && (fabs(da[2] - 1.0) < eps);
+  //   result = result && (abs(da[0] - 3.0) < eps);
+  //   result = result && (abs(da[1] - 2.0) < eps);
+  //   result = result && (abs(da[2] - 1.0) < eps);
   // }
   // result = result && h.get_d_objectArray()._not_nil();
   // if (result) {
@@ -230,40 +231,40 @@ checkHardInv(h: s.s_Hard) :bool
   //   result = result && oa[1]._is_nil();
   //   result = result && oa[2]._not_nil() && oa[2].isType("sidl.BaseClass");
   // }
-  // return result;
+  return result;
 }
 
 proc
 checkRarrays(r: s.s_Rarrays) : bool
 {
-  // const double eps = 1.E-5;
-  // bool result = (r.d_rarrayRaw != NULL);
+  const eps : real = 1.E-5;
+  var result = false; //(r.d_rarrayRaw != NULL);
   // if (result) {
-  //   result = result && (fabs(r.d_rarrayRaw[0] - 1.0) < eps);
-  //   result = result && (fabs(r.d_rarrayRaw[1] - 2.0) < eps);
-  //   result = result && (fabs(r.d_rarrayRaw[2] - 3.0) < eps);
-  //   result = result && (fabs(r.d_rarrayFix[0] - 5.0) < eps);
-  //   result = result && (fabs(r.d_rarrayFix[1] - 10.0) < eps);
-  //   result = result && (fabs(r.d_rarrayFix[2] - 15.0) < eps);
+  //   result = result && (abs(r.d_rarrayRaw[0] - 1.0) < eps);
+  //   result = result && (abs(r.d_rarrayRaw[1] - 2.0) < eps);
+  //   result = result && (abs(r.d_rarrayRaw[2] - 3.0) < eps);
+  //   result = result && (abs(r.d_rarrayFix[0] - 5.0) < eps);
+  //   result = result && (abs(r.d_rarrayFix[1] - 10.0) < eps);
+  //   result = result && (abs(r.d_rarrayFix[2] - 15.0) < eps);
   // }
-  // return result;
+  return result;
 }
 
 proc
 checkRarraysInv(r: s.s_Rarrays) 
  :bool
 {
-  // const double eps = 1.E-5;
-  // bool result = (r.d_rarrayRaw != NULL);
+  const eps : real = 1.E-5;
+  var result = false; //(r.d_rarrayRaw != NULL);
   // if (result) {
-  //   result = result && (fabs(r.d_rarrayRaw[0] - 3.0) < eps);
-  //   result = result && (fabs(r.d_rarrayRaw[1] - 2.0) < eps);
-  //   result = result && (fabs(r.d_rarrayRaw[2] - 1.0) < eps);
-  //   result = result && (fabs(r.d_rarrayFix[0] - 15.0) < eps);
-  //   result = result && (fabs(r.d_rarrayFix[1] - 10.0) < eps);
-  //   result = result && (fabs(r.d_rarrayFix[2] - 5.0) < eps);
+  //   result = result && (abs(r.d_rarrayRaw[0] - 3.0) < eps);
+  //   result = result && (abs(r.d_rarrayRaw[1] - 2.0) < eps);
+  //   result = result && (abs(r.d_rarrayRaw[2] - 1.0) < eps);
+  //   result = result && (abs(r.d_rarrayFix[0] - 15.0) < eps);
+  //   result = result && (abs(r.d_rarrayFix[1] - 10.0) < eps);
+  //   result = result && (abs(r.d_rarrayFix[2] - 5.0) < eps);
   // }
-  // return result;
+  return result;
 }
 
 proc 
@@ -276,14 +277,13 @@ deleteRarrays(r: s.s_Rarrays) {
 proc
 checkCombined(c: s.s_Combined) : bool
 {
-  return checkSimple(c.d_simple)
-    && checkHard(c.d_hard);
+  return checkSimple(c.d_simple) && checkHard(c.d_hard);
 }
 
 proc
 checkCombinedInv(c: s.s_Combined) : bool
 {
-/*   return checkSimpleInv(c.get_d_simple()) && checkHardInv(c.get_d_hard()); */
+   return checkSimpleInv(c.d_simple) && checkHardInv(c.d_hard);
 }
 
 tracker.setExpectations(36, sidl_ex);
@@ -318,7 +318,7 @@ var test = s.StructTest_static.create_StructTest(sidl_ex);
   init_part(); run_part( test.passinoutSimple(s2, sidl_ex) );
   init_part(); run_part( checkSimpleInv(s2) );
   init_part(); run_part( test.passoutSimple(s3, sidl_ex) );
-  s4 = test.passeverywhereSimple(s1, s2, s3);
+  s4 = test.passeverywhereSimple(s1, s2, s3, sidl_ex);
   init_part(); run_part( checkSimple(s4) && checkSimple(s2) && checkSimpleInv(s3) );
 }
 
@@ -339,7 +339,7 @@ var test = s.StructTest_static.create_StructTest(sidl_ex);
   init_part(); run_part( test.passinoutHard(h2, sidl_ex) );
   init_part(); run_part( checkHardInv(h2) );
   init_part(); run_part( test.passoutHard(h3, sidl_ex) );
-  h4 = test.passeverywhereHard(h1, h2, h3);
+  h4 = test.passeverywhereHard(h1, h2, h3, sidl_ex);
   init_part(); run_part( checkHard(h4) && checkHard(h2) && checkHardInv(h3) );
 }
 
@@ -380,7 +380,7 @@ var test = s.StructTest_static.create_StructTest(sidl_ex);
   init_part(); run_part( test.passinoutCombined(c2, sidl_ex) );
   init_part(); run_part( checkCombinedInv(c2) );
   init_part(); run_part( test.passoutCombined(c3, sidl_ex) );
-  c4 = test.passeverywhereCombined(c1, c2, c3);
+  c4 = test.passeverywhereCombined(c1, c2, c3, sidl_ex);
   init_part(); run_part( checkCombined(c4) && checkCombined(c2) && checkCombinedInv(c3) );
 }
 tracker.close(sidl_ex);

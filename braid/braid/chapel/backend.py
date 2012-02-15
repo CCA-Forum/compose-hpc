@@ -758,6 +758,7 @@ class Chapel(object):
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
+            '#define IS_NULL(aPtr) ((aPtr) == 0)',
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
             '#define SET_TO_NULL(aPtr) (*aPtr) = 0',
             '#endif',
@@ -1718,7 +1719,7 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', struc
             return ir.Struct(qname, low(Items), '')
 
         elif (sidl.struct_item, Type, Name):
-            return ir.Struct_item(low(Type), Name)
+            return (ir.struct_item, low(Type), Name)
 
         # elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
         #     # a nested Struct

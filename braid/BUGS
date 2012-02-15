@@ -1,4 +1,4 @@
-BUGS:                                            -*- org -*-
+* BUGS *                                          -*- org -*-
 
 This file lists known bugs and non-bugs that
 often trip people up.  Most of these bugs are
@@ -6,4 +6,9 @@ the result of incompatibilities among compilers
 and various Unix systems.
 
 ------------------------------------------------------------
+
+* TODO Items *
+** TODO Finish struct implementation for Objects and (R)Arrays
+** TODO Implement contract checking for Chapel
+** TODO Make Chapel-Chapel interoperability work
 
