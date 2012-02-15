@@ -133,13 +133,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 
     # RETURN value type conversion -- treated like an out argument
-    #Wif Type[0] == ir.pointer_type: import pdb; pdb.set_trace()
     rarg = ir.Arg([], ir.out, Type, '_retval')
     conv.codegen((strip(Type), '_ior__retval'), ('chpl', strip(Type)), 
                  post_call, opt, '_retval', Type)
     crarg = ir_arg_to_chpl(rarg)
-#    print str(c_gen(crarg)) # they get different names so comparison will fail
-#    print str(c_gen(rarg))
     _,_,_,chpltype,_ = crarg
 
     # Proxy declarations / revised names of call arguments
@@ -150,8 +147,6 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
         if chpl_t <> c_t:
             need_deref = False
             if c_t[0] == ir.pointer_type and c_t[1][0] == ir.struct:
-                # # inefficient!!!
-                # scope.cstub.optional.add(str(c_gen(ir.Type_decl(chpl_t[1]))))
                 c_t = c_t[1]
                 need_deref = True
 
@@ -197,7 +192,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
 class ChapelFile(SourceFile):
     """
-    Particularities:
+    A BRAID-style code generator output file manager for the Chapel language.
 
     * Chapel files also have a cstub which is used to output code that
       can not otherwise be expressed in Chapel.
@@ -278,6 +273,9 @@ class ChapelFile(SourceFile):
 
 
 class ChapelScope(ChapelFile):
+    """
+    A Chapel scope, ie., a block of statements enclosed by curly braces.
+    """
     def __init__(self, parent=None, relative_indent=4):
         super(ChapelScope, self).__init__(parent=parent, 
                                           relative_indent=relative_indent)
@@ -292,6 +290,9 @@ class ChapelScope(ChapelFile):
         return '%s%s'%(self._sep.join(self._header+self._defs), terminator)
 
 class ChapelLine(ChapelFile):
+    """
+    A single line of Chapel code, such as a statement.
+    """
     def __init__(self, parent=None, relative_indent=4):
         super(ChapelLine, self).__init__(parent, relative_indent)
 
@@ -319,6 +320,9 @@ def gen_doc_comment(doc_comment, scope):
 
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
+    """
+    A BRAID-style code generator for Chapel.
+    """
     type_map = {
         'void':      "void",
         'bool':      "bool",
@@ -459,7 +463,6 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return '%s %s: %s'%(arg_mode, arg_name, arg_type)
 
             elif (ir.arg, Attrs, Mode, Type, Name):
-                #print n
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
@@ -519,10 +522,6 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
             elif (ir.type_decl, (ir.struct, Name, Items, DocComment)):
-#                def unprefix(s):
-#                    # FIXME!!! this is broken. Use a proper scopedID
-#                    # instead once the paper is out
-#                   return '_'.join((s.split('_')[1:]))
                 itemdecls = gen_semicolon_sep(map(lambda i: ir.Var_decl(i[1], i[2]), Items))
                 return gen_comment(DocComment)+str(new_scope1('record %s {\n'%gen(Name), 
                                                               itemdecls, '\n}'))

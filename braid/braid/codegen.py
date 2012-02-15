@@ -500,7 +500,9 @@ class F77File(SourceFile):
         return ''.join(data)
 
 class F77Scope(F77File):
-    """Represents a list of statements in an indented block"""
+    """
+    Represents a list of statements in an indented block
+    """
     def __init__(self, parent):
         super(F77Scope, self).__init__(
             parent,
@@ -511,6 +513,9 @@ class F77Scope(F77File):
         return False
 
 class Fortran77CodeGenerator(GenericCodeGenerator):
+    """
+    FORTRAN 77 code generator.
+    """
     type_map = {
         'void':        "void",
         'bool':        "logical",

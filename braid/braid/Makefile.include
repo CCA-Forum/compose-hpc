@@ -13,9 +13,10 @@ python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py $(top_srcdir)/contrib/ply/lex
 PYTHON_SOURCES = \
 	braid/braid.py \
 	braid/chapel/__init__.py \
-	braid/chapel/cgen.py \
 	braid/chapel/backend.py \
+	braid/chapel/cgen.py \
 	braid/chapel/chpl.py \
+	braid/chapel/makefile.py \
 	braid/burg.py \
 	braid/codegen.py \
 	braid/config.py \
