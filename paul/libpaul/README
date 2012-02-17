@@ -5,7 +5,46 @@ libpaul : a library for flexible syntax source code annotations
 1. Overview
 -----------
 
-*write me*
+The PAUL library is intended to provide programmers working with ROSE
+a set of convenience functions and data structures to support
+the use of structured annotations in user code.  ROSE already provides
+support for annotations via #pragma directives, which is sufficient for
+most simple annotation use cases.  In other cases, tool developers may
+wish for more complex annotations to be available.  For example, it may
+be useful for an annotation to be specified with a structured
+syntax such as a LISP-like symbolic expression, such as:
+
+/* %ANNOTATION
+  ( this is a (complex and (structured annotation) (that is parsed))
+    into a tree like structure )
+*/
+
+ROSE already provides the ability to associate attributes with AST nodes,
+so libpaul provides a thin layer over the attribute facility to allow
+structured comments to be recognized and parsed to a C++ data structure that
+is attached to the appropriate AST node as an attribute.  This library
+provides two pre-written parsers and data structures: key-value pair maps,
+and symbolic expressions (s-expressions).  The design of the library
+supports additional user-defined attribute data structures and
+comment parsers for applications that wish to specify their own syntax for
+the structured comments.
+
+The basic structure of a PAUL-supported comment can be:
+
+C/C++ :
+
+  // %TAG string
+  /* %TAG string */
+
+Fortran :
+  ! %TAG string
+  c %TAG string
+
+In all cases, the comment starts with %TAG, where TAG is some non-whitespace
+string that corresponds to an entry in the PAUL configuration that defines
+what parser type should be applied to the string that follows the tag.
+Multi-line comments are supported, which is useful in the case where
+the annotation type is complex and spans many lines.
 
 2. Installation
 ---------------
@@ -21,51 +60,58 @@ First, make sure that the following libraries are installed:
   http://www.boost.org/
 
 This code has been tested with the latest ROSE available on the SciDAC
-Outreach site as of mid-October 2011.  The BOOST version was 1.45.0 -
+Outreach site as of mid-February 2012.  The BOOST version was 1.44.0 -
 any version that ROSE is compatible with will work.
 
-Once these are compiled/installed, set up your environment.  For
-example:
+First, we need to set up our environment for building ROSE-based code.
+If you have already set up ROSE and used it for other things, you have
+likely already done this.  First, we need to make sure the LD_LIBRARY_PATH
+(or DYLD_LIBRARY_PATH on OS X) is set up.  Here is an example:
 
-% export ROSEINSTALL=/home/matt/packages/rose-latest/compileTree/
-% export BOOSTINSTALL=/home/matt/packages/boost_1_45_0/installTree/
+% export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/matt/packages/rose-0.9.5a-17401/compileTree/lib
+% export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/matt/packages/boost_1_44_0/installTree/lib
 
-Once these are in place, make the example:
+It may also be necessary to add relevant Java libraries to that path as well,
+since the ROSE Fortran front-end is Java-based.
 
+% export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/jvm/java-6-sun/jre/lib/i386/server/
+
+Once these are set up, we can configure and build the library:
+
+% ./configure --with-rosedir=/home/matt/packages/rose-0.9.5a-17401/compileTree/
 % make
 
-Run some tests:
+There is not currently a makefile target for building the Doxygen API
+references, but this can be run manually if you have Doxygen installed:
 
-% ./test_PaulDecorate tests/test1.cpp
+% doxygen
 
-Note that you need to have the appropriate LD_LIBRARY_PATH (or, on Mac,
-DYLD_LIBRARY_PATH) set up in order to find the ROSE, BOOST, and JVM shared
-libraries.
+Once built, you can go into the tests directory and see some examples of the
+library being used.  People who will be using this library for their own
+tools should pay specific attention to the test called "example_traversal".
+This demonstrates the use of PAUL in decorating the ROSE AST with
+parsed annotations that are then consumed in a subsequent user-defined
+traversal.  In this case, the traversal simply walks the AST and for
+any node encountered that contains an annotation, the annotation is
+printed.  To run this example, provide an input source file for it to
+work on that contains code and annotations.  One is provided in the
+inputs directory called "inputs/test_example.cpp":
 
-% export LD_LIBRARY_PATH=$ROSEINSTALL/lib:$BOOSTINSTALL/lib/:/usr/lib/jvm/java-6-sun/jre/lib/i386/server/
+% cd tests
+% ./example_traversal inputs/test_example.cpp
 
-We also have standalone testers for the annotation objects,
-independent of ROSE.  These are good for testing the annotaitons in
-isolation to avoid inducing bugs outside of them during the
-development process.  (E.g., hitting ROSE bugs while debugging an
-annotation object).
+The other tests that are provided (test_PaulDecorate, test_SXAnnotation,
+and test_KVAnnotation) are primarily intended for PAUL library developers
+to test the functionality of the library itself and are less informative
+for users concerned with using the library.
 
-% make EXEC=test_KVAnnotation
-% make EXEC=test_SVAnnotation
+3. Support
+----------
 
-3. Usage
---------
+The best way to get support on the library at the moment is to either
+contact the developers directly (matt@galois.com), or submit a support
+ticket on the compose-hpc page on Sourceforge.net.  If you are submitting
+a support ticket, please make sure to select the correct category (PAUL).
+The sourceforge page that hosts the trackers is found at:
 
-*write me*
-
-3.1 Example
------------
-
-*write me*
-
-4. FAQ
-------
-
-Q: Where is the FAQ?
-A: Not written.
-
+  https://sourceforge.net/projects/compose-hpc/
