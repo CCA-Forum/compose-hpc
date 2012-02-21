@@ -10,5 +10,10 @@ and various Unix systems.
 * TODO Items *
 ** TODO Finish struct implementation for Objects and (R)Arrays
 ** TODO Implement contract checking for Chapel
+  *** things we can leave for later:
+  **** non-static version necessary only for knapsack
+  **** statistics (gettimeofday)
+  **** can directly call skeleton from check routines
+
 ** TODO Make Chapel-Chapel interoperability work
 ** TODO Implement final methods
