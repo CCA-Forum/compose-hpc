@@ -1,7 +1,13 @@
-From scratch:
+If working from the source repository, you need to generate the
+autoconf/automake/libtool blob first:
 
 % sh ./autogen.sh
+
+Then, the usual configure/make process is used:
+
 % ./configure --with-rosedir=[where_you_put_rose]
 % make
 
-
+Please refer to README for more details, especially if the above fails
+due to missing libraries.  A few environment variables need to be set up
+to make sure ROSE and BOOST can be found, and the README explains how.
