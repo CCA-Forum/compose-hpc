@@ -78,8 +78,17 @@ since the ROSE Fortran front-end is Java-based.
 
 Once these are set up, we can configure and build the library:
 
-% ./configure --with-rosedir=/home/matt/packages/rose-0.9.5a-17401/compileTree/
+% ./configure --with-rosedir=/home/matt/packages/rose-0.9.5a-17401/compileTree/ \
+              --with-boostdir=/home/matt/packages/boost_1_44_0/installTree/
 % make
+
+Note that if you are working from the source repository directly instead of from
+a release archive, you need to first run:
+
+% sh ./autogen.sh
+
+This will run the appropriate GNU Autoconf tools in order to set up the set of
+configure scripts and makefiles necessary to configure and build the code.
 
 There is not currently a makefile target for building the Doxygen API
 references, but this can be run manually if you have Doxygen installed:
