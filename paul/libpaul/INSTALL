@@ -5,7 +5,8 @@ autoconf/automake/libtool blob first:
 
 Then, the usual configure/make process is used:
 
-% ./configure --with-rosedir=[where_you_put_rose]
+% ./configure --with-rosedir=[where_you_installed_rose] \
+              --with-boostdir=[where_you_installed_boost]
 % make
 
 Please refer to README for more details, especially if the above fails

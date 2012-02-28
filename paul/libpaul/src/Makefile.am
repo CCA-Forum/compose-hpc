@@ -60,7 +60,7 @@ parser.o: parser.c parser.h
 	${CXX} -c $(CFLAGS) parser.c -o $@
 
 lemon: lemon.c
-	cc lemon.c -o lemon
+	${CC} lemon.c -o lemon
 
 clean:
 	rm -f *.o
