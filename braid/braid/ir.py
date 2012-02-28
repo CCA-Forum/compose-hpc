@@ -92,8 +92,10 @@
 #     | char
 #     | int
 #     | long
+#     | long_long
 #     | float
 #     | double
+#     | long_double
 #     | fcomplex
 #     | dcomplex
 #     | string
@@ -161,6 +163,8 @@ log_and = 'log_and'
 log_not = 'log_not'
 log_or = 'log_or'
 long = 'long'
+long_double = 'long_double'
+long_long = 'long_long'
 lshift = 'lshift'
 lt = 'lt'
 minus = 'minus'
@@ -1226,8 +1230,10 @@ def Primitive_type(*args):
     |Char()
     |Int()
     |Long()
+    |Long_long()
     |Float()
     |Double()
+    |Long_double()
     |Fcomplex()
     |Dcomplex()
     |String()
@@ -1236,8 +1242,10 @@ def Primitive_type(*args):
     |Char()
     |Int()
     |Long()
+    |Long_long()
     |Float()
     |Double()
+    |Long_double()
     |Fcomplex()
     |Dcomplex()
     |String()
@@ -1256,9 +1264,13 @@ def Primitive_type(*args):
         pass
     elif args[0] == long:
         pass
+    elif args[0] == long_long:
+        pass
     elif args[0] == float:
         pass
     elif args[0] == double:
+        pass
+    elif args[0] == long_double:
         pass
     elif args[0] == fcomplex:
         pass
@@ -3066,6 +3078,18 @@ def primitive_type_long(arg):
     else: return arg[1]
 
 
+def primitive_type_long_long(arg):
+    """
+    Accessor function.
+    \return the "long_long" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
 def primitive_type_float(arg):
     """
     Accessor function.
@@ -3082,6 +3106,18 @@ def primitive_type_double(arg):
     """
     Accessor function.
     \return the "double" member of a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'primitive_type':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def primitive_type_long_double(arg):
+    """
+    Accessor function.
+    \return the "long_double" member of a "primitive_type" node.
     """
     if not isinstance(arg, tuple):
         raise Exception("Grammar Error")
@@ -3632,6 +3668,8 @@ pt_dcomplex = Primitive_type(dcomplex)
 pt_string   = Primitive_type(string)
 pt_void     = Primitive_type(void)
 void_ptr    = Pointer_type(pt_void)
+pt_long_long= Primitive_type(long_long)
+pt_long_double= Primitive_type(long_double)
  ## const char*
 const_str = Pointer_type(Const(Primitive_type(char)))
  

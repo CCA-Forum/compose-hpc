@@ -24,6 +24,7 @@ PYTHON_SOURCES = \
 	braid/ior_template.py \
 	braid/parse_tree.py \
 	braid/patmat.py \
+	braid/rote2braid.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
 	braid/sidl_symbols.py \
@@ -41,7 +42,7 @@ BUILT_SOURCES += $(BUILT_PYTHON_SOURCES)
 GRAMMARS = braid/ir.def braid/sidl.def
 BURG_RULES = braid/chapel/conversions.burg
 
-bin_SCRIPTS += braid/braid braid/headerize braid/pyburg
+bin_SCRIPTS += braid/braid braid/headerize braid/pyburg braid/rote2braid
 
 nobase_pyexec_LTLIBRARIES += braid/scanner.la
 braid_scanner_la_SOURCES = braid/scanner.l

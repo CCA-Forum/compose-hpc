@@ -15520,7 +15520,7 @@ else
 fi
 
 
-ac_config_files="$ac_config_files Makefile braid/braid braid/config.py braid/pyburg Doxyfile patch-chapel-compiler.sh regression/interop/build-client.sh regression/interop/build-server.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
+ac_config_files="$ac_config_files Makefile braid/braid braid/rote2braid braid/config.py braid/pyburg Doxyfile patch-chapel-compiler.sh regression/interop/build-client.sh regression/interop/build-server.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
 
 
 cat >confcache <<\_ACEOF
@@ -16618,6 +16618,7 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "braid/braid") CONFIG_FILES="$CONFIG_FILES braid/braid" ;;
+    "braid/rote2braid") CONFIG_FILES="$CONFIG_FILES braid/rote2braid" ;;
     "braid/config.py") CONFIG_FILES="$CONFIG_FILES braid/config.py" ;;
     "braid/pyburg") CONFIG_FILES="$CONFIG_FILES braid/pyburg" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
@@ -17783,6 +17784,7 @@ fi
  ;;
     "Makefile":F) chmod +x patch-chapel-compiler.sh ;;
     "braid/braid":F) chmod +x patch-chapel-compiler.sh ;;
+    "braid/rote2braid":F) chmod +x patch-chapel-compiler.sh ;;
     "braid/config.py":F) chmod +x patch-chapel-compiler.sh ;;
     "braid/pyburg":F) chmod +x patch-chapel-compiler.sh ;;
     "Doxyfile":F) chmod +x patch-chapel-compiler.sh ;;

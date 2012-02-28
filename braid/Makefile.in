@@ -51,7 +51,8 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(srcdir)/runtime/Makefile.include \
 	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
-	$(top_srcdir)/braid/pyburg.in $(top_srcdir)/configure \
+	$(top_srcdir)/braid/pyburg.in \
+	$(top_srcdir)/braid/rote2braid.in $(top_srcdir)/configure \
 	$(top_srcdir)/regression/interop/build-client.sh.in \
 	$(top_srcdir)/regression/interop/build-server.sh.in \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
@@ -108,8 +109,9 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = braid/braid braid/config.py braid/pyburg Doxyfile \
-	patch-chapel-compiler.sh regression/interop/build-client.sh \
+CONFIG_CLEAN_FILES = braid/braid braid/rote2braid braid/config.py \
+	braid/pyburg Doxyfile patch-chapel-compiler.sh \
+	regression/interop/build-client.sh \
 	regression/interop/build-server.sh \
 	regression/interop/build-tracker.sh \
 	regression/interop/driver.sh
@@ -512,7 +514,8 @@ nobase_include_HEADERS = runtime/chpl_sidl_array.h runtime/sidl.chpl \
 BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) runtime/sidl.chpl \
 	$(SIDLSTUB_SRCS)
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
-bin_SCRIPTS = braid/braid braid/headerize braid/pyburg
+bin_SCRIPTS = braid/braid braid/headerize braid/pyburg \
+	braid/rote2braid
 TESTS = $(am__append_1) $(am__append_2)
 TEST_EXTENSIONS = .py .sidl $(am__append_3)
 
@@ -559,6 +562,7 @@ PYTHON_SOURCES = \
 	braid/ior_template.py \
 	braid/parse_tree.py \
 	braid/patmat.py \
+	braid/rote2braid.py \
 	braid/sidl_oop.py \
 	braid/sidl_parser.py \
 	braid/sidl_symbols.py \
@@ -918,6 +922,8 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
 braid/braid: $(top_builddir)/config.status $(top_srcdir)/braid/braid.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+braid/rote2braid: $(top_builddir)/config.status $(top_srcdir)/braid/rote2braid.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 braid/config.py: $(top_builddir)/config.status $(top_srcdir)/braid/config.py.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

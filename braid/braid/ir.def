@@ -100,8 +100,10 @@
     | char
     | int
     | long
+    | long_long
     | float
     | double
+    | long_double
     | fcomplex
     | dcomplex
     | string
@@ -127,6 +129,8 @@
 %pt_string   = Primitive_type(string)
 %pt_void     = Primitive_type(void)
 %void_ptr    = Pointer_type(pt_void)
+%pt_long_long= Primitive_type(long_long)
+%pt_long_double= Primitive_type(long_double)
 %
 % ## const char*
 %const_str = Pointer_type(Const(Primitive_type(char)))

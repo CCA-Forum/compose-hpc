@@ -1224,4 +1224,4 @@ if __name__ == '__main__':
     # print 'Generating scanner...'
     # lex.lex(debug=_debug, optimize=0)
     print '  --> Generating parser'
-    yacc.yacc(optimize=0,debug=1,debugfile='parser.out')
+    yacc.yacc(optimize=1,debug=0,debugfile='parser.out')

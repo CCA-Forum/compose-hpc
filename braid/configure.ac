@@ -170,6 +170,7 @@ AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION,
 
 AC_CONFIG_FILES([Makefile 
   braid/braid 
+  braid/rote2braid 
   braid/config.py 
   braid/pyburg 
   Doxyfile

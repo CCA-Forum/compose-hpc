@@ -95,7 +95,7 @@
 # Written by Adrian Prantl <adrian@llnl.gov>.<br/>
 # LLNL-CODE-473891. All rights reserved.<br/>
 # <h3>Interns</h3>
-# Shams Imam, Rice University
+# Shams Imam, Rice University (summer 2011)
 #
 # <h2>Further Reading</h2>
 #
@@ -108,10 +108,12 @@
 
 
 import argparse, re, sys
-import sidl_parser, sidl_symbols, codegen, config, legal
-import chapel.backend as chpl_be
+import config, legal
 
 def braid(args):
+    import chapel.backend as chpl_be
+    import sidl_parser, sidl_symbols, codegen
+
     for sidl_file in args.sidl_files:
         sidl_ast = sidl_parser.parse(sidl_file)
         
@@ -151,6 +153,7 @@ def inject_sidl_runtime(sidl_ast, args):
     Parse the sidl, sidlx runtime library and inject it into the
     imports field of \c sidl_ast.
     """
+    import sidl_parser
     if not config.HAVE_BABEL:
         print "**ERROR: Please reconfigure %s to have Babel support." \
               %config.PACKAGE_NAME

@@ -1,0 +1,5 @@
+#!/bin/sh
+export LD_LIBRARY_PATH=@PYTHON_SHARED_LIBRARY_DIR@:LD_LIBRARY_PATH
+export SITE=@prefix@/lib/python@PYTHON_VERSION@/site-packages
+export PYTHONPATH=@PYTHONPATH@:$SITE:$SITE/braid
+exec @PYTHON@ $SITE/braid/rote2braid.pyo "$@"

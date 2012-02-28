@@ -494,7 +494,7 @@ class F77File(SourceFile):
                 data.append(defn+'\n')
             elif defn[0] == '&': data.extend(['     &      ', defn[1:], '\n'])
             elif defn[0] == '@':
-                   label = True; data.extend([' ', defn[1:],'    '])
+                   label = True; data.extend([' ', defn[1:], '    '])
             else:                data.extend(['        ', defn, '\n'])
 
         return ''.join(data)
@@ -1187,14 +1187,6 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
-
-            # do not make a pointer out of inout structs
-            # FIXME: shouldn't this be part of lower_ir? 
-            #elif (ir.arg, Attr, ir.out, (ir.pointer_type, (ir.struct, _, _, _)), Name):
-            #   return '%s %s'% (gen(node[3]), gen(Name))
-            #
-            #elif (ir.arg, Attr, ir.inout, (ir.pointer_type, (ir.struct, _, _, _)), Name):
-            #   return '%s %s'% (gen(node[3]), gen(Name))
 
             elif (ir.arg, Attr, ir.in_, Type, Name):
                 return '%s %s'% (gen(Type), gen(Name))
