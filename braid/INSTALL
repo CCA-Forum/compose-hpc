@@ -54,13 +54,16 @@ of the chapel compiler. For this, you need to
   2. configure Braid as above (but don't run `make install' yet)
 
   3. run
+  
     $ bash ./patch-chapel-compiler.sh
     
   4. answer `yes'. The script will patch and recompile the compiler
   automatically. You can undo this operation by running  
-      $ bash ./patch-chapel-compiler.sh --undo
 
-  5. run 
+    $ bash ./patch-chapel-compiler.sh --undo
+
+  5. run
+
     $ make install
 
 Last updated:  20 June 2011

@@ -110,16 +110,16 @@ new processes via SLURM::
 
 
 Those are substitutions made by Chapel (or GASnet), here is a list
-taken from one of the Chapel-internal Makefiles
+taken from one of the Chapel-internal Makefiles::
 
-# The following substitutions are performed:
-#   %P = program executable name
-#   %N = requested node count
-#   %A = program arguments
-#   %Q = program arguments w/ an extra level of quotes
-#   %D = the current working directory
-#   %H = hostfile (if any)
-CONDUIT_RUNCMD = mpirun -np %N %P %A
+    # The following substitutions are performed:
+    #   %P = program executable name
+    #   %N = requested node count
+    #   %A = program arguments
+    #   %Q = program arguments w/ an extra level of quotes
+    #   %D = the current working directory
+    #   %H = hostfile (if any)
+    CONDUIT_RUNCMD = mpirun -np %N %P %A
 
 The way I understand it SLURM provides the mpirun launcher on the
 machines it manages. Chapel/GASnet uses this mechanism to trick SLURM
@@ -155,18 +155,18 @@ If you just want to compile and install BRAID, you will need:
 
 If you want to run the regression tests, you will also need:
 - Babel:                 Version 2.0 or higher
-- Chapel:                Version 1.3.0
+- Chapel:                Version 1.4.0
 - Java:                  JVM 1.6 or higher
 - NumPy:                 Version 1.0.4 or higher
 
 
 Developer-only dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Make:                  GNU make version 3.74 or higher
+- Make:          GNU make version 3.74 or higher
 - Autotools:     Version 2.65 or later
 - SWI-Prolog:    Version 5.10.4 or higher 
                                  (only needed if you intend to modify [ir,sidl].def)
-- Doxygen:               Version 1.6 or higher 
+- Doxygen:       Version 1.6 or higher 
                                  (disable with ./configure --disable-documentation)
 - graphviz:      (for Doxygen)
 - GNU flex
