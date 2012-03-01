@@ -31,6 +31,7 @@ def do(node):
         elif ('source_file', Global, _, _): return do(Global)
         elif ('global', Defs, _, _):        return do(Defs)
 
+        # Declarations
         elif ('class_declaration', Defn, ('class_declaration_annotation', Name, _, _, _), _):
             return ir.Struct(Name, do(Defn), '')
 
@@ -47,35 +48,46 @@ def do(node):
             # this needs more work
             return ir.Arg([], ir.inout, do(Type), Name)
 
-        elif ('function_type', Type, _, _): return do(Type)
         elif ('typedef_declaration', _, ('typedef_annotation', Name, Type, _), _): 
             return ir.Typedef_type(Name)
-        elif ('typedef_type', Name, Type): return ir.Typedef_type(Name)
-
+        
+        # Expressions and statements
         elif ('basic_block', Stmts, _, _): return do(Stmts)
         elif ('expr_stmt', Expr, _, _): return ir.stmt(do(Expr))
         elif ('function_call_exp', Fn, Args, _, _): return ir.call(do(Fn), do(Args))
         elif ('function_ref_exp', ('function_ref_exp_annotation', Name, _, _, _), _): return Name
 
-        elif ('pointer_type', Type): return ir.Pointer_type(do(Type))
-        elif ('modifier_type', Type, ('type_modifier', _, _, 'const', _)): return ir.Const(do(Type))
+        # Types
+        elif ('typedef_type', Name, Type):  return ir.Typedef_type(Name)
+        elif ('function_type', Type, _, _): return do(Type)
+        elif ('pointer_type',  Type):       return ir.Pointer_type(do(Type))
+        elif ('modifier_type', Type, ('type_modifier', _, _, 'const', _)): 
+            return ir.Const(do(Type))
+        elif ('modifier_type', Type, _):  return do(Type) # precision loss
 
-        elif ('modifier_type', Type, _): return do(Type) # precision loss
-        elif ('class_type', Name, _, _): return ir.Struct(ir.Scoped_id([], Name, ''), [], '')
-        elif 'type_bool': return ir.pt_bool
-        elif 'type_char': return ir.pt_char
-        elif 'type_int':  return ir.pt_int
-        elif 'type_long': return ir.pt_long
-        elif 'type_void': return ir.pt_void
-        elif 'type_float':  return ir.pt_float
-        elif 'type_double': return ir.pt_double
+        elif ('class_type', Name, _, _): 
+            return ir.Struct(ir.Scoped_id([], Name, ''), [], '')
+
+        elif 'type_bool':        return ir.pt_bool
+        elif 'type_char':        return ir.pt_char
+        elif 'type_int':         return ir.pt_int
+        elif 'type_long':        return ir.pt_long
+        elif 'type_void':        return ir.pt_void
+        elif 'type_float':       return ir.pt_float
+        elif 'type_double':      return ir.pt_double
         elif 'type_long_double': return ir.pt_long_double
-        elif 'type_long_long': return ir.pt_long_long
+        elif 'type_long_long':   return ir.pt_long_long
+
         elif ('array_type', Type, ('unsigned_long_val', ('value_annotation', Dim, _), _), _, _):
             return ir.Pointer_type(do(Type))
+
         elif ('array_type', Type, _, _, _):
             return ir.Pointer_type(do(Type))
-        elif 'null': return []
+
+        elif 'null': 
+            return []
+
+        # other
         elif A:
             if isinstance(A, list):
                 return map(do, A)
