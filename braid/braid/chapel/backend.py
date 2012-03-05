@@ -41,7 +41,6 @@ from patmat import *
 from codegen import (CFile)
 from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, incoming, outgoing, gen_doc_comment)
 from sidl_symbols import scan_methods
-from args import ir_arg_to_chpl
 import conversions as conv
 import makefile
 
@@ -1520,7 +1519,7 @@ class GlueCodeGenerator(object):
         rarg = ir.Arg([], ir.out, ctype, '_retval')
         conv.codegen((('chpl', strip(ctype)), '_CHPL__retval'), strip(ctype),
                      post_call, opt, '_retval', ctype)
-        chpl_rarg = ir_arg_to_chpl(rarg)
+        chpl_rarg = conv.ir_arg_to_chpl(rarg)
         _,_,_,chpltype,_ = chpl_rarg
         if Type <> sidl.void:
             decls.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
@@ -1533,7 +1532,7 @@ class GlueCodeGenerator(object):
                 return (arg, attr, mode, (ir.pointer_type, typ), name)
           else: return (arg, attr, mode, typ, name)
 
-        chpl_args = map(pointerize_struct, map(ir_arg_to_chpl, ior_args))
+        chpl_args = map(pointerize_struct, map(conv.ir_arg_to_chpl, ior_args))
 
      
         # Proxy declarations / revised names of call arguments

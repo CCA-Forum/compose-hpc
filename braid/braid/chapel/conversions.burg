@@ -35,6 +35,8 @@ def c_gen(ir, scope=None):
         scope = CFile()
     return CCodeGenerator().generate(ir, scope)
 
+def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
+    return arg, attrs, mode, ir_type_to_chpl(typ), name
 
 def ir_type_to_chpl(typ):
     """

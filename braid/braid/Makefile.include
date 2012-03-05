@@ -89,7 +89,8 @@ SIDL_TESTS= \
 	regression/parser/wave2d.sidl \
 	regression/parser/wrapper.sidl
 
-EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) braid/gramola.pl braid/ir.py braid/sidl.py braid/headerize
+EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) $(BURG_RULES) \
+	braid/gramola.pl braid/ir.py braid/sidl.py braid/headerize
 
 # Most of the Python files contain doctest tests, see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
