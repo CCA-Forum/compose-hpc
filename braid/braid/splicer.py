@@ -25,7 +25,7 @@ import os,re
 
 def replace(filename, splicer_name, text):
     """
-    Replace the contents of a \c splicer_block with \c text.
+    Replace the contents of one specific \c splicer_block with \c text.
     \param filename      The name of the file to edit.
     \param splicer_name  The name of the splicer block to edit.
     \param text          The text to put inside the splicer block.
@@ -91,7 +91,7 @@ def record(filename):
             splicer.append(line)
 
     if inside:
-        raise Exception("unclosed splicer block: "+splicer+name)
+        raise Exception("unclosed splicer block: "+splicer_name)
     
     src.close()
     return splicers
@@ -117,16 +117,25 @@ def apply_all(filename, splicers):
         m = re.match(r'.*DO-NOT-DELETE splicer\.begin\((.*)\).*', line)
         if m:
             splicer_name = m.group(1)
-            block = splicers[splicer_name]
-            dest.write(line)
-            for l in block: 
-                dest.write(l)
+            try:
+                block = splicers[splicer_name]                
+                dest.write(line)
+                for l in block: 
+                    dest.write(l)
+            except KeyError:
+                print "**INFO: The following new splicer block was added to %s: %s" \
+                    % (filename, splicer_name)
             inside = True
             did_replace = True
+
         elif (inside and re.match(
                 r'.*DO-NOT-DELETE splicer\.end\(%s\).*'%splicer_name, line)):
             inside = False
-            all_splicers.remove(splicer_name)
+            try: 
+                all_splicers.remove(splicer_name)
+            except KeyError:
+                # this is the closing of a new splicer block
+                pass
 
         if not inside:
             dest.write(line)                
@@ -138,9 +147,15 @@ def apply_all(filename, splicers):
         raise Exception("splicer block not found")
 
     if len(all_splicers) > 0:
-        print "**ERROR: The following splicer blocks were not found in %s: " % filename
-        for x in all_splicers: 
-            print x
+        print "**WARNING: The following splicer blocks are no longer present in %s: " % filename
+        for name in all_splicers: 
+            print name
+            if splicers[name]:
+                print splicers[name]
+                dest.write('ORPHANED SPLICER BLOCK splicer.begin(%s)'%name)
+                dest.write(splicers[name])
+                dest.write('ORPHANED SPLICER BLOCK splicer.end(%s)'%name)
+
         exit(1)
 
     src.close()

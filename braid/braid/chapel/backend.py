@@ -1377,15 +1377,20 @@ class GlueCodeGenerator(object):
                 # record it for later
                 self.pkg_enums_and_structs.append(struct_ior_names(node))
 
+            elif (sidl.enum, Name, Items, DocComment):
+                # Generate Chapel stub
+                self.pkg_chpl_skel.gen(ir.Type_decl(node))
+                self.pkg_enums_and_structs.append(node)
+
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
                 qname = '_'.join(symbol_table.prefix+[Name])
                 pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
                 if self.in_package:
                     # nested modules are generated in-line
-                    self.pkg_chpl_stub.new_def('module %s {'%Name)
+                    self.pkg_chpl_skel.new_def('module %s {'%Name)
                     self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
-                    self.pkg_chpl_stub.new_def('}')
+                    self.pkg_chpl_skel.new_def('}')
                 else:
                     # new file for the toplevel package
                     self.pkg_chpl_skel = ChapelFile(qname+'_Skel')

@@ -118,13 +118,18 @@ AX_WITH_PROG(CHAPEL, chpl)
 AS_IF([test -n "$CHAPEL" -a -x "$CHAPEL"],
     [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
      AC_MSG_RESULT([using $CHAPEL (version $CHAPEL_VERSION)])
+
      AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.4.0], 
          [AC_SUBST([CHAPEL], ["$CHAPEL"])
  	  CHAPEL_ROOT=`dirname \`dirname \\\`dirname $CHAPEL\\\`\``
           AC_SUBST([CHAPEL_ROOT], [$CHAPEL_ROOT])
-          AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])],
+          AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])
+          AM_CONDITIONAL([BABEL_LANG_CHAPEL], [true])],
+
 	 [AC_MSG_NOTICE([Chapel version < 1.4 is too old])
-          AC_SUBST([CHAPEL], [])])
+          AC_SUBST([CHAPEL], [])
+          AM_CONDITIONAL([BABEL_LANG_CHAPEL], [false])]
+     )
      AS_IF([test -n "$CHPL_COMM" ],
           [AC_SUBST([CHAPEL_COMM], [$CHPL_COMM])
            AC_MSG_NOTICE([Chapel: CHPL_COMM=$CHPL_COMM])],
@@ -135,6 +140,7 @@ Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
     ],
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
      AC_SUBST([CHAPEL], [])])
+
 
 ############################################################
 #
