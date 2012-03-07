@@ -91,7 +91,7 @@ def parse_tree_file(filename):
     a(b(c),[d]) and return a python tuple 
     ('a', ('b', 'c'), ['d']).
 
-    \param s is expected to be a path to a file.
+    \param filename  is expected to be a path to a file.
     """
     f = open(filename)
     data = f.read()

@@ -1,18 +1,23 @@
 #!/usr/bin/swipl -q -O -t main -s
 % -*- prolog -*-, not perl
 /**
- * GRAMOLA: Code generator for BRAID intermediate representation grammars
+ * @package gramola
+ *
+ * GRAMOLA is a code generator for BRAID intermediate representation grammars.
+ * <pre>
  *   `I'd rather write a program to write programs to write programs
  *    than write a program to write programs.'
- *
+ * </pre>
  *
  * Input: a grammar specification
  *
  * Output: Python code to create and typecheck expressions of that grammar
  *
  * Usage:
+ * <pre>
  *   egrep '^%[^%]' $< | sed -e 's/^% %%/##/g' -e 's/^%//g' >$@; \
  *   swipl -f gramola.pl -t main -q <grammar_def.pl >>ir_def.py
+ * </pre>
  */
 
 % Before doing anything else, set up handling to halt if warnings or errors
@@ -69,9 +74,13 @@ main(_) :-
     maplist(constructor, CycGrammarRHS, Docstrings),
 
     % generate the accessor functions
+    format('~n~n## Accessor functions~n~n'),
     maplist(lownames, Vacc),
     maplist(rhs_of, Gacc, GaccRHS), !,
-    maplist(accessor, GaccRHS, Docstrings).
+    maplist(accessor, GaccRHS, Docstrings),
+
+    format('~n~n## instance checks~n~n'),
+    maplist(instanceof, GaccRHS, Docstrings).
 
 %    format('~n~n## Traversal classes~n~n'),
 %    format('def DepthFirstPostOrderTraversal():~n'),
@@ -355,6 +364,30 @@ accessor1(Type, N, [Arg|Args]) :-
        N1 is N+1,
        accessor1(Type, N1, Args)
       ).
+
+% ----------------------------------------------------------------------
+
+%% instanceof/2: output an instanceof function for a given grammar node
+instanceof([], _).
+instanceof(_A|_B, Doc) :- format('# skipping ~w~n', [Doc]).
+instanceof([_|_], Doc) :- format('# skipping ~w~n', [Doc]).
+instanceof(Atom, Doc) :- atom(Atom), format('# skipping ~w~n', [Doc]).
+
+instanceof(Term, _) :-	       % functors: this is the intersting case
+    ground(Term),	       % sanity check
+    Term =.. [Type|_],
+    format('def is_~a(arg):~n', [Type]),
+    format('    """~n'),
+    format('    instanceof-like function.~n'),
+    format('    \\return \\c True if the argument is a "~a" node.~n', [Type]),
+    format('    """~n'),
+    format('    if not isinstance(arg, tuple):~n', []),
+    format('        raise Exception("Grammar Error")~n'),
+    format('    return arg[0] == \'~a\'~n~n', [Type]).
+
+instanceof(Error, _) :-
+    format(user_error, '**ERROR: In ~w~n', [Error]),
+    halt(1).
 
 % ----------------------------------------------------------------------
 

@@ -225,7 +225,7 @@ class SymbolTable(object):
         if self._parent:
             return self._parent
         else:
-            raise Exception("Symbol lookup error: no parent scope")
+            raise KeyError("Symbol lookup error: no parent scope")
 
     def lookup(self, key):
         """
@@ -242,7 +242,7 @@ class SymbolTable(object):
         """
         perform a recursive symbol lookup of a scoped identifier
         """
-        scopes = scoped_id[1]+[scoped_id[2]]
+        scopes = list(scoped_id[1])+[scoped_id[2]]
         n = len(scopes)
         symbol_table = self
         # go up (and down again) in the hierarchy
@@ -277,7 +277,7 @@ class SymbolTable(object):
             while not symbol_table.lookup(scopes[0]): 
                 symbol_table = symbol_table.parent()
             found = True    
-        except Exception:
+        except KeyError:
             pass
         
         if not found:
@@ -293,7 +293,8 @@ class SymbolTable(object):
                         break
         
         if not found:
-            raise Exception('Cannot resolve full name for ' + str(scopes[0]) + ' from ' + str(self.prefix))
+            raise Exception('Cannot resolve full name for ' + str(scopes[0]) +
+                            ' from ' + str(self.prefix))
                 
         #while symbol_table._parent:
         #    symbol_table = symbol_table.parent()
@@ -411,3 +412,60 @@ def scan_methods(symbol_table, is_abstract,
             remove_method(m)
         #print name, m[2], toplevel
         add_method(m, toplevel)
+
+
+def get_parents(symbol_table, class_or_interface, all_parents):
+    """
+    Return a list of the names of all base classes and implemented
+    interfaces of a class in \c all_parents
+    """
+
+    def f(s_id):
+        c_i = symbol_table[s_id]
+        all_parents.append(c_i)
+
+    start = sidl.Scoped_id(symbol_table.prefix, sidl.type_id(class_or_interface), '')
+    sidl.visit_hierarchy(start, f, symbol_table, [])
+    return all_parents
+
+def get_parent_interfaces(symbol_table, class_or_interface):
+
+    """
+    return a list of the scoped ids of all implemented interfaces
+    """
+    isinterface = sidl.is_interface(class_or_interface)
+    isclass = sidl.is_class(class_or_interface)
+    assert isclass or isinterface
+
+    def f(s_id):
+        c_i = symbol_table[s_id]
+        if c_i[0] == sidl.interface:
+            # make it hashable
+            sid, modules, name, ext = s_id
+            all_interfaces.append((sid, tuple(modules), name, ext))
+
+    all_interfaces = []
+    tid = sidl.type_id(class_or_interface)
+    if isclass and not isinstance(tid, tuple):
+        start = sidl.Scoped_id(symbol_table.prefix, tid, '')
+    else:
+        start = tid
+
+    sidl.visit_hierarchy(start, f, symbol_table, [])
+    if isinterface:
+        # first one is the interface itself
+        return all_interfaces[1:]
+    return all_interfaces
+
+
+def get_direct_parent_interfaces(symbol_table, cls):
+
+    """
+    return a list of all direct (local) implemented interfaces
+    """
+   
+    if cls[0] == sidl.interface:
+        parents = sidl.interface_extends(cls)
+    else:
+        parents = sidl.class_implements(cls)
+    return [symbol_table[impl] for _, impl in parents]

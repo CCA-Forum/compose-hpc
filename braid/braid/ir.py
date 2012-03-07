@@ -2438,6 +2438,10 @@ def Const(*args):
         raise Exception("Grammar Error")
     return tuple(['const']+list(args))
 
+
+
+## Accessor functions
+
 # skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum)
 def import_id(arg):
     """
@@ -3655,6 +3659,388 @@ def const_type(arg):
         raise Exception("Grammar Error")
     else: return arg[1]
 
+
+
+
+## instance checks
+
+# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum)
+def is_import(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "import" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'import'
+
+# skipping \c Var_decl= (\c Var_decl|\c Var_decl_init)
+def is_fn_defn(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "fn_defn" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'fn_defn'
+
+def is_fn_decl(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "fn_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'fn_decl'
+
+# skipping \c _File=[ (\c Fn_decl|\c Fn_defn|\c Var_decl|\c Import|\c Type_decl)]
+# skipping \c Id=STR
+def is_goto(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "goto" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'goto'
+
+# skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
+def is_if(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "if" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'if'
+
+def is_return(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "return" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'return'
+
+def is_while(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "while" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'while'
+
+def is_do_while(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "do_while" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'do_while'
+
+def is_comment(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "comment" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'comment'
+
+# skipping \c Stmt= (\c Stmt|\c Comment)
+# skipping \c Body=[\c Stmt]
+def is_arg(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'arg'
+
+def is_struct(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'struct'
+
+def is_struct_item(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'struct_item'
+
+# skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Un_op= (is|log_not|bit_not)
+# skipping \c Bits=INT
+# skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
+def is_complex(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "complex" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'complex'
+
+def is_bool(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "bool" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'bool'
+
+def is_double(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "double" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'double'
+
+def is_float(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "float" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'float'
+
+def is_str(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "str" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'str'
+
+def is_scoped_id(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "scoped_id" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'scoped_id'
+
+# skipping \c DocComment=STR
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
+def is_enum(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "enum" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'enum'
+
+def is_deref(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "deref" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'deref'
+
+def is_pointer_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "pointer_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'pointer_expr'
+
+# skipping \c Attr= (static|pure|hooks)
+# skipping \c Mode= (in|out|inout)
+def is_pointer_type(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "pointer_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'pointer_type'
+
+def is_primitive_type(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'primitive_type'
+
+# skipping \c Module=STR
+# skipping \c Extension=STR
+def is_type_decl(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "type_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'type_decl'
+
+def is_stmt(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'stmt'
+
+def is_new(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "new" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'new'
+
+def is_set_struct_item(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "set_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'set_struct_item'
+
+def is_assignment(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "assignment" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'assignment'
+
+def is_set_arg(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "set_arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'set_arg'
+
+def is_infix_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'infix_expr'
+
+def is_prefix_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'prefix_expr'
+
+def is_sign_extend(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "sign_extend" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'sign_extend'
+
+def is_var_decl(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "var_decl" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'var_decl'
+
+def is_var_decl_init(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "var_decl_init" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'var_decl_init'
+
+def is_enumerator(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "enumerator" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'enumerator'
+
+def is_enumerator_value(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "enumerator_value" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'enumerator_value'
+
+def is_get_struct_item(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "get_struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'get_struct_item'
+
+def is_call(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "call" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'call'
+
+def is_typedef_type(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "typedef_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'typedef_type'
+
+def is_const(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "const" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'const'
 
  ## ir primitive types
 pt_bool     = Primitive_type(bool)

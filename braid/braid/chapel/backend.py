@@ -36,11 +36,12 @@
 #
 
 import ior, ior_template, ir, os.path, sidl, splicer
+from string import Template
 from utils import write_to, unzip
 from patmat import *
 from codegen import (CFile)
 from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, incoming, outgoing, gen_doc_comment)
-from sidl_symbols import scan_methods
+from sidl_symbols import scan_methods, get_parents
 import conversions as conv
 import makefile
 
@@ -207,6 +208,8 @@ class GlueCodeGenerator(object):
                      stub_parent=None,
                      skel_parent=None):
             
+            self.name = name
+            self.qualified_name = qualified_name
             self.impl = ChapelFile()
             self.chpl_method_stub = ChapelFile(parent=stub_parent, relative_indent=4)
             self.chpl_skel = ChapelFile(parent=skel_parent, relative_indent=0)
@@ -1084,7 +1087,7 @@ class GlueCodeGenerator(object):
 
     def generate_ior(self, ci, extends, implements, methods):
         """
-        Generate the IOR header file in C.
+        Generate the IOR header file in C and the IOR C file.
         """
         prefix = '_'.join(ci.epv.symbol_table.prefix)
         iorname = '_'.join([prefix, ci.epv.name])
@@ -1093,6 +1096,9 @@ class GlueCodeGenerator(object):
         ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
 
         def gen_cast(scope):
+            """
+            this is Chapel-specific... should we move it somewhere else?
+            """
             base = qual_id(scope)
             ci.ior.genh(ir.Import(base+'_IOR'))
             # Cast functions for the IOR
@@ -1185,8 +1191,16 @@ class GlueCodeGenerator(object):
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
             babel_static_ior_args([], [], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
-        ci.ior.new_def(ior_template.text.format(
-            Class = iorname, Class_low = str.lower(iorname)))
+
+        # class hierarchy for thecasting function
+        cls = sidl.Class(ci.name, extends, implements, [],[],'')
+        sorted_types = sorted(get_parents(ci.epv.symbol_table, cls, []), 
+                              key = lambda x: qual_id(x[1]))
+
+        ci.ior.new_def(Template(ior_template.text).substitute(
+            Class = iorname, Class_low = str.lower(iorname),
+            Casts = ior_template.cast_binary_search(
+                      ci.epv.symbol_table, sorted_types, cls, True)))
 
     
     @matcher(globals(), debug=False)
@@ -1259,10 +1273,10 @@ class GlueCodeGenerator(object):
                     sidl.Method(t, sidl.Method_name(name, ''), [],
                                 args, [], [], [], [], 
                                 'Implicit built-in method: '+name))
-            builtin(sidl.void, '_ctor', [])
-            builtin(sidl.void, '_ctor2',
-                    [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
-            builtin(sidl.void, '_dtor', [])
+            # builtin(sidl.void, '_ctor', [])
+            # builtin(sidl.void, '_ctor2',
+            #         [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
+            # builtin(sidl.void, '_dtor', [])
 
 
             # recurse to generate method code
@@ -1309,22 +1323,30 @@ class GlueCodeGenerator(object):
 
             # set_epv ... Setup the EPV
             epv_t = ci.epv.get_ir()
-            pre_epv_t = ci.epv.get_pre_epv_ir()
-            post_epv_t = ci.epv.get_post_epv_ir()
+            sepv_t = ci.epv.get_sepv_ir()
+            pre_epv_t   = ci.epv.get_pre_epv_ir()
+            pre_sepv_t  = ci.epv.get_pre_sepv_ir()
+            post_epv_t  = ci.epv.get_post_epv_ir()
+            post_sepv_t = ci.epv.get_post_sepv_ir()
             cskel.gen(ir.Fn_decl([], ir.pt_void, 'ctor', [], ''))
             cskel.gen(ir.Fn_decl([], ir.pt_void, 'dtor', [], ''))
 
             epv_init = []
             for m in methods:
                 name = m[2][1]
+                static = member_chk(sidl.static, m[3])
                 def entry(epv_t, table, field, pointer):
                     epv_init.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
 
-                entry(epv_t, 'epv', 'f_'+name, name+'_skel')
+                if static: entry(sepv_t, 'sepv', 'f_'+name, name+'_skel')
+                else:      entry(epv_t, 'epv', 'f_'+name, name+'_skel')
+
                 builtins = set(['_ctor', '_ctor2', '_dtor'])
                 if name not in builtins:
-                    entry(pre_epv_t, 'pre_epv', 'f_%s_pre'%name, 'NULL')
-                    entry(post_epv_t, 'post_epv', 'f_%s_post'%name, 'NULL')
+                    if static: entry(pre_sepv_t,  'pre_sepv',  'f_%s_pre'%name,  'NULL')
+                    else:      entry(pre_epv_t,   'pre_epv',   'f_%s_pre'%name,  'NULL')
+                    if static: entry(post_sepv_t, 'post_sepv', 'f_%s_post'%name, 'NULL')
+                    else:      entry(post_epv_t,  'post_epv',  'f_%s_post'%name, 'NULL')
             
             cskel.gen(ir.Fn_defn(
                 [], ir.pt_void, qname+'__set_epv',
@@ -1407,13 +1429,12 @@ class GlueCodeGenerator(object):
                 pkg_h.genh(ir.Import('sidlType'))
                 for es in self.pkg_enums_and_structs:
                     es_ior = lower_ir(pkg_symbol_table, es, header=pkg_h)
-                    es_chpl = conv.ir_type_to_chpl(es)
+                    es_chpl = es_ior
                     if es[0] == sidl.struct:
-                        es_chpl = conv.ir_type_to_chpl(es_ior)
+                        es_ior = conv.ir_type_to_chpl(es_ior)
+                        es_chpl = conv.ir_type_to_chpl(es)
 
                     pkg_h.gen(ir.Type_decl(es_ior))
-                    #symtab = pkg_symbol_table._parent
-                    #if symtab == None: symtab = SymbolTable()
                     pkg_chpl.gen(ir.Type_decl(es_chpl))
 
                 pkg_h.write()

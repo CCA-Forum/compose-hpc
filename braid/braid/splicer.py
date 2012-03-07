@@ -112,7 +112,6 @@ def apply_all(filename, splicers):
 
     splicer_name = ''
     inside = False
-    did_replace = False
     for line in src:
         m = re.match(r'.*DO-NOT-DELETE splicer\.begin\((.*)\).*', line)
         if m:
@@ -123,10 +122,10 @@ def apply_all(filename, splicers):
                 for l in block: 
                     dest.write(l)
             except KeyError:
-                print "**INFO: The following new splicer block was added to %s: %s" \
-                    % (filename, splicer_name)
+                if len(splicers) > 0: # be quiet if we created a new file                    
+                    print "**INFO: The following new splicer block was added to %s: %s" \
+                        % (filename, splicer_name)
             inside = True
-            did_replace = True
 
         elif (inside and re.match(
                 r'.*DO-NOT-DELETE splicer\.end\(%s\).*'%splicer_name, line)):
@@ -139,12 +138,10 @@ def apply_all(filename, splicers):
 
         if not inside:
             dest.write(line)                
-                
+
+    # error reporting
     if inside:
         raise Exception("unclosed splicer block: "+splicer_name)
-
-    if not did_replace:
-        raise Exception("splicer block not found")
 
     if len(all_splicers) > 0:
         print "**WARNING: The following splicer blocks are no longer present in %s: " % filename
@@ -155,8 +152,6 @@ def apply_all(filename, splicers):
                 dest.write('ORPHANED SPLICER BLOCK splicer.begin(%s)'%name)
                 dest.write(splicers[name])
                 dest.write('ORPHANED SPLICER BLOCK splicer.end(%s)'%name)
-
-        exit(1)
 
     src.close()
     dest.close()

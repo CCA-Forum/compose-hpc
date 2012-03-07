@@ -100,6 +100,8 @@
 #   Literal = ('INT' | 'FLOAT' | 'STR' | pure | result | Complex),
 #   Complex = complex('FLOAT', 'FLOAT')
 # ].
+# 
+# 
 #\endverbatim
 
 
@@ -1714,6 +1716,10 @@ def Var_ref(*args):
         raise Exception("Grammar Error")
     return tuple(['var_ref']+list(args))
 
+
+
+## Accessor functions
+
 def requires_scoped_id(arg):
     """
     Accessor function.
@@ -2913,6 +2919,357 @@ def var_ref_id(arg):
     else: return arg[1]
 
 
+
+
+## instance checks
+
+def is_requires(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "requires" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'requires'
+
+def is_import(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "import" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'import'
+
+def is_user_type(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "user_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'user_type'
+
+def is_file(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "file" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'file'
+
+def is_version(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "version" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'version'
+
+def is_scoped_id(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "scoped_id" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'scoped_id'
+
+# skipping \c Id=STR
+# skipping \c Doc_comment=STR
+def is_package(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "package" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'package'
+
+# skipping \c Type_attr= (final|abstract)
+# skipping \c Custom_attr= (\c Custom_attribute|\c Custom_attribute_assoc)
+# skipping \c Cipse= (\c Class|\c Interface|\c Package|\c Struct|\c Enum)
+def is_struct(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "struct" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'struct'
+
+def is_enum(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "enum" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'enum'
+
+def is_interface(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "interface" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'interface'
+
+def is_class(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "class" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'class'
+
+# skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
+def is_struct_item(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "struct_item" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'struct_item'
+
+# skipping \c Type_void= (void|\c Type)
+def is_rarray(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'rarray'
+
+def is_extends(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "extends" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'extends'
+
+# skipping \c Implements= (\c Implements|\c Implements_all)
+def is_invariant(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "invariant" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'invariant'
+
+def is_method(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "method" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'method'
+
+# skipping \c Method_attr= (oneway|local|static|abstract|final|nonblocking|copy)
+def is_arg(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "arg" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'arg'
+
+def is_except(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "except" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'except'
+
+def is_from(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "from" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'from'
+
+def is_require(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "require" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'require'
+
+def is_ensure(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "ensure" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'ensure'
+
+def is_method_name(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "method_name" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'method_name'
+
+# skipping \c Extension=STR
+# skipping \c Type= (\c Primitive_type|\c Array|\c Scoped_id)
+def is_assertion(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "assertion" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'assertion'
+
+# skipping \c AssertExpr= (\c Infix_expr|\c Prefix_expr|\c Fn_eval|\c Var_ref|\c Id|\c Literal)
+# skipping \c Arg_attr= (copy|[STR])
+# skipping \c Mode= (in|out|inout)
+def is_array(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "array" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'array'
+
+def is_primitive_type(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "primitive_type" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'primitive_type'
+
+# skipping \c Scalar_type= (\c Primitive_type|\c Scoped_id)
+# skipping \c Dimension=INT
+# skipping \c Orientation= (row_major|column_major)
+# skipping \c Extents= \c SimpleIntExpression
+# skipping \c SimpleIntExpression= (INT|\c Id)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff)
+# skipping \c Un_op= (is|log_not|bit_not)
+# skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
+# skipping \c Module=STR
+def is_complex(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "complex" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'complex'
+
+def is_enumerator(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "enumerator" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'enumerator'
+
+def is_enumerator_value(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "enumerator_value" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'enumerator_value'
+
+def is_implements(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "implements" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'implements'
+
+def is_implements_all(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "implements_all" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'implements_all'
+
+def is_custom_attribute(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "custom_attribute" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'custom_attribute'
+
+def is_custom_attribute_assoc(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "custom_attribute_assoc" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'custom_attribute_assoc'
+
+def is_infix_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'infix_expr'
+
+def is_prefix_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'prefix_expr'
+
+def is_fn_eval(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "fn_eval" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'fn_eval'
+
+def is_var_ref(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "var_ref" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    return arg[0] == 'var_ref'
+
  ## token overrides to simplify the parser
 bit_not = '~'
 eq = '=='
@@ -2945,7 +3302,7 @@ pt_fcomplex = Primitive_type(fcomplex)
 pt_dcomplex = Primitive_type(dcomplex)
 pt_string   = Primitive_type(string)
 pt_opaque   = Primitive_type(opaque)
-def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes = []):
+def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
     """
     Visit all parent classes and implemented interfaces of
     \c base_class exactly once and invoke visit_func on each
@@ -2969,10 +3326,9 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes = []):
                for ext in extends:
                    if ext[1] not in visited_nodes:
                        step(visited_nodes, ext[1])
-               for loop_impls in n[3]:
-                   loop_interface = loop_impls[1]
-                   if loop_interface and loop_interface not in visited_nodes:
-                       step(visited_nodes, loop_interface)
+               for _, impl in n[3]:
+                   if impl and impl not in visited_nodes:
+                       step(visited_nodes, impl)
            elif n[0] == interface:
                for parent_interface in n[2]:
                    if parent_interface[1] and parent_interface[1] not in visited_nodes:
@@ -2980,3 +3336,42 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes = []):
                            
     if base_class and base_class[1] not in visited_nodes:
        step(visited_nodes, base_class)
+def get_parent(symbol_table, class_or_interface):
+    """
+    return the base class/interface of \c class_or_interface
+    """
+    extends = class_or_interface[2]
+    if extends == []:
+        return extends
+    return symbol_table[extends[0][1]]
+from sidl_symbols import get_parent_interfaces
+def get_unique_interfaces(symbol_table, cls):
+    """
+    Extract the unique interfaces from this class.  The unique interfaces
+    are those that belong to this class but do not belong to one of its
+    parents (if they exit).  The returned set consists of objects of the
+    type <code>Interface</code>.
+    """
+    unique = set(get_parent_interfaces(symbol_table, cls))
+    parent = get_parent(symbol_table, cls);
+    if parent:
+        unique -= set(get_parent_interfaces(symbol_table, parent))
+    return unique
+def type_id(t):
+    """
+    \return the Id of a class, interface, package, etc.
+    """
+    return t[1]
+def hashable((scoped_id, modules, name, ext)):
+    """
+    Make a hashable copy of a scoped_id by turning the list of modules into a tuple.
+    """
+    return scoped_id, tuple(modules), name, ext
+def hashable_type_id(t):
+    """
+    \return the (hashable) scoped Id of a class, interface, package, etc.
+    """
+    tid = t[1]
+    if isinstance(tid, tuple) and tid[0] == scoped_id:
+        return hashable(t[1])
+    return tid
