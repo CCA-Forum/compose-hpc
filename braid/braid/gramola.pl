@@ -382,7 +382,7 @@ instanceof(Term, _) :-	       % functors: this is the intersting case
     format('    \\return \\c True if the argument is a "~a" node.~n', [Type]),
     format('    """~n'),
     format('    if not isinstance(arg, tuple):~n', []),
-    format('        raise Exception("Grammar Error")~n'),
+    format('        return False~n'),
     format('    return arg[0] == \'~a\'~n~n', [Type]).
 
 instanceof(Error, _) :-

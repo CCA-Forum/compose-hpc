@@ -3671,7 +3671,7 @@ def is_import(arg):
     \return \c True if the argument is a "import" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'import'
 
 # skipping \c Var_decl= (\c Var_decl|\c Var_decl_init)
@@ -3681,7 +3681,7 @@ def is_fn_defn(arg):
     \return \c True if the argument is a "fn_defn" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'fn_defn'
 
 def is_fn_decl(arg):
@@ -3690,7 +3690,7 @@ def is_fn_decl(arg):
     \return \c True if the argument is a "fn_decl" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'fn_decl'
 
 # skipping \c _File=[ (\c Fn_decl|\c Fn_defn|\c Var_decl|\c Import|\c Type_decl)]
@@ -3701,7 +3701,7 @@ def is_goto(arg):
     \return \c True if the argument is a "goto" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'goto'
 
 # skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
@@ -3711,7 +3711,7 @@ def is_if(arg):
     \return \c True if the argument is a "if" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'if'
 
 def is_return(arg):
@@ -3720,7 +3720,7 @@ def is_return(arg):
     \return \c True if the argument is a "return" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'return'
 
 def is_while(arg):
@@ -3729,7 +3729,7 @@ def is_while(arg):
     \return \c True if the argument is a "while" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'while'
 
 def is_do_while(arg):
@@ -3738,7 +3738,7 @@ def is_do_while(arg):
     \return \c True if the argument is a "do_while" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'do_while'
 
 def is_comment(arg):
@@ -3747,7 +3747,7 @@ def is_comment(arg):
     \return \c True if the argument is a "comment" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'comment'
 
 # skipping \c Stmt= (\c Stmt|\c Comment)
@@ -3758,7 +3758,7 @@ def is_arg(arg):
     \return \c True if the argument is a "arg" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'arg'
 
 def is_struct(arg):
@@ -3767,7 +3767,7 @@ def is_struct(arg):
     \return \c True if the argument is a "struct" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'struct'
 
 def is_struct_item(arg):
@@ -3776,7 +3776,7 @@ def is_struct_item(arg):
     \return \c True if the argument is a "struct_item" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'struct_item'
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
@@ -3790,7 +3790,7 @@ def is_complex(arg):
     \return \c True if the argument is a "complex" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'complex'
 
 def is_bool(arg):
@@ -3799,7 +3799,7 @@ def is_bool(arg):
     \return \c True if the argument is a "bool" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'bool'
 
 def is_double(arg):
@@ -3808,7 +3808,7 @@ def is_double(arg):
     \return \c True if the argument is a "double" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'double'
 
 def is_float(arg):
@@ -3817,7 +3817,7 @@ def is_float(arg):
     \return \c True if the argument is a "float" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'float'
 
 def is_str(arg):
@@ -3826,7 +3826,7 @@ def is_str(arg):
     \return \c True if the argument is a "str" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'str'
 
 def is_scoped_id(arg):
@@ -3835,7 +3835,7 @@ def is_scoped_id(arg):
     \return \c True if the argument is a "scoped_id" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'scoped_id'
 
 # skipping \c DocComment=STR
@@ -3846,7 +3846,7 @@ def is_enum(arg):
     \return \c True if the argument is a "enum" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'enum'
 
 def is_deref(arg):
@@ -3855,7 +3855,7 @@ def is_deref(arg):
     \return \c True if the argument is a "deref" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'deref'
 
 def is_pointer_expr(arg):
@@ -3864,7 +3864,7 @@ def is_pointer_expr(arg):
     \return \c True if the argument is a "pointer_expr" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'pointer_expr'
 
 # skipping \c Attr= (static|pure|hooks)
@@ -3875,7 +3875,7 @@ def is_pointer_type(arg):
     \return \c True if the argument is a "pointer_type" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'pointer_type'
 
 def is_primitive_type(arg):
@@ -3884,7 +3884,7 @@ def is_primitive_type(arg):
     \return \c True if the argument is a "primitive_type" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'primitive_type'
 
 # skipping \c Module=STR
@@ -3895,7 +3895,7 @@ def is_type_decl(arg):
     \return \c True if the argument is a "type_decl" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'type_decl'
 
 def is_stmt(arg):
@@ -3904,7 +3904,7 @@ def is_stmt(arg):
     \return \c True if the argument is a "stmt" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'stmt'
 
 def is_new(arg):
@@ -3913,7 +3913,7 @@ def is_new(arg):
     \return \c True if the argument is a "new" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'new'
 
 def is_set_struct_item(arg):
@@ -3922,7 +3922,7 @@ def is_set_struct_item(arg):
     \return \c True if the argument is a "set_struct_item" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'set_struct_item'
 
 def is_assignment(arg):
@@ -3931,7 +3931,7 @@ def is_assignment(arg):
     \return \c True if the argument is a "assignment" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'assignment'
 
 def is_set_arg(arg):
@@ -3940,7 +3940,7 @@ def is_set_arg(arg):
     \return \c True if the argument is a "set_arg" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'set_arg'
 
 def is_infix_expr(arg):
@@ -3949,7 +3949,7 @@ def is_infix_expr(arg):
     \return \c True if the argument is a "infix_expr" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'infix_expr'
 
 def is_prefix_expr(arg):
@@ -3958,7 +3958,7 @@ def is_prefix_expr(arg):
     \return \c True if the argument is a "prefix_expr" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'prefix_expr'
 
 def is_sign_extend(arg):
@@ -3967,7 +3967,7 @@ def is_sign_extend(arg):
     \return \c True if the argument is a "sign_extend" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'sign_extend'
 
 def is_var_decl(arg):
@@ -3976,7 +3976,7 @@ def is_var_decl(arg):
     \return \c True if the argument is a "var_decl" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'var_decl'
 
 def is_var_decl_init(arg):
@@ -3985,7 +3985,7 @@ def is_var_decl_init(arg):
     \return \c True if the argument is a "var_decl_init" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'var_decl_init'
 
 def is_enumerator(arg):
@@ -3994,7 +3994,7 @@ def is_enumerator(arg):
     \return \c True if the argument is a "enumerator" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'enumerator'
 
 def is_enumerator_value(arg):
@@ -4003,7 +4003,7 @@ def is_enumerator_value(arg):
     \return \c True if the argument is a "enumerator_value" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'enumerator_value'
 
 def is_get_struct_item(arg):
@@ -4012,7 +4012,7 @@ def is_get_struct_item(arg):
     \return \c True if the argument is a "get_struct_item" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'get_struct_item'
 
 def is_call(arg):
@@ -4021,7 +4021,7 @@ def is_call(arg):
     \return \c True if the argument is a "call" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'call'
 
 def is_typedef_type(arg):
@@ -4030,7 +4030,7 @@ def is_typedef_type(arg):
     \return \c True if the argument is a "typedef_type" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'typedef_type'
 
 def is_const(arg):
@@ -4039,7 +4039,7 @@ def is_const(arg):
     \return \c True if the argument is a "const" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'const'
 
  ## ir primitive types

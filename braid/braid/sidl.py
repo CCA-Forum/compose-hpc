@@ -101,7 +101,6 @@
 #   Complex = complex('FLOAT', 'FLOAT')
 # ].
 # 
-# 
 #\endverbatim
 
 
@@ -2929,7 +2928,7 @@ def is_requires(arg):
     \return \c True if the argument is a "requires" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'requires'
 
 def is_import(arg):
@@ -2938,7 +2937,7 @@ def is_import(arg):
     \return \c True if the argument is a "import" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'import'
 
 def is_user_type(arg):
@@ -2947,7 +2946,7 @@ def is_user_type(arg):
     \return \c True if the argument is a "user_type" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'user_type'
 
 def is_file(arg):
@@ -2956,7 +2955,7 @@ def is_file(arg):
     \return \c True if the argument is a "file" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'file'
 
 def is_version(arg):
@@ -2965,7 +2964,7 @@ def is_version(arg):
     \return \c True if the argument is a "version" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'version'
 
 def is_scoped_id(arg):
@@ -2974,7 +2973,7 @@ def is_scoped_id(arg):
     \return \c True if the argument is a "scoped_id" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'scoped_id'
 
 # skipping \c Id=STR
@@ -2985,7 +2984,7 @@ def is_package(arg):
     \return \c True if the argument is a "package" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'package'
 
 # skipping \c Type_attr= (final|abstract)
@@ -2997,7 +2996,7 @@ def is_struct(arg):
     \return \c True if the argument is a "struct" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'struct'
 
 def is_enum(arg):
@@ -3006,7 +3005,7 @@ def is_enum(arg):
     \return \c True if the argument is a "enum" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'enum'
 
 def is_interface(arg):
@@ -3015,7 +3014,7 @@ def is_interface(arg):
     \return \c True if the argument is a "interface" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'interface'
 
 def is_class(arg):
@@ -3024,7 +3023,7 @@ def is_class(arg):
     \return \c True if the argument is a "class" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'class'
 
 # skipping \c Enumerator= (\c Enumerator|\c Enumerator_value)
@@ -3034,7 +3033,7 @@ def is_struct_item(arg):
     \return \c True if the argument is a "struct_item" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'struct_item'
 
 # skipping \c Type_void= (void|\c Type)
@@ -3044,7 +3043,7 @@ def is_rarray(arg):
     \return \c True if the argument is a "rarray" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'rarray'
 
 def is_extends(arg):
@@ -3053,7 +3052,7 @@ def is_extends(arg):
     \return \c True if the argument is a "extends" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'extends'
 
 # skipping \c Implements= (\c Implements|\c Implements_all)
@@ -3063,7 +3062,7 @@ def is_invariant(arg):
     \return \c True if the argument is a "invariant" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'invariant'
 
 def is_method(arg):
@@ -3072,7 +3071,7 @@ def is_method(arg):
     \return \c True if the argument is a "method" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'method'
 
 # skipping \c Method_attr= (oneway|local|static|abstract|final|nonblocking|copy)
@@ -3082,7 +3081,7 @@ def is_arg(arg):
     \return \c True if the argument is a "arg" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'arg'
 
 def is_except(arg):
@@ -3091,7 +3090,7 @@ def is_except(arg):
     \return \c True if the argument is a "except" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'except'
 
 def is_from(arg):
@@ -3100,7 +3099,7 @@ def is_from(arg):
     \return \c True if the argument is a "from" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'from'
 
 def is_require(arg):
@@ -3109,7 +3108,7 @@ def is_require(arg):
     \return \c True if the argument is a "require" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'require'
 
 def is_ensure(arg):
@@ -3118,7 +3117,7 @@ def is_ensure(arg):
     \return \c True if the argument is a "ensure" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'ensure'
 
 def is_method_name(arg):
@@ -3127,7 +3126,7 @@ def is_method_name(arg):
     \return \c True if the argument is a "method_name" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'method_name'
 
 # skipping \c Extension=STR
@@ -3138,7 +3137,7 @@ def is_assertion(arg):
     \return \c True if the argument is a "assertion" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'assertion'
 
 # skipping \c AssertExpr= (\c Infix_expr|\c Prefix_expr|\c Fn_eval|\c Var_ref|\c Id|\c Literal)
@@ -3150,7 +3149,7 @@ def is_array(arg):
     \return \c True if the argument is a "array" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'array'
 
 def is_primitive_type(arg):
@@ -3159,7 +3158,7 @@ def is_primitive_type(arg):
     \return \c True if the argument is a "primitive_type" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'primitive_type'
 
 # skipping \c Scalar_type= (\c Primitive_type|\c Scoped_id)
@@ -3177,7 +3176,7 @@ def is_complex(arg):
     \return \c True if the argument is a "complex" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'complex'
 
 def is_enumerator(arg):
@@ -3186,7 +3185,7 @@ def is_enumerator(arg):
     \return \c True if the argument is a "enumerator" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'enumerator'
 
 def is_enumerator_value(arg):
@@ -3195,7 +3194,7 @@ def is_enumerator_value(arg):
     \return \c True if the argument is a "enumerator_value" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'enumerator_value'
 
 def is_implements(arg):
@@ -3204,7 +3203,7 @@ def is_implements(arg):
     \return \c True if the argument is a "implements" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'implements'
 
 def is_implements_all(arg):
@@ -3213,7 +3212,7 @@ def is_implements_all(arg):
     \return \c True if the argument is a "implements_all" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'implements_all'
 
 def is_custom_attribute(arg):
@@ -3222,7 +3221,7 @@ def is_custom_attribute(arg):
     \return \c True if the argument is a "custom_attribute" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'custom_attribute'
 
 def is_custom_attribute_assoc(arg):
@@ -3231,7 +3230,7 @@ def is_custom_attribute_assoc(arg):
     \return \c True if the argument is a "custom_attribute_assoc" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'custom_attribute_assoc'
 
 def is_infix_expr(arg):
@@ -3240,7 +3239,7 @@ def is_infix_expr(arg):
     \return \c True if the argument is a "infix_expr" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'infix_expr'
 
 def is_prefix_expr(arg):
@@ -3249,7 +3248,7 @@ def is_prefix_expr(arg):
     \return \c True if the argument is a "prefix_expr" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'prefix_expr'
 
 def is_fn_eval(arg):
@@ -3258,7 +3257,7 @@ def is_fn_eval(arg):
     \return \c True if the argument is a "fn_eval" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'fn_eval'
 
 def is_var_ref(arg):
@@ -3267,7 +3266,7 @@ def is_var_ref(arg):
     \return \c True if the argument is a "var_ref" node.
     """
     if not isinstance(arg, tuple):
-        raise Exception("Grammar Error")
+        return False
     return arg[0] == 'var_ref'
 
  ## token overrides to simplify the parser
@@ -3375,3 +3374,17 @@ def hashable_type_id(t):
     if isinstance(tid, tuple) and tid[0] == scoped_id:
         return hashable(t[1])
     return tid
+def get_scoped_id(symbol_table, ext):
+    """
+    return the scoped_id of an extendible
+    This wouldn't need to be so complicated if symbol_table[]
+    would return a class with an id instead of a scoped_id.
+    """
+    tid = type_id(ext)
+    if is_class(ext):
+        if is_scoped_id(tid):
+            return tid
+        return Scoped_id(symbol_table.prefix, tid, '')
+    elif is_interface(ext):
+        return tid
+    return ext

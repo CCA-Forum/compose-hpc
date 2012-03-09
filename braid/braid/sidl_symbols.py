@@ -457,6 +457,11 @@ def get_parent_interfaces(symbol_table, class_or_interface):
         return all_interfaces[1:]
     return all_interfaces
 
+def has_parent_interface(symbol_table, ext, intf):
+    """
+    return \c True if the extendible \c ext implements the interface \c intf.
+    """
+    return intf in get_parent_interfaces(symbol_table, ext)
 
 def get_direct_parent_interfaces(symbol_table, cls):
 

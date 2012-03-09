@@ -221,5 +221,19 @@
 %        return hashable(t[1])
 %    return tid
 %
-
+%def get_scoped_id(symbol_table, ext):
+%    """
+%    return the scoped_id of an extendible
+%    This wouldn't need to be so complicated if symbol_table[]
+%    would return a class with an id instead of a scoped_id.
+%    """
+%    tid = type_id(ext)
+%    if is_class(ext):
+%        if is_scoped_id(tid):
+%            return tid
+%        return Scoped_id(symbol_table.prefix, tid, '')
+%    elif is_interface(ext):
+%        return tid
+%    return ext
+%
 

@@ -1,5 +1,42 @@
+#!/usr/bin/env python
+# -*- python -*-
 ## @package ior_template
 # template for IOR C code
+#
+# \authors <pre>
+#
+# Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+# Produced at the Lawrence Livermore National Laboratory
+# Written by Adrian Prantl <adrian@llnl.gov>.
+# 
+# LLNL-CODE-473891.
+# All rights reserved.
+#
+# This file is part of BRAID. For details, see
+# http://compose-hpc.sourceforge.net/.
+# Please read the COPYRIGHT file for Our Notice and
+# for the BSD License.
+#
+# </pre>
+#
+
+from string import Template
+def gen_IOR_c(symbol_table, is_abstract, iorname, sorted_parents, cls):
+    """
+    generate a Babel-style $classname_IOR.c
+    """
+    return Template(text).substitute(
+        Class = iorname, 
+        Class_low = str.lower(iorname),
+        Casts = cast_binary_search(
+            symbol_table, sorted_parents, cls, True),
+        Baseclass = baseclass(symbol_table, cls),
+        EPVinits = EPVinits(symbol_table, is_abstract, cls),
+        EPVfini = EPVfini(symbol_table, is_abstract, cls),
+        ParentDecls = ParentDecls(symbol_table, cls),
+        StaticEPVDecls = StaticEPVDecls(symbol_table, sorted_parents, cls)
+        )
+
 text = r"""
 /*
  * Begin: RMI includes
@@ -88,11 +125,7 @@ static struct ${Class}__epv s_my_epv_contracts__${Class_low} = { 0 };
 
 static struct ${Class}__epv s_my_epv_hooks__${Class_low} = { 0 };
 
-static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
-static struct sidl_BaseClass__epv* s_par_epv__sidl_baseclass;
-
-static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
-static struct sidl_BaseInterface__epv* s_par_epv__sidl_baseinterface;
+${StaticEPVDecls}
 
 static struct ${Class}__pre_epv s_preEPV;
 static struct ${Class}__post_epv s_postEPV;
@@ -412,7 +445,7 @@ initMetadata(struct ${Class}__object* self, sidl_BaseInterface* _ex)
 {
   *_ex = 0; /* default no exception */
   if (self) {
-    struct sidl_BaseClass__data *data = (struct sidl_BaseClass__data*)((*self).d_sidl_baseclass.d_data);
+    struct sidl_BaseClass__data *data = (struct sidl_BaseClass__data*)((*self)${Baseclass}.d_data);
     if (data) {
       data->d_IOR_major_version = s_IOR_MAJOR_VERSION;
       data->d_IOR_minor_version = s_IOR_MINOR_VERSION;
@@ -453,8 +486,7 @@ void ${Class}__init(
    void* ddata,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct ${Class}__object*     s0 = self;
-  struct sidl_BaseClass__object* s1 = &s0->d_sidl_baseclass;
+${ParentDecls}
 
   *_ex = 0; /* default no exception */
   LOCK_STATIC_GLOBALS;
@@ -465,8 +497,7 @@ void ${Class}__init(
 
   sidl_BaseClass__init(s1, NULL, _ex); SIDL_CHECK(*_ex);
 
-  s1->d_sidl_baseinterface.d_epv = &s_my_epv__sidl_baseinterface;
-  s1->d_epv                      = &s_my_epv__sidl_baseclass;
+${EPVinits}
 
   s0->d_epv    = &s_my_epv__${Class_low};
 
@@ -490,17 +521,11 @@ void ${Class}__fini(
   struct ${Class}__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct ${Class}__object*     s0 = self;
-  struct sidl_BaseClass__object* s1 = &s0->d_sidl_baseclass;
+${ParentDecls}
 
   *_ex  = NULL; /* default to no exception */
 
-  (*(s0->d_epv->f__dtor))(s0,_ex); SIDL_CHECK(*_ex);
-
-  s1->d_sidl_baseinterface.d_epv = s_par_epv__sidl_baseinterface;
-  s1->d_epv                      = s_par_epv__sidl_baseclass;
-
-  sidl_BaseClass__fini(s1, _ex); SIDL_CHECK(*_ex);
+${EPVfini}
 
   EXIT:
   return;
@@ -575,7 +600,7 @@ def cast_binary_search(symbol_table, sorted_types, cls, addref):
     return s
 
 import sidl
-from sidl_symbols import (get_parent_interfaces, get_direct_parent_interfaces)
+from sidl_symbols import (get_parent_interfaces, has_parent_interface, get_direct_parent_interfaces)
 def class_to_interface_ptr(symbol_table, cls, e):
     """
     Generate an expression to obtain a pointer to an interface or
@@ -608,7 +633,7 @@ def class_to_interface_ptr(symbol_table, cls, e):
 #            if qual_name_low(ancestor) == 'sidl_sidlexception': import pdb; pdb.set_trace()
 
             result.append(".d_")
-            result.append(qual_name_low(ancestor))
+            result.append(qual_name_low(symbol_table, ancestor))
         return ancestor
 
     def directlyImplements(cls, e):
@@ -636,7 +661,7 @@ def class_to_interface_ptr(symbol_table, cls, e):
         or hasAncestor([], cls, sidl.hashable_type_id(e))): 
       if e[0] == sidl.class_:
           # fixme: for enums, this is not true
-          return '((struct %s__object*)self)'%qual_name(e)
+          return '((struct %s__object*)self)'%qual_name(symbol_table, e)
       
       else:
         ancestor = cls
@@ -647,7 +672,7 @@ def class_to_interface_ptr(symbol_table, cls, e):
             if ((direct and (sidl.type_id(e) in sidl.get_unique_interfaces(symbol_table, ancestor))) 
                 or ((not direct) and implementsByInheritance(ancestor, e))):
                 result.append('.d_')
-                result.append(qual_name_low(e))
+                result.append(qual_name_low(symbol_table, e))
                 break
             else:
                 ancestor = nextAncestor(ancestor, result)
@@ -664,13 +689,321 @@ def class_to_interface_ptr(symbol_table, cls, e):
         return 'NULL ##ERROR>??##'
     
 
-def qual_id(scoped_id):
+def qual_id(scoped_id, sep='.'):
     _, prefix, name, ext = scoped_id
-    return '.'.join(prefix+[name])+ext  
+    return sep.join(list(prefix)+[name])+ext  
   
-def qual_name(cls):
-    _, prefix, name, ext = sidl.type_id(cls)
+def qual_id_low(scoped_id, sep='.'):
+    return str.lower(qual_id(scoped_id, sep))
+
+def qual_name(symbol_table, cls):
+    assert not sidl.is_scoped_id(cls)
+    _, prefix, name, ext = sidl.get_scoped_id(symbol_table, cls)
     return '_'.join(prefix+[name])+ext
 
-def qual_name_low(cls):
-    return str.lower(qual_name(cls))
+def qual_name_low(symbol_table, cls):
+    return str.lower(qual_name(symbol_table, cls))
+
+
+def baseclass(symbol_table, cls):
+    r = []
+    parent = sidl.get_parent(symbol_table, cls)
+    while parent:
+        r.append('.d_'+qual_name_low(symbol_table, parent))
+        parent = sidl.get_parent(symbol_table, parent)
+    return ''.join(r)
+
+
+def ParentDecls(symbol_table, cls):
+    """
+    Recursively output self pointers to the SIDL objects for this class and its
+    parents. The self pointers are of the form sN, where N is an integer
+    represented by the level argument. If the width is zero, then the width of
+    all parents is generated automatically.
+    """
+
+    # Calculate the width of this class and all parents for pretty output.
+    # Ooh, very pretty.
+    width = 0
+    parent = cls
+    while parent:
+        w = len(qual_name(symbol_table, parent))
+        if w > width:
+            width = w
+            
+        parent = sidl.get_parent(symbol_table, parent)
+
+    def generateParentSelf(cls, level):
+        if cls:
+            # Now use the width information to print out symbols.
+            typ = qual_name(symbol_table, cls)
+            if level == 0:
+                r.append('  struct %s__object*'%typ+' '*(width-len(typ))+' s0 = self;')
+            else:
+                r.append('  struct %s__object*'%typ+' '*(width-len(typ))+' s%d = &s%d->d_%s;' 
+                         % (level,level-1,qual_name_low(symbol_table, cls)))
+     
+            generateParentSelf(sidl.get_parent(symbol_table, cls), level + 1)
+
+    r = []
+    generateParentSelf(cls, 0)
+    return '\n'.join(r)
+
+def StaticEPVDecls(symbol_table, parents, cls):
+    """
+    Collect all the parents of the class in a set and output EPV structures
+    for the parents.
+    """
+    new_interfaces = sidl.get_unique_interfaces(symbol_table, cls)
+    r = []
+    for parent in parents:
+        is_par   = not sidl.hashable_type_id(parent) in new_interfaces
+        t = qual_id(sidl.type_id(parent), '_')
+        n = str.lower(t)
+        r.append('static struct %s__epv  s_my_epv__%s;'% (t, n))
+        if generateHookEPVs(symbol_table, parent):
+            r.append('static struct %s__epv  s_my_pre_epv_hooks__%s;'% (t, n))
+        if is_par:
+          r.append('static struct %s__epv*  s_par_epv__%s;'% (t, n))
+          if generateHookEPVs(symbol_table, parent):
+              r.append('static struct %s_pre__epv*  s_par_epv_hooks__%s;'% (t, n))
+        r.append('')
+
+#    if (  has_static && ( genContractEPVs || genHookEPVs ) ) {
+#      comment("Static variables for interface contract enforcement and/or "
+#             + "hooks controls.");
+# 
+#      String cStats = "static " + IOR.MACRO_VAR_UNUSED + " ";
+#      cStats        += IOR.getControlsNStatsStruct(cls.getSymbolID());
+# 
+#      int cWidth = cStats.length() + 1;
+#      d_writer.printAligned(cStats, cWidth);
+#      d_writer.println(IOR.S_CSTATS + ";");
+#      d_writer.println();
+#    }
+#    if (IOR.generateContractChecks(cls, d_context)) {
+#      comment("Static file for interface contract enforcement statistics.");
+#      d_writer.println("static FILE* " + IOR.S_DUMP_FPTR + s_set_to_null);
+#      d_writer.println();
+#    }
+# 
+#    //Declare static hooks epvs
+#    if (genHookEPVs) {
+#      SymbolID id = cls.getSymbolID();
+#      d_writer.print("static " + IOR.getPreEPVName(id) + " ");
+#      d_writer.println(s_preEPV + ";");
+#      d_writer.print("static " + IOR.getPostEPVName(id) + " ");
+#      d_writer.println(s_postEPV + ";");
+# 
+#      if (has_static) {
+#        d_writer.print("static " + IOR.getPreSEPVName(id) + " ");
+#        d_writer.println(s_preSEPV + ";");
+#        d_writer.print("static " + IOR.getPostSEPVName(id) + " ");
+#        d_writer.println(s_postSEPV + ";");
+#      }
+# 
+#      d_writer.println();
+#    }
+# 
+#    if(d_context.getConfig().getFastCall()) {
+#      comment("used for initialization of native epv entries.");
+#      d_writer.println("static const sidl_babel_native_epv_t NULL_NATIVE_EPV  = { BABEL_LANG_UNDEF, NULL};");
+#    }
+    return '\n'.join(r)
+
+def EPVinits(symbol_table, is_abstract, cls):
+    r = []
+    fixEPVs(r, symbol_table, cls, is_abstract, 0, is_new=True)
+    return '\n'.join(r)
+                 
+                     
+def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
+    """
+    Recursively modify the EPVs in parent classes and set up interface
+    pointers. Nothing is done if the class argument is null. The flag is_new
+    determines whether the EPVs are being set to a newly defined EPV or to a
+    previously saved EPV.
+    """
+    if not cls: return
+
+    parent = sidl.get_parent(symbol_table, cls)
+    fixEPVs(r, symbol_table, parent, is_abstract, level + 1, is_new)
+
+    # Update the EPVs for all of the new interfaces in this particular class.
+    _self    = 's%d' %level
+    epvType  = 'my_' if is_new else 'par_'
+    prefix   = '&' if is_new else ''
+    ifce    = sorted(sidl.get_unique_interfaces(symbol_table, cls))
+    epv     = 'epv'
+    #width   = Utilities.getWidth(ifce) + epv.length() + 3;
+
+    for i in ifce:
+        name        = qual_id_low(i, '_')
+        r.append('  %s->d_%s.d_%s = %ss_%s%s__%s;' %(_self, name, epv, prefix, epvType, epv, name))
+
+    name = qual_name_low(symbol_table, cls)
+    
+    # Modify the class entry point vector.
+    setContractsEPV =  level == 0 and is_new
+    if setContractsEPV:
+        r.append('')
+        r.append('#ifdef SIDL_CONTRACTS_DEBUG')
+        r.append(r'  printf("Setting epv...areEnforcing=%d\n", ')
+        r.append('  sidl_Enforcer_areEnforcing());');
+        r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
+        r.append('  if (sidl_Enforcer_areEnforcing()) {');
+        r.append('    if (!self->d_cstats.use_hooks) {');
+        r.append('#ifdef SIDL_CONTRACTS_DEBUG')
+        r.append(r'      printf("Calling set_contracts()...\n");');
+        r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
+        r.append('      sidl_BaseInterface* tae;');
+        r.append('      _set_contracts(%s, sidl_Enforcer_areEnforcing(), NULL, TRUE, &tae);' 
+                 % _self)
+        r.append('    }');
+        #  TBD:  Should the Base EPV also be set to a contracts version here?
+        #        Can't remember off-hand.
+        r.append('#ifdef SIDL_CONTRACTS_DEBUG')
+        r.append(r'    printf("Setting epv to contracts version...\n");');
+        r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
+        r.append('    %s->d_%s = %ss_%s%s__%s;' %(_self, epv, prefix, epvType, epv, name))
+        r.append('  } else {');
+        r.append('#ifdef SIDL_CONTRACTS_DEBUG')
+        r.append(r'   printf("Setting epv to regular version...\n");');
+        r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
+
+    ind = '  ' if setContractsEPV else ''
+    r.append('%s  %s->d_%s = %ss_%s%s__%s;'%(ind, _self, epv, prefix, epvType, epv, name))
+    if setContractsEPV:
+        r.append('  }')
+
+    if generateBaseEPVAttr(symbol_table, is_abstract, cls):
+        r.append('  %s->d_%s = %ss_%s%s__%s;'%(_self, epv, 'b', prefix, epvType, name))
+
+    r.append('')
+                
+
+def EPVfini(symbol_table, is_abstract, cls):
+    r = []
+    # Dump statistics (if enforcing contracts).
+    if generateContractChecks(symbol_table, is_abstract, cls):
+      r.append('  if (sidl_Enforcer_areEnforcing()) {')
+      r.append('    (*(s0->d_epv->f__dump_stats))(s0, "", "FINI",_ex); SIDL_CHECK(*_ex);')
+      r.append('  }');
+      r.append('');
+
+    # Call the user-defined destructor for this class.
+    r.append('  (*(s0->d_epv->f__dtor))(s0,_ex); SIDL_CHECK(*_ex);')
+ 
+    # If there is a parent class, then reset all parent pointers and call the
+    # parent destructor.
+    parent = sidl.get_parent(symbol_table, cls)
+    if parent:
+        r.append('')
+        fixEPVs(r, symbol_table, parent, is_abstract, 1, is_new=False)
+        r.append('  %s__fini(s1, _ex); SIDL_CHECK(*_ex);'%qual_name(symbol_table, parent) );
+
+    return '\n'.join(r)
+
+
+def generateHookMethods(symbol_table, ext):
+    """
+    Return TRUE if hook methods are to be generated; FALSE otherwise.
+    
+    Assumptions:
+    1) Assumptions in generateHookEPVs() apply.
+    2) Hook methods are only generated if configuration indicates
+       their generation is required.
+    """
+    return generateHookEPVs(symbol_table, ext) and False #context.getConfig().generateHooks();
+
+   
+def generateHookEPVs(symbol_table, ext):
+   """
+   Return TRUE if the hooks-related EPVs are supposed to be generated.  
+   
+   Assumption:  Only non-SIDL interfaces and classes are to include 
+   the hook EPVs.  Exceptions are _not_ to be included.
+   """
+   s_id = sidl.get_scoped_id(symbol_table, ext)
+   return (not isSIDLSymbol(s_id)
+           and not isSIDLXSymbol(s_id) 
+           and not isException(symbol_table, ext))
+
+def generateBaseEPVAttr(symbol_table, is_abstract, ext):
+    """
+    Return TRUE if the base EPV attribute needs to be supported; FALSE 
+    otherwise.
+    """   
+    return generateHookMethods(symbol_table, ext) and \
+        generateContractChecks(symbol_table, is_abstract, ext)
+   
+
+def generateContractChecks(symbol_table, is_abstract, ext):
+    """
+    Return TRUE if contract checks are supposed to be generated.
+    
+    Assumptions:
+    1) Assumptions in generateContractEPVs() apply.
+    2) Checks are only generated if the class has its own or
+       inherited contract clauses.
+    3) Checks are only generated if the configuration indicates
+       their generation is required.
+    """     
+   
+    return generateContractEPVs(symbol_table, is_abstract, ext) \
+        and sidl.class_contracts(ext) and \
+        True #and context.getConfig().generateContracts();
+   
+def generateContractEPVs(symbol_table, is_abstract, ext):
+    """
+    Return TRUE if the contract-related EPVs are supposed to be generated.  
+
+    Assumptions:  
+    1) Contract-related EPVs are only generated for concrete classes.
+    2) Contract-related EPVs are not generated for SIDL classes.
+    3) Contract-related EPVs are not generated for exceptions.
+    """   
+    return is_abstract and (not sidl.is_interface(ext)) \
+        and generateContractBuiltins(symbol_table, ext)
+
+def isSIDLSymbol(scoped_id):
+    """
+    Return TRUE if the Symbol ID corresponds to a SIDL symbol; FALSE 
+    otherwise.
+    """
+    return sidl.scoped_id_modules(scoped_id)[0] == 'sidl'
+   
+
+def isSIDLXSymbol(scoped_id):
+    """
+    Return TRUE if the Symbol ID corresponds to a SIDLX symbol; FALSE 
+    otherwise.
+    """
+    return sidl.scoped_id_modules(scoped_id)[0] == 'sidlx'
+
+def generateContractBuiltins(symbol_table, ext):
+    """
+    Return TRUE if the contract-related built-in methods are to be
+    generated.
+    Assumptions:  
+    1) Contract-related EPVs are not generated for SIDL interfaces or classes.
+    2) Contract-related EPVs are not generated for exceptions.
+    """
+    s_id = sidl.get_scoped_id(symbol_table, ext)
+    return ((not isSIDLSymbol(s_id))
+            and (not isSIDLXSymbol(s_id))
+            and (not isException(symbol_table, ext)))
+   
+   
+
+def isException(symbol_table, ext):
+   """
+   Return <code>true</code> if and only if the extendable is
+   a class that is the base exception class, is an interface that is
+   the base exception interface, or it has the base exception class or 
+   interface in its type ancestry.
+   """
+   base_ex = sidl.Scoped_id(['sidl'], 'BaseException', '')
+   sid = sidl.type_id(ext)
+   return sid == base_ex or \
+       has_parent_interface(symbol_table, ext, base_ex)

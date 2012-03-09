@@ -36,7 +36,6 @@
 #
 
 import ior, ior_template, ir, os.path, sidl, splicer
-from string import Template
 from utils import write_to, unzip
 from patmat import *
 from codegen import (CFile)
@@ -523,7 +522,7 @@ class GlueCodeGenerator(object):
             cstub.write()
 
             # IOR
-            self.generate_ior(ci, extends, implements, all_methods)
+            self.generate_ior(ci, extends, implements, all_methods, with_ior_c=False)
             ci.ior.write()
 
 
@@ -835,7 +834,7 @@ class GlueCodeGenerator(object):
             elif typ == sidl.opaque:
                 iortype = ir.Pointer_type(ir.pt_void)
 
-            elif typ == (sidl.array, [], [] ,[]): # Generic array
+            elif typ == (sidl.array, [], [], []): # Generic array
                 return convert_arg((arg, attrs, mode, sidl.opaque, name)) #FIXME
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
@@ -1085,7 +1084,7 @@ class GlueCodeGenerator(object):
         else:
             chpl_gen(defn, ci.chpl_method_stub)
 
-    def generate_ior(self, ci, extends, implements, methods):
+    def generate_ior(self, ci, extends, implements, methods, with_ior_c):
         """
         Generate the IOR header file in C and the IOR C file.
         """
@@ -1192,15 +1191,14 @@ class GlueCodeGenerator(object):
             babel_static_ior_args([], [], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
 
-        # class hierarchy for thecasting function
-        cls = sidl.Class(ci.name, extends, implements, [],[],'')
+        # class hierarchy for the casting function
+        cls = sidl.Class(ci.name, extends, implements, [], [], '')
         sorted_types = sorted(get_parents(ci.epv.symbol_table, cls, []), 
-                              key = lambda x: qual_id(x[1]))
+                              key = lambda x: qual_id(sidl.type_id(x)))
 
-        ci.ior.new_def(Template(ior_template.text).substitute(
-            Class = iorname, Class_low = str.lower(iorname),
-            Casts = ior_template.cast_binary_search(
-                      ci.epv.symbol_table, sorted_types, cls, True)))
+        if with_ior_c:
+            ci.ior.new_def(ior_template.gen_IOR_c(
+                    ci.epv.symbol_table, ci.is_abstract, iorname, sorted_types, cls))
 
     
     @matcher(globals(), debug=False)
@@ -1285,7 +1283,7 @@ class GlueCodeGenerator(object):
             ci.impl.new_def('}')
 
             # IOR
-            self.generate_ior(ci, extends, implements, all_methods)
+            self.generate_ior(ci, extends, implements, all_methods, with_ior_c=True)
             ci.ior.write()
 
             # The server-side stub is used for thinks like the
