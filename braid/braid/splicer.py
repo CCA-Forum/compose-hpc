@@ -96,31 +96,23 @@ def record(filename):
     src.close()
     return splicers
 
-def apply_all(filename, splicers):
+def apply_all(filename, lines, splicers):
     """
-    Apply the previously recorded splicers \c splicers to the file \c
-    filename.
+    Apply the previously recorded splicers \c splicers to a list of lines
     """
-    # first make a backup of the old file
-    os.rename(filename, filename+'~')
-    dest = open(filename, 'w')
-    src = open(filename+'~', 'r')
-
-    all_splicers = set()
-    for s in splicers:
-        all_splicers.add(s)
-
+    dest = []
+    all_splicers = set(splicers)
     splicer_name = ''
     inside = False
-    for line in src:
+    for line in lines:
         m = re.match(r'.*DO-NOT-DELETE splicer\.begin\((.*)\).*', line)
         if m:
+            dest.append(line)
             splicer_name = m.group(1)
             try:
                 block = splicers[splicer_name]                
-                dest.write(line)
-                for l in block: 
-                    dest.write(l)
+                for l in block:
+                    dest.append(l)
             except KeyError:
                 if len(splicers) > 0: # be quiet if we created a new file                    
                     print "**INFO: The following new splicer block was added to %s: %s" \
@@ -137,7 +129,7 @@ def apply_all(filename, splicers):
                 pass
 
         if not inside:
-            dest.write(line)                
+            dest.append(line)                
 
     # error reporting
     if inside:
@@ -149,9 +141,8 @@ def apply_all(filename, splicers):
             print name
             if splicers[name]:
                 print splicers[name]
-                dest.write('ORPHANED SPLICER BLOCK splicer.begin(%s)'%name)
-                dest.write(splicers[name])
-                dest.write('ORPHANED SPLICER BLOCK splicer.end(%s)'%name)
-
-    src.close()
-    dest.close()
+                dest.append('ORPHANED SPLICER BLOCK splicer.begin(%s)'%name)
+                map(dest.append, splicers[name])
+                dest.append('ORPHANED SPLICER BLOCK splicer.end(%s)'%name)
+                
+    return '\n'.join(dest)

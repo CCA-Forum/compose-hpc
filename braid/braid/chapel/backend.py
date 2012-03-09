@@ -209,7 +209,6 @@ class GlueCodeGenerator(object):
             
             self.name = name
             self.qualified_name = qualified_name
-            self.impl = ChapelFile()
             self.chpl_method_stub = ChapelFile(parent=stub_parent, relative_indent=4)
             self.chpl_skel = ChapelFile(parent=skel_parent, relative_indent=0)
             self.chpl_static_stub = ChapelFile(parent=stub_parent)            
@@ -1218,8 +1217,7 @@ class GlueCodeGenerator(object):
             # Qualified name (C Version)
             qname = '_'.join(symbol_table.prefix+[name])  
             # Qualified name including Chapel modules
-            #mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])  
-            #mod_name = '.'.join(symbol_table.prefix[1:]+[name])
+            pkg_name = '.'.join(symbol_table.prefix)
 
             self.has_static_methods = False
 
@@ -1239,8 +1237,8 @@ class GlueCodeGenerator(object):
                                 is_abstract,
                                 self.has_static_methods,
                                 stub_parent=chpl_stub)
-            ci.impl.gen(ir.Import('sidl'))
-            
+
+            ci.impl = self.pkg_impl
             ci.impl.new_def(gen_doc_comment(doc_comment, chpl_stub)+
                             'class %s_Impl {'%qname)
 
@@ -1360,19 +1358,6 @@ class GlueCodeGenerator(object):
                 cskel.new_global_def(code)
             cskel.write()
 
-            # Impl
-            pkg_name = '_'.join(symbol_table.prefix)
-            impl = pkg_name+'_Impl.chpl'
-            # Preserve code written by the user
-            if os.path.isfile(impl):
-                # FIXME: this is a possible race condition, we should
-                # use a single file handle instead
-                splicers = splicer.record(impl)
-                write_to(impl, str(ci.impl))
-                splicer.apply_all(impl, splicers)
-            else:
-                write_to(impl, str(ci.impl))
-
             # Makefile
             self.classes.append(qname)
 
@@ -1416,12 +1401,30 @@ class GlueCodeGenerator(object):
                     self.pkg_chpl_skel = ChapelFile(qname+'_Skel')
                     self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
 
+                    # new file for the user implementation
+                    self.pkg_impl = ChapelFile(qname+'_Impl')
+                    self.pkg_impl.gen(ir.Import('sidl'))
+                    self.pkg_impl.gen(ir.Import(qname))
+
                     self.pkg_enums_and_structs = []
                     self.in_package = True
                     self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
                     self.pkg_chpl_skel.main_area.new_def('}\n')
                     self.pkg_chpl_skel.write()
 
+                    # write the _Impl file
+                    impl = qname+'_Impl.chpl'
+                    # Preserve code written by the user
+                    if os.path.isfile(impl):
+                        # FIXME: this is a possible race condition, we should
+                        # use a single file handle instead
+                        splicers = splicer.record(impl)
+                        lines = str(self.pkg_impl).split('\n')
+                        write_to(impl, splicer.apply_all(impl, lines, splicers))
+                    else:
+                        write_to(impl, str(self.pkg_impl))
+
+                # write the package-wide definitions (enums, structs)
                 pkg_chpl = ChapelFile(qname)
                 pkg_h = CFile(qname)
                 pkg_h.genh(ir.Import('sidlType'))
