@@ -21,8 +21,9 @@
 #
 # Summer interns at LLNL:
 # * 2010, 2011 Shams Imam <shams@rice.edu> 
-#   contributed argument conversions, r-array handling, exception handling, 
-#   distributed arrays, the patches to the Chapel compiler, ...
+#   contributed to argument conversions, r-array handling, exception
+#   handling, the distributed array interface and the borrowed array
+#   patch for the Chapel compiler
 #
 # LLNL-CODE-473891.
 # All rights reserved.
@@ -1083,6 +1084,8 @@ class GlueCodeGenerator(object):
         else:
             chpl_gen(defn, ci.chpl_method_stub)
 
+
+
     def generate_ior(self, ci, extends, implements, methods, with_ior_c):
         """
         Generate the IOR header file in C and the IOR C file.
@@ -1219,8 +1222,6 @@ class GlueCodeGenerator(object):
             # Qualified name including Chapel modules
             pkg_name = '.'.join(symbol_table.prefix)
 
-            self.has_static_methods = False
-
             # Consolidate all methods, defined and inherited
             all_names = set()
             all_methods = []
@@ -1229,6 +1230,9 @@ class GlueCodeGenerator(object):
             scan_methods(symbol_table, is_abstract,
                          extends, implements, methods, 
                          all_names, all_methods, self, True)
+            self.has_static_methods = any(map(
+                    lambda m: member_chk(sidl.static, sidl.method_method_attrs(m)), 
+                all_methods))
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
@@ -1317,7 +1321,13 @@ class GlueCodeGenerator(object):
             cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
                                    [ir.Comment("FIXME: [ir.Stmt(ir.Call('_load', []))")], ''))
 
-            # set_epv ... Setup the EPV
+            # set_epv ... Setup the entry-point vectors (EPV)s
+            #
+            # there are 2*3 types of EPVs:
+            #    epv: regular methods
+            #    sepv: static methods
+            #    pre_(s)epv: pre-hooks
+            #    post_(s)epv: post-hooks
             epv_t = ci.epv.get_ir()
             sepv_t = ci.epv.get_sepv_ir()
             pre_epv_t   = ci.epv.get_pre_epv_ir()
@@ -1327,22 +1337,23 @@ class GlueCodeGenerator(object):
             cskel.gen(ir.Fn_decl([], ir.pt_void, 'ctor', [], ''))
             cskel.gen(ir.Fn_decl([], ir.pt_void, 'dtor', [], ''))
 
-            epv_init = []
+            epv_init  = []
+            sepv_init = []
             for m in methods:
                 name = m[2][1]
                 static = member_chk(sidl.static, m[3])
-                def entry(epv_t, table, field, pointer):
-                    epv_init.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
+                def entry(stmts, epv_t, table, field, pointer):
+                    stmts.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
 
-                if static: entry(sepv_t, 'sepv', 'f_'+name, name+'_skel')
-                else:      entry(epv_t, 'epv', 'f_'+name, name+'_skel')
+                if static: entry(sepv_init, sepv_t, 'sepv', 'f_'+name, name+'_skel')
+                else:      entry(epv_init,   epv_t,  'epv', 'f_'+name, name+'_skel')
 
                 builtins = set(['_ctor', '_ctor2', '_dtor'])
                 if name not in builtins:
-                    if static: entry(pre_sepv_t,  'pre_sepv',  'f_%s_pre'%name,  'NULL')
-                    else:      entry(pre_epv_t,   'pre_epv',   'f_%s_pre'%name,  'NULL')
-                    if static: entry(post_sepv_t, 'post_sepv', 'f_%s_post'%name, 'NULL')
-                    else:      entry(post_epv_t,  'post_epv',  'f_%s_post'%name, 'NULL')
+                    if static: entry(sepv_init, pre_sepv_t,  'pre_sepv',  'f_%s_pre'%name,  'NULL')
+                    else:      entry(epv_init,  pre_epv_t,   'pre_epv',   'f_%s_pre'%name,  'NULL')
+                    if static: entry(sepv_init, post_sepv_t, 'post_sepv', 'f_%s_post'%name, 'NULL')
+                    else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%name, 'NULL')
             
             cskel.gen(ir.Fn_defn(
                 [], ir.pt_void, qname+'__set_epv',
@@ -1350,6 +1361,14 @@ class GlueCodeGenerator(object):
                  ir.Arg([], ir.out, pre_epv_t, 'pre_epv'),
                  ir.Arg([], ir.out, post_epv_t, 'post_epv')],
                 epv_init, ''))
+
+            if sepv_t:
+                cskel.gen(ir.Fn_defn(
+                        [], ir.pt_void, qname+'__set_sepv',
+                        [ir.Arg([], ir.out, sepv_t, 'sepv'),
+                         ir.Arg([], ir.out, pre_sepv_t, 'pre_sepv'),
+                         ir.Arg([], ir.out, post_sepv_t, 'post_sepv')],
+                        sepv_init, ''))
 
             write_to('_chplmain.c', chplmain_extras)
 
@@ -1520,7 +1539,7 @@ class GlueCodeGenerator(object):
                 return ir.struct
             if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
                 return ior.bool
-            # strip unncessesary details from aggregate types so the
+            # strip unnecessesary details from aggregate types so the
             # code generator isn't confused
             if (typ[0] == ir.enum or
                 typ[0] == sidl.array or
@@ -1529,6 +1548,11 @@ class GlueCodeGenerator(object):
                 typ[0] == ir.struct):
                 return typ[0]
             return typ
+
+        # Argument conversions
+
+        # self
+        this_arg = [] if static else [ir.Arg([], ir.in_, ir.void_ptr, '_this')]
      
         # IN
         map(lambda (arg, attr, mode, typ, name):
@@ -1563,8 +1587,10 @@ class GlueCodeGenerator(object):
 
      
         # Proxy declarations / revised names of call arguments
-        for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
-            zip([chpl_rarg]+chpl_args, [rarg]+ior_args)):
+        is_retval = True
+        for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) \
+                in zip([chpl_rarg]+chpl_args, [rarg]+ior_args):
+
             if chpl_t <> c_t:
                 is_struct = False
                 proxy_t = chpl_t
@@ -1587,7 +1613,8 @@ class GlueCodeGenerator(object):
                           .format(c_gen(c_t[1])))
                 call_args.append(upcast)
             else:
-                call_args.append(name)
+                if is_retval: is_retval = False
+                else:         call_args.append(name)
 
 
         if not static:
@@ -1611,7 +1638,7 @@ class GlueCodeGenerator(object):
                 decls+pre_call+call+post_call+return_stmt,
                 DocComment)
         chpldecl = (ir.fn_decl, [], chpltype, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+chpl_args,
+                    this_arg+chpl_args,
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         chpldefn = (ir.fn_defn, ['export %s'%callee], ctype, callee,

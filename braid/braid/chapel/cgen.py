@@ -469,7 +469,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return '%sclass %s' % (gen_comment(DocComment), Name)
 
             elif (sidl.array, [], [], []):
-                return gen(ir.pt_void)+'/*FIXME*/'
+                return 'sidl.Array(opaque, sidl__array)'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
                 if Scalar_type[0] == ir.scoped_id:
