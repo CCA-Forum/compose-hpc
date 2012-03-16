@@ -114,6 +114,14 @@ def braid(args):
     import chapel.backend as chpl_be
     import sidl_parser, sidl_symbols, codegen
 
+    # Babel pass-through?
+    lang = args.client if args.client else args.server
+    if re.match(r'^(([cC](\+\+)?)|([fF]((77)|(90)|(03)))|([jJ]ava)|([pP]ython))$', lang):
+        print "Invoking babel to handle language %s..." % args.client
+        import subprocess
+        exit(subprocess.call([config.BABEL_PREFIX+'/bin/babel']+sys.argv[1:]))
+
+    # No. Braid called to action!
     for sidl_file in args.sidl_files:
         sidl_ast = sidl_parser.parse(sidl_file)
         
@@ -202,11 +210,11 @@ BRAID is a high-performance language interoperability tool that generates Babel-
 
     cmdline.add_argument('-c', '--client', metavar='<language>',
                          help='generate client code in the specified language'+
-                         ' (Chapel)')
+                         ' (Chapel, or any language supported through Babel)')
 
     cmdline.add_argument('-s', '--server', metavar='<language>',
                          help='generate server code in the specified language'+
-                         ' (Chapel)')
+                         ' (Chapel, or any language supported through Babel)')
 
     cmdline.add_argument('-m', '--makefile', action='store_true',
                          help='generate a default GNUmakefile')
