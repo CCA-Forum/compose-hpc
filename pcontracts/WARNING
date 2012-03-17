@@ -1,5 +1,7 @@
                                    BEWARE
 
-  The work in the subdirectory is VERY tentative as it is more a "stream 
-of consciousness" or preliminary identification of relevant libpaul features 
-that are needed to get interface contracts work going.
+  The work in the subdirectory is a WORK IN PROGRESS.  Consequently the 
+tentative contents are based on a very preliminary, "stream of consciousness"
+pass at identifying relevant libpaul features and POTENTIAL approaches to
+getting the interface contracts work going.  No attempts have been made to
+compile, link, or test ANYTHING yet.

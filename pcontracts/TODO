@@ -1,4 +1,13 @@
 Tasks
+- Continue preliminary identification of relevant libpaul features
+  -- Resume work on:
+     o CommentVisitor
+       A preferred version would be for CommentVisitor (or PaulConfReader?) 
+       to support the addition of <parser-name, comment handler function>
+       pairings.  Then handle_comment() could retrieve and call the comment
+       handler function.
+     o PaulContractsDecorator
+
 - Discuss options and trade-offs with D.Q./ROSE team
   -- AST Annotations
     (e.g., function node vs. basic block node vs. pre-/post-pend to bb vs. ?)
@@ -13,11 +22,11 @@ Tasks
                       InvariantsClause
 
 - Implement new parsers:
-                      PreconditionsParser
-                    /
-  ContractParser <|-- PostconditionsParser
-                    \
-                      InvariantsParser
+                           PreconditionsParser
+                         /
+  ContractClauseParser <|-- PostconditionsParser
+                         \
+                           InvariantsParser
 
 - Implement stand-alone enforcement library based on SIDL/Babel work
 
@@ -27,4 +36,4 @@ Tasks
      annotation attributes per node as proposed at the coding camp
 
 
-Last Updated:  8 Dec 2011
+Last Updated:  16 Mar 2012
