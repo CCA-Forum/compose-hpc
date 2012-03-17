@@ -3,6 +3,4 @@
 ;
 ; Paul Tag-to-parser name mapping for interface contract specifications.
 ;
-REQUIRE		preconditions
-ENSURE		postconditions
-INVARIANT	invariants
+CONTRACT	contract-clause

@@ -1,0 +1,35 @@
+                      =================================
+                      COMPOSE-HPC PAUL CONTRACTS README
+                      =================================
+
+CONTENTS
+========
+
+  Introduction
+  Subdirectories
+
+
+
+INTRODUCTION
+============
+
+  This is the root directory for the PAUL Interface Contracts work.  It is 
+currently maintained separate from the PAUL/libpaul work to allow for the
+two to evolve separately.
+
+
+
+SUBDIRECTORIES
+==============
+
+  The subdirectories contained within the Paul Contracts root are:
+
+    ./conf        # Configuration file(s)
+    ./examples    # Example programs with contract annotations
+    ./include     # Include files
+    ./src         # Source files
+    ./tests       # Test programs (and inputs/data)
+  
+
+
+Last Updated:  16 Mar 2012
