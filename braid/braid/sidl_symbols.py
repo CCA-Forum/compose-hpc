@@ -242,6 +242,9 @@ class SymbolTable(object):
         """
         perform a recursive symbol lookup of a scoped identifier
         """
+        if not sidl.is_scoped_id(scoped_id):
+            return scoped_id
+
         scopes = list(scoped_id[1])+[scoped_id[2]]
         n = len(scopes)
         symbol_table = self
@@ -414,6 +417,8 @@ def scan_methods(symbol_table, is_abstract,
         add_method(m, toplevel)
 
 
+# --------------------------------------------------------------
+
 def get_parents(symbol_table, class_or_interface, all_parents):
     """
     Return a list of the names of all base classes and implemented
@@ -425,7 +430,7 @@ def get_parents(symbol_table, class_or_interface, all_parents):
         all_parents.append(c_i)
 
     start = sidl.Scoped_id(symbol_table.prefix, sidl.type_id(class_or_interface), '')
-    sidl.visit_hierarchy(start, f, symbol_table, [])
+    visit_hierarchy(start, f, symbol_table, [])
     return all_parents
 
 def get_parent_interfaces(symbol_table, class_or_interface):
@@ -451,7 +456,7 @@ def get_parent_interfaces(symbol_table, class_or_interface):
     else:
         start = tid
 
-    sidl.visit_hierarchy(start, f, symbol_table, [])
+    visit_hierarchy(start, f, symbol_table, [])
     if isinterface:
         # first one is the interface itself
         return all_interfaces[1:]
@@ -474,3 +479,64 @@ def get_direct_parent_interfaces(symbol_table, cls):
     else:
         parents = sidl.class_implements(cls)
     return [symbol_table[impl] for _, impl in parents]
+
+
+def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
+    """
+    Visit all parent classes and implemented interfaces of
+    \c base_class exactly once and invoke visit_func on each
+    sidl.class/sidl.interface node.
+ 
+    \arg visited_nodes         An optional list of nodes
+                               to exclude from visiting.
+                              Contains the list of visited
+                              nodes after return.
+    """
+ 
+    def step(visited_nodes, base):
+ 
+       visit_func(base)
+       visited_nodes.append(base)
+ 
+       n = symbol_table[base]
+       if n:
+           if n[0] == sidl.class_:
+               extends = n[2]
+               for ext in extends:
+                   if ext[1] not in visited_nodes:
+                       step(visited_nodes, ext[1])
+               for _, impl in n[3]:
+                   if impl and impl not in visited_nodes:
+                       step(visited_nodes, impl)
+
+           elif n[0] == sidl.interface:
+               for parent_interface in n[2]:
+                   if parent_interface[1] and parent_interface[1] not in visited_nodes:
+                       step(visited_nodes, parent_interface[1])
+                           
+    if base_class and base_class[1] not in visited_nodes:
+       step(visited_nodes, base_class)
+
+
+def get_parent(symbol_table, class_or_interface):
+    """
+    return the base class/interface of \c class_or_interface
+    """
+    extends = class_or_interface[2]
+    if extends == []:
+        return extends
+    return symbol_table[extends[0][1]]
+
+
+def get_unique_interfaces(symbol_table, cls):
+    """
+    Extract the unique interfaces from this class.  The unique interfaces
+    are those that belong to this class but do not belong to one of its
+    parents (if they exit).  The returned set consists of objects of the
+    type <code>Interface</code>.
+    """
+    unique = set(get_parent_interfaces(symbol_table, cls))
+    parent = get_parent(symbol_table, cls);
+    if parent:
+        unique -= set(get_parent_interfaces(symbol_table, parent))
+    return unique

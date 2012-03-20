@@ -116,10 +116,12 @@ def braid(args):
 
     # Babel pass-through?
     lang = args.client if args.client else args.server
-    if re.match(r'^(([cC](\+\+)?)|([fF]((77)|(90)|(03)))|([jJ]ava)|([pP]ython))$', lang):
-        print "Invoking babel to handle language %s..." % args.client
+    babel_langs = r'^(([cC]((\+\+)|(xx))?)|([fF]((77)|(90)|(03)))|([jJ]ava)|([pP]ython))$'
+    if lang and re.match(babel_langs, lang):
+        print "Invoking babel to handle language %s..." % lang
         import subprocess
-        exit(subprocess.call([config.BABEL_PREFIX+'/bin/babel']+sys.argv[1:]))
+        cmd = [config.BABEL_PREFIX+'/bin/babel']+sys.argv[1:]
+        exit(subprocess.call(cmd))
 
     # No. Braid called to action!
     for sidl_file in args.sidl_files:
@@ -153,7 +155,7 @@ def braid(args):
             chpl_be.GlueCodeGenerator(sidl_file, sidl_ast, symtab,
                                       args.makefile, args.verbose).generate_server()
         else:
-            print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
+            print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.server)
             exit(1)
 
 def inject_sidl_runtime(sidl_ast, args):

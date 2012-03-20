@@ -28,10 +28,8 @@
 # LLNL-CODE-473891.
 # All rights reserved.
 #
-# This file is part of BRAID. For details, see
-# http://compose-hpc.sourceforge.net/.
-# Please read the COPYRIGHT file for Our Notice and
-# for the BSD License.
+# This file is part of BRAID ( http://compose-hpc.sourceforge.net/ ).
+# Please read the COPYRIGHT file for Our Notice and for the BSD License.
 #
 # </pre>
 #
@@ -41,7 +39,7 @@ from utils import write_to, unzip
 from patmat import *
 from codegen import (CFile)
 from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, incoming, outgoing, gen_doc_comment)
-from sidl_symbols import scan_methods, get_parents
+from sidl_symbols import scan_methods, get_parents, visit_hierarchy
 import conversions as conv
 import makefile
 
@@ -300,8 +298,6 @@ class GlueCodeGenerator(object):
                 sys.stdout.write('\rgenerating glue code for %s'%mod_name)
                 sys.stdout.flush()
 
-            self.has_static_methods = False
-
             # Consolidate all methods, defined and inherited
             all_names = set()
             all_methods = []
@@ -310,6 +306,10 @@ class GlueCodeGenerator(object):
             scan_methods(symbol_table, is_abstract, 
                          extends, implements, methods, 
                          all_names, all_methods, self, True)
+            self.has_static_methods = any(map(
+                    lambda m: member_chk(sidl.static, sidl.method_method_attrs(m)), 
+                all_methods))
+
 
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
@@ -326,7 +326,11 @@ class GlueCodeGenerator(object):
                 chpl_stub.cstub.new_def(
                     externals((sidl.scoped_id, symbol_table.prefix, name, '')))
 
-            self.gen_default_methods(symbol_table, extends, implements, ci)
+            has_contracts = ior_template.generateContractChecks(
+                symbol_table, is_abstract, sidl.Class(ci.name, extends, implements, [], [], ''))
+
+            self.gen_default_methods(symbol_table, extends, implements, 
+                                     has_contracts, len(methods), ci)
 
             # recurse to generate method code
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
@@ -353,14 +357,14 @@ class GlueCodeGenerator(object):
             parent_classes = []
             extern_hier_visited = []
             for _, ext in extends:
-                sidl.visit_hierarchy(ext, gen_extern_casts, symbol_table, 
-                                     extern_hier_visited)
+                visit_hierarchy(ext, gen_extern_casts, symbol_table, 
+                                extern_hier_visited)
                 parent_classes += strip_common(symbol_table.prefix, ext[1])
 
             parent_interfaces = []
             for _, impl in implements:
-                sidl.visit_hierarchy(impl, gen_extern_casts, symbol_table,  
-                                     extern_hier_visited)
+                visit_hierarchy(impl, gen_extern_casts, symbol_table,  
+                                extern_hier_visited)
                 parent_interfaces += strip_common(symbol_table.prefix, impl[1])
 
             inherits = ''
@@ -485,9 +489,9 @@ class GlueCodeGenerator(object):
             gen_self_cast()
             casts_generated = [symbol_table.prefix+[name]]
             for _, ext in extends:
-                sidl.visit_hierarchy(ext, gen_cast, symbol_table, casts_generated)
+                visit_hierarchy(ext, gen_cast, symbol_table, casts_generated)
             for _, impl in implements:
-                sidl.visit_hierarchy(impl, gen_cast, symbol_table, casts_generated)
+                visit_hierarchy(impl, gen_cast, symbol_table, casts_generated)
 
             chpl_class.new_def(chpl_defs.get_defs())
             
@@ -608,7 +612,7 @@ class GlueCodeGenerator(object):
                 raise Exception("match error")
         return data
 
-    def gen_default_methods(self, symbol_table, extends, implements, ci):
+    def gen_default_methods(self, symbol_table, extends, implements, has_contracts, num_methods, ci):
         """
         Generate default Babel object methods such as _cast() Also
         generates other IOR data structures such as the _object and
@@ -679,9 +683,20 @@ class GlueCodeGenerator(object):
         prefix = ci.epv.symbol_table.prefix
         # cstats
         cstats = []
+        contract_cstats = []
+        if has_contracts:
+            contract_cstats.append(ir.Struct_item(ir.Typedef_type('sidl_bool'), 'enabled'))
+            contract_cstats.append(ir.Struct(
+                    ir.Scoped_id(prefix, ci.epv.name+'__methods_cstats[%d]'%num_methods, ''),
+                    [ir.Struct_item(ir.Typedef_type('int32_t'), 'tries'),
+                     ir.Struct_item(ir.Typedef_type('int32_t'), 'successes'),
+                     ir.Struct_item(ir.Typedef_type('int32_t'), 'failures'),
+                     ir.Struct_item(ir.Typedef_type('int32_t'), 'nonvio_exceptions')],
+                     ''))
+
         ci.cstats = ir.Struct(
             ir.Scoped_id(prefix, ci.epv.name+'__cstats', ''),
-            [ir.Struct_item(ir.Typedef_type("sidl_bool"), "use_hooks")],
+            [ir.Struct_item(ir.Typedef_type('sidl_bool'), 'use_hooks')]+contract_cstats,
             'The controls and statistics structure')
 
         # @class@__object
@@ -708,17 +723,17 @@ class GlueCodeGenerator(object):
         if with_sidl_baseclass:
             baseclass.append(
                 ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
-                               "d_sidl_baseclass"))
+                               'd_sidl_baseclass'))
 
         if not ci.is_interface and not ci.is_abstract:
-            cstats = [ir.Struct_item(unscope(ci.cstats), "d_cstats")]
+            cstats = [ir.Struct_item(unscope(ci.cstats), 'd_cstats')]
 
             
         ci.obj = \
             ir.Struct(ir.Scoped_id(prefix, ci.epv.name+'__object', ''),
                       baseclass+
                       inherits+
-                      [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), "d_epv")]+
+                      [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_epv')]+
                        cstats+
                        [ir.Struct_item(ir.Pointer_type(ir.pt_void),
                                        'd_object' if ci.is_interface else
@@ -728,24 +743,24 @@ class GlueCodeGenerator(object):
             ir.Struct(ir.Scoped_id(prefix, ci.epv.name+'__external', ''),
                       ([ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
                                                        ir.Pointer_type(ci.obj),
-                                                       "createObject", [
+                                                       'createObject', [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
                                                            ir.Arg([], sidl.out, ir_babel_exception_type(), chpl_local_exception_var)],
-                                                       "")),
-                                                       "createObject")] 
+                                                       '')),
+                                                       'createObject')] 
                       if not ci.is_abstract else []) +
                       ([ir.Struct_item(ir.Pointer_type(ir.Fn_decl([],
                                                        ir.Pointer_type(unscope(ci.epv.get_sepv_type())),
-                                                       "getStaticEPV", [], "")),
-                                                       "getStaticEPV")] 
+                                                       'getStaticEPV', [], '')),
+                                                       'getStaticEPV')] 
                       if ci.epv.has_static_fns else []) +
                       [ir.Struct_item(
                         ir.Pointer_type(
                             ir.Fn_decl([], ir.Pointer_type(ir.Struct('sidl_BaseClass__epv', [],'')),
-                                       "getSuperEPV", [], "")),
-                        "getSuperEPV"),
-                       ir.Struct_item(ir.pt_int, "d_ior_major_version"),
-                       ir.Struct_item(ir.pt_int, "d_ior_minor_version")
+                                       'getSuperEPV', [], '')),
+                        'getSuperEPV'),
+                       ir.Struct_item(ir.pt_int, 'd_ior_major_version'),
+                       ir.Struct_item(ir.pt_int, 'd_ior_minor_version')
                        ],
                        'The static class object structure')
 
@@ -1200,7 +1215,12 @@ class GlueCodeGenerator(object):
 
         if with_ior_c:
             ci.ior.new_def(ior_template.gen_IOR_c(
-                    ci.epv.symbol_table, ci.is_abstract, iorname, sorted_types, cls))
+                    ci.epv.symbol_table, 
+                    ci.is_abstract, 
+                    self.has_static_methods,
+                    iorname, 
+                    sorted_types, 
+                    cls))
 
     
     @matcher(globals(), debug=False)
@@ -1211,7 +1231,7 @@ class GlueCodeGenerator(object):
         def gen(node):         return self.generate_server_pkg(node, data, symbol_table)
         def gen1(node, data1): return self.generate_server_pkg(node, data1, symbol_table)
 
-        def generate_class_stub(name, methods, extends, doc_comment,
+        def generate_class_stub(name, methods, extends, invariants, doc_comment,
                                 is_interface, implements=[]):
             """
             shared code for class/interface
@@ -1257,7 +1277,11 @@ class GlueCodeGenerator(object):
                 chpl_stub.cstub.new_def(
                     externals((sidl.scoped_id, symbol_table.prefix, name, '')))
 
-            self.gen_default_methods(symbol_table, extends, implements, ci)
+            has_contracts = ior_template.generateContractChecks(
+                symbol_table, is_abstract, sidl.Class(ci.name, extends, implements, invariants, methods, [], ''))
+
+            self.gen_default_methods(symbol_table, extends, implements, 
+                                     has_contracts, len(methods), ci)
 
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
             for method in all_methods:
@@ -1390,7 +1414,7 @@ class GlueCodeGenerator(object):
 
             elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
-                generate_class_stub(Name, Methods, Extends, DocComment, False, Implements)
+                generate_class_stub(Name, Methods, Extends, Invariants, DocComment, False, Implements)
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated

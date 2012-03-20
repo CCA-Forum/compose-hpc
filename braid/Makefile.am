@@ -39,19 +39,11 @@ include chapel-patches/Makefile.include
 
 CLEANFILES = toolcheck.log
 
-clean-local: clean-braid
+clean-local: clean-braid clean-regression
 	rm -rf doc/html
 	rm -rf doc/latex
 	rm -rf doc/man
 	rm -rf runtime/sidl_*.[ch] runtime/sidl.h
-	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
-		cd $(builddir) && \
-                rm -rf $(BABEL_TESTS) \
-                       regression/interop/output && \
-		for f in `echo $(BABEL_TESTS)|sed 's/ /\\n/g'`; do \
-	            rm -rf `dirname \`dirname $$f\``; \
-		done; \
-	fi
 
 
 if PYTHON_VERSION_2_6

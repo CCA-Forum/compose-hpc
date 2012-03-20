@@ -20,21 +20,35 @@
 # </pre>
 #
 
+import config, sidl
+from sidl_symbols import (
+    get_parent_interfaces, 
+    has_parent_interface, 
+    get_direct_parent_interfaces, 
+    get_parent,
+    get_unique_interfaces,
+    visit_hierarchy)
 from string import Template
-def gen_IOR_c(symbol_table, is_abstract, iorname, sorted_parents, cls):
+
+def gen_IOR_c(symbol_table, is_abstract, has_static_methods, iorname, sorted_parents, cls):
     """
     generate a Babel-style $classname_IOR.c
     """
     return Template(text).substitute(
-        Class = iorname, 
-        Class_low = str.lower(iorname),
+        CLASS = iorname, 
+        CLASS_LOW = str.lower(iorname),
         Casts = cast_binary_search(
             symbol_table, sorted_parents, cls, True),
         Baseclass = baseclass(symbol_table, cls),
         EPVinits = EPVinits(symbol_table, is_abstract, cls),
         EPVfini = EPVfini(symbol_table, is_abstract, cls),
         ParentDecls = ParentDecls(symbol_table, cls),
-        StaticEPVDecls = StaticEPVDecls(symbol_table, sorted_parents, cls)
+        StaticEPVDecls = StaticEPVDecls(symbol_table, sorted_parents, cls, 
+                                        has_static_methods, is_abstract, iorname),
+        External_getSEPV = ('%s__getStaticEPV,'%iorname) if has_static_methods else '/* no SEPV */',
+        HAVE_STATIC = '1' if has_static_methods else '0',
+        IOR_MAJOR = config.BABEL_VERSION[0], # this will break at Babel 10.0!
+        IOR_MINOR = config.BABEL_VERSION[2:]
         )
 
 text = r"""
@@ -64,7 +78,7 @@ text = r"""
 #include "sidlOps.h"
 #endif
 
-#include "${Class}_IOR.h"
+#include "${CLASS}_IOR.h"
 #ifndef included_sidl_BaseClass_Impl_h
 #include "sidl_BaseClass_Impl.h"
 #endif
@@ -84,10 +98,10 @@ text = r"""
 
 #include "sidl_thread.h"
 #ifdef HAVE_PTHREAD
-static struct sidl_recursive_mutex_t ${Class}__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
-#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &${Class}__mutex )
-#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &${Class}__mutex )
-/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &${Class}__mutex )==EDEADLOCK) */
+static struct sidl_recursive_mutex_t ${CLASS}__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
+#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &${CLASS}__mutex )
+#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &${CLASS}__mutex )
+/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &${CLASS}__mutex )==EDEADLOCK) */
 #else
 #define LOCK_STATIC_GLOBALS
 #define UNLOCK_STATIC_GLOBALS
@@ -118,17 +132,13 @@ static int s_load_called = 0;
  */
 
 static int s_method_initialized = 0;
+static int s_static_initialized = 0;
 
-static struct ${Class}__epv s_my_epv__${Class_low} = { 0 };
-
-static struct ${Class}__epv s_my_epv_contracts__${Class_low} = { 0 };
-
-static struct ${Class}__epv s_my_epv_hooks__${Class_low} = { 0 };
+static struct ${CLASS}__epv s_my_epv__${CLASS_LOW} = { 0 };
+static struct ${CLASS}__epv s_my_epv_contracts__${CLASS_LOW} = { 0 };
+static struct ${CLASS}__epv s_my_epv_hooks__${CLASS_LOW} = { 0 };
 
 ${StaticEPVDecls}
-
-static struct ${Class}__pre_epv s_preEPV;
-static struct ${Class}__post_epv s_postEPV;
 
 /*
  * Declare EPV routines defined in the skeleton file.
@@ -138,12 +148,12 @@ static struct ${Class}__post_epv s_postEPV;
 extern "C" {
 #endif
 
-extern void ${Class}__set_epv(
-  struct ${Class}__epv* epv,
-    struct ${Class}__pre_epv* pre_epv,
-    struct ${Class}__post_epv* post_epv);
+extern void ${CLASS}__set_epv(
+  struct ${CLASS}__epv* epv,
+    struct ${CLASS}__pre_epv* pre_epv,
+    struct ${CLASS}__post_epv* post_epv);
 
-extern void ${Class}__call_load(void);
+extern void ${CLASS}__call_load(void);
 #ifdef __cplusplus
 }
 #endif
@@ -153,8 +163,8 @@ extern void ${Class}__call_load(void);
  * CHECKS: Enable/disable contract enforcement.
  */
 
-static void ior_${Class}__set_contracts(
-  struct ${Class}__object* self,
+static void ior_${CLASS}__set_contracts(
+  struct ${CLASS}__object* self,
   sidl_bool   enable,
   const char* enfFilename,
   sidl_bool   resetCounters,
@@ -173,8 +183,8 @@ static void ior_${Class}__set_contracts(
  * DUMP: Dump interface contract enforcement statistics.
  */
 
-static void ior_${Class}__dump_stats(
-  struct ${Class}__object* self,
+static void ior_${CLASS}__dump_stats(
+  struct ${CLASS}__object* self,
   const char* filename,
   const char* prefix,
   struct sidl_BaseInterface__object **_ex)
@@ -188,20 +198,20 @@ static void ior_${Class}__dump_stats(
   }
 }
 
-static void ior_${Class}__ensure_load_called(void) {
+static void ior_${CLASS}__ensure_load_called(void) {
   /*
    * assert( HAVE_LOCKED_STATIC_GLOBALS );
    */
 
   if (! s_load_called ) {
     s_load_called=1;
-    ${Class}__call_load();
+    ${CLASS}__call_load();
   }
 }
 
 /* CAST: dynamic type casting support. */
-static void* ior_${Class}__cast(
-  struct ${Class}__object* self,
+static void* ior_${CLASS}__cast(
+  struct ${CLASS}__object* self,
   const char* name, sidl_BaseInterface* _ex)
 {
   int cmp;
@@ -218,8 +228,8 @@ static void* ior_${Class}__cast(
  * HOOKS: Enable/disable hooks.
  */
 
-static void ior_${Class}__set_hooks(
-  struct ${Class}__object* self,
+static void ior_${CLASS}__set_hooks(
+  struct ${CLASS}__object* self,
   sidl_bool enable, struct sidl_BaseInterface__object **_ex )
 {
   *_ex  = NULL;
@@ -233,18 +243,18 @@ static void ior_${Class}__set_hooks(
  * DELETE: call destructor and free object memory.
  */
 
-static void ior_${Class}__delete(
-  struct ${Class}__object* self, struct sidl_BaseInterface__object **_ex)
+static void ior_${CLASS}__delete(
+  struct ${CLASS}__object* self, struct sidl_BaseInterface__object **_ex)
 {
   *_ex  = NULL; /* default to no exception */
-  ${Class}__fini(self, _ex);
-  memset((void*)self, 0, sizeof(struct ${Class}__object));
+  ${CLASS}__fini(self, _ex);
+  memset((void*)self, 0, sizeof(struct ${CLASS}__object));
   free((void*) self);
 }
 
 static char*
-ior_${Class}__getURL(
-  struct ${Class}__object* self,
+ior_${CLASS}__getURL(
+  struct ${CLASS}__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
   char* ret  = NULL;
@@ -266,21 +276,21 @@ ior_${Class}__getURL(
   return NULL;
 }
 static void
-ior_${Class}__raddRef(
-    struct ${Class}__object* self, sidl_BaseInterface* _ex) {
+ior_${CLASS}__raddRef(
+    struct ${CLASS}__object* self, sidl_BaseInterface* _ex) {
   sidl_BaseInterface_addRef((sidl_BaseInterface)self, _ex);
 }
 
 static sidl_bool
-ior_${Class}__isRemote(
-    struct ${Class}__object* self, sidl_BaseInterface* _ex) {
+ior_${CLASS}__isRemote(
+    struct ${CLASS}__object* self, sidl_BaseInterface* _ex) {
   *_ex  = NULL; /* default to no exception */
   return FALSE;
 }
 
-struct ${Class}__method {
+struct ${CLASS}__method {
   const char *d_name;
-  void (*d_func)(struct ${Class}__object*,
+  void (*d_func)(struct ${CLASS}__object*,
     struct sidl_rmi_Call__object *,
     struct sidl_rmi_Return__object *,
     struct sidl_BaseInterface__object **);
@@ -290,13 +300,13 @@ struct ${Class}__method {
  * EPV: create method entry point vector (EPV) structure.
  */
 
-static void ${Class}__init_epv(void)
+static void ${CLASS}__init_epv(void)
 {
 /*
  * assert( HAVE_LOCKED_STATIC_GLOBALS );
  */
 
-  struct ${Class}__epv*         epv  = &s_my_epv__${Class_low};
+  struct ${CLASS}__epv*         epv  = &s_my_epv__${CLASS_LOW};
   struct sidl_BaseClass__epv*     e0   = &s_my_epv__sidl_baseclass;
   struct sidl_BaseInterface__epv* e1   = &s_my_epv__sidl_baseinterface;
 
@@ -317,22 +327,22 @@ static void ${Class}__init_epv(void)
 
   s1  =  s_par_epv__sidl_baseclass;
 
-  epv->f__cast                  = ior_${Class}__cast;
-  epv->f__delete                = ior_${Class}__delete;
-  epv->f__exec                  = NULL; //ior_${Class}__exec;
-  epv->f__getURL                = ior_${Class}__getURL;
-  epv->f__raddRef               = ior_${Class}__raddRef;
-  epv->f__isRemote              = ior_${Class}__isRemote;
-  epv->f__set_hooks             = ior_${Class}__set_hooks;
-  epv->f__set_contracts         = ior_${Class}__set_contracts;
-  epv->f__dump_stats            = ior_${Class}__dump_stats;
-  epv->f_addRef                 = (void (*)(struct ${Class}__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
-  epv->f_deleteRef              = (void (*)(struct ${Class}__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
-  epv->f_isSame                 = (sidl_bool (*)(struct ${Class}__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
-  epv->f_isType                 = (sidl_bool (*)(struct ${Class}__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
-  epv->f_getClassInfo           = (struct sidl_ClassInfo__object* (*)(struct ${Class}__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
+  epv->f__cast                  = ior_${CLASS}__cast;
+  epv->f__delete                = ior_${CLASS}__delete;
+  epv->f__exec                  = NULL; //ior_${CLASS}__exec;
+  epv->f__getURL                = ior_${CLASS}__getURL;
+  epv->f__raddRef               = ior_${CLASS}__raddRef;
+  epv->f__isRemote              = ior_${CLASS}__isRemote;
+  epv->f__set_hooks             = ior_${CLASS}__set_hooks;
+  epv->f__set_contracts         = ior_${CLASS}__set_contracts;
+  epv->f__dump_stats            = ior_${CLASS}__dump_stats;
+  epv->f_addRef                 = (void (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
+  epv->f_deleteRef              = (void (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
+  epv->f_isSame                 = (sidl_bool (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
+  epv->f_isType                 = (sidl_bool (*)(struct ${CLASS}__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
+  epv->f_getClassInfo           = (struct sidl_ClassInfo__object* (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
 
-  ${Class}__set_epv(epv, &s_preEPV, &s_postEPV);
+  ${CLASS}__set_epv(epv, &s_preEPV, &s_postEPV);
 
   /*
    * Override function pointers for sidl.BaseClass with mine, as needed.
@@ -371,37 +381,64 @@ static void ${Class}__init_epv(void)
 
 
   s_method_initialized = 1;
-  ior_${Class}__ensure_load_called();
+  ior_${CLASS}__ensure_load_called();
 }
 
 /*
- * ${Class}__getEPVs: Get my version of all relevant EPVs.
+ * ${CLASS}__getEPVs: Get my version of all relevant EPVs.
  */
 
-void ${Class}__getEPVs (
+void ${CLASS}__getEPVs (
   struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
   struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
-  struct ${Class}__epv **s_arg_epv__${Class_low},
-  struct ${Class}__epv **s_arg_epv_hooks__${Class_low})
+  struct ${CLASS}__epv **s_arg_epv__${CLASS_LOW},
+  struct ${CLASS}__epv **s_arg_epv_hooks__${CLASS_LOW})
 {
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    ${Class}__init_epv();
+    ${CLASS}__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
   *s_arg_epv__sidl_baseinterface = &s_my_epv__sidl_baseinterface;
   *s_arg_epv__sidl_baseclass = &s_my_epv__sidl_baseclass;
-  *s_arg_epv__${Class_low} = &s_my_epv__${Class_low};
-  *s_arg_epv_hooks__${Class_low} = &s_my_epv_hooks__${Class_low};
+  *s_arg_epv__${CLASS_LOW} = &s_my_epv__${CLASS_LOW};
+  *s_arg_epv_hooks__${CLASS_LOW} = &s_my_epv_hooks__${CLASS_LOW};
 }
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
 
-static struct sidl_BaseClass__epv* ${Class}__getSuperEPV(void) {
+static struct sidl_BaseClass__epv* ${CLASS}__getSuperEPV(void) {
   return s_par_epv__sidl_baseclass;
 }
+
+/*
+ * ${CLASS}__getStaticEPV: return pointer to static EPV structure.
+ */
+#if ${HAVE_STATIC}
+struct ${CLASS}__sepv*
+${CLASS}__getStaticEPV(void){
+  struct ${CLASS}__sepv* sepv;
+  LOCK_STATIC_GLOBALS;
+  if (!s_static_initialized) {
+    ${CLASS}__init_sepv();
+  }
+  UNLOCK_STATIC_GLOBALS;
+
+  if (sidl_Enforcer_areEnforcing()) {
+    if (!s_cstats.enabled) {
+      struct sidl_BaseInterface__object *tae;
+      ior_${CLASS}__set_contracts_static(sidl_Enforcer_areEnforcing(),
+        NULL, TRUE, &tae);
+    }
+    sepv = &s_stc_epv_contracts__vect_utils;
+  } else {
+    sepv = &s_stc_epv__vect_utils;
+  }
+  return sepv;
+}
+#endif
 
 /*
  * initClassInfo: create a ClassInfo interface if necessary.
@@ -441,7 +478,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
  */
 
 static void
-initMetadata(struct ${Class}__object* self, sidl_BaseInterface* _ex)
+initMetadata(struct ${CLASS}__object* self, sidl_BaseInterface* _ex)
 {
   *_ex = 0; /* default no exception */
   if (self) {
@@ -457,19 +494,19 @@ return;
 }
 
 /*
- * ${Class}__createObject: Allocate the object and initialize it.
+ * ${CLASS}__createObject: Allocate the object and initialize it.
  */
 
-struct ${Class}__object*
-${Class}__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
+struct ${CLASS}__object*
+${CLASS}__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
 {
-  struct ${Class}__object* self =
-    (struct ${Class}__object*) sidl_malloc(
-      sizeof(struct ${Class}__object),
-      "Object allocation failed for struct ${Class}__object",
-        __FILE__, __LINE__, "${Class}__createObject", _ex);
+  struct ${CLASS}__object* self =
+    (struct ${CLASS}__object*) sidl_malloc(
+      sizeof(struct ${CLASS}__object),
+      "Object allocation failed for struct ${CLASS}__object",
+        __FILE__, __LINE__, "${CLASS}__createObject", _ex);
   if (!self) goto EXIT;
-  ${Class}__init(self, ddata, _ex); SIDL_CHECK(*_ex);
+  ${CLASS}__init(self, ddata, _ex); SIDL_CHECK(*_ex);
   initMetadata(self, _ex); SIDL_CHECK(*_ex);
   return self;
 
@@ -481,8 +518,8 @@ ${Class}__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
  * INIT: initialize a new instance of the class object.
  */
 
-void ${Class}__init(
-  struct ${Class}__object* self,
+void ${CLASS}__init(
+  struct ${CLASS}__object* self,
    void* ddata,
   struct sidl_BaseInterface__object **_ex)
 {
@@ -491,7 +528,7 @@ ${ParentDecls}
   *_ex = 0; /* default no exception */
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    ${Class}__init_epv();
+    ${CLASS}__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
@@ -499,7 +536,7 @@ ${ParentDecls}
 
 ${EPVinits}
 
-  s0->d_epv    = &s_my_epv__${Class_low};
+  s0->d_epv    = &s_my_epv__${CLASS_LOW};
 
   s0->d_data = NULL;
 
@@ -517,8 +554,8 @@ ${EPVinits}
  * FINI: deallocate a class instance (destructor).
  */
 
-void ${Class}__fini(
-  struct ${Class}__object* self,
+void ${CLASS}__fini(
+  struct ${CLASS}__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
 ${ParentDecls}
@@ -536,18 +573,19 @@ ${EPVfini}
  */
 
 void
-${Class}__IOR_version(int32_t *major, int32_t *minor)
+${CLASS}__IOR_version(int32_t *major, int32_t *minor)
 {
   *major = s_IOR_MAJOR_VERSION;
   *minor = s_IOR_MINOR_VERSION;
 }
 
-static const struct ${Class}__external
+static const struct ${CLASS}__external
 s_externalEntryPoints = {
-  ${Class}__createObject,
-  ${Class}__getSuperEPV,
-  2, 
-  0
+  ${CLASS}__createObject,
+  ${External_getSEPV}
+  ${CLASS}__getSuperEPV,
+  ${IOR_MAJOR}, 
+  ${IOR_MINOR}
 };
 
 /*
@@ -556,8 +594,8 @@ s_externalEntryPoints = {
  * one-stop shopping for loading DLLs.
  */
 
-const struct ${Class}__external*
-${Class}__externals(void)
+const struct ${CLASS}__external*
+${CLASS}__externals(void)
 {
   return &s_externalEntryPoints;
 }
@@ -599,8 +637,6 @@ def cast_binary_search(symbol_table, sorted_types, cls, addref):
     s = '\n'.join(r)
     return s
 
-import sidl
-from sidl_symbols import (get_parent_interfaces, has_parent_interface, get_direct_parent_interfaces)
 def class_to_interface_ptr(symbol_table, cls, e):
     """
     Generate an expression to obtain a pointer to an interface or
@@ -628,10 +664,8 @@ def class_to_interface_ptr(symbol_table, cls, e):
         return False
 
     def nextAncestor(ancestor, result):
-        ancestor = sidl.get_parent(symbol_table, ancestor)
+        ancestor = get_parent(symbol_table, ancestor)
         if ancestor:
-#            if qual_name_low(ancestor) == 'sidl_sidlexception': import pdb; pdb.set_trace()
-
             result.append(".d_")
             result.append(qual_name_low(symbol_table, ancestor))
         return ancestor
@@ -640,17 +674,17 @@ def class_to_interface_ptr(symbol_table, cls, e):
         while cls:
             if sidl.type_id(e) in get_direct_parent_interfaces(symbol_table, cls):
                 return True
-            cls = sidl.get_parent(symbol_table, cls)
+            cls = get_parent(symbol_table, cls)
         return False
 
     def implementsByInheritance(cls, e):
-        parent = sidl.get_parent(symbol_table, cls)
+        parent = get_parent(symbol_table, cls)
         if parent:
             excludedInterfaces = get_parent_interfaces(symbol_table, parent)
         else:
             excludedInterfaces = []
 
-        for ext in sidl.get_unique_interfaces(symbol_table, cls):
+        for ext in get_unique_interfaces(symbol_table, cls):
             if hasAncestor(excludedInterfaces, symbol_table[ext], sidl.hashable_type_id(e)):
                 return True
             
@@ -669,7 +703,7 @@ def class_to_interface_ptr(symbol_table, cls, e):
         direct = directlyImplements(cls, e)
         result.append('&((*self)')
         while ancestor:
-            if ((direct and (sidl.type_id(e) in sidl.get_unique_interfaces(symbol_table, ancestor))) 
+            if ((direct and (sidl.type_id(e) in get_unique_interfaces(symbol_table, ancestor))) 
                 or ((not direct) and implementsByInheritance(ancestor, e))):
                 result.append('.d_')
                 result.append(qual_name_low(symbol_table, e))
@@ -707,10 +741,10 @@ def qual_name_low(symbol_table, cls):
 
 def baseclass(symbol_table, cls):
     r = []
-    parent = sidl.get_parent(symbol_table, cls)
+    parent = get_parent(symbol_table, cls)
     while parent:
         r.append('.d_'+qual_name_low(symbol_table, parent))
-        parent = sidl.get_parent(symbol_table, parent)
+        parent = get_parent(symbol_table, parent)
     return ''.join(r)
 
 
@@ -731,7 +765,7 @@ def ParentDecls(symbol_table, cls):
         if w > width:
             width = w
             
-        parent = sidl.get_parent(symbol_table, parent)
+        parent = get_parent(symbol_table, parent)
 
     def generateParentSelf(cls, level):
         if cls:
@@ -743,19 +777,29 @@ def ParentDecls(symbol_table, cls):
                 r.append('  struct %s__object*'%typ+' '*(width-len(typ))+' s%d = &s%d->d_%s;' 
                          % (level,level-1,qual_name_low(symbol_table, cls)))
      
-            generateParentSelf(sidl.get_parent(symbol_table, cls), level + 1)
+            generateParentSelf(get_parent(symbol_table, cls), level + 1)
 
     r = []
     generateParentSelf(cls, 0)
     return '\n'.join(r)
 
-def StaticEPVDecls(symbol_table, parents, cls):
+def StaticEPVDecls(symbol_table, parents, cls, has_static_methods, is_abstract, ior_name):
     """
     Collect all the parents of the class in a set and output EPV structures
     for the parents.
     """
-    new_interfaces = sidl.get_unique_interfaces(symbol_table, cls)
     r = []
+
+    # The class
+    t = ior_name
+    n = str.lower(t)
+    if has_static_methods:
+        r.append('static VAR_UNUSED struct %s__sepv  s_stc_epv__%s;' % (t, n))
+        if generateContractEPVs(symbol_table, is_abstract, cls):
+            r.append('static VAR_UNUSED struct %s__sepv  s_stc_epv_contracts__%s;' % (t, n))
+
+    # Interfaces and parents
+    new_interfaces = get_unique_interfaces(symbol_table, cls)
     for parent in parents:
         is_par   = not sidl.hashable_type_id(parent) in new_interfaces
         t = qual_id(sidl.type_id(parent), '_')
@@ -769,46 +813,32 @@ def StaticEPVDecls(symbol_table, parents, cls):
               r.append('static struct %s_pre__epv*  s_par_epv_hooks__%s;'% (t, n))
         r.append('')
 
-#    if (  has_static && ( genContractEPVs || genHookEPVs ) ) {
-#      comment("Static variables for interface contract enforcement and/or "
-#             + "hooks controls.");
-# 
-#      String cStats = "static " + IOR.MACRO_VAR_UNUSED + " ";
-#      cStats        += IOR.getControlsNStatsStruct(cls.getSymbolID());
-# 
-#      int cWidth = cStats.length() + 1;
-#      d_writer.printAligned(cStats, cWidth);
-#      d_writer.println(IOR.S_CSTATS + ";");
-#      d_writer.println();
-#    }
-#    if (IOR.generateContractChecks(cls, d_context)) {
-#      comment("Static file for interface contract enforcement statistics.");
-#      d_writer.println("static FILE* " + IOR.S_DUMP_FPTR + s_set_to_null);
-#      d_writer.println();
-#    }
-# 
-#    //Declare static hooks epvs
-#    if (genHookEPVs) {
-#      SymbolID id = cls.getSymbolID();
-#      d_writer.print("static " + IOR.getPreEPVName(id) + " ");
-#      d_writer.println(s_preEPV + ";");
-#      d_writer.print("static " + IOR.getPostEPVName(id) + " ");
-#      d_writer.println(s_postEPV + ";");
-# 
-#      if (has_static) {
-#        d_writer.print("static " + IOR.getPreSEPVName(id) + " ");
-#        d_writer.println(s_preSEPV + ";");
-#        d_writer.print("static " + IOR.getPostSEPVName(id) + " ");
-#        d_writer.println(s_postSEPV + ";");
-#      }
-# 
-#      d_writer.println();
-#    }
-# 
-#    if(d_context.getConfig().getFastCall()) {
-#      comment("used for initialization of native epv entries.");
-#      d_writer.println("static const sidl_babel_native_epv_t NULL_NATIVE_EPV  = { BABEL_LANG_UNDEF, NULL};");
-#    }
+    if has_static_methods and (
+        generateContractEPVs(symbol_table, is_abstract, cls) or
+        generateHookEPVs(symbol_table, cls)):
+        r.append('/* Static variables for interface contract enforcement and/or hooks controls. */')
+        r.append('static VAR_UNUSED struct %s__cstats s_cstats;' % ior_name)
+    
+    if generateContractChecks(symbol_table, is_abstract, cls):
+        r.append('/* Static file for interface contract enforcement statistics.')
+        r.append('static FILE* s_dump_fptr = NULL;')
+        r.append('')
+ 
+    # Declare static hooks epvs
+    if generateHookEPVs(symbol_table, cls):
+        r.append('static struct %s__pre_epv s_preEPV;'% ior_name)
+        r.append('static struct %s__post_epv s_postEPV;'% ior_name)
+ 
+        if has_static_methods:
+            r.append('static struct %s__pre_sepv s_preSEPV;'% ior_name)
+            r.append('static struct %s__post_sepv s_postSEPV;'% ior_name)
+
+        r.append('')
+ 
+    if False: #fastcall:
+        r.append('/* used for initialization of native epv entries. */')
+        r.append('static const sidl_babel_native_epv_t NULL_NATIVE_EPV  = { BABEL_LANG_UNDEF, NULL};')
+
     return '\n'.join(r)
 
 def EPVinits(symbol_table, is_abstract, cls):
@@ -826,14 +856,14 @@ def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
     """
     if not cls: return
 
-    parent = sidl.get_parent(symbol_table, cls)
+    parent = get_parent(symbol_table, cls)
     fixEPVs(r, symbol_table, parent, is_abstract, level + 1, is_new)
 
     # Update the EPVs for all of the new interfaces in this particular class.
     _self    = 's%d' %level
     epvType  = 'my_' if is_new else 'par_'
     prefix   = '&' if is_new else ''
-    ifce    = sorted(sidl.get_unique_interfaces(symbol_table, cls))
+    ifce    = sorted(get_unique_interfaces(symbol_table, cls))
     epv     = 'epv'
     #width   = Utilities.getWidth(ifce) + epv.length() + 3;
 
@@ -841,7 +871,8 @@ def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
         name        = qual_id_low(i, '_')
         r.append('  %s->d_%s.d_%s = %ss_%s%s__%s;' %(_self, name, epv, prefix, epvType, epv, name))
 
-    name = qual_name_low(symbol_table, cls)
+    name_low = qual_name_low(symbol_table, cls)
+    name = qual_name(symbol_table, cls)
     
     # Modify the class entry point vector.
     setContractsEPV =  level == 0 and is_new
@@ -857,27 +888,27 @@ def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
         r.append(r'      printf("Calling set_contracts()...\n");');
         r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
         r.append('      sidl_BaseInterface* tae;');
-        r.append('      _set_contracts(%s, sidl_Enforcer_areEnforcing(), NULL, TRUE, &tae);' 
-                 % _self)
+        r.append('      ior_%s__set_contracts(%s, sidl_Enforcer_areEnforcing(), NULL, TRUE, &tae);' 
+                 % (name, _self))
         r.append('    }');
         #  TBD:  Should the Base EPV also be set to a contracts version here?
         #        Can't remember off-hand.
         r.append('#ifdef SIDL_CONTRACTS_DEBUG')
         r.append(r'    printf("Setting epv to contracts version...\n");');
         r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
-        r.append('    %s->d_%s = %ss_%s%s__%s;' %(_self, epv, prefix, epvType, epv, name))
+        r.append('    %s->d_%s = %ss_%s%s__%s;' %(_self, epv, prefix, epvType, epv, name_low))
         r.append('  } else {');
         r.append('#ifdef SIDL_CONTRACTS_DEBUG')
         r.append(r'   printf("Setting epv to regular version...\n");');
         r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
 
     ind = '  ' if setContractsEPV else ''
-    r.append('%s  %s->d_%s = %ss_%s%s__%s;'%(ind, _self, epv, prefix, epvType, epv, name))
+    r.append('%s  %s->d_%s = %ss_%s%s__%s;'%(ind, _self, epv, prefix, epvType, epv, name_low))
     if setContractsEPV:
         r.append('  }')
 
     if generateBaseEPVAttr(symbol_table, is_abstract, cls):
-        r.append('  %s->d_%s = %ss_%s%s__%s;'%(_self, epv, 'b', prefix, epvType, name))
+        r.append('  %s->d_%s = %ss_%s%s__%s;'%(_self, epv, 'b', prefix, epvType, name_low))
 
     r.append('')
                 
@@ -896,7 +927,7 @@ def EPVfini(symbol_table, is_abstract, cls):
  
     # If there is a parent class, then reset all parent pointers and call the
     # parent destructor.
-    parent = sidl.get_parent(symbol_table, cls)
+    parent = get_parent(symbol_table, cls)
     if parent:
         r.append('')
         fixEPVs(r, symbol_table, parent, is_abstract, 1, is_new=False)
@@ -949,11 +980,34 @@ def generateContractChecks(symbol_table, is_abstract, ext):
     3) Checks are only generated if the configuration indicates
        their generation is required.
     """     
-   
     return generateContractEPVs(symbol_table, is_abstract, ext) \
-        and sidl.class_contracts(ext) and \
+        and class_contracts(symbol_table, ext) and \
         True #and context.getConfig().generateContracts();
    
+
+def class_contracts(symbol_table, cls):
+    """
+    Return TRUE if the class has any invariants or any methods define
+    contracts
+    """
+    has_contracts = False
+
+    def evaluate(sid):
+        ext = symbol_table[sid]
+        if sidl.ext_invariants(ext):
+            has_contracts = True
+            return
+
+        for m in sidl.ext_methods(ext):
+            if sidl.method_requires(m) or sidl.method_ensures(m):
+                has_contracts = True
+                return
+
+    if not has_contracts:
+        visit_hierarchy(cls, evaluate, symbol_table, [])
+
+    return has_contracts
+
 def generateContractEPVs(symbol_table, is_abstract, ext):
     """
     Return TRUE if the contract-related EPVs are supposed to be generated.  
@@ -963,7 +1017,7 @@ def generateContractEPVs(symbol_table, is_abstract, ext):
     2) Contract-related EPVs are not generated for SIDL classes.
     3) Contract-related EPVs are not generated for exceptions.
     """   
-    return is_abstract and (not sidl.is_interface(ext)) \
+    return (not is_abstract) and (not sidl.is_interface(ext)) \
         and generateContractBuiltins(symbol_table, ext)
 
 def isSIDLSymbol(scoped_id):

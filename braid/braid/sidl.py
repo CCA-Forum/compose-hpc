@@ -3301,66 +3301,29 @@ pt_fcomplex = Primitive_type(fcomplex)
 pt_dcomplex = Primitive_type(dcomplex)
 pt_string   = Primitive_type(string)
 pt_opaque   = Primitive_type(opaque)
-def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
-    """
-    Visit all parent classes and implemented interfaces of
-    \c base_class exactly once and invoke visit_func on each
-    sidl.class/sidl.interface node.
- 
-    \arg visited_nodes         An optional list of nodes
-                               to exclude from visiting.
-                              Contains the list of visited
-                              nodes after return.
-    """
- 
-    def step(visited_nodes, base):
- 
-       visit_func(base)
-       visited_nodes.append(base)
- 
-       n = symbol_table[base]
-       if n:
-           if n[0] == class_:
-               extends = n[2]
-               for ext in extends:
-                   if ext[1] not in visited_nodes:
-                       step(visited_nodes, ext[1])
-               for _, impl in n[3]:
-                   if impl and impl not in visited_nodes:
-                       step(visited_nodes, impl)
-           elif n[0] == interface:
-               for parent_interface in n[2]:
-                   if parent_interface[1] and parent_interface[1] not in visited_nodes:
-                       step(visited_nodes, parent_interface[1])
-                           
-    if base_class and base_class[1] not in visited_nodes:
-       step(visited_nodes, base_class)
-def get_parent(symbol_table, class_or_interface):
-    """
-    return the base class/interface of \c class_or_interface
-    """
-    extends = class_or_interface[2]
-    if extends == []:
-        return extends
-    return symbol_table[extends[0][1]]
-from sidl_symbols import get_parent_interfaces
-def get_unique_interfaces(symbol_table, cls):
-    """
-    Extract the unique interfaces from this class.  The unique interfaces
-    are those that belong to this class but do not belong to one of its
-    parents (if they exit).  The returned set consists of objects of the
-    type <code>Interface</code>.
-    """
-    unique = set(get_parent_interfaces(symbol_table, cls))
-    parent = get_parent(symbol_table, cls);
-    if parent:
-        unique -= set(get_parent_interfaces(symbol_table, parent))
-    return unique
 def type_id(t):
     """
     \return the Id of a class, interface, package, etc.
     """
     return t[1]
+def ext_invariants(ext):
+    """
+    \return the invariants specified by a class or interface
+    """
+    if ext[0] == class_:
+        return class_invariants(ext)
+    elif ext[0] == interface:
+        return interface_invariants(ext)
+    return []
+def ext_methods(ext):
+    """
+    \return the methods specified by a class or interface
+    """
+    if ext[0] == class_:
+        return class_methods(ext)
+    elif ext[0] == interface:
+        return interface_methods(ext)
+    return []
 def hashable((scoped_id, modules, name, ext)):
     """
     Make a hashable copy of a scoped_id by turning the list of modules into a tuple.

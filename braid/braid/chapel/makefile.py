@@ -168,16 +168,16 @@ endif
 
 ifeq ($(CHAPEL_MAKE_COMM),gasnet)
 
-all: lib$(LIBNAME).la $(SCLFILE) $(OUTFILE) $(OUTFILE)_real
+all: lib$(LIBNAME).la $(SCLFILE) $(TARGET) $(TARGET)_real
 
 # actual program
-$(OUTFILE)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
+$(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
           $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
 # launcher
-$(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
+$(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 	echo "#include \"chplcgfns.h\"" > $(IMPL).chpl.dir/config.c
 	echo "#include \"config.h\""   >> $(IMPL).chpl.dir/config.c
 	echo "#include \"_config.c\""  >> $(IMPL).chpl.dir/config.c
@@ -191,9 +191,9 @@ $(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 
 else
 
-all: lib$(LIBNAME).la $(SCLFILE) $(OUTFILE)
+all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
-$(OUTFILE): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
+$(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
