@@ -25,10 +25,10 @@ PYTHON_SOURCES = \
 	braid/parse_tree.py \
 	braid/patmat.py \
 	braid/rote2braid.py \
-	braid/sidl_oop.py \
 	braid/sidl_parser.py \
 	braid/sidl_symbols.py \
 	braid/sidl_token.py \
+	braid/sidlobjects.py \
 	braid/splicer.py \
 	braid/utils.py
 

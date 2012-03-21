@@ -65,12 +65,12 @@ def build_symbol_table(node, symbol_table, verbose=True):
         if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
             symbol_table[Name] = \
                 ( sidl.class_, (sidl.scoped_id, symbol_table.prefix, Name, ''),
-                  Extends, Implements, Invariants, Methods )
+                  Extends, Implements, Invariants, Methods, DocComment )
 
         elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
             symbol_table[Name] = \
                 ( sidl.interface, (sidl.scoped_id, symbol_table.prefix, Name, ''),
-                  Extends, Invariants, Methods )
+                  Extends, Invariants, Methods, DocComment )
 
         elif (sidl.enum, Name, Items, DocComment):
             symbol_table[Name] = node
@@ -417,70 +417,6 @@ def scan_methods(symbol_table, is_abstract,
         add_method(m, toplevel)
 
 
-# --------------------------------------------------------------
-
-def get_parents(symbol_table, class_or_interface, all_parents):
-    """
-    Return a list of the names of all base classes and implemented
-    interfaces of a class in \c all_parents
-    """
-
-    def f(s_id):
-        c_i = symbol_table[s_id]
-        all_parents.append(c_i)
-
-    start = sidl.Scoped_id(symbol_table.prefix, sidl.type_id(class_or_interface), '')
-    visit_hierarchy(start, f, symbol_table, [])
-    return all_parents
-
-def get_parent_interfaces(symbol_table, class_or_interface):
-
-    """
-    return a list of the scoped ids of all implemented interfaces
-    """
-    isinterface = sidl.is_interface(class_or_interface)
-    isclass = sidl.is_class(class_or_interface)
-    assert isclass or isinterface
-
-    def f(s_id):
-        c_i = symbol_table[s_id]
-        if c_i[0] == sidl.interface:
-            # make it hashable
-            sid, modules, name, ext = s_id
-            all_interfaces.append((sid, tuple(modules), name, ext))
-
-    all_interfaces = []
-    tid = sidl.type_id(class_or_interface)
-    if isclass and not isinstance(tid, tuple):
-        start = sidl.Scoped_id(symbol_table.prefix, tid, '')
-    else:
-        start = tid
-
-    visit_hierarchy(start, f, symbol_table, [])
-    if isinterface:
-        # first one is the interface itself
-        return all_interfaces[1:]
-    return all_interfaces
-
-def has_parent_interface(symbol_table, ext, intf):
-    """
-    return \c True if the extendible \c ext implements the interface \c intf.
-    """
-    return intf in get_parent_interfaces(symbol_table, ext)
-
-def get_direct_parent_interfaces(symbol_table, cls):
-
-    """
-    return a list of all direct (local) implemented interfaces
-    """
-   
-    if cls[0] == sidl.interface:
-        parents = sidl.interface_extends(cls)
-    else:
-        parents = sidl.class_implements(cls)
-    return [symbol_table[impl] for _, impl in parents]
-
-
 def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
     """
     Visit all parent classes and implemented interfaces of
@@ -518,25 +454,3 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
        step(visited_nodes, base_class)
 
 
-def get_parent(symbol_table, class_or_interface):
-    """
-    return the base class/interface of \c class_or_interface
-    """
-    extends = class_or_interface[2]
-    if extends == []:
-        return extends
-    return symbol_table[extends[0][1]]
-
-
-def get_unique_interfaces(symbol_table, cls):
-    """
-    Extract the unique interfaces from this class.  The unique interfaces
-    are those that belong to this class but do not belong to one of its
-    parents (if they exit).  The returned set consists of objects of the
-    type <code>Interface</code>.
-    """
-    unique = set(get_parent_interfaces(symbol_table, cls))
-    parent = get_parent(symbol_table, cls);
-    if parent:
-        unique -= set(get_parent_interfaces(symbol_table, parent))
-    return unique

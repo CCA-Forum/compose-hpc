@@ -3343,11 +3343,9 @@ def get_scoped_id(symbol_table, ext):
     This wouldn't need to be so complicated if symbol_table[]
     would return a class with an id instead of a scoped_id.
     """
+    if is_scoped_id(ext):
+        return ext
     tid = type_id(ext)
-    if is_class(ext):
-        if is_scoped_id(tid):
-            return tid
-        return Scoped_id(symbol_table.prefix, tid, '')
-    elif is_interface(ext):
+    if is_scoped_id(tid):
         return tid
-    return ext
+    return Scoped_id(symbol_table.prefix, tid, '')

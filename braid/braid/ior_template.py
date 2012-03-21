@@ -3,6 +3,9 @@
 ## @package ior_template
 # template for IOR C code
 #
+# Many of the functions in here were directly ported from the Java
+# Babel implementation.
+#
 # \authors <pre>
 #
 # Copyright (c) 2012, Lawrence Livermore National Security, LLC.
@@ -21,32 +24,31 @@
 #
 
 import config, sidl
-from sidl_symbols import (
-    get_parent_interfaces, 
-    has_parent_interface, 
-    get_direct_parent_interfaces, 
-    get_parent,
-    get_unique_interfaces,
-    visit_hierarchy)
+from sidl_symbols import visit_hierarchy
+from sidlobjects import make_extendable
 from string import Template
+from utils import accepts
 
-def gen_IOR_c(symbol_table, is_abstract, has_static_methods, iorname, sorted_parents, cls):
+def gen_IOR_c(iorname, cls):
     """
     generate a Babel-style $classname_IOR.c
     """
+    # class hierarchy for the casting function
+    sorted_parents = sorted(cls.get_parents([]), 
+                            key = lambda x: qual_id(sidl.type_id(x)))
+
     return Template(text).substitute(
         CLASS = iorname, 
         CLASS_LOW = str.lower(iorname),
-        Casts = cast_binary_search(
-            symbol_table, sorted_parents, cls, True),
-        Baseclass = baseclass(symbol_table, cls),
-        EPVinits = EPVinits(symbol_table, is_abstract, cls),
-        EPVfini = EPVfini(symbol_table, is_abstract, cls),
-        ParentDecls = ParentDecls(symbol_table, cls),
-        StaticEPVDecls = StaticEPVDecls(symbol_table, sorted_parents, cls, 
-                                        has_static_methods, is_abstract, iorname),
-        External_getSEPV = ('%s__getStaticEPV,'%iorname) if has_static_methods else '/* no SEPV */',
-        HAVE_STATIC = '1' if has_static_methods else '0',
+        Casts = cast_binary_search(sorted_parents, cls, True),
+        Baseclass = baseclass(cls),
+        EPVinits = EPVinits(cls),
+        EPVfini = EPVfini(cls),
+        ParentDecls = ParentDecls(cls),
+        StaticEPVDecls = StaticEPVDecls(sorted_parents, cls, iorname),
+        External_getSEPV = (('%s__getStaticEPV,'%iorname) if cls.has_static_methods
+                            else '/* no SEPV */'),
+        HAVE_STATIC = '1' if cls.has_static_methods else '0',
         IOR_MAJOR = config.BABEL_VERSION[0], # this will break at Babel 10.0!
         IOR_MINOR = config.BABEL_VERSION[2:]
         )
@@ -601,9 +603,7 @@ ${CLASS}__externals(void)
 }
 """
 
-# the following functions were ported from the Java Babel implementation
-
-def cast_binary_search(symbol_table, sorted_types, cls, addref):
+def cast_binary_search(sorted_types, cls, addref):
     """
     Generate the cast function for a class. This will return null if
     the cast is invalid and a pointer to the object otherwise. The
@@ -619,7 +619,7 @@ def cast_binary_search(symbol_table, sorted_types, cls, addref):
             r += [ind+'cmp = strcmp(name, "%s");'%qual_id(e[1]),
                   ind+'if (!cmp) {',
                   ind+'  (*self->d_epv->f_addRef)(self, _ex); SIDL_CHECK(*_ex);' if addref else '',
-                  ind+'  cast = %s;' % class_to_interface_ptr(symbol_table, cls, e),
+                  ind+'  cast = %s;' % class_to_interface_ptr(cls, e),
                   ind+'  return cast;',
                   ind+'}']
             if (lower < middle):
@@ -637,12 +637,11 @@ def cast_binary_search(symbol_table, sorted_types, cls, addref):
     s = '\n'.join(r)
     return s
 
-def class_to_interface_ptr(symbol_table, cls, e):
+def class_to_interface_ptr(cls, e):
     """
     Generate an expression to obtain a pointer to an interface or
     subcls from an object pointer.
    
-    @param symbol_table    the class's symbol table
     @param cls             the object pointer this is a class pointer to
                            this type
     @param e               this is the type of the interface/subclass pointer
@@ -652,50 +651,53 @@ def class_to_interface_ptr(symbol_table, cls, e):
              data structure
     """
 
+    @accepts(list, object, tuple)
     def hasAncestor(excluded, search, target):
-        # endless recursion here
-        #print 'search=%r, target=%r' %( search, target)
-        hsearch = sidl.hashable_type_id(search)
+        #print 'search=%r, target=%r, excluded=%r' %( search.name, target, excluded)
+        hsearch = sidl.hashable_type_id(search.data)
         if hsearch in excluded: return False
         if hsearch == target: return True
-        for e in get_parent_interfaces(symbol_table, search):
-            if hasAncestor(excluded, symbol_table[e], target):
+        for e in search.get_parent_interfaces():
+            if hasAncestor(excluded, make_extendable(cls.symbol_table, e), target):
                 return True
         return False
 
     def nextAncestor(ancestor, result):
-        ancestor = get_parent(symbol_table, ancestor)
+        ancestor = ancestor.get_parent()
         if ancestor:
             result.append(".d_")
-            result.append(qual_name_low(symbol_table, ancestor))
+            result.append(qual_cls_low(ancestor))
         return ancestor
 
+    @accepts(object, tuple)
     def directlyImplements(cls, e):
         while cls:
-            if sidl.type_id(e) in get_direct_parent_interfaces(symbol_table, cls):
+            if sidl.type_id(e) in cls.get_direct_parent_interfaces():
                 return True
-            cls = get_parent(symbol_table, cls)
+            cls = cls.get_parent()
         return False
 
+    @accepts(object, tuple)
     def implementsByInheritance(cls, e):
-        parent = get_parent(symbol_table, cls)
+        parent = cls.get_parent()
         if parent:
-            excludedInterfaces = get_parent_interfaces(symbol_table, parent)
+            excludedInterfaces = parent.get_parent_interfaces()
         else:
             excludedInterfaces = []
 
-        for ext in get_unique_interfaces(symbol_table, cls):
-            if hasAncestor(excludedInterfaces, symbol_table[ext], sidl.hashable_type_id(e)):
+        for ext in cls.get_unique_interfaces():
+            ext = make_extendable(cls.symbol_table, cls.symbol_table[ext])
+            if hasAncestor(excludedInterfaces, ext, sidl.hashable_type_id(e)):
                 return True
             
         return False
 
     #import pdb; pdb.set_trace()
-    if (symbol_table.prefix, sidl.type_id(cls), '' == sidl.type_id(e) # names are identical 
+    if (cls.get_scoped_id() == sidl.type_id(e) # names are identical 
         or hasAncestor([], cls, sidl.hashable_type_id(e))): 
-      if e[0] == sidl.class_:
+      if sidl.is_class(e):
           # fixme: for enums, this is not true
-          return '((struct %s__object*)self)'%qual_name(symbol_table, e)
+          return '((struct %s__object*)self)'%qual_name(cls.symbol_table, e)
       
       else:
         ancestor = cls
@@ -703,18 +705,17 @@ def class_to_interface_ptr(symbol_table, cls, e):
         direct = directlyImplements(cls, e)
         result.append('&((*self)')
         while ancestor:
-            if ((direct and (sidl.type_id(e) in get_unique_interfaces(symbol_table, ancestor))) 
+            if ((direct and (sidl.type_id(e) in ancestor.get_unique_interfaces())) 
                 or ((not direct) and implementsByInheritance(ancestor, e))):
                 result.append('.d_')
-                result.append(qual_name_low(symbol_table, e))
+                result.append(qual_name_low(ancestor.symbol_table, e))
                 break
             else:
                 ancestor = nextAncestor(ancestor, result)
 
         if ancestor == None:
-            raise Exception('Illegal symbol table entry: ' 
-                            + cls.getFullName() + ' and ' 
-                            + e.getFullName())
+            raise Exception('Illegal symbol table entry: %s and %s' 
+                            % ( cls.name, sidl.type_id(e)))
         
         result.append(')')
         return ''.join(result)
@@ -738,17 +739,23 @@ def qual_name(symbol_table, cls):
 def qual_name_low(symbol_table, cls):
     return str.lower(qual_name(symbol_table, cls))
 
+def qual_cls(cls):
+    return '_'.join(cls.qualified_name)
 
-def baseclass(symbol_table, cls):
+def qual_cls_low(cls):
+    return str.lower('_'.join(cls.qualified_name))
+
+
+def baseclass(cls):
     r = []
-    parent = get_parent(symbol_table, cls)
+    parent = cls.get_parent()
     while parent:
-        r.append('.d_'+qual_name_low(symbol_table, parent))
-        parent = get_parent(symbol_table, parent)
+        r.append('.d_'+str.lower('_'.join(parent.qualified_name)))
+        parent = parent.get_parent()
     return ''.join(r)
 
 
-def ParentDecls(symbol_table, cls):
+def ParentDecls(cls):
     """
     Recursively output self pointers to the SIDL objects for this class and its
     parents. The self pointers are of the form sN, where N is an integer
@@ -761,29 +768,29 @@ def ParentDecls(symbol_table, cls):
     width = 0
     parent = cls
     while parent:
-        w = len(qual_name(symbol_table, parent))
+        w = len('_'.join(parent.qualified_name))
         if w > width:
             width = w
             
-        parent = get_parent(symbol_table, parent)
+        parent = parent.get_parent()
 
     def generateParentSelf(cls, level):
         if cls:
             # Now use the width information to print out symbols.
-            typ = qual_name(symbol_table, cls)
+            typ = qual_cls(cls)
             if level == 0:
                 r.append('  struct %s__object*'%typ+' '*(width-len(typ))+' s0 = self;')
             else:
                 r.append('  struct %s__object*'%typ+' '*(width-len(typ))+' s%d = &s%d->d_%s;' 
-                         % (level,level-1,qual_name_low(symbol_table, cls)))
+                         % (level,level-1,qual_cls_low(cls)))
      
-            generateParentSelf(get_parent(symbol_table, cls), level + 1)
+            generateParentSelf(cls.get_parent(), level + 1)
 
     r = []
     generateParentSelf(cls, 0)
     return '\n'.join(r)
 
-def StaticEPVDecls(symbol_table, parents, cls, has_static_methods, is_abstract, ior_name):
+def StaticEPVDecls(sorted_parents, cls, ior_name):
     """
     Collect all the parents of the class in a set and output EPV structures
     for the parents.
@@ -793,43 +800,42 @@ def StaticEPVDecls(symbol_table, parents, cls, has_static_methods, is_abstract, 
     # The class
     t = ior_name
     n = str.lower(t)
-    if has_static_methods:
+    if cls.has_static_methods:
         r.append('static VAR_UNUSED struct %s__sepv  s_stc_epv__%s;' % (t, n))
-        if generateContractEPVs(symbol_table, is_abstract, cls):
+        if generateContractEPVs(cls):
             r.append('static VAR_UNUSED struct %s__sepv  s_stc_epv_contracts__%s;' % (t, n))
 
     # Interfaces and parents
-    new_interfaces = get_unique_interfaces(symbol_table, cls)
-    for parent in parents:
+    new_interfaces = cls.get_unique_interfaces()
+    for parent in sorted_parents:
         is_par   = not sidl.hashable_type_id(parent) in new_interfaces
         t = qual_id(sidl.type_id(parent), '_')
         n = str.lower(t)
         r.append('static struct %s__epv  s_my_epv__%s;'% (t, n))
-        if generateHookEPVs(symbol_table, parent):
+        with_parent_hooks = generateHookEPVs(make_extendable(cls.symbol_table, parent))
+        if with_parent_hooks:
             r.append('static struct %s__epv  s_my_pre_epv_hooks__%s;'% (t, n))
         if is_par:
           r.append('static struct %s__epv*  s_par_epv__%s;'% (t, n))
-          if generateHookEPVs(symbol_table, parent):
+          if with_parent_hooks:
               r.append('static struct %s_pre__epv*  s_par_epv_hooks__%s;'% (t, n))
         r.append('')
 
-    if has_static_methods and (
-        generateContractEPVs(symbol_table, is_abstract, cls) or
-        generateHookEPVs(symbol_table, cls)):
+    if cls.has_static_methods and (generateContractEPVs(cls) or generateHookEPVs(cls)):
         r.append('/* Static variables for interface contract enforcement and/or hooks controls. */')
         r.append('static VAR_UNUSED struct %s__cstats s_cstats;' % ior_name)
     
-    if generateContractChecks(symbol_table, is_abstract, cls):
+    if generateContractChecks(cls):
         r.append('/* Static file for interface contract enforcement statistics.')
         r.append('static FILE* s_dump_fptr = NULL;')
         r.append('')
  
     # Declare static hooks epvs
-    if generateHookEPVs(symbol_table, cls):
+    if generateHookEPVs(cls):
         r.append('static struct %s__pre_epv s_preEPV;'% ior_name)
         r.append('static struct %s__post_epv s_postEPV;'% ior_name)
  
-        if has_static_methods:
+        if cls.has_static_methods:
             r.append('static struct %s__pre_sepv s_preSEPV;'% ior_name)
             r.append('static struct %s__post_sepv s_postSEPV;'% ior_name)
 
@@ -841,13 +847,13 @@ def StaticEPVDecls(symbol_table, parents, cls, has_static_methods, is_abstract, 
 
     return '\n'.join(r)
 
-def EPVinits(symbol_table, is_abstract, cls):
+def EPVinits(cls):
     r = []
-    fixEPVs(r, symbol_table, cls, is_abstract, 0, is_new=True)
+    fixEPVs(r, cls, 0, is_new=True)
     return '\n'.join(r)
                  
                      
-def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
+def fixEPVs(r, cls, level, is_new):
     """
     Recursively modify the EPVs in parent classes and set up interface
     pointers. Nothing is done if the class argument is null. The flag is_new
@@ -856,14 +862,14 @@ def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
     """
     if not cls: return
 
-    parent = get_parent(symbol_table, cls)
-    fixEPVs(r, symbol_table, parent, is_abstract, level + 1, is_new)
+    parent = cls.get_parent()
+    fixEPVs(r, parent, level + 1, is_new)
 
     # Update the EPVs for all of the new interfaces in this particular class.
     _self    = 's%d' %level
     epvType  = 'my_' if is_new else 'par_'
     prefix   = '&' if is_new else ''
-    ifce    = sorted(get_unique_interfaces(symbol_table, cls))
+    ifce    = sorted(cls.get_unique_interfaces())
     epv     = 'epv'
     #width   = Utilities.getWidth(ifce) + epv.length() + 3;
 
@@ -871,8 +877,8 @@ def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
         name        = qual_id_low(i, '_')
         r.append('  %s->d_%s.d_%s = %ss_%s%s__%s;' %(_self, name, epv, prefix, epvType, epv, name))
 
-    name_low = qual_name_low(symbol_table, cls)
-    name = qual_name(symbol_table, cls)
+    name_low = qual_cls_low(cls)
+    name = qual_cls(cls)
     
     # Modify the class entry point vector.
     setContractsEPV =  level == 0 and is_new
@@ -907,16 +913,16 @@ def fixEPVs(r, symbol_table, cls, is_abstract, level, is_new):
     if setContractsEPV:
         r.append('  }')
 
-    if generateBaseEPVAttr(symbol_table, is_abstract, cls):
+    if generateBaseEPVAttr(cls):
         r.append('  %s->d_%s = %ss_%s%s__%s;'%(_self, epv, 'b', prefix, epvType, name_low))
 
     r.append('')
                 
 
-def EPVfini(symbol_table, is_abstract, cls):
+def EPVfini(cls):
     r = []
     # Dump statistics (if enforcing contracts).
-    if generateContractChecks(symbol_table, is_abstract, cls):
+    if generateContractChecks(cls):
       r.append('  if (sidl_Enforcer_areEnforcing()) {')
       r.append('    (*(s0->d_epv->f__dump_stats))(s0, "", "FINI",_ex); SIDL_CHECK(*_ex);')
       r.append('  }');
@@ -927,16 +933,17 @@ def EPVfini(symbol_table, is_abstract, cls):
  
     # If there is a parent class, then reset all parent pointers and call the
     # parent destructor.
-    parent = get_parent(symbol_table, cls)
+    parent = cls.get_parent()
     if parent:
         r.append('')
-        fixEPVs(r, symbol_table, parent, is_abstract, 1, is_new=False)
-        r.append('  %s__fini(s1, _ex); SIDL_CHECK(*_ex);'%qual_name(symbol_table, parent) );
+        fixEPVs(r, parent, 1, is_new=False)
+        r.append('  %s__fini(s1, _ex); SIDL_CHECK(*_ex);'%qual_cls(parent) )
 
     return '\n'.join(r)
 
 
-def generateHookMethods(symbol_table, ext):
+@accepts(object)
+def generateHookMethods(ext):
     """
     Return TRUE if hook methods are to be generated; FALSE otherwise.
     
@@ -945,31 +952,34 @@ def generateHookMethods(symbol_table, ext):
     2) Hook methods are only generated if configuration indicates
        their generation is required.
     """
-    return generateHookEPVs(symbol_table, ext) and False #context.getConfig().generateHooks();
+    return generateHookEPVs(ext) and False #context.getConfig().generateHooks();
 
    
-def generateHookEPVs(symbol_table, ext):
+@accepts(object)
+def generateHookEPVs(ext):
    """
    Return TRUE if the hooks-related EPVs are supposed to be generated.  
    
    Assumption:  Only non-SIDL interfaces and classes are to include 
    the hook EPVs.  Exceptions are _not_ to be included.
    """
-   s_id = sidl.get_scoped_id(symbol_table, ext)
+   s_id = ext.get_scoped_id()
    return (not isSIDLSymbol(s_id)
            and not isSIDLXSymbol(s_id) 
-           and not isException(symbol_table, ext))
+           and not isException(ext))
 
-def generateBaseEPVAttr(symbol_table, is_abstract, ext):
+@accepts(object)
+def generateBaseEPVAttr(ext):
     """
     Return TRUE if the base EPV attribute needs to be supported; FALSE 
     otherwise.
     """   
-    return generateHookMethods(symbol_table, ext) and \
-        generateContractChecks(symbol_table, is_abstract, ext)
+    return generateHookMethods(ext) and \
+        generateContractChecks(ext)
    
 
-def generateContractChecks(symbol_table, is_abstract, ext):
+@accepts(object)
+def generateContractChecks(ext):
     """
     Return TRUE if contract checks are supposed to be generated.
     
@@ -980,12 +990,13 @@ def generateContractChecks(symbol_table, is_abstract, ext):
     3) Checks are only generated if the configuration indicates
        their generation is required.
     """     
-    return generateContractEPVs(symbol_table, is_abstract, ext) \
-        and class_contracts(symbol_table, ext) and \
+    return generateContractEPVs(ext) \
+        and class_contracts(ext) and \
         True #and context.getConfig().generateContracts();
    
 
-def class_contracts(symbol_table, cls):
+@accepts(object)
+def class_contracts(cls):
     """
     Return TRUE if the class has any invariants or any methods define
     contracts
@@ -993,7 +1004,7 @@ def class_contracts(symbol_table, cls):
     has_contracts = False
 
     def evaluate(sid):
-        ext = symbol_table[sid]
+        ext = cls.symbol_table[sid]
         if sidl.ext_invariants(ext):
             has_contracts = True
             return
@@ -1004,11 +1015,12 @@ def class_contracts(symbol_table, cls):
                 return
 
     if not has_contracts:
-        visit_hierarchy(cls, evaluate, symbol_table, [])
+        visit_hierarchy(cls.data, evaluate, cls.symbol_table, [])
 
     return has_contracts
 
-def generateContractEPVs(symbol_table, is_abstract, ext):
+@accepts(object)
+def generateContractEPVs(ext):
     """
     Return TRUE if the contract-related EPVs are supposed to be generated.  
 
@@ -1017,9 +1029,10 @@ def generateContractEPVs(symbol_table, is_abstract, ext):
     2) Contract-related EPVs are not generated for SIDL classes.
     3) Contract-related EPVs are not generated for exceptions.
     """   
-    return (not is_abstract) and (not sidl.is_interface(ext)) \
-        and generateContractBuiltins(symbol_table, ext)
+    return (not ext.is_abstract) and (not ext.is_interface()) \
+        and generateContractBuiltins(ext)
 
+@accepts(tuple)
 def isSIDLSymbol(scoped_id):
     """
     Return TRUE if the Symbol ID corresponds to a SIDL symbol; FALSE 
@@ -1028,6 +1041,7 @@ def isSIDLSymbol(scoped_id):
     return sidl.scoped_id_modules(scoped_id)[0] == 'sidl'
    
 
+@accepts(tuple)
 def isSIDLXSymbol(scoped_id):
     """
     Return TRUE if the Symbol ID corresponds to a SIDLX symbol; FALSE 
@@ -1035,7 +1049,8 @@ def isSIDLXSymbol(scoped_id):
     """
     return sidl.scoped_id_modules(scoped_id)[0] == 'sidlx'
 
-def generateContractBuiltins(symbol_table, ext):
+@accepts(object)
+def generateContractBuiltins(ext):
     """
     Return TRUE if the contract-related built-in methods are to be
     generated.
@@ -1043,14 +1058,15 @@ def generateContractBuiltins(symbol_table, ext):
     1) Contract-related EPVs are not generated for SIDL interfaces or classes.
     2) Contract-related EPVs are not generated for exceptions.
     """
-    s_id = sidl.get_scoped_id(symbol_table, ext)
+    s_id = ext.get_scoped_id()
     return ((not isSIDLSymbol(s_id))
             and (not isSIDLXSymbol(s_id))
-            and (not isException(symbol_table, ext)))
+            and (not isException(ext)))
    
    
 
-def isException(symbol_table, ext):
+@accepts(object)
+def isException(ext):
    """
    Return <code>true</code> if and only if the extendable is
    a class that is the base exception class, is an interface that is
@@ -1058,6 +1074,5 @@ def isException(symbol_table, ext):
    interface in its type ancestry.
    """
    base_ex = sidl.Scoped_id(['sidl'], 'BaseException', '')
-   sid = sidl.type_id(ext)
-   return sid == base_ex or \
-       has_parent_interface(symbol_table, ext, base_ex)
+   sid = ext.get_id()
+   return sid == base_ex or ext.has_parent_interface(base_ex)

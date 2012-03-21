@@ -8,7 +8,7 @@
 #
 # \authors <pre>
 #
-# Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2011, 2012 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
 #  
