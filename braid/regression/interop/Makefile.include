@@ -5,14 +5,17 @@ BABEL_TESTS = \
   regression/interop/inherit/runChapel/inherittest.chpl \
   regression/interop/args/runChapel/argstest.chpl \
   regression/interop/arrays/runChapel/arraystest.chpl \
+  regression/interop/contracts/runChapel/vectortest.chpl \
   regression/interop/strings/runChapel/stringstest.chpl \
   regression/interop/exceptions/runChapel/exceptionstest.chpl \
   regression/interop/ordering/runChapel/orderingtest.chpl  \
-  regression/interop/overload/runChapel/overloadtest.chpl 
-#  regression/interop/struct/runChapel/structtest.chpl 
+  regression/interop/overload/runChapel/overloadtest.chpl \
+  regression/interop/struct/runChapel/structtest.chpl 
 
 BABEL_TESTNAMES = \
-  args arrays inherit strings exceptions ordering overload #struct 
+  args arrays inherit strings exceptions ordering overload struct 
+# BABEL_TESTS = regression/interop/contracts/runChapel/contractstest.chpl 
+# BABEL_TESTNAMES = contracts
 
 EXTRA_DIST += $(BABEL_TESTS)
 
@@ -35,9 +38,11 @@ AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh
 # This target will be made prior to the tests. We use it to compile
 # regression/output and all the server libraries that are copied over
 # from Babel
-if BABEL_LANG_C # can't do much without C
 check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile
+
+if BABEL_LANG_C # for symmetry -- can't do much without C ..?
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la)
+check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runC/runC2Chapel.sh)
 languages = C
 
 if BABEL_LANG_CXX
@@ -70,30 +75,48 @@ if BABEL_LANG_PYTHON
   check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
 endif
 
-# if "BABEL_LANG_CHAPEL"
-#check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
-check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
+if BABEL_LANG_CHAPEL
+check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
+#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
 
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
-# endif
+endif
 endif
 
-# We are only using one proxy target to circumvent the multi-target-parallel make issue
-$(builddir)/regression/interop/output/libC/GNUmakefile: $(top_builddir)/regression/interop/build-tracker.sh
+TESTDIR=$(builddir)/regression/interop
+TTESTDIR=$(top_builddir)/regression/interop
+# We are only using one proxy target to circumvent the
+# multi-target-parallel make issue
+$(TESTDIR)/output/libC/GNUmakefile: $(TTESTDIR)/build-tracker.sh
 	@sh $< $(MAKE) $(MAKEFLAGS)
 
-$(builddir)/regression/interop/%/libimpl.la: $(top_builddir)/regression/interop/build-server.sh
+$(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-$(builddir)/regression/interop/%/libimpl1.la: $(top_builddir)/regression/interop/build-server.sh
+$(TESTDIR)/%/libimpl1.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-# FIXME If we should encounter a race condition with this rule, it is
-# because libimpl.la is not the last file to be built by
-# build-server.sh	
-$(builddir)/regression/interop/%/runChapel/runChapel2C.sh: $(top_builddir)/regression/interop/build-client.sh $(filter %.la, $(check_DATA)) $(builddir)/regression/interop/output/libC/GNUmakefile $(nobase_python_PYTHON)
+CLIENT_DEPS=$(TTESTDIR)/build-client.sh $(filter %.la, $(check_DATA)) \
+	    $(TESTDIR)/output/libC/GNUmakefile \
+            $(nobase_python_PYTHON)
+
+# ATTN: If we should ever encounter a race condition with this rule,
+# it is because libimpl.la is not the last file to be built by
+# build-server.sh
+$(TESTDIR)/%/runChapel/runChapel2C.sh: $(CLIENT_DEPS)
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
+$(TESTDIR)/%/runC/runC2Chapel.sh: $(CLIENT_DEPS)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
+clean-regression:
+	if [ "x$(builddir)" != "x$(srcdir)" ]; then \
+		cd $(builddir) && \
+                rm -rf $(BABEL_TESTS) \
+                       regression/interop/output && \
+		for f in `echo $(BABEL_TESTS)|sed 's/ /\\n/g'`; do \
+	            rm -rf `dirname \`dirname $$f\``; \
+		done; \
+	fi
 
 
 # ----------------------------------------------------------------------
@@ -102,7 +125,7 @@ RUNPYTEST = env PYTHONPATH=$$PYTHONPATH:@BABEL_SRCDIR@/regression $(PYTHON) \
 		@BABEL_SRCDIR@/regression/gantlet/commandline.py \
 		-d -k$(PACKAGE) #-c$(host)
 
-STATIC_TESTS := $(shell echo $(builddir)/regression/interop/*/run*/run*.sh)
+STATIC_TESTS := $(shell echo $(TESTDIR)/*/run*/run*.sh)
 ALLTESTS = $(STATIC_TESTS)
 
 # This is an alternate way of invoking the regression tests via gantlet
@@ -117,7 +140,7 @@ run-gantlet: $(check_DATA)
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
+	$(RUNPYTEST) -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(TESTDIR)/*/run*/run*.sh ;
 
 run-gantlet-gui: $(check_DATA)
 	if test "X$$PROFILE_NAME" = X; then \
@@ -128,7 +151,7 @@ run-gantlet-gui: $(check_DATA)
         else  \
             session_name="default_$$CHECK_COMMAND"; \
         fi; \
-	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(builddir)/regression/interop/*/run*/run*.sh ;
+	$(RUNPYTEST) -g -p "$$PROFILE_NAME" $(PYFLAGS) "$$session_name" $(TESTDIR)/*/run*/run*.sh ;
 
 
 # ----------------------------------------------------------------------

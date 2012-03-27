@@ -465,8 +465,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.arg, Attrs, Mode, Type, Name):
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
-            elif (sidl.class_, (Name), Extends, Implements, Invariants, Methods, Package, DocComment):
-                return '%sclass %s' % (gen_comment(DocComment), Name)
+            elif (sidl.class_, (ir.scoped_id, Prefix, Name, Ext), Extends, Implements, Invariants, Methods, DocComment):
+                return '%sclass %s' % (gen_comment(DocComment), 
+                                       '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])]))
 
             elif (sidl.array, [], [], []):
                 return 'sidl.Array(opaque, sidl__array)'
@@ -510,7 +511,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
                 #print 'prefix %s, name %s, ext %s' %(Prefix, Name, Ext)
-                return '.'.join(Prefix+['_'.join(Prefix+[Name])])
+                return '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])])
 
             elif (ir.struct, Name, Items, DocComment):
                 return Name

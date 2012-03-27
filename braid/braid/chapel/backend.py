@@ -150,7 +150,7 @@ def vcall(name, args, ci):
     # this is part of an ugly hack to make sure that self is
     # dereferenced as self->d_object (by setting attr of self to the
     # unused value of 'pure')
-    if ci.co.is_interface and args:
+    if ci.co.is_interface() and args:
         _, attrs, type_, id_, arguments, doc = cdecl
         _, attrs0, mode0, type0, name0 = arguments[0]
         arguments = [ir.Arg([ir.pure], mode0, type0, name0)]+arguments[1:]
@@ -203,7 +203,8 @@ class GlueCodeGenerator(object):
         def __init__(self, class_object,
                      stub_parent=None,
                      skel_parent=None):
-            
+
+            assert(isinstance(class_object, object))
             self.co = class_object
             self.chpl_method_stub = ChapelFile(parent=stub_parent, relative_indent=4)
             self.chpl_skel = ChapelFile(parent=skel_parent, relative_indent=0)
@@ -324,7 +325,7 @@ class GlueCodeGenerator(object):
             chpl_stub.new_def('use sidl;')
             extrns = ChapelScope(chpl_stub, relative_indent=0)
 
-            def gen_extern_casts(baseclass):
+            def gen_extern_casts(_symtab, _ext, baseclass):
                 base = qual_id(baseclass)
                 mod_base = '.'.join(baseclass[1]+[base])
                 ex = 'out ex: sidl_BaseInterface__object'
@@ -392,7 +393,7 @@ class GlueCodeGenerator(object):
             create_body.append('  this.' + self_field_name + ' = %s__createObject(0, ex);' % qname)
             create_body.extend(common_tail)
             wrapped_ex_arg = ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), chpl_param_ex_name)
-            if not cls.is_interface:
+            if not cls.is_interface():
                 # Interfaces instances cannot be created!
                 chpl_gen(
                     (ir.fn_defn, [], ir.pt_void,
@@ -440,7 +441,7 @@ class GlueCodeGenerator(object):
             destructor_body = []
             destructor_body.append('var ex: sidl_BaseInterface__object;')
             destructor_body.append(vcall('deleteRef', ['this.' + self_field_name, 'ex'], ci))
-            if not cls.is_interface:
+            if not cls.is_interface():
                 # Interfaces have no destructor
                 destructor_body.append(vcall('_dtor', ['this.' + self_field_name, 'ex'], ci))
             chpl_gen(
@@ -454,7 +455,7 @@ class GlueCodeGenerator(object):
                      ['return %s;' % self_field_name],
                      'return the current IOR pointer'), chpl_class)
 
-            def gen_cast(base):
+            def gen_cast(_symtab, _ext, base):
                 qbase = qual_id(base)
                 mod_base = '.'.join(base[1]+[qbase])  
                 chpl_gen(
@@ -541,7 +542,7 @@ class GlueCodeGenerator(object):
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel stub
                 qname = '_'.join(symbol_table.prefix+[Name])
-                pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
+                _, pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
                 if self.in_package:
                     # nested modules are generated in-line
                     self.pkg_chpl_stub.new_def('module %s {'%Name)
@@ -663,16 +664,20 @@ class GlueCodeGenerator(object):
         # cstats
         cstats = []
         contract_cstats = []
+        ci.methodcstats = []
         num_methods = cls.number_of_methods()
         if has_contracts:
+            ci.methodcstats = ir.Struct(
+                ir.Scoped_id(prefix, ci.epv.name+'__methods_cstats', ''),
+                [ir.Struct_item(ir.Typedef_type('int32_t'), 'tries'),
+                 ir.Struct_item(ir.Typedef_type('int32_t'), 'successes'),
+                 ir.Struct_item(ir.Typedef_type('int32_t'), 'failures'),
+                 ir.Struct_item(ir.Typedef_type('int32_t'), 'nonvio_exceptions')],
+                '')
             contract_cstats.append(ir.Struct_item(ir.Typedef_type('sidl_bool'), 'enabled'))
-            contract_cstats.append(ir.Struct(
-                    ir.Scoped_id(prefix, ci.epv.name+'__methods_cstats[%d]'%num_methods, ''),
-                    [ir.Struct_item(ir.Typedef_type('int32_t'), 'tries'),
-                     ir.Struct_item(ir.Typedef_type('int32_t'), 'successes'),
-                     ir.Struct_item(ir.Typedef_type('int32_t'), 'failures'),
-                     ir.Struct_item(ir.Typedef_type('int32_t'), 'nonvio_exceptions')],
-                     ''))
+            contract_cstats.append(ir.Struct_item(
+                    ci.methodcstats,  '_'.join(cls.qualified_name+['_method_cstats'])
+                    +'[%d]'%num_methods))
 
         ci.cstats = ir.Struct(
             ir.Scoped_id(prefix, ci.epv.name+'__cstats', ''),
@@ -687,7 +692,7 @@ class GlueCodeGenerator(object):
                 [1], # not a pointer, it is an embedded struct
                 'd_'+str.lower(qual_id(baseclass))))
 
-        with_sidl_baseclass = not cls.is_interface() and cls.qualified_name <> ['sidl','BaseClass']
+        with_sidl_baseclass = not cls.is_interface() and cls.qualified_name <> ['sidl', 'BaseClass']
         
         # pointers to the base class' EPV
         for _, ext in cls.extends:
@@ -705,7 +710,7 @@ class GlueCodeGenerator(object):
                 ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
                                'd_sidl_baseclass'))
 
-        if not cls.is_interface and not cls.is_abstract:
+        if not cls.is_interface() and not cls.is_abstract:
             cstats = [ir.Struct_item(unscope(ci.cstats), 'd_cstats')]
 
             
@@ -716,7 +721,7 @@ class GlueCodeGenerator(object):
                       [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_epv')]+
                        cstats+
                        [ir.Struct_item(ir.Pointer_type(ir.pt_void),
-                                       'd_object' if cls.is_interface else
+                                       'd_object' if cls.is_interface() else
                                        'd_data')],
                        'The class object structure')
         ci.external = \
@@ -815,13 +820,13 @@ class GlueCodeGenerator(object):
                         return_expr.append(name)
             
             elif is_struct_type(symbol_table, typ):
-                iortype = lower_ir(symbol_table, symbol_table[typ])
+                iortype = lower_ir(*symbol_table[typ])
                 if (mode == sidl.in_):
                     iortype = ir.Pointer_type(iortype)
 
             elif typ[0] == sidl.scoped_id:
                 # Other Symbol
-                iortype = symbol_table[typ]
+                iortype = symbol_table[typ][1]
 
             elif typ == sidl.void:
                 iortype = ir.pt_void
@@ -952,7 +957,7 @@ class GlueCodeGenerator(object):
         ior_args = drop_rarray_ext_args(Args)
         
         chpl_args = []
-        chpl_args.extend(lower_ir(symbol_table, Args, struct_suffix='', structs_only=True))
+        chpl_args.extend(lower_ir(symbol_table, Args, struct_suffix='', lower_scoped_ids=False))
         
         ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
                            Except, From, Requires, Ensures, DocComment))
@@ -971,7 +976,7 @@ class GlueCodeGenerator(object):
 
         # this is an ugly hack to force generate_method_stub to to wrap the
         # self argument with a call to upcast()
-        if ci.co.is_interface:
+        if ci.co.is_interface():
             docast = [ir.pure]
         else: docast = []
 
@@ -1055,7 +1060,7 @@ class GlueCodeGenerator(object):
                 rvar = '_IOR__retval'
                 if not return_expr:                                
                     if iortype[0] == ir.struct:
-                        iortype = lower_ir(symbol_table, symbol_table[Type], struct_suffix='')
+                        iortype = lower_ir(*symbol_table[Type], struct_suffix='')
 
                     pre_call.append(ir.Stmt(ir.Var_decl(iortype, rvar)))
                     rx = rvar
@@ -1069,7 +1074,7 @@ class GlueCodeGenerator(object):
 
 
         defn = (ir.fn_defn, [], 
-                lower_ir(symbol_table, Type, struct_suffix='', structs_only=True),
+                lower_ir(symbol_table, Type, struct_suffix='', lower_scoped_ids=False),
                 Name + Extension, chpl_args,
                 pre_call+call+post_call+return_stmt,
                 DocComment)
@@ -1167,6 +1172,8 @@ class GlueCodeGenerator(object):
         ci.ior.genh(ir.Import('chpl_sidl_array'))
         ci.ior.genh(ir.Import('chpltypes'))
         gen_forward_references()
+        if ci.methodcstats: 
+            ci.ior.gen(ir.Type_decl(ci.methodcstats))
         ci.ior.gen(ir.Type_decl(ci.cstats))
         ci.ior.gen(ir.Type_decl(ci.obj))
         ci.ior.gen(ir.Type_decl(ci.external))
@@ -1188,7 +1195,7 @@ class GlueCodeGenerator(object):
             babel_static_ior_args([], [], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
 
-        if with_ior_c or True:
+        if with_ior_c:# or True:
             ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co))
 
     
@@ -1207,13 +1214,8 @@ class GlueCodeGenerator(object):
 
             # Qualified name (C Version)
             qname = '_'.join(cls.qualified_name)  
-            # Qualified name including Chapel modules
-            pkg_name = '.'.join(cls.symbol_table.prefix)
 
             # Consolidate all methods, defined and inherited
-            all_names = set()
-            all_methods = []
-
             cls.scan_methods()
 
             # Initialize all class-specific code generation data structures
@@ -1232,34 +1234,33 @@ class GlueCodeGenerator(object):
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             chpl_stub.cstub.genh(ir.Import('chpltypes'))
             if cls.has_static_methods:
-                chpl_stub.cstub.new_def(
-                    externals((sidl.scoped_id, cls.symbol_table.prefix, name, '')))
+                chpl_stub.cstub.new_def(externals(cls.get_scoped_id()))
 
             has_contracts = ior_template.generateContractChecks(cls)
             self.gen_default_methods(cls, has_contracts, ci)
 
             #print qname, map(lambda x: x[2][1]+x[2][2], all_methods)
-            for method in all_methods:
+            for method in cls.all_methods:
                 (Method, Type, Name, Attrs, Args, 
                  Except, From, Requires, Ensures, DocComment) = method
                 ci.epv.add_method((method, Type, Name, Attrs, 
                                    drop_rarray_ext_args(Args),
                                    Except, From, Requires, Ensures, DocComment))
 
-            # not very efficient...
-            def builtin(t, name, args):
-                methods.append(
-                    sidl.Method(t, sidl.Method_name(name, ''), [],
-                                args, [], [], [], [], 
-                                'Implicit built-in method: '+name))
-            # builtin(sidl.void, '_ctor', [])
-            # builtin(sidl.void, '_ctor2',
-            #         [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
-            # builtin(sidl.void, '_dtor', [])
+            def builtin((name, args)):
+                return sidl.Method(
+                    sidl.void, sidl.Method_name(name, ''), [], 
+                    args+[sidl.Arg([], ir.out, babel_exception_type(), chpl_local_exception_var)],
+                    [], [], [], [], '')
 
+            builtins = map(builtin,
+                [('_ctor', []), 
+                 ('_ctor2', [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')]),
+                 ('_dtor', []),
+                 ('_load', [])])
 
-            # recurse to generate method code
-            gen1(cls.all_methods, ci)
+            # recurse to generate method implementation skeletons
+            gen1(builtins+cls.get_methods(), ci)
 
             ci.impl.new_def('}')
 
@@ -1318,9 +1319,10 @@ class GlueCodeGenerator(object):
 
             epv_init  = []
             sepv_init = []
-            for m in methods:
-                name = m[2][1]
-                static = member_chk(sidl.static, m[3])
+            for m in cls.all_methods:
+                name =  m[2][1] + m[2][2]
+                attrs = sidl.method_method_attrs(m)
+                static = member_chk(sidl.static, attrs)
                 def entry(stmts, epv_t, table, field, pointer):
                     stmts.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
 
@@ -1328,7 +1330,8 @@ class GlueCodeGenerator(object):
                 else:      entry(epv_init,   epv_t,  'epv', 'f_'+name, name+'_skel')
 
                 builtins = set(['_ctor', '_ctor2', '_dtor'])
-                if name not in builtins:
+                with_hooks = member_chk(ir.hooks, attrs)
+                if name not in builtins and with_hooks:
                     if static: entry(sepv_init, pre_sepv_t,  'pre_sepv',  'f_%s_pre'%name,  'NULL')
                     else:      entry(epv_init,  pre_epv_t,   'pre_epv',   'f_%s_pre'%name,  'NULL')
                     if static: entry(sepv_init, post_sepv_t, 'post_sepv', 'f_%s_post'%name, 'NULL')
@@ -1388,7 +1391,7 @@ class GlueCodeGenerator(object):
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel skel
                 qname = '_'.join(symbol_table.prefix+[Name])
-                pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
+                _, pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
                 if self.in_package:
                     # nested modules are generated in-line
                     self.pkg_chpl_skel.new_def('module %s {'%Name)
@@ -1479,7 +1482,6 @@ class GlueCodeGenerator(object):
             Extract name and generate argument conversions
             """
             iorname = name
-            ctype = typ
             return iorname, (arg, attrs, mode, typ, name)
 
 
@@ -1504,8 +1506,8 @@ class GlueCodeGenerator(object):
         pre_call = []
         call_args = []
         post_call = []
-        ior_args = lower_ir(symbol_table, Args)
-        ctype = lower_ir(symbol_table, Type)
+        ior_args = lower_ir(symbol_table, Args, lower_scoped_ids=False)
+        ctype = lower_ir(symbol_table, Type, lower_scoped_ids=False)
         return_stmt = []
         opt = ci.chpl_skel.cstub.optional
         callee = Name+'_impl'
@@ -1514,6 +1516,8 @@ class GlueCodeGenerator(object):
             return name if mode == sidl.in_ else '(*%s)'%name
 
         def strip(typ):
+            print typ
+            if typ == 'sidl.BaseInterface': import pdb; pdb.set_trace()
             if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
                 return ir.struct
             if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
@@ -1546,7 +1550,7 @@ class GlueCodeGenerator(object):
             filter(outgoing, ior_args))
 
         # RETURN value type conversion -- treated just like an OUT argument
-        rarg = ir.Arg([], ir.out, ctype, '_retval')
+        rarg = (ir.arg, [], ir.out, ctype, '_retval')
         conv.codegen((('chpl', strip(ctype)), '_CHPL__retval'), strip(ctype),
                      post_call, opt, '_retval', ctype)
         chpl_rarg = conv.ir_arg_to_chpl(rarg)
@@ -1610,25 +1614,32 @@ class GlueCodeGenerator(object):
             else:
                 call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
 
-        ior_args = drop_rarray_ext_args(Args)
+        #TODO: ior_args = drop_rarray_ext_args(Args)
 
-        defn = (ir.fn_defn, [], ctype, Name+'_skel',
-                babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
-                decls+pre_call+call+post_call+return_stmt,
-                DocComment)
-        chpldecl = (ir.fn_decl, [], chpltype, callee,
-                    this_arg+chpl_args,
+        skeldefn = (ir.fn_defn, [], ctype, Name+'_skel',
+                    babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
+                    decls+pre_call+call+post_call+return_stmt,
+                    DocComment)
+
+        def lower_array_args((arg, attr, mode, typ, name)):
+            if typ[0] == sidl.array:
+                return arg, attr, mode, ir.pt_void, name
+            else: return arg, attr, mode, typ, name
+
+        impldecl = (ir.fn_decl, [], chpltype, callee,
+                    this_arg+map(lower_array_args, chpl_args),
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
-        chpldefn = (ir.fn_defn, ['export %s'%callee], ctype, callee,
-                    [ir.Arg([], ir.in_, ir.void_ptr, '_this')]+Args,
+        impldefn = (ir.fn_defn, ['export %s%s'%('_'.join(ci.co.qualified_name), callee)], 
+                    ctype, callee,
+                    this_arg+Args,
                     [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
                     DocComment)
 
-        c_gen(chpldecl, ci.chpl_skel.cstub)
-        c_gen(defn, ci.chpl_skel.cstub)
-        chpl_gen(chpldefn, ci.impl)
+        c_gen(skeldefn, ci.chpl_skel.cstub)
+        c_gen(impldecl, ci.chpl_skel.cstub)
+        chpl_gen(impldefn, ci.impl)
 
 
 
@@ -1684,7 +1695,7 @@ def notnone(fn):
 
 @notnone
 @matcher(globals(), debug=False)
-def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', structs_only=False):
+def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower_scoped_ids=True):
     """
     FIXME!! can we merge this with convert_arg??
     lower SIDL types into IR
@@ -1692,13 +1703,14 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', struc
     The idea is that no Chapel-specific code is in this function. It
     should provide a generic translation from SIDL -> IR.
 
-    @param structs_only    This is a broken design, but right now the
-                           Chapel code generator accepts some sidl
-                           node types such as array, rarray, and class.
-                           If True, then these types will not be lowered.
+    @param lower_scoped_ids  This is a broken design, but right now the
+                             Chapel code generator accepts some sidl
+                             node types such as array, rarray, and
+                             class.  If False, then these types will
+                             not be lowered.
     """
     def low(sidl_term):
-        return lower_ir(symbol_table, sidl_term, header, struct_suffix, structs_only)
+        return lower_ir(symbol_table, sidl_term, header, struct_suffix, lower_scoped_ids)
 
     # print 'low(',sidl_term, ')'
 
@@ -1715,7 +1727,7 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', struc
             return (ir.arg, Attrs, Mode, low(Typ), Name)
 
         elif (sidl.scoped_id, Prefix, Name, Ext):
-            return low(symbol_table[sidl_term])
+            return low(symbol_table[sidl_term][1])
         
         elif (sidl.void):                        return ir.pt_void
         elif (ir.void_ptr):                      return ir.void_ptr
@@ -1747,15 +1759,16 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', struc
         #     # SIDL IOR version
         #     return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
         elif (sidl.rarray, Scalar_type, Dimension, Extents):
-            if structs_only: return sidl_term
+            if not lower_scoped_ids: return sidl_term
             # Rarray appearing inside of a struct
             return ir.Pointer_type(Scalar_type)
 
         elif (sidl.array, [], [], []):
+            if not lower_scoped_ids: return sidl_term
             return ir.Pointer_type(ir.pt_void)
 
         elif (sidl.array, Scalar_type, Dimension, Orientation):
-            if structs_only: return sidl_term
+            if not lower_scoped_ids: return sidl_term
             if Scalar_type[0] == ir.scoped_id:
                 # FIXME: this is oversimplified, it should actually be
                 # the real class name, but we don't yet generate array
@@ -1768,10 +1781,11 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', struc
             return ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
 
         elif (sidl.class_, ScopedId, _, _, _, _, _):
-            if structs_only: return qual_id(ScopedId, '.')
+            if not lower_scoped_ids: return sidl_term #qual_id(ScopedId, '.')
             else: return ir_babel_object_type(ScopedId[1], ScopedId[2])
         
         elif (sidl.interface, ScopedId, _, _, _, _):
+            if not lower_scoped_ids: sidl_term #qual_id(ScopedId, '.')
             return ir_babel_object_type(ScopedId[1], ScopedId[2])
         
         elif (Terms):
@@ -1806,7 +1820,7 @@ class EPV(object):
         self.has_static_methods = class_object.has_static_methods
         self.finalized = False
 
-    def add_method(self, method, with_hooks=False):
+    def add_method(self, method):
         """
         add another (SIDL) method to the vector
         """
@@ -2000,11 +2014,11 @@ def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
 
 def is_obj_type(symbol_table, typ):
     return typ[0] == sidl.scoped_id and (
-        symbol_table[typ][0] == sidl.class_ or
-        symbol_table[typ][0] == sidl.interface)
+        symbol_table[typ][1][0] == sidl.class_ or
+        symbol_table[typ][1][0] == sidl.interface)
 
 def is_struct_type(symbol_table, typ):
-    return typ[0] == sidl.scoped_id and symbol_table[typ][0] == sidl.struct
+    return typ[0] == sidl.scoped_id and symbol_table[typ][1][0] == sidl.struct
 
 
 def ior_type(symbol_table, t):
@@ -2012,7 +2026,7 @@ def ior_type(symbol_table, t):
     if \c t is a scoped_id return the IOR type of t.
     else return \c t.
     """
-    if (t[0] == sidl.scoped_id and symbol_table[t][0] in [sidl.class_, sidl.interface]):
+    if (t[0] == sidl.scoped_id and symbol_table[t][1][0] in [sidl.class_, sidl.interface]):
     #    return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
         return ir_babel_object_type(t[1], t[2])
 

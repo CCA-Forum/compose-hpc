@@ -83,6 +83,10 @@ def ir_type_to_chpl(typ):
         if typ[0] == ir.struct_item:
             return ir.Struct_item(ir_type_to_chpl(typ[1]),typ[2])
 
+        if typ[0] == sidl.array:
+            return get_array_type(typ)
+
+
         return typ
 
 
@@ -119,6 +123,17 @@ def elem_access(typ):
     if typ[0] == ir.struct:
         return '.'
     else: return ''
+
+def get_array_type(full_type):
+    if full_type[1] == []:
+        t = ''
+    elif full_type[1][0] == ir.scoped_id:
+        t = '_BaseInterface'
+    else:
+        t = '_'+full_type[1][1]
+    iortype = ir.Pointer_type(ir.Struct('sidl%s__array'%t, [], ''))
+    return iortype 
+
 
 char_lut = '''
 /* This burial ground of bytes is used for char [in]out arguments. */
@@ -229,8 +244,8 @@ ior.pointer_type @C <-- chpl.pointer_type :cost(0)
     pass
 
 # STRUCT
+# FIXME: we would actually need dynamic costs for this situation
 ior.struct @C <-- chpl.struct: cost(3)
-    # FIXME: we will actually need dynamic costs for this    
     items = get_struct_items(full_type)
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
@@ -251,3 +266,23 @@ chpl.struct @C <-- ior.struct: cost(3)
     if convs:
         copy_other_items(convs, items, '%s.'%a0, dest)
     pass
+
+# SIDL ARRAY
+ior.array @C <-- chpl.array: cost(1)
+    iortype = get_array_type(full_type)
+    convs.append((ir.stmt, '{dest} = ({typ}){n}.self'
+                  .format(dest=dest, n=a0, typ=iortype)))
+
+chpl.array @chpl <-- ior.array: cost(2)
+    iortype = get_array_type(full_type)
+
+    # wrap the C type in a native Chapel object
+    #if mode == sidl.inout:
+    #    pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.self')))
+
+    convs.append((ir.new, 'sidl.Array', [full_type[1], iortype, dest]))
+                    
+    # if name == '_retval':
+    #     return_expr.append(conv)
+    # else:
+    #     post_call.append(ir.Stmt(ir.Assignment(name, conv)))

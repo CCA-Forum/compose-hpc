@@ -27,7 +27,7 @@ from utils import accepts, returns
 @accepts(object, tuple)
 def make_extendable(symbol_table, sidl_ext):
     if sidl.is_scoped_id(sidl_ext): 
-        return make_extendable(symbol_table, symbol_table[sidl_ext])
+        return make_extendable(*symbol_table[sidl_ext])
 
     if sidl.is_class(sidl_ext): 
         return Class(symbol_table, sidl_ext, [])
@@ -64,6 +64,12 @@ class Extendable(object):
         self.all_methods = None 
         self.has_static_methods = None
 
+    def __repr__(self):
+        return 'Extendable(%r, %r, %r)'%(self.symbol_table, self.data, [])
+
+    def __str__(self):
+        return self.name
+
     def get_parent(self):
         """
         return the base class/interface of \c class_or_interface
@@ -71,9 +77,9 @@ class Extendable(object):
         extends = self.data[2]
         if extends == []:
             return None
-        ext = self.symbol_table[extends[0][1]]
+        symbol_table, ext = self.symbol_table[extends[0][1]]
 
-        return make_extendable(self.symbol_table, ext)
+        return make_extendable(symbol_table, ext)
 
     def get_parents(self, all_parents):
         """
@@ -81,13 +87,9 @@ class Extendable(object):
         interfaces of a class in \c all_parents
         """
 
-        def f(s_id):
-            c_i = self.symbol_table[s_id]
-            all_parents.append(c_i)
-
         start = sidl.Scoped_id(self.symbol_table.prefix, sidl.type_id(self.data), '')
-        visit_hierarchy(start, f, self.symbol_table, [])
-        return all_parents[1:]
+        visit_hierarchy(start, lambda _st, ext, _id: all_parents.append(ext), self.symbol_table, [])
+        return all_parents
 
     def get_parent_interfaces(self):
 
@@ -98,9 +100,8 @@ class Extendable(object):
         isclass = sidl.is_class(self.data)
         assert isclass or isinterface
 
-        def f(s_id):
-            c_i = self.symbol_table[s_id]
-            if c_i[0] == sidl.interface:
+        def f(_, ext, s_id):
+            if ext[0] == sidl.interface:
                 # make the scoped id hashable by converting the list
                 # of modules into a tuple
                 sid, modules, name, ext = s_id
@@ -127,16 +128,15 @@ class Extendable(object):
         return intf in self.get_parent_interfaces()
 
     def get_direct_parent_interfaces(self):
-
         """
-        return a list of all direct (local) implemented interfaces
+        return a set of all direct (local) implemented interfaces
         """
 
         if self.data[0] == sidl.interface:
             parents = sidl.interface_extends(self.data)
         else:
             parents = sidl.class_implements(self.data)
-        return [self.symbol_table[impl] for _, impl in parents]
+        return set([sidl.hashable(impl) for _, impl in parents])
 
     def get_unique_interfaces(self):
         """
@@ -171,7 +171,7 @@ class Extendable(object):
                      all_names, 
                      self.all_methods, 
                      self, 
-                     True)
+                     toplevel=True)
 
         self.has_static_methods = any(map(
                 lambda m: member_chk(sidl.static, sidl.method_method_attrs(m)), 
@@ -221,6 +221,20 @@ class Class(Extendable):
 
     def get_methods(self):
         return sidl.class_methods(self.data)
+
+    def inherits_from(self, scoped_id):
+        """
+        \return True if this class inherits from the scoped id \c
+        scoped_id or of it _is_ the class.
+        """
+        if self.get_scoped_id() == scoped_id:
+            return True
+
+        parent = self.get_parent()
+        if parent:
+            return parent.inherits_from(scoped_id)
+
+        return False
 
 
 class Interface(Extendable):

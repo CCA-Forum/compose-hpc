@@ -672,7 +672,7 @@ def class_to_interface_ptr(cls, e):
     @accepts(object, tuple)
     def directlyImplements(cls, e):
         while cls:
-            if sidl.type_id(e) in cls.get_direct_parent_interfaces():
+            if sidl.hashable_type_id(e) in cls.get_direct_parent_interfaces():
                 return True
             cls = cls.get_parent()
         return False
@@ -686,14 +686,13 @@ def class_to_interface_ptr(cls, e):
             excludedInterfaces = []
 
         for ext in cls.get_unique_interfaces():
-            ext = make_extendable(cls.symbol_table, cls.symbol_table[ext])
+            ext = make_extendable(*cls.symbol_table[ext])
             if hasAncestor(excludedInterfaces, ext, sidl.hashable_type_id(e)):
                 return True
             
         return False
 
-    #import pdb; pdb.set_trace()
-    if (cls.get_scoped_id() == sidl.type_id(e) # names are identical 
+    if (cls.inherits_from(sidl.type_id(e))
         or hasAncestor([], cls, sidl.hashable_type_id(e))): 
       if sidl.is_class(e):
           # fixme: for enums, this is not true
@@ -705,7 +704,7 @@ def class_to_interface_ptr(cls, e):
         direct = directlyImplements(cls, e)
         result.append('&((*self)')
         while ancestor:
-            if ((direct and (sidl.type_id(e) in ancestor.get_unique_interfaces())) 
+            if ((direct and (sidl.hashable_type_id(e) in ancestor.get_unique_interfaces())) 
                 or ((not direct) and implementsByInheritance(ancestor, e))):
                 result.append('.d_')
                 result.append(qual_name_low(ancestor.symbol_table, e))
@@ -721,7 +720,7 @@ def class_to_interface_ptr(cls, e):
         return ''.join(result)
       
     else:
-        return 'NULL ##ERROR>??##'
+        return 'NULL'
     
 
 def qual_id(scoped_id, sep='.'):
@@ -826,7 +825,7 @@ def StaticEPVDecls(sorted_parents, cls, ior_name):
         r.append('static VAR_UNUSED struct %s__cstats s_cstats;' % ior_name)
     
     if generateContractChecks(cls):
-        r.append('/* Static file for interface contract enforcement statistics.')
+        r.append('/* Static file for interface contract enforcement statistics. */')
         r.append('static FILE* s_dump_fptr = NULL;')
         r.append('')
  
@@ -1001,23 +1000,22 @@ def class_contracts(cls):
     Return TRUE if the class has any invariants or any methods define
     contracts
     """
-    has_contracts = False
+    has_contracts = []
 
-    def evaluate(sid):
-        ext = cls.symbol_table[sid]
+    def evaluate(_symtab, ext, _sid):
         if sidl.ext_invariants(ext):
-            has_contracts = True
+            has_contracts.append(True)
             return
 
         for m in sidl.ext_methods(ext):
             if sidl.method_requires(m) or sidl.method_ensures(m):
-                has_contracts = True
+                has_contracts.append(True)
                 return
 
     if not has_contracts:
         visit_hierarchy(cls.data, evaluate, cls.symbol_table, [])
 
-    return has_contracts
+    return has_contracts == [True]
 
 @accepts(object)
 def generateContractEPVs(ext):

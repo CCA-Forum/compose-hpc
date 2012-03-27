@@ -91,7 +91,7 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
             symbol_table[Name] = SymbolTable(symbol_table,
                                              symbol_table.prefix+[Name])
-            build_symbol_table(UserTypes, symbol_table[sidl.Scoped_id([], Name, '')], verbose)
+            build_symbol_table(UserTypes, symbol_table[sidl.Scoped_id([], Name, '')][1], verbose)
 
         elif (sidl.user_type, Attrs, Cipse):
             gen(Cipse)
@@ -243,26 +243,27 @@ class SymbolTable(object):
         perform a recursive symbol lookup of a scoped identifier
         """
         if not sidl.is_scoped_id(scoped_id):
-            return scoped_id
+            return self, scoped_id
 
         scopes = list(scoped_id[1])+[scoped_id[2]]
         n = len(scopes)
         symbol_table = self
         # go up (and down again) in the hierarchy
-        # FIXME: Is this the expected behavior for nested packages?
+        # I hope this is the expected behavior for nested packages!?
         sym = symbol_table.lookup(scopes[0])
         while not sym: # up until we find something
             symbol_table = symbol_table.parent()
             sym = symbol_table.lookup(scopes[0])
 
         for i in range(1, n): # down again to resolve it
-            sym = sym.lookup(scopes[i])
+            symbol_table = sym
+            sym = symbol_table.lookup(scopes[i])
      
         if not sym:
             raise Exception("Symbol lookup error: "+repr(scopes))
      
         #print "successful lookup(", symbol_table, ",", scopes, ") =", sym
-        return sym
+        return symbol_table, sym
 
     def __setitem__(self, key, value):
         #print self, key, '='#, value
@@ -317,7 +318,7 @@ from patmat import member_chk
 import ir
 def scan_methods(symbol_table, is_abstract,
                  extends, implements, methods, 
-                 all_names, all_methods, flags, toplevel=False):
+                 all_names, all_methods, flags, toplevel=True):
     """
     Recursively resolve the inheritance hierarchy and build a list of
     all methods in their EPV order.
@@ -340,7 +341,7 @@ def scan_methods(symbol_table, is_abstract,
         """
         replace the element with m's name and args with m
         used to set the hooks attribute after the fact in
-        case we realize the methad has been overridden
+        case we realize the method has been overridden
         """
         (_, _, (_, name, _), _, args, _, _, _, _, _) = m
 
@@ -350,9 +351,9 @@ def scan_methods(symbol_table, is_abstract,
             if (name1, args1) == (name, args):
                 all_methods[i] = m
                 return
-        #raise ('?')
+        raise Exception('?')
 
-    def add_method(m, with_hooks=False):
+    def add_method(m, with_hooks):
         if member_chk(sidl.static, sidl.method_method_attrs(m)):
             flags.has_static_methods = True
 
@@ -389,23 +390,25 @@ def scan_methods(symbol_table, is_abstract,
 
     def scan_protocols(implements):
         for impl in implements:
-            for m in symbol_table[impl[1]][4]:
+            for m in symbol_table[impl[1]][1][4]:
                 add_method(m, toplevel and not is_abstract)
 
     for _, ext in extends:
-        base = symbol_table[ext]
+        symtab, base = symbol_table[ext]
         if base[0] == sidl.class_:
-            scan_methods(symbol_table, is_abstract,
+            scan_methods(symtab, is_abstract,
                          sidl.class_extends(base), 
                          sidl.class_implements(base), 
                          sidl.class_methods(base),
-                         all_names, all_methods, flags)
+                         all_names, all_methods, flags, 
+                         toplevel=False)
         elif base[0] == sidl.interface:
-            scan_methods(symbol_table, is_abstract,
+            scan_methods(symtab, is_abstract,
                          sidl.interface_extends(base), 
                          [], 
                          sidl.interface_methods(base),
-                         all_names, all_methods, flags)
+                         all_names, all_methods, flags, 
+                         toplevel=False)
         else: raise("?")
 
     scan_protocols(implements)
@@ -431,10 +434,10 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
  
     def step(visited_nodes, base):
  
-       visit_func(base)
+       symtab, n = symbol_table[base]
+       visit_func(symtab, n, base)
        visited_nodes.append(base)
  
-       n = symbol_table[base]
        if n:
            if n[0] == sidl.class_:
                extends = n[2]

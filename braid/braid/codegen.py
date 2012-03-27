@@ -1218,6 +1218,8 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 args = gen_comma_sep(Args)
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), args if args else 'void')
 
+            #elif (ir.struct_item, (ir.struct, SName, Items, DocComment), Name):
+            #    return '%s %s;'%(gen((ir.type_decl, (ir.struct, SName, Items, DocComment))), gen(Name))
             elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
 
             elif (ir.enum, Name, Items, DocComment):
