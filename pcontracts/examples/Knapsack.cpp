@@ -33,10 +33,10 @@ Knapsack() {
 /**
  * Initialize the knapsack with the specified weights, w.
  */
-/* CONTRACT REQUIRE 
+/* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     has_new_weights: hasWeights(weights, len); 
  */
 void
@@ -69,7 +69,7 @@ Knapsack::initialize(unsigned int* weights, unsigned int len)
  * Return TRUE if all weights in the knapsack are positive;
  * otherwise, return FALSE.
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
 bool
@@ -81,10 +81,10 @@ Knapsack::onlyPosWeights() {
  * Return TRUE if all of the specified weights, w, are in the knapsack
  * or there are no specified weights; otherwise, return FALSE.
  */
-/* CONTRACT REQUIRE 
+/* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
 bool
@@ -99,7 +99,7 @@ Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
  * subset of weights that total exactly to the specified target
  * weight.
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
 bool
@@ -120,10 +120,10 @@ Knapsack::hasSolution(unsigned int t) {
  * Determine if all entries in the list are positive, returning TRUE
  * if they are or FALSE if they are not.
  */
-/* CONTRACT REQUIRE 
+/* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
 bool
@@ -147,11 +147,11 @@ onlyPos(unsigned int* weights, unsigned int len)
 /*
  * Check to see if the two lists match where order does not matter.
  */
-/* CONTRACT REQUIRE 
+/* %CONTRACT REQUIRE 
     pos_weights: (nW != null) implies all(nW > 0, lenW); 
     pos_weights: (nS != null) implies all(nS > 0, lenS); 
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
 bool
@@ -191,10 +191,10 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  * Based on the algorithm defined in "Data Structures and
  * Algorithms" by Aho, Hopcroft, and Ullman (c) 1983.
  */
-/* CONTRACT REQUIRE 
+/* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, n); 
  */
-/* CONTRACT ENSURE 
+/* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
 bool
