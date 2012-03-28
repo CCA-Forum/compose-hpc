@@ -136,8 +136,8 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
 	}
 
       } else {
-        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING):: " << 
-	  (*ptm_it).second << endl;
+        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING) :: Tag=" <<
+	  tag << ", Parser=" << (*ptm_it).second << endl;
       }
     } else {
       // tag wasn't found

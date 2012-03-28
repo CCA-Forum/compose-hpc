@@ -1,4 +1,7 @@
 Tasks
+
+*** Preliminaries:
+
 - Continue preliminary identification of relevant libpaul features
   -- Resume work on:
      o CommentVisitor
@@ -7,6 +10,17 @@ Tasks
        pairings.  Then handle_comment() could retrieve and call the comment
        handler function.
      o PaulContractsDecorator
+
+- Potentially relevant ROSE tutorial codes:
+  (Refer to docs and code in tutorial source subdirectory.)
+  -- instrumentEndOfFunction.C  (pattern for adding invariant checks at end?)
+  -- tauInstrumenter.C  (source review does not clarify instrumentation site(s))
+  -- synthesizedAttributeTraversal.C  (pattern for traversing child attrs)
+  -- attributeCopyExamples.C  (pattern for inheriting attributes--invariants?)
+  -- inherited*AttributeTraversal.C  (pattern for inheriting attrs--invariants?)
+
+
+*** Refinement:
 
 - Discuss options and trade-offs with D.Q./ROSE team
   -- AST Annotations
@@ -36,4 +50,4 @@ Tasks
      annotation attributes per node as proposed at the coding camp
 
 
-Last Updated:  16 Mar 2012
+Last Updated:  27 Mar 2012
