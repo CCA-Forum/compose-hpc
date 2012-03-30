@@ -259,13 +259,18 @@ Warning: The option --makefile is only effective when used in
 
     if args.profile:
         # Profiling
-        import hotshot, hotshot.stats
-        prof = hotshot.Profile('braid.prof')
-        prof.runcall(braid, args)
-        stats = hotshot.stats.load('braid.prof')
+        
+        import cProfile
+        cProfile.runctx('braid(args)', globals(), locals(), 'braid.prof')
+        import pstats
+        stats = pstats.Stats('braid.prof')
+
         stats.strip_dirs()
-        stats.sort_stats('time', 'calls')
-        stats.print_stats(20)
+        stats.sort_stats('time', 'calls', 'cum')
+        stats.print_stats(25)
+
+        stats.sort_stats('cum')
+        stats.print_stats(25)
     else:
         braid(args)
 
