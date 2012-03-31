@@ -1509,7 +1509,8 @@ class GlueCodeGenerator(object):
         ior_args = lower_ir(symbol_table, Args, lower_scoped_ids=False)
         ctype = lower_ir(symbol_table, Type, lower_scoped_ids=False)
         return_stmt = []
-        opt = ci.chpl_skel.cstub.optional
+        skel = ci.chpl_skel
+        opt = skel.cstub.optional
         callee = Name+'_impl'
      
         def deref(mode, name):
@@ -1540,19 +1541,19 @@ class GlueCodeGenerator(object):
         # IN
         map(lambda (arg, attr, mode, typ, name):
               conv.codegen((strip(typ), deref(mode, name)), ('chpl', strip(typ)),
-                           pre_call, opt, '_CHPL_'+name, typ),
+                           pre_call, skel, '_CHPL_'+name, typ),
             filter(incoming, ior_args))
      
         # OUT
         map(lambda (arg, attr, mode, typ, name):
               conv.codegen((('chpl', strip(typ)), '_CHPL_'+name), strip(typ),
-                           post_call, opt, '(*%s)'%name, typ),
+                           post_call, skel, '(*%s)'%name, typ),
             filter(outgoing, ior_args))
 
         # RETURN value type conversion -- treated just like an OUT argument
         rarg = (ir.arg, [], ir.out, ctype, '_retval')
         conv.codegen((('chpl', strip(ctype)), '_CHPL__retval'), strip(ctype),
-                     post_call, opt, '_retval', ctype)
+                     post_call, skel, '_retval', ctype)
         chpl_rarg = conv.ir_arg_to_chpl(rarg)
         _,_,_,chpltype,_ = chpl_rarg
         if Type <> sidl.void:

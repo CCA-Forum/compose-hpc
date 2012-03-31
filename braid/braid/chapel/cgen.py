@@ -121,13 +121,13 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     # IN
     map(lambda (arg, attr, mode, typ, name):
           conv.codegen((('chpl', strip(typ)), deref(mode, typ, name)), strip(typ),
-                       pre_call, opt, '_ior_'+name, typ),
+                       pre_call, scope, '_ior_'+name, typ),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
           conv.codegen((strip(typ), '_ior_'+name), ('chpl', strip(typ)),
-                       post_call, opt, '(*%s)'%name, typ),
+                       post_call, scope, '(*%s)'%name, typ),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
@@ -135,7 +135,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     # RETURN value type conversion -- treated like an out argument
     rarg = ir.Arg([], ir.out, Type, '_retval')
     conv.codegen((strip(Type), '_ior__retval'), ('chpl', strip(Type)), 
-                 post_call, opt, '_retval', Type)
+                 post_call, scope, '_retval', Type)
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,chpltype,_ = crarg
 

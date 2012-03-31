@@ -296,7 +296,7 @@ def reducetree(label, target, *args):
 
         if not success:
             print "**ERROR: no cover found! <%r>"%target
-            #import pdb; pdb.set_trace()
+            raise Exception()
 
     except TypeError:
         pass # non-hashable
@@ -306,7 +306,6 @@ def reducetree(label, target, *args):
 
 def codegen(src, target, *args):
     if len(args) <> action_arity:
-        import pdb; pdb.set_trace()
         raise Exception()
     labels = label(src)
     if debug:

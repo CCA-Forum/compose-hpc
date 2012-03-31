@@ -18,3 +18,4 @@ array    = 'chpl', sidl.array
 rarray   = 'chpl', sidl.rarray
 struct   = 'chpl', sidl.struct
 pointer_type = 'chpl', ir.pointer_type
+new_array = 'chpl', 'new_array'

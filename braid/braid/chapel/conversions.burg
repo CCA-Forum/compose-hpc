@@ -8,7 +8,7 @@
 #
 # \authors <pre>
 #
-# Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2011, 2012 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
 #
@@ -23,8 +23,11 @@
 # </pre>
 
 
+#------------------------------------------------------------------------
 # Declaration of additional arguments for the rule actions
-%action arguments: (convs, optionals, dest, full_type)
+#------------------------------------------------------------------------
+%action arguments: (convs, skel, dest, full_type)
+
 #------------------------------------------------------------------------
 import ior, ir, sidl
 import chapel.chpl as chpl
@@ -84,7 +87,7 @@ def ir_type_to_chpl(typ):
             return ir.Struct_item(ir_type_to_chpl(typ[1]),typ[2])
 
         if typ[0] == sidl.array:
-            return get_array_type(typ)
+            return get_array_type(typ)[1]
 
 
         return typ
@@ -131,8 +134,9 @@ def get_array_type(full_type):
         t = '_BaseInterface'
     else:
         t = '_'+full_type[1][1]
-    iortype = ir.Pointer_type(ir.Struct('sidl%s__array'%t, [], ''))
-    return iortype 
+    name = 'sidl%s__array'%t
+    iortype = ir.Pointer_type(ir.Struct(name, [], ''))
+    return name, iortype 
 
 
 char_lut = '''
@@ -141,17 +145,19 @@ static const unsigned char chpl_char_lut[512] = {
   '''+' '.join(['%d, 0,'%i for i in range(0, 256)])+'''
 };
 '''
+
 #------------------------------------------------------------------------
 %rules:
-#------------------------------------------------------------------------
-
 # Rule format
 # -----------
 #
 # chpl.vcall @ chpl <-- ior.vcall @ C : cost(1)
 #   actions
+#------------------------------------------------------------------------
+
 
 # BOOL
+#------------------------------------------------------------------------
 ior.bool @ C <-- chpl.bool : cost(1)
     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
     convs.append((ir.stmt, '{dest} = ({typ}){n}'
@@ -163,19 +169,21 @@ chpl.bool @ C <-- ior.bool : cost(1)
                   .format(dest=dest, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
 
 # CHAR
+#------------------------------------------------------------------------
 ior.char @ C <-- chpl.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     convs.append((ir.stmt, '{dest} = (int){n}[0]'.format(dest=dest, n=a0)))
-    optionals.add(char_lut)
+    skel.cstub.optional.add(char_lut)
 
 chpl.char @ C <-- ior.char : cost(1)
     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     convs.append((ir.stmt, '{dest} = (const char*)&chpl_char_lut[2*(unsigned char){n}]'
                   .format(dest=dest, n=a0)))
-    optionals.add(char_lut)
+    skel.cstub.optional.add(char_lut)
 
 # COMPLEX - 32/64 Bit components
+#------------------------------------------------------------------------
 ior.fcomplex @ C <-- chpl.fcomplex : cost(2)
     fmt = {'dest':dest, 'n':a0}
     convs.append((ir.stmt, '{dest}.real = {n}.re'.format(**fmt)))
@@ -197,6 +205,7 @@ chpl.dcomplex @ C <-- ior.dcomplex : cost(2)
     convs.append((ir.stmt, '{dest}.im = {n}.imaginary'.format(**fmt)))
 
 # ENUM
+#------------------------------------------------------------------------
 ior.enum @ C <-- chpl.enum: cost(1)
     # No special treatment for enums, rely on chpl runtime to set it
     convs.append(ir.Stmt(ir.Assignment(dest, ir.Sign_extend(64, a0))))
@@ -205,6 +214,7 @@ chpl.enum @ C <-- ior.enum: cost(1)
     convs.append(ir.Stmt(ir.Assignment(dest, a0)))
 
 # SELF
+#------------------------------------------------------------------------
 # ior.baseobject @ C <-- upcast(chpl.baseobject): cost(1)
 #     # We should find a cleaner way of implementing this
 #     #if a0 == 'self' and member_chk(ir.pure, attrs):
@@ -213,6 +223,7 @@ chpl.enum @ C <-- ior.enum: cost(1)
 #     return dest
 
 # STRING
+#------------------------------------------------------------------------
 ior.string @C <-- chpl.string: cost(0)
     convs.append(ir.Stmt(ir.Assignment(dest, a0)))
 
@@ -222,18 +233,21 @@ chpl.string @C <-- ior.string: cost(1)
     convs.append((ir.stmt, 'if ({n} == NULL) {n} = ""'.format(n=dest)))
 
 # INT
+#------------------------------------------------------------------------
 ior.int @C <-- chpl.int: cost(0)
     pass
 chpl.int @C <-- ior.int: cost(0)
     pass
 
 # LONG
+#------------------------------------------------------------------------
 ior.long @C <-- chpl.long: cost(0)
     pass
 chpl.long @C <-- ior.long: cost(0)
     pass
 
 # VOID return type
+#------------------------------------------------------------------------
 chpl.void @C <-- ior.void:cost(0)
     pass
 
@@ -244,43 +258,51 @@ ior.pointer_type @C <-- chpl.pointer_type :cost(0)
     pass
 
 # STRUCT
+#------------------------------------------------------------------------
 # FIXME: we would actually need dynamic costs for this situation
 ior.struct @C <-- chpl.struct: cost(3)
     items = get_struct_items(full_type)
+
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((('chpl', strip(typ)), a0+name+elem_access(typ)), strip(typ),
-                  convs, optionals, dest+'.'+name, typ), items)
+                  convs, skel, dest+'.'+name, typ), items)
+
     # if we need to convert one of the items, we need to convert all of them
-    if convs:
-        copy_other_items(convs, items, a0, '%s'%dest)
-    pass
+    if convs: copy_other_items(convs, items, a0, '%s'%dest)
 
 chpl.struct @C <-- ior.struct: cost(3)
     items = get_struct_items(full_type)
-    # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
           codegen((strip(typ), a0+'.'+name), ('chpl', strip(typ)),
-                  convs, optionals, dest+'.'+name, typ), items)
-    # if we need to convert one of the items, we need to convert all of them
-    if convs:
-        copy_other_items(convs, items, '%s.'%a0, dest)
-    pass
+                  convs, skel, dest+'.'+name, typ), items)
+    if convs: copy_other_items(convs, items, '%s.'%a0, dest)
 
 # SIDL ARRAY
-ior.array @C <-- chpl.array: cost(1)
-    iortype = get_array_type(full_type)
-    convs.append((ir.stmt, '{dest} = ({typ}){n}.self'
-                  .format(dest=dest, n=a0, typ=iortype)))
+#------------------------------------------------------------------------
 
-chpl.array @chpl <-- ior.array: cost(2)
-    iortype = get_array_type(full_type)
+# for sidl arrays we invoke a chapel code fragment from the C stub
+chpl.array @chpl <-- chpl.new_array: cost(1)
+    iorname, iortype = get_array_type(full_type)
+    convs.append((ir.stmt, '{dest} = ({typ}){n}.self'
+                  .format(dest=dest, n=a0, typ=iorname)))
+
+chpl.new_array @chpl <-- ior.array @chpl: cost(2)
+    iorname, iortype = get_array_type(full_type)
+    skel.new_def(ir.Fn_defn([], ir.pt_void, '%s_to_chpl'%iorname, 
+                            [ir.Arg([], ir.in_, iortype, 'ior')],
+                            [ir.Stmt((ir.new, 'sidl.Array', [iorname, iortype, dest]))],
+                            'argument conversion codelet'))
+
+
+ior.array @chpl <-- chpl.array: cost(2)
+    iorname, iortype = get_array_type(full_type)
+    convs.append(ir.Assignment(dest, ir.Call('%s_to_chpl'%iorname, [a0])))
 
     # wrap the C type in a native Chapel object
     #if mode == sidl.inout:
     #    pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.self')))
 
-    convs.append((ir.new, 'sidl.Array', [full_type[1], iortype, dest]))
                     
     # if name == '_retval':
     #     return_expr.append(conv)
