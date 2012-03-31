@@ -66,6 +66,30 @@ def outgoing((arg, attrs, mode, typ, name)):
 def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
     return arg, attrs, mode, conv.ir_type_to_chpl(typ), name
 
+def deref(mode, typ, name):
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+        return name+'->'
+    elif typ[0] ==  ir.struct:
+        return name+'->'
+    elif mode == sidl.in_:
+        return name 
+    else: return '(*%s)'%name
+
+def strip(typ):
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+        return ir.struct
+    if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
+        return ior.bool
+    # strip unnecessary details from aggregate types
+    if (typ[0] == ir.enum or
+        #typ[0] == sidl.array or
+        typ[0] == sidl.rarray or
+        typ[0] == ir.pointer_type or
+        typ[0] == ir.struct):
+        return typ[0]
+    return typ
+
+
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     """
     Generate the stub for a specific method in C (cStub).
@@ -94,29 +118,6 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     post_call = []
     retval_arg = []
     opt = scope.cstub.optional
-
-    def deref(mode, typ, name):
-        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
-            return name+'->'
-        elif typ[0] ==  ir.struct:
-            return name+'->'
-        elif mode == sidl.in_:
-            return name 
-        else: return '(*%s)'%name
-
-    def strip(typ):
-        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
-            return ir.struct
-        if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
-            return ior.bool
-        # strip unnecessary details from aggregate types
-        if (typ[0] == ir.enum or
-            typ[0] == sidl.array or
-            typ[0] == sidl.rarray or
-            typ[0] == ir.pointer_type or
-            typ[0] == ir.struct):
-            return typ[0]
-        return typ
 
     # IN
     map(lambda (arg, attr, mode, typ, name):
@@ -319,6 +320,15 @@ def gen_doc_comment(doc_comment, scope):
                            )+sep+' */'+sep
 
 
+sidl_array_regex = re.compile('sidl(_(\w+))__array')
+def is_sidl_array(struct_name):
+    m = sidl_array_regex.match(struct_name)
+    if m:
+        t = m.group(2)
+        return t if t else 'opaque'
+    return None
+
+
 class ChapelCodeGenerator(ClikeCodeGenerator):
     """
     A BRAID-style code generator for Chapel.
@@ -470,15 +480,17 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                        '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])]))
 
             elif (sidl.array, [], [], []):
+                print '** WARNING: deprecated rule use sidl__array struct instead'
                 return 'sidl.Array(opaque, sidl__array)'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
+                print '** WARNING: deprecated rule use sidl__array struct instead'
                 if Scalar_type[0] == ir.scoped_id:
                     ctype = 'BaseInterface'
                 else:
                     ctype = Scalar_type[1]
+                #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
                 return 'sidl.Array(%s, sidl_%s__array)'%(gen(Scalar_type), ctype)
-                scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
@@ -512,6 +524,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
                 #print 'prefix %s, name %s, ext %s' %(Prefix, Name, Ext)
                 return '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])])
+
+            elif (ir.struct, SIDLArray, _, _):
+                # special rule for handling SIDL arrays
+                scalar_t = is_sidl_array(SIDLArray)
+                if scalar_t:
+                    #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
+                    return 'sidl.Array(%s, %s)'%(scalar_t, SIDLArray)
+                else:
+                    # some other struct
+                    return SIDLArray
 
             elif (ir.struct, Name, Items, DocComment):
                 return Name

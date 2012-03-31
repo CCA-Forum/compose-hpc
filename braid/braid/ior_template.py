@@ -44,6 +44,8 @@ def gen_IOR_c(iorname, cls):
         Baseclass = baseclass(cls),
         EPVinits = EPVinits(cls),
         EPVfini = EPVfini(cls),
+        INIT_SEPV = init_sepv(cls, iorname),
+        SET_CONTRACTS = set_contracts(cls, iorname),
         ParentDecls = ParentDecls(cls),
         StaticEPVDecls = StaticEPVDecls(sorted_parents, cls, iorname),
         External_getSEPV = (('%s__getStaticEPV,'%iorname) if cls.has_static_methods
@@ -242,6 +244,49 @@ static void ior_${CLASS}__set_hooks(
 }
 
 /*
+ * HOOKS: Enable/disable static hooks.
+ */
+
+static void ior_${CLASS}__set_hooks_static(
+  sidl_bool enable, struct sidl_BaseInterface__object **_ex )
+{
+  *_ex  = NULL;
+  /*
+   * Nothing else to do since hook methods not generated.
+   */
+
+}
+
+/*
+ * HOOKS: Enable/disable hooks.
+ */
+
+static void ior_${CLASS}__set_hooks(
+  struct ${CLASS}__object* self,
+  sidl_bool enable, struct sidl_BaseInterface__object **_ex )
+{
+  *_ex  = NULL;
+  /*
+   * Nothing else to do since hook methods not generated.
+   */
+
+}
+
+/*
+ * CHECKS: Enable/disable static contract enforcement.
+ */
+
+static void ior_vect_Utils__set_contracts_static(
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex)
+{
+  *_ex  = NULL;
+${SET_CONTRACTS}
+}
+
+/*
  * DELETE: call destructor and free object memory.
  */
 
@@ -385,6 +430,8 @@ static void ${CLASS}__init_epv(void)
   s_method_initialized = 1;
   ior_${CLASS}__ensure_load_called();
 }
+
+${INIT_SEPV}
 
 /*
  * ${CLASS}__getEPVs: Get my version of all relevant EPVs.
@@ -845,6 +892,173 @@ def StaticEPVDecls(sorted_parents, cls, ior_name):
         r.append('static const sidl_babel_native_epv_t NULL_NATIVE_EPV  = { BABEL_LANG_UNDEF, NULL};')
 
     return '\n'.join(r)
+
+def init_sepv(cls, ior_name):
+    """
+    generate the sepv initialization function
+    """
+    if not cls.has_static_methods:
+        return ''
+
+    contracts = generateContractEPVs(cls)
+    hooks = generateHookEPVs(cls)
+    t = ior_name
+    n = str.lower(t)
+    r = []
+    r.append('''
+/*
+ * SEPV: create the static entry point vector (SEPV).
+ */
+
+static void {t}__init_sepv(void)
+{{
+  struct sidl_BaseInterface__object *throwaway_exception = NULL;
+  struct {t}__sepv*  s = &s_stc_epv__{n};'''.format(t=t, n=n))
+    if contracts:
+        r.append('  struct %s__sepv* cs = &s_stc_epv_contracts__%s;'%(t, n))
+
+    r.append('')
+    if hooks:
+        r.append('  s->f__set_hooks_static       = ior_%s__set_hooks_static;'%t)
+
+    if contracts:
+        r.append('  s->f__set_contracts_static   = ior_%s__set_contracts_static;'%t)
+        r.append('  s->f__dump_stats_static      = ior_%s__dump_stats_static;'%t)
+
+    r.append('')
+    for m in cls.get_methods():
+        r.append('  s->f_%s = NULL;'%sidl.method_method_name(m)[1])
+
+    r.append('')
+    r.append('  %s__set_sepv(s, &s_preSEPV, &s_postSEPV);'%t)
+    r.append('')
+
+    if hooks:
+        r.append('ior_%s__set_hooks_static(FALSE, &throwaway_exception);'%t)
+        r.append('')
+
+    if contracts:
+        r.append('  memcpy((void*)cs, s, sizeof(struct %s__sepv));'%t)
+        for m in cls.get_methods():
+            n = sidl.method_method_name(m)[1]
+            r.append('  cs->f_%s = check_%s_%s;'%(n, qual_cls(cls), n))
+
+    r.append('')
+    r.append('  s_static_initialized = 1;')
+    r.append('  %s__ensure_load_called();'%t)
+    r.append('}')
+    return '\n'.join(r)    
+
+
+def set_contracts(cls, ior_name):
+    if not generateContractChecks(cls):
+        return Template('''
+  {
+    struct ${t}__method_desc *md;
+    struct ${t}__method_cstats *ms;
+
+    const char* filename = (enfFilename) ? enfFilename
+                         : "${t}.dat";
+    FILE*  fptr   = NULL;
+    int    ind, invc, prec, posc;
+    double invt, mt, pret, post;
+
+    s_cstats.enabled = enable;
+
+    if (  (filename) 
+       && (sidl_Enforcer_usingTimingData()) ) {
+      fptr = fopen(filename, "r");
+      if (fptr != NULL) {
+        /*
+         *  * The first line is assumed to contain the invariant
+         *  * complexity and average enforcement cost REGARDLESS
+         *  * of specification of invariants.
+         */
+
+        fscanf(fptr, "%d %lf\n", &invc, &invt);
+        while (fscanf(fptr, "%d %d %d %lf %lf %lf\n",
+          &ind, &prec, &posc, &mt, &pret, &post) != EOF)
+        {
+          if (  (s_IOR_VECT_UTILS_MIN <= ind)
+             && (ind <= s_IOR_VECT_UTILS_MAX) ) {
+            md = &s_ior_${t}_method[ind];
+            md->pre_complexity  = prec;
+            md->post_complexity = posc;
+            md->meth_exec_time  = mt;
+            md->pre_exec_time   = pret;
+            md->post_exec_time  = post;
+          } else {
+            printf("ERROR:  Invalid method index, %d, in contract metrics file %s\n", ind, filename);
+            return;
+          }
+        }
+        fclose(fptr);
+      }
+    }
+
+    if (resetCounters) {
+      int i;
+      for (i =s_IOR_VECT_UTILS_MIN;
+           i<=s_IOR_VECT_UTILS_MAX; i++) {
+        ms = &s_cstats.method_cstats[i];
+        ms->tries          = 0;
+        ms->successes      = 0;
+        ms->failures       = 0;
+        ms->nonvio_exceptions = 0;
+
+        md = &s_ior_${t}_method[i];
+        RESETCD(md);
+      }
+    }
+  }
+}
+''').substitute(t = ior_name)
+
+def contract_decls(cls, iorname):
+    if not generateContractChecks(cls):
+        return []
+    r = ['''
+/*
+ * Define invariant clause data for interface contract enforcement.
+ */
+
+static VAR_UNUSED struct vect_Utils__inv_desc{
+  int    inv_complexity;
+  double inv_exec_time;
+} s_ior_vect_Utils_inv = {
+  0, 0.0,
+};
+
+/*
+ * Define method description data for interface contract enforcement.
+ */
+''']
+    n = 0
+    T = str.upper(iorname)
+    r.append('static const int32_t s_IOR_%s_MIN = 0;'%T)
+    for m in cls.get_methods():
+        r.append('static const int32_t s_IOR_%s_%s = %d;'
+                 %(T, str.upper(sidl.method_method_name(m)[1]), n))
+        n = n + 1
+    r.append('static const int32_t s_IOR_%s_MAX = %d;'%(T, n))
+    r.append('''
+static VAR_UNUSED struct {t}__method_desc{{
+  const char* name;
+  sidl_bool   is_static;
+  long        est_interval;
+  int         pre_complexity;
+  int         post_complexity;
+  double      meth_exec_time;
+  double      pre_exec_time;
+  double      post_exec_time;
+}} s_ior_{t}_method[] = {{
+'''.format(t=iorname))
+    for m in cls.get_methods():
+        r.append('{"%s", 1, 0, 0, 0, 0.0, 0.0, 0.0},'%sidl.method_method_name(m)[1])
+
+    r.append('};')
+    return r
+
 
 def EPVinits(cls):
     r = []

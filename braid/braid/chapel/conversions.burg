@@ -89,7 +89,6 @@ def ir_type_to_chpl(typ):
         if typ[0] == sidl.array:
             return get_array_type(typ)[1]
 
-
         return typ
 
 

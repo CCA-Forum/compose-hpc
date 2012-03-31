@@ -51,14 +51,14 @@ IMPLSRCS = {impls}
 IORHDRS = {iorhdrs} #FIXME Array_IOR.h
 IORSRCS = {iorsrcs}
 SKELSRCS = {skelsrcs}
-STUBHDRS = #FIXME {stubhdrs}
+STUBHDRS = {stubhdrs}
 STUBSRCS = {stubsrcs}
 """.format(impls=' '.join([p+'_Impl.chpl'       for p in pkgs]),
            iorhdrs=' '.join([c+'_IOR.h'    for c in classes]),
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
            skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),
            stubsrcs=' '.join([c+'_cStub.c' for c in classes]),
-           stubhdrs=' '.join([c+'_Stub.h'  for c in classes])))
+           stubhdrs=' '.join([c+'_cStub.h' for c in classes])))
     generate_client_server(sidl_file)
 
 def generate_client_server(sidl_file):
