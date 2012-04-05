@@ -1,0 +1,4 @@
+module identity
+imports libstrategolib
+strategies
+  main = io-wrap(id)
