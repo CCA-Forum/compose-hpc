@@ -1,0 +1,7 @@
+Version 0.1 to 0.2:
+
+- fixed whitespace handling in annotations that caused
+  failures when whitespace was between the comment
+  symbol and the start of the annotation tag
+
+- cleaned up build system and documentation

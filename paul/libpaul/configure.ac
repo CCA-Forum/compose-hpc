@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.63)
-AC_INIT(libpaul, 0.1, matt@galois.com)
+AC_INIT(libpaul, 0.2, matt@galois.com)
 AM_INIT_AUTOMAKE(foreign)
 AC_OUTPUT([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SRCDIR([src/Dynamic.h])
