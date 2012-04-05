@@ -30,16 +30,29 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+string remove_leading_whitespace(const string s) {
+  unsigned int i = 0;
+  while (i < s.length() && (s[i] == ' ' || s[i] == '\t')) {
+    i++;
+  }
+
+  if (i == s.length()) {
+    return "";
+  }
+
+  return s.substr(i);
+}
+
 string remove_cpp_comment_marks(const string s) {
-  return s.substr(2);
+  return remove_leading_whitespace(s.substr(2));
 }
 
 string remove_c_comment_marks(const string s) {
-  return s.substr(2,s.size() - 4);
+  return remove_leading_whitespace(s.substr(2,s.size() - 4));
 }
 
 string remove_f_comment_marks(const string s) {
-  return s.substr(1);
+  return remove_leading_whitespace(s.substr(1));
 }
 
 bool is_annotation(const string s) {
