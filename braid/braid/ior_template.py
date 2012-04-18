@@ -56,10 +56,11 @@ def gen_IOR_c(iorname, cls):
         StaticEPVDecls = StaticEPVDecls(sorted_parents, cls, iorname),
         External_getSEPV = (('%s__getStaticEPV,'%iorname) if cls.has_static_methods
                             else '/* no SEPV */'),
-        HAVE_STATIC = '1' if cls.has_static_methods else '0',
         IOR_MAJOR = config.BABEL_VERSION[0], # this will break at Babel 10.0!
         IOR_MINOR = config.BABEL_VERSION[2:],
-        CHECK_SKELETONS = check_skeletons(cls, iorname)
+        CHECK_SKELETONS = check_skeletons(cls, iorname),
+        GET_STATIC_EPVS = get_static_epvs(cls, iorname),
+        GET_TYPE_STATIC_EPV = get_type_static_epv(cls, iorname)
         )
 
 text = r"""
@@ -179,6 +180,7 @@ static struct ${CLASS}__epv s_my_epv__${CLASS_LOW} = { 0 };
 static struct ${CLASS}__epv s_my_epv_contracts__${CLASS_LOW} = { 0 };
 static struct ${CLASS}__epv s_my_epv_hooks__${CLASS_LOW} = { 0 };
 
+static void ior_${CLASS}__ensure_load_called();
 ${StaticEPVDecls}
 
 /*
@@ -198,6 +200,7 @@ extern void ${CLASS}__call_load(void);
 #ifdef __cplusplus
 }
 #endif
+
 
 
 /*
@@ -227,17 +230,6 @@ static void ior_${CLASS}__dump_stats(
 {
   *_ex = NULL;
 ${DUMP_STATS}
-}
-
-static void ior_${CLASS}__ensure_load_called(void) {
-  /*
-   * assert( HAVE_LOCKED_STATIC_GLOBALS );
-   */
-
-  if (! s_load_called ) {
-    s_load_called=1;
-    ${CLASS}__call_load();
-  }
 }
 
 /* CAST: dynamic type casting support. */
@@ -325,7 +317,7 @@ static void ior_${CLASS}__delete(
   free((void*) self);
 }
 
-static char*
+static const char*
 ior_${CLASS}__getURL(
   struct ${CLASS}__object* self,
   struct sidl_BaseInterface__object **_ex)
@@ -369,7 +361,9 @@ struct ${CLASS}__method {
     struct sidl_BaseInterface__object **);
 };
 
+${GET_TYPE_STATIC_EPV}
 ${CHECK_SKELETONS}
+${INIT_SEPV}
 
 /*
  * EPV: create method entry point vector (EPV) structure.
@@ -459,8 +453,6 @@ static void ${CLASS}__init_epv(void)
   ior_${CLASS}__ensure_load_called();
 }
 
-${INIT_SEPV}
-
 /*
  * ${CLASS}__getEPVs: Get my version of all relevant EPVs.
  */
@@ -490,32 +482,7 @@ static struct sidl_BaseClass__epv* ${CLASS}__getSuperEPV(void) {
   return s_par_epv__sidl_baseclass;
 }
 
-/*
- * ${CLASS}__getStaticEPV: return pointer to static EPV structure.
- */
-#if ${HAVE_STATIC}
-struct ${CLASS}__sepv*
-${CLASS}__getStaticEPV(void){
-  struct ${CLASS}__sepv* sepv;
-  LOCK_STATIC_GLOBALS;
-  if (!s_static_initialized) {
-    ${CLASS}__init_sepv();
-  }
-  UNLOCK_STATIC_GLOBALS;
-
-  if (sidl_Enforcer_areEnforcing()) {
-    if (!s_cstats.enabled) {
-      struct sidl_BaseInterface__object *tae;
-      ior_${CLASS}__set_contracts_static(sidl_Enforcer_areEnforcing(),
-        NULL, TRUE, &tae);
-    }
-    sepv = &s_stc_epv_contracts__vect_utils;
-  } else {
-    sepv = &s_stc_epv__vect_utils;
-  }
-  return sepv;
-}
-#endif
+${GET_STATIC_EPVS}
 
 /*
  * initClassInfo: create a ClassInfo interface if necessary.
@@ -876,6 +843,7 @@ def StaticEPVDecls(sorted_parents, cls, ior_name):
     t = ior_name
     n = str.lower(t)
     if cls.has_static_methods:
+        r.append('static void %s__init_sepv(void);'%t)
         r.append('static VAR_UNUSED struct %s__sepv  s_stc_epv__%s;' % (t, n))
         if generateContractEPVs(cls):
             r.append('static VAR_UNUSED struct %s__sepv  s_stc_epv_contracts__%s;' % (t, n))
@@ -974,7 +942,7 @@ static void {t}__init_sepv(void)
 
     r.append('')
     r.append('  s_static_initialized = 1;')
-    r.append('  %s__ensure_load_called();'%t)
+    r.append('  ior_%s__ensure_load_called();'%t)
     r.append('}')
     return '\n'.join(r)    
 
@@ -999,7 +967,7 @@ def dump_stats_static(cls, ior_name):
     if (s_dump_fptr == NULL) {
       firstTime = TRUE;
       if ((s_dump_fptr=fopen(fname,"w")) == NULL) {
-        printf("Cannot open file %s to dump the static interface contract enforcement statistics.\n", fname);
+        fprintf(stderr, "Cannot open file %s to dump the static interface contract enforcement statistics.\n", fname);
         return;
       }
     }
@@ -1064,8 +1032,8 @@ def set_contracts_static(cls, ior_name):
          *  * of specification of invariants.
          */
 
-        fscanf(fptr, "%d %lf\\n", &invc, &invt);
-        while (fscanf(fptr, "%d %d %d %lf %lf %lf\\n",
+        fscanf(fptr, "%d %lf\n", &invc, &invt);
+        while (fscanf(fptr, "%d %d %d %lf %lf %lf\n",
           &ind, &prec, &posc, &mt, &pret, &post) != EOF)
         {
           if (  (s_IOR_${T}_MIN <= ind)
@@ -1077,7 +1045,7 @@ def set_contracts_static(cls, ior_name):
             md->pre_exec_time   = pret;
             md->post_exec_time  = post;
           } else {
-            printf("ERROR:  Invalid method index, %d, in contract metrics file %s\\n", ind, filename);
+            fprintf(stderr, "ERROR:  Invalid method index, %d, in contract metrics file %s\n", ind, filename);
             return;
           }
         }
@@ -1104,13 +1072,60 @@ def set_contracts_static(cls, ior_name):
     else:
         return '  /* empty since there are no static contracts */'
 
+    
+
+builtin_funcs = {
+    'allBoth'   : 'All_Both',
+    'allVl'     : 'ALL_VL', 
+    'allVr'     : 'ALL_VR', 
+    'anyBoth'   : 'ANY_BOTH', 
+    'anyVl'     : 'ANY_VL', 
+    'anyVr'     : 'ANY_VR', 
+    'countBoth' : 'COUNT_BOTH', 
+    'countVl'   : 'COUNT_VL', 
+    'countVr'   : 'COUNT_VR', 
+    'dimen'     : 'DIMEN', 
+    'irange'    : 'IRANGE', 
+    'lower'     : 'LOWER', 
+    'max'       : 'MAX', 
+    'min'       : 'MIN', 
+    'nearEqual' : 'NEAR_EQUAL', 
+    'nonIncr'   : 'NON_INCR', 
+    'noneBoth'  : 'NONE_BOTH', 
+    'noneVl'    : 'NONE_VL', 
+    'noneVr'    : 'NONE_VR', 
+    'range'     : 'RANGE', 
+    'size'      : 'SIZE', 
+    'stride'    : 'STRIDE', 
+    'sum'       : 'SUM', 
+    'nonDecr'   : 'NON_DECR', 
+    'upper'     : 'UPPER',
+    'irange'    : 'IRANGE', 
+    'nearEqual' : 'NEAR_EQUAL',
+    'range'     : 'RANGE'
+}
 
 @matcher(globals())
-def lower_assertion(expr):
+def lower_assertion(cls, m, expr):
     """
     convert a SIDL assertion expression into IR code
     """
-    low = lower_assertion
+    from chapel.backend import babel_epv_args, lower_ir
+
+    def low(e): 
+        return lower_assertion(cls, m, e)
+
+    def get_arg_type(name):
+        if name == '_retval':
+            return m[1]
+
+        args = sidl.method_args(m)
+        for arg in args:
+            if sidl.arg_id(arg) == name:
+                return arg[3]
+        raise Exception('arg not found: '+name)
+
+
     with match(expr):
         if (sidl.infix_expr, sidl.iff, Lhs, Rhs):
             return ir.Infix_expr(ir.log_or,
@@ -1118,14 +1133,30 @@ def lower_assertion(expr):
                                  ir.Infix_expr(ir.log_and,
                                                ir.Prefix_expr(ir.log_not, low(Lhs)), 
                                                ir.Prefix_expr(ir.log_not, low(Rhs))))
+
         if (sidl.infix_expr, sidl.implies, Lhs, Rhs):
             return ir.Infix_expr(ir.log_or, ir.Prefix_expr(ir.log_not, low(Lhs)), low(Rhs))
+
         elif (sidl.infix_expr, Bin_op, Lhs, Rhs):
             return ir.Infix_expr(Bin_op, low(Lhs), low(Rhs))
+
         elif (sidl.prefix_expr, Un_op, AssertExpr):
             return ir.Prefix_expr(Un_op, AssertExpr)
+
         elif (sidl.fn_eval, Id, AssertExprs):
-            return ir.Call('SIDL_ARRAY_'+str.upper(Id), ['0']+[low(e) for e in AssertExprs])
+            args = [low(e) for e in AssertExprs]
+            if Id in builtin_funcs.keys():
+                try: arg0 = AssertExprs[0]
+                except: print "**ERROR: assert function has now arguments: ", sidl_gen(expr)
+                t = get_arg_type(low(arg0))
+                if sidl.is_array(t):
+                    typearg = c_gen(lower_ir(cls.symbol_table, t))
+                    return ir.Call('SIDL_ARRAY_'+builtin_funcs[Id], [typearg]+args)
+                else:
+                    return ir.Call('SIDL_'+builtin_funcs[Id], args)
+            else:
+                return ir.Call('(sepv->f_%s)'%Id, args+['_ex'])
+
         elif (sidl.var_ref, Id):
             return Id
         else: 
@@ -1134,13 +1165,14 @@ def lower_assertion(expr):
             else: return expr
 
 
-def precondition_check(t, m, assertion):
+def precondition_check(cls, m, assertion):
     """
     convert a SIDL assertion expression into IR code and return a string with a check
     """
     _, name, expr = assertion
+    t = '.'.join(cls.qualified_name)
     a = sidl_gen(assertion)
-    ac = c_gen(lower_assertion(expr))
+    ac = c_gen(lower_assertion(cls, m, expr))
     return Template(r'''if (!(${ac})) {
         cOkay  = 0;
         if ((*_ex) == NULL) {
@@ -1157,17 +1189,18 @@ def precondition_check(t, m, assertion):
                        ac = ac, 
                        a = a)
 
-def postcondition_check(t, m, assertion):
+def postcondition_check(cls, m, assertion):
     """
     convert a SIDL assertion expression into IR code and return a string with a check
     """
     _, name, expr = assertion
+    t = '.'.join(cls.qualified_name)
 
     if sidl.is_prefix_expr(expr) and expr[1] == sidl.is_:
         return 'if (NULL) { /* pure */ }'
 
     a = sidl_gen(assertion)
-    ac = c_gen(lower_assertion(expr))
+    ac = c_gen(lower_assertion(cls, m, expr))
     return Template(r'''if (!(${ac})) {
         cOkay  = 0;
         if ((*_ex) == NULL) {
@@ -1184,7 +1217,89 @@ def postcondition_check(t, m, assertion):
                        ac = ac, 
                        a = a)
  
+def get_static_epvs(cls, ior_name):
+    if not cls.has_static_methods:
+        return '/* no get_static_epv since there are no static methods */'
+    substs = { 'c': ior_name, 't': str.lower(ior_name) }
+    r = Template(r'''
+/*
+ * ${c}__getStaticEPV: return pointer to static EPV structure.
+ */
+struct ${c}__sepv*
+${c}__getStaticEPV(void){
+  struct ${c}__sepv* sepv;
+  LOCK_STATIC_GLOBALS;
+  if (!s_static_initialized) {
+    ${c}__init_sepv();
+  }
+  UNLOCK_STATIC_GLOBALS;
+''').substitute(substs)
+    if generateContractEPVs(cls):
+        r += Template(r'''
+  if (sidl_Enforcer_areEnforcing()) {
+    if (!s_cstats.enabled) {
+      struct sidl_BaseInterface__object *tae;
+      ior_${c}__set_contracts_static(sidl_Enforcer_areEnforcing(),
+        NULL, TRUE, &tae);
+    }
+    sepv = &s_stc_epv_contracts__${t};
+  } else 
+''').substitute(substs)
+    r += Template(r'''{
+    sepv = &s_stc_epv__${t};
+  }
+  return sepv;
+}
+
+
+static void ior_${c}__ensure_load_called(void) {
+  /*
+   * assert( HAVE_LOCKED_STATIC_GLOBALS );
+   */
+
+  if (! s_load_called ) {
+    s_load_called=1;
+    ${c}__call_load();
+''').substitute(substs)
+    if generateContractEPVs(cls):
+        r += Template(r'''
+    struct sidl_BaseInterface__object *tae;
+    ior_${c}__set_contracts_static(sidl_Enforcer_areEnforcing(), 
+      NULL, TRUE, &tae);
+''').substitute(substs)
+    r += Template(r'''
+  }
+}
+''').substitute(substs)
+    return r
+
     
+def get_type_static_epv(cls, ior_name):
+    if not (generateContractEPVs(cls) and cls.has_static_methods):
+        return '/* no type_static_epv since there are no static contracts */'
+    else: return Template(r'''
+/*
+ * ${c}__getTypeStaticEPV: return pointer to specified static EPV structure.
+ */
+
+struct ${c}__sepv*
+${c}__getTypeStaticEPV(int type){
+  struct ${c}__sepv* sepv;
+  LOCK_STATIC_GLOBALS;
+  if (!s_static_initialized) {
+    ${c}__init_sepv();
+  }
+  UNLOCK_STATIC_GLOBALS;
+
+  if (type == s_SEPV_${T}_CONTRACTS) {
+    sepv = &s_stc_epv_contracts__${t};
+  } else {
+    sepv = &s_stc_epv__${t};
+  }
+  return sepv;
+}
+''').substitute(c = ior_name, t = str.lower(ior_name), T = str.upper(ior_name))
+      
 
 def check_skeletons(cls, ior_name):
     from chapel.backend import babel_epv_args, lower_ir
@@ -1193,8 +1308,7 @@ def check_skeletons(cls, ior_name):
 
     r = []
     for m in cls.get_methods():
-        (Method, Type, (MName,  Name, Extension), Attrs, Args,
-         Except, From, Requires, Ensures, DocComment) = m
+        (_, Type, _, Attrs, Args, _, _, Requires, Ensures, _) = m
         static = member_chk(sidl.static, Attrs)
         method_name = sidl.method_id(m)
         preconditions = Requires
@@ -1231,8 +1345,8 @@ def check_skeletons(cls, ior_name):
 
   struct ${t}__method_cstats *ms = 
     &s_cstats.method_cstats[s_IOR_${T}_${M}];
-  struct vect_Utils__method_desc *md = 
-    &s_ior_vect_Utils_method[s_IOR_${T}_${M}];
+  struct ${t}__method_desc *md = 
+    &s_ior_${t}_method[s_IOR_${T}_${M}];
   (*_ex)  = NULL;
 
 #ifdef SIDL_CONTRACTS_DEBUG
@@ -1261,9 +1375,9 @@ def check_skeletons(cls, ior_name):
 ''').substitute(substs))
 
             # all precondition checks
-            r.append(precondition_check(ior_name, m, preconditions[0][1]))
+            r.append('    '+precondition_check(cls, m, preconditions[0][1]))
             for _, c in preconditions[1:]:
-                r.append('    else '+precondition_check('.'.join(cls.qualified_name), m, c))
+                r.append('    else '+precondition_check(cls, m, c))
 
             r.append(r'''
       SIDL_INCR_IF_THEN(cOkay,ms->successes,ms->failures)
@@ -1284,14 +1398,14 @@ def check_skeletons(cls, ior_name):
                 ', '.join([sidl.arg_id(arg) for arg in Args])))
         
         r.append(Template(r'''
-     if ((*_ex) != NULL) {
-       (ms->nonvio_exceptions) += 1;
+      if ((*_ex) != NULL) {
+        (ms->nonvio_exceptions) += 1;
 
-     if (md->est_interval > 1)
-       gettimeofday(&ts2, NULL);
-     else (md->est_interval) -= 1;
+      if (md->est_interval > 1)
+        gettimeofday(&ts2, NULL);
+      else (md->est_interval) -= 1;
 
-     if (!sidl_Enforcer_areTracing()) {
+      if (!sidl_Enforcer_areTracing()) {
         md->pre_exec_time = SIDL_DIFF_MICROSECONDS(ts1, ts0);
         md->meth_exec_time = SIDL_DIFF_MICROSECONDS(ts2, ts1);
         md->post_exec_time = 0.0;
@@ -1333,9 +1447,9 @@ def check_skeletons(cls, ior_name):
 ''').substitute(substs))
 
             # all postcondition checks
-            r.append(postcondition_check(ior_name, m, postconditions[0][1]))
+            r.append(postcondition_check(cls, m, postconditions[0][1]))
             for _, c in postconditions[1:]:
-                r.append('    else '+postcondition_check('.'.join(cls.qualified_name), m, c))
+                r.append('    else '+postcondition_check(cls, m, c))
 
             r.append(r'''
       SIDL_INCR_IF_THEN(cOkay,ms->successes,ms->failures)
@@ -1354,7 +1468,7 @@ def check_skeletons(cls, ior_name):
     md->meth_exec_time = SIDL_DIFF_MICROSECONDS(ts2, ts1);
     md->post_exec_time = SIDL_DIFF_MICROSECONDS(ts3, ts2);
   } else {
-      TRACE(cName, md, s_IOR_VECT_UTILS_VUDOT, 0, 0, 0, SIDL_DIFF_MICROSECONDS(
+      TRACE(cName, md, s_IOR_${T}_VUDOT, 0, 0, 0, SIDL_DIFF_MICROSECONDS(
         ts2, ts1), SIDL_DIFF_MICROSECONDS(ts1, ts0), SIDL_DIFF_MICROSECONDS(ts3,
         ts2), 0.0, 0.0);
   }
@@ -1374,7 +1488,7 @@ def check_skeletons(cls, ior_name):
 
 
 def contract_decls(cls, iorname):
-    if not generateContractChecks(cls):
+    if not generateContractEPVs(cls):
         return []
     r = [Template('''
 /*
@@ -1472,7 +1586,7 @@ def fixEPVs(r, cls, level, is_new):
         r.append('#ifdef SIDL_CONTRACTS_DEBUG')
         r.append(r'      printf("Calling set_contracts()...\n");');
         r.append('#endif /* SIDL_CONTRACTS_DEBUG */');
-        r.append('      sidl_BaseInterface* tae;');
+        r.append('      sidl_BaseInterface tae;');
         r.append('      ior_%s__set_contracts(%s, sidl_Enforcer_areEnforcing(), NULL, TRUE, &tae);' 
                  % (name, _self))
         r.append('    }');
