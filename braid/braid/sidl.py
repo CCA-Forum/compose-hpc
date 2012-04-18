@@ -3306,6 +3306,11 @@ def type_id(t):
     \return the Id of a class, interface, package, etc.
     """
     return t[1]
+def method_id(t):
+    """
+    \return full name of a method
+    """
+    return t[2][1]+t[2][2]
 def ext_invariants(ext):
     """
     \return the invariants specified by a class or interface

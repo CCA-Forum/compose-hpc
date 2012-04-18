@@ -34,7 +34,7 @@ import ior
 from patmat import *
 from utils import *
 from codegen import (
-    ClikeCodeGenerator, CCodeGenerator,
+    ClikeCodeGenerator, CCodeGenerator, c_gen,
     SourceFile, CFile, CCompoundStmt, Scope, generator, accepts,
     sep_by
 )
@@ -302,14 +302,13 @@ class ChapelLine(ChapelFile):
 
 
 def chpl_gen(ir, scope=None):
+    """
+    Generate Chapel code with the optional scope argument
+    \return a string
+    """
     if scope == None:
         scope = ChapelScope()
     return str(ChapelCodeGenerator().generate(ir, scope))
-
-def c_gen(ir, scope=None):
-    if scope == None:
-        scope = CFile()
-    return CCodeGenerator().generate(ir, scope)
 
 def gen_doc_comment(doc_comment, scope):
     if doc_comment == '':

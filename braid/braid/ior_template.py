@@ -23,7 +23,9 @@
 # </pre>
 #
 
-import config, sidl
+import config, sidl, ir
+from codegen import sidl_gen, c_gen
+from patmat import *
 from sidl_symbols import visit_hierarchy
 from sidlobjects import make_extendable
 from string import Template
@@ -40,19 +42,24 @@ def gen_IOR_c(iorname, cls):
     return Template(text).substitute(
         CLASS = iorname, 
         CLASS_LOW = str.lower(iorname),
+        CLASS_NAME = '.'.join(cls.qualified_name),
         Casts = cast_binary_search(sorted_parents, cls, True),
         Baseclass = baseclass(cls),
         EPVinits = EPVinits(cls),
         EPVfini = EPVfini(cls),
         INIT_SEPV = init_sepv(cls, iorname),
         SET_CONTRACTS = set_contracts(cls, iorname),
+        SET_CONTRACTS_STATIC = set_contracts_static(cls, iorname),
+        DUMP_STATS = dump_stats(cls, iorname),
+        DUMP_STATS_STATIC = dump_stats_static(cls, iorname),
         ParentDecls = ParentDecls(cls),
         StaticEPVDecls = StaticEPVDecls(sorted_parents, cls, iorname),
         External_getSEPV = (('%s__getStaticEPV,'%iorname) if cls.has_static_methods
                             else '/* no SEPV */'),
         HAVE_STATIC = '1' if cls.has_static_methods else '0',
         IOR_MAJOR = config.BABEL_VERSION[0], # this will break at Babel 10.0!
-        IOR_MINOR = config.BABEL_VERSION[2:]
+        IOR_MINOR = config.BABEL_VERSION[2:],
+        CHECK_SKELETONS = check_skeletons(cls, iorname)
         )
 
 text = r"""
@@ -78,6 +85,24 @@ text = r"""
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
+#if TIME_WITH_SYS_TIME
+#  include <sys/time.h>
+#  include <time.h>
+#else
+#  if HAVE_SYS_TIME_H
+#    include <sys/time.h>
+#  else
+#    include <time.h>
+#  endif
+#endif
+
+#include "sidlAsserts.h"
+#include "sidl_Enforcer.h"
+/* #define SIDL_CONTRACTS_DEBUG 1 */
+
+#define SIDL_NO_DISPATCH_ON_VIOLATION 1
+#define SIDL_SIM_TRACE 1
+
 #ifndef included_sidlOps_h
 #include "sidlOps.h"
 #endif
@@ -111,6 +136,18 @@ static struct sidl_recursive_mutex_t ${CLASS}__mutex= SIDL_RECURSIVE_MUTEX_INITI
 #define UNLOCK_STATIC_GLOBALS
 /* #define HAVE_LOCKED_STATIC_GLOBALS (1) */
 #endif
+
+#define RESETCD(MD) { \
+  if (MD) { (MD)->est_interval = sidl_Enforcer_getEstimatesInterval(); } \
+}
+#ifdef SIDL_SIM_TRACE
+#define TRACE(CN, MD, MID, PRC, POC, INC, MT, PRT, POT, IT1, IT2) { \
+  if (MD) { sidl_Enforcer_logTrace(CN, (MD)->name, MID, PRC, POC, INC, MT, PRT, POT, IT1, IT2); } \
+}
+#else /* !SIDL_SIM_TRACE */
+#define TRACE(CN, MD, MID, PRC, POC, INC, MT, PRT, POT, IT1, IT2)
+#endif /* SIDL_SIM_TRACE */
+
 
 /*
  * Static variables to hold version of IOR
@@ -175,12 +212,7 @@ static void ior_${CLASS}__set_contracts(
   struct sidl_BaseInterface__object **_ex)
 {
   *_ex  = NULL;
-  {
-    /*
-     * Nothing to do since contract enforcement not needed.
-     */
-
-  }
+${SET_CONTRACTS}
 }
 
 /*
@@ -194,12 +226,7 @@ static void ior_${CLASS}__dump_stats(
   struct sidl_BaseInterface__object **_ex)
 {
   *_ex = NULL;
-  {
-    /*
-     * Nothing to do since contract checks not generated.
-     */
-
-  }
+${DUMP_STATS}
 }
 
 static void ior_${CLASS}__ensure_load_called(void) {
@@ -257,19 +284,18 @@ static void ior_${CLASS}__set_hooks_static(
 
 }
 
+
 /*
- * HOOKS: Enable/disable hooks.
+ * DUMP: Dump static interface contract enforcement statistics.
  */
 
-static void ior_${CLASS}__set_hooks(
-  struct ${CLASS}__object* self,
-  sidl_bool enable, struct sidl_BaseInterface__object **_ex )
+static void ior_vect_Utils__dump_stats_static(
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex)
 {
-  *_ex  = NULL;
-  /*
-   * Nothing else to do since hook methods not generated.
-   */
-
+  *_ex = NULL;
+${DUMP_STATS_STATIC}
 }
 
 /*
@@ -283,7 +309,7 @@ static void ior_vect_Utils__set_contracts_static(
   struct sidl_BaseInterface__object **_ex)
 {
   *_ex  = NULL;
-${SET_CONTRACTS}
+${SET_CONTRACTS_STATIC}
 }
 
 /*
@@ -342,6 +368,8 @@ struct ${CLASS}__method {
     struct sidl_rmi_Return__object *,
     struct sidl_BaseInterface__object **);
 };
+
+${CHECK_SKELETONS}
 
 /*
  * EPV: create method entry point vector (EPV) structure.
@@ -504,7 +532,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
     impl = sidl_ClassInfoI__create(_ex);
     s_classInfo = sidl_ClassInfo__cast(impl,_ex);
     if (impl) {
-      sidl_ClassInfoI_setName(impl, "Args.Basic", _ex);
+      sidl_ClassInfoI_setName(impl, "${CLASS_NAME}", _ex);
       sidl_ClassInfoI_setVersion(impl, "1.0", _ex);
       sidl_ClassInfoI_setIORVersion(impl, s_IOR_MAJOR_VERSION,
         s_IOR_MINOR_VERSION, _ex);
@@ -648,6 +676,7 @@ ${CLASS}__externals(void)
 {
   return &s_externalEntryPoints;
 }
+
 """
 
 def cast_binary_search(sorted_types, cls, addref):
@@ -866,7 +895,7 @@ def StaticEPVDecls(sorted_parents, cls, ior_name):
           if with_parent_hooks:
               r.append('static struct %s_pre__epv*  s_par_epv_hooks__%s;'% (t, n))
         r.append('')
-
+    
     if cls.has_static_methods and (generateContractEPVs(cls) or generateHookEPVs(cls)):
         r.append('/* Static variables for interface contract enforcement and/or hooks controls. */')
         r.append('static VAR_UNUSED struct %s__cstats s_cstats;' % ior_name)
@@ -927,7 +956,7 @@ static void {t}__init_sepv(void)
 
     r.append('')
     for m in cls.get_methods():
-        r.append('  s->f_%s = NULL;'%sidl.method_method_name(m)[1])
+        r.append('  s->f_%s = NULL;'%sidl.method_id(m))
 
     r.append('')
     r.append('  %s__set_sepv(s, &s_preSEPV, &s_postSEPV);'%t)
@@ -940,7 +969,7 @@ static void {t}__init_sepv(void)
     if contracts:
         r.append('  memcpy((void*)cs, s, sizeof(struct %s__sepv));'%t)
         for m in cls.get_methods():
-            n = sidl.method_method_name(m)[1]
+            n = sidl.method_id(m)
             r.append('  cs->f_%s = check_%s_%s;'%(n, qual_cls(cls), n))
 
     r.append('')
@@ -950,9 +979,69 @@ static void {t}__init_sepv(void)
     return '\n'.join(r)    
 
 
+
 def set_contracts(cls, ior_name):
-    if not generateContractChecks(cls):
-        return Template('''
+    return '  /* empty because contract checks not needed */'
+
+def dump_stats(cls, ior_name):
+    return '  /* empty because contract checks not needed */'
+
+def dump_stats_static(cls, ior_name):
+    if cls.has_static_methods and generateContractEPVs(cls):
+        return Template(r'''
+    struct ${t}__method_cstats *ms;
+
+    int         i;
+    sidl_bool   firstTime = FALSE;
+    sidl_bool   reported  = FALSE;
+    const char* fname     = (filename) ? filename : "ContractStats.out";
+
+    if (s_dump_fptr == NULL) {
+      firstTime = TRUE;
+      if ((s_dump_fptr=fopen(fname,"w")) == NULL) {
+        printf("Cannot open file %s to dump the static interface contract enforcement statistics.\n", fname);
+        return;
+      }
+    }
+
+    if (firstTime) {
+      sidl_Enforcer_dumpStatsHeader(s_dump_fptr, FALSE);
+      fprintf(s_dump_fptr, "; Method; Checked; Okay; Violated; MethExcepts\n\n");
+    }
+
+    for (i = s_IOR_${T}_MIN;
+         i<= s_IOR_${T}_MAX; i++) {
+      ms = &s_cstats.method_cstats[i];
+      if (  (s_ior_${t}_method[i].is_static) 
+         && (ms->tries > 0) ) {
+        reported = TRUE;
+        sidl_Enforcer_dumpStatsData(s_dump_fptr, prefix, FALSE);
+        fprintf(s_dump_fptr, "; %s; %d; %d; %d; %d\n",
+            s_ior_${t}_method[i].name,
+            ms->tries,
+            ms->successes,
+            ms->failures,
+            ms->nonvio_exceptions);
+      }
+    }
+
+    if (reported) {
+      fprintf(s_dump_fptr, "\n");
+    } else {
+      sidl_Enforcer_dumpStatsData(s_dump_fptr, prefix, FALSE);
+      fprintf(s_dump_fptr, "; No attempts to enforce contracts detected\n\n");
+    }
+
+    fflush(s_dump_fptr);
+    return;
+''').substitute(t = ior_name, T = str.upper(ior_name))
+    else:
+        return '  /* empty since there are no static contracts */'
+
+
+def set_contracts_static(cls, ior_name):
+    if cls.has_static_methods and generateContractEPVs(cls):
+        return Template(r'''
   {
     struct ${t}__method_desc *md;
     struct ${t}__method_cstats *ms;
@@ -975,12 +1064,12 @@ def set_contracts(cls, ior_name):
          *  * of specification of invariants.
          */
 
-        fscanf(fptr, "%d %lf\n", &invc, &invt);
-        while (fscanf(fptr, "%d %d %d %lf %lf %lf\n",
+        fscanf(fptr, "%d %lf\\n", &invc, &invt);
+        while (fscanf(fptr, "%d %d %d %lf %lf %lf\\n",
           &ind, &prec, &posc, &mt, &pret, &post) != EOF)
         {
-          if (  (s_IOR_VECT_UTILS_MIN <= ind)
-             && (ind <= s_IOR_VECT_UTILS_MAX) ) {
+          if (  (s_IOR_${T}_MIN <= ind)
+             && (ind <= s_IOR_${T}_MAX) ) {
             md = &s_ior_${t}_method[ind];
             md->pre_complexity  = prec;
             md->post_complexity = posc;
@@ -988,7 +1077,7 @@ def set_contracts(cls, ior_name):
             md->pre_exec_time   = pret;
             md->post_exec_time  = post;
           } else {
-            printf("ERROR:  Invalid method index, %d, in contract metrics file %s\n", ind, filename);
+            printf("ERROR:  Invalid method index, %d, in contract metrics file %s\\n", ind, filename);
             return;
           }
         }
@@ -998,8 +1087,8 @@ def set_contracts(cls, ior_name):
 
     if (resetCounters) {
       int i;
-      for (i =s_IOR_VECT_UTILS_MIN;
-           i<=s_IOR_VECT_UTILS_MAX; i++) {
+      for (i =s_IOR_${T}_MIN;
+           i<=s_IOR_${T}_MAX; i++) {
         ms = &s_cstats.method_cstats[i];
         ms->tries          = 0;
         ms->successes      = 0;
@@ -1011,34 +1100,304 @@ def set_contracts(cls, ior_name):
       }
     }
   }
-}
-''').substitute(t = ior_name)
+''').substitute(t = ior_name, T = str.upper(ior_name))
+    else:
+        return '  /* empty since there are no static contracts */'
+
+
+@matcher(globals())
+def lower_assertion(expr):
+    """
+    convert a SIDL assertion expression into IR code
+    """
+    low = lower_assertion
+    with match(expr):
+        if (sidl.infix_expr, sidl.iff, Lhs, Rhs):
+            return ir.Infix_expr(ir.log_or,
+                                 ir.Infix_expr(ir.log_and, low(Lhs), low(Rhs)),
+                                 ir.Infix_expr(ir.log_and,
+                                               ir.Prefix_expr(ir.log_not, low(Lhs)), 
+                                               ir.Prefix_expr(ir.log_not, low(Rhs))))
+        if (sidl.infix_expr, sidl.implies, Lhs, Rhs):
+            return ir.Infix_expr(ir.log_or, ir.Prefix_expr(ir.log_not, low(Lhs)), low(Rhs))
+        elif (sidl.infix_expr, Bin_op, Lhs, Rhs):
+            return ir.Infix_expr(Bin_op, low(Lhs), low(Rhs))
+        elif (sidl.prefix_expr, Un_op, AssertExpr):
+            return ir.Prefix_expr(Un_op, AssertExpr)
+        elif (sidl.fn_eval, Id, AssertExprs):
+            return ir.Call('SIDL_ARRAY_'+str.upper(Id), ['0']+[low(e) for e in AssertExprs])
+        elif (sidl.var_ref, Id):
+            return Id
+        else: 
+            if expr == 'RESULT':
+                return '_retval'
+            else: return expr
+
+
+def precondition_check(t, m, assertion):
+    """
+    convert a SIDL assertion expression into IR code and return a string with a check
+    """
+    _, name, expr = assertion
+    a = sidl_gen(assertion)
+    ac = c_gen(lower_assertion(expr))
+    return Template(r'''if (!(${ac})) {
+        cOkay  = 0;
+        if ((*_ex) == NULL) {
+          pre_err = sidl_PreViolation__create(&tae);
+          sidl_PreViolation_setNote(pre_err,
+            "REQUIRE VIOLATION $n: $t: $m: $a.", 
+            &tae);
+          (*_ex) = sidl_BaseInterface__cast(pre_err, &tae);
+          sidl_PreViolation_deleteRef(pre_err, &tae);
+        }
+      }''').substitute(t = t,
+                       m = sidl.method_id(m), 
+                       n = name, 
+                       ac = ac, 
+                       a = a)
+
+def postcondition_check(t, m, assertion):
+    """
+    convert a SIDL assertion expression into IR code and return a string with a check
+    """
+    _, name, expr = assertion
+
+    if sidl.is_prefix_expr(expr) and expr[1] == sidl.is_:
+        return 'if (NULL) { /* pure */ }'
+
+    a = sidl_gen(assertion)
+    ac = c_gen(lower_assertion(expr))
+    return Template(r'''if (!(${ac})) {
+        cOkay  = 0;
+        if ((*_ex) == NULL) {
+          post_err = sidl_PostViolation__create(&tae);
+          sidl_PostViolation_setNote(post_err,
+            "ENSURE VIOLATION $n: $t: $m: $a.", 
+            &tae);
+          (*_ex) = sidl_BaseInterface__cast(post_err, &tae);
+          sidl_PostViolation_deleteRef(post_err, &tae);
+        }
+      }''').substitute(t = t,
+                       m = sidl.method_id(m), 
+                       n = name, 
+                       ac = ac, 
+                       a = a)
+ 
+    
+
+def check_skeletons(cls, ior_name):
+    from chapel.backend import babel_epv_args, lower_ir
+    if not generateContractEPVs(cls):
+        return '  /* no check_* stubs since there are no contracts */'
+
+    r = []
+    for m in cls.get_methods():
+        (Method, Type, (MName,  Name, Extension), Attrs, Args,
+         Except, From, Requires, Ensures, DocComment) = m
+        static = member_chk(sidl.static, Attrs)
+        method_name = sidl.method_id(m)
+        preconditions = Requires
+        postconditions = Ensures
+        ctype = c_gen(lower_ir(cls.symbol_table, Type))
+        cargs =  babel_epv_args(Attrs, Args, cls.symbol_table, cls.qualified_name)
+        
+        substs = { 't' : ior_name,    'T' : str.upper(ior_name), 
+                   'm' : method_name, 'M' : str.upper(method_name) }
+        r.append('static %s check_%s_%s(%s)'%(
+                ctype,
+                ior_name,
+                method_name,
+                ', '.join([c_gen(a) for a in cargs])))
+        r.append('{')
+
+        if Type <> sidl.void:
+            r.append('  %s _retval;'%ctype)
+
+        r.append(Template(r'''
+  struct ${t}__sepv* sepv = ${t}__getTypeStaticEPV(s_SEPV_${T}_BASE);
+  int     cOkay   = 1;
+  double  methAvg = 0.0;
+  double  cAvg    = 0.0;
+  int     cComp   = 0;
+
+  struct sidl_BaseInterface__object *tae = NULL;
+
+  char*   cName = "${t}";
+
+  struct sidl_PreViolation__object *pre_err;
+  struct sidl_PostViolation__object *post_err;
+  struct timeval ts0, ts1, ts2, ts3;
+
+  struct ${t}__method_cstats *ms = 
+    &s_cstats.method_cstats[s_IOR_${T}_${M}];
+  struct vect_Utils__method_desc *md = 
+    &s_ior_vect_Utils_method[s_IOR_${T}_${M}];
+  (*_ex)  = NULL;
+
+#ifdef SIDL_CONTRACTS_DEBUG
+  printf("check_${t}_${m}: Entered\n");
+#endif /* SIDL_CONTRACTS_DEBUG */
+
+  if (md->est_interval > 1) {
+    gettimeofday(&ts0, NULL);
+  }
+
+  methAvg = md->meth_exec_time;
+  cAvg    = md->pre_exec_time;
+  cComp   = md->pre_complexity;
+''').substitute(substs))
+
+        if preconditions:
+            r.append(Template(r'''
+#ifdef SIDL_CONTRACTS_DEBUG
+  printf("...Precondition: enforceClause=%d\n", 
+    sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_PRECONDITION, cComp, 
+      TRUE, FALSE, methAvg, cAvg));
+#endif /* SIDL_CONTRACTS_DEBUG */
+  if (sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_PRECONDITION, cComp, 
+    TRUE, FALSE, methAvg, cAvg)) {
+    (ms->tries) += 1;
+''').substitute(substs))
+
+            # all precondition checks
+            r.append(precondition_check(ior_name, m, preconditions[0][1]))
+            for _, c in preconditions[1:]:
+                r.append('    else '+precondition_check('.'.join(cls.qualified_name), m, c))
+
+            r.append(r'''
+      SIDL_INCR_IF_THEN(cOkay,ms->successes,ms->failures)
+    }
+''')
+        # end if preconditions
+    
+        r.append(r'''
+#ifdef SIDL_NO_DISPATCH_ON_VIOLATION
+  if (cOkay) {
+#endif /* SIDL_NO_DISPATCH_ON_VIOLATION */
+''')
+        # the method call
+        r.append('    %s(%sepv->f_%s)(%s, _ex);'%(
+                '_retval = ' if Type <> sidl.void else '',
+                's' if static else '',
+                method_name,
+                ', '.join([sidl.arg_id(arg) for arg in Args])))
+        
+        r.append(Template(r'''
+     if ((*_ex) != NULL) {
+       (ms->nonvio_exceptions) += 1;
+
+     if (md->est_interval > 1)
+       gettimeofday(&ts2, NULL);
+     else (md->est_interval) -= 1;
+
+     if (!sidl_Enforcer_areTracing()) {
+        md->pre_exec_time = SIDL_DIFF_MICROSECONDS(ts1, ts0);
+        md->meth_exec_time = SIDL_DIFF_MICROSECONDS(ts2, ts1);
+        md->post_exec_time = 0.0;
+      } else {
+        TRACE(cName, md, s_IOR_${T}_${M}, 0, 0, 0, 
+          SIDL_DIFF_MICROSECONDS(ts2, ts1), SIDL_DIFF_MICROSECONDS(ts1, ts0), 
+          0.0, 0.0, 0.0);
+      }
+
+#ifdef SIDL_CONTRACTS_DEBUG
+      printf("...Exiting due to base call exception\n");
+#endif /* SIDL_CONTRACTS_DEBUG */
+
+      return _retval;
+    }
+
+#ifdef SIDL_NO_DISPATCH_ON_VIOLATION
+  }
+#endif /* SIDL_NO_DISPATCH_ON_VIOLATION */
+''').substitute(substs))
+
+        if postconditions:
+            r.append(Template(r'''
+  if (md->est_interval > 1) {
+    gettimeofday(&ts2, NULL);
+  }
+
+  methAvg = md->meth_exec_time;
+  cAvg    = md->post_exec_time;
+  cComp   = md->post_complexity;
+#ifdef SIDL_CONTRACTS_DEBUG
+  printf("...Postcondition: enforceClause=%d\n", 
+    sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_POSTCONDITION, cComp, 
+      TRUE, FALSE, methAvg, cAvg));
+#endif /* SIDL_CONTRACTS_DEBUG */
+  if (sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_POSTCONDITION, cComp, 
+    TRUE, FALSE, methAvg, cAvg)) {
+    (ms->tries) += 1;
+''').substitute(substs))
+
+            # all postcondition checks
+            r.append(postcondition_check(ior_name, m, postconditions[0][1]))
+            for _, c in postconditions[1:]:
+                r.append('    else '+postcondition_check('.'.join(cls.qualified_name), m, c))
+
+            r.append(r'''
+      SIDL_INCR_IF_THEN(cOkay,ms->successes,ms->failures)
+    }
+''')
+        # end if postconditions
+
+
+        r.append(Template(r'''
+  if (md->est_interval > 1)
+    gettimeofday(&ts2, NULL);
+  else (md->est_interval) -= 1;
+
+  if (!sidl_Enforcer_areTracing()) {
+    md->pre_exec_time = SIDL_DIFF_MICROSECONDS(ts1, ts0);
+    md->meth_exec_time = SIDL_DIFF_MICROSECONDS(ts2, ts1);
+    md->post_exec_time = SIDL_DIFF_MICROSECONDS(ts3, ts2);
+  } else {
+      TRACE(cName, md, s_IOR_VECT_UTILS_VUDOT, 0, 0, 0, SIDL_DIFF_MICROSECONDS(
+        ts2, ts1), SIDL_DIFF_MICROSECONDS(ts1, ts0), SIDL_DIFF_MICROSECONDS(ts3,
+        ts2), 0.0, 0.0);
+  }
+  RESETCD(md)
+
+#ifdef SIDL_CONTRACTS_DEBUG
+  printf("check_${t}_${m}: Exiting normally\n");
+#endif /* SIDL_CONTRACTS_DEBUG */
+''').substitute(substs))
+        if Type <> sidl.void:
+            r.append('  return _retval;')
+        
+        r.append('}')
+        # end for each method
+
+    return '\n'.join(r)
+
 
 def contract_decls(cls, iorname):
     if not generateContractChecks(cls):
         return []
-    r = ['''
+    r = [Template('''
 /*
  * Define invariant clause data for interface contract enforcement.
  */
 
-static VAR_UNUSED struct vect_Utils__inv_desc{
+static VAR_UNUSED struct ${t}__inv_desc{
   int    inv_complexity;
   double inv_exec_time;
-} s_ior_vect_Utils_inv = {
+} s_ior_${t}_inv = {
   0, 0.0,
 };
 
 /*
  * Define method description data for interface contract enforcement.
  */
-''']
+''').substitute(t=iorname)]
     n = 0
     T = str.upper(iorname)
     r.append('static const int32_t s_IOR_%s_MIN = 0;'%T)
     for m in cls.get_methods():
         r.append('static const int32_t s_IOR_%s_%s = %d;'
-                 %(T, str.upper(sidl.method_method_name(m)[1]), n))
+                 %(T, str.upper(sidl.method_id(m)), n))
         n = n + 1
     r.append('static const int32_t s_IOR_%s_MAX = %d;'%(T, n))
     r.append('''
@@ -1054,9 +1413,16 @@ static VAR_UNUSED struct {t}__method_desc{{
 }} s_ior_{t}_method[] = {{
 '''.format(t=iorname))
     for m in cls.get_methods():
-        r.append('{"%s", 1, 0, 0, 0, 0.0, 0.0, 0.0},'%sidl.method_method_name(m)[1])
+        r.append('{"%s", 1, 0, 0, 0, 0.0, 0.0, 0.0},'%sidl.method_id(m))
 
     r.append('};')
+    r.append('')
+    r.append('/* static structure options */')
+    r.append('static const int32_t s_SEPV_%s_BASE      = 0;'%T)
+    r.append('static const int32_t s_SEPV_%s_CONTRACTS = 1;'%T)
+    r.append('static const int32_t s_SEPV_%s_HOOKS     = 2;'%T)
+    r.append('')
+    r.append('')
     return r
 
 

@@ -55,7 +55,7 @@
 #   Var_decl = ( var_decl(Type, Id)
 # 	     | var_decl_init(Type, Id, Expr)
 # 	     ),
-#   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
+#   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift
 # 	   |plus|minus|times|divide|modulo|rem|pow),
 #   Un_op = ( is|log_not|bit_not ),
 #   Literal = (StringLiteral | FloatLiteral | DoubleLiteral | 'INT' | pure | result | Complex | Bool),
@@ -148,6 +148,7 @@ fcomplex = 'fcomplex'
 float = 'float'
 fn_decl = 'fn_decl'
 fn_defn = 'fn_defn'
+ge = 'ge'
 get_struct_item = 'get_struct_item'
 goto = 'goto'
 gt = 'gt'
@@ -159,6 +160,7 @@ infix_expr = 'infix_expr'
 inout = 'inout'
 int = 'int'
 is_ = 'is'
+le = 'le'
 log_and = 'log_and'
 log_not = 'log_not'
 log_or = 'log_or'
@@ -928,7 +930,7 @@ def Struct_item(*args):
     return tuple(['struct_item']+list(args))
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 def INT():
     return INT
@@ -1758,6 +1760,10 @@ def Infix_expr(*args):
     elif args[0] == lt:
         pass
     elif args[0] == gt:
+        pass
+    elif args[0] == le:
+        pass
+    elif args[0] == ge:
         pass
     elif args[0] == lshift:
         pass
@@ -2822,7 +2828,7 @@ def struct_item_id(arg):
 
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Bits=INT
 # skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
@@ -3780,7 +3786,7 @@ def is_struct_item(arg):
     return arg[0] == 'struct_item'
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Bits=INT
 # skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
@@ -4042,6 +4048,26 @@ def is_const(arg):
         return False
     return arg[0] == 'const'
 
+ ## token overrides fir sidl.def compatibility
+bit_not = '~'
+eq = '=='
+ne = '!='
+bit_or = '|'
+bit_and = '&'
+bit_xor = '^'
+lt = '<'
+gt = '>'
+le = '<='
+ge = '>='
+lshift = '<<'
+rshift = '>>'
+plus = '+'
+minus = '_'
+times = '*'
+divide = '/'
+modulo = '%'
+rem = 'rem'
+pow = '**'
  ## ir primitive types
 pt_bool     = Primitive_type(bool)
 pt_char     = Primitive_type(char)

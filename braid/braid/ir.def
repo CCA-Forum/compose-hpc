@@ -63,7 +63,7 @@
   Var_decl = ( var_decl(Type, Id)
 	     | var_decl_init(Type, Id, Expr)
 	     ),
-  Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|lshift|rshift
+  Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift
 	   |plus|minus|times|divide|modulo|rem|pow),
   Un_op = ( is|log_not|bit_not ),
   Literal = (StringLiteral | FloatLiteral | DoubleLiteral | 'INT' | pure | result | Complex | Bool),
@@ -117,6 +117,26 @@
   Bits = 'INT',
   Comment = comment('STR')
 ].
+% ## token overrides fir sidl.def compatibility
+%bit_not = '~'
+%eq = '=='
+%ne = '!='
+%bit_or = '|'
+%bit_and = '&'
+%bit_xor = '^'
+%lt = '<'
+%gt = '>'
+%le = '<='
+%ge = '>='
+%lshift = '<<'
+%rshift = '>>'
+%plus = '+'
+%minus = '_'
+%times = '*'
+%divide = '/'
+%modulo = '%'
+%rem = 'rem'
+%pow = '**'
 % ## ir primitive types
 %pt_bool     = Primitive_type(bool)
 %pt_char     = Primitive_type(char)

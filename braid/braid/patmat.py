@@ -595,7 +595,7 @@ def compile_matcher(f):
 		matchind = matchindent[-1]-leftshift
 
 		# match if() / elif()
-		m = re.match(r'^('+' '*matchind+r')((el)?if) +(.*):(.*)$', line)
+		m = re.match(r'^('+' '*matchind+r')((el)?if) +([^:]*):(.*)$', line)
 
 		if m:
                     el_if = m.group(1)

@@ -120,6 +120,24 @@ def generate(language, ir_code, debug=False):
         else:
             exit(1)
 
+def c_gen(ir, scope=None):
+    """
+    Generate C code with the optional scope argument
+    \return a string
+    """
+    
+    if scope == None: scope = CFile()
+    return CCodeGenerator().generate(ir, scope)
+
+def sidl_gen(ir, scope=None):
+    """
+    Generate SIDL code with the optional scope argument
+    \return a string
+    """
+    
+    if scope == None: scope = SIDLFile()
+    return SIDLCodeGenerator().generate(ir, scope)
+
 def generator(fn):
     """
     decorator for generator functions
@@ -537,29 +555,31 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         }
 
     bin_op = {
-        'log_or':  '.or.',
-        'log_and': '.and.',
-        'eq':      '.eq.',
-        'ne':      '.neq.',
-        'bit_or':  '|',
-        'bit_and': '&',
-        'bit_xor': '^',
-        'lt':      '<',
-        'gt':      '>',
-        'lshift':  '<<',
-        'rshift':  '>>',
-        'plus':    '+',
-        'minus':   '-',
-        'times':   '*',
-        'divide':  '/',
-        'modulo':  '%',
-        'rem':     'rem',
-        'pow':     'pow'
+        ir.log_or:  '.or.',
+        ir.log_and: '.and.',
+        ir.eq:      '.eq.',
+        ir.ne:      '.neq.',
+        ir.bit_or:  '|',
+        ir.bit_and: '&',
+        ir.bit_xor: '^',
+        ir.lt:      '<',
+        ir.gt:      '>',
+        ir.ge:      '.ge.',
+        ir.le:      '.le.',
+        ir.lshift:  '<<',
+        ir.rshift:  '>>',
+        ir.plus:    '+',
+        ir.minus:   '-',
+        ir.times:   '*',
+        ir.divide:  '/',
+        ir.modulo:  '%',
+        ir.rem:     'rem',
+        ir.pow:     'pow'
         }
 
     un_op = {
-        'log_not': '.not.',
-        'bit_not': '~'
+        ir.log_not: '.not.',
+        ir.bit_not: '~'
         }
 
     def get_type(self, typ):
@@ -736,29 +756,31 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
     Fortran 90 code generator
     """
     bin_op = {
-        'log_or':  '.or.',
-        'log_and': '.and.',
-        'eq':      '.eq.',
-        'ne':      '.neq.',
-        'bit_or':  '|',
-        'bit_and': '&',
-        'bit_xor': '^',
-        'lt':      '<',
-        'gt':      '>',
-        'lshift':  '<<',
-        'rshift':  '>>',
-        'plus':    '+',
-        'minus':   '-',
-        'times':   '*',
-        'divide':  '/',
-        'modulo':  '%',
-        'rem':     'rem',
-        'pow':     'pow'
+        ir.log_or:  '.or.',
+        ir.log_and: '.and.',
+        ir.eq:      '.eq.',
+        ir.ne:      '.neq.',
+        ir.bit_or:  '|',
+        ir.bit_and: '&',
+        ir.bit_xor: '^',
+        ir.lt:      '<',
+        ir.gt:      '>',
+        ir.ge:      '.ge.',
+        ir.le:      '.le.',
+        ir.lshift:  '<<',
+        ir.rshift:  '>>',
+        ir.plus:    '+',
+        ir.minus:   '-',
+        ir.times:   '*',
+        ir.divide:  '/',
+        ir.modulo:  '%',
+        ir.rem:     'rem',
+        ir.pow:     'pow'
         }
 
     un_op = {
-        'log_not': '.not.',
-        'bit_not': '~'
+        ir.log_not: '.not.',
+        ir.bit_not: '~'
         }
 
     type_map = {
@@ -1084,29 +1106,31 @@ class ClikeCodeGenerator(GenericCodeGenerator):
     C-like code generator
     """
     bin_op = {
-        'log_or':  '||',
-        'log_and': '&&',
-        'eq':      '==',
-        'ne':      '!=',
-        'bit_or':  '|',
-        'bit_and': '&',
-        'bit_xor': '^',
-        'lt':      '<',
-        'gt':      '>',
-        'lshift':  '<<',
-        'rshift':  '>>',
-        'plus':    '+',
-        'minus':   '-',
-        'times':   '*',
-        'divide':  '/',
-        'modulo':  '%',
-        'rem':     'rem',
-        'pow':     'pow'
+        ir.log_or:  '||',
+        ir.log_and: '&&',
+        ir.eq:      '==',
+        ir.ne:      '!=',
+        ir.bit_or:  '|',
+        ir.bit_and: '&',
+        ir.bit_xor: '^',
+        ir.lt:      '<',
+        ir.gt:      '>',
+        ir.ge:      '>=',
+        ir.le:      '=<',
+        ir.lshift:  '<<',
+        ir.rshift:  '>>',
+        ir.plus:    '+',
+        ir.minus:   '-',
+        ir.times:   '*',
+        ir.divide:  '/',
+        ir.modulo:  '%',
+        ir.rem:     'rem',
+        ir.pow:     'pow'
         }
 
     un_op = {
-        'log_not': '!',
-        'bit_not': '~'
+        ir.log_not: '!',
+        ir.bit_not: '~'
         }
 
     @generator
@@ -1545,29 +1569,31 @@ class PythonCodeGenerator(GenericCodeGenerator):
     Python code generator
     """
     bin_op = {
-        'log_or':  'or',
-        'log_and': 'and',
-        'eq':      '==',
-        'ne':      '<>',
-        'bit_or':  '|',
-        'bit_and': '&',
-        'bit_xor': '^',
-        'lt':      '<',
-        'gt':      '>',
-        'lshift':  '<<',
-        'rshift':  '>>',
-        'plus':    '+',
-        'minus':   '-',
-        'times':   '*',
-        'divide':  '/',
-        'modulo':  '%',
-        'rem':     'rem',
-        'pow':     'pow'
+        ir.log_or:  'or',
+        ir.log_and: 'and',
+        ir.eq:      '==',
+        ir.ne:      '<>',
+        ir.bit_or:  '|',
+        ir.bit_and: '&',
+        ir.bit_xor: '^',
+        ir.lt:      '<',
+        ir.gt:      '>',
+        ir.ge:      '>=',
+        ir.le:      '=<',
+        ir.lshift:  '<<',
+        ir.rshift:  '>>',
+        ir.plus:    '+',
+        ir.minus:   '-',
+        ir.times:   '*',
+        ir.divide:  '/',
+        ir.modulo:  '%',
+        ir.rem:     'rem',
+        ir.pow:     'pow'
         }
 
     un_op = {
-        'log_not': 'not',
-        'bit_not': '~'
+        ir.log_not: 'not',
+        ir.bit_not: '~'
         }
 
     @generator
@@ -1650,6 +1676,38 @@ class SIDLCodeGenerator(GenericCodeGenerator):
     """
     SIDL code generator
     """
+
+    bin_op = {
+        sidl.log_or:  '||',
+        sidl.log_and: '&&',
+        sidl.eq:      '==',
+        sidl.ne:      '!=',
+        sidl.bit_or:  '|',
+        sidl.bit_and: '&',
+        sidl.bit_xor: '^',
+        sidl.lt:      '<',
+        sidl.gt:      '>',
+        sidl.ge:      '>=',
+        sidl.le:      '=<',
+        sidl.lshift:  '<<',
+        sidl.rshift:  '>>',
+        sidl.plus:    '+',
+        sidl.minus:   '-',
+        sidl.times:   '*',
+        sidl.divide:  '/',
+        sidl.modulo:  '%',
+        sidl.rem:     'rem',
+        sidl.pow:     'pow',
+        sidl.implies: 'imples',
+        sidl.iff:     'iff'
+        }
+    un_op = {
+        sidl.log_not: '!',
+        sidl.bit_not: '~',
+        sidl.is_:     'is'
+        }
+
+
     @generator
     @matcher(globals(), debug=False)
     def generate(self, node, scope=SIDLFile()):
@@ -1788,10 +1846,13 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                 return '%s%s' % (gen_dot_sep(Prefix+[Name]), gen(Ext))
 
             elif (sidl.version,     Version):    return 'version %s'%str(Version)
-            elif (sidl.method_name, Name, []):   return gen(Name)
-            elif (sidl.method_name, Name, Extension): return gen(Name)+' '+Extension
+            elif (sidl.method_name, Name, []):   return Name
+            elif (sidl.method_name, Name, Ext):  return '%s[%s]'%(Name,Ext)
             elif (sidl.primitive_type, Name):    return Name
             elif (sidl.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
+            elif (sidl.assertion, Name, Expr):   return '%s: %s'%(Name, gen(Expr))
+            elif (sidl.fn_eval, Name, Args):     return '%s(%s)'%(Name, gen_comma_sep(Args))
+            elif (sidl.var_ref, Name):           return Name
             elif (sidl.infix_expr, Op, A, B):    return ' '.join((gen(A), self.bin_op[Op], gen(B)))
             elif (sidl.prefix_expr, Op, A):      return ' '.join((self.un_op[Op], gen(A)))
             elif []: return ''

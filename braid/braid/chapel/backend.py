@@ -41,8 +41,9 @@ from codegen import (CFile)
 from sidl_symbols import visit_hierarchy
 import conversions as conv
 import makefile
-from cgen import (ChapelFile, ChapelScope, chpl_gen, c_gen, 
+from cgen import (ChapelFile, ChapelScope, chpl_gen, 
                   incoming, outgoing, gen_doc_comment, strip, deref)
+from codegen import c_gen
 
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
@@ -320,7 +321,6 @@ class GlueCodeGenerator(object):
                     externals((sidl.scoped_id, symbol_table.prefix, cls.name, '')))
 
             has_contracts = ior_template.generateContractChecks(cls)
-
             self.gen_default_methods(cls, has_contracts, ci)
 
             # recurse to generate method code
@@ -677,9 +677,10 @@ class GlueCodeGenerator(object):
         contract_cstats = []
         ci.methodcstats = []
         num_methods = cls.number_of_methods()
+        
         if has_contracts:
             ci.methodcstats = ir.Struct(
-                ir.Scoped_id(prefix, ci.epv.name+'__methods_cstats', ''),
+                ir.Scoped_id(prefix, ci.epv.name+'__method_cstats', ''),
                 [ir.Struct_item(ir.Typedef_type('int32_t'), 'tries'),
                  ir.Struct_item(ir.Typedef_type('int32_t'), 'successes'),
                  ir.Struct_item(ir.Typedef_type('int32_t'), 'failures'),
@@ -687,8 +688,7 @@ class GlueCodeGenerator(object):
                 '')
             contract_cstats.append(ir.Struct_item(ir.Typedef_type('sidl_bool'), 'enabled'))
             contract_cstats.append(ir.Struct_item(
-                    ci.methodcstats,  '_'.join(cls.qualified_name+['_method_cstats'])
-                    +'[%d]'%num_methods))
+                    ci.methodcstats, 'method_cstats[%d]'%num_methods))
 
         ci.cstats = ir.Struct(
             ir.Scoped_id(prefix, ci.epv.name+'__cstats', ''),
