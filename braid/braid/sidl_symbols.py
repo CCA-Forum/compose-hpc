@@ -330,12 +330,19 @@ def scan_methods(symbol_table, is_abstract,
                 Except, From, Requires, Ensures, DocComment)
 
 
-    def full_method_name(method):
+    def method_hash(method):
         """
         Return the long name of a method (sans class/packages)
         for sorting purposes.
         """
-        return method[2][1]+method[2][2]
+        def arg_hash((arg, attr, mode, typ, name)):
+            if typ[0] == sidl.scoped_id:
+                return mode, sidl.hashable(typ)
+            if typ[0] == sidl.array:
+                return mode, typ[0], tuple(sidl.hashable_type_id(typ)), tuple(typ[2]), tuple(typ[3])
+            return mode, typ
+
+        return method[2], tuple([arg_hash(a) for a in sidl.method_args(method)])
 
     def update_method(m):
         """
@@ -357,8 +364,8 @@ def scan_methods(symbol_table, is_abstract,
         if member_chk(sidl.static, sidl.method_method_attrs(m)):
             flags.has_static_methods = True
 
-        if not full_method_name(m) in all_names:
-            all_names.add(full_method_name(m))
+        if not method_hash(m) in all_names:
+            all_names.add(method_hash(m))
             if with_hooks:
                 m = set_method_attr(ir.hooks, m)
 
@@ -384,7 +391,7 @@ def scan_methods(symbol_table, is_abstract,
             (_, _, (_, name1, _), _, args1, _, _, _, _, _) = m
             if (name1, args1) == (name, args):
                 del all_methods[i]
-                all_names.remove(full_method_name(m))
+                all_names.remove(method_hash(m))
                 return
         #raise('?')
 
