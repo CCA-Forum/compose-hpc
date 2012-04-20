@@ -1,0 +1,4 @@
+// the configured options and settings for CCSD
+#define CCSD_VERSION_MAJOR @CCSD_VERSION_MAJOR@
+#define CCSD_VERSION_MINOR @CCSD_VERSION_MINOR@
+
