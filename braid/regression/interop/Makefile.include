@@ -100,7 +100,8 @@ $(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
 $(TESTDIR)/%/libimpl1.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-CLIENT_DEPS=$(TTESTDIR)/build-client.sh $(filter %.la, $(check_DATA)) \
+CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
+            $(filter %.la, $(check_DATA)) \
 	    $(TESTDIR)/output/libC/GNUmakefile \
             $(nobase_python_PYTHON)
 

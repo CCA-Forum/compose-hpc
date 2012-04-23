@@ -150,9 +150,17 @@ CHPL_FLAGS=-std=c99 \
   -I$(CHPL_MAKE_HOME)/runtime/include \
   -I. -Wno-all 
 
-CHPL_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread -lsidlstub_chpl
+CHPL_LDFLAGS= \
+  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
+  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
+  -lchpl -lm -lpthread -lsidlstub_chpl
 
-CHPL_GASNET_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHPL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
+CHPL_GASNET_LDFLAGS= \
+  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
+  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
+  -lchpl -lm -lpthread \
+  -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHPL_MAKE_COMPILER)/seg-everything/nodbg/lib \
+  -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
@@ -273,13 +281,13 @@ endif
 
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
+	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --library --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
 	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c

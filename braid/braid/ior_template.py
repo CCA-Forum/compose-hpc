@@ -60,7 +60,8 @@ def gen_IOR_c(iorname, cls):
         IOR_MINOR = config.BABEL_VERSION[2:],
         CHECK_SKELETONS = check_skeletons(cls, iorname),
         GET_STATIC_EPVS = get_static_epvs(cls, iorname),
-        GET_TYPE_STATIC_EPV = get_type_static_epv(cls, iorname)
+        GET_TYPE_STATIC_EPV = get_type_static_epv(cls, iorname),
+        GET_ENSURE_LOAD_CALLED = get_ensure_load_called(cls, iorname)
         )
 
 text = r"""
@@ -180,7 +181,6 @@ static struct ${CLASS}__epv s_my_epv__${CLASS_LOW} = { 0 };
 static struct ${CLASS}__epv s_my_epv_contracts__${CLASS_LOW} = { 0 };
 static struct ${CLASS}__epv s_my_epv_hooks__${CLASS_LOW} = { 0 };
 
-static void ior_${CLASS}__ensure_load_called();
 ${StaticEPVDecls}
 
 /*
@@ -200,8 +200,6 @@ extern void ${CLASS}__call_load(void);
 #ifdef __cplusplus
 }
 #endif
-
-
 
 /*
  * CHECKS: Enable/disable contract enforcement.
@@ -363,6 +361,7 @@ struct ${CLASS}__method {
 
 ${GET_TYPE_STATIC_EPV}
 ${CHECK_SKELETONS}
+${GET_ENSURE_LOAD_CALLED}
 ${INIT_SEPV}
 
 /*
@@ -1110,7 +1109,7 @@ def lower_assertion(cls, m, expr):
     """
     convert a SIDL assertion expression into IR code
     """
-    from chapel.backend import babel_epv_args, lower_ir
+    from chapel.backend import lower_ir
 
     def low(e): 
         return lower_assertion(cls, m, e)
@@ -1220,6 +1219,7 @@ def postcondition_check(cls, m, assertion):
 def get_static_epvs(cls, ior_name):
     if not cls.has_static_methods:
         return '/* no get_static_epv since there are no static methods */'
+
     substs = { 'c': ior_name, 't': str.lower(ior_name) }
     r = Template(r'''
 /*
@@ -1250,8 +1250,12 @@ ${c}__getStaticEPV(void){
   }
   return sepv;
 }
+''').substitute(substs)
+    return r
 
 
+def get_ensure_load_called(cls, ior_name):
+    r = Template(r'''
 static void ior_${c}__ensure_load_called(void) {
   /*
    * assert( HAVE_LOCKED_STATIC_GLOBALS );
@@ -1260,17 +1264,17 @@ static void ior_${c}__ensure_load_called(void) {
   if (! s_load_called ) {
     s_load_called=1;
     ${c}__call_load();
-''').substitute(substs)
-    if generateContractEPVs(cls):
+''').substitute(c=ior_name)
+    if generateContractEPVs(cls) and cls.has_static_methods:
         r += Template(r'''
     struct sidl_BaseInterface__object *tae;
     ior_${c}__set_contracts_static(sidl_Enforcer_areEnforcing(), 
       NULL, TRUE, &tae);
-''').substitute(substs)
+''').substitute(c=ior_name)
     r += Template(r'''
   }
 }
-''').substitute(substs)
+''').substitute(c=ior_name)
     return r
 
     
@@ -1303,7 +1307,7 @@ ${c}__getTypeStaticEPV(int type){
 
 def check_skeletons(cls, ior_name):
     from chapel.backend import babel_epv_args, lower_ir
-    if not generateContractEPVs(cls):
+    if not generateContractChecks(cls):
         return '  /* no check_* stubs since there are no contracts */'
 
     r = []
@@ -1314,7 +1318,7 @@ def check_skeletons(cls, ior_name):
         preconditions = Requires
         postconditions = Ensures
         ctype = c_gen(lower_ir(cls.symbol_table, Type))
-        cargs =  babel_epv_args(Attrs, Args, cls.symbol_table, cls.qualified_name)
+        cargs =  babel_epv_args(Attrs, Args, cls.symbol_table, '_'.join(cls.qualified_name))
         
         substs = { 't' : ior_name,    'T' : str.upper(ior_name), 
                    'm' : method_name, 'M' : str.upper(method_name) }

@@ -335,11 +335,16 @@ def scan_methods(symbol_table, is_abstract,
         Return the long name of a method (sans class/packages)
         for sorting purposes.
         """
+        def hashable(x):
+            if isinstance(x, list): return tuple(x)
+            return x
+
         def arg_hash((arg, attr, mode, typ, name)):
             if typ[0] == sidl.scoped_id:
                 return mode, sidl.hashable(typ)
             if typ[0] == sidl.array:
-                return mode, typ[0], tuple(sidl.hashable_type_id(typ)), tuple(typ[2]), tuple(typ[3])
+                return (mode, typ[0], hashable(sidl.hashable_type_id(typ)), 
+                        hashable(typ[2]), hashable(typ[3]))
             return mode, typ
 
         return method[2], tuple([arg_hash(a) for a in sidl.method_args(method)])

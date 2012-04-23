@@ -124,6 +124,7 @@ def braid(args):
         exit(subprocess.call(cmd))
 
     # No. Braid called to action!
+    backend = chpl_be.GlueCodeGenerator(args.verbose)
     for sidl_file in args.sidl_files:
         sidl_ast = sidl_parser.parse(sidl_file)
         
@@ -140,8 +141,7 @@ def braid(args):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             print "FIXME Handle imports here after injection of sidl runtime"
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            chpl_be.GlueCodeGenerator(sidl_file, sidl_ast, symtab,
-                                      args.makefile, args.verbose).generate_client()
+            backend.generate_client(sidl_file, sidl_ast, symtab)
         else:
             print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
             exit(1)
@@ -152,11 +152,16 @@ def braid(args):
         elif re.match(r'([cC]hapel)|(chpl)', args.server):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            chpl_be.GlueCodeGenerator(sidl_file, sidl_ast, symtab,
-                                      args.makefile, args.verbose).generate_server()
+            backend.generate_server(sidl_file, sidl_ast, symtab)
         else:
             print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.server)
             exit(1)
+
+    if args.makefile:
+        if args.client:
+            backend.generate_client_makefile()
+        else:
+            backend.generate_server_makefile()
 
 def inject_sidl_runtime(sidl_ast, args):
     """

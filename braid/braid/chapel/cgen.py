@@ -64,16 +64,25 @@ def outgoing((arg, attrs, mode, typ, name)):
     return mode <> sidl.in_
 
 def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
-    return arg, attrs, mode, conv.ir_type_to_chpl(typ), name
+    chpl_type = conv.ir_type_to_chpl(typ)
+#    if mode == ir.in_ and typ[0] == ir.pointer_type and typ[1][0] == ir.struct and typ <> chpl_type:
+#        # IN structs are passed by value in Chapel
+#        return arg, attrs, mode, chpl_type[1], name
+    return arg, attrs, mode, chpl_type, name
 
 def deref(mode, typ, name):
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # _ex
         return name+'->'
     elif typ[0] ==  ir.struct:
         return name+'->'
     elif mode == sidl.in_:
         return name 
     else: return '(*%s)'%name
+
+def deref_retval(typ, name):
+    if typ[0] == ir.struct:
+        return '(*%s)'%name
+    else: return name
 
 def strip(typ):
     if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
@@ -90,6 +99,13 @@ def strip(typ):
     return typ
 
 
+def need_return_arg(typ):
+    """
+    \return True iff the type \c typ cannot be passed as a return
+    value in Chapel.
+    """
+    return typ[0] == ir.struct
+
 def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     """
     Generate the stub for a specific method in C (cStub).
@@ -101,7 +117,9 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
     def obj_by_value((arg, attrs, mode, typ, name)):
         if typ[0] == ir.struct and name == 'self':
-            return (arg, attrs, sidl.in_, typ, name)
+            return (arg, attrs, ir.in_, typ, name)
+        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and mode == ir.in_:
+            return (arg, attrs, ir.inout, typ, name)
         else:
             return (arg, attrs, mode, typ, name)
 
@@ -136,15 +154,20 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     # RETURN value type conversion -- treated like an out argument
     rarg = ir.Arg([], ir.out, Type, '_retval')
     conv.codegen((strip(Type), '_ior__retval'), ('chpl', strip(Type)), 
-                 post_call, scope, '_retval', Type)
+                 post_call, scope, deref_retval(Type, '_retval'), Type)
     crarg = ir_arg_to_chpl(rarg)
     _,_,_,chpltype,_ = crarg
+    retval_type = chpltype
+    if need_return_arg(Type):
+        # pass the return value as an extra out argument
+        chpltype = ir.pt_void
+        cstub_decl_args.append(crarg)
 
     # Proxy declarations / revised names of call arguments
     call_args = []
     decls = []
     for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
-        zip([crarg]+cstub_decl_args, [rarg]+Args)):
+        zip(cstub_decl_args+[crarg], Args+[rarg])):
         if chpl_t <> c_t:
             need_deref = False
             if c_t[0] == ir.pointer_type and c_t[1][0] == ir.struct:
@@ -165,18 +188,21 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
             call_args.append(name)
 
     # get rid of retval in call args
-    retval_name = call_args[0] if isinstance(call_args[0], str) else call_args[0][1]
-    call_args = call_args[1:]
+    retval_name = call_args[-1] if isinstance(call_args[-1], str) else call_args[-1][1]
+    call_args = call_args[:-1]
 
     cstub_decl = ir.Fn_decl([], chpltype, sname, cstub_decl_args, DocComment)
 
     if Type == ir.pt_void:
         body = [ir.Stmt((ir.call, VCallExpr, call_args))]
     else:
-        pre_call.append(ir.Stmt(ir.Var_decl(chpltype, '_retval')))
-        body = [ir.Stmt(ir.Assignment(retval_name,
-                                      (ir.call, VCallExpr, call_args)))]
-        post_call.append(ir.Stmt(ir.Return('_retval')))
+        if chpltype <> ir.pt_void:
+            pre_call.append(ir.Stmt(ir.Var_decl(retval_type, '_retval')))
+
+        body = [ir.Stmt(ir.Assignment(retval_name, (ir.call, VCallExpr, call_args)))]
+
+        if chpltype <> ir.pt_void:
+            post_call.append(ir.Stmt(ir.Return('_retval')))
 
     # Generate the C code into the scope's associated cStub
     if sname not in stubs_generated:
@@ -187,9 +213,11 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
     # Chapel extern declaration
     chplstub_decl = ir.Fn_decl([], chpltype, sname, map(obj_by_value, cstub_decl_args), DocComment)
-    scope.new_def('extern '+chpl_gen(chplstub_decl)+';')
+    scope.new_header_def('extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
+
+
 
 class ChapelFile(SourceFile):
     """
@@ -202,10 +230,10 @@ class ChapelFile(SourceFile):
       module's main() function.
     """
 
-    @accepts(object, str, object, int)
-    def __init__(self, name="", parent=None, relative_indent=0):
+    @accepts(object, str, object, int, str)
+    def __init__(self, name="", parent=None, relative_indent=0, separator='\n'):
         super(ChapelFile, self).__init__(
-            name, parent, relative_indent, separator='\n')
+            name, parent, relative_indent, separator=separator)
         if parent:
             self.cstub = parent.cstub
             self.main_area = parent.main_area
@@ -216,7 +244,7 @@ class ChapelFile(SourceFile):
             self.cstub.optional = set()
             # Tricky circular initialization
             self.main_area = None
-            main_area = ChapelScope(self, 0)
+            main_area = ChapelScope(self, relative_indent=0)
             self.main_area = main_area
 
     def __str__(self):
@@ -272,11 +300,14 @@ class ChapelFile(SourceFile):
             write_to(self._name+'.chpl', str(self))
         self.cstub.write()
 
+    def sub_scope(self, relative_indent, separator):
+        return ChapelLine(self, relative_indent, separator)
 
 class ChapelScope(ChapelFile):
     """
     A Chapel scope, ie., a block of statements enclosed by curly braces.
     """
+    @accepts(object, object, str)
     def __init__(self, parent=None, relative_indent=4):
         super(ChapelScope, self).__init__(parent=parent, 
                                           relative_indent=relative_indent)
@@ -294,8 +325,11 @@ class ChapelLine(ChapelFile):
     """
     A single line of Chapel code, such as a statement.
     """
-    def __init__(self, parent=None, relative_indent=4):
-        super(ChapelLine, self).__init__(parent, relative_indent)
+    @accepts(object, object, int, str)
+    def __init__(self, parent=None, relative_indent=0, separator='\n'):
+        super(ChapelLine, self).__init__(parent=parent, 
+                                         relative_indent=relative_indent, 
+                                         separator=separator)
 
     def __str__(self):
         return self._sep.join(self._header+self._defs)
@@ -318,15 +352,7 @@ def gen_doc_comment(doc_comment, scope):
                            re.split('\n\s*', doc_comment)
                            )+sep+' */'+sep
 
-
-sidl_array_regex = re.compile('sidl(_(\w+))__array')
-def is_sidl_array(struct_name):
-    m = sidl_array_regex.match(struct_name)
-    if m:
-        t = m.group(2)
-        return t if t else 'opaque'
-    return None
-
+sidl_array_regex = re.compile('^sidl(_(\w+))__array$')
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
     """
@@ -345,6 +371,17 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'opaque':    "int(64)",
         'string':    "string"
         }
+
+    def is_sidl_array(self, struct_name):
+        m = sidl_array_regex.match(struct_name)
+        if m:
+            t = m.group(2)
+            try:
+                return self.type_map[t]
+            except:
+                return 'opaque'
+        return None
+
 
     @generator
     @matcher(globals(), debug=False)
@@ -375,16 +412,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             return scope.new_header_def(''.join([prefix,body,suffix])+';')
 
         def gen_comma_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=1, separator=','))
 
         def gen_semicolon_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=2, separator=';\n'))+';'
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=2, separator=';\n'))+';'
 
         def gen_ws_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=0, separator=' '))
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=0, separator=' '))
 
         def gen_dot_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=0, separator='.'))
 
         def tmap(f, l):
             return tuple(map(f, l))
@@ -395,7 +432,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         def gen_attrs(attrs):
             return sep_by(' ', attrs)
 
-        cbool = '_Bool'
+        cbool = 'chpl_bool'
         int32 = 'int32_t'
         int64 = 'int64_t'
         fcomplex = '_complex64'
@@ -479,11 +516,11 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                        '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])]))
 
             elif (sidl.array, [], [], []):
-                print '** WARNING: deprecated rule use sidl__array struct instead'
+                print '** WARNING: deprecated rule use a sidl__array struct instead'
                 return 'sidl.Array(opaque, sidl__array)'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                print '** WARNING: deprecated rule use sidl__array struct instead'
+                print '** WARNING: deprecated rule use a sidl__array struct instead'
                 if Scalar_type[0] == ir.scoped_id:
                     ctype = 'BaseInterface'
                 else:
@@ -524,18 +561,19 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 #print 'prefix %s, name %s, ext %s' %(Prefix, Name, Ext)
                 return '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])])
 
-            elif (ir.struct, SIDLArray, _, _):
+            elif (ir.struct, Name, Items, DocComment):
                 # special rule for handling SIDL arrays
-                scalar_t = is_sidl_array(SIDLArray)
+                scalar_t = self.is_sidl_array(Name)
                 if scalar_t:
                     #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
-                    return 'sidl.Array(%s, %s)'%(scalar_t, SIDLArray)
+                    return 'sidl.Array(%s, %s)'%(scalar_t, Name)
                 else:
                     # some other struct
-                    return SIDLArray
-
-            elif (ir.struct, Name, Items, DocComment):
-                return Name
+                    if Name[0] == '_' and Name[1] == '_': 
+                        # by convention, Chapel generates structs as
+                        # struct __foo { ... } foo;
+                        return Name[2:] 
+                    return Name
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return "%s.%s"%(gen(StructName), gen(Item))

@@ -48,7 +48,7 @@ def ir_type_to_chpl(typ):
     """
     mapping = {
         ir.pt_void:     ir.pt_void,
-        ir.pt_bool:     ir.Typedef_type('_Bool'),
+        ir.pt_bool:     ir.Typedef_type('chpl_bool'),
         ir.pt_string:   ir.const_str,
         ir.pt_int:      ir.pt_int, #ir.Typedef_type('int32_t'),
         ir.pt_long:     ir.pt_long, #ir.Typedef_type('int64_t'),
@@ -65,7 +65,7 @@ def ir_type_to_chpl(typ):
         if typ[0] == ir.enum: 
             return ir.Typedef_type('int64_t')
         if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool': 
-            return ir.Typedef_type('_Bool')
+            return ir.Typedef_type('chpl_bool')
         if typ[0] == 'upcast':
             # part of the hack for self dereferencing
             return typ[1]
@@ -79,7 +79,7 @@ def ir_type_to_chpl(typ):
             # '__data' suffix, so we can use the actual name for the
             # Chapel version of the struct.
             if name[-6:] == '__data': 
-                name = name[:-6] # Wow, is this unelegant!
+                name = '__'+name[:-6] # Wow, is this unelegant!
 
             return ir.Struct(name, items1, comment)
 
