@@ -1,0 +1,65 @@
+
+Software Requirements
+---------------------
+
+1. CMAKE (Binaries available)
+
+   http://cmake.org/
+
+2. ROSE
+
+   http://www.rosecompiler.org/
+
+3. Stratego/XT
+
+   http://strategoxt.org/
+
+4. Minitermite
+
+   git://compose-hpc.git.sourceforge.net/gitroot/compose-hpc/compose-hpc
+
+5. Python - everyone has this :)
+
+   http://python.org
+
+
+
+Setting up your environment 
+---------------------------
+
+#The following environment variables need to be set
+
+ROSE_HOME = path-to-rose-installation
+BOOST_HOME = path-to-boost-installation
+PAUL_HOME = path-to-libpaul (in compose-repo-root/paul/libpaul)
+
+# Set up your environment for Stratego
+export PATH=$PATH:{path-to-stratego-install}/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{path-to-stratego-install}/lib
+
+# Set up your environment for Minitermite
+export PATH=$PATH:{path-to-minitermite-install}/bin
+
+
+BUILD Steps 
+------------------
+mkdir build && cd build
+cmake..
+make
+ctest  -- All 3 test should pass.
+
+The transformed codes are available in
+build/Testing/testRuns as
+
+timing_transformed.f90
+reduceSync_transformed.f90
+expanded_transformed.f90
+
+and the complete log at build/Testing/Temporary/LastTest.log
+
+
+
+
+Please send your questions, comments and feedback to ajay@csc.lsu.edu
+
+
