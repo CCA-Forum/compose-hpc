@@ -123,11 +123,11 @@
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
                                                                                         \
   proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
-    var rank = dom_a.rank;								\
-    var lus = computeLowerUpperAndStride(a);					        \
-    var lower = lus(0);			          	         			\
-    var upper = lus(1);		        	          				\
-    var stride = lus(2);								\
+    var rank = dom_a.rank;						                \
+    var lus = computeLowerUpperAndStride(a);					 	\
+    var lower: int(32) = lus(0): int(32);					 	\
+    var upper: int(32) = lus(1): int(32);					 	\
+    var stride: int(32) = lus(2): int(32);					 	\
     if (here.id != a.locale.id) {                  					\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
     }											\

@@ -113,7 +113,7 @@ proc checkArraysAreEqual(in srcArray: [], inout destArray: []) {
 proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
 
   param arrayRank = srcArray.rank;
-  var result: [0..2][1..arrayRank] int(32);
+  var result: [0..2][1..arrayRank] int(64);
   var arrayOrderMode = getArrayOrderMode(srcArray);
 
   for i in [1..arrayRank] {
