@@ -627,12 +627,12 @@ SWIPL_LIBS
 SWIPL_CFLAGS
 PL_LIBS
 PL_CFLAGS
-CHAPEL_COMM
-BABEL_LANG_CHAPEL_FALSE
-BABEL_LANG_CHAPEL_TRUE
-CHAPEL_VERSION
-CHAPEL_ROOT
-CHAPEL
+CHPL_COMM
+BABEL_LANG_CHPL_FALSE
+BABEL_LANG_CHPL_TRUE
+CHPL_VERSION
+CHPL_ROOT
+CHPL
 BABEL_LANG_PYTHON_FALSE
 BABEL_LANG_PYTHON_TRUE
 BABEL_LANG_JAVA_FALSE
@@ -853,7 +853,7 @@ DOT
 PKG_CONFIG
 BABEL_CFLAGS
 BABEL_LIBS
-CHAPEL
+CHPL
 PL_CFLAGS
 PL_LIBS
 SWIPL_CFLAGS
@@ -1534,7 +1534,7 @@ Some influential environment variables:
   BABEL_CFLAGS
               C compiler flags for BABEL, overriding pkg-config
   BABEL_LIBS  linker flags for BABEL, overriding pkg-config
-  CHAPEL      Absolute path to chpl executable
+  CHPL        Absolute path to chpl executable
   PL_CFLAGS   C compiler flags for PL, overriding pkg-config
   PL_LIBS     linker flags for PL, overriding pkg-config
   SWIPL_CFLAGS
@@ -15031,7 +15031,7 @@ fi
 
 
 
-    if test -z "$CHAPEL"; then :
+    if test -z "$CHPL"; then :
 
     	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether chpl executable path has been provided" >&5
 $as_echo_n "checking whether chpl executable path has been provided... " >&6; }
@@ -15041,13 +15041,13 @@ if test "${with_chpl+set}" = set; then :
   withval=$with_chpl;
 	    if test "$withval" != "yes"; then :
 
-	        CHAPEL="$withval"
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $CHAPEL" >&5
-$as_echo "$CHAPEL" >&6; }
+	        CHPL="$withval"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $CHPL" >&5
+$as_echo "$CHPL" >&6; }
 
 else
 
-		CHAPEL=""
+		CHPL=""
 	        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
@@ -15061,18 +15061,18 @@ $as_echo "no" >&6; }
 fi
 
 
-        if test -z "$CHAPEL"; then :
+        if test -z "$CHPL"; then :
 
 	    # Extract the first word of "chpl", so it can be a program name with args.
 set dummy chpl; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_CHAPEL+:} false; then :
+if ${ac_cv_path_CHPL+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $CHAPEL in
+  case $CHPL in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_CHAPEL="$CHAPEL" # Let the user override the test with a path.
+  ac_cv_path_CHPL="$CHPL" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -15082,7 +15082,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_CHAPEL="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_CHPL="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -15093,10 +15093,10 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-CHAPEL=$ac_cv_path_CHAPEL
-if test -n "$CHAPEL"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CHAPEL" >&5
-$as_echo "$CHAPEL" >&6; }
+CHPL=$ac_cv_path_CHPL
+if test -n "$CHPL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CHPL" >&5
+$as_echo "$CHPL" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -15113,10 +15113,10 @@ fi
 
 
 
-if test -n "$CHAPEL" -a -x "$CHAPEL"; then :
-  CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: using $CHAPEL (version $CHAPEL_VERSION)" >&5
-$as_echo "using $CHAPEL (version $CHAPEL_VERSION)" >&6; }
+if test -n "$CHPL" -a -x "$CHPL"; then :
+  CHPL_VERSION=`$CHPL --version |grep Version |awk '{print \$3}'`
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: using $CHPL (version $CHPL_VERSION)" >&5
+$as_echo "using $CHPL (version $CHPL_VERSION)" >&6; }
 
 
   for ac_prog in gawk mawk nawk awk
@@ -15171,14 +15171,14 @@ done
   # 0001001200050617.  In other words, each number is zero padded to four
   # digits, and non digits are removed.
 
-  ax_compare_version_A=`echo "$CHAPEL_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+  ax_compare_version_A=`echo "$CHPL_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
                      -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
                      -e 's/[^0-9]//g'`
 
 
-  ax_compare_version_B=`echo "1.4.0" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+  ax_compare_version_B=`echo "1.5.0" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
                      -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
@@ -15191,47 +15191,47 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
 
 
     if test "$ax_compare_version" = "true" ; then
-    CHAPEL="$CHAPEL"
+    CHPL="$CHPL"
 
- 	  CHAPEL_ROOT=`dirname \`dirname \\\`dirname $CHAPEL\\\`\``
-          CHAPEL_ROOT=$CHAPEL_ROOT
+ 	  CHPL_ROOT=`dirname \`dirname \\\`dirname $CHPL\\\`\``
+          CHPL_ROOT=$CHPL_ROOT
 
-          CHAPEL_VERSION="$CHAPEL_VERSION"
+          CHPL_VERSION="$CHPL_VERSION"
 
            if true; then
-  BABEL_LANG_CHAPEL_TRUE=
-  BABEL_LANG_CHAPEL_FALSE='#'
+  BABEL_LANG_CHPL_TRUE=
+  BABEL_LANG_CHPL_FALSE='#'
 else
-  BABEL_LANG_CHAPEL_TRUE='#'
-  BABEL_LANG_CHAPEL_FALSE=
+  BABEL_LANG_CHPL_TRUE='#'
+  BABEL_LANG_CHPL_FALSE=
 fi
 
-    else { $as_echo "$as_me:${as_lineno-$LINENO}: Chapel version < 1.4 is too old" >&5
-$as_echo "$as_me: Chapel version < 1.4 is too old" >&6;}
+    else { $as_echo "$as_me:${as_lineno-$LINENO}: Chapel version < 1.5 is too old" >&5
+$as_echo "$as_me: Chapel version < 1.5 is too old" >&6;}
 
            if false; then
-  BABEL_LANG_CHAPEL_TRUE=
-  BABEL_LANG_CHAPEL_FALSE='#'
+  BABEL_LANG_CHPL_TRUE=
+  BABEL_LANG_CHPL_FALSE='#'
 else
-  BABEL_LANG_CHAPEL_TRUE='#'
-  BABEL_LANG_CHAPEL_FALSE=
+  BABEL_LANG_CHPL_TRUE='#'
+  BABEL_LANG_CHPL_FALSE=
 fi
 
 
   fi
 
      if test -n "$CHPL_COMM" ; then :
-  CHAPEL_COMM=$CHPL_COMM
+  CHPL_COMM=$CHPL_COMM
 
            { $as_echo "$as_me:${as_lineno-$LINENO}: Chapel: CHPL_COMM=$CHPL_COMM" >&5
 $as_echo "$as_me: Chapel: CHPL_COMM=$CHPL_COMM" >&6;}
 else
-  CHAPEL_COMM="none"
+  CHPL_COMM="none"
 
            { $as_echo "$as_me:${as_lineno-$LINENO}: The environment variable CHPL_COMM was not set, defaulting to \"none\".
-Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&5
+Please see the $CHPL_ROOT/doc/README.multilocale for more details." >&5
 $as_echo "$as_me: The environment variable CHPL_COMM was not set, defaulting to \"none\".
-Please see the $CHAPEL_ROOT/doc/README.multilocale for more details." >&6;}
+Please see the $CHPL_ROOT/doc/README.multilocale for more details." >&6;}
 
 fi
 
@@ -15532,7 +15532,7 @@ BUILD_MACHINE="`hostname`"
 CONFIGURE_DATE="`date`"
 
 
- if test $HAVE_BABEL -eq 1 && test -n $CHAPEL_VERSION; then
+ if test $HAVE_BABEL -eq 1 && test -n $CHPL_VERSION; then
   ENABLE_INTEROP_REGRESSION_TRUE=
   ENABLE_INTEROP_REGRESSION_FALSE='#'
 else
@@ -15769,12 +15769,12 @@ if test -z "${BABEL_LANG_PYTHON_TRUE}" && test -z "${BABEL_LANG_PYTHON_FALSE}"; 
   as_fn_error $? "conditional \"BABEL_LANG_PYTHON\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${BABEL_LANG_CHAPEL_TRUE}" && test -z "${BABEL_LANG_CHAPEL_FALSE}"; then
-  as_fn_error $? "conditional \"BABEL_LANG_CHAPEL\" was never defined.
+if test -z "${BABEL_LANG_CHPL_TRUE}" && test -z "${BABEL_LANG_CHPL_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_CHPL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${BABEL_LANG_CHAPEL_TRUE}" && test -z "${BABEL_LANG_CHAPEL_FALSE}"; then
-  as_fn_error $? "conditional \"BABEL_LANG_CHAPEL\" was never defined.
+if test -z "${BABEL_LANG_CHPL_TRUE}" && test -z "${BABEL_LANG_CHPL_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_CHPL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_INTEROP_REGRESSION_TRUE}" && test -z "${ENABLE_INTEROP_REGRESSION_FALSE}"; then
@@ -17881,12 +17881,12 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Babel ........... YES (${BABEL_VERSION} in ${BABEL_PREFIX})" >&5
 $as_echo "    Babel ........... YES (${BABEL_VERSION} in ${BABEL_PREFIX})" >&6; }
 fi
-if test -z "${CHAPEL_ROOT}"; then :
+if test -z "${CHPL_ROOT}"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Chapel ........... NO" >&5
 $as_echo "    Chapel ........... NO" >&6; }
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Chapel .......... YES (${CHAPEL_VERSION} in ${CHAPEL_ROOT})" >&5
-$as_echo "    Chapel .......... YES (${CHAPEL_VERSION} in ${CHAPEL_ROOT})" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     Chapel .......... YES (${CHPL_VERSION} in ${CHPL_ROOT})" >&5
+$as_echo "    Chapel .......... YES (${CHPL_VERSION} in ${CHPL_ROOT})" >&6; }
        { $as_echo "$as_me:${as_lineno-$LINENO}: result:   **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh" >&5
 $as_echo "  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh" >&6; }
 fi

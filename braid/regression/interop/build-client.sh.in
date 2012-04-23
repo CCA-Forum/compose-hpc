@@ -47,12 +47,6 @@ chmod -R u+w run${language}                             ||exit 1
 echo "--generate client"
 cd run${language}					||exit 1
 $BRAID $sidl ../../output/output.sidl -c${language} --makefile ||exit 1
-#$BRAID ../../output/output.sidl -c${language}           ||exit 1
-#cat >>babel.make <<EOF
-#IORHDRS += synch_RegOut_IOR.h
-#STUBHDRS += synch_RegOut_cStub.h synch_RegOut_Stub.h
-#STUBSRCS += synch_RegOut_cStub.c 
-#EOF
 
 echo "--customizing babel-generated makefiles"
 @PERL@ -pi -e 's/(all : lib..LIBNAME..la ..SCLFILE.)$/\1 \$(TARGET)
