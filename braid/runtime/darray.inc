@@ -11,16 +11,15 @@ use BlockDist, CyclicDist, BlockCycDist, ReplicatedDist;
  * a new procedure isDistributedDomainClass(in theDomain: MyCustomDom)
  * will need to be defined.
  */
-pragma "inline"
 proc isDistributedDomain(d: domain) param {
   // Custom distributions can be supported by adding extra procedures
   // These custom procedures do not need to be defined in this scope
   // Here we only provide support for the standard distributions in chapel
-  pragma "inline" proc isDistributedDomainClass(in theDomain: BlockDom) param { return true; }
-  pragma "inline" proc isDistributedDomainClass(in theDomain: CyclicDom) param { return true; }
-  pragma "inline" proc isDistributedDomainClass(in theDomain: BlockCyclicDom) param { return true; }
-  pragma "inline" proc isDistributedDomainClass(in theDomain: ReplicatedDom) param { return true; }
-  pragma "inline" proc isDistributedDomainClass(in theDomain) param { return false; }
+  proc isDistributedDomainClass(in theDomain: BlockDom) param { return true; }
+  proc isDistributedDomainClass(in theDomain: CyclicDom) param { return true; }
+  proc isDistributedDomainClass(in theDomain: BlockCyclicDom) param { return true; }
+  proc isDistributedDomainClass(in theDomain: ReplicatedDom) param { return true; }
+  proc isDistributedDomainClass(in theDomain) param { return false; }
 
   return isDistributedDomainClass(d._value);
 }
@@ -28,7 +27,6 @@ proc isDistributedDomain(d: domain) param {
 /**
  * Ensure that a local array is returned making a copy if required
  */
-pragma "inline"
 proc ensureLocalArray(inout a:[?aDom]) var 
     where isRectangularDom(aDom) {
 
@@ -48,7 +46,6 @@ proc ensureLocalArray(inout a:[?aDom]) var
 /**
  * Sync back data into target array if it has non-local elements 
  */
-pragma "inline"
 proc syncNonLocalArray(in src:[], inout target: [?targetDom]) 
     where isRectangularDom(targetDom) {
   if (isDistributedDomain(targetDom)) {
@@ -68,7 +65,6 @@ proc syncNonLocalArray(in src:[], inout target: [?targetDom])
  * If the input array is distributed, it is converted into a 
  * rectangular array.
  */
-pragma "inline"
 proc copyRectangularArray(in a: [])  var
     where isRectangularDom(a.domain) {
 
@@ -96,7 +92,6 @@ proc copyRectangularArray(in a: [])  var
  * distributed or not. Only constraint is that the dest array
  * must have a rectangular domain.
  */
-pragma "inline"
 proc fillRectangularArray(in srcArray: [], inout destRectArray: []) 
     where isRectangularDom(destRectArray.domain) {
   [i in srcArray.domain] destRectArray(i) = srcArray(i);

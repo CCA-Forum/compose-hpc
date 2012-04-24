@@ -10,7 +10,7 @@ use sidl;
 config var bindir = "gantlet compatibility";
 
 var failed: bool = false;
-var part_no: int = 0;
+var part_no: int(32) = 0;
 var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 var magic_number = 13;
@@ -52,9 +52,9 @@ proc clearstack(magicNumber: int): int
 }
 
 
-var TEST_SIZE = 345; /* size of one dimensional arrays */
-var TEST_DIM1 = 17; /* first dimension of 2-d arrays */
-var TEST_DIM2 = 13; /* second dimension of 2-d arrays */
+var TEST_SIZE:int(32) = 345; /* size of one dimensional arrays */
+var TEST_DIM1:int(32) = 17; /* first dimension of 2-d arrays */
+var TEST_DIM2:int(32) = 13; /* second dimension of 2-d arrays */
 
 //synch::ResultType result = synch::ResultType_PASS;
 var magicNumber = 13;
@@ -152,9 +152,9 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var borrowed: sidl.Array(int(32), sidl_int__array);
   var elements: [0..31] int(32) =
-    (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
-     41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
-     89, 97, 101, 103, 107, 109, 113, 127, 131);
+    (2:int(32), 3:int(32), 5:int(32), 7:int(32), 11:int(32), 13:int(32), 17:int(32), 19:int(32), 23:int(32), 29:int(32), 31:int(32), 37:int(32),
+     41:int(32), 43:int(32), 47:int(32), 53:int(32), 59:int(32), 61:int(32), 67:int(32), 71:int(32), 73:int(32), 79:int(32), 83:int(32),
+     89:int(32), 97:int(32), 101:int(32), 103:int(32), 107:int(32), 109:int(32), 113:int(32), 127:int(32), 131:int(32));
 
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
   init_part(); run_part("borrowed_int: not-nil", borrowed._not_nil());

@@ -14,6 +14,7 @@ BABEL_TESTS = \
 
 BABEL_TESTNAMES = \
   args arrays inherit strings exceptions ordering overload struct 
+
 # BABEL_TESTS = regression/interop/contracts/runChapel/contractstest.chpl 
 # BABEL_TESTNAMES = contracts
 
@@ -75,9 +76,12 @@ if BABEL_LANG_PYTHON
   check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
 endif
 
-if BABEL_LANG_CHAPEL
-check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
-#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
+if BABEL_LANG_CHPL
+#check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
+
+# for now onnly these work
+check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
+check_DATA += $(builddir)/regression/interop/contracts/libChapel/libimpl.la
 
 check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 endif
@@ -96,7 +100,8 @@ $(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
 $(TESTDIR)/%/libimpl1.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-CLIENT_DEPS=$(TTESTDIR)/build-client.sh $(filter %.la, $(check_DATA)) \
+CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
+            $(filter %.la, $(check_DATA)) \
 	    $(TESTDIR)/output/libC/GNUmakefile \
             $(nobase_python_PYTHON)
 

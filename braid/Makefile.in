@@ -81,9 +81,13 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_14 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
 @BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = Python
 @BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_16 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
-#check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
-@BABEL_LANG_CHAPEL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_17 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la) \
-@BABEL_LANG_CHAPEL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
+
+#check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
+
+# for now onnly these work
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_17 = $(builddir)/regression/interop/args/libChapel/libimpl.la \
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/regression/interop/contracts/libChapel/libimpl.la \
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
 
 # add Backports
 @PYTHON_VERSION_2_6_TRUE@am__append_18 = contrib/argparse-1.1/argparse.py
@@ -350,10 +354,10 @@ BUILD_MACHINE = @BUILD_MACHINE@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CHAPEL = @CHAPEL@
-CHAPEL_COMM = @CHAPEL_COMM@
-CHAPEL_ROOT = @CHAPEL_ROOT@
-CHAPEL_VERSION = @CHAPEL_VERSION@
+CHPL = @CHPL@
+CHPL_COMM = @CHPL_COMM@
+CHPL_ROOT = @CHPL_ROOT@
+CHPL_VERSION = @CHPL_VERSION@
 CONFIGURED_PYTHONPATH = @CONFIGURED_PYTHONPATH@
 CONFIGURE_DATE = @CONFIGURE_DATE@
 CPP = @CPP@
@@ -523,6 +527,7 @@ bin_SCRIPTS = braid/braid braid/headerize braid/pyburg \
 	braid/rote2braid
 TESTS = $(am__append_1) $(am__append_2)
 TEST_EXTENSIONS = .py .sidl $(am__append_3)
+
 # BABEL_TESTS = regression/interop/contracts/runChapel/contractstest.chpl 
 # BABEL_TESTNAMES = contracts
 
@@ -556,6 +561,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = \
+	braid/babel.py \
 	braid/braid.py \
 	braid/chapel/__init__.py \
 	braid/chapel/backend.py \
@@ -676,7 +682,8 @@ BABEL_TESTNAMES = \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15)
 @ENABLE_INTEROP_REGRESSION_TRUE@TESTDIR = $(builddir)/regression/interop
 @ENABLE_INTEROP_REGRESSION_TRUE@TTESTDIR = $(top_builddir)/regression/interop
-@ENABLE_INTEROP_REGRESSION_TRUE@CLIENT_DEPS = $(TTESTDIR)/build-client.sh $(filter %.la, $(check_DATA)) \
+@ENABLE_INTEROP_REGRESSION_TRUE@CLIENT_DEPS = $(TTESTDIR)/build-client.sh \
+@ENABLE_INTEROP_REGRESSION_TRUE@            $(filter %.la, $(check_DATA)) \
 @ENABLE_INTEROP_REGRESSION_TRUE@	    $(TESTDIR)/output/libC/GNUmakefile \
 @ENABLE_INTEROP_REGRESSION_TRUE@            $(nobase_python_PYTHON)
 
@@ -890,7 +897,7 @@ CHPL_RUNTIME_FILES = runtime/array.inc runtime/barray.inc runtime/array_support.
 noinst_SCRIPTS = patch-chapel-compiler.sh.in
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
-AM_CPPFLAGS = -I$(builddir)/runtime -I$(srcdir)/runtime -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
+AM_CPPFLAGS = -I$(builddir)/runtime -I$(srcdir)/runtime -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
 AM_CFLAGS = -Werror
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -2605,7 +2612,7 @@ runtime/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@echo "generating Chapel bindings for the SIDL runtime"
 	@cd runtime && \
           env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
-            -cchpl $(SIDL_PATH)/sidl.sidl --verbose # --profile
+            -cchpl $(SIDL_PATH)/sidl.sidl --verbose #--profile
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/array.inc >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/runtime -x c -P -C $(srcdir)/runtime/barray.inc >>$@

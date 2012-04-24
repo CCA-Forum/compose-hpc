@@ -143,5 +143,5 @@ runtime/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 $(SIDLSTUB_SRCS): runtime/sidl.chpl
 lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
-AM_CPPFLAGS = -I$(builddir)/runtime -I$(srcdir)/runtime -I$(BABEL_INCLUDEDIR) -I$(CHAPEL_ROOT)/runtime/include
+AM_CPPFLAGS = -I$(builddir)/runtime -I$(srcdir)/runtime -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
 AM_CFLAGS = -Werror

@@ -13,7 +13,7 @@
 #
 # \authors <pre>
 #
-# Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2011, 2012 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
 # 
@@ -34,7 +34,7 @@
 # </pre>
 #
 
-import ior, ior_template, ir, os.path, sidl, sidlobjects, splicer
+import ior_template, ir, os.path, sidl, sidlobjects, splicer
 from utils import write_to, unzip
 from patmat import *
 from codegen import (CFile)
@@ -44,6 +44,13 @@ import makefile
 from cgen import (ChapelFile, ChapelScope, chpl_gen, 
                   incoming, outgoing, gen_doc_comment, strip, deref)
 from codegen import c_gen
+from babel import (EPV, lower_ir, ir_babel_object_type, 
+                   babel_static_ior_args, babel_object_type, 
+                   is_struct_type, babel_stub_args, strip_common,
+                   ior_type, struct_ior_names, qual_id, vcall, 
+                   ir_babel_exception_type, is_obj_type,
+                   drop_rarray_ext_args, babel_epv_args,
+                   builtins)
 
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
@@ -52,7 +59,6 @@ chpl_param_ex_name = '_babel_param_ex'
 extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_interface = 'BaseInterface'
-chpl_local_exception_var = '_ex'
 chplmain_extras = r"""
 int handleNonstandardArg(int* argc, char* argv[], int argNum, 
                          int32_t lineno, chpl_string filename) {
@@ -81,126 +87,11 @@ static void recordExecutionCommand(int argc, char *argv[]) {
 }
 """
 
-
-def strip_common(prefix, a):
+def forward_decl(ir_struct):
     """
-    \return \c a with the common prefix of \c prefix removed
+    \return a C-style forward declaration for a struct
     """
-    while (len(prefix) and 
-           len(a) and
-           prefix[0] == a[0]):
-        
-        a = a[1:]
-        prefix = prefix[1:]
-    return a
-
-def qual_id(scoped_id, sep='_'):
-    """
-    Return the qualified name of a ScopedId in the form "prefix1.prefix2.name"+ext.
-    \arg scoped_id the identifier
-    \arg sep the separation character to use (default="_")
-    """
-    _, prefix, name, ext = scoped_id
-    return sep.join(prefix+[name])+ext
-
-def babel_object_type(package, name):
-    """
-    \return the SIDL node for the type of a Babel object 'name'
-    \param name    the name of the object
-    \param package the list of IDs making up the package
-    """
-    if isinstance(name, tuple):
-        name = name[1]
-    return sidl.Scoped_id(package, name, '')
-
-def babel_exception_type():
-    """
-    \return the SIDL node for the Babel exception type
-    """
-    return babel_object_type(['sidl'], 'BaseInterface')
-
-def ir_babel_object_type(package, name):
-    """
-    \return the IR node for the type of a Babel object 'name'
-    \param name    the name of the object
-    \param package the list of IDs making up the package
-    """
-    return ir.Pointer_type(ir.Struct(babel_object_type(package, name+'__object'), [], ''))
-
-def ir_babel_exception_type():
-    """
-    \return the IR node for the Babel exception type
-    """
-    return ir_babel_object_type(['sidl'], 'BaseInterface')
-
-def ir_babel_baseinterface_type():
-    """
-    \return the IR node for the Babel exception type
-    """
-    return ir_babel_object_type(['sidl'], 'BaseInterface')
-
-def builtin((name, args)):
-    return sidl.Method(sidl.void, sidl.Method_name(name, ''), [], args,
-                       [], [], [], [], 'builtin method')
-
-builtins = map(builtin,
-    [('_ctor', []), 
-     ('_ctor2', [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')]),
-     ('_dtor', []),
-     ('_load', [])])
-
-
-def argname((_arg, _attr, _mode, _type, Id)):
-    return Id
-
-def vcall(name, args, ci):
-    """
-    \return the IR for a non-static Babel virtual method call
-    """
-    epv = ci.epv.get_type()
-    cdecl = ci.epv.find_method(name)
-    # this is part of an ugly hack to make sure that self is
-    # dereferenced as self->d_object (by setting attr of self to the
-    # unused value of 'pure')
-    if ci.co.is_interface() and args:
-        _, attrs, type_, id_, arguments, doc = cdecl
-        _, attrs0, mode0, type0, name0 = arguments[0]
-        arguments = [ir.Arg([ir.pure], mode0, type0, name0)]+arguments[1:]
-        cdecl = ir.Fn_decl(attrs, type_, id_, arguments, doc)
-        
-    return ir.Stmt(ir.Call(ir.Deref(ir.Get_struct_item(epv,
-                ir.Deref(ir.Get_struct_item(ci.obj,
-                                            ir.Deref('self'),
-                                            ir.Struct_item(epv, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args))
-
-def drop_rarray_ext_args(args):
-    """
-    Now here it's becoming funny: Since R-arrays are wrapped inside
-    SIDL-Arrays in the IOR, convention says that we should remove all
-    redundant arguments that can be derived from the SIDL-array's
-    metadata.
-
-    \bug{does not yet deal with nested expressions.}
-    """
-    names = set()
-    for (arg, attrs, mode, typ, name) in args:
-        if typ[0] == sidl.rarray:
-            names.update(typ[3])
-
-    return filter(lambda a: a[4] not in names, args)
-
-def struct_ior_names((struct, name, items, docstring)):
-    """
-    Append '__data' to a struct's name and all nested structs' names. 
-    """
-    def f((item, typ, name)):
-        if typ[0] == ir.struct:
-            return item, struct_ior_names(typ), name
-        else: return item, typ, name
-
-    return struct, name+'__data', map(f, items), docstring
-
+    return '%s %s;'%(ir_struct[0], ir_struct[1])
 
 class GlueCodeGenerator(object):
     """
@@ -227,52 +118,69 @@ class GlueCodeGenerator(object):
             self.ior = CFile('_'.join(class_object.qualified_name)+'_IOR')
             self.obj = None
 
-    def __init__(self, filename, sidl_sexpr, symbol_table, create_makefile, verbose):
+    def __init__(self, verbose):
         """
         Create a new chapel code generator
-        \param filename        full path to the SIDL file
-        \param sidl_sexpr      s-expression of the SIDL data
-        \param symbol_table    symbol table for the SIDL data
-        \param create_makefile if \c True, also generate a GNUmakefile
         \param verbose         if \c True, print extra messages
         """
-        self.sidl_ast = sidl_sexpr
-        self.symbol_table = symbol_table
-        self.sidl_file = filename
-        self.create_makefile = create_makefile
         self.verbose = verbose
         self.classes = []
         self.pkgs = []
+        self.sidl_files = ''
 
-    def generate_client(self):
+    def generate_client_makefile(self):
+        """
+        Generate a client-side GNUmakefile for all the entities
+        generated by this GlueCodeGenerator.
+        """
+        makefile.generate_client(self.sidl_files, self.classes)
+
+    def generate_server_makefile(self):
+        """
+        Generate a server-side GNUmakefile for all the entities
+        generated by this GlueCodeGenerator.
+        """
+        makefile.generate_server(self.sidl_files, self.classes, self.pkgs)
+
+    def generate_client(self, filename, sidl_ast, symbol_table):
         """
         Generate client code. Operates in two passes:
         \li create symbol table
         \li do the work
+
+        \param filename        full path to the SIDL file
+        \param sidl_ast        s-expression of the SIDL data
+        \param symbol_table    symbol table for the SIDL data
         """
+        self.sidl_files += ' '+filename
         try:
-            self.generate_client_pkg(self.sidl_ast, None, self.symbol_table)
+            self.generate_client_pkg(sidl_ast, None, symbol_table)
             if self.verbose:
                 import sys
                 sys.stdout.write("%s\r"%(' '*80))
-            if self.create_makefile:
-                makefile.generate_client(self.sidl_file, self.classes)
+
         except:
             # Invoke the post-mortem debugger
             import pdb, sys
             print sys.exc_info()
             pdb.post_mortem()
 
-    def generate_server(self):
+    def generate_server(self, filename, sidl_ast, symbol_table):
         """
         Generate server code. Operates in two passes:
         \li create symbol table
         \li do the work
+
+        \param filename        full path to the SIDL file
+        \param sidl_ast        s-expression of the SIDL data
+        \param symbol_table    symbol table for the SIDL data
         """
+        self.sidl_files += ' '+filename
         try:
-            self.generate_server_pkg(self.sidl_ast, None, self.symbol_table)
-            if self.create_makefile:
-                makefile.generate_server(self.sidl_file, self.pkgs, self.classes)
+            self.generate_server_pkg(sidl_ast, None, symbol_table)
+            if self.verbose:
+                import sys
+                sys.stdout.write("%s\r"%(' '*80))
 
         except:
             # Invoke the post-mortem debugger
@@ -499,7 +407,7 @@ class GlueCodeGenerator(object):
             chpl_stub.new_def(ci.chpl_method_stub)
             chpl_stub.new_def('}')
             
-            # Because of chapels implicit (filename-based)modules it
+            # Because of chapels implicit (filename-based) modules it
             # is important for the chapel stub to be one file, but we
             # generate separate files for the cstubs
             self.pkg_chpl_stub.new_def(chpl_stub)
@@ -571,6 +479,7 @@ class GlueCodeGenerator(object):
                     self.pkgs.append(qname)
 
                 pkg_h = CFile(qname)
+
                 pkg_h.genh(ir.Import('sidlType'))
                 pkg_h.genh(ir.Import('chpltypes'))
                 for es in self.pkg_enums_and_structs:
@@ -580,7 +489,15 @@ class GlueCodeGenerator(object):
                     if es[0] == sidl.struct:
                         es_chpl = conv.ir_type_to_chpl(es_ior)
                         if es_chpl <> es_ior: 
+                            pkg_h.new_header_def('#ifndef CHPL_GEN_CODE')
+                            pkg_h.genh(ir.Comment(
+                                    'Chapel will generate its own conflicting version of'+
+                                    'structs and enums since we can\'t use the extern '+
+                                    'keyword for them.'))
                             pkg_h.gen(ir.Type_decl(es_chpl))
+                            pkg_h.new_header_def('#else // CHPL_GEN_CODE')
+                            pkg_h.new_header_def(forward_decl(es_chpl))
+                            pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
 
                 pkg_h.write()
 
@@ -741,7 +658,7 @@ class GlueCodeGenerator(object):
                                                        ir.Pointer_type(ci.obj),
                                                        'createObject', [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
-                                                           ir.Arg([], sidl.out, ir_babel_exception_type(), chpl_local_exception_var)],
+                                                           ir.Arg([], sidl.out, ir_babel_exception_type(), '_ex')],
                                                        '')),
                                                        'createObject')] 
                       if not cls.is_abstract else []) +
@@ -760,12 +677,18 @@ class GlueCodeGenerator(object):
                        ],
                        'The static class object structure')
 
+    def struct_typedef(self, pkgname, s):
+        if s[0] == sidl.enum: return ''
+        return 'typedef {0} {1} _{1};\ntypedef _{1}* {1};'.format(
+            s[0], pkgname+'_'+s[1][:-6])
+
     def class_typedefs(self, qname, symbol_table):
-        typedefs = CFile();
+        typedefs = CFile()
+        pkgname = '_'.join(symbol_table.prefix)
         typedefs._header = [
             '// Package header (enums, etc...)',
             '#include <stdint.h>',
-            '#include <%s.h>' % '_'.join(symbol_table.prefix),
+            '#include <%s.h>' % pkgname,
             '#include <%s_IOR.h>'%qname,
             'typedef struct %s__object _%s__object;'%(qname, qname),
             'typedef _%s__object* %s__object;'%(qname, qname),
@@ -773,12 +696,13 @@ class GlueCodeGenerator(object):
             '#define SIDL_BASE_INTERFACE_OBJECT',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-            '#define IS_NULL(aPtr) ((aPtr) == 0)',
+            '#define IS_NULL(aPtr)     ((aPtr) == 0)',
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
-            '#define SET_TO_NULL(aPtr) (*aPtr) = 0',
-            '#endif',
-            '%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
-            %(qname, qname, qname),
+            '#define SET_TO_NULL(aPtr) ((*aPtr) = 0)',
+            '#endif'
+            #] + [self.struct_typedef(pkgname, es) for es in self.pkg_enums_and_structs] + [
+            #'%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
+            #%(qname, qname, qname),
             ]
         return typedefs
 
@@ -846,14 +770,18 @@ class GlueCodeGenerator(object):
                 iortype = ir.Pointer_type(ir.pt_void)
 
             elif typ == (sidl.array, [], [], []): # Generic array
-                iortype = ir.Pointer_type(ir.Struct('sidl__array', [], ''))
+
+                # This comment is there so the Chapel code generator
+                # won't recognize the type as an array. Here is the
+                # only place where we actually want a C struct type.
+                iortype = ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], ''))
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
                 if typ[1][0] == ir.scoped_id:
                     t = 'BaseInterface'
                 else:
                     t = typ[1][1]
-                iortype = ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
+                iortype = ir.Pointer_type(ir.Struct('sidl_%s__array /* IOR */'%t, [], ''))
                 if mode <> sidl.out:
                     iorname = name+'.self'
 
@@ -966,7 +894,7 @@ class GlueCodeGenerator(object):
          Except, From, Requires, Ensures, DocComment) = method
 
         ior_args = drop_rarray_ext_args(Args)
-        
+
         chpl_args = []
         chpl_args.extend(lower_ir(symbol_table, Args, struct_suffix='', lower_scoped_ids=False))
         
@@ -998,14 +926,14 @@ class GlueCodeGenerator(object):
         
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
-        pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), chpl_local_exception_var)))
-        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", [chpl_local_exception_var])))
+        pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
+        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
         
         post_call.append(ir.Stmt(ir.If(
-            ir.Call("IS_NOT_NULL", [chpl_local_exception_var]),
+            ir.Call("IS_NOT_NULL", ['_ex']),
             [
                 ir.Stmt(ir.Assignment(chpl_param_ex_name,
-                                   ir.Call("new " + chpl_base_interface, [chpl_local_exception_var])))
+                                   ir.Call("new " + chpl_base_interface, ['_ex'])))
             ]
         )))
         
@@ -1023,7 +951,7 @@ class GlueCodeGenerator(object):
             call_self = ['this.self_' + ci.epv.name]
                 
 
-        call_args = call_self + call_args + [chpl_local_exception_var]
+        call_args = call_self + call_args + ['_ex']
         # Add the exception to the chapel method signature
         chpl_args.append(ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), chpl_param_ex_name))
         
@@ -1063,9 +991,10 @@ class GlueCodeGenerator(object):
                 ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension)))
 
 
+        stubcall = ir.Call(callee, call_args)
         if Type == sidl.void:
             Type = ir.pt_void
-            call = [ir.Stmt(ir.Call(callee, call_args))]
+            call = [ir.Stmt(stubcall)]
         else:
             if return_expr or post_call:
                 rvar = '_IOR__retval'
@@ -1077,14 +1006,19 @@ class GlueCodeGenerator(object):
                     rx = rvar
                 else:
                     rx = return_expr[0]
-                    
-                call = [ir.Stmt(ir.Assignment(rvar, ir.Call(callee, call_args)))]
+
+                if is_struct_type(symbol_table, Type):
+                    # use rvar as an additional OUT argument instead
+                    # of a return value because Chapel cannot deal
+                    # with return-by-value structs
+                    call = [ir.Stmt(ir.Call(callee, call_args+[rvar]))]
+                else:
+                    call = [ir.Stmt(ir.Assignment(rvar, stubcall))]
                 return_stmt = [ir.Stmt(ir.Return(rx))]
             else:
-                call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
+                call = [ir.Stmt(ir.Return(stubcall))]
 
-
-        defn = (ir.fn_defn, [], 
+        defn = (ir.fn_defn, [],
                 lower_ir(symbol_table, Type, struct_suffix='', lower_scoped_ids=False),
                 Name + Extension, chpl_args,
                 pre_call+call+post_call+return_stmt,
@@ -1200,11 +1134,11 @@ class GlueCodeGenerator(object):
             ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
 
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__init',
-            babel_static_ior_args([], [ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
+            babel_static_ior_args([ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
                            ci.epv.symbol_table, ci.epv.name),
             "INIT: initialize a new instance of the class object."))
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
-            babel_static_ior_args([], [], ci.epv.symbol_table, ci.epv.name),
+            babel_static_ior_args([], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
 
         if with_ior_c:# or True:
@@ -1241,7 +1175,7 @@ class GlueCodeGenerator(object):
             typedefs = self.class_typedefs(qname, cls.symbol_table)
             chpl_stub.cstub._header.extend(typedefs._header)
             chpl_stub.cstub._defs.extend(typedefs._defs)
-            chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
+            #chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             chpl_stub.cstub.genh(ir.Import('sidlType'))
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             chpl_stub.cstub.genh(ir.Import('chpltypes'))
@@ -1405,13 +1339,15 @@ class GlueCodeGenerator(object):
                     # new file for the user implementation
                     self.pkg_impl = ChapelFile(qname+'_Impl')
                     self.pkg_impl.gen(ir.Import('sidl'))
-                    self.pkg_impl.gen(ir.Import(qname))
 
                     self.pkg_enums_and_structs = []
                     self.in_package = True
                     self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
                     self.pkg_chpl_skel.main_area.new_def('}\n')
                     self.pkg_chpl_skel.write()
+
+                    if self.pkg_enums_and_structs:
+                        self.pkg_impl.gen(ir.Import(qname))
 
                     # write the _Impl file
                     impl = qname+'_Impl.chpl'
@@ -1540,15 +1476,16 @@ class GlueCodeGenerator(object):
         if Type <> sidl.void:
             decls.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
 
-        def pointerize_struct((arg, attr, mode, typ, name)):
-          # FIXME: this is borked.. instead we should remove this
-          # _and_ the code in codegenerater that strips the
-          # pointer_type again
-          if typ[0] == ir.struct:
-                return (arg, attr, mode, (ir.pointer_type, typ), name)
-          else: return (arg, attr, mode, typ, name)
+        # def pointerize_struct((arg, attr, mode, typ, name)):
+        #   # FIXME: this is borked.. instead we should remove this
+        #   # _and_ the code in codegenerator that strips the
+        #   # pointer_type again
+        #   if typ[0] == ir.struct:
+        #         return (arg, attr, mode, (ir.pointer_type, typ), name)
+        #   else: return (arg, attr, mode, typ, name)
 
-        chpl_args = map(pointerize_struct, map(conv.ir_arg_to_chpl, ior_args))
+        # chpl_args = map(pointerize_struct, map(conv.ir_arg_to_chpl, ior_args))
+        chpl_args = map(conv.ir_arg_to_chpl, ior_args)
 
      
         # Proxy declarations / revised names of call arguments
@@ -1663,356 +1600,4 @@ static const struct {a}__sepv *_sepv = NULL;
 #define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
 '''.format(a=qual_id(scopedid), b=qual_id(scopedid, '_'))
-
-def notnone(fn):
-    def wrapped(*args, **kw_args):
-        r = fn(*args, **kw_args)
-        if r == None:
-            print args
-            print '---->', r
-            raise Exception("lower_ir() output failed sanity check")
-        return r
-
-    return wrapped
-
-@notnone
-@matcher(globals(), debug=False)
-def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower_scoped_ids=True):
-    """
-    FIXME!! can we merge this with convert_arg??
-    lower SIDL types into IR
-
-    The idea is that no Chapel-specific code is in this function. It
-    should provide a generic translation from SIDL -> IR.
-
-    @param lower_scoped_ids  This is a broken design, but right now the
-                             Chapel code generator accepts some sidl
-                             node types such as array, rarray, and
-                             class.  If False, then these types will
-                             not be lowered.
-    """
-    def low(sidl_term):
-        return lower_ir(symbol_table, sidl_term, header, struct_suffix, lower_scoped_ids)
-
-    # print 'low(',sidl_term, ')'
-
-    with match(sidl_term):
-        if (sidl.arg, Attrs, Mode, (sidl.scoped_id, _, _, _), Name):
-            lowtype = low(sidl_term[3])
-            if lowtype[0] == ir.struct and Mode == ir.in_:
-                # struct arguments are passed as pointer, regardless of mode
-                # unless they are a return value
-                lowtype = ir.Pointer_type(lowtype)
-            return (ir.arg, Attrs, Mode, lowtype, Name)
-
-        elif (sidl.arg, Attrs, Mode, Typ, Name):
-            return (ir.arg, Attrs, Mode, low(Typ), Name)
-
-        elif (sidl.scoped_id, Prefix, Name, Ext):
-            return low(symbol_table[sidl_term][1])
-        
-        elif (sidl.void):                        return ir.pt_void
-        elif (ir.void_ptr):                      return ir.void_ptr
-        elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
-        elif (sidl.primitive_type, sidl.string): return ir.const_str
-        elif (sidl.primitive_type, sidl.bool):   return ir.Typedef_type('sidl_bool')
-        elif (sidl.primitive_type, sidl.long):   return ir.Typedef_type('int64_t')
-        elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
-        elif (sidl.enum, _, _, _):               return sidl_term # identical
-        # was: ir.Typedef_type('int64_t')
-        elif (sidl.enumerator, _):               return sidl_term
-        elif (sidl.enumerator, _, _):            return sidl_term
-
-
-        elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
-            # a nested Struct
-            return ir.Struct(qual_id(sidl_term[1])+struct_suffix, low(Items), '')
-
-        elif (sidl.struct, Name, Items, DocComment):
-            qname = '_'.join(symbol_table.prefix+[Name])
-            return ir.Struct(qname, low(Items), '')
-
-        elif (sidl.struct_item, Type, Name):
-            return (ir.struct_item, low(Type), Name)
-
-        # elif (sidl.rarray, Scalar_type, Dimension, Extents):
-        #     # Direct-call version (r-array IOR)
-        #     # return ir.Pointer_type(lower_type_ir(symbol_table, Scalar_type)) # FIXME
-        #     # SIDL IOR version
-        #     return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
-        elif (sidl.rarray, Scalar_type, Dimension, Extents):
-            if not lower_scoped_ids: return sidl_term
-            # Rarray appearing inside of a struct
-            return ir.Pointer_type(Scalar_type)
-
-        elif (sidl.array, [], [], []):
-            #if not lower_scoped_ids: return sidl_term
-            #return ir.Pointer_type(ir.pt_void)
-            return ir.Pointer_type(ir.Struct('sidl__array', [], ''))
-
-        elif (sidl.array, Scalar_type, Dimension, Orientation):
-            #if not lower_scoped_ids: return sidl_term
-            if Scalar_type[0] == ir.scoped_id:
-                # FIXME: this is oversimplified, it should actually be
-                # the real class name, but we don't yet generate array
-                # declarations for all classes
-                t = 'BaseInterface'
-            else:
-                t = Scalar_type[1]
-            if header:
-                header.genh(ir.Import('sidl_'+t+'_IOR'))
-            return ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
-
-        elif (sidl.class_, ScopedId, _, _, _, _, _):
-            if not lower_scoped_ids: return sidl_term #qual_id(ScopedId, '.')
-            else: return ir_babel_object_type(ScopedId[1], ScopedId[2])
-        
-        elif (sidl.interface, ScopedId, _, _, _, _):
-            if not lower_scoped_ids: sidl_term #qual_id(ScopedId, '.')
-            return ir_babel_object_type(ScopedId[1], ScopedId[2])
-        
-        elif (Terms):
-            if (isinstance(Terms, list)):
-                return map(low, Terms)
-        else:
-            raise Exception("lower_ir: Not implemented: " + str(sidl_term))
-
-
-def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
-    return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
-
-class EPV(object):
-    """
-    Babel entry point vector for virtual method calls.
-
-    Also contains the SEPV, which is used for all static functions, as
-    well as the pre- and post-epv for the hooks implementation.
-
-    """
-    def __init__(self, class_object):
-        self.methods = []
-        self.static_methods = []
-        # hooks
-        self.pre_methods = []
-        self.post_methods = []
-        self.static_pre_methods = []
-        self.static_post_methods = []
-
-        self.name = class_object.name
-        self.symbol_table = class_object.symbol_table
-        self.has_static_methods = class_object.has_static_methods
-        self.finalized = False
-
-    def add_method(self, method):
-        """
-        add another (SIDL) method to the vector
-        """
-        def to_fn_decl((_sidl_method, Type,
-                        (Method_name, Name, Extension),
-                        Attrs, Args, Except, From, Requires, Ensures, DocComment),
-                       suffix=''):
-            typ = lower_ir(self.symbol_table, Type)
-            name = 'f_'+Name+Extension
-
-            # discard the abstract/final attributes. Ir doesn't know them.
-            attrs = set(Attrs)
-            attrs.discard(sidl.abstract)
-            attrs.discard(sidl.final)
-            attrs = list(attrs)
-            args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
-            return ir.Fn_decl(attrs, typ, name+suffix, args, DocComment)
-
-        if self.finalized:
-            import pdb; pdb.set_trace()
-            raise Exception()
-
-        if member_chk(sidl.static, method[3]):
-            self.static_methods.append(to_fn_decl(method))
-            if member_chk(ir.hooks, method[3]):
-                self.static_pre_methods.append(to_fn_decl(method, '_pre'))
-                self.static_post_methods.append(to_fn_decl(method, '_post'))
-        else:
-            self.methods.append(to_fn_decl(method))
-            if member_chk(ir.hooks, method[3]):
-                self.pre_methods.append(to_fn_decl(method, '_pre'))
-                self.post_methods.append(to_fn_decl(method, '_post'))
-        return self
-
-    def find_method(self, method):
-        """
-        Perform a linear search through the list of methods and return
-        the first with a matching name.
-        """
-        for m in self.methods:
-            fn_decl, attrs, typ, name, args, doc = m
-            if name == 'f_'+method:
-                return fn_decl, attrs, typ, name[2:], args, doc
-        import pdb; pdb.set_trace()
-        raise Exception()
-
-    def get_ir(self):
-        """
-        return an s-expression of the EPV declaration
-        """
-
-        self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__epv', '')
-        return ir.Struct(name,
-            [ir.Struct_item(itype, iname)
-             for itype, iname in map(get_type_name, self.methods)],
-                         'Entry Point Vector (EPV)')
-
-    def get_sepv_ir(self):
-        """
-        return an s-expression of the SEPV declaration
-        """
-
-        if not self.has_static_methods:
-            return ''
-
-        self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__sepv', '')
-        return ir.Struct(name,
-            [ir.Struct_item(itype, iname)
-             for itype, iname in map(get_type_name, self.static_methods)],
-                         'Static Entry Point Vector (SEPV)')
-
-    def get_pre_epv_ir(self):
-        """
-        return an s-expression of the pre_EPV declaration
-        """
-        self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__pre_epv', '')
-        return ir.Struct(name,
-            [ir.Struct_item(itype, iname)
-             for itype, iname in map(get_type_name, self.pre_methods)],
-                         'Pre Hooks Entry Point Vector (pre_EPV)')
-
-    def get_post_epv_ir(self):
-        """
-        return an s-expression of the post_EPV declaration
-        """
-        self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__post_epv', '')
-        return ir.Struct(name,
-            [ir.Struct_item(itype, iname)
-             for itype, iname in map(get_type_name, self.post_methods)],
-                         'Pre Hooks Entry Point Vector (post_EPV)')
-
-    nonempty = ir.Struct_item(ir.pt_char, 'd_not_empty')
-
-    def get_pre_sepv_ir(self):
-        """
-        return an s-expression of the pre_SEPV declaration
-        """
-        if not self.has_static_methods:
-            return ''
-
-        self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__pre_sepv', '')
-
-        if self.static_post_methods:
-            entries = [ir.Struct_item(itype, iname)
-                       for itype, iname in 
-                       map(get_type_name, self.static_pre_methods)]
-        else:
-            entries = [self.nonempty]
-        return ir.Struct(name, entries, 'Pre Hooks Entry Point Vector (pre_EPV)')
-
-    def get_post_sepv_ir(self):
-        """
-        return an s-expression of the post_SEPV declaration
-        """
-        if not self.has_static_methods:
-            return ''
-
-        self.finalized = True
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__post_sepv', '')
-
-        if self.static_post_methods:
-            entries = [ir.Struct_item(itype, iname)
-                       for itype, iname in 
-                       map(get_type_name, self.static_post_methods)]
-        else:
-            entries = [self.nonempty]
-        return ir.Struct(name, entries, 'Post Hooks Entry Point Vector (post_EPV)')
-
-
-    def get_type(self):
-        """
-        return an s-expression of the EPV's (incomplete) type
-        """
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__epv', '')
-        return ir.Struct(name, [], 'Entry Point Vector (EPV)')
-
-    def get_sepv_type(self):
-        """
-        return an s-expression of the SEPV's (incomplete) type
-        """
-        name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__sepv', '')
-        return ir.Struct(name, [], 'Static Entry Point Vector (SEPV)')
-
-
-def babel_static_ior_args(attrs, args, symbol_table, class_name):
-    """
-    \return a SIDL -> Ir lowered version of 
-    [self]+args+(sidl_BaseInterface__object*)[*ex]
-    """
-    arg_self = [ir.Arg([], ir.in_, 
-                       ir_babel_object_type(symbol_table.prefix, class_name),
-                       'self')]
-    arg_ex = [ir.Arg([], sidl.out, ir_babel_baseinterface_type(), chpl_local_exception_var)]
-    return arg_self+lower_ir(symbol_table, args)+arg_ex
-
-
-def babel_epv_args(attrs, args, symbol_table, class_name):
-    """
-    \return a SIDL -> Ir lowered version of [self]+args+[*ex]
-    """
-    if member_chk(sidl.static, attrs):
-        arg_self = []
-    else:
-        arg_self = \
-            [ir.Arg([], ir.in_, 
-                    ir_babel_object_type(symbol_table.prefix, class_name),
-                    'self')]
-    arg_ex = \
-        [ir.Arg([], ir.out, ir_babel_baseinterface_type(), chpl_local_exception_var)]
-    return arg_self+lower_ir(symbol_table, args)+arg_ex
-
-def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs=[]):
-    """
-    \return a SIDL -> [*self]+args+[*ex]
-    """
-    if member_chk(sidl.static, attrs):
-        arg_self = []
-    else:
-        arg_self = [
-            ir.Arg(extra_attrs, sidl.in_, 
-                ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
-    arg_ex = \
-        [ir.Arg(extra_attrs, sidl.out, ir_babel_exception_type(), chpl_local_exception_var)]
-    return arg_self+args+arg_ex
-
-
-def is_obj_type(symbol_table, typ):
-    return typ[0] == sidl.scoped_id and (
-        symbol_table[typ][1][0] == sidl.class_ or
-        symbol_table[typ][1][0] == sidl.interface)
-
-def is_struct_type(symbol_table, typ):
-    return typ[0] == sidl.scoped_id and symbol_table[typ][1][0] == sidl.struct
-
-
-def ior_type(symbol_table, t):
-    """
-    if \c t is a scoped_id return the IOR type of t.
-    else return \c t.
-    """
-    if (t[0] == sidl.scoped_id and symbol_table[t][1][0] in [sidl.class_, sidl.interface]):
-    #    return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
-        return ir_babel_object_type(t[1], t[2])
-
-    else: return t
-
 

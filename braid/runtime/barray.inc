@@ -23,12 +23,12 @@ class _borrowedData {
       deallocateData(opData);
     }
   }
-  pragma "inline" proc init(opaqueData: opaque) {
+  proc init(opaqueData: opaque) {
     // Just copy over the reference to the data
     this.opData = opaqueData;
     __primitive("ref_borrow", this, "_data", opaqueData);
   }
-  pragma "inline" proc this(i: integral) var {
+  proc this(i: integral) var {
     // rely on chapel compiler to generate lvalue
     return __primitive("array_get", this, i);
   }
@@ -242,6 +242,8 @@ class BorrowedRectangularArr: BaseArr {
       return;
     }
     if dom.dsiNumIndices > 0 {
+      writeln("FIXME: this causes a compile-time error with chpl 1.5!");
+      /*
       pragma "no copy" pragma "no auto destroy" var dr = bData;
       pragma "no copy" pragma "no auto destroy" var dv = __primitive("get ref", dr);
       pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, 0);
@@ -255,6 +257,7 @@ class BorrowedRectangularArr: BaseArr {
           chpl__autoDestroy(ev);
         }
       }
+      */
     }
     delete bData;
   }
@@ -330,12 +333,10 @@ class BorrowedRectangularArr: BaseArr {
     this.bData.init(opData);
   }
 
-  pragma "inline"
   proc getDataIndex(ind: idxType ...1) where rank == 1 {
     return getDataIndex(ind);
   }
 
-  pragma "inline"
   proc getDataIndex(ind: rank * idxType) {
     var sum = origin;
     if stridable {
@@ -362,12 +363,10 @@ class BorrowedRectangularArr: BaseArr {
   }
 
   // only need second version because wrapper record can pass a 1-tuple
-  pragma "inline"
   proc dsiAccess(ind: idxType ...1) var where rank == 1 {
     return dsiAccess(ind);
   }
 
-  pragma "inline"
   proc dsiAccess(ind : rank*idxType) var {
     if boundsChecking then
       if !dom.dsiMember(ind) then
@@ -479,7 +478,7 @@ proc chpl__initCopy(a: []) where
   return b;
 }
 
-pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntType,
+proc createBorrowedArray(type arrayIndexType, type arrayElmntType,
         bData: opaque, arrayOrdering: sidl_array_ordering, arraySize: int(32)...?arrayRank) {
 
   type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, arrayIndexType, false);
@@ -494,14 +493,14 @@ pragma "inline" proc createBorrowedArray(type arrayIndexType, type arrayElmntTyp
   return locArr;
 }
 
-pragma "inline" proc getArrayOrdering(sa: sidl.Array) {
+proc getArrayOrdering(sa: sidl.Array) {
   var arrayOrdering: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order;
   if (sa.isColumnOrder()) {
     arrayOrdering = sidl_array_ordering.sidl_column_major_order;
   }
   return arrayOrdering;
 }
-pragma "inline" proc createBorrowedArray1d(sa: sidl.Array) {
+proc createBorrowedArray1d(sa: sidl.Array) {
   if (sa.dim() != 1) {
     halt("input array is not of rank 1");
   }
@@ -510,7 +509,7 @@ pragma "inline" proc createBorrowedArray1d(sa: sidl.Array) {
             sa.length(0));
   return bArr;
 }
-pragma "inline" proc createBorrowedArray2d(sa: sidl.Array) {
+proc createBorrowedArray2d(sa: sidl.Array) {
   if (sa.dim() != 2) {
     halt("input array is not of rank 2");
   }
@@ -519,7 +518,7 @@ pragma "inline" proc createBorrowedArray2d(sa: sidl.Array) {
             sa.length(0), sa.length(1));
   return bArr;
 }
-pragma "inline" proc createBorrowedArray3d(sa: sidl.Array) {
+proc createBorrowedArray3d(sa: sidl.Array) {
   if (sa.dim() != 3) {
     halt("input array is not of rank 3");
   }
@@ -528,7 +527,7 @@ pragma "inline" proc createBorrowedArray3d(sa: sidl.Array) {
             sa.length(0), sa.length(1), sa.length(2));
   return bArr;
 }
-pragma "inline" proc createBorrowedArray4d(sa: sidl.Array) {
+proc createBorrowedArray4d(sa: sidl.Array) {
   if (sa.dim() != 4) {
     halt("input array is not of rank 4");
   }
@@ -537,7 +536,7 @@ pragma "inline" proc createBorrowedArray4d(sa: sidl.Array) {
             sa.length(0), sa.length(1), sa.length(2), sa.length(3));
   return bArr;
 }
-pragma "inline" proc createBorrowedArray5d(sa: sidl.Array) {
+proc createBorrowedArray5d(sa: sidl.Array) {
   if (sa.dim() != 5) {
     halt("input array is not of rank 5");
   }
@@ -547,7 +546,7 @@ pragma "inline" proc createBorrowedArray5d(sa: sidl.Array) {
             sa.length(4));
   return bArr;
 }
-pragma "inline" proc createBorrowedArray6d(sa: sidl.Array) {
+proc createBorrowedArray6d(sa: sidl.Array) {
   if (sa.dim() != 6) {
     halt("input array is not of rank 6");
   }
@@ -557,7 +556,7 @@ pragma "inline" proc createBorrowedArray6d(sa: sidl.Array) {
             sa.length(4), sa.length(5));
   return bArr;
 }
-pragma "inline" proc createBorrowedArray7d(sa: sidl.Array) {
+proc createBorrowedArray7d(sa: sidl.Array) {
   if (sa.dim() != 7) {
     halt("input array is not of rank 7");
   }

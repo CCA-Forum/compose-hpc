@@ -12,7 +12,6 @@ proc performSanityCheck(aDom: domain, varName: string) {
   }
 }
 
-//pragma "inline"
 proc getArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   var aDomain = aDom._value;
   if (aDomain.type == BorrowedRectangularDom(aDom.rank, aDomain.idxType, aDomain.stridable)) {
@@ -22,7 +21,6 @@ proc getArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   return sidl_array_ordering.sidl_row_major_order;
 }
 
-//pragma "inline"
 proc getSidlArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   var aDomain = aDom._value;
   if (aDomain.type == BorrowedRectangularDom(aDom.rank, aDomain.idxType, aDomain.stridable)) {
@@ -33,7 +31,6 @@ proc getSidlArrayOrderMode(in a: [?aDom]): sidl_array_ordering {
   return sidl_array_ordering.sidl_column_major_order;
 }
 
-//pragma "inline"
 proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
     where isRectangularDom(aDom) {
   
@@ -79,7 +76,6 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
   return locArr;
 }
 
-//pragma "inline"
 proc syncNonLocalArray(inout src:[], inout target: [?targetDom])
     where isRectangularDom(targetDom) {
 
@@ -117,7 +113,7 @@ proc checkArraysAreEqual(in srcArray: [], inout destArray: []) {
 proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
 
   param arrayRank = srcArray.rank;
-  var result: [0..2][1..arrayRank] int(32);
+  var result: [0..2][1..arrayRank] int(64);
   var arrayOrderMode = getArrayOrderMode(srcArray);
 
   for i in [1..arrayRank] {

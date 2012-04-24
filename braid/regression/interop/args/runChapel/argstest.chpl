@@ -5,7 +5,7 @@ use sidl;
 config var bindir = "gantlet compatibility";
 
 var failed: bool = false;
-var part_no: int = 0;
+var part_no: int(32) = 0;
 var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
 
@@ -120,8 +120,8 @@ proc assertEquals(expected: complex(128), actual: complex(128)): bool
   // int 
   tracker.writeComment("Start: Testing 32-bit int", sidl_ex);
   
-  var POS_VALUE_INT32 = 3; 
-  var NEG_VALUE_INT32 = -3; 
+  var POS_VALUE_INT32: int(32) = 3; 
+  var NEG_VALUE_INT32: int(32) = -3; 
 
   var i32_out: int(32);
   var i32_inout: int(32) = POS_VALUE_INT32; 

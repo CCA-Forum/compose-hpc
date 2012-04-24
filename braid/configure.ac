@@ -114,32 +114,32 @@ AM_CONDITIONAL([BABEL_LANG_PYTHON], [echo $BABEL_LANGS |grep -q python])
 #
 # Chapel
 #
-AX_WITH_PROG(CHAPEL, chpl)
-AS_IF([test -n "$CHAPEL" -a -x "$CHAPEL"],
-    [CHAPEL_VERSION=`$CHAPEL --version |grep Version |awk '{print \$3}'`
-     AC_MSG_RESULT([using $CHAPEL (version $CHAPEL_VERSION)])
+AX_WITH_PROG(CHPL, chpl)
+AS_IF([test -n "$CHPL" -a -x "$CHPL"],
+    [CHPL_VERSION=`$CHPL --version |grep Version |awk '{print \$3}'`
+     AC_MSG_RESULT([using $CHPL (version $CHPL_VERSION)])
 
-     AX_COMPARE_VERSION([$CHAPEL_VERSION], ge, [1.4.0], 
-         [AC_SUBST([CHAPEL], ["$CHAPEL"])
- 	  CHAPEL_ROOT=`dirname \`dirname \\\`dirname $CHAPEL\\\`\``
-          AC_SUBST([CHAPEL_ROOT], [$CHAPEL_ROOT])
-          AC_SUBST([CHAPEL_VERSION], ["$CHAPEL_VERSION"])
-          AM_CONDITIONAL([BABEL_LANG_CHAPEL], [true])],
+     AX_COMPARE_VERSION([$CHPL_VERSION], ge, [1.5.0], 
+         [AC_SUBST([CHPL], ["$CHPL"])
+ 	  CHPL_ROOT=`dirname \`dirname \\\`dirname $CHPL\\\`\``
+          AC_SUBST([CHPL_ROOT], [$CHPL_ROOT])
+          AC_SUBST([CHPL_VERSION], ["$CHPL_VERSION"])
+          AM_CONDITIONAL([BABEL_LANG_CHPL], [true])],
 
-	 [AC_MSG_NOTICE([Chapel version < 1.4 is too old])
-          AC_SUBST([CHAPEL], [])
-          AM_CONDITIONAL([BABEL_LANG_CHAPEL], [false])]
+	 [AC_MSG_NOTICE([Chapel version < 1.5 is too old])
+          AC_SUBST([CHPL], [])
+          AM_CONDITIONAL([BABEL_LANG_CHPL], [false])]
      )
      AS_IF([test -n "$CHPL_COMM" ],
-          [AC_SUBST([CHAPEL_COMM], [$CHPL_COMM])
+          [AC_SUBST([CHPL_COMM], [$CHPL_COMM])
            AC_MSG_NOTICE([Chapel: CHPL_COMM=$CHPL_COMM])],
-	  [AC_SUBST([CHAPEL_COMM], ["none"])
+	  [AC_SUBST([CHPL_COMM], ["none"])
            AC_MSG_NOTICE([The environment variable CHPL_COMM was not set, defaulting to "none".
-Please see the $CHAPEL_ROOT/doc/README.multilocale for more details.])
+Please see the $CHPL_ROOT/doc/README.multilocale for more details.])
 	  ])
     ],
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
-     AC_SUBST([CHAPEL], [])])
+     AC_SUBST([CHPL], [])])
 
 
 ############################################################
@@ -172,7 +172,7 @@ AC_SUBST([BUILD_MACHINE], ["`hostname`"])
 AC_SUBST([CONFIGURE_DATE], ["`date`"])
 
 AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION, 
-               [test $HAVE_BABEL -eq 1 && test -n $CHAPEL_VERSION])
+               [test $HAVE_BABEL -eq 1 && test -n $CHPL_VERSION])
 
 AC_CONFIG_FILES([Makefile 
   braid/braid 
@@ -198,9 +198,9 @@ AS_IF([test -z "${SWIPL}"],
 AS_IF([test -z "${BABEL_PREFIX}"], 
       AC_MSG_RESULT([    Babel ............ NO]),
       AC_MSG_RESULT([    Babel ........... YES (${BABEL_VERSION} in ${BABEL_PREFIX})]))
-AS_IF([test -z "${CHAPEL_ROOT}"], 
+AS_IF([test -z "${CHPL_ROOT}"], 
       AC_MSG_RESULT([    Chapel ........... NO]),
-      [AC_MSG_RESULT([    Chapel .......... YES (${CHAPEL_VERSION} in ${CHAPEL_ROOT})])
+      [AC_MSG_RESULT([    Chapel .......... YES (${CHPL_VERSION} in ${CHPL_ROOT})])
        AC_MSG_RESULT([  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh])])
 AC_MSG_RESULT([==============================================================])
 AC_MSG_RESULT([BRAID configured successfully!])

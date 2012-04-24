@@ -17,4 +17,7 @@ and various Unix systems.
 
 ** TODO Make Chapel-Chapel interoperability work
 ** TODO Implement final methods
-   
+
+** TODO Warn the user when braid would overwrite a file (especially stub-modules). 
+   Maybe we can add a AUTOMATICALLY GENERATED line and check for that
+   and only overwrite files if that line is present.

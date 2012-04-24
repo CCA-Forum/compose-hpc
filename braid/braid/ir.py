@@ -68,6 +68,7 @@
 #   Struct_item = struct_item(Type, Id),
 #   Enum = enum(Id, [Enumerator], DocComment),
 #   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
+#   %Class = class(Scoped_id, [Fn_defn], Doc_comment),
 #   VarRefExpr = ( Id
 # 	       | Pointer_expr
 # 	       | Deref
@@ -86,7 +87,9 @@
 # 	 | typedef_type(Id)
 # 	 | const(Type) 
 # 	 | Struct
-# 	 | Enum),
+# 	 | Enum
+# 	 % | Class
+# 	 ),
 #   Primitive_type = primitive_type(
 #       bool
 #     | char

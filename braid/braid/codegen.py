@@ -207,6 +207,15 @@ class Scope(object):
         else:      self.indent_level = relative_indent
         self._sep = separator+' '*self.indent_level
 
+    def sub_scope(self, relative_indent, separator):
+        """
+        Use this function to create a sub-scope with similar behavior
+        but with differen indentation or separator.
+        
+        \return a new child scope for this scope object.
+        """
+        return Scope(self, relative_indent, separator)
+
     def has_declaration_section(self):
         """
         \return whether this scope has a section for variable declarations.
@@ -1171,13 +1180,13 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             return scope
 
         def gen_comma_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=1, separator=','))
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=1, separator=','))
 
         def gen_ws_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=0, separator=' '))
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=0, separator=' '))
 
         def gen_dot_sep(defs):
-            return self.gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
+            return self.gen_in_scope(defs, scope.sub_scope(relative_indent=0, separator='.'))
 
         def gen_comment(doc_comment):
             if doc_comment == '':
@@ -1755,9 +1764,7 @@ class SIDLCodeGenerator(GenericCodeGenerator):
         def gen_scope(pre, defs, post):
             sep = '\n'+' '*scope.indent_level
             new_def(pre+sep+
-                    gen_in_scope(defs,
-                                 Scope(scope, 4,
-                                       separator=';\n'))+';'+
+                    gen_in_scope(defs, scope.sub_scope(4, separator=';\n'))+';'+
                     sep+post)
 
         def gen_comment(doc_comment):
@@ -1769,13 +1776,13 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                                    )+sep+' */'+sep
 
         def gen_comma_sep(defs):
-            return gen_in_scope(defs, Scope(relative_indent=1, separator=','))
+            return gen_in_scope(defs, scope.sub_scope(relative_indent=1, separator=','))
 
         def gen_ws_sep(defs):
-            return gen_in_scope(defs, Scope(relative_indent=0, separator=' '))
+            return gen_in_scope(defs, scope.sub_scope(relative_indent=0, separator=' '))
 
         def gen_dot_sep(defs):
-            return gen_in_scope(defs, Scope(relative_indent=0, separator='.'))
+            return gen_in_scope(defs, scope.sub_scope(relative_indent=0, separator='.'))
 
         def tmap(f, l):
             return tuple(map(f, l))

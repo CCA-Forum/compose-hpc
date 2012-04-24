@@ -28,7 +28,6 @@ import config
 def generate_client(sidl_file, classes):
     """
     FIXME: make this a file copy from $prefix/share
-           make this work for more than one class
     """
     files = 'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
     files+= 'STUBHDRS = '+' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
@@ -40,10 +39,9 @@ def generate_client(sidl_file, classes):
     generate_client_server(sidl_file)
 
 
-def generate_server(sidl_file, pkgs, classes):
+def generate_server(sidl_file, classes, pkgs):
     """
     FIXME: make this a file copy from $prefix/share
-           make this work for more than one class
     """
     write_to('babel.make', """
 IMPLHDRS =
@@ -66,9 +64,8 @@ def generate_client_server(sidl_file):
     #extraflags='-ggdb -O0'
     write_to('GNUmakefile', r"""
 # Generic Chapel Babel wrapper GNU Makefile
-# $Id$
 #
-# Copyright (c) 2008, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2008, 2012,Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory.
 # Written by the Components Team <components@llnl.gov>
 # UCRL-CODE-2002-054
@@ -115,24 +112,24 @@ LIBDIR=$(PREFIX)/lib
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
 
-CHAPEL="""+config.CHAPEL+r"""
-CHPL_MAKE_HOME="""+config.CHAPEL_ROOT+r"""
-CHAPEL_MAKE_COMM="""+config.CHAPEL_COMM+r"""
+CHPL="""+config.CHPL+r"""
+CHPL_MAKE_HOME="""+config.CHPL_ROOT+r"""
+CHPL_MAKE_COMM="""+config.CHPL_COMM+r"""
 
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)/chpl
+INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)
 CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
-CHAPEL_MAKE_MEM=default
-CHAPEL_MAKE_COMPILER=gnu
-CHAPEL_MAKE_TASKS=none
-CHAPEL_MAKE_THREADS=pthreads
+CHPL_MAKE_MEM=default
+CHPL_MAKE_COMPILER=gnu
+CHPL_MAKE_TASKS=fifo
+CHPL_MAKE_THREADS=pthreads
 
-ifeq ($(CHAPEL_MAKE_COMM),gasnet)
-CHAPEL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-gasnet-nodbg/substrate-udp/seg-none
+ifeq ($(CHPL_MAKE_COMM),gasnet)
+CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-gasnet-nodbg/substrate-udp/seg-none
 else
-CHAPEL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHAPEL_MAKE_COMPILER)/mem-default/comm-none/substrate-none/seg-none
+CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-none/substrate-none/seg-none
 endif
 ####    include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 CHPL=chpl --fast
@@ -140,18 +137,37 @@ CHPL=chpl --fast
 
 include $(CHPL_MAKE_HOME)/make/Makefile.atomics
 
-CHPL_FLAGS=-std=c99 -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -I$(CHPL_MAKE_HOME)/runtime/include/tasks/fifo -I$(CHPL_MAKE_HOME)/runtime/include/threads/pthreads -I$(CHPL_MAKE_HOME)/runtime/include/comm/none -I$(CHPL_MAKE_HOME)/runtime/include/comp-gnu -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) -I$(CHPL_MAKE_HOME)/runtime/include/atomics/$(CHPL_MAKE_ATOMICS) -I$(CHPL_MAKE_HOME)/runtime/include -I. -Wno-all 
+CHPL_FLAGS=-std=c99 \
+  -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" \
+  -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" \
+  -I$(CHPL_MAKE_HOME)/runtime/include/tasks/$(CHPL_MAKE_TASKS) \
+  -I$(CHPL_MAKE_HOME)/runtime/include/threads/$(CHPL_MAKE_THREADS) \
+  -I$(CHPL_MAKE_HOME)/runtime/include/comm/none \
+  -I$(CHPL_MAKE_HOME)/runtime/include/comp-gnu \
+  -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
+  -I$(CHPL_MAKE_HOME)/runtime/include/atomics/$(CHPL_MAKE_ATOMICS) \
+  -I$(CHPL_MAKE_HOME)/runtime/include/mem/$(CHPL_MAKE_MEM) \
+  -I$(CHPL_MAKE_HOME)/runtime/include \
+  -I. -Wno-all 
 
-CHPL_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm  -lpthread -lsidlstub_chpl
+CHPL_LDFLAGS= \
+  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
+  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
+  -lchpl -lm -lpthread -lsidlstub_chpl
 
-CHPL_GASNET_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads $(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o -lchpl -lm -lpthread -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHAPEL_MAKE_COMPILER)/seg-everything/nodbg/lib -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
+CHPL_GASNET_LDFLAGS= \
+  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
+  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
+  -lchpl -lm -lpthread \
+  -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHPL_MAKE_COMPILER)/seg-everything/nodbg/lib \
+  -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
-CHPL_LAUNCHER_LDFLAGS=$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
-LAUNCHER_LDFLAGS=-L$(CHAPEL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHAPEL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
+CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
+LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
 
-SIDL_RUNTIME="""+config.PREFIX+r"""/include
-CHPL_HEADERS=-I$(SIDL_RUNTIME)/chpl -M$(SIDL_RUNTIME)/chpl \
-  chpl_sidl_array.h
+SIDL_RUNTIME="""+config.PREFIX+r"""/include/runtime
+CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
+  chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
 
 # most of the rest of the file should not require editing
 
@@ -166,7 +182,7 @@ else
   DCE= #--no-dead-code-elimination # include everything in libimpl.la
 endif
 
-ifeq ($(CHAPEL_MAKE_COMM),gasnet)
+ifeq ($(CHPL_MAKE_COMM),gasnet)
 
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET) $(TARGET)_real
 
@@ -265,13 +281,13 @@ endif
 
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
+	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --library --savec $<.dir $< $(IORHDRS) $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
 	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c

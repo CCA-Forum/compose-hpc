@@ -11,6 +11,7 @@ python_PYTHON += $(top_srcdir)/contrib/ply/yacc.py $(top_srcdir)/contrib/ply/lex
 
 # list all Python source files that also contain unit tests
 PYTHON_SOURCES = \
+	braid/babel.py \
 	braid/braid.py \
 	braid/chapel/__init__.py \
 	braid/chapel/backend.py \
