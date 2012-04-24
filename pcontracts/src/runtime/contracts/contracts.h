@@ -17,22 +17,39 @@
  **********************************************************************
  */
 
+#ifndef CONTRACTS_BOOL
 #if defined(__cplusplus)
 #define CONTRACTS_BOOL bool
+#ifndef CONTRACTS_TRUE
+#define CONTRACTS_TRUE true
+#endif
+#ifndef CONTRACTS_FALSE
+#define CONTRACTS_FALSE false
+#endif
 #else
 #define CONTRACTS_BOOL int
+#ifndef CONTRACTS_TRUE
+#define CONTRACTS_TRUE 1
 #endif
+#ifndef CONTRACTS_FALSE
+#define CONTRACTS_FALSE 0
+#endif
+#endif
+#endif /* CONTRACTS_BOOL */
+
+#ifndef CONTRACTS_INLINE
+#if defined(__cplusplus)
+#define CONTRACTS_INLINE inline
+#else 
+#define CONTRACTS_INLINE 
+#endif
+#endif /* CONTRACTS_INLINE */
 
 #ifndef NULL
 #define NULL 0
 #endif
-#ifndef TRUE
-#define TRUE 1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
 
+/* TBD/ToDo:  Obsolete? */
 #ifndef DIFFT
 #define DIFFT(T2, T1) \
   1.0e6*(double)((T2).tv_sec - (T1).tv_sec) \
@@ -51,7 +68,9 @@ extern "C" {
  */
 
 /* 
+ * ------------------------------------------------------------------
  * Contract enforcement violation types.
+ * ------------------------------------------------------------------
  */
 typedef enum ContractViolation__enum {
   ContractViolation_NONE           = 0,
