@@ -123,21 +123,21 @@
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
                                                                                         \
   proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
-    var rank = dom_a.rank;						                \
-    var lus = computeLowerUpperAndStride(a);					 	\
-    var lower: int(32) = lus(0): int(32);					 	\
-    var upper: int(32) = lus(1): int(32);					 	\
-    var stride: int(32) = lus(2): int(32);					 	\
-    if (here.id != a.locale.id) {                  					\
-      halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id);	\
-    }											\
-                                                                                        \
-    var ior = sidl_##C_TYPE##__array_borrow(firstElement,				\
-                                     dom_a.rank,					\
-                                     lower[1],						\
-                                     upper[1],						\
-                                     stride[1]);					\
-    return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);				\
+    var rank = dom_a.rank: int(32);					\
+    var lus = computeLowerUpperAndStride(a);				\
+    var lower = lus(0): int(32);					\
+    var upper = lus(1): int(32);					\
+    var stride = lus(2): int(32);					\
+    if (here.id != a.locale.id) {					\
+      halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id); \
+    }									\
+    									\
+    var ior = sidl_##C_TYPE##__array_borrow(firstElement,		\
+					    rank,			\
+					    lower[1],			\
+					    upper[1],			\
+					    stride[1]);			\
+    return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
   }
 
 SIDL_ARRAY(bool,     bool)
@@ -212,7 +212,7 @@ SIDL_ARRAY(BaseInterface, int(32))
     /**
      * Return the dimension of the array.
      */
-    proc dim(): int(32) {
+    proc dim(): int(64) {
       extern proc sidlArrayDim(inout array: sidl__array): int(32);
       return sidlArrayDim(self.d_metadata);
     }
@@ -225,7 +225,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * sidlLower(array,ind).
      */
 
-    proc lower(in ind: int(32)): int(32) {
+    proc lower(in ind: int(32)): int(64) {
       extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(self.d_metadata, ind);
     }
@@ -236,7 +236,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be less than or equal to
      * sidlUpper(array,ind).
      */
-    proc upper(in ind: int(32)): int(32) {
+    proc upper(in ind: int(32)): int(64) {
       extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlUpper(self.d_metadata, ind);
     }
@@ -245,7 +245,7 @@ SIDL_ARRAY(BaseInterface, int(32))
     /**
      * Macro to return the number of elements in dimension ind of an array.
      */
-    proc length(in ind: int(32)): int(32) {
+    proc length(in ind: int(32)): int(64) {
       extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLength(self.d_metadata, ind);
     }
@@ -256,7 +256,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * To move from the address of element i to element i + 1 in the dimension
      * ind, add sidlStride(array,ind).
      */
-    proc stride(in ind: int(32)): int(32) {
+    proc stride(in ind: int(32)): int(64) {
       extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlStride(self.d_metadata, ind);
     }
@@ -267,7 +267,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * This macro makes multiple references to array and ind, so you should
      * not use ++ or -- on arguments to this macro.
      */
-    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
+    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(64) {
       extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
       return sidlArrayDimCalc(self.d_metadata, ind, v);
     }

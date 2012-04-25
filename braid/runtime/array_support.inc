@@ -68,7 +68,7 @@ proc ensureLocalArray(inout a:[?aDom], aData: opaque) var
     // make a local copy of the non-local/distributed array in correct
     // order (we expect column-major)
     // self allocate the data, set as owner and then make element-wise copy
-    var opData: opaque = allocateData(numBits(locArr.eltType), a.numElements);
+    var opData: opaque = allocateData(numBits(locArr.eltType), a.numElements: int(32));
     locArr._value.borrow(opData);
     locArr._value.setDataOwner(true);
     [i in aDom] locArr(i) = a(i);
@@ -96,7 +96,7 @@ proc syncNonLocalArray(inout src:[], inout target: [?targetDom])
     }
   }
   if (arrayCopyReqd) {
-    [i in src.domain] target(i) = src(i);
+    [i in targetDom] target(i) = src(i);
   }
 }
 

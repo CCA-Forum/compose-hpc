@@ -465,7 +465,7 @@ proc chpl__initCopy(a: []) where
   // FIXME: Use reference counting instead of allocating new memory
   if (a._value.bData.owner) {
     // Allocate data and make element-wise copy
-    var opData: opaque = allocateData(numBits(a.eltType), a.numElements);
+    var opData: opaque = allocateData(numBits(a.eltType), a.numElements:int(32));
     b._value.borrow(opData);
     b._value.setDataOwner(true);
     [i in a.domain] b(i) = a(i);
@@ -479,7 +479,7 @@ proc chpl__initCopy(a: []) where
 }
 
 proc createBorrowedArray(type arrayIndexType, type arrayElmntType,
-        bData: opaque, arrayOrdering: sidl_array_ordering, arraySize: int(32)...?arrayRank) {
+        bData: opaque, arrayOrdering: sidl_array_ordering, arraySize: int(64)...?arrayRank) {
 
   type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, arrayIndexType, false);
   var locDom: locDomType;
@@ -505,7 +505,7 @@ proc createBorrowedArray1d(sa: sidl.Array) {
     halt("input array is not of rank 1");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0));
   return bArr;
 }
@@ -514,7 +514,7 @@ proc createBorrowedArray2d(sa: sidl.Array) {
     halt("input array is not of rank 2");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1));
   return bArr;
 }
@@ -523,7 +523,7 @@ proc createBorrowedArray3d(sa: sidl.Array) {
     halt("input array is not of rank 3");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1), sa.length(2));
   return bArr;
 }
@@ -532,7 +532,7 @@ proc createBorrowedArray4d(sa: sidl.Array) {
     halt("input array is not of rank 4");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1), sa.length(2), sa.length(3));
   return bArr;
 }
@@ -541,7 +541,7 @@ proc createBorrowedArray5d(sa: sidl.Array) {
     halt("input array is not of rank 5");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1), sa.length(2), sa.length(3),
             sa.length(4));
   return bArr;
@@ -551,7 +551,7 @@ proc createBorrowedArray6d(sa: sidl.Array) {
     halt("input array is not of rank 6");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1), sa.length(2), sa.length(3),
             sa.length(4), sa.length(5));
   return bArr;
@@ -561,7 +561,7 @@ proc createBorrowedArray7d(sa: sidl.Array) {
     halt("input array is not of rank 7");
   }
   var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedArray(int(32), sa.ScalarType, sa.first(), arrayOrdering,
+  var bArr = createBorrowedArray(int(64), sa.ScalarType, sa.first(), arrayOrdering,
             sa.length(0), sa.length(1), sa.length(2), sa.length(3),
             sa.length(4), sa.length(5), sa.length(6));
   return bArr;

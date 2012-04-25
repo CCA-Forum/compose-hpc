@@ -856,12 +856,12 @@ class GlueCodeGenerator(object):
                 # Python/Fortran/Java backends but simplify the C/C++
                 # ones.
                 sidl_wrapping = (ir.stmt, """
-            var {a}rank = _babel_dom_{arg}.rank;
+            var {a}rank = _babel_dom_{arg}.rank: int(32);
 
             var {a}lus = computeLowerUpperAndStride(_babel_local_{arg});
-            var {a}lower = {a}lus(0);
-            var {a}upper = {a}lus(1);
-            var {a}stride = {a}lus(2);
+            var {a}lower = {a}lus(0): int(32);
+            var {a}upper = {a}lus(1): int(32);
+            var {a}stride = {a}lus(2): int(32);
             
             var _babel_wrapped_local_{arg}: {iortype} = {iortype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),

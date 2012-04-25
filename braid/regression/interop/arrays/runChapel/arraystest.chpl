@@ -152,9 +152,12 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var borrowed: sidl.Array(int(32), sidl_int__array);
   var elements: [0..31] int(32) =
-    (2:int(32), 3:int(32), 5:int(32), 7:int(32), 11:int(32), 13:int(32), 17:int(32), 19:int(32), 23:int(32), 29:int(32), 31:int(32), 37:int(32),
-     41:int(32), 43:int(32), 47:int(32), 53:int(32), 59:int(32), 61:int(32), 67:int(32), 71:int(32), 73:int(32), 79:int(32), 83:int(32),
-     89:int(32), 97:int(32), 101:int(32), 103:int(32), 107:int(32), 109:int(32), 113:int(32), 127:int(32), 131:int(32));
+    (2:int(32),   3:int(32),  5:int(32),  7:int(32), 11:int(32), 13:int(32), 
+     17:int(32), 19:int(32), 23:int(32), 29:int(32), 31:int(32), 37:int(32),
+     41:int(32), 43:int(32), 47:int(32), 53:int(32), 59:int(32), 61:int(32),
+     67:int(32), 71:int(32), 73:int(32), 79:int(32), 83:int(32), 89:int(32), 
+     97:int(32), 101:int(32), 103:int(32), 107:int(32), 109:int(32), 113:int(32), 
+     127:int(32), 131:int(32));
 
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
   init_part(); run_part("borrowed_int: not-nil", borrowed._not_nil());
@@ -177,9 +180,12 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var borrowed: sidl.Array(int(32), sidl_int__array);
   var elementsExtra: [-1..32] int(32) =
-    (-1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
-     41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
-     89, 97, 101, 103, 107, 109, 113, 127, 131, -1);
+    ( -1:int(32),   2:int(32),   3:int(32),   5:int(32),   7:int(32), 11:int(32), 
+      13:int(32),  17:int(32),  19:int(32),  23:int(32),  29:int(32), 31:int(32),
+      37:int(32),  41:int(32),  43:int(32),  47:int(32),  53:int(32), 59:int(32),
+      61:int(32),  67:int(32),  71:int(32),  73:int(32),  79:int(32), 83:int(32),
+      89:int(32),  97:int(32), 101:int(32), 103:int(32), 107:int(32), 
+     109:int(32), 113:int(32), 127:int(32), 131:int(32),  -1:int(32));
   var elements = elementsExtra[0..31];
 
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
@@ -918,7 +924,7 @@ tracker.setExpectations(-1, sidl_ex);
     tracker.writeComment("createBorrowedArray3d", sidl_ex);
     var opData: opaque = iarray.first();
     var ibarray = sidl.createBorrowedArray3d(iarray);
-    var m = iarray.length(0), n = iarray.length(1), o = iarray.length(2);
+    var m = iarray.length(0):int(32), n = iarray.length(1):int(32), o = iarray.length(2):int(32);
     
     tracker.writeComment("checkRarray3Int", sidl_ex);
     init_part(); run_part("Check ibarray int 3", 
@@ -945,9 +951,13 @@ tracker.setExpectations(-1, sidl_ex);
     tracker.writeComment("createBorrowedArray7d", sidl_ex);
     var opData: opaque = iarray.first();
     var ibarray = sidl.createBorrowedArray7d(iarray);
-    var m = iarray.length(0), n = iarray.length(1), o = iarray.length(2),
-      p = iarray.length(3), q = iarray.length(4), r = iarray.length(5), 
-      s = iarray.length(6);
+    var m = iarray.length(0):int(32), 
+      n = iarray.length(1):int(32), 
+      o = iarray.length(2):int(32),
+      p = iarray.length(3):int(32),
+      q = iarray.length(4):int(32),
+      r = iarray.length(5):int(32), 
+      s = iarray.length(6):int(32);
     
     init_part(); run_part("Check ibarray int 7", 
         ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, m, n, o, p, q, r, s, sidl_ex) == true);
@@ -968,7 +978,7 @@ tracker.setExpectations(-1, sidl_ex);
   {
     tracker.writeComment("Start: Check initialization for int 32b - 3D", sidl_ex);
 
-    var n = 2, m = 3, o = 4;    
+    var n = 2:int(32), m = 3:int(32), o = 4:int(32);    
     var irarray: [0.. #n, 0.. #m, 0.. #o] int(32); //2*3*4 
 
     magicNumber = clearstack(magicNumber);
@@ -981,7 +991,8 @@ tracker.setExpectations(-1, sidl_ex);
   {
     tracker.writeComment("Start: Check initialization for int 32b - 7D", sidl_ex);
 
-    var n = 2, m = 2 , o = 2, p = 2, q = 3, r = 3, s = 3;
+    var n = 2:int(32), m = 2:int(32), o = 2:int(32), p = 2:int(32), q = 3:int(32), 
+        r = 3:int(32), s = 3:int(32);
     var irarray: [0.. #n, 0.. #m, 0.. #o, 0.. #p, 0.. #q, 0.. #r, 0.. #s] int(32); //2*2*2*2*3*3*3 
 
     magicNumber = clearstack(magicNumber);
@@ -1016,13 +1027,13 @@ tracker.setExpectations(-1, sidl_ex);
   {
     tracker.writeComment("Start: Check matrix multiplication", sidl_ex);
    
-    var n = 3, m = 3, o = 2;
+    var n = 3:int(32), m = 3:int(32), o = 2:int(32);
     var a: [0.. #n, 0.. #m] int(32);
     var b: [0.. #m, 0.. #o] int(32);
     var x: [0.. #n, 0.. #o] int(32);
 
-    [(i) in [0..8]] a[i / m, i % m] = i;
-    [(i) in [0..5]] b[i / o, i % o] = i;
+    [(i) in [0..8]] a[i / m, i % m] = i:int(32);
+    [(i) in [0..5]] b[i / o, i % o] = i:int(32);
 
     tracker.writeComment("matrixMultiply()", sidl_ex);
     ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o, sidl_ex);
@@ -1036,13 +1047,13 @@ tracker.setExpectations(-1, sidl_ex);
  {
     tracker.writeComment("Start: Check matrix multiplication:slice", sidl_ex);
 
-    var n = 3, m = 3, o = 2;
+    var n = 3:int(32), m = 3:int(32), o = 2:int(32);
     var ae: [-2..n, -2..m] int(32);
     var be: [-2..m, 0..o] int(32);
     var xe: [-2..n, 0..o] int(32);
 
-    [(i) in [0..8]] ae[i / m, i % m] = i;
-    [(i) in [0..5]] be[i / o, i % o] = i;
+    [(i) in [0..8]] ae[(i / m):int(32), (i % m):int(32)] = i:int(32);
+    [(i) in [0..5]] be[(i / o):int(32), (i % o):int(32)] = i:int(32);
 
     tracker.writeComment("matrixMultiply():slice", sidl_ex);
     ArrayTest.ArrayOps_static.matrixMultiply(
