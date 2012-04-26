@@ -165,7 +165,7 @@ CHPL_GASNET_LDFLAGS= \
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
 
-SIDL_RUNTIME="""+config.PREFIX+r"""/include/runtime
+SIDL_RUNTIME="""+config.PREFIX+r"""/include/chpl
 CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
   chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
 

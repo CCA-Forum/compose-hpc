@@ -1,4 +1,4 @@
-AC_PREREQ(2.65)
+AC_PREREQ(2.68)
 dnl gantlet expects the following statement to be exactly one line.
 AC_INIT([Braid],[0.2.5],[components@llnl.gov],[braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
