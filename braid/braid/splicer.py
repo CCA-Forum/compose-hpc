@@ -88,7 +88,8 @@ def record(filename):
             inside = False
             splicers[splicer_name] = splicer
         elif inside:
-            splicer.append(line)
+            # store it and remove the trailing newline
+            splicer.append(re.sub(r'\r?\n$', '', line[:-1]))
 
     if inside:
         raise Exception("unclosed splicer block: "+splicer_name)

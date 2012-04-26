@@ -60,6 +60,9 @@ extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_interface = 'BaseInterface'
 chplmain_extras = r"""
+
+// These definitions are needed if we link a Chapel library against a non-Chapel main
+__attribute__((weak))
 int handleNonstandardArg(int* argc, char* argv[], int argNum, 
                          int32_t lineno, chpl_string filename) {
   char* message = chpl_glom_strings(3, "Unexpected flag:  \"", argv[argNum], 
@@ -68,12 +71,14 @@ int handleNonstandardArg(int* argc, char* argv[], int argNum,
   return 0;
 }
 
+__attribute__((weak))
 void printAdditionalHelp(void) {
 }
 
 char* chpl_executionCommand;
 
-static void recordExecutionCommand(int argc, char *argv[]) {
+__attribute__((weak))
+void recordExecutionCommand(int argc, char *argv[]) {
   int i, length = 0;
   for (i = 0; i < argc; i++) {
     length += strlen(argv[i]) + 1;
@@ -1172,6 +1177,10 @@ class GlueCodeGenerator(object):
             ci.impl.new_def(gen_doc_comment(cls.doc_comment, chpl_stub)+
                             'class %s_Impl {'%qname)
 
+            splicer = '.'.join(cls.qualified_name+['Impl'])
+            ci.impl.new_def('/* DO-NOT-DELETE splicer.begin(%s) */'%splicer)
+            ci.impl.new_def('/* DO-NOT-DELETE splicer.end(%s) */'%splicer)
+
             typedefs = self.class_typedefs(qname, cls.symbol_table)
             chpl_stub.cstub._header.extend(typedefs._header)
             chpl_stub.cstub._defs.extend(typedefs._defs)
@@ -1506,7 +1515,11 @@ class GlueCodeGenerator(object):
                 # FIXME see comment in chpl_to_ior
                 name = '_CHPL_'+name
                 decls.append(ir.Stmt(ir.Var_decl(proxy_t, name)))
-                if mode <> sidl.in_ or is_struct:
+                if (mode <> sidl.in_ or is_struct 
+                    # TODO this should be handled by a conversion rule
+                    or (mode == sidl.in_ and (
+                            c_t == ir.pt_fcomplex or 
+                            c_t == ir.pt_dcomplex))):
                     name = ir.Pointer_expr(name)
      
             if name == 'self' and member_chk(ir.pure, attrs):
@@ -1540,18 +1553,24 @@ class GlueCodeGenerator(object):
                     decls+pre_call+call+post_call+return_stmt,
                     DocComment)
 
-        def lower_array_args((arg, attr, mode, typ, name)):
+        def skel_args((arg, attr, mode, typ, name)):
+            # lower array args
             if typ[0] == sidl.array:
                 return arg, attr, mode, ir.pt_void, name
+            # complex is always passed as a pointer since chpl 1.5
+            elif mode == ir.in_ and typ[0] == ir.typedef_type and (
+                typ[1] == '_complex64' or
+                typ[1] == '_complex128'):
+                return arg, attr, mode, ir.Pointer_type(typ), name
             else: return arg, attr, mode, typ, name
 
         impldecl = (ir.fn_decl, [], chpltype, callee,
-                    this_arg+map(lower_array_args, chpl_args),
+                    this_arg+map(skel_args, chpl_args),
                     DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
                     Type, Name,
-                    this_arg+Args,
+                    Args,
                     [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
                     DocComment)

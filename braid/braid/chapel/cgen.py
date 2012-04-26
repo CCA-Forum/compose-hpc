@@ -71,10 +71,12 @@ def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
     return arg, attrs, mode, chpl_type, name
 
 def deref(mode, typ, name):
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct: # _ex
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
         return name+'->'
-    elif typ[0] ==  ir.struct:
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.pointer_type and typ[1][0][0] == ir.struct: # _ex
         return name+'->'
+    #elif typ[0] ==  ir.struct:
+    #    return name+'->'
     elif mode == sidl.in_:
         return name 
     else: return '(*%s)'%name
@@ -116,7 +118,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     """
 
     def obj_by_value((arg, attrs, mode, typ, name)):
-        if typ[0] == ir.struct and name == 'self':
+        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct and name == 'self':
             return (arg, attrs, ir.in_, typ, name)
         elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and mode == ir.in_:
             return (arg, attrs, ir.inout, typ, name)

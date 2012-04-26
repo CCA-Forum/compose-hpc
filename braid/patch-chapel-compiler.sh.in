@@ -33,7 +33,7 @@ This script will apply several patches to your chapel compiler
 and then recompile it.
 
 The chapel compiler that will be modified is located in
-@CHAPEL_ROOT@.
+@CHPL_ROOT@.
 
 $HELP
 
@@ -47,8 +47,8 @@ if [ ! -e Doxyfile ]; then
 fi
 
 # apply the patches
-pushd @CHAPEL_ROOT@ || exit 1
-for p in `ls -1 $lsflags $base/@top_srcdir@/chapel-patches/ |grep diff`; do
+pushd @CHPL_ROOT@ || exit 1
+for p in `ls -1 $lsflags $base/@top_srcdir@/chapel-patches/ |grep '\.diff\$'`; do
     echo "[" `basename $p` "]"
     patch $flags -p3 -u < "$base/@top_srcdir@/chapel-patches/$p" || echo "**ERROR"
 done
@@ -60,8 +60,8 @@ fi
 
 popd
 echo "**clean"
-make -C @CHAPEL_ROOT@ clean 
+make -C @CHPL_ROOT@ clean 
 echo "**compiling"
-make -C @CHAPEL_ROOT@ CHPL_COMM=@CHAPEL_COMM@
+make -C @CHPL_ROOT@ CHPL_COMM=@CHPL_COMM@
 
 

@@ -250,6 +250,10 @@ chpl.long @C <-- ior.long: cost(0)
 chpl.void @C <-- ior.void:cost(0)
     pass
 
+# FIXME:
+# chpl.pointer_type @C <-- ior.*
+#   a0 = ir.Pointer_expr(a0)
+
 chpl.pointer_type @C <-- ior.pointer_type :cost(0)
     pass
 

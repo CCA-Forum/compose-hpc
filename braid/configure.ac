@@ -1,6 +1,6 @@
 AC_PREREQ(2.65)
 dnl gantlet expects the following statement to be exactly one line.
-AC_INIT([Braid],[0.2.4],[components@llnl.gov],[braid],[http://compose-hpc.sourceforge.net/])
+AC_INIT([Braid],[0.2.5],[components@llnl.gov],[braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
 AC_CONFIG_MACRO_DIR([m4])
 CCA_DIAGNOSE_INIT(toolcheck.log)
@@ -123,12 +123,9 @@ AS_IF([test -n "$CHPL" -a -x "$CHPL"],
          [AC_SUBST([CHPL], ["$CHPL"])
  	  CHPL_ROOT=`dirname \`dirname \\\`dirname $CHPL\\\`\``
           AC_SUBST([CHPL_ROOT], [$CHPL_ROOT])
-          AC_SUBST([CHPL_VERSION], ["$CHPL_VERSION"])
-          AM_CONDITIONAL([BABEL_LANG_CHPL], [true])],
-
+          AC_SUBST([CHPL_VERSION], ["$CHPL_VERSION"])],
 	 [AC_MSG_NOTICE([Chapel version < 1.5 is too old])
-          AC_SUBST([CHPL], [])
-          AM_CONDITIONAL([BABEL_LANG_CHPL], [false])]
+          AC_SUBST([CHPL], [])]
      )
      AS_IF([test -n "$CHPL_COMM" ],
           [AC_SUBST([CHPL_COMM], [$CHPL_COMM])
@@ -141,6 +138,7 @@ Please see the $CHPL_ROOT/doc/README.multilocale for more details.])
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
      AC_SUBST([CHPL], [])])
 
+AM_CONDITIONAL([BABEL_LANG_CHPL], [echo $CHPL])
 
 ############################################################
 #
