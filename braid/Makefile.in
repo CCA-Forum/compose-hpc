@@ -67,31 +67,37 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 @ENABLE_INTEROP_REGRESSION_TRUE@am__append_2 = $(BABEL_TESTS)
 # Hmm.. apparently, this is not the same as the above
 @ENABLE_INTEROP_REGRESSION_TRUE@am__append_3 = .chpl
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_4 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runC/runC2Chapel.sh)
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_4 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/runC2Chapel.sh)
 @BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_5 = Cxx
-@BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_6 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_7 = F77
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_8 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_9 = F90
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_10 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_11 = F03
-@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_12 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_13 = Java
-@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_14 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
-@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = Python
-@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_16 = $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+@BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_6 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libCxx/libimpl.la)
+@BABEL_LANG_CXX_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_7 = $$(filter $(TESTDIR)/%/libCxx/libimpl.la,$(check_DATA))
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_8 = F77
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_9 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF77/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F77_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_10 = $$(filter $(TESTDIR)/%/libF77/libimpl.la,$(check_DATA))
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_11 = F90
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_12 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF90/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F90_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_13 = $$(filter $(TESTDIR)/%/libF90/libimpl.la,$(check_DATA))
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_14 = F03
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_15 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF03/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_F03_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_16 = $$(filter $(TESTDIR)/%/libF03/libimpl.la,$(check_DATA))
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_17 = Java
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_18 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libJava/libimpl.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_JAVA_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_19 = $$(filter $(TESTDIR)/%/libJava/libimpl.la,$(check_DATA))
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_20 = Python
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_21 = $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libPython/libimpl1.la)
+@BABEL_LANG_C_TRUE@@BABEL_LANG_PYTHON_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_22 = $$(filter $(TESTDIR)/%/libPython/libimpl1.la,$(check_DATA))
 
-#check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
-
-# for now onnly these work
-@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_17 = $(builddir)/regression/interop/args/libChapel/libimpl.la \
-@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/regression/interop/contracts/libChapel/libimpl.la \
-@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
+# for now only these work
+# check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libChapel/libimpl.la)
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_23 = $(TESTDIR)/args/libChapel/libimpl.la \
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(TESTDIR)/contracts/libChapel/libimpl.la \
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(BABEL_TESTNAMES:%=$(TESTDIR)/%/runChapel/runChapel2C.sh)
+@BABEL_LANG_CHPL_TRUE@@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@am__append_24 = $$(filter $(TESTDIR)/%/libChapel/libimpl.la,$(check_DATA))
 
 # add Backports
-@PYTHON_VERSION_2_6_TRUE@am__append_18 = contrib/argparse-1.1/argparse.py
-@ENABLE_DOCUMENTATION_TRUE@am__append_19 = \
+@PYTHON_VERSION_2_6_TRUE@am__append_25 = contrib/argparse-1.1/argparse.py
+@ENABLE_DOCUMENTATION_TRUE@am__append_26 = \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/index.html \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/*.*        \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/search/*.*
@@ -507,7 +513,7 @@ top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 # initialize everything to blank so the include files can use the += operator
 python_PYTHON = $(top_srcdir)/contrib/ply/yacc.py \
-	$(top_srcdir)/contrib/ply/lex.py $(am__append_18)
+	$(top_srcdir)/contrib/ply/lex.py $(am__append_25)
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON = $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
@@ -551,7 +557,7 @@ EXTRA_DIST = COPYRIGHT README contrib/README \
 	chapel-patches/0003-add-example-for-borrowed-array.diff \
 	chapel-patches/0004-add-support-for-configurable-field-name-during-assig.diff \
 	chapel-patches/0005-added-field-name-arg-to-ref_borrow.diff \
-	$(am__append_19) doc/man_header.txt $(CHPL_RUNTIME_FILES)
+	$(am__append_26) doc/man_header.txt $(CHPL_RUNTIME_FILES)
 @PYTHON_VERSION_2_6_FALSE@BACKPORTS = 
 
 # 3rd party stuff
@@ -635,6 +641,9 @@ PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
 SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
 AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
+# GNU make allows us to use $$-quoted variables which are exanded in a second pass
+TESTDIR = regression/interop
+TTESTDIR = $(top_builddir)/regression/interop
 
 # These are gently ordered by number of generated files to speedup parallel builds
 BABEL_TESTS = \
@@ -657,33 +666,40 @@ BABEL_TESTNAMES = \
 # On parallel make: Apparently my nice hack to pass through the jobs
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
-#AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-@ENABLE_INTEROP_REGRESSION_TRUE@AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh
+#AM_BABEL_LOG_FLAGS = $(TESTDIR)/driver.sh $(MAKE) -$(MAKEFLAGS)
+@ENABLE_INTEROP_REGRESSION_TRUE@AM_CHPL_LOG_FLAGS = $(TESTDIR)/driver.sh
 
 # This target will be made prior to the tests. We use it to compile
 # regression/output and all the server libraries that are copied over
 # from Babel
-@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile \
+@ENABLE_INTEROP_REGRESSION_TRUE@check_DATA = $(TESTDIR)/output/libC/libimpl.la \
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_4) \
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_6) \
-@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_8) \
-@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_10) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_9) \
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_12) \
-@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_14) \
-@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_16) \
-@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_17)
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_18) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_21) \
+@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_23)
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@SERVER_DEPS =  \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$$(filter \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(TESTDIR)/%/libC/libimpl.la,$(check_DATA)) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_7) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_10) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_13) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_16) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_19) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_22) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_24)
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@languages = C \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_5) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_7) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_9) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_8) \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_11) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_13) \
-@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_15)
-@ENABLE_INTEROP_REGRESSION_TRUE@TESTDIR = $(builddir)/regression/interop
-@ENABLE_INTEROP_REGRESSION_TRUE@TTESTDIR = $(top_builddir)/regression/interop
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_14) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_17) \
+@BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_20)
 @ENABLE_INTEROP_REGRESSION_TRUE@CLIENT_DEPS = $(TTESTDIR)/build-client.sh \
-@ENABLE_INTEROP_REGRESSION_TRUE@            $(filter %.la, $(check_DATA)) \
-@ENABLE_INTEROP_REGRESSION_TRUE@	    $(TESTDIR)/output/libC/GNUmakefile \
+@ENABLE_INTEROP_REGRESSION_TRUE@	    $(TESTDIR)/output/libC/libimpl.la \
 @ENABLE_INTEROP_REGRESSION_TRUE@            $(nobase_python_PYTHON)
 
 
@@ -2508,9 +2524,13 @@ clean-braid:
 # This can be done more nicely... Problem is, we do not want to force
 # the dependency on swipl on the users
 	if [ -x $(SWIPL) ]; then rm -f $(BUILT_SOURCES); fi
+
+.SECONDEXPANSION:
+
 # We are only using one proxy target to circumvent the
 # multi-target-parallel make issue
-@ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/output/libC/GNUmakefile: $(TTESTDIR)/build-tracker.sh
+@ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/output/libC/libimpl.la: $(TTESTDIR)/build-tracker.sh
+@ENABLE_INTEROP_REGRESSION_TRUE@	echo $(check_DATA)
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $(MAKE) $(MAKEFLAGS)
 
 @ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
@@ -2522,9 +2542,11 @@ clean-braid:
 # ATTN: If we should ever encounter a race condition with this rule,
 # it is because libimpl.la is not the last file to be built by
 # build-server.sh
-@ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/%/runChapel/runChapel2C.sh: $(CLIENT_DEPS)
+@ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/%/runChapel/runChapel2C.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
+#       @echo Prerequisites are $^
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $@ $(MAKE) $(MAKEFLAGS)
-@ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/%/runC/runC2Chapel.sh: $(CLIENT_DEPS)
+
+@ENABLE_INTEROP_REGRESSION_TRUE@$(TESTDIR)/%/runC/runC2Chapel.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 @ENABLE_INTEROP_REGRESSION_TRUE@clean-regression:

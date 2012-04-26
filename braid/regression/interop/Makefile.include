@@ -1,5 +1,11 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
+.SECONDEXPANSION:
+# GNU make allows us to use $$-quoted variables which are exanded in a second pass
+
+TESTDIR=regression/interop
+TTESTDIR=$(top_builddir)/regression/interop
+
 # These are gently ordered by number of generated files to speedup parallel builds
 BABEL_TESTS = \
   regression/interop/inherit/runChapel/inherittest.chpl \
@@ -33,65 +39,71 @@ CHPL_LOG_COMPILER = sh
 # On parallel make: Apparently my nice hack to pass through the jobs
 # pipe does not work too well. We therefore use -j1 to force each
 # testcase to build serially if make check is run with -jN.
-#AM_BABEL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh $(MAKE) -$(MAKEFLAGS)
-AM_CHPL_LOG_FLAGS = $(builddir)/regression/interop/driver.sh
+#AM_BABEL_LOG_FLAGS = $(TESTDIR)/driver.sh $(MAKE) -$(MAKEFLAGS)
+AM_CHPL_LOG_FLAGS = $(TESTDIR)/driver.sh
 
 # This target will be made prior to the tests. We use it to compile
 # regression/output and all the server libraries that are copied over
 # from Babel
-check_DATA = $(builddir)/regression/interop/output/libC/GNUmakefile
+check_DATA = $(TESTDIR)/output/libC/libimpl.la
 
 if BABEL_LANG_C # for symmetry -- can't do much without C ..?
-check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libC/libimpl.la)
-check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runC/runC2Chapel.sh)
+check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la)
+check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/runC2Chapel.sh)
+SERVER_DEPS = $$(filter $(TESTDIR)/%/libC/libimpl.la,$(check_DATA))
 languages = C
 
 if BABEL_LANG_CXX
   languages += Cxx
-  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libCxx/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libCxx/libimpl.la)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libCxx/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F77
   languages += F77
-  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF77/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF77/libimpl.la)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF77/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F90
   languages += F90
-  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF90/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF90/libimpl.la)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF90/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F03
   languages += F03
-  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libF03/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF03/libimpl.la)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF03/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_JAVA
   languages += Java
-  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libJava/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libJava/libimpl.la)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libJava/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_PYTHON
   languages += Python
-  check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libPython/libimpl1.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libPython/libimpl1.la)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libPython/libimpl1.la,$(check_DATA))
 endif
 
 if BABEL_LANG_CHPL
-#check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/libChapel/libimpl.la)
+# for now only these work
+  check_DATA += $(TESTDIR)/args/libChapel/libimpl.la
+  check_DATA += $(TESTDIR)/contracts/libChapel/libimpl.la
+# check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libChapel/libimpl.la)
 
-# for now onnly these work
-check_DATA += $(builddir)/regression/interop/args/libChapel/libimpl.la
-check_DATA += $(builddir)/regression/interop/contracts/libChapel/libimpl.la
-
-check_DATA += $(builddir)/$(BABEL_TESTNAMES:%=regression/interop/%/runChapel/runChapel2C.sh)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runChapel/runChapel2C.sh)
+  SERVER_DEPS += $$(filter $(TESTDIR)/%/libChapel/libimpl.la,$(check_DATA))
 endif
 endif
 
-TESTDIR=$(builddir)/regression/interop
-TTESTDIR=$(top_builddir)/regression/interop
 # We are only using one proxy target to circumvent the
 # multi-target-parallel make issue
-$(TESTDIR)/output/libC/GNUmakefile: $(TTESTDIR)/build-tracker.sh
+$(TESTDIR)/output/libC/libimpl.la: $(TTESTDIR)/build-tracker.sh
+	echo $(check_DATA)
 	@sh $< $(MAKE) $(MAKEFLAGS)
 
 $(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
@@ -101,16 +113,17 @@ $(TESTDIR)/%/libimpl1.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
-            $(filter %.la, $(check_DATA)) \
-	    $(TESTDIR)/output/libC/GNUmakefile \
+	    $(TESTDIR)/output/libC/libimpl.la \
             $(nobase_python_PYTHON)
 
 # ATTN: If we should ever encounter a race condition with this rule,
 # it is because libimpl.la is not the last file to be built by
 # build-server.sh
-$(TESTDIR)/%/runChapel/runChapel2C.sh: $(CLIENT_DEPS)
+$(TESTDIR)/%/runChapel/runChapel2C.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
+#       @echo Prerequisites are $^
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
-$(TESTDIR)/%/runC/runC2Chapel.sh: $(CLIENT_DEPS)
+
+$(TESTDIR)/%/runC/runC2Chapel.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 clean-regression:

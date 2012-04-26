@@ -154,6 +154,7 @@ If you just want to compile and install BRAID, you will need:
 - gcc, ld, Perl, AWK, sed
 
 If you want to run the regression tests, you will also need:
+- GNU make               Version 3.74 or higher
 - Babel:                 Version 2.0 or higher
 - Chapel:                Version 1.4.0
 - Java:                  JVM 1.6 or higher
