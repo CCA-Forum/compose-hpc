@@ -40,12 +40,17 @@ fi
 
 echo "--generate server [ $language / $TESTCASE ]"
 cd lib$language                                         ||exit 1
-$BRAID $sidl -s$language --makefile                     ||exit 1
+if [ x$TESTCASE == xhooks ]; then
+    $BRAID $sidl -s$language --makefile -i              ||exit 1
+else
+    $BRAID $sidl -s$language --makefile                 ||exit 1
+fi
 # turn on debugging
 @PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1
 cd ..						        ||exit 1
 
 echo "--compile server  [ $language / $TESTCASE ]"
+$MAKE -C lib$language clean
 if [ x"$language" = x"Chapel" ]; then
     exec $MAKE all -C lib$language # verbose
 else

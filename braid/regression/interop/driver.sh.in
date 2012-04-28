@@ -2,12 +2,19 @@
 if [ $# != 1 ]; then
     exit 1
 fi
-TESTCASE=`basename $1 test.chpl`
+SCRIPT=`basename $1`
+CLIENTDIR=`dirname $1`
+CLIENT=`basename $CLIENTDIR`
+TESTCASE=`basename \`dirname $CLIENTDIR\``
+#TESTCASE=`basename $1 test.chpl`
 cd regression/interop                                   ||exit 1
 cd $TESTCASE                                            ||exit 1
-cd runChapel						||exit 1
+cd $CLIENT						||exit 1
 
 echo "--run client"
+exec ./$SCRIPT 
+
+...
 
 for libdir in `ls -1 -d ../lib*`; do
   language=`echo $libdir|sed 's/^...lib//g'`

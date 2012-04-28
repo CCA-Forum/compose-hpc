@@ -1,6 +1,6 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
 
-.SECONDEXPANSION:
+# .SECONDEXPANSION:
 # GNU make allows us to use $$-quoted variables which are exanded in a second pass
 
 TESTDIR=regression/interop
@@ -18,98 +18,105 @@ BABEL_TESTS = \
   regression/interop/overload/runChapel/overloadtest.chpl \
   regression/interop/struct/runChapel/structtest.chpl 
 
-BABEL_TESTNAMES = \
-  args arrays inherit strings exceptions ordering overload struct 
-
-# BABEL_TESTS = regression/interop/contracts/runChapel/contractstest.chpl 
-# BABEL_TESTNAMES = contracts
+BABEL_TESTNAMES = args arrays contracts enums hooks inherit strings exceptions ordering overload struct 
+BABEL_TESTNAMES77 = args arrays contracts enums hooks inherit strings exceptions overload struct
 
 EXTRA_DIST += $(BABEL_TESTS)
 
 if ENABLE_INTEROP_REGRESSION
-TESTS += $(BABEL_TESTS)
-# Hmm.. apparently, this is not the same as the above
-## BABEL_TESTS = args arrays strings
-## $(BABEL_TESTS:%=$(INTEROP_DIR)/%.babel)
-
-TEST_EXTENSIONS += .chpl
-CHPL_LOG_COMPILER = sh 
-# FIXME:
-#
-# On parallel make: Apparently my nice hack to pass through the jobs
-# pipe does not work too well. We therefore use -j1 to force each
-# testcase to build serially if make check is run with -jN.
-#AM_BABEL_LOG_FLAGS = $(TESTDIR)/driver.sh $(MAKE) -$(MAKEFLAGS)
-AM_CHPL_LOG_FLAGS = $(TESTDIR)/driver.sh
 
 # This target will be made prior to the tests. We use it to compile
 # regression/output and all the server libraries that are copied over
 # from Babel
 check_DATA = $(TESTDIR)/output/libC/libimpl.la
 
+# Automake does not allow the use of wildcards, so we generate the
+# list of tests by hand
+include regression/interop/tests.mk
+TESTS += $(INTEROP_TESTS)
+TEST_EXTENSIONS += .sh
+SH_LOG_COMPILER = sh regression/interop/driver.sh 
+
 if BABEL_LANG_C # for symmetry -- can't do much without C ..?
-check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la)
-check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/runC2Chapel.sh)
-SERVER_DEPS = $$(filter $(TESTDIR)/%/libC/libimpl.la,$(check_DATA))
 languages = C
+check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la)
+check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/client-stamp)
+# by using $$ we can record a list of prerequisites that will get
+# %-expanded when used in a rule
+#SERVER_DEPS = $$(filter $(TESTDIR)/%/libC/libimpl.la,$(check_DATA))
 
 if BABEL_LANG_CXX
   languages += Cxx
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libCxx/libimpl.la)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libCxx/libimpl.la,$(check_DATA))
+#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libCxx/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runCxx/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libCxx/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F77
   languages += F77
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF77/libimpl.la)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF77/libimpl.la,$(check_DATA))
+#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF77/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES77:%=$(TESTDIR)/%/runF77/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF77/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F90
   languages += F90
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF90/libimpl.la)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF90/libimpl.la,$(check_DATA))
+#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF90/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES77:%=$(TESTDIR)/%/runF90/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF90/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F03
   languages += F03
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF03/libimpl.la)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF03/libimpl.la,$(check_DATA))
+#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF03/libimpl.la)
+  check_DATA += $(BABEL_TESTNAMES77:%=$(TESTDIR)/%/runF03/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF03/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_JAVA
   languages += Java
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libJava/libimpl.la)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libJava/libimpl.la,$(check_DATA))
+#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libJava/libimpl.jar)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runJava/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libJava/libimpl.jar,$(check_DATA))
 endif
 
 if BABEL_LANG_PYTHON
   languages += Python
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libPython/libimpl1.la)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libPython/libimpl1.la,$(check_DATA))
+#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libPython/libimpl2.la)
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runPython/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libPython/libimpl2.la,$(check_DATA))
 endif
 
 if BABEL_LANG_CHPL
 # for now only these work
-  check_DATA += $(TESTDIR)/args/libChapel/libimpl.la
-  check_DATA += $(TESTDIR)/contracts/libChapel/libimpl.la
+#  check_DATA += $(TESTDIR)/args/libChapel/libimpl.la
+#  check_DATA += $(TESTDIR)/contracts/libChapel/libimpl.la
 # check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libChapel/libimpl.la)
 
-  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runChapel/runChapel2C.sh)
-  SERVER_DEPS += $$(filter $(TESTDIR)/%/libChapel/libimpl.la,$(check_DATA))
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runChapel/client-stamp)
+#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libChapel/libimpl.la,$(check_DATA))
 endif
+
 endif
+
+# FIXME:
+#
+# On parallel make: Apparently my nice hack to pass through the jobs
+# pipe does not work too well. We therefore use -j1 to force each
+# testcase to build serially if make check is run with -jN.
 
 # We are only using one proxy target to circumvent the
 # multi-target-parallel make issue
 $(TESTDIR)/output/libC/libimpl.la: $(TTESTDIR)/build-tracker.sh
-	echo $(check_DATA)
 	@sh $< $(MAKE) $(MAKEFLAGS)
 
 $(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-$(TESTDIR)/%/libimpl1.la: $(TTESTDIR)/build-server.sh
+$(TESTDIR)/%/libimpl.jar: $(TTESTDIR)/build-server.sh
+	@sh $< $@ $(MAKE) $(MAKEFLAGS)
+
+$(TESTDIR)/%/libimpl2.la: $(TTESTDIR)/build-server.sh
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
@@ -119,12 +126,9 @@ CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
 # ATTN: If we should ever encounter a race condition with this rule,
 # it is because libimpl.la is not the last file to be built by
 # build-server.sh
-$(TESTDIR)/%/runChapel/runChapel2C.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
+#$(TESTDIR)/%.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
 #       @echo Prerequisites are $^
-	@sh $< $@ $(MAKE) $(MAKEFLAGS)
-
-$(TESTDIR)/%/runC/runC2Chapel.sh: $(CLIENT_DEPS) $(SERVER_DEPS)
-	@sh $< $@ $(MAKE) $(MAKEFLAGS)
+#	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 clean-regression:
 	if [ "x$(builddir)" != "x$(srcdir)" ]; then \

@@ -172,6 +172,13 @@ AC_SUBST([CONFIGURE_DATE], ["`date`"])
 AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION, 
                [test $HAVE_BABEL -eq 1 && test -n $CHPL_VERSION])
 
+dnl this needs to come before Makefile is generated!
+AS_IF([test -n "${BABEL_PREFIX}"],
+      [echo "Generating list of testcases"
+       sh $srcdir/regression/interop/gen-testnames.sh $BABEL_SRCDIR $srcdir \
+         >$srcdir/regression/interop/tests.mk 2>/dev/null
+       grep "^# Total" $srcdir/regression/interop/tests.mk])
+
 AC_CONFIG_FILES([Makefile 
   braid/braid 
   braid/rote2braid 
