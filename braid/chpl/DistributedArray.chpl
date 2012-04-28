@@ -94,7 +94,8 @@ proc copyRectangularArray(in a: [])  var
  */
 proc fillRectangularArray(in srcArray: [], inout destRectArray: []) 
     where isRectangularDom(destRectArray.domain) {
-  [i in srcArray.domain] destRectArray(i) = srcArray(i);
+  //[i in srcArray.domain] destRectArray(i) = srcArray(i);
+  destRectArray = srcArray;
 }
 
 ///////////////////////////////////////////////////////////////////////////

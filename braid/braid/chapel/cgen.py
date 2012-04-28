@@ -73,10 +73,10 @@ def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
 def deref(mode, typ, name):
     if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
         return name+'->'
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.pointer_type and typ[1][0][0] == ir.struct: # _ex
+    elif typ[0] == ir.pointer_type and typ[1][0] == ir.pointer_type and typ[1][0][0] == ir.struct:
+        return name+'->'  # _ex
+    elif typ[0] ==  ir.struct:
         return name+'->'
-    #elif typ[0] ==  ir.struct:
-    #    return name+'->'
     elif mode == sidl.in_:
         return name 
     else: return '(*%s)'%name
