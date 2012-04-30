@@ -18,8 +18,10 @@ BABEL_TESTS = \
   regression/interop/overload/runChapel/overloadtest.chpl \
   regression/interop/struct/runChapel/structtest.chpl 
 
-BABEL_TESTNAMES = args arrays contracts enums hooks inherit strings exceptions ordering overload struct 
-BABEL_TESTNAMES77 = args arrays contracts enums hooks inherit strings exceptions overload struct
+BABEL_TESTNAMES = \
+  args arrays contracts enums hooks inherit strings exceptions ordering overload struct 
+BABEL_TESTNAMES77 = \
+  args arrays contracts enums hooks inherit strings exceptions          overload struct
 
 EXTRA_DIST += $(BABEL_TESTS)
 
@@ -39,7 +41,7 @@ SH_LOG_COMPILER = sh regression/interop/driver.sh
 
 if BABEL_LANG_C # for symmetry -- can't do much without C ..?
 languages = C
-check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la)
+#check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la)
 check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/client-stamp)
 # by using $$ we can record a list of prerequisites that will get
 # %-expanded when used in a rule

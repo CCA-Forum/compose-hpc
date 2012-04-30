@@ -234,7 +234,7 @@ BRAID is a high-performance language interoperability tool that generates Babel-
                          help='generate pre-/post-method hooks')
 
     cmdline.add_argument('--suppress-contracts', action='store_true', dest='suppress_contracts',
-                         help='refrain from generating contract enforcement from SIDL specs.')
+                         help='refrain from generating contract enforcement from SIDL specs')
 
     cmdline.add_argument('--debug',   action='store_true', help='enable debugging features')
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')

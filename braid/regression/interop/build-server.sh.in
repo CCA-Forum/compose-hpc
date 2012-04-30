@@ -40,17 +40,26 @@ fi
 
 echo "--generate server [ $language / $TESTCASE ]"
 cd lib$language                                         ||exit 1
-if [ x$TESTCASE == xhooks ]; then
-    $BRAID $sidl -s$language --makefile -i              ||exit 1
+if [ x"$TESTCASE" = x"hooks" ]; then
+    case "$language" in
+	Cxx|F90|F03)
+	    $BRAID -i -s$language --makefile $sidl \
+		@BABEL_SRCDIR@/regression/output/output.sidl ||exit 1
+	    ;;
+	*)
+	    $BRAID -i -s$language --makefile $sidl ||exit 1
+	    ;;
+    esac
+    @PERL@ -pi -e"s|(BABELFLAG=)|\1-i |" GNUmakefile ||exit 1
 else
-    $BRAID $sidl -s$language --makefile                 ||exit 1
+    $BRAID -s$language --makefile $sidl ||exit 1
 fi
 # turn on debugging
 @PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1
 cd ..						        ||exit 1
 
 echo "--compile server  [ $language / $TESTCASE ]"
-$MAKE -C lib$language clean
+$MAKE -C lib$language clean >/dev/null
 if [ x"$language" = x"Chapel" ]; then
     exec $MAKE all -C lib$language # verbose
 else

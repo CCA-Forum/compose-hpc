@@ -32,7 +32,7 @@ for sidl in `ls $babel_tests/*/*.sidl`; do
 		lib=`basename $server`
 		s=`echo $lib | sed s/lib//`
 		clients="$clients $testdir/$c/${c}2${s}.sh"
-		case s in
+		case ${s} in
 		    Python)  
 			cur_servers="$testdir/$lib/libimpl2.la $cur_servers"
 			;;

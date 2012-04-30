@@ -92,7 +92,7 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT 
 	       -e 's/usage:/\nSYNOPSIS\n========\n\n/' \
                -e 's/:$$/\n--------------------\n\n/' \
                -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
-               -e 's/pos/OPTIONS\n=======\n\npos/' >braid-help.txt
+               -e 's/positional/OPTIONS\n=======\n\npositional/' >braid-help.txt
 	@head -n 15 braid-help.txt >>braid.txt
 	@tail -n +6 $(srcdir)/README >>braid.txt
 	@tail -n +15 braid-help.txt >>braid.txt

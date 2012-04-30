@@ -31,10 +31,16 @@ from sidlobjects import make_extendable
 from string import Template
 from utils import accepts
 
-def gen_IOR_c(iorname, cls):
+gen_hooks = False
+gen_contracts = True
+def gen_IOR_c(iorname, cls, _gen_hooks, _gen_contracts):
     """
     generate a Babel-style $classname_IOR.c
     """
+    global gen_hooks
+    gen_hooks = _gen_hooks
+    global gen_contracts
+    gen_contracts = _gen_contracts
     # class hierarchy for the casting function
     sorted_parents = sorted(cls.get_parents([]), 
                             key = lambda x: qual_id(sidl.type_id(x)))
@@ -1649,7 +1655,7 @@ def generateHookMethods(ext):
     2) Hook methods are only generated if configuration indicates
        their generation is required.
     """
-    return generateHookEPVs(ext) and ext.gen_hooks;
+    return generateHookEPVs(ext) and gen_hooks
 
    
 @accepts(object)
@@ -1689,7 +1695,7 @@ def generateContractChecks(ext):
     """     
     return generateContractEPVs(ext) \
         and class_contracts(ext) \
-        and ext.gen_contracts
+        and gen_contracts
    
 
 @accepts(object)

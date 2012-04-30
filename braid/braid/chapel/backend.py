@@ -1151,9 +1151,7 @@ class GlueCodeGenerator(object):
             "FINI: deallocate a class instance (destructor)."))
 
         if with_ior_c:
-            ci.co.gen_hooks = self.gen_hooks
-            ci.co.gen_contracts = self.gen_contracts
-            ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co))
+            ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co, self.gen_hooks, self.gen_contracts))
 
     
     @matcher(globals(), debug=False)

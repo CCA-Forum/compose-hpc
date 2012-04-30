@@ -174,8 +174,8 @@ AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION,
 
 dnl this needs to come before Makefile is generated!
 AS_IF([test -n "${BABEL_PREFIX}"],
-      [echo "Generating list of testcases"
-       sh $srcdir/regression/interop/gen-testnames.sh $BABEL_SRCDIR $srcdir \
+      [echo "Generating dependencies for regression test suite"
+       sh $srcdir/regression/interop/gen-test-deps.sh $BABEL_SRCDIR $srcdir \
          >$srcdir/regression/interop/tests.mk 2>/dev/null
        grep "^# Total" $srcdir/regression/interop/tests.mk])
 

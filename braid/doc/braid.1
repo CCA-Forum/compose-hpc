@@ -386,29 +386,12 @@ generate a default GNUmakefile
 .TP
 .B \-i,  \-\-generate\-hooks
 .
-generate pre\-/OPTIONS
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.IP "System Message: WARNING/2 (braid.txt:, line 306)"
-.
-Block quote ends without a blank line; unexpected unindent.
-
-.sp
-.ce
-----
-
-.ce 0
-.sp
-.INDENT 0.0
-.TP
-.B post\-method hooks
-.INDENT 7.0
+generate pre\-/post\-method hooks
 .TP
 .B \-\-suppress\-contracts
 .
 refrain from generating contract enforcement from SIDL
-specs.
+specs
 .TP
 .B \-\-debug
 .
@@ -429,6 +412,7 @@ print licensing details
 .B \-v,  \-\-verbose
 .
 print more debug info
+.UNINDENT
 .UNINDENT
 .UNINDENT
 .sp
