@@ -1649,7 +1649,7 @@ def generateHookMethods(ext):
     2) Hook methods are only generated if configuration indicates
        their generation is required.
     """
-    return generateHookEPVs(ext) and False #context.getConfig().generateHooks();
+    return generateHookEPVs(ext) and ext.gen_hooks;
 
    
 @accepts(object)
@@ -1688,8 +1688,8 @@ def generateContractChecks(ext):
        their generation is required.
     """     
     return generateContractEPVs(ext) \
-        and class_contracts(ext) and \
-        True #and context.getConfig().generateContracts();
+        and class_contracts(ext) \
+        and ext.gen_contracts
    
 
 @accepts(object)

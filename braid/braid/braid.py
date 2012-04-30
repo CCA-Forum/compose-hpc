@@ -124,7 +124,11 @@ def braid(args):
         exit(subprocess.call(cmd))
 
     # No. Braid called to action!
-    backend = chpl_be.GlueCodeGenerator(args.verbose)
+    backend = chpl_be.GlueCodeGenerator(
+        args.gen_hooks, 
+        not args.suppress_contracts, 
+        args.verbose)
+
     for sidl_file in args.sidl_files:
         sidl_ast = sidl_parser.parse(sidl_file)
         
@@ -226,7 +230,13 @@ BRAID is a high-performance language interoperability tool that generates Babel-
     cmdline.add_argument('-m', '--makefile', action='store_true',
                          help='generate a default GNUmakefile')
 
-    cmdline.add_argument('--debug', action='store_true', help='enable debugging features')
+    cmdline.add_argument('-i', '--generate-hooks', action='store_true', dest='gen_hooks',
+                         help='generate pre-/post-method hooks')
+
+    cmdline.add_argument('--suppress-contracts', action='store_true', dest='suppress_contracts',
+                         help='refrain from generating contract enforcement from SIDL specs.')
+
+    cmdline.add_argument('--debug',   action='store_true', help='enable debugging features')
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')
     cmdline.add_argument('--version', action='store_true', help='print version and exit')
     cmdline.add_argument('--license', action='store_true', help='print licensing details')

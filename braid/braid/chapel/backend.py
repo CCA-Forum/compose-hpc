@@ -123,11 +123,15 @@ class GlueCodeGenerator(object):
             self.ior = CFile('_'.join(class_object.qualified_name)+'_IOR')
             self.obj = None
 
-    def __init__(self, verbose):
+    def __init__(self, gen_hooks, gen_contracts, verbose):
         """
         Create a new chapel code generator
+        \param gen_hooks       generate pre-/post-method hooks
+        \param gen_contracts   generate contract enforcement code
         \param verbose         if \c True, print extra messages
         """
+        self.gen_hooks = gen_hooks
+        self.gen_contracts = gen_contracts
         self.verbose = verbose
         self.classes = []
         self.pkgs = []
@@ -1146,7 +1150,9 @@ class GlueCodeGenerator(object):
             babel_static_ior_args([], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
 
-        if with_ior_c:# or True:
+        if with_ior_c:
+            ci.co.gen_hooks = self.gen_hooks
+            ci.co.gen_contracts = self.gen_contracts
             ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co))
 
     
