@@ -63,7 +63,9 @@ def ir_type_to_chpl(typ):
         return mapping[typ]
     except:
         if typ[0] == ir.enum: 
-            return ir.Typedef_type('int64_t')
+            # the types need to be dissimilar, even if they have the same name
+            enum, name, items, comment = typ
+            return enum, name, items, 'chpl '+comment
         if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool': 
             return ir.Typedef_type('chpl_bool')
         if typ[0] == 'upcast':

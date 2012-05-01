@@ -1617,7 +1617,7 @@ def fixEPVs(r, cls, level, is_new):
         r.append('  }')
 
     if generateBaseEPVAttr(cls):
-        r.append('  %s->d_%s = %ss_%s%s__%s;'%(_self, epv, 'b', prefix, epvType, name_low))
+        r.append('  %s->d_%s = %ss_%s%s__%s;'%(_self, epv, prefix, epvType, epv, name_low))
 
     r.append('')
                 

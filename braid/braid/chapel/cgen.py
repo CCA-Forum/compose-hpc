@@ -158,6 +158,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     conv.codegen((strip(Type), '_ior__retval'), ('chpl', strip(Type)), 
                  post_call, scope, deref_retval(Type, '_retval'), Type)
     crarg = ir_arg_to_chpl(rarg)
+
     _,_,_,chpltype,_ = crarg
     retval_type = chpltype
     if need_return_arg(Type):
@@ -599,6 +600,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                             (gen(Name), gen(Type), gen(Initializer)))
 
             elif (ir.enum, Name, Items, DocComment): return gen(Name)
+            elif (ir.cast, Type, Expr): return '%s:%s'%(gen(Expr), gen(Type))
 
             elif (ir.type_decl, (ir.enum, Name, Items, DocComment)):
                 # Manually transform the Items

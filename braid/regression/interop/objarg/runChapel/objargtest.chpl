@@ -56,13 +56,13 @@ proc test_Employee() {
   
   var numEmp = 7;
   var dataArray: [0 .. #numEmp] (string, int(32), real(32), string);
-  dataArray[0] = ("John Smith", 35, 75.7e3: real(32), "c");
-  dataArray[1] = ("Jane Doe", 40, 85.5e3: real(32), "m");
-  dataArray[2] = ("Ella Vader", 64, 144.2e3: real(32), "r");
-  dataArray[3] = ("Marge Inovera", 32, 483.2e3: real(32), "s");
-  dataArray[4] = ("Hughy Louis Dewey", 45, 182.9e3: real(32), "m");
-  dataArray[5] = ("Heywood Yubuzof", 12, 20.8e3: real(32), "x");
-  dataArray[6] = ("Picov Andropov", 90, 120.6e3: real(32), "r");
+  dataArray[0] = ("John Smith",        35:int(32),  75.7e3: real(32), "c");
+  dataArray[1] = ("Jane Doe"  ,        40:int(32),  85.5e3: real(32), "m");
+  dataArray[2] = ("Ella Vader",        64:int(32), 144.2e3: real(32), "r");
+  dataArray[3] = ("Marge Inovera",     32:int(32), 483.2e3: real(32), "s");
+  dataArray[4] = ("Hughy Louis Dewey", 45:int(32), 182.9e3: real(32), "m");
+  dataArray[5] = ("Heywood Yubuzof",   12:int(32),  20.8e3: real(32), "x");
+  dataArray[6] = ("Picov Andropov",    90:int(32), 120.6e3: real(32), "r");
   
   var a: objarg.EmployeeArray = objarg.EmployeeArray_static.create_EmployeeArray(sidl_ex);
   for i in [0 .. #numEmp] do {
@@ -77,7 +77,7 @@ proc test_Employee() {
     init_part(); run_part(" getSalary-1.1", e.getSalary(sidl_ex) == dataArray[i][3]);
     init_part(); run_part(" getStatus-1.1", e.getStatus(sidl_ex) == dataArray[i][4]);
     
-    var e2: objarg.Employee = a.at(i+1, sidl_ex);
+    var e2: objarg.Employee = a.at((i+1):int(32), sidl_ex);
     init_part(); run_part(" getName-1.2", e.getName(sidl_ex) == e2.getName(sidl_ex));
     init_part(); run_part(" getAge-1.2", e.getAge(sidl_ex) == e2.getAge(sidl_ex));
     init_part(); run_part(" getSalary-1.2", e.getSalary(sidl_ex) == e2.getSalary(sidl_ex));

@@ -1,4 +1,4 @@
-use Args;
+use hooks;
 use synch;
 use sidl;
 
@@ -37,30 +37,31 @@ proc run_part(msg: string, result: bool)
   tracker.writeComment("End of part "+part_no, sidl_ex);
 }
 
-tracker.setExpectations(4);
+tracker.setExpectations(4, sidl_ex);
+
 { 
   var b: int(32), c: int(32), ret: int(32) = 0;
   var test: int(32) = 1;
-  hooks.Basics_static._set_hooks_static(true);
+  //FIXME! hooks.Basics_static._set_hooks_static(true);
 
   var obj = hooks.Basics_static.create_Basics(sidl_ex);
-  obj._set_hooks(true);
+  //FIXME! obj._set_hooks(true);
 
   b = -1;
   c = -1;
   init_part(); 
-  ret = hooks.Basics_static.aStaticMeth(test, b, c);
+  ret = hooks.Basics_static.aStaticMeth(test, b, c, sidl_ex);
   run_part( b == 1 && c == 0 );
   
   init_part(); 
-  ret = hooks.Basics_static.aStaticMeth(test, b, c);
+  ret = hooks.Basics_static.aStaticMeth(test, b, c, sidl_ex);
   run_part( b == 2 && c == 1 );
 
   b = -1;
   c = -1;
-  ret = obj.aNonStaticMeth(test, b, c);
+  ret = obj.aNonStaticMeth(test, b, c, sidl_ex);
   run_part( b == 1 && c == 0 );
-  ret = obj.aNonStaticMeth(test, b, c);
+  ret = obj.aNonStaticMeth(test, b, c, sidl_ex);
   run_part( b == 2 && c == 1 );
 }
 

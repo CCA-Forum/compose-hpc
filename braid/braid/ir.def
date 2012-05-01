@@ -53,6 +53,7 @@
 	 | new(Type, [Arg])
          | Var_decl
 	 | VarRefExpr
+	 | cast(Type, Expr)
 	 | set_struct_item(Struct, Expr, Struct_item, Expr)
          | assignment(VarRefExpr, Expr)
          | set_arg(VarRefExpr, Expr)	 
