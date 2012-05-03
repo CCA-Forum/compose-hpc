@@ -55,11 +55,9 @@ esac
 sed -i -e 's/\(include babel.make\)/\1\ninclude synch_babel.make/' GNUmakefile
 
 case $language in
-    F90) 
-	echo "synch_STUBMODULEOBJS=\$(synch_STUBMODULESRCS:.F90=.lo)">>synch_babel.make
-	echo "synch_TYPEMODULEOBJS=\$(synch_TYPEMODULESRCS:.F90=.lo)">>synch_babel.make
-	;;
-    F03) 
+    F90|F03) 
+	echo "synch_STUBMODULEOBJS=\$(synch_STUBMODULESRCS:.$language=.lo)">>synch_babel.make
+	echo "synch_TYPEMODULEOBJS=\$(synch_TYPEMODULESRCS:.$language=.lo)">>synch_babel.make
 	;;
     Chapel)
 	echo "# not needed">synch_babel.make
