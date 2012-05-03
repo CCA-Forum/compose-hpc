@@ -21,7 +21,7 @@ for sidl in `ls $babel_tests/*/*.sidl`; do
     echo "# $testcase"
     echo "# ------------------"
     echo
-    if [ x"$testcase" != x"invariants" ]; then
+    if [ x"$testcase" != x"invariants"  -a x"$testcase" != x"wrapper" ]; then
 	for client in `ls -q -d $braid_tests/$testcase/run* $babel_tests/$testcase/run*`; do
             c=`basename $client`
 	    echo "# client: $c"

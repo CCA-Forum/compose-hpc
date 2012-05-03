@@ -1,6 +1,6 @@
 #!/bin/sh
-echo "Compiling client tests."
-echo "Expecting Babel sources in @BABEL_SRCDIR@"
+#echo "Compiling client tests."
+#echo "Expecting Babel sources in @BABEL_SRCDIR@"
 
 if [ $# -lt 2 ]; then 
     echo "usage: $0 testcase make [flags]"
@@ -29,16 +29,15 @@ sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
 
 
 # Begin of main driver
-echo "MAKE = $MAKE"
-echo "TESTCASE = $TESTCASE"
-#set -x
-echo "--set up environment"
+#echo "MAKE = $MAKE"
+#echo "TESTCASE = $TESTCASE"
+#echo "--set up environment"
 BRAID="env PYTHONPATH=../../../../braid:../../../../braid/.libs:../../@top_srcdir@/contrib/argparse-1.1:../../@top_srcdir@/contrib/ply:@PYTHONPATH@ @PYTHON@ ../../@top_srcdir@/braid/braid.py"
 sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
 cd regression/interop                                   ||exit 1
 
 
-echo "--setup directory, copy over babel regression test"
+#echo "--setup directory, copy over babel regression test"
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
 case $language in
@@ -51,13 +50,13 @@ esac
 chmod -R u+w run${language}                             ||exit 1
 
 
-echo "--generate client"
+#echo "--generate client"
 cd run${language}					||exit 1
 rm -f client-stamp
 touch client-temp
 $BRAID $sidl ../../output/output.sidl -c${language} --makefile ||exit 1
 
-echo "--customizing babel-generated makefiles"
+#echo "--customizing babel-generated makefiles"
 case $language in
     Python)  
 	@PERL@ -pi -e 's/(all : python-stamp .*)$/\1 \$(TARGET)

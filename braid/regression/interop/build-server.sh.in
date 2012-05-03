@@ -55,7 +55,8 @@ esac
 sed -i -e 's/\(include babel.make\)/\1\ninclude synch_babel.make/' GNUmakefile
 
 case $language in
-    F90|F03) 
+    F*) 
+	echo "synch_STUBOBJS=\$(synch_STUBSRCS:.c=.lo)">>synch_babel.make
 	echo "synch_STUBMODULEOBJS=\$(synch_STUBMODULESRCS:.$language=.lo)">>synch_babel.make
 	echo "synch_TYPEMODULEOBJS=\$(synch_TYPEMODULESRCS:.$language=.lo)">>synch_babel.make
 	;;
@@ -70,6 +71,7 @@ sed -i -e 's/(\(IORHDRS\))/(\1) \$(synch_\1)/g' \
        -e 's/(\(STUBMODULESRCS\))/(\1) \$(synch_\1)/g' \
        -e 's/(\(STUBSRCS\))/(\1) \$(synch_\1)/g' \
        -e 's/(\(TYPEMODULESRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBOBJS\))/(\1) \$(synch_\1)/g' \
        -e 's/(\(STUBMODULEOBJS\))/(\1) \$(synch_\1)/g' \
        -e 's/(\(TYPEMODULEOBJS\))/(\1) \$(synch_\1)/g' \
     GNUmakefile
