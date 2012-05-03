@@ -1,0 +1,7 @@
+-*- org -*-
+* BRAID 0.2.5
+** Synched with Chapel 1.5
+** Implemented contract checking
+
+* BRAID 0.2.4
+** Included in Babel 2.0.0

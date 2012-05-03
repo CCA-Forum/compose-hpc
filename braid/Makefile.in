@@ -68,7 +68,7 @@ DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
 	$(top_srcdir)/regression/interop/build-client.sh.in \
 	$(top_srcdir)/regression/interop/build-server.sh.in \
 	$(top_srcdir)/regression/interop/build-tracker.sh.in \
-	$(top_srcdir)/regression/interop/driver.sh.in INSTALL \
+	$(top_srcdir)/regression/interop/driver.sh.in INSTALL NEWS \
 	config/config.guess config/config.sub config/depcomp \
 	config/install-sh config/ltmain.sh config/missing \
 	config/py-compile config/texinfo.tex config/ylwrap scanner.c
@@ -5264,7 +5264,7 @@ clean-local: clean-braid clean-regression
 # Documentation
 # ------------------------------------------------------------------------
 .PHONY: doc
-doc:
+doc: Doxyfile
 	@echo "  GEN [doxygen documentation]"
 	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
         || echo "Doxygen not found; SKIPPING"

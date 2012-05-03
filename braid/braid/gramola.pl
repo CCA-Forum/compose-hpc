@@ -3,6 +3,8 @@
 /**
  * @package gramola
  *
+ * Python grammar code generator
+ *
  * GRAMOLA is a code generator for BRAID intermediate representation grammars.
  * <pre>
  *   `I'd rather write a program to write programs to write programs
@@ -15,7 +17,7 @@
  *
  * Usage:
  * <pre>
- *   egrep '^%[^%]' $< | sed -e 's/^% %%/##/g' -e 's/^%//g' >$@; \
+ *   egrep '^%[^%]' $< | sed -e 's/^% %%/##/g' -e 's/^%//g' >$@
  *   swipl -f gramola.pl -t main -q <grammar_def.pl >>ir_def.py
  * </pre>
  */

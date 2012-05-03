@@ -604,7 +604,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = @srcdir@/contrib @builddir@/braid-@PACKAGE_VERSION@ @srcdir@/regression @builddir@/regression @builddir@/braid/parsetab.py @srcdir@/examples @builddir@/examples @builddir@/runtime @builddir@/parsetab.py @builddir@/runtime/parsetab.py
+EXCLUDE                = @srcdir@/contrib @builddir@/braid-@PACKAGE_VERSION@ @srcdir@/regression @builddir@/regression @builddir@/braid/parsetab.py @srcdir@/examples @builddir@/examples @builddir@/runtime @builddir@/chpl @srcdir@/runtime @builddir@/parsetab.py @builddir@/runtime/parsetab.py
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded
