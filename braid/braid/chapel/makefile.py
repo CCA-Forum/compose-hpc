@@ -25,41 +25,39 @@
 from utils import write_to
 import config
 
-def generate_client(sidl_file, classes):
+def generate_client(sidl_file, classes, prefix):
     """
     FIXME: make this a file copy from $prefix/share
     """
-    files = 'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
-    files+= 'STUBHDRS = '+' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
+    files = prefix+'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
+    files+= prefix+'STUBHDRS = '+' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
                                     for c in classes])+'\n'
-    files+= 'STUBSRCS = '+' '.join([c+'_cStub.c' for c in classes])+'\n'
+    files+= prefix+'STUBSRCS = '+' '.join([c+'_cStub.c' for c in classes])+'\n'
 # this is handled by the use statement in the implementation instead:
 # {file}_Stub.chpl
-    write_to('babel.make', files)
-    generate_client_server(sidl_file)
+    write_to(prefix+'babel.make', files)
 
-
-def generate_server(sidl_file, classes, pkgs):
+def generate_server(sidl_file, classes, pkgs, prefix):
     """
     FIXME: make this a file copy from $prefix/share
     """
-    write_to('babel.make', """
-IMPLHDRS =
-IMPLSRCS = {impls}
-IORHDRS = {iorhdrs} #FIXME Array_IOR.h
-IORSRCS = {iorsrcs}
-SKELSRCS = {skelsrcs}
-STUBHDRS = {stubhdrs}
-STUBSRCS = {stubsrcs}
-""".format(impls=' '.join([p+'_Impl.chpl'       for p in pkgs]),
+    write_to(prefix+'babel.make', """
+{prefix}IMPLHDRS =
+{prefix}IMPLSRCS = {impls}
+{prefix}IORHDRS = {iorhdrs} #FIXME Array_IOR.h
+{prefix}IORSRCS = {iorsrcs}
+{prefix}SKELSRCS = {skelsrcs}
+{prefix}STUBHDRS = {stubhdrs}
+{prefix}STUBSRCS = {stubsrcs}
+""".format(prefix=prefix,
+           impls=' '.join([p+'_Impl.chpl'       for p in pkgs]),
            iorhdrs=' '.join([c+'_IOR.h'    for c in classes]),
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
            skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),
            stubsrcs=' '.join([c+'_cStub.c' for c in classes]),
            stubhdrs=' '.join([c+'_cStub.h' for c in classes])))
-    generate_client_server(sidl_file)
 
-def generate_client_server(sidl_file):
+def generate_gnumakefile(sidl_file):
     extraflags=''
     #extraflags='-ggdb -O0'
     write_to('GNUmakefile', r"""

@@ -6,16 +6,23 @@ if [ $# -lt 2 ]; then
     echo "usage: $0 testcase make [flags]"
     exit 1
 fi
-
 arg=$1
 shift
 MAKE=$1
 shift
-if echo "$1" | grep -q '^-'; then
-    MAKE="$MAKE $*"
-else
-    MAKE="$MAKE -$*"
+if [ -n "$1" -a x"$1" != x"--" ]; then
+    if echo "$1" | grep -q '^-'; then
+	MAKE="$MAKE $1"
+    else
+	MAKE="$MAKE -$1"
+    fi
+    shift
+    while [ x"$1" != x"--" -a -n "$1" ]; do
+	MAKE="$MAKE $1"
+	shift
+    done
 fi
+
 TESTCASE=`basename \`dirname \\\`dirname $arg\\\`\``
 language=`echo \`basename \\\`dirname $arg\\\`\` |sed 's/run//g'`
 sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
@@ -34,7 +41,6 @@ cd regression/interop                                   ||exit 1
 echo "--setup directory, copy over babel regression test"
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
-rm -f client.stamp
 case $language in
     Chapel)
 	cp -r ../@srcdir@/$TESTCASE/run${language} .    ||exit 1
@@ -47,18 +53,39 @@ chmod -R u+w run${language}                             ||exit 1
 
 echo "--generate client"
 cd run${language}					||exit 1
+rm -f client-stamp
+touch client-temp
 $BRAID $sidl ../../output/output.sidl -c${language} --makefile ||exit 1
 
 echo "--customizing babel-generated makefiles"
-# in CXX the Stubobjs are generated on both server and client-side
-@PERL@ -pi -e 's/(all : lib..LIBNAME..la ..SCLFILE.)$/\1 \$(TARGET)
+case $language in
+    Python)  
+	@PERL@ -pi -e 's/(all : python-stamp .*)$/\1 \$(TARGET)
+\$(TARGET): \$(LAUNCHLIB) \$(SKELLIB) \$(SCLFILE) 
+/' GNUmakefile
+	;;
+    Java)  
+	@PERL@ -pi -e 's/(all : .* lib..LIBNAME..la (lib)?..SCLFILE.)$/\1 \$(TARGET)
+\$(TARGET): lib\$(LIBNAME).la lib\$(LIBNAME).jar \$(SERVER) \$(IMPLOBJS) \$(STUBOBJS) 
+/' GNUmakefile
+	;;
+
+    *)  # in CXX the Stubobjs are generated on both server and client-side
+	@PERL@ -pi -e 's/(all : lib..LIBNAME..la (lib)?..SCLFILE.)$/\1 \$(TARGET)
 runCxx2Cxx: lib\$(LIBNAME).la \$(SERVER) \$(IMPLOBJS) \$(IMPL).lo 
 	babel-libtool --mode=link \$(CC) -static lib\$(LIBNAME).la \\
 	  \$(IMPLOBJS) \$(IMPL).lo \$(SERVER) \$(CHPL_LDFLAGS) \$(EXTRA_LDFLAGS) -o \$@
-\$(TARGET): lib\$(LIBNAME).la \$(SERVER) \$(IMPLOBJS) \$(STUBOBJS) \$(IMPL).lo 
+\$(TARGET): lib\$(LIBNAME).la \$(SERVER) \$(IMPLOBJS) \$(STUBOBJS) \$(IMPL).lo
 	babel-libtool --mode=link \$(CC) -static lib\$(LIBNAME).la \\
 	  \$(IMPLOBJS) \$(STUBOBJS) \$(IMPL).lo \$(SERVER) \$(CHPL_LDFLAGS) \$(EXTRA_LDFLAGS) -o \$@
 /' GNUmakefile
+	;;
+esac
+
+case $language in
+    F90|F03) echo "\$(IMPL).lo: synch_RegOut.lo">>GNUmakefile ;;
+    *)  ;;
+esac
 
 # this will get overwritten, should a real one exist
 echo 'echo "No chapel server implementation for $TESTCASE"; exit 1' >run${language}2Chapel.sh
@@ -74,9 +101,15 @@ for libdir in `ls -1 -d ../lib*`; do
       F*) extralib="-lgfortran" ;;
       *)  ;;
   esac
-  echo "--compiling client [ $language -> $server ]"
+  echo "--compiling client [ $TESTCASE : $language -> $server ]"
   rm -f run${language}2${server}.sh
-  $MAKE SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
+ # echo make -C regression/interop/$TESTCASE/run$language run${language}2${server} \
+ #        SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
+ #        IMPL="${TESTCASE}test" \
+ #        EXTRA_LDFLAGS="$extralib" \
+ #        TARGET="run${language}2${server}" 
+  $MAKE run${language}2${server} \
+        SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
         IMPL="${TESTCASE}test" \
         EXTRA_LDFLAGS="$extralib" \
         TARGET="run${language}2${server}" >/dev/null     ||exit 1
@@ -112,4 +145,4 @@ EOF
   esac
   chmod u+x run${language}2${server}.sh
 done
-touch client.stamp
+mv client-temp client-stamp

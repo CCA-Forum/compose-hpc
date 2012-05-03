@@ -21,59 +21,59 @@ for sidl in `ls $babel_tests/*/*.sidl`; do
     echo "# $testcase"
     echo "# ------------------"
     echo
-    for client in `ls -q -d $braid_tests/$testcase/run* $babel_tests/$testcase/run*`; do
-        c=`basename $client`
-	echo "# client: $c"
-	cur_clients=
-	cur_servers=
-	for server in `ls -q -d $braid_tests/$testcase/lib* $babel_tests/$testcase/lib*`; do
+    if [ x"$testcase" != x"invariants" ]; then
+	for client in `ls -q -d $braid_tests/$testcase/run* $babel_tests/$testcase/run*`; do
+            c=`basename $client`
+	    echo "# client: $c"
+	    cur_clients=
+	    cur_servers=
+	    for server in `ls -q -d $braid_tests/$testcase/lib* $babel_tests/$testcase/lib*`; do
    	# echo "# server: $server"
-	    if [ x"$c" != x"runSIDL" ]; then
-		lib=`basename $server`
-		s=`echo $lib | sed s/lib//`
-		clients="$clients $testdir/$c/${c}2${s}.sh"
-		case ${s} in
-		    Python)  
-			cur_servers="$testdir/$lib/libimpl2.la $cur_servers"
-			;;
-		    Java)  
-			cur_servers="$testdir/$lib/libimpl.jar $cur_servers"
-			;;
-		    *)
-			cur_servers="$testdir/$lib/libimpl.la $cur_servers"
-			;;
-		esac
-		cur_clients="$testdir/$c/${c}2${s}.sh $cur_clients"
-	    fi
-	done
+		if [ x"$c" != x"runSIDL" ]; then
+		    lib=`basename $server`
+		    s=`echo $lib | sed s/lib//`
+		    clients="$clients $testdir/$c/${c}2${s}.sh"
+		    case ${s} in
+			Python)  
+			    cur_servers="$testdir/$lib/libimpl2.la $cur_servers"
+			    ;;
+			*)
+			    cur_servers="$testdir/$lib/libimpl.la $cur_servers"
+			    ;;
+		    esac
+		    cur_clients="$testdir/$c/${c}2${s}.sh $cur_clients"
+		fi
+	    done
 	# print a recipie for building all those clients at once
 	# careful: contains tabs!
-	dir="$testdir/$c"
-        echo "$cur_clients: $dir/client-stamp"
-        echo "## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs"
-        echo "## Recover from the removal of \$@"
-        echo "	if test -f \$@; then :; else \\"
-        echo "	  trap 'rm -rf $dir/client.lock $dir/client-stamp' 1 2 13 15; \\"
-        echo "## mkdir is a portable test-and-set"
-        echo "	  if mkdir $dir/client.lock 2>/dev/null; then \\"
-        echo "## This code is being executed by the first process."
-        echo "	    rm -f $dir/client-stamp; \\"
-        echo "	    \$(MAKE) \$(AM_MAKEFLAGS) $dir/client-stamp; \\"
-        echo "	    result=\$\$?; rm -rf $dir/client.lock; exit \$\$result; \\"
-        echo "	  else \\"
-        echo "## This code is being executed by the follower processes."
-        echo "## Wait until the first process is done."
-        echo "	    while test -d $dir/client.lock; do sleep 1; done; \\"
-        echo "## Succeed if and only if the first process succeeded."
-        echo "	    test -f $dir/client-stamp; \\"
-        echo "	  fi; \\"
-        echo "	fi"
-	echo
+	    dir="$testdir/$c"
+            echo "$cur_clients: $dir/client-stamp"
+            echo "## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs"
+            echo "## Recover from the removal of \$@"
+            echo "	@if test -f \$@; then :; else \\"
+            echo "	  trap 'rm -rf $dir/client.lock $dir/client-stamp' 1 2 13 15; \\"
+            echo "## mkdir is a portable test-and-set"
+            echo "	  if mkdir $dir/client.lock 2>/dev/null; then \\"
+            echo "## This code is being executed by the first process."
+            echo "	    rm -f $dir/client-stamp; \\"
+            echo "	    \$(MAKE) \$(AM_MAKEFLAGS) $dir/client-stamp; \\"
+            echo "	    result=\$\$?; rm -rf $dir/client.lock; exit \$\$result; \\"
+            echo "	  else \\"
+            echo "## This code is being executed by the follower processes."
+            echo "## Wait until the first process is done."
+            echo "	    while test -d $dir/client.lock; do sleep 1; done; \\"
+            echo "## Succeed if and only if the first process succeeded."
+            echo "	    test -f $dir/client-stamp; \\"
+            echo "	  fi; \\"
+            echo "	fi"
+	    echo
 
 	# print the dependencies for this specific client
-	echo "$dir/client-stamp: \$(CLIENT_DEPS) $cur_servers"
-	echo
-    done
+	    echo "$dir/client-stamp: \$(CLIENT_DEPS) $cur_servers"
+	    echo "	@sh \$< \$@ \$(MAKE) \$(MAKEFLAGS)"
+	    echo
+	done
+    fi
 done
 printf "INTEROP_TESTS = "
 for client in $clients; do

@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH BRAID 1 "2012-04-30" "0.2.5" "Compilers and Programming Languages"
+.TH BRAID 1 "2012-05-02" "0.2.5" "Compilers and Programming Languages"
 .SH NAME
 BRAID \- Next-generation high-performance language interoperability
 .
@@ -39,8 +39,8 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B braid [\-h] [\-\-gen\-sexp] [\-\-gen\-sidl] [\-c <language>] [\-s <language>]
 .
-[\-m] [\-i] [\-\-suppress\-contracts] [\-\-debug] [\-\-profile]
-[\-\-version] [\-\-license] [\-v]
+[\-\-makefile] [\-i] [\-\-suppress\-contracts] [\-m <prefix>]
+[\-\-debug] [\-\-profile] [\-\-version] [\-\-license] [\-v]
 [<file.sidl> [<file.sidl> ...]]
 .UNINDENT
 .UNINDENT
@@ -380,7 +380,7 @@ generate client code in the specified language
 generate server code in the specified language
 (Chapel, or any language supported through Babel)
 .TP
-.B \-m,  \-\-makefile
+.B \-\-makefile
 .
 generate a default GNUmakefile
 .TP
@@ -392,6 +392,12 @@ generate pre\-/post\-method hooks
 .
 refrain from generating contract enforcement from SIDL
 specs
+.TP
+.BI \-m \ <prefix>, \ \-\-make\-prefix \ <prefix>
+.
+<prefix> is prepended to the name of babel.make and
+the symbols defined internally to allow Braid to be
+run multiple times in a single directory.
 .TP
 .B \-\-debug
 .

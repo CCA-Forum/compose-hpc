@@ -1,27 +1,34 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
-
-# .SECONDEXPANSION:
-# GNU make allows us to use $$-quoted variables which are exanded in a second pass
+#
+# to build a single server (eg. args / Cxx ) do
+# make regression/interop/args/libCxx/libimpl.la
+#
+# to build a single client (eg. args / Cxx ) do
+# make regression/interop/args/runCxx/client-stamp
 
 TESTDIR=regression/interop
 TTESTDIR=$(top_builddir)/regression/interop
 
 # These are gently ordered by number of generated files to speedup parallel builds
 BABEL_TESTS = \
-  regression/interop/inherit/runChapel/inherittest.chpl \
-  regression/interop/args/runChapel/argstest.chpl \
-  regression/interop/arrays/runChapel/arraystest.chpl \
-  regression/interop/contracts/runChapel/vectortest.chpl \
-  regression/interop/strings/runChapel/stringstest.chpl \
-  regression/interop/exceptions/runChapel/exceptionstest.chpl \
-  regression/interop/ordering/runChapel/orderingtest.chpl  \
-  regression/interop/overload/runChapel/overloadtest.chpl \
-  regression/interop/struct/runChapel/structtest.chpl 
+  $(TESTDIR)/inherit/runChapel/inherittest.chpl \
+  $(TESTDIR)/args/runChapel/argstest.chpl \
+  $(TESTDIR)/arrays/runChapel/arraystest.chpl \
+  $(TESTDIR)/contracts/runChapel/vectortest.chpl \
+  $(TESTDIR)/hooks/runChapel/hookstest.chpl \
+  $(TESTDIR)/sort/runChapel/sorttest.chpl \
+  $(TESTDIR)/strings/runChapel/stringstest.chpl \
+  $(TESTDIR)/exceptions/runChapel/exceptionstest.chpl \
+  $(TESTDIR)/ordering/runChapel/orderingtest.chpl  \
+  $(TESTDIR)/overload/runChapel/overloadtest.chpl \
+  $(TESTDIR)/struct/runChapel/structtest.chpl 
 
 BABEL_TESTNAMES = \
-  args arrays contracts enums hooks inherit strings exceptions ordering overload struct 
+  inherit args arrays contracts enums exceptions hooks            strings \
+  objarg ordering overload sort struct                   #  invariants
 BABEL_TESTNAMES77 = \
-  args arrays contracts enums hooks inherit strings exceptions          overload struct
+  inherit args arrays contracts enums exceptions hooks            strings \
+         overload sort struct
 
 EXTRA_DIST += $(BABEL_TESTS)
 
@@ -112,18 +119,18 @@ endif
 $(TESTDIR)/output/libC/libimpl.la: $(TTESTDIR)/build-tracker.sh
 	@sh $< $(MAKE) $(MAKEFLAGS)
 
-$(TESTDIR)/%/libimpl.la: $(TTESTDIR)/build-server.sh
+SERVER_DEPS=$(TTESTDIR)/build-server.sh \
+	$(TESTDIR)/output/libC/libimpl.la \
+	$(nobase_python_PYTHON)
+
+$(TESTDIR)/%/libimpl.la: $(SERVER_DEPS)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
-$(TESTDIR)/%/libimpl.jar: $(TTESTDIR)/build-server.sh
-	@sh $< $@ $(MAKE) $(MAKEFLAGS)
-
-$(TESTDIR)/%/libimpl2.la: $(TTESTDIR)/build-server.sh
+$(TESTDIR)/%/libimpl2.la: $(SERVER_DEPS)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
-	    $(TESTDIR)/output/libC/libimpl.la \
-            $(nobase_python_PYTHON)
+	    $(TESTDIR)/output/libC/libimpl.la
 
 # ATTN: If we should ever encounter a race condition with this rule,
 # it is because libimpl.la is not the last file to be built by

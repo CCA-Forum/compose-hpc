@@ -90,12 +90,12 @@
 # BRAID is released under the BSD License.
 #
 # <h2>Authors</h2> 
-# Copyright (c) 2011, Lawrence Livermore National Security, LLC.<br/>
+# Copyright (c) 2011, 2012, Lawrence Livermore National Security, LLC.<br/>
 # Produced at the Lawrence Livermore National Laboratory.<br/>
 # Written by Adrian Prantl <adrian@llnl.gov>.<br/>
 # LLNL-CODE-473891. All rights reserved.<br/>
 # <h3>Interns</h3>
-# Shams Imam, Rice University (summer 2011)
+# Shams Imam, Rice University (Summer 2010, 2011)
 #
 # <h2>Further Reading</h2>
 #
@@ -104,6 +104,11 @@
 # Interfacing Chapel with Traditional HPC Programming Languages</a><br/>
 # <em>PGAS 2011: Fifth Conference on Partitioned Global Address Space
 # Programming Models</em>, October 2011.
+#
+# Adrian Prantl, Thomas G.W. Epperly, Shams Imam<br/>
+# <a href="http://doi.acm.org/10.1145/2148600.2148636/">
+# Poster: connecting PGAS and traditional HPC languages.</a><br/>
+# <em>SC Companion 2011</em>: 69-70, November 2011.
 #
 
 
@@ -123,11 +128,13 @@ def braid(args):
         cmd = [config.BABEL_PREFIX+'/bin/babel']+sys.argv[1:]
         exit(subprocess.call(cmd))
 
+    # argument post-processing
+    args.gen_contracts = not args.suppress_contracts
+    if not args.make_prefix:
+        args.make_prefix = ''
+
     # No. Braid called to action!
-    backend = chpl_be.GlueCodeGenerator(
-        args.gen_hooks, 
-        not args.suppress_contracts, 
-        args.verbose)
+    backend = chpl_be.GlueCodeGenerator(args)
 
     for sidl_file in args.sidl_files:
         sidl_ast = sidl_parser.parse(sidl_file)
@@ -163,9 +170,9 @@ def braid(args):
 
     if args.makefile:
         if args.client:
-            backend.generate_client_makefile()
+            backend.generate_makefile()
         else:
-            backend.generate_server_makefile()
+            backend.generate_makefile()
 
 def inject_sidl_runtime(sidl_ast, args):
     """
@@ -227,7 +234,7 @@ BRAID is a high-performance language interoperability tool that generates Babel-
                          help='generate server code in the specified language'+
                          ' (Chapel, or any language supported through Babel)')
 
-    cmdline.add_argument('-m', '--makefile', action='store_true',
+    cmdline.add_argument('--makefile', action='store_true',
                          help='generate a default GNUmakefile')
 
     cmdline.add_argument('-i', '--generate-hooks', action='store_true', dest='gen_hooks',
@@ -235,6 +242,11 @@ BRAID is a high-performance language interoperability tool that generates Babel-
 
     cmdline.add_argument('--suppress-contracts', action='store_true', dest='suppress_contracts',
                          help='refrain from generating contract enforcement from SIDL specs')
+
+    cmdline.add_argument('-m', '--make-prefix', metavar='<prefix>', dest='make_prefix',
+                         help='<prefix> is prepended to the name of babel.make and the '+
+                         'symbols defined internally to allow Braid to be run multiple '+
+                         'times in a single directory.')
 
     cmdline.add_argument('--debug',   action='store_true', help='enable debugging features')
     cmdline.add_argument('--profile', action='store_true', help='enable profiling')

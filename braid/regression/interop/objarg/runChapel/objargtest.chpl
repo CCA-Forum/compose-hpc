@@ -46,8 +46,7 @@ proc clearstack(magicNumber: int): int {
 }
 
 var magicNumber = 13;
-tracker.setExpectations(-1, sidl_ex);
-// tracker.setExpectations(19);
+tracker.setExpectations(19, sidl_ex);
 
 proc test_Employee() { 
 	

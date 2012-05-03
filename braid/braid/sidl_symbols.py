@@ -100,12 +100,16 @@ def build_symbol_table(node, symbol_table, verbose=True):
             gen(Imports)
             gen(UserTypes)
 
+        elif (sidl.import_, (sidl.scoped_id, [], 'sidl', '')):
+            # imported by default
+            pass
+
         elif A:
             if (isinstance(A, list)):
                 for defn in A:
                     gen(defn)
             else:
-                raise Exception("build_symbol_table: NOT HANDLED:"+repr(A))
+                raise Exception("build_symbol_table: NOT YET IMPLEMENTED:"+repr(A))
 
         else:
             raise Exception("match error")

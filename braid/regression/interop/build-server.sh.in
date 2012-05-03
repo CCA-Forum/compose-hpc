@@ -38,27 +38,50 @@ else
   chmod -R u+w lib$language                             ||exit 1
 fi
 
-echo "--generate server [ $language / $TESTCASE ]"
+echo "--generate server [ $TESTCASE : $language ]"
 cd lib$language                                         ||exit 1
-if [ x"$TESTCASE" = x"hooks" ]; then
-    case "$language" in
-	Cxx|F90|F03)
-	    $BRAID -i -s$language --makefile $sidl \
-		@BABEL_SRCDIR@/regression/output/output.sidl ||exit 1
-	    ;;
-	*)
-	    $BRAID -i -s$language --makefile $sidl ||exit 1
-	    ;;
-    esac
-    @PERL@ -pi -e"s|(BABELFLAG=)|\1-i |" GNUmakefile ||exit 1
-else
-    $BRAID -s$language --makefile $sidl ||exit 1
-fi
+OUTPUTSIDL=@BABEL_SRCDIR@/regression/output/output.sidl
+case $TESTCASE in
+    hooks|contracts)
+	$BRAID -i -s$language --makefile $sidl ||exit 1
+	$BRAID -c$language --make-prefix=synch_ $OUTPUTSIDL ||exit 1
+	@PERL@ -pi -e"s|(BABELFLAG=)|\1-i |" GNUmakefile ||exit 1
+	;;
+    *)
+	$BRAID -s$language --makefile $sidl ||exit 1
+	$BRAID -c$language --make-prefix=synch_ $OUTPUTSIDL ||exit 1
+	;;
+esac
+sed -i -e 's/\(include babel.make\)/\1\ninclude synch_babel.make/' GNUmakefile
+
+case $language in
+    F90) 
+	echo "synch_STUBMODULEOBJS=\$(synch_STUBMODULESRCS:.F90=.lo)">>synch_babel.make
+	echo "synch_TYPEMODULEOBJS=\$(synch_TYPEMODULESRCS:.F90=.lo)">>synch_babel.make
+	;;
+    F03) 
+	;;
+    Chapel)
+	echo "# not needed">synch_babel.make
+	;;
+    *)  ;;
+esac
+
+sed -i -e 's/(\(IORHDRS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBHDRS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBMODULESRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBSRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(TYPEMODULESRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBMODULEOBJS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(TYPEMODULEOBJS\))/(\1) \$(synch_\1)/g' \
+    GNUmakefile
+@PERL@ -pi -e "s|^.babel (.*)|\t$BRAID \1 ; $BRAID -c$language --make-prefix=synch_ @BABEL_SRCDIR@/regression/output/output.sidl|" GNUmakefile ||exit 1
+
 # turn on debugging
 @PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1
 cd ..						        ||exit 1
 
-echo "--compile server  [ $language / $TESTCASE ]"
+echo "--compile server  [  $TESTCASE : $language ]"
 $MAKE -C lib$language clean >/dev/null
 if [ x"$language" = x"Chapel" ]; then
     exec $MAKE all -C lib$language # verbose
