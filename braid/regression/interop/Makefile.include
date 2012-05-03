@@ -16,7 +16,7 @@ BABEL_TESTS = \
   $(TESTDIR)/arrays/runChapel/arraystest.chpl \
   $(TESTDIR)/contracts/runChapel/vectortest.chpl \
   $(TESTDIR)/hooks/runChapel/hookstest.chpl \
-  $(TESTDIR)/sort/runChapel/sorttest.chpl \
+  $(TESTDIR)/sorting/runChapel/sorttest.chpl \
   $(TESTDIR)/strings/runChapel/stringstest.chpl \
   $(TESTDIR)/exceptions/runChapel/exceptionstest.chpl \
   $(TESTDIR)/ordering/runChapel/orderingtest.chpl  \
@@ -25,10 +25,10 @@ BABEL_TESTS = \
 
 BABEL_TESTNAMES = \
   inherit args arrays contracts enums exceptions hooks            strings \
-  objarg ordering overload sort struct                   #  invariants
+  objarg ordering overload sorting struct                   #  invariants
 BABEL_TESTNAMES77 = \
   inherit args arrays contracts enums exceptions hooks            strings \
-         overload sort struct
+         overload sorting struct
 
 EXTRA_DIST += $(BABEL_TESTS)
 

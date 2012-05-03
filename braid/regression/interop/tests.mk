@@ -2092,223 +2092,223 @@ regression/interop/overload/runSIDL/client-stamp: $(CLIENT_DEPS)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 
-# sort
+# sorting
 # ------------------
 
 # client: runChapel
-regression/interop/sort/runChapel/runChapel2Python.sh regression/interop/sort/runChapel/runChapel2Java.sh regression/interop/sort/runChapel/runChapel2F90.sh regression/interop/sort/runChapel/runChapel2F77.sh regression/interop/sort/runChapel/runChapel2F03.sh regression/interop/sort/runChapel/runChapel2Cxx.sh regression/interop/sort/runChapel/runChapel2C.sh : regression/interop/sort/runChapel/client-stamp
+regression/interop/sorting/runChapel/runChapel2Python.sh regression/interop/sorting/runChapel/runChapel2Java.sh regression/interop/sorting/runChapel/runChapel2F90.sh regression/interop/sorting/runChapel/runChapel2F77.sh regression/interop/sorting/runChapel/runChapel2F03.sh regression/interop/sorting/runChapel/runChapel2Cxx.sh regression/interop/sorting/runChapel/runChapel2C.sh : regression/interop/sorting/runChapel/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runChapel/client.lock regression/interop/sort/runChapel/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runChapel/client.lock regression/interop/sorting/runChapel/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runChapel/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runChapel/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runChapel/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runChapel/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runChapel/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runChapel/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runChapel/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runChapel/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runChapel/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runChapel/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runChapel/client-stamp; \
+	    test -f regression/interop/sorting/runChapel/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runChapel/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runChapel/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runC
-regression/interop/sort/runC/runC2Python.sh regression/interop/sort/runC/runC2Java.sh regression/interop/sort/runC/runC2F90.sh regression/interop/sort/runC/runC2F77.sh regression/interop/sort/runC/runC2F03.sh regression/interop/sort/runC/runC2Cxx.sh regression/interop/sort/runC/runC2C.sh : regression/interop/sort/runC/client-stamp
+regression/interop/sorting/runC/runC2Python.sh regression/interop/sorting/runC/runC2Java.sh regression/interop/sorting/runC/runC2F90.sh regression/interop/sorting/runC/runC2F77.sh regression/interop/sorting/runC/runC2F03.sh regression/interop/sorting/runC/runC2Cxx.sh regression/interop/sorting/runC/runC2C.sh : regression/interop/sorting/runC/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runC/client.lock regression/interop/sort/runC/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runC/client.lock regression/interop/sorting/runC/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runC/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runC/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runC/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runC/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runC/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runC/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runC/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runC/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runC/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runC/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runC/client-stamp; \
+	    test -f regression/interop/sorting/runC/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runC/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runC/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runCxx
-regression/interop/sort/runCxx/runCxx2Python.sh regression/interop/sort/runCxx/runCxx2Java.sh regression/interop/sort/runCxx/runCxx2F90.sh regression/interop/sort/runCxx/runCxx2F77.sh regression/interop/sort/runCxx/runCxx2F03.sh regression/interop/sort/runCxx/runCxx2Cxx.sh regression/interop/sort/runCxx/runCxx2C.sh : regression/interop/sort/runCxx/client-stamp
+regression/interop/sorting/runCxx/runCxx2Python.sh regression/interop/sorting/runCxx/runCxx2Java.sh regression/interop/sorting/runCxx/runCxx2F90.sh regression/interop/sorting/runCxx/runCxx2F77.sh regression/interop/sorting/runCxx/runCxx2F03.sh regression/interop/sorting/runCxx/runCxx2Cxx.sh regression/interop/sorting/runCxx/runCxx2C.sh : regression/interop/sorting/runCxx/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runCxx/client.lock regression/interop/sort/runCxx/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runCxx/client.lock regression/interop/sorting/runCxx/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runCxx/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runCxx/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runCxx/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runCxx/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runCxx/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runCxx/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runCxx/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runCxx/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runCxx/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runCxx/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runCxx/client-stamp; \
+	    test -f regression/interop/sorting/runCxx/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runCxx/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runCxx/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runF03
-regression/interop/sort/runF03/runF032Python.sh regression/interop/sort/runF03/runF032Java.sh regression/interop/sort/runF03/runF032F90.sh regression/interop/sort/runF03/runF032F77.sh regression/interop/sort/runF03/runF032F03.sh regression/interop/sort/runF03/runF032Cxx.sh regression/interop/sort/runF03/runF032C.sh : regression/interop/sort/runF03/client-stamp
+regression/interop/sorting/runF03/runF032Python.sh regression/interop/sorting/runF03/runF032Java.sh regression/interop/sorting/runF03/runF032F90.sh regression/interop/sorting/runF03/runF032F77.sh regression/interop/sorting/runF03/runF032F03.sh regression/interop/sorting/runF03/runF032Cxx.sh regression/interop/sorting/runF03/runF032C.sh : regression/interop/sorting/runF03/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runF03/client.lock regression/interop/sort/runF03/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runF03/client.lock regression/interop/sorting/runF03/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runF03/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runF03/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runF03/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runF03/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runF03/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runF03/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runF03/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runF03/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runF03/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runF03/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runF03/client-stamp; \
+	    test -f regression/interop/sorting/runF03/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runF03/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runF03/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runF77
-regression/interop/sort/runF77/runF772Python.sh regression/interop/sort/runF77/runF772Java.sh regression/interop/sort/runF77/runF772F90.sh regression/interop/sort/runF77/runF772F77.sh regression/interop/sort/runF77/runF772F03.sh regression/interop/sort/runF77/runF772Cxx.sh regression/interop/sort/runF77/runF772C.sh : regression/interop/sort/runF77/client-stamp
+regression/interop/sorting/runF77/runF772Python.sh regression/interop/sorting/runF77/runF772Java.sh regression/interop/sorting/runF77/runF772F90.sh regression/interop/sorting/runF77/runF772F77.sh regression/interop/sorting/runF77/runF772F03.sh regression/interop/sorting/runF77/runF772Cxx.sh regression/interop/sorting/runF77/runF772C.sh : regression/interop/sorting/runF77/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runF77/client.lock regression/interop/sort/runF77/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runF77/client.lock regression/interop/sorting/runF77/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runF77/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runF77/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runF77/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runF77/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runF77/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runF77/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runF77/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runF77/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runF77/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runF77/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runF77/client-stamp; \
+	    test -f regression/interop/sorting/runF77/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runF77/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runF77/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runF90
-regression/interop/sort/runF90/runF902Python.sh regression/interop/sort/runF90/runF902Java.sh regression/interop/sort/runF90/runF902F90.sh regression/interop/sort/runF90/runF902F77.sh regression/interop/sort/runF90/runF902F03.sh regression/interop/sort/runF90/runF902Cxx.sh regression/interop/sort/runF90/runF902C.sh : regression/interop/sort/runF90/client-stamp
+regression/interop/sorting/runF90/runF902Python.sh regression/interop/sorting/runF90/runF902Java.sh regression/interop/sorting/runF90/runF902F90.sh regression/interop/sorting/runF90/runF902F77.sh regression/interop/sorting/runF90/runF902F03.sh regression/interop/sorting/runF90/runF902Cxx.sh regression/interop/sorting/runF90/runF902C.sh : regression/interop/sorting/runF90/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runF90/client.lock regression/interop/sort/runF90/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runF90/client.lock regression/interop/sorting/runF90/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runF90/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runF90/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runF90/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runF90/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runF90/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runF90/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runF90/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runF90/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runF90/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runF90/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runF90/client-stamp; \
+	    test -f regression/interop/sorting/runF90/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runF90/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runF90/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runJava
-regression/interop/sort/runJava/runJava2Python.sh regression/interop/sort/runJava/runJava2Java.sh regression/interop/sort/runJava/runJava2F90.sh regression/interop/sort/runJava/runJava2F77.sh regression/interop/sort/runJava/runJava2F03.sh regression/interop/sort/runJava/runJava2Cxx.sh regression/interop/sort/runJava/runJava2C.sh : regression/interop/sort/runJava/client-stamp
+regression/interop/sorting/runJava/runJava2Python.sh regression/interop/sorting/runJava/runJava2Java.sh regression/interop/sorting/runJava/runJava2F90.sh regression/interop/sorting/runJava/runJava2F77.sh regression/interop/sorting/runJava/runJava2F03.sh regression/interop/sorting/runJava/runJava2Cxx.sh regression/interop/sorting/runJava/runJava2C.sh : regression/interop/sorting/runJava/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runJava/client.lock regression/interop/sort/runJava/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runJava/client.lock regression/interop/sorting/runJava/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runJava/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runJava/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runJava/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runJava/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runJava/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runJava/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runJava/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runJava/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runJava/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runJava/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runJava/client-stamp; \
+	    test -f regression/interop/sorting/runJava/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runJava/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runJava/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runPython
-regression/interop/sort/runPython/runPython2Python.sh regression/interop/sort/runPython/runPython2Java.sh regression/interop/sort/runPython/runPython2F90.sh regression/interop/sort/runPython/runPython2F77.sh regression/interop/sort/runPython/runPython2F03.sh regression/interop/sort/runPython/runPython2Cxx.sh regression/interop/sort/runPython/runPython2C.sh : regression/interop/sort/runPython/client-stamp
+regression/interop/sorting/runPython/runPython2Python.sh regression/interop/sorting/runPython/runPython2Java.sh regression/interop/sorting/runPython/runPython2F90.sh regression/interop/sorting/runPython/runPython2F77.sh regression/interop/sorting/runPython/runPython2F03.sh regression/interop/sorting/runPython/runPython2Cxx.sh regression/interop/sorting/runPython/runPython2C.sh : regression/interop/sorting/runPython/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runPython/client.lock regression/interop/sort/runPython/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runPython/client.lock regression/interop/sorting/runPython/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runPython/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runPython/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runPython/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runPython/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runPython/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runPython/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runPython/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runPython/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runPython/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runPython/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runPython/client-stamp; \
+	    test -f regression/interop/sorting/runPython/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runPython/client-stamp: $(CLIENT_DEPS) regression/interop/sort/libPython/libimpl2.la regression/interop/sort/libJava/libimpl.la regression/interop/sort/libF90/libimpl.la regression/interop/sort/libF77/libimpl.la regression/interop/sort/libF03/libimpl.la regression/interop/sort/libCxx/libimpl.la regression/interop/sort/libC/libimpl.la 
+regression/interop/sorting/runPython/client-stamp: $(CLIENT_DEPS) regression/interop/sorting/libPython/libimpl2.la regression/interop/sorting/libJava/libimpl.la regression/interop/sorting/libF90/libimpl.la regression/interop/sorting/libF77/libimpl.la regression/interop/sorting/libF03/libimpl.la regression/interop/sorting/libCxx/libimpl.la regression/interop/sorting/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runSIDL
-: regression/interop/sort/runSIDL/client-stamp
+: regression/interop/sorting/runSIDL/client-stamp
 ## cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
 ## Recover from the removal of $@
 	@if test -f $@; then :; else \
-	  trap 'rm -rf regression/interop/sort/runSIDL/client.lock regression/interop/sort/runSIDL/client-stamp' 1 2 13 15; \
+	  trap 'rm -rf regression/interop/sorting/runSIDL/client.lock regression/interop/sorting/runSIDL/client-stamp' 1 2 13 15; \
 ## mkdir is a portable test-and-set
-	  if mkdir regression/interop/sort/runSIDL/client.lock 2>/dev/null; then \
+	  if mkdir regression/interop/sorting/runSIDL/client.lock 2>/dev/null; then \
 ## This code is being executed by the first process.
-	    rm -f regression/interop/sort/runSIDL/client-stamp; \
-	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sort/runSIDL/client-stamp; \
-	    result=$$?; rm -rf regression/interop/sort/runSIDL/client.lock; exit $$result; \
+	    rm -f regression/interop/sorting/runSIDL/client-stamp; \
+	    $(MAKE) $(AM_MAKEFLAGS) regression/interop/sorting/runSIDL/client-stamp; \
+	    result=$$?; rm -rf regression/interop/sorting/runSIDL/client.lock; exit $$result; \
 	  else \
 ## This code is being executed by the follower processes.
 ## Wait until the first process is done.
-	    while test -d regression/interop/sort/runSIDL/client.lock; do sleep 1; done; \
+	    while test -d regression/interop/sorting/runSIDL/client.lock; do sleep 1; done; \
 ## Succeed if and only if the first process succeeded.
-	    test -f regression/interop/sort/runSIDL/client-stamp; \
+	    test -f regression/interop/sorting/runSIDL/client-stamp; \
 	  fi; \
 	fi
 
-regression/interop/sort/runSIDL/client-stamp: $(CLIENT_DEPS) 
+regression/interop/sorting/runSIDL/client-stamp: $(CLIENT_DEPS) 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 
@@ -3483,62 +3483,62 @@ INTEROP_TESTS =  \
   regression/interop/overload/runPython/runPython2F90.sh \
   regression/interop/overload/runPython/runPython2Java.sh \
   regression/interop/overload/runPython/runPython2Python.sh \
-  regression/interop/sort/runChapel/runChapel2C.sh \
-  regression/interop/sort/runChapel/runChapel2Cxx.sh \
-  regression/interop/sort/runChapel/runChapel2F03.sh \
-  regression/interop/sort/runChapel/runChapel2F77.sh \
-  regression/interop/sort/runChapel/runChapel2F90.sh \
-  regression/interop/sort/runChapel/runChapel2Java.sh \
-  regression/interop/sort/runChapel/runChapel2Python.sh \
-  regression/interop/sort/runC/runC2C.sh \
-  regression/interop/sort/runC/runC2Cxx.sh \
-  regression/interop/sort/runC/runC2F03.sh \
-  regression/interop/sort/runC/runC2F77.sh \
-  regression/interop/sort/runC/runC2F90.sh \
-  regression/interop/sort/runC/runC2Java.sh \
-  regression/interop/sort/runC/runC2Python.sh \
-  regression/interop/sort/runCxx/runCxx2C.sh \
-  regression/interop/sort/runCxx/runCxx2Cxx.sh \
-  regression/interop/sort/runCxx/runCxx2F03.sh \
-  regression/interop/sort/runCxx/runCxx2F77.sh \
-  regression/interop/sort/runCxx/runCxx2F90.sh \
-  regression/interop/sort/runCxx/runCxx2Java.sh \
-  regression/interop/sort/runCxx/runCxx2Python.sh \
-  regression/interop/sort/runF03/runF032C.sh \
-  regression/interop/sort/runF03/runF032Cxx.sh \
-  regression/interop/sort/runF03/runF032F03.sh \
-  regression/interop/sort/runF03/runF032F77.sh \
-  regression/interop/sort/runF03/runF032F90.sh \
-  regression/interop/sort/runF03/runF032Java.sh \
-  regression/interop/sort/runF03/runF032Python.sh \
-  regression/interop/sort/runF77/runF772C.sh \
-  regression/interop/sort/runF77/runF772Cxx.sh \
-  regression/interop/sort/runF77/runF772F03.sh \
-  regression/interop/sort/runF77/runF772F77.sh \
-  regression/interop/sort/runF77/runF772F90.sh \
-  regression/interop/sort/runF77/runF772Java.sh \
-  regression/interop/sort/runF77/runF772Python.sh \
-  regression/interop/sort/runF90/runF902C.sh \
-  regression/interop/sort/runF90/runF902Cxx.sh \
-  regression/interop/sort/runF90/runF902F03.sh \
-  regression/interop/sort/runF90/runF902F77.sh \
-  regression/interop/sort/runF90/runF902F90.sh \
-  regression/interop/sort/runF90/runF902Java.sh \
-  regression/interop/sort/runF90/runF902Python.sh \
-  regression/interop/sort/runJava/runJava2C.sh \
-  regression/interop/sort/runJava/runJava2Cxx.sh \
-  regression/interop/sort/runJava/runJava2F03.sh \
-  regression/interop/sort/runJava/runJava2F77.sh \
-  regression/interop/sort/runJava/runJava2F90.sh \
-  regression/interop/sort/runJava/runJava2Java.sh \
-  regression/interop/sort/runJava/runJava2Python.sh \
-  regression/interop/sort/runPython/runPython2C.sh \
-  regression/interop/sort/runPython/runPython2Cxx.sh \
-  regression/interop/sort/runPython/runPython2F03.sh \
-  regression/interop/sort/runPython/runPython2F77.sh \
-  regression/interop/sort/runPython/runPython2F90.sh \
-  regression/interop/sort/runPython/runPython2Java.sh \
-  regression/interop/sort/runPython/runPython2Python.sh \
+  regression/interop/sorting/runChapel/runChapel2C.sh \
+  regression/interop/sorting/runChapel/runChapel2Cxx.sh \
+  regression/interop/sorting/runChapel/runChapel2F03.sh \
+  regression/interop/sorting/runChapel/runChapel2F77.sh \
+  regression/interop/sorting/runChapel/runChapel2F90.sh \
+  regression/interop/sorting/runChapel/runChapel2Java.sh \
+  regression/interop/sorting/runChapel/runChapel2Python.sh \
+  regression/interop/sorting/runC/runC2C.sh \
+  regression/interop/sorting/runC/runC2Cxx.sh \
+  regression/interop/sorting/runC/runC2F03.sh \
+  regression/interop/sorting/runC/runC2F77.sh \
+  regression/interop/sorting/runC/runC2F90.sh \
+  regression/interop/sorting/runC/runC2Java.sh \
+  regression/interop/sorting/runC/runC2Python.sh \
+  regression/interop/sorting/runCxx/runCxx2C.sh \
+  regression/interop/sorting/runCxx/runCxx2Cxx.sh \
+  regression/interop/sorting/runCxx/runCxx2F03.sh \
+  regression/interop/sorting/runCxx/runCxx2F77.sh \
+  regression/interop/sorting/runCxx/runCxx2F90.sh \
+  regression/interop/sorting/runCxx/runCxx2Java.sh \
+  regression/interop/sorting/runCxx/runCxx2Python.sh \
+  regression/interop/sorting/runF03/runF032C.sh \
+  regression/interop/sorting/runF03/runF032Cxx.sh \
+  regression/interop/sorting/runF03/runF032F03.sh \
+  regression/interop/sorting/runF03/runF032F77.sh \
+  regression/interop/sorting/runF03/runF032F90.sh \
+  regression/interop/sorting/runF03/runF032Java.sh \
+  regression/interop/sorting/runF03/runF032Python.sh \
+  regression/interop/sorting/runF77/runF772C.sh \
+  regression/interop/sorting/runF77/runF772Cxx.sh \
+  regression/interop/sorting/runF77/runF772F03.sh \
+  regression/interop/sorting/runF77/runF772F77.sh \
+  regression/interop/sorting/runF77/runF772F90.sh \
+  regression/interop/sorting/runF77/runF772Java.sh \
+  regression/interop/sorting/runF77/runF772Python.sh \
+  regression/interop/sorting/runF90/runF902C.sh \
+  regression/interop/sorting/runF90/runF902Cxx.sh \
+  regression/interop/sorting/runF90/runF902F03.sh \
+  regression/interop/sorting/runF90/runF902F77.sh \
+  regression/interop/sorting/runF90/runF902F90.sh \
+  regression/interop/sorting/runF90/runF902Java.sh \
+  regression/interop/sorting/runF90/runF902Python.sh \
+  regression/interop/sorting/runJava/runJava2C.sh \
+  regression/interop/sorting/runJava/runJava2Cxx.sh \
+  regression/interop/sorting/runJava/runJava2F03.sh \
+  regression/interop/sorting/runJava/runJava2F77.sh \
+  regression/interop/sorting/runJava/runJava2F90.sh \
+  regression/interop/sorting/runJava/runJava2Java.sh \
+  regression/interop/sorting/runJava/runJava2Python.sh \
+  regression/interop/sorting/runPython/runPython2C.sh \
+  regression/interop/sorting/runPython/runPython2Cxx.sh \
+  regression/interop/sorting/runPython/runPython2F03.sh \
+  regression/interop/sorting/runPython/runPython2F77.sh \
+  regression/interop/sorting/runPython/runPython2F90.sh \
+  regression/interop/sorting/runPython/runPython2Java.sh \
+  regression/interop/sorting/runPython/runPython2Python.sh \
   regression/interop/strings/runChapel/runChapel2C.sh \
   regression/interop/strings/runChapel/runChapel2Cxx.sh \
   regression/interop/strings/runChapel/runChapel2F03.sh \
