@@ -1,5 +1,7 @@
 #!/bin/sh
+########################################################################
 #echo "Compiling client tests."
+########################################################################
 #echo "Expecting Babel sources in @BABEL_SRCDIR@"
 
 if [ $# -lt 2 ]; then 
@@ -28,7 +30,9 @@ language=`echo \`basename \\\`dirname $arg\\\`\` |sed 's/run//g'`
 sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
 
 
+########################################################################
 # Begin of main driver
+########################################################################
 #echo "MAKE = $MAKE"
 #echo "TESTCASE = $TESTCASE"
 #echo "--set up environment"
@@ -37,7 +41,9 @@ sidl=@BABEL_SRCDIR@/regression/$TESTCASE/$TESTCASE.sidl
 cd regression/interop                                   ||exit 1
 
 
+########################################################################
 #echo "--setup directory, copy over babel regression test"
+########################################################################
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
 case $language in
@@ -50,21 +56,36 @@ esac
 chmod -R u+w run${language}                             ||exit 1
 
 
+########################################################################
 #echo "--generate client"
+########################################################################
 cd run${language}					||exit 1
 rm -f client-stamp
 touch client-temp
 $BRAID $sidl ../../output/output.sidl -c${language} --makefile ||exit 1
 
+########################################################################
 #echo "--customizing babel-generated makefiles"
+########################################################################
+sed -i -e 's/(\(IORHDRS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBHDRS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBMODULESRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBSRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(TYPEMODULESRCS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBOBJS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(STUBMODULEOBJS\))/(\1) \$(synch_\1)/g' \
+       -e 's/(\(TYPEMODULEOBJS\))/(\1) \$(synch_\1)/g' \
+    GNUmakefile
+
 case $language in
     Python)  
-	@PERL@ -pi -e 's/(all : python-stamp .*)$/\1 \$(TARGET)
+	@PERL@ -pi -e 's/(all : python-stamp .*)$/\1 python-babel-stamp \$(TARGET)
 \$(TARGET): \$(LAUNCHLIB) \$(SKELLIB) \$(SCLFILE) 
 /' GNUmakefile
 	;;
     Java)  
-	@PERL@ -pi -e 's/(all : .* lib..LIBNAME..la (lib)?..SCLFILE.)$/\1 \$(TARGET)
+	@PERL@ -pi -e 's/(all : .* lib..LIBNAME..la (lib)?..SCLFILE.)$/\1 \$(TARGET) libClient.scl
+include synch\/synch_babel.make
 \$(TARGET): lib\$(LIBNAME).la lib\$(LIBNAME).jar \$(SERVER) \$(IMPLOBJS) \$(STUBOBJS) 
 /' GNUmakefile
 	;;
@@ -83,13 +104,78 @@ esac
 
 case $language in
     F90|F03) echo "\$(IMPL).lo: synch_RegOut.lo">>GNUmakefile ;;
-    *)  ;;
+    Python)
+	cat >>GNUmakefile <<EOF
+include synch/babel.make
+
+python-babel-stamp:setup.py \$(PYMOD_HDRS)
+	mkdir -p `python -c 'import distutils.util;import sys;print "build/temp."+distutils.util.get_platform()+"-"+sys.version[0:3]'`
+	env CC=cc @PYTHON@ setup.py build_ext `babel-config --includes-py | sed 's/ -I/ --include-dirs=/g'` `babel-config --includes | sed 's/ -I/ --include-dirs=/g'` `babel-config --libs-c-client | sed 's/ -Wl,-rpath,/ --rpath=/g' | sed 's/ -L/ --library-dirs=/g'` --inplace
+	@touch python-babel-stamp
+
+
+\$(TARGET): python-babel-stamp
+	echo "#!/bin/sh">\$@
+	echo "env LD_LIBRARY_PATH=\"@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}\" PYTHONPATH=\"../libPython:`@PYTHON@ -c \"from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')\"`:`@PYTHON@ -c \"from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@BABEL_PREFIX@',plat_specific=1) + ':' + get_python_lib(prefix='@BABEL_PREFIX@')\"`$PYTHONPATH\" SIDL_DLL_PATH=\"../libPython/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl\" @PYTHON@ ${TESTCASE}test">>\$@
+	chmod u+x \$@
+
+EOF
+	;;
+    Java)
+	JAVA=`babel-config --query-var=JAVA`
+	JAVA_LIBRARY_PATH=`babel-config --query-var=libdir`
+	libdir=`babel-config --query-var=libdir`
+	SIDL_LIBRARY_NAME=sidl
+	VERSION=`babel-config --query-var=VERSION`
+	CLASSPATH="${libdir}/sidl-${VERSION}.jar:${libdir}/sidlstub_${VERSION}.jar:."
+	cat >>GNUmakefile <<EOF
+\$(TARGET): all
+	echo "#!/bin/sh">\$@
+	echo "SIDL_DLL_PATH=\"libClient.scl;@BABEL_PREFIX@/lib/libsidlstub_java.scl;@BABEL_PREFIX@/lib/libsidl.scl;\\\$\$SIDL_DLL_PATH\"">>\$@
+	echo "echo SIDL_DLL_PATH=\\\$\$SIDL_DLL_PATH">>\$@
+	echo "CLASSPATH=$CLASSPATH:\\\$\$CLASSPATH">>\$@
+	echo "export CLASSPATH">>\$@
+	echo "export SIDL_DLL_PATH">>\$@
+	echo "">>\$@
+	echo "${JAVA} \\\\">>\$@
+	echo "  -Djava.library.path=\"${JAVA_LIBRARY_PATH}\" \\\\">>\$@
+	echo "  -Dsidl.library.name=\"${SIDL_LIBRARY_NAME}\" \\\\">>\$@
+	echo "  \`ls *Test.class | sed s/\\.class//\` \\$* &">>\$@
+	echo "javapid=\\\$\$!">>\$@
+	echo "trap \"echo 'Test timed out' ; kill -9 \\\$\$javapid\" 14">>\$@
+	echo "(sleep 90 && kill -s 14 \\\$\$ ) <&- >&- 2>&- &">>\$@
+	echo "timerpid=\\\$\$!">>\$@
+	echo "wait \\\$\$javapid">>\$@
+	echo "result=\\\$\$?">>\$@
+	echo "kill \\\$\$timerpid">>\$@
+	echo "exit \\\$\$result">>\$@
+	chmod u+x \$@
+
+libClient.scl : \$(STUBSRCS) \$(synch_STUBSRCS)
+	rm -f libClient.scl
+	echo "<?xml version=\"1.0\" ?>" > libClient.scl
+	echo "<scl>" >> libClient.scl
+	if test `uname` = "Darwin"; then \
+	  scope="global"; \
+	else \
+	  scope="local"; \
+	fi ; \
+	echo "  <library uri=\""`pwd`"/lib\$(LIBNAME).la\" scope=\"\$\$scope\" resolution=\"lazy\" >" >> libClient.scl
+	grep __register \$(STUBSRCS) \$(synch_STUBSRCS) /dev/null | awk 'BEGIN {FS=":"} { print \$\$1}' | sort -u | sed -e 's/_jniStub.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"java\" />\n", \$\$1 }' >> libClient.scl
+	echo "  </library>" >> libClient.scl
+	echo "</scl>" >> libClient.scl
+
+
+EOF
+	;;
 esac
 
 # this will get overwritten, should a real one exist
 echo 'echo "No chapel server implementation for $TESTCASE"; exit 1' >run${language}2Chapel.sh
 
+########################################################################
 # Compile
+########################################################################
 for libdir in `ls -1 -d ../lib*`; do
   server=`echo $libdir|sed 's/^...lib//g'`
   case $server in
@@ -98,27 +184,22 @@ for libdir in `ls -1 -d ../lib*`; do
   esac
   case $language in
       F*) extralib="-lgfortran" ;;
-      *)  ;;
   esac
   echo "--compiling client [ $TESTCASE : $language -> $server ]"
   rm -f run${language}2${server}.sh
- # echo make -C regression/interop/$TESTCASE/run$language run${language}2${server} \
- #        SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
- #        IMPL="${TESTCASE}test" \
- #        EXTRA_LDFLAGS="$extralib" \
- #        TARGET="run${language}2${server}" 
+  #set -x
   $MAKE run${language}2${server} \
         SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
         IMPL="${TESTCASE}test" \
         EXTRA_LDFLAGS="$extralib" \
-        TARGET="run${language}2${server}" >/dev/null     ||exit 1
-
+        TARGET="run${language}2${server}" #>/dev/null     ||exit 1
+  set +x
   # generate wrapper scripts
   case "$server" in
       Java)
 	  cat >run${language}2Java.sh <<EOF
 # To debug, run as ./run${language}2${server}.sh gdbtui
-env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}:$libdir" \
+exec env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}:$libdir" \
     CLASSPATH="../libJava:@BABEL_PREFIX@/lib/sidl-@BABEL_VERSION@.jar:@BABEL_PREFIX@/lib/sidlstub_@BABEL_VERSION@.jar:.:$libdir" \
     SIDL_DLL_PATH="../libJava/libimpl.scl;@BABEL_PREFIX@/lib/libsidlstub_java.scl;@BABEL_PREFIX@/lib/libsidl.scl;../../../runtime/sidlx/libsidlx.scl;../../output/libC/libimpl.scl" \
       \$1 ./run${language}2${server} 
@@ -127,7 +208,7 @@ EOF
       Python)
 	  cat >run${language}2Python.sh <<EOF
 # To debug, run as ./run${language}2${server}.sh gdbtui
-env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
+exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
     PYTHONPATH="../libPython:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')"`:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@BABEL_PREFIX@',plat_specific=1) + ':' + get_python_lib(prefix='@BABEL_PREFIX@')"`$PYTHONPATH" \
     SIDL_DLL_PATH="../libPython/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
     \$1 ./run${language}2${server}
@@ -136,12 +217,13 @@ EOF
       *)
 	  cat >run${language}2${server}.sh <<EOF
 # To debug, run as ./run${language}2${server}.sh gdbtui
-env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
+exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
     SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
     \$1 ./run${language}2${server}
 EOF
 	  ;;
   esac
+
   chmod u+x run${language}2${server}.sh
 done
 mv client-temp client-stamp

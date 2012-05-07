@@ -12,7 +12,7 @@ cd $TESTCASE                                            ||exit 1
 cd $CLIENT						||exit 1
 
 echo "--run client"
-exec sh./$SCRIPT 
+exec ./$SCRIPT 
 
 ...
 
