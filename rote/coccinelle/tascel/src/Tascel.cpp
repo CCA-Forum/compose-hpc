@@ -1,16 +1,24 @@
+/*
+ * tascel.cpp
+ *
+ *  Created on: Oct 8, 2011
+ *      Author: Ajay Panyala
+ */
+
 #include "rose.h"
 #include "PaulDecorate.h"
-#include "Transforms.h"
-
+#include "Transform.h"
 using namespace std;
 
 class Visitor: public AstSimpleProcessing {
 protected:
     string inputFile;
+    int *fileCount;
     void virtual visit(SgNode *node);
 public:
-    Visitor(string exfile) {
+    Visitor(string exfile, int *fcount) {
         inputFile = exfile;
+        fileCount = fcount;
     }
 };
 
@@ -19,10 +27,10 @@ public:
 //
 void Visitor::visit(SgNode *node) {
     //
-    // if an annotation was attached, it would be called "CCSD" since
+    // if an annotation was attached, it would be called "TASCEL" since
     // that was the tag we cared about.
     //
-    Annotation *annot = (Annotation *) node->getAttribute("CCSD");
+    Annotation *annot = (Annotation *) node->getAttribute("TASCEL");
 
     // if this is null, no such annotation is attached, so return.
     if (annot == NULL) {
@@ -32,8 +40,8 @@ void Visitor::visit(SgNode *node) {
 
     KVAnnotationValue *val = (KVAnnotationValue *) annot->getValue();
 
-    Transform *trans = new CCSDTransform(val, node);
-    trans->generate(inputFile);
+    TascelTransform *trans = new TascelTransform(val, node);
+    trans->generate(inputFile, fileCount);
 
     /*  // make sure it is a key-value annotation!
      val = isKVAnnotationValue(val);
@@ -66,19 +74,24 @@ int main(int argc, char * argv[]) {
     SgProject* sageProject = frontend(argc, argv);
     ROSE_ASSERT (sageProject != NULL);
 
+    // variable to ensure creation of coccinelle rules file only for first time
+    // a particular transformation is applied, overwrite if already exists from
+    // previous runs on the same input source file.
+    int fileCount = 0;
+
     // decorate the AST with the PAUL annotations
-    paulDecorate(sageProject, "ccsd.paulconf");
+    paulDecorate(sageProject, "tascel.paulconf");
 
     // Run internal consistency tests on AST
     AstTests::runAllTests(sageProject);
 
     // Generate DOT file to visualize the AST
-    generateDOT(*sageProject);
+    //generateDOT(*sageProject);
 
-    Visitor v(exfile);
+    Visitor v(exfile, &fileCount);
 
     v.traverseInputFiles(sageProject, preorder);
 
-    // Generate source code from AST and call the vendor's compiler
-    return backend(sageProject);
+    return 0;
 }
+

@@ -41,8 +41,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{path-to-stratego-install}/lib
 export PATH=$PATH:{path-to-minitermite-install}/bin
 
 
-BUILD Steps 
-------------------
+BUILD Process 
+-------------
 mkdir build && cd build
 cmake..
 make
@@ -56,8 +56,6 @@ reduceSync_transformed.f90
 expanded_transformed.f90
 
 and the complete log at build/Testing/Temporary/LastTest.log
-
-
 
 
 Please send your questions, comments and feedback to ajay@csc.lsu.edu

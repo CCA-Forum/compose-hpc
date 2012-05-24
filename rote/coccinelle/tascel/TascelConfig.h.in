@@ -1,0 +1,4 @@
+// the configured options and settings for TASCEL
+#define TASCEL_VERSION_MAJOR @TASCEL_VERSION_MAJOR@
+#define TASCEL_VERSION_MINOR @TASCEL_VERSION_MINOR@
+

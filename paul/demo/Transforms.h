@@ -21,23 +21,4 @@ public:
   virtual void generate(string, int*);
 };
 
-class TascelTransform : public Transform {
-public:
-  int version;
-  TascelTransform(Annotation *a, SgLocatedNode *root);
-  virtual void generate(string, int*);
-};
-
-class BlasToCublasTransform : public Transform {
-public:
-  // prefix for variables introduced
-  // as part of the transformation.
-  string arrayPrefix;
-
-  // Check if prefix, vector lengths are provided.
-  BlasToCublasTransform(Annotation *a, SgLocatedNode *root);
-  // Generate appropriate Coccinelle rules.
-  virtual void generate(string, int*);
-};
-
 #endif
