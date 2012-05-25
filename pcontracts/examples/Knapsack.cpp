@@ -2,13 +2,13 @@
  * File:  Knapsack.cpp
  *
  * @file
- * @section LICENSE
- * TBD
- *
  * @section DESCRIPTION
  * Class used for printing a solution to the knapsack problem for any 
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
+ *
+ * @section LICENSE
+ * TBD
  */
 
 #include <iostream>

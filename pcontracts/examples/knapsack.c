@@ -2,9 +2,6 @@
  * File:  knapsack.c
  *
  * @file
- * @section LICENSE
- * TBD
- *
  * @section DESCRIPTION
  * A program for printing a solution to the knapsack problem for any
  * given target based on a known set of possible weights, where the 
@@ -12,6 +9,9 @@
  *
  * A recursive algorithm is implemented based on that defined in "Data
  * Structures and Algorithms" by Aho, Hopcroft, and Ulman (c) 1983.
+ *
+ * @section LICENSE
+ * TBD
  */
 
 #include <stdio.h>
