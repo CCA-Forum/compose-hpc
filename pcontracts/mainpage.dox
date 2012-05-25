@@ -5,17 +5,29 @@
 
 \section IntroductionTag Introduction
 
-This package contains ..
+This package contains .. FILL THIS IN
+
+Simple makefiles are currently used to build the tools and run examples.
+There are specific environment requirements associated with building this
+software.  Basic instructions for available makefile targets are given
+below and (will be) included in the README file.
+
+\b WARNING:  This is a work in progess so, at present, only the contents
+of the examples and docs directories currently build.
 
 
 \section EnvironmentTag Environment
 
 Ensure you have ROSE and associated dependencies installed and running
-before attempting to build this package.  The examples have been successfully 
-built in the following environment(s):
+before attempting to build this package.  The examples and documentation 
+have been successfully built in the following environment(s):
 
-- \b Ubuntu 11.04:  \b gmp 5.0.2, \b mpfr 3.1.0, \b mpc 0.9, \b gcc 4.4.6, 
-\b java 1.6, \b boost 1.45.0, and \b rose 0.9.5a
+- \b Ubuntu 11.04:  \b GNU \b Make 3.81, \b GraphViz 2.26.3, \b Doxygen 1.7.3,
+\b java 1.6, \b gmp 5.0.2, \b mpfr 3.1.0, \b mpc 0.9, \b gcc 4.4.6, 
+\b boost 1.45.0, and \b rose 0.9.5a.
+
+Note that \b GraphViz and \b Doxygen are only needed to generate the
+documentation.
 
 
 Makefiles assume the following environment variables are properly defined:
@@ -24,11 +36,9 @@ Makefiles assume the following environment variables are properly defined:
 - \b BOOST_HOME  # BOOST installation root with lib and include subdirectories
 
 
-\section BuildTag Building The Tool
+\section BuildTag Building Software
 
-\b WARNING:  This section does not yet match the current code base.
-
-The tool can be built through a simple makefile invocation at the command
+Software can be built through a simple makefile invocation at the command
 line:
 
 - \b make
@@ -36,42 +46,38 @@ line:
 
 \section RunTag Running Examples
 
-\b WARNING:  This section does not yet match the current code base.
+Basic tests can be executed for comparing the results of the two knapsack
+implementations.  The comparison is performed automatically when entering
+the following on the command line:
 
-To run the examples and, after building (if necessary), enter the following
-on the command line:
+- \b make \b check
 
-- \b make \b run
-
-Results of running the examples against test input files can be found in 
-files with \b .out extensions in the \b src subdirectory.
+Results of running the examples can be found in files with \b .out extensions
+and the comparisons in files with \b .diffs extensions.  These files, which
+are located in the \b examples subdirectory when created, will automatically 
+be removed when the directory is cleaned.
 
 
 \section CleanTag Cleaning Directories
 
-\b WARNING:  This section does not yet match the current code base.
-
-Clean up any object and output files with:
+Object and output files are automatically removed with:
 
 - \b make \b clean
 
-Or object, output, and executables with:
+Documentation, object, output, and executable files are removed with:
 
 - \b make \b clean-all
 
 
 \section DocsTag Generating Documentation
 
-\b WARNING:  This section does not yet match the current code base.
-
-With doxygen installed and in the path, documentation can be (re)generated in 
-a \b docs subdirectory by running the following at the command line:
+With \b Doxygen and \b GraphViz's \b dot installed and in the path, 
+documentation can be (re)generated in a \b docs subdirectory by running 
+the following at the command line:
 
 - \b make \b docs
 
-Now you can navigate to and open the index.html file within a web
-browser to see informatoin on the classes.
-
-This command has been tested with \b Doxygen 1.7.3.
+Now you can navigate to and open the index.html file from a web
+browser to see information about the classes and files in this package.
 
 */

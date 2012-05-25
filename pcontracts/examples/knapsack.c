@@ -1,13 +1,33 @@
+/**
+ * File:  knapsack.c
+ *
+ * @file
+ * @section LICENSE
+ * TBD
+ *
+ * @section DESCRIPTION
+ * A program for printing a solution to the knapsack problem for any
+ * given target based on a known set of possible weights, where the 
+ * size of the list is restricted.
+ *
+ * A recursive algorithm is implemented based on that defined in "Data
+ * Structures and Algorithms" by Aho, Hopcroft, and Ulman (c) 1983.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
+
 /**
- * Determine if there is a solution to the knapsack problem.
+ * Determine if there is a solution to the knapsack problem based on
+ * the list of weights for avaialbe items, target weight, and current 
+ * position.
  *
- * @param weights  The weights of the items in the knapsack.
+ * @param weights  The weights of available items.
  * @param t        The target weight.
  * @param i        The current weight entry.
- * @param n        The number of items (or weights) in the knapsack.
+ * @param n        The number of items (or weights) in the list.
+ * @return         Returns 1 if a solution is detected; otherwise, returns 0.
  */
 /*
  %CONTRACT REQUIRE 
@@ -42,7 +62,7 @@ knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
  * Perform a single solve, relying on the Knapsack class to output the
  * result from a successful run.
  *
- * @param weights  The weights of the items in the knapsack.
+ * @param weights  The weights of available items.
  * @param t        The target weight.
  * @param n        The number of items (or weights) in the knapsack.
  */

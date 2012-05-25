@@ -1,6 +1,14 @@
 /* 
- * File:          Knapsack.cpp
- * Description:   The Knapsack class.
+ * File:  Knapsack.cpp
+ *
+ * @file
+ * @section LICENSE
+ * TBD
+ *
+ * @section DESCRIPTION
+ * Class used for printing a solution to the knapsack problem for any 
+ * given target based on a known set of possible weights, where the
+ * size of the list is restricted.
  */
 
 #include <iostream>
@@ -24,15 +32,20 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
+
 /*
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  ToDo/TBD:  Do the contracts belong here or in the header?
+
+ Header would be better for documentation purposes; however,
+ the implementation makes instrumentation easier.
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
 /* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
-Knapsack::Knapsack() {
+
+Examples::Knapsack::Knapsack() {
   d_nextIndex = 0;
   memset(d_weights, 0, (size_t)(MAX_WEIGHTS*sizeof(int)));
   return;
@@ -45,7 +58,7 @@ Knapsack::Knapsack() {
     has_new_weights: hasWeights(weights, len); 
  */
 void
-Knapsack::initialize(unsigned int* weights, unsigned int len)
+Examples::Knapsack::initialize(unsigned int* weights, unsigned int len)
 {
   unsigned int i;
 
@@ -73,7 +86,7 @@ Knapsack::initialize(unsigned int* weights, unsigned int len)
     side_effect_free: is pure;
  */
 bool
-Knapsack::onlyPosWeights() {
+Examples::Knapsack::onlyPosWeights() {
   return onlyPos(d_weights, d_nextIndex);
 }
 
@@ -84,7 +97,7 @@ Knapsack::onlyPosWeights() {
     side_effect_free: is pure;
  */
 bool
-Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
+Examples::Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
   return sameWeights(d_weights, d_nextIndex, weights, len);
 }
 
@@ -93,7 +106,7 @@ Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
     side_effect_free: is pure;
  */
 bool
-Knapsack::hasSolution(unsigned int t) {
+Examples::Knapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
 }
 
@@ -107,12 +120,14 @@ Knapsack::hasSolution(unsigned int t) {
  */
 
 /**
- * Determine if all entries in the list are positive, returning TRUE
- * if they are or FALSE if they are not.
+ * Determine whether the weights of all of the available items are
+ * positive.
  *
  * @param weights  The weights of the items that could be added to the 
  *                   knapsack.
  * @param len      The length, or number, of weights in the list.
+ * @return         Returns true if they are all non-zero; otherwise,
+ *                   returns false.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
@@ -138,13 +153,16 @@ onlyPos(unsigned int* weights, unsigned int len)
   return isPos;
 } /* onlyPos */
 
-/*
- * Check to see if the two lists match where order does not matter.
+/**
+ * Determine whether the weights in the two lists match, where order
+ * does not matter.
  *
- * @param nW    The weights of the items "in" the knapsack.
+ * @param nW    The weights of the items that could be added to the knapsack.
  * @param lenW  The length, or number, of weights in nW.
- * @param nS    The weights of the items that could be in the knapsack.
+ * @param nS    The weights of the items that could be added to the knapsack.
  * @param lenS  The length, or number, of weights in nS.
+ * @return      Returns true if the values in the two lists match; 
+ *                otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: (nW != null) implies all(nW > 0, lenW); 
@@ -184,11 +202,11 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 } /* sameWeights */
 
 
-/*
- * Recursive implementation of the simplified knapsack problem.
- *
- * Based on the algorithm defined in "Data Structures and
- * Algorithms" by Aho, Hopcroft, and Ullman (c) 1983.
+/**
+ * Determine if there is a solution to the problem for the target weight.  
+ * This is a recursive implementation of the simplified knapsack problem
+ * based on the algorithm defined in "Data Structures and Algorithms" by 
+ * Aho, Hopcroft, and Ullman (c) 1983.
  *
  * @param weights  The weights of the items that could be added to the 
  *                   knapsack.
@@ -196,6 +214,8 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *                   the knapsack.
  * @param i        The current entry in the list.
  * @param n        The number of weights in the list.
+ * @return         Returns true if the solution has been found based on
+ *                   the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, n); 
@@ -228,7 +248,7 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
  * @param t      The target weight.
  */
 void
-runIt(Knapsack* ksack, unsigned int t)
+runIt(Examples::Knapsack* ksack, unsigned int t)
 {
   cout << "Solution for target=" << t <<"?: ";
   if (!ksack->hasSolution(t)) {
@@ -265,7 +285,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  Knapsack* ksack = new Knapsack();
+  Examples::Knapsack* ksack = new Examples::Knapsack();
   if (ksack != NULL) {
     ksack->initialize(weights, num);
 
