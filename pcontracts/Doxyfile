@@ -572,7 +572,7 @@ INPUT                  = mainpage.dox \
                          examples \
                          include \
                          src/annots \
-                         src/runtim/contracts \
+                         src/runtime/contracts \
                          tests
 
 # This tag can be used to specify the character encoding of the source files
