@@ -1,4 +1,4 @@
-/* 
+/**
  * File:          Knapsack.hpp
  * Description:   The Knapsack class.
  */
@@ -9,7 +9,7 @@
 /*
  * Maximum number of weights.
  */
-static const unsigned int MAX_WEIGHTS=10
+static const unsigned int MAX_WEIGHTS=10;
 
 #define M_THROW(TP, MSG, MNM) {\
 TP _ex = TP::_create(); \
@@ -43,7 +43,11 @@ class Knapsack
   
   public:
     /**
-     * Initialize the knapsack with the specified weights, w.
+     * Initialize the knapsack with the specified weights, weights.
+     *
+     * @param weights  The weights of the items that could be placed in
+     *                   the knapsack.
+     * @param len      The length, or number, of weights in the list.
      */
     void
     initialize(unsigned int* weights, unsigned int len);
@@ -58,6 +62,10 @@ class Knapsack
     /**
      * Return TRUE if all of the specified weights, w, are in the knapsack
      * or there are no specified weights; otherwise, return FALSE.
+     *
+     * @param weights  The weights of the items that could be placed in
+     *                   the knapsack.
+     * @param len      The length, or number, of weights in the list.
      */
     bool
     hasWeights(unsigned int* weights, unsigned int len);
@@ -67,6 +75,8 @@ class Knapsack
      * weight; otherwise, return FALSE.  Recall a solution is a
      * subset of weights that total exactly to the specified target
      * weight.
+     *
+     * @param t  The target weight of items to be carried in the knapsack.
      */
     bool
     hasSolution(unsigned int t);

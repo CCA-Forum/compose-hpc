@@ -5,12 +5,24 @@
 
 #include <iostream>
 #include <string.h>
+#include <stdlib.h>
 #include "Knapsack.hpp"
 
 using namespace std;
 
 static const char* L_MAX_WEIGHTS = "Cannot exceed maximum number of weights.";
 static const char* L_POS_WEIGHTS = "Non-positive weights are NOT supported.";
+
+
+bool
+onlyPos(unsigned int* weights, unsigned int len);
+
+bool
+sameWeights(unsigned int* nW, unsigned int lenW, 
+            unsigned int* nS, unsigned int lenS);
+
+bool
+solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
 /*
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20,19 +32,12 @@ static const char* L_POS_WEIGHTS = "Non-positive weights are NOT supported.";
 
 /* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
-/**
- *  Default constructor
- */
-void 
-Knapsack() {
+Knapsack::Knapsack() {
   d_nextIndex = 0;
   memset(d_weights, 0, (size_t)(MAX_WEIGHTS*sizeof(int)));
   return;
 }
 
-/**
- * Initialize the knapsack with the specified weights, w.
- */
 /* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
  */
@@ -43,7 +48,6 @@ void
 Knapsack::initialize(unsigned int* weights, unsigned int len)
 {
   unsigned int i;
-  bool         onlyPos;
 
   if (weights != NULL) {
     if (len <= MAX_WEIGHTS) {
@@ -65,10 +69,6 @@ Knapsack::initialize(unsigned int* weights, unsigned int len)
   return;  
 }
 
-/**
- * Return TRUE if all weights in the knapsack are positive;
- * otherwise, return FALSE.
- */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
@@ -77,10 +77,6 @@ Knapsack::onlyPosWeights() {
   return onlyPos(d_weights, d_nextIndex);
 }
 
-/**
- * Return TRUE if all of the specified weights, w, are in the knapsack
- * or there are no specified weights; otherwise, return FALSE.
- */
 /* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
  */
@@ -93,12 +89,6 @@ Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
 }
 
 
-/**
- * Return TRUE if there is a solution for the specified target
- * weight; otherwise, return FALSE.  Recall a solution is a
- * subset of weights that total exactly to the specified target
- * weight.
- */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */
@@ -116,9 +106,13 @@ Knapsack::hasSolution(unsigned int t) {
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
-/*
+/**
  * Determine if all entries in the list are positive, returning TRUE
  * if they are or FALSE if they are not.
+ *
+ * @param weights  The weights of the items that could be added to the 
+ *                   knapsack.
+ * @param len      The length, or number, of weights in the list.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, len); 
@@ -146,6 +140,11 @@ onlyPos(unsigned int* weights, unsigned int len)
 
 /*
  * Check to see if the two lists match where order does not matter.
+ *
+ * @param nW    The weights of the items "in" the knapsack.
+ * @param lenW  The length, or number, of weights in nW.
+ * @param nS    The weights of the items that could be in the knapsack.
+ * @param lenS  The length, or number, of weights in nS.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: (nW != null) implies all(nW > 0, lenW); 
@@ -190,6 +189,13 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *
  * Based on the algorithm defined in "Data Structures and
  * Algorithms" by Aho, Hopcroft, and Ullman (c) 1983.
+ *
+ * @param weights  The weights of the items that could be added to the 
+ *                   knapsack.
+ * @param t        The desired, or target, weight of items to carry in
+ *                   the knapsack.
+ * @param i        The current entry in the list.
+ * @param n        The number of weights in the list.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: (weights != null) implies all(weights > 0, n); 
@@ -205,9 +211,80 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   } else if (i >= n) {
     has = false;
   } else if (solve(weights, t-weights[i], i+1, n)) {
+    cout << weights[i] << " ";
     has = true;
   } else {
     has = solve(weights, t, i+1, n);
   }
   return has;
 } /* solve */
+
+
+/**
+ * Perform a single solve, relying on the Knapsack class to output the
+ * result from a successful run.
+ *
+ * @param ksack  The knapsack instance.
+ * @param t      The target weight.
+ */
+void
+runIt(Knapsack* ksack, unsigned int t)
+{
+  cout << "Solution for target=" << t <<"?: ";
+  if (!ksack->hasSolution(t)) {
+    cout << "None";
+  } else if (t == 0) {
+    cout << "N/A";
+  }
+  cout << "\n";
+} /* runIt */
+
+
+/**
+ * Test Driver, which accepts an optional target value resulting in a single
+ * solve.  If no target value is provided, then multiple solutions will be
+ * generated for targets in a predetermined range.
+ */
+int 
+main(int argc, char **argv) {
+  int t;
+  unsigned int i, num=7, min=0, max=20;
+  unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
+
+  if (argc==1) {
+    cout << "Assuming targets ranging from " << min << " to " << max << ".\n\n";
+    t = -1;
+  } else if (argc==2) {
+    t = atoi(argv[1]);
+    if (t < 0) {
+      cout << "Replacing the negative target entered (" << t << ") with 0.\n\n";
+      t = 0;
+    } 
+  } else {
+    cout << "USAGE: " << argv[0] << " [<target-value>]\n";
+    exit(1);
+  }
+
+  Knapsack* ksack = new Knapsack();
+  if (ksack != NULL) {
+    ksack->initialize(weights, num);
+
+    cout << "Knapsack contains: ";
+    for (i=0; i<num-1; i++) {
+      cout << weights[i] << ", ";
+    }
+    cout << "and " << weights[num-1] << ".\n\n";
+
+    if (t != -1) {
+      runIt(ksack, t);
+    } else {
+      for (i=min; i<=max; i++) {
+        runIt(ksack, i);
+      }
+    }
+
+    delete ksack;
+  }
+
+  return 0;
+} /* main */
