@@ -1,0 +1,69 @@
+/**
+ @file
+
+\mainpage PAUL Contracts
+
+\section IntroductionTag Introduction
+
+This package contains ..
+
+
+\section EnvironmentTag Environment
+
+Ensure you have ROSE and associated dependencies installed and running
+before attempting to build this package.  The examples have been successfully 
+built in the following environment(s):
+
+- \b Ubuntu 11.04:  \b gmp 5.0.2, \b mpfr 3.1.0, \b mpc 0.9, \b gcc 4.4.6, 
+\b java 1.6, \b boost 1.45.0, and \b rose 0.9.5a
+
+
+Makefiles assume the following environment variables are properly defined:
+
+- \b ROSE_HOME  # ROSE installation root with lib and include subdirectories
+- \b BOOST_HOME  # BOOST installation root with lib and include subdirectories
+
+
+\section BuildTag Building The Tool
+
+The tool can be built through a simple makefile invocation at the command
+line:
+
+- \b make
+
+
+\section RunTag Running Examples
+
+To run the examples and, after building (if necessary), enter the following
+on the command line:
+
+- \b make \b run
+
+Results of running the examples against test input files can be found in 
+files with \b .out extensions in the \b src subdirectory.
+
+
+\section CleanTag Cleaning Directories
+
+Clean up any object and output files with:
+
+- \b make \b clean
+
+Or object, output, and executables with:
+
+- \b make \b clean-all
+
+
+\section DocsTag Generating Documentation
+
+With doxygen installed and in the path, documentation can be (re)generated in 
+a \b docs subdirectory by running the following at the command line:
+
+- \b make \b docs
+
+Now you can navigate to and open the index.html file within a web
+browser to see informatoin on the classes.
+
+This command has been tested with \b Doxygen 1.7.3.
+
+*/
