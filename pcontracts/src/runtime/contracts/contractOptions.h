@@ -31,6 +31,7 @@ extern "C" {
  * ------------------------------------------------------------------
  */
 typedef enum ContractClause__enum {
+  ContractClause_NONE          = 0,
   ContractClause_INVARIANT     = 1,
   ContractClause_PRECONDITION  = 2,
   ContractClause_POSTCONDITION = 4
@@ -39,15 +40,16 @@ typedef enum ContractClause__enum {
 /**
  * Names corresponding to (and indexed by) ContractClauseEnum.
  */
-static const char* S_CONTRACT_CLAUSE[5] = {
-  "undefined",
+static const char* S_CONTRACT_CLAUSE[6] = {
+  "None",
+  "**undefined**",
   "Invariant",
   "Precondition",
-  "undefined",
+  "**undefined**",
   "Postcondition"
 };
 static const unsigned int S_CONTRACT_CLAUSE_MIN_IND = 0;
-static const unsigned int S_CONTRACT_CLAUSE_MAX_IND = 4;
+static const unsigned int S_CONTRACT_CLAUSE_MAX_IND = 5;
 
 
 /**
@@ -60,18 +62,19 @@ static const unsigned int S_CONTRACT_CLAUSE_MAX_IND = 4;
  * ------------------------------------------------------------------
  */
 typedef enum EnforcementClause__enum {
-  EnforcementClause_INVARIANTS    = ContractClause_INVARIANT, /* 1 */
-  EnforcementClause_PRECONDITIONS = ContractClause_PRECONDITION, /* 2 */
-  EnforcementClause_INVPRE        = ContractClause_INVARIANT 
-                                  | ContractClause_PRECONDITION, /* 3 */
-  EnforcementClause_POSTCONDITION = ContractClause_POSTCONDITION, /* 4 */
-  EnforcementClause_INVPOST       = ContractClause_INVARIANT 
-                                  | ContractClause_POSTCONDITION, /* 5 */
-  EnforcementClause_PREPOST       = ContractClause_PRECONDITION
-                                  | ContractClause_POSTCONDITION, /* 6 */
-  EnforcementClause_ALL           = ContractClause_INVARIANT
-                                  | ContractClause_PRECONDITION
-                                  | ContractClause_POSTCONDITION /* 7 */
+  EnforcementClause_NONE           = ContractClause_NONE, /* 0 */
+  EnforcementClause_INVARIANTS     = ContractClause_INVARIANT, /* 1 */
+  EnforcementClause_PRECONDITIONS  = ContractClause_PRECONDITION, /* 2 */
+  EnforcementClause_INVPRE         = ContractClause_INVARIANT 
+                                   | ContractClause_PRECONDITION, /* 3 */
+  EnforcementClause_POSTCONDITIONS = ContractClause_POSTCONDITION, /* 4 */
+  EnforcementClause_INVPOST        = ContractClause_INVARIANT 
+                                   | ContractClause_POSTCONDITION, /* 5 */
+  EnforcementClause_PREPOST        = ContractClause_PRECONDITION
+                                   | ContractClause_POSTCONDITION, /* 6 */
+  EnforcementClause_ALL            = ContractClause_INVARIANT
+                                   | ContractClause_PRECONDITION
+                                   | ContractClause_POSTCONDITION /* 7 */
 } EnforcementClauseEnum;
 static const EnforcementClauseEnum S_ENFORCEMENT_CLAUSE_MIN 
                                    = EnforcementClause_INVARIANTS;
@@ -87,14 +90,14 @@ static const EnforcementClauseEnum S_ENFORCEMENT_CLAUSE_MAX
  *   enumerations.
  */
 static const char* S_ENFORCEMENT_CLAUSE[8] = {
-  "undefined",
-  "Invariant",
-  "Precondition",
-  "Invariant-Precondition",
-  "Postcondition"
-  "Invariant-Postcondition",
-  "Precondition-Postcondition",
-  "Invariant-Precondition-Postcondition"
+  "None",
+  "Invariants",
+  "Preconditions",
+  "Invariants+Preconditions",
+  "Postconditions"
+  "Invariants+Postconditions",
+  "Preconditions+Postconditions",
+  "Invariants+Preconditions+Postconditions"
 };
 static const unsigned int S_ENFORCEMENT_CLAUSE_MIN_IND = 0;
 static const unsigned int S_ENFORCEMENT_CLAUSE_MAX_IND = 7;

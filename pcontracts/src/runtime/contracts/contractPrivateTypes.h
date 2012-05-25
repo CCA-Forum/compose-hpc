@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
+#include <sys/time.h>
 #include "contractOptions.h"
 
 #ifdef __cplusplus
@@ -27,7 +29,7 @@ extern "C" {
 typedef struct EnforcementPolicy__struct {
   EnforcementClauseEnum       clauses;   /* Types of clauses to be checked */
   EnforcementFrequencyEnum    frequency; /* Frequency of clause checking */
-  unsigned int                limit;     /* Limit, if any, on checking */
+  unsigned int                value;     /* Policy-based checking value */
 } EnforcementPolicyType;
 
 
@@ -37,11 +39,13 @@ typedef struct EnforcementPolicy__struct {
  * ----------------------------------------------------------------------
  */
 typedef struct EnforcementState__struct {
-  uint64_t           requests;  /* Number of enforcement requests */
-  uint64_t           allowed;   /* Number of allowed enforcement requests */
-  unsigned int       countdown; /* countdown used for basic sampling */
-  unsigned int       skip;      /* skip, if any, in a random window */
-  TimeEstimatesType  total;     /* Timing accumulators */
+  uint64_t           requests;   /* Number of enforcement requests */
+  uint64_t           allowed;    /* Number of allowed enforcement requests */
+  uint64_t           checksTime; /* Total checks time (derivable) */
+  unsigned int       countdown;  /* Countdown used for basic sampling */
+  unsigned int       skip;       /* Skip, if any, in a random window */
+  struct timeval     start;      /* TBD?  Starting timestamp */
+  TimeEstimatesType  total;      /* Timing accumulators */
 } EnforcementStateType;
 
 
@@ -56,20 +60,18 @@ typedef struct TimeEstimates__struct {
   uint64_t post;    /* Milliseconds spent checking postcondition clause */
   uint64_t inv;     /* Milliseconds spent checking invariant clause */
   uint64_t routine; /* Milliseconds spent in the routine implementation */
-  uint64_t caller;  /* Milliseconds spent outside annotated routines */
 } TimeEstimatesType;
 
 
 /**
  * ----------------------------------------------------------------------
- * Interface contract enforcement tracing data.  This data is associated
- * with enforcement tracing features.
+ * Basic interface contract enforcement file data.  
  * ----------------------------------------------------------------------
  */
-typedef struct EnforcementTracing__struct {
-  char*    traceFile;  /* Name of the trace file */
-  FILE*    tracePtr;   /* Pointer to the trace file */
-} EnforcementTracingType;
+typedef struct EnforcementFile__struct {
+  char*    fileName;  /* Name of the file */
+  FILE*    filePtr;   /* Pointer to the file */
+} EnforcementFileType;
 
 
 #ifdef __cplusplus

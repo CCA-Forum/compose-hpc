@@ -76,20 +76,26 @@ typedef enum ContractViolation__enum {
   ContractViolation_NONE           = 0,
   ContractViolation_INVARIANT      = 1,
   ContractViolation_PRECONDITION   = 2,
-  ContractViolation_POSTCONDITION  = 3
+  ContractViolation_POSTCONDITION  = 3,
+  ContractViolation_CUSTOM         = 4      /* Future Work Placeholder */
 } ContractViolationEnum;
+static const ContractViolationEnum S_CONTRACT_VIOLATION_MIN
+                                   = ContractViolation_NONE;
+static const ContractViolationEnum S_CONTRACT_VIOLATION_MAX
+                                   = ContractViolation_CUSTOM;
 
 /*
  * Names corresponding to (and indexed by) ContractViolationEnum.
  */
-static const char* S_CONTRACT_VIOLATION[4] = {
+static const char* S_CONTRACT_VIOLATION[5] = {
   "None",
   "Invariant",
   "Precondition",
-  "Postcondition"
+  "Postcondition",
+  "Custom"
 };
 static const unsigned int S_CONTRACT_VIOLATION_MIN_IND = 0;
-static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 3;
+static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 4;
 
 
 #ifdef __cplusplus
