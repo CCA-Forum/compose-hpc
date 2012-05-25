@@ -26,6 +26,8 @@ Makefiles assume the following environment variables are properly defined:
 
 \section BuildTag Building The Tool
 
+\b WARNING:  This section does not yet match the current code base.
+
 The tool can be built through a simple makefile invocation at the command
 line:
 
@@ -33,6 +35,8 @@ line:
 
 
 \section RunTag Running Examples
+
+\b WARNING:  This section does not yet match the current code base.
 
 To run the examples and, after building (if necessary), enter the following
 on the command line:
@@ -45,6 +49,8 @@ files with \b .out extensions in the \b src subdirectory.
 
 \section CleanTag Cleaning Directories
 
+\b WARNING:  This section does not yet match the current code base.
+
 Clean up any object and output files with:
 
 - \b make \b clean
@@ -55,6 +61,8 @@ Or object, output, and executables with:
 
 
 \section DocsTag Generating Documentation
+
+\b WARNING:  This section does not yet match the current code base.
 
 With doxygen installed and in the path, documentation can be (re)generated in 
 a \b docs subdirectory by running the following at the command line:
