@@ -232,7 +232,7 @@ ContractsEnforcer_free(
 /**
  * TBD/ToDo:  How should this work IF decide to actually include it?
  *
- * FOR APPLICATION USE.  
+ * FOR INTERNAL/AUTOMATED-USE ONLY.
  *
  * Log a method/routine enforcement estimates into the trace file, if any.
  *
