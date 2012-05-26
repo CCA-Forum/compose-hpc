@@ -1,7 +1,15 @@
-/*
- * File:          ContractsEnforcer.c
- * Description:   Interface contract enforcement manager
- * Source:        Based heavily on Babel's sidl_Enforcer and sidl_EnfPolicy.
+/**
+ * File:  ContractsEnforcer.c
+ *
+ * @file
+ * @section DESCRIPTION
+ * Interface contract enforcement manager.
+ *
+ * This implementation is based heavily on Babel's sidl_Enforcer and 
+ * sidl_EnfPolicy.
+ *
+ * @section LICENSE
+ * TBD
  *
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
  * Produced at the lawrence Livermore National Laboratory.
@@ -37,17 +45,18 @@
 /**
  * INTERNAL USE ONLY.
  *
- * Creates a basic enforcer.
+ * Create a basic enforcer that does NOT check any contracts.
  * 
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to the initialized enforcer
+ * @param clauses    Interface contract clause(s) to be checked.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 ContractsEnforcerType*
-newContractsEnforcer(
-  /* in */ EnforcementClauseEnum clauses,
-  /* in */ const char*           statsfile,
-  /* in */ const char*           tracefile)
+newBaseEnforcer(
+  /* in */ EnforcementClauseEnum    clauses,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
 {
   static const char* l_timesLine = 
          "Pre Time (ms); Post Time (ms); Inv Time (ms); Routine Time (ms); ";
@@ -110,24 +119,379 @@ newContractsEnforcer(
                  tracefile,
                  "Traces will NOT be written.");
         }
+      }
     }
-    DUMP_DEBUG_STATS(enforcer, "newContractsEnforcer(): done")
+    DUMP_DEBUG_STATS(enforcer, "newBaseEnforcer(): done")
   }
 
   return enforcer;
-} /* newContractsEnforcer */
+} /* newBaseEnforcer */
 
 
 /**
  * INTERNAL USE ONLY.
  *
- * Checks to determine if it is time to check a contract clause based
- * on the enforcement policy in effect.  Will adjust enforcement state
- * as needed for some policies.
+ * Create an invariants clause enforcer.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createInvEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_INVARIANTS, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createInvEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Create a preconditions clause enforcer.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createPreEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_PRECONDITIONS, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createPreEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Create an invariant and precondition clauses enforcer.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createInvPreEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_INVPRE, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_INVPRE, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                 EnforcementClause_INVPRE, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                 EnforcementClause_INVPRE, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                 EnforcementClause_INVPRE, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createInvPreEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Create a postcondition clause enforcer.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createPostEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_POSTCONDITIONS, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createPostEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Create an invariant and postcondition clauses enforcer.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createInvPostEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_INVPOST, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_INVPOST, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                 EnforcementClause_INVPOST, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                 EnforcementClause_INVPOST, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                 EnforcementClause_INVPOST, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createInvPostEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Create a precondition and precondition clauses enforcer based on the 
+ * specified frequency.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createPrePostEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_PREPOST, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_PREPOST, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                 EnforcementClause_PREPOST, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                 EnforcementClause_PREPOST, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                 EnforcementClause_PREPOST, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createPrePostEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Create an all interface contract clause enforcer.
+ *
+ * @param frequency  Frequency of checking the clauses encountered.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+createAllEnforcer(
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (frequency)
+  {
+  case EnforcementFrequency_ALWAYS:
+    enforcer = ContractsEnforcer_setEnforceAll(
+                 EnforcementClause_ALL, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_FIT:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
+                 EnforcementClause_ALL, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_ADAPTIVE_TIMING:
+    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
+                EnforcementClause_ALL, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_PERIODIC:
+    enforcer = ContractsEnforcer_setEnforcePeriodic(
+                EnforcementClause_ALL, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_RANDOM:
+    enforcer = ContractsEnforcer_setEnforceRandom(
+                EnforcementClause_ALL, value, statsfile, tracefile);
+    break;
+  default:
+    /* Not a valid combination */
+    break;
+  } /* frequency */
+
+  return enforcer;
+} /* createAllEnforcer */
+
+
+/**
+ * INTERNAL USE ONLY.
+ *
+ * Resets the countdown, if applicable, based on enforcement options.
  * 
  * @param enforcer  Responsible enforcer.
- * @return          CONTRACTS_TRUE if time to check a clause; otherwise,
- *                    CONTRACTS_FALSE.
  */
 void
 resetEnforcementCountdown(
@@ -160,13 +524,15 @@ resetEnforcementCountdown(
 /**
  * INTERNAL USE ONLY.
  *
- * Checks to determine if it is time to check a contract clause based
- * on the enforcement policy in effect.  Will adjust enforcement state
- * as needed for some policies.
+ * Determine if it is time to check a contract clause based on enforcement
+ * options.  Adjusts enforcement state as needed for some policies.
  * 
- * @param enforcer  Responsible enforcer.
- * @return          CONTRACTS_TRUE if time to check a clause; otherwise,
- *                    CONTRACTS_FALSE.
+ * @param enforcer    Responsible enforcer.
+ * @param clauseTime   The time it is estimated to take to check the clause.
+ * @param routineTime  The time it is estimated to take to execute the routine
+ *                       body.
+ * @return            CONTRACTS_TRUE if time to check a clause; otherwise,
+ *                      CONTRACTS_FALSE.
  */
 CONTRACTS_BOOL
 timeToCheckClause(
@@ -240,14 +606,81 @@ timeToCheckClause(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to always check the specified 
- * contract clause(s) and, optionally, output enforcement statistics 
- * and/or tracing data to the specified files.
+ * Create an enforcer for checking the specified contract clause(s) at 
+ * the given frequency (and associated value).  Enforcement statistics
+ * and/or tracing data are output to the given files, when provided.
+ *
+ * @param clauses    Clause(s) to be checked when encountered.
+ * @param frequency  Frequency of checking encountered clauses.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+ContractsEnforcer*
+ContractsEnforcer_createEnforcer(
+  /* in */ EnforcementClauseEnum    clauses, 
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile)
+{
+  ContractsEnforcer* enforcer = NULL;
+
+  switch (clauses)
+  {
+  case EnforcementClause_NONE:
+    if (frequency == EnforcementFrequency_NEVER)
+    {
+      enforcer = ContractsEnforcer_setEnforceNone();
+    }
+    else if (frequency == EnforcementFrequency_ALWAYS)
+    {
+      enforcer = ContractsEnforcer_setEnforceAll(clauses, statsfile, tracefile);
+    }
+    /* else ignore any other combinations */
+    break;
+  case EnforcementClause_INVARIANTS:
+    enforcer = createInvEnforcer(frequency, value);
+    break;
+  case EnforcementClause_PRECONDITIONS:
+    enforcer = createPreEnforcer(frequency, value);
+    break;
+  case EnforcementClause_INVPRE:
+    enforcer = createInvPreEnforcer(frequency, value);
+    break;
+  case EnforcementClause_POSTCONDITIONS:
+    enforcer = createPostEnforcer(frequency, value);
+    break;
+  case EnforcementClause_INVPOST:
+    enforcer = createInvPostEnforcer(frequency, value);
+    break;
+  case EnforcementClause_PREPOST:
+    enforcer = createPrePostEnforcer(frequency, value);
+    break;
+  case EnforcementClause_ALL:
+    enforcer = createAllEnforcer(frequency, value);
+    break;
+  default:
+    printf("ERROR:  Unrecognized enforcement clause option.\n");
+    break;
+  } /* clauses */
+
+  return enforcer;
+} /* ContractsEnforcer_createEnforcer */
+
+
+/**
+ * FOR APPLICATION USE.  
+ *
+ * Create an enforcer for checking all of the specified contract clause(s) 
+ * encountered.  Enforcement statistics and/or tracing data are output to 
+ * the given files, when provided.
  * 
- * @param clauses    Clause(s) to be checked every time they are encountered
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param clauses    Clause(s) to be checked every time they are encountered.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -256,38 +689,40 @@ ContractsEnforcer_setEnforceAll(
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
-  return newContractsEnforcer(clauses, statsfile, tracefile);
+  return newBaseEnforcer(clauses, EnforcementFrequency_ALWAYS, 
+                              statsfile, tracefile);
 } /* ContractsEnforcer_setEnforceAll */
 
 
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to NEVER check any contract clauses.
+ * Create an enforcer whose policy is to NEVER check any contract clauses.
  * 
- * @return  Pointer to a contracts enforcer used to check contracts
+ * @return  Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceNone(void)
 {
-  return newContractsEnforcer(EnforcementClause_NONE, NULL, NULL);
+  return newBaseEnforcer(EnforcementClause_NONE, 
+                              EnforcementFrequency_NEVER, NULL, NULL);
 } /* ContractsEnforcer_setEnforceNone */
 
 
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
- * clause(s) at the given period and, optionally, output enforcement 
- * statistics and/or tracing data to the specified files.
+ * Create an enforcer for periodically checking contract clause(s) at
+ * the specified interval.  Enforcement statistics and/or tracing data 
+ * are output to the given files, when provided.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
+ * @param clauses    Clause(s) to be checked at the specified interval.
  * @param interval   The desired check frequency (i.e., for each interval
- *                     clause encountered)
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ *                     clause encountered).
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -297,8 +732,9 @@ ContractsEnforcer_setEnforcePeriodic(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newContractsEnforcer(clauses, 
-                                                         statsfile, tracefile);
+  ContractsEnforcerType* enforcer = newBaseEnforcer(
+                                      clauses, EnforcementFrequency_PERIODIC,
+                                      statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.value = interval;
     resetEnforcementCountdown(enforcer);
@@ -312,16 +748,15 @@ ContractsEnforcer_setEnforcePeriodic(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
- * clause(s) at a random location within the specified window and, 
- * optionally, output enforcement statistics and/or tracing data to the 
- * specified files.
+ * Create an enforcer for randomly the specified checking contract clause(s), 
+ * once within each window.  Enforcement statistics and/or tracing data are 
+ * output to the given files, when provided.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
- * @param window     The maximum size of the runtime check window
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param clauses    Clause(s) to be checked at the specified interval.
+ * @param window     The maximum size of the runtime check window.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -331,7 +766,7 @@ ContractsEnforcer_setEnforceRandom(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newContractsEnforcer(clauses, 
+  ContractsEnforcerType* enforcer = newBaseEnforcer(clauses, 
                                                          statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.value = window;
@@ -346,19 +781,18 @@ ContractsEnforcer_setEnforceRandom(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
- * clause(s) ONLY when their estimated execution time does not exceed
- * the given limit of the estimated time spent executing a routine.
- * Enforcement statistics and/or tracing data are optionally output to the 
- * specified files.
+ * Create an enforcer for adaptively checking contract clause(s) whose 
+ * estimated execution times does not exceed the specified percentage limit
+ * on the estimated time spent executing a routine.  Enforcement statistics 
+ * and/or tracing data are optionally output to the given files.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
+ * @param clauses    Clause(s) to be checked at the specified interval.
  * @param limit      Runtime overhead limit, from 1 to 99, as a percentage of 
  *                     execution time.  If 0, the value used will default to 1
  *                     or, if greater than 99, to 99.
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -368,7 +802,7 @@ ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newContractsEnforcer(clauses, 
+  ContractsEnforcerType* enforcer = newBaseEnforcer(clauses, 
                                                          statsfile, tracefile);
   if (enforcer) {
     if (limit < 1)
@@ -393,19 +827,19 @@ ContractsEnforcer_setEnforceAdaptiveFit(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
+ * Create an enforcer for adaptively checking the specified contract
  * clause(s) ONLY when their estimated execution time does not result in 
- * exceeding the given limit of the estimated execution time so far.
- * Enforcement statistics and/or tracing data are optionally output to the 
- * specified files.
+ * exceeding the given limit of the estimated total execution time so far.
+ * Enforcement statistics and/or tracing data are output to the given
+ * files, when provided.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
+ * @param clauses    Clause(s) to be checked at the specified interval.
  * @param limit      Runtime overhead limit, from 1 to 99, as a percentage of 
  *                     execution time.  If 0, the value used will default to 1
  *                     or, if greater than 99, to 99.
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -415,7 +849,7 @@ ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newContractsEnforcer(clauses, 
+  ContractsEnforcerType* enforcer = newBaseEnforcer(clauses, 
                                                          statsfile, tracefile);
   if (enforcer) {
     if (limit < 1)
@@ -440,7 +874,7 @@ ContractsEnforcer_setEnforceAdaptiveTiming(
 /**
  * FOR APPLICATION USE.  
  *
- * Dumps the enforcement statistics (so far) into the enforcer's statistics
+ * Dump enforcement statistics (so far) into the enforcer's statistics
  * file, if any.
  *
  * @param enforcer    The responsible contracts enforcer.
@@ -520,8 +954,8 @@ ContractsEnforcer_dumpStatistics(
 /**
  * FOR APPLICATION USE.  
  *
- * Finalizes enabled enforcement features prior to cleaning up and
- * freeing associated memory.
+ * Finalize enabled enforcement features prior to cleaning up and freeing
+ * associated memory.
  *
  * @param enforcer    The responsible contracts enforcer.
  */
@@ -566,7 +1000,7 @@ ContractsEnforcer_free(
  *
  * FOR APPLICATION USE.  
  *
- * Logs a method/routine enforcement estimates into the trace file, if any.
+ * Log a method/routine enforcement estimates into the trace file, if any.
  *
  * @param enforcer  The responsible contracts enforcer.
  * @param times     Execution time values associated with the routine.
@@ -610,12 +1044,11 @@ ContractsEnforcer_logTrace(
 /**
  * FOR INTERNAL/AUTOMATED-USE ONLY.
  *
- * Returns TRUE if enforcement options are set to check at least a subset
- * of the instrumented calls; otherwise, returns FALSE.
+ * Determine if it is time to check contract clause.
  *
  * @param enforcer     The responsible contracts enforcer.
  * @param clause       The clause whose enforcement is being assessed.
- * @param clauseTime   The time it is estimated to take to check the clause
+ * @param clauseTime   The time it is estimated to take to check the clause.
  * @param routineTime  The time it is estimated to take to execute the routine
  *                       body.
  * @param firstForCall First time a clause is checked for the routine.
