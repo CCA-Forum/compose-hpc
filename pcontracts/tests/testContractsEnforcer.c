@@ -101,8 +101,18 @@ getFilename(
 } /* getFilename */
 
 
-// TBD/ToDo:  Need to write one or more routines with invariants, 
-// preconditions, and postconditions executed within loop(s)
+/*
+ * TBD/ToDo:  Need to write one or more routines that call and, if 
+ * appropriate, check results of calls to "public" ContractsEnforcer 
+ * routines.  These should be in loops in order to ensure sampling-
+ * based enforcement policies actually engage.
+ *
+ * ContractsEnforcer_enforceClause(enforcer, clause, clauseTime, 
+ *                                 routineTime, firstForCall)
+ * ContractsEnforcer_dumpStatistics(enforcer, msg)
+ * ContractsEnforcer_logTrace(enforcer, times, name, msg)
+ */
+
 
 /**
  * Test driver.  This routine instantiates each valid enforcer and
@@ -113,7 +123,8 @@ main(int argc, char **argv)
 {
   ContractsEnforcer* enforcer = NULL;
   unsigned int max = 100;
-  unsigned int count = 0;
+  unsigned int bad = 0;
+  unsigned int good = 0;
   unsigned int policyValue = max;
   unsigned int iterations = max;
   int          val;
@@ -149,12 +160,18 @@ main(int argc, char **argv)
        * created.
        */
       if (enforcer != NULL) {
-        count++;
+        good++;
 
-        // TBD/ToDo:  Call the code...after writing it!
+        // TBD/ToDo:  Call routines exercising the "public" methods.
 
         ContractsEnforcer_free(enforcer);
+      } else {
+        bad++;
+        printf("\nFailed to create enforcer for %s and %s\n",
+               S_ENFORCEMENT_CLAUSE[clauses], 
+               S_ENFORCEMENT_FREQUENCY[frequency]);
       }
+
       if (statsFile != NULL) {
         free(statsFile);
       }
@@ -164,7 +181,7 @@ main(int argc, char **argv)
     }
   }
 
-  printf("\n\nTested %d enforcers\n", count);
+  printf("\n\nResults:\n  %d valid enforcers\n  %d invalid options", good, bad);
 
   return 0;
 } /* main */ 
