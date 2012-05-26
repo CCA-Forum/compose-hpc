@@ -1,312 +1,135 @@
-/*
- * File:         testContractsEnforcer.c
- * Description:  Test suite for ContractsEnforcer
+/**
+ * File:  testContractsEnforcer.c
+ *
+ * @file
+ * @section DESCRIPTION
+ * Test suite for ContractsEnforcer.
+ *
+ * @section LICENSE
+ * TBD
  *
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the lawrence Livermore National Laboratory.
+ * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
+ *
  */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "ContractsEnforcer.h"
 
-static ContractsEnforcer* s_enforcer = NULL;
+/**
+ * Abbreviated names corresponding to (and indexable by) EnforcementClauseEnum.
+ *
+ * NOTE:  These names MUST be kept in sync with EnforcementClauseEnum values.
+ */
+static const char* S_FILE_CLAUSES[8] = {
+  "Non",
+  "Inv",
+  "Pre",
+  "IPr",
+  "Pos"
+  "IPo",
+  "PPo",
+  "IPP"
+};
 
 /**
- * Returns the desired contracts enforcer.
+ * Abbreviated names corresponding to (and indexable by) 
+ * EnforcementFrequencyEnum.
  *
- * @param clauses   The desired enforcement clause option.
- * @param frequency The desired enforcement frequency option.
- * @param value     The policy value option, when appropriate.
- * @returns         A pointer to the contracts enforcer.
+ * NOTE:  These names MUST be kept in sync with EnforcementFrequencyEnum values.
  */
-ContractsEnforcer*
-createEnforcer(
-  /* in */ EnforcementClauseEnum    clauses, 
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value) 
+static const char* S_FILE_FREQUENCY[6] = {
+  "Nev",
+  "All",
+  "AdF",
+  "AdT",
+  "Per",
+  "Ran"
+};
+
+/**
+ * Test file types.
+ */
+typedef enum FileType__enum {
+  /** Trace file. */
+  FileType_TRACE = 0,
+  /** Statistics file. */
+  FileType_STATISTICS = 1
+} FileTypeEnum;
+
+/**
+ * Names corresponding to (and indexable by) FileTypeEnum.
+ */
+static const char* S_FILE_TYPE[2] = {
+  "trace",
+  "stats"
+};
+
+
+/**
+ * Creates a filename tailored to the provided options.
+ *
+ * @param clauses    Clause(s) to be checked.
+ * @param frequency  Frequency of checking.
+ * @param fileType   Type of file being created.
+ * @param ext        Desired file extension [Default=csv].
+ * @return           The resulting filename.
+ */ 
+char*
+getFilename(
+  /* in */ EnforcementClauseEnum    clauses,
+  /* in */ EnforcementFrequencyEnum frequency,
+  /* in */ FileTypeEnum             fileType,
+  /* in */ const char*              ext) 
 {
-  ContractsEnforcer* enforcer = NULL;
+  char* fn = NULL;
+  char* pre = "testContractsEnforcer";
+  char* clauseStr = S_FILENAME_CLAUSES[clauses];
+  char* freqStr = S_FILENAME_FREQUENCY[frequency];
+  char* typeStr = S_FILE_TYPE[fileType];
+  char* extStr = strlen(ext) > 0 ? ext : "csv";
 
-  /*
-   * Ack!  Need to simplify similar clause-frequency -> call combinations.
-   */
-  switch (clauses)
-  {
-  case EnforcementClause_NONE:
-    if (frequency == EnforcementFrequency_NEVER)
-    {
-      enforcer = ContractsEnforcer_setEnforceNone();
-    }
-    else if (frequency == EnforcementFrequency_ALWAYS)
-    {
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_None-stats.csv",
-                    "testContractsEnforcer_All_None-trace.csv");
-    }
-    /* else ignore any other combinations */
-    break;
-  case EnforcementClause_INVARIANTS:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_Inv-stats.csv",
-                    "testContractsEnforcer_All_Inv-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_Inv-stats.csv",
-                    "testContractsEnforcer_AdF_Inv-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_Inv-stats.csv",
-                    "testContractsEnforcer_AdT_Inv-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_Inv-stats.csv",
-                    "testContractsEnforcer_Per_Inv-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_Inv-stats.csv",
-                    "testContractsEnforcer_Ran_Inv-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  case EnforcementClause_PRECONDITIONS:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_Pre-stats.csv",
-                    "testContractsEnforcer_All_Pre-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_Pre-stats.csv",
-                    "testContractsEnforcer_AdF_Pre-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_Pre-stats.csv",
-                    "testContractsEnforcer_AdT_Pre-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_Pre-stats.csv",
-                    "testContractsEnforcer_Per_Pre-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_Pre-stats.csv",
-                    "testContractsEnforcer_Ran_Pre-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  case EnforcementClause_INVPRE:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_IPr-stats.csv",
-                    "testContractsEnforcer_All_IPr-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_IPr-stats.csv",
-                    "testContractsEnforcer_AdF_IPr-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_IPr-stats.csv",
-                    "testContractsEnforcer_AdT_IPr-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_IPr-stats.csv",
-                    "testContractsEnforcer_Per_IPr-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_IPr-stats.csv",
-                    "testContractsEnforcer_Ran_IPr-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  case EnforcementClause_POSTCONDITIONS:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_Pos-stats.csv",
-                    "testContractsEnforcer_All_Pos-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_Pos-stats.csv",
-                    "testContractsEnforcer_AdF_Pos-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_Pos-stats.csv",
-                    "testContractsEnforcer_AdT_Pos-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_Pos-stats.csv",
-                    "testContractsEnforcer_Per_Pos-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_Pos-stats.csv",
-                    "testContractsEnforcer_Ran_Pos-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  case EnforcementClause_INVPOST:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_IPo-stats.csv",
-                    "testContractsEnforcer_All_IPo-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_IPo-stats.csv",
-                    "testContractsEnforcer_AdF_IPo-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_IPo-stats.csv",
-                    "testContractsEnforcer_AdT_IPo-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_IPo-stats.csv",
-                    "testContractsEnforcer_Per_IPo-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_IPo-stats.csv",
-                    "testContractsEnforcer_Ran_IPo-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  case EnforcementClause_PREPOST:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_PnP-stats.csv",
-                    "testContractsEnforcer_All_PnP-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_PnP-stats.csv",
-                    "testContractsEnforcer_AdF_PnP-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_PnP-stats.csv",
-                    "testContractsEnforcer_AdT_PnP-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_PnP-stats.csv",
-                    "testContractsEnforcer_Per_PnP-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_PnP-stats.csv",
-                    "testContractsEnforcer_Ran_PnP-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  case EnforcementClause_ALL:
-    switch (frequency)
-    {
-    case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses,
-                    "testContractsEnforcer_All_All-stats.csv",
-                    "testContractsEnforcer_All_All-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_FIT:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value,
-                    "testContractsEnforcer_AdF_All-stats.csv",
-                    "testContractsEnforcer_AdF_All-trace.csv");
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value,
-                    "testContractsEnforcer_AdT_All-stats.csv",
-                    "testContractsEnforcer_AdT_All-trace.csv");
-      break;
-    case EnforcementFrequency_PERIODIC:
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value,
-                    "testContractsEnforcer_Per_All-stats.csv",
-                    "testContractsEnforcer_Per_All-trace.csv");
-      break;
-    case EnforcementFrequency_RANDOM:
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value,
-                    "testContractsEnforcer_Ran_All-stats.csv",
-                    "testContractsEnforcer_Ran_All-trace.csv");
-      break;
-    default:
-      /* Irrelevant combination */
-      break;
-    } /* frequency */
-    break;
-  default:
-    printf("ERROR:  Unrecognized enforcement clause option.\n");
-    break;
-  } /* clauses */
-
-  return enforcer;
-} /* createEnforcer */
+  int len = strlen(pre) + strlen(clauseStr) + strlen(freqStr)
+          + strlen(typeStr) + strlen(extStr) + 5;
+  fn = (char*)malloc(len*sizeof(char));
+  if (fn != NULL) {
+    sprintf(fn, "%s-%s-%s-%s.%s", pre, clauseStr, freqStr, typeStr, extStr);
+  }
+  return fn;
+} /* getFilename */
 
 
 // TBD/ToDo:  Need to write one or more routines with invariants, 
 // preconditions, and postconditions executed within loop(s)
 
+/**
+ * Test driver.  This routine instantiates each valid enforcer and
+ * runs it against the test suite.
+ */
 int
 main(int argc, char **argv)
 {
+  ContractsEnforcer* enforcer = NULL;
+  unsigned int max = 100;
   unsigned int count = 0;
-  unsigned int policyValue = 100;
-  unsigned int iterations = 100;
+  unsigned int policyValue = max;
+  unsigned int iterations = max;
   int          val;
 
-  printf(
-    "\nUSAGE: %s [<policy-value> [<iterations>]], each defaulting to 100\n",
-    argv[0]);
-  if (argc == 2)
-  {
+  if (argc == 2) {
     policyValue = atoi(argv[1]);
-  } 
-  else if (argc == 3)
-  {
+    printf("\nAssuming the provided parameter (%d) is the policy value.\n",
+           argv[0]);
+    printf("The number of iterations is defaulting to %d.\n\n", max);
+  } else if (argc == 3) {
     policyValue = atoi(argv[1]);
     iterations = atoi(argv[2]);
+  } else {
+    printf(
+      "\nUSAGE: %s [<policy-value> [<iterations>]], each defaulting to %d\n",
+      argv[0], max);
   }
 
   for (EnforcementClauseEnum ec = S_ENFORCEMENT_CLAUSE_MIN;
@@ -315,24 +138,33 @@ main(int argc, char **argv)
     for (EnforcementFrequencyEnum ef = S_ENFORCEMENT_FREQUENCY_MIN;
          ef <= S_ENFORCEMENT_FREQUENCY_MAX; ef++)
     {
-      s_enforcer = createEnforcer(ec, ef, policyValue);
+      char* statsFile = getFilename(ec, ef, FileType_STATISTICS, NULL);
+      char* traceFile = getFilename(ec, ef, FileType_TRACE, NULL);
+
+      enforcer = ContractsEnforcer_createEnforcer(ec, ef, policyValue,
+                   statsFile, traceFile);
 
       /*
        * Proceed with the test IF a suitable enforcer has been 
        * created.
        */
-      if (s_enforcer != NULL)
-      {
+      if (enforcer != NULL) {
         count++;
 
         // TBD/ToDo:  Call the code...after writing it!
 
-        ContractsEnforcer_free(s_enforcer);
+        ContractsEnforcer_free(enforcer);
+      }
+      if (statsFile != NULL) {
+        free(statsFile);
+      }
+      if (traceFile != NULL) {
+        free(traceFile);
       }
     }
   }
 
-  printf("\nTested %d enforcers\n", count);
+  printf("\n\nTested %d enforcers\n", count);
 
   return 0;
 } /* main */ 
