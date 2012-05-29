@@ -186,7 +186,7 @@ all: lib$(LIBNAME).la $(SCLFILE) $(TARGET) $(TARGET)_real
 
 # actual program
 $(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CXX) lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
           $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
@@ -199,7 +199,7 @@ $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
           -std=c99 -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
 	  -I$(CHPL_MAKE_HOME)/runtime/include -I. \
 	  $(IMPL).chpl.dir/config.c -c -o $@.lo
-	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) lib$(LIBNAME).la \
 	  $(IMPLOBJS) $@.lo $(SERVER) \
           $(CHPL_LAUNCHER_LDFLAGS) $(LAUNCHER_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
@@ -208,7 +208,7 @@ else
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
 
@@ -224,7 +224,6 @@ $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
 	babel-libtool --mode=link --tag=CC $(CC) -o lib$(LIBNAME).la \
-	  -static \
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(CFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
