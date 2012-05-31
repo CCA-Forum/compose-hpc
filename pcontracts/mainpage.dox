@@ -12,8 +12,8 @@ There are specific environment requirements associated with building this
 software.  Basic instructions for available makefile targets are given
 below and (will be) included in the README file.
 
-\b WARNING:  This is a work in progess so, at present, only the contents
-of the examples and docs directories build.
+\b WARNING:  This is a \b work \b in \b progess so, at present, only the 
+contents of the examples and docs directories build.
 
 
 \section EnvironmentTag Environment

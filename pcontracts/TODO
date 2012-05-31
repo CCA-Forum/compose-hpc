@@ -2,13 +2,17 @@ Tasks
 
 *** Preliminaries:
 
-- Implement stand-alone enforcement library based on SIDL/Babel work
-  Need to give more thought to how much of the original capabilities
-  should be brought over (initially).  For example, should enforcement
-  tracing be supported?
+- Stand-alone enforcement library 
+  TBD:  Should Babel/SIDL tracing be supported?
 
   -- Resume work on:
      o testContractsEnforcer.c
+       Need routines that use the following -- whether associated
+       with contract clauses or not:
+         ContractsEnforcer_dumpStatistics(enforcer, msg)
+         ContractsEnforcer_logTrace(enforcer, times, name, msg)
+         ContractsEnforcer_enforceClause(enforcer, clause, clauseTime, 
+                                         routineTime, firstForCall)
      o create build for testContractsEnforcer.c
      o Iterate on ContractsEnforcer.h & .c as needed
 
