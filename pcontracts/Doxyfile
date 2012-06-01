@@ -25,7 +25,7 @@ DOXYFILE_ENCODING      = UTF-8
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = PaulContracts
+PROJECT_NAME           = "PAUL Contracts"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
@@ -572,7 +572,7 @@ INPUT                  = mainpage.dox \
                          examples \
                          include \
                          src/annots \
-                         src/runtim/contracts \
+                         src/runtime/contracts \
                          tests
 
 # This tag can be used to specify the character encoding of the source files
@@ -955,7 +955,8 @@ DISABLE_INDEX          = NO
 # This tag can be used to set the number of enum values (range [1..20])
 # that doxygen will group on one line in the generated HTML documentation.
 
-ENUM_VALUES_PER_LINE   = 4
+ENUM_VALUES_PER_LINE   = 1
+#ENUM_VALUES_PER_LINE   = 4
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index
 # structure should be generated to display hierarchical information.
@@ -1373,6 +1374,7 @@ HIDE_UNDOC_RELATIONS   = YES
 # have no effect if this option is set to NO (the default)
 
 HAVE_DOT               = YES
+#HAVE_DOT               = NO
 
 # By default doxygen will write a font called FreeSans.ttf to the output
 # directory and reference it in all dot files that doxygen generates. This
@@ -1420,7 +1422,8 @@ GROUP_GRAPHS           = YES
 # collaboration diagrams in a style similar to the OMG's Unified Modeling
 # Language.
 
-UML_LOOK               = NO
+UML_LOOK               = YES
+#UML_LOOK               = NO
 
 # If set to YES, the inheritance and collaboration graphs will show the
 # relations between templates and their instances.

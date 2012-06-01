@@ -1,8 +1,13 @@
-/*
- * File:          contracts.h
- * Description:   Interface contract enforcement basis, which includes
- *                core macros and types.
+/**
+ * File:  contracts.h
  * 
+ * @file
+ * @section DESCRIPTION
+ * Interface contract enforcement basis, which includes core macros and types.
+ *
+ * @section LICENSE
+ * TBD
+ *
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
@@ -67,29 +72,56 @@ extern "C" {
  **********************************************************************
  */
 
-/* 
- * ------------------------------------------------------------------
- * Contract enforcement violation types.
- * ------------------------------------------------------------------
+/**
+ * Contract enforcement (clause) violation types.
  */
 typedef enum ContractViolation__enum {
+  /** No violation occurred. */
   ContractViolation_NONE           = 0,
+  /** An invariant clause was violated. */
   ContractViolation_INVARIANT      = 1,
+  /** A precondition clause was violated. */
   ContractViolation_PRECONDITION   = 2,
-  ContractViolation_POSTCONDITION  = 3
+  /** A postcondition clause was violated. */
+  ContractViolation_POSTCONDITION  = 3,
+  /** Future Work Placeholder */
+  ContractViolation_CUSTOM         = 4
 } ContractViolationEnum;
 
-/*
- * Names corresponding to (and indexed by) ContractViolationEnum.
+/** 
+ * The minimum Contract Violation enumeration number.  Provided
+ * for traversal purposes.
  */
-static const char* S_CONTRACT_VIOLATION[4] = {
+static const ContractViolationEnum S_CONTRACT_VIOLATION_MIN
+                                   = ContractViolation_NONE;
+
+/** 
+ * The maximum Contract Violation enumeration number.  Provided
+ * for traversal purposes.
+ */
+static const ContractViolationEnum S_CONTRACT_VIOLATION_MAX
+                                   = ContractViolation_CUSTOM;
+
+/**
+ * Names corresponding to (and indexable by) ContractViolationEnum.
+ */
+static const char* S_CONTRACT_VIOLATION[5] = {
   "None",
   "Invariant",
   "Precondition",
-  "Postcondition"
+  "Postcondition",
+  "Custom"
 };
+
+/** 
+ * The minimum Contract Violation name index.  Provided for traversal purposes.
+ */
 static const unsigned int S_CONTRACT_VIOLATION_MIN_IND = 0;
-static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 3;
+
+/** 
+ * The minimum Contract Violation name index.  Provided for traversal purposes.
+ */
+static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 4;
 
 
 #ifdef __cplusplus

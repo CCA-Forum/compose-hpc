@@ -12,8 +12,8 @@ There are specific environment requirements associated with building this
 software.  Basic instructions for available makefile targets are given
 below and (will be) included in the README file.
 
-\b WARNING:  This is a work in progess so, at present, only the contents
-of the examples and docs directories currently build.
+\b WARNING:  This is a \b work \b in \b progess so, at present, only the 
+contents of the examples and docs directories build.
 
 
 \section EnvironmentTag Environment
@@ -22,7 +22,7 @@ Ensure you have ROSE and associated dependencies installed and running
 before attempting to build this package.  The examples and documentation 
 have been successfully built in the following environment(s):
 
-- \b Ubuntu 11.04:  \b GNU \b Make 3.81, \b GraphViz 2.26.3, \b Doxygen 1.7.3,
+- \b Ubuntu 11.04:\n  \b GNU \b Make 3.81, \b GraphViz 2.26.3, \b Doxygen 1.7.3,
 \b java 1.6, \b gmp 5.0.2, \b mpfr 3.1.0, \b mpc 0.9, \b gcc 4.4.6, 
 \b boost 1.45.0, and \b rose 0.9.5a.
 

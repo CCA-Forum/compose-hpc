@@ -24,12 +24,16 @@ SUBDIRECTORIES
 
   The subdirectories contained within the Paul Contracts root are:
 
-    ./conf        # Configuration file(s)
-    ./examples    # Example programs with contract annotations
-    ./include     # Include files
-    ./src         # Source files
-    ./tests       # Test programs (and inputs/data)
+    ./conf                    # Configuration file(s)
+    ./examples                # Example programs with contract annotations
+    ./include                 # Include files
+    ./src                     # Source files
+    ./src/annots              # ...Annotation sources
+    ./src/runtime             # ...Runtime library(ies)
+    ./src/runtime/contracts   # ......Stand-alone contract enforcement
+    ./tests                   # Test programs
+    ./tests/inputs            # ...input data (TBD)
   
 
 
-Last Updated:  16 Mar 2012
+Last Updated:  23 Apr 2012

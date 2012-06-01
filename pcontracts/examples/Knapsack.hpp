@@ -2,9 +2,6 @@
  * File:          Knapsack.hpp
  *
  * @file
- * @section LICENSE
- * TBD
- *
  * @section DESCRIPTION
  * Class used for printing a solution to the knapsack problem for any
  * given target based on a known set of possible weights, where the 
@@ -13,6 +10,9 @@
  * The implementation uses a recursive algorithm based on that defined 
  * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
  * 1983.
+ *
+ * @section LICENSE
+ * TBD
  */
 
 #ifndef included_Knapsack_hpp

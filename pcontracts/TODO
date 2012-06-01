@@ -2,6 +2,20 @@ Tasks
 
 *** Preliminaries:
 
+- Stand-alone enforcement library 
+  TBD:  Should Babel/SIDL tracing be supported?
+
+  -- Resume work on:
+     o testContractsEnforcer.c
+       Need routines that use the following -- whether associated
+       with contract clauses or not:
+         ContractsEnforcer_dumpStatistics(enforcer, msg)
+         ContractsEnforcer_logTrace(enforcer, times, name, msg)
+         ContractsEnforcer_enforceClause(enforcer, clause, clauseTime, 
+                                         routineTime, firstForCall)
+     o create build for testContractsEnforcer.c
+     o Iterate on ContractsEnforcer.h & .c as needed
+
 - Continue preliminary identification of relevant libpaul features
   -- Resume work on:
      o CommentVisitor
@@ -42,12 +56,10 @@ Tasks
                          \
                            InvariantsParser
 
-- Implement stand-alone enforcement library based on SIDL/Babel work
-
 - Extend libpaul/PaulDecorate (or revision) with support for new parsers
   and new annotation node support
   -- Depends on tag-parser generalizations and support for multiple 
      annotation attributes per node as proposed at the coding camp
 
 
-Last Updated:  27 Mar 2012
+Last Updated:  11 May 2012

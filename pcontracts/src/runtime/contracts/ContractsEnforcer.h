@@ -1,7 +1,14 @@
-/*
- * File:          ContractsEnforcer.h
- * Description:   Interface contract enforcement manager
- * Source:        Based heavily on Babel's sidl_Enforcer and sidl_EnfPolicy.
+/**
+ * File:  ContractsEnforcer.h
+ *
+ * @file
+ * @section DESCRIPTION
+ * Interface contract enforcement manager
+ * The implementation is based heavily on Babel's sidl_Enforcer and 
+ * sidl_EnfPolicy.
+ *
+ * @section LICENSE
+ * TBD
  *
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
  * Produced at the lawrence Livermore National Laboratory.
@@ -25,31 +32,58 @@
  **********************************************************************
  */
 
+/**
+ * Contracts Enforcer data.
+ */
 typedef struct ContractsEnforcer__struct {
-  EnforcementPolicyType   policy;    /* Basic enforcement policy */
-  EnforcementStateType    data;      /* Enforcement state */
-  EnforcementFileType*    stats;     /* [Optional] Enforcement statistics */
-  EnforcementFileType*    trace;     /* [Optional] Enforcement tracing */
+  EnforcementPolicyType   policy;    /** Basic enforcement policy */
+  EnforcementStateType    data;      /** Enforcement state */
+  EnforcementFileType*    stats;     /** [Optional] Enforcement statistics */
+  EnforcementFileType*    trace;     /** [Optional] Enforcement tracing */
 } ContractsEnforcerType;
 
 
 /*
  **********************************************************************
- * METHODS/ROUTINES
+ * PUBLIC METHODS/ROUTINES
  **********************************************************************
  */
 
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to always check the specified 
- * contract clause(s) and, optionally, output enforcement statistics 
- * and/or tracing data to the specified files.
+ * Create an enforcer for checking the specified contract clause(s) at 
+ * the given frequency (and associated value).  Enforcement statistics
+ * and/or tracing data are output to the given files, when provided.
+ *
+ * @param clauses    Clause(s) to be checked when encountered.
+ * @param frequency  Frequency of checking encountered clauses.
+ * @param value      The policy value option, when appropriate.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
+ */
+CONTRACTS_INLINE
+ContractsEnforcer*
+ContractsEnforcer_createEnforcer(
+  /* in */ EnforcementClauseEnum    clauses, 
+  /* in */ EnforcementFrequencyEnum frequency, 
+  /* in */ unsigned int             value,
+  /* in */ const char*              statsfile,
+  /* in */ const char*              tracefile);
+
+
+/**
+ * FOR APPLICATION USE.  
+ *
+ * Create an enforcer for checking all of the specified contract clause(s) 
+ * encountered.  Enforcement statistics and/or tracing data are output to 
+ * the given files, when provided.
  * 
- * @param clauses    Clause(s) to be checked every time they are encountered
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param clauses    Clause(s) to be checked every time they are encountered.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -62,9 +96,9 @@ ContractsEnforcer_setEnforceAll(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to NEVER check any contract clauses.
+ * Create an enforcer whose policy is to NEVER check any contract clauses.
  * 
- * @return  Pointer to a contracts enforcer used to check contracts
+ * @return  Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -74,16 +108,16 @@ ContractsEnforcer_setEnforceNone(void);
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
- * clause(s) at the given period and, optionally, output enforcement 
- * statistics and/or tracing data to the specified files.
+ * Create an enforcer for periodically checking contract clause(s) at
+ * the specified interval.  Enforcement statistics and/or tracing data 
+ * are output to the given files, when provided.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
+ * @param clauses    Clause(s) to be checked at the specified interval.
  * @param interval   The desired check frequency (i.e., for each interval
- *                     clause encountered)
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ *                     clause encountered).
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -97,16 +131,15 @@ ContractsEnforcer_setEnforcePeriodic(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
- * clause(s) at a random location within the specified window and, 
- * optionally, output enforcement statistics and/or tracing data to the 
- * specified files.
+ * Create an enforcer for randomly the specified checking contract clause(s), 
+ * once within each window.  Enforcement statistics and/or tracing data are 
+ * output to the given files, when provided.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
- * @param window     The maximum size of the runtime check window
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param clauses    Clause(s) to be checked at the specified interval.
+ * @param window     The maximum size of the runtime check window.
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -120,11 +153,10 @@ ContractsEnforcer_setEnforceRandom(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
- * clause(s) ONLY when their estimated execution time does not exceed
- * the given limit of the estimated time spent executing a routine.
- * Enforcement statistics and/or tracing data are optionally output to the 
- * specified files.
+ * Create an enforcer for adaptively checking contract clause(s) whose 
+ * estimated execution times does not exceed the specified percentage limit
+ * on the estimated time spent executing a routine.  Enforcement statistics 
+ * and/or tracing data are optionally output to the given files.
  * 
  * @param clauses    Clause(s) to be checked at the specified interval.
  * @param limit      Runtime overhead limit, from 1 to 99, as a percentage of 
@@ -132,7 +164,7 @@ ContractsEnforcer_setEnforceRandom(
  *                     or, if greater than 99, to 99.
  * @param statsfile  [Optional] Name of the file to output enforcement data.
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
- * @return           Pointer to a contracts enforcer used to check contracts.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -146,19 +178,19 @@ ContractsEnforcer_setEnforceAdaptiveFit(
 /**
  * FOR APPLICATION USE.  
  *
- * Creates an enforcer whose policy is to check the specified contract 
+ * Create an enforcer for adaptively checking the specified contract
  * clause(s) ONLY when their estimated execution time does not result in 
- * exceeding the given limit of the estimated execution time so far.
- * Enforcement statistics and/or tracing data are optionally output to the 
- * specified files.
+ * exceeding the given limit of the estimated total execution time so far.
+ * Enforcement statistics and/or tracing data are output to the given
+ * files, when provided.
  * 
- * @param clauses    Clause(s) to be checked at the specified interval
+ * @param clauses    Clause(s) to be checked at the specified interval.
  * @param limit      Runtime overhead limit, from 1 to 99, as a percentage of 
  *                     execution time.  If 0, the value used will default to 1
  *                     or, if greater than 99, to 99.
- * @param statsfile  [Optional] Name of the file to output enforcement data
- * @param tracefile  [Optional] Name of the file to output enforcement traces
- * @return           Pointer to a contracts enforcer used to check contracts
+ * @param statsfile  [Optional] Name of the file to output enforcement data.
+ * @param tracefile  [Optional] Name of the file to output enforcement traces.
+ * @return           Pointer to the initialized enforcer, if successful.
  */
 CONTRACTS_INLINE
 ContractsEnforcerType*
@@ -172,7 +204,7 @@ ContractsEnforcer_setEnforceAdaptiveTiming(
 /**
  * FOR APPLICATION USE.  
  *
- * Dumps the enforcement statistics (so far) into the enforcer's statistics
+ * Dump enforcement statistics (so far) into the enforcer's statistics
  * file, if any.
  *
  * @param enforcer    The responsible contracts enforcer.
@@ -187,8 +219,8 @@ ContractsEnforcer_dumpStatistics(
 /**
  * FOR APPLICATION USE.  
  *
- * Finalizes enabled enforcement features prior to cleaning up and
- * freeing associated memory.
+ * Finalize enabled enforcement features prior to cleaning up and freeing
+ * associated memory.
  *
  * @param enforcer    The responsible contracts enforcer.
  */
@@ -200,9 +232,9 @@ ContractsEnforcer_free(
 /**
  * TBD/ToDo:  How should this work IF decide to actually include it?
  *
- * FOR APPLICATION USE.  
+ * FOR INTERNAL/AUTOMATED-USE ONLY.
  *
- * Logs a method/routine enforcement estimates into the trace file, if any.
+ * Log a method/routine enforcement estimates into the trace file, if any.
  *
  * @param enforcer  The responsible contracts enforcer.
  * @param times     Execution time values associated with the routine.
@@ -223,12 +255,11 @@ ContractsEnforcer_logTrace(
 /**
  * FOR INTERNAL/AUTOMATED-USE ONLY.
  *
- * Returns TRUE if enforcement options are set to check at least a subset
- * of the instrumented calls; otherwise, returns FALSE.
+ * Determine if it is time to check contract clause.
  *
  * @param enforcer     The responsible contracts enforcer.
  * @param clause       The clause whose enforcement is being assessed.
- * @param clauseTime   The time it is estimated to take to check the clause
+ * @param clauseTime   The time it is estimated to take to check the clause.
  * @param routineTime  The time it is estimated to take to execute the routine
  *                       body.
  * @param firstForCall First time a clause is checked for the routine.
@@ -242,7 +273,6 @@ ContractsEnforcer_enforceClause(
   /* in */    uint64_t               clauseTime,
   /* in */    uint64_t               routineTime,
   /* in */    CONTRACTS_BOOL         firstForCall);
-
 
 #ifdef __cplusplus
 }
