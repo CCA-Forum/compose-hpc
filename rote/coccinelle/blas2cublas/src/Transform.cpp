@@ -3,7 +3,7 @@
 
 using namespace SageInterface;
 
-void handleBlasCalls(ofstream&, string&, SgExprListExp *, string);
+void handleBlasCalls(ofstream&, string&, SgExprListExp *, string, int *);
 void cublasHeaderInsert(ofstream&);
 
 bool fileExists(const std::string& filename) {
@@ -40,7 +40,8 @@ BlasToCublasTransform::BlasToCublasTransform(KVAnnotationValue *val,
     }
 }
 
-void BlasToCublasTransform::generate(string inpFile, int *fileCount) {
+void BlasToCublasTransform::generate(string inpFile, int *fileCount, int *firstBlas) {
+    *firstBlas += 1;
     cout << root->unparseToCompleteString() << endl;
 
     // Get the node (blas call) associated with the annotation.
@@ -75,7 +76,7 @@ void BlasToCublasTransform::generate(string inpFile, int *fileCount) {
     if (!fileExists(cocciFile) || *fileCount == 0) {
         //So create the file
         cocciFptr.open(cocciFile.c_str());
-        // Insert header include (cublas.h) rules
+        // Insert header include (cublas_v2.h) rules
         // just once when the coccinelle rules
         // file is created.
         cublasHeaderInsert(cocciFptr);
@@ -94,7 +95,7 @@ void BlasToCublasTransform::generate(string inpFile, int *fileCount) {
     // Main function that identifies the type of BLAS routine
     // and calls various other functions that generate the
     // appropriate cocccinelle rules.
-    handleBlasCalls(cocciFptr, fname, fArgs, arrayPrefix);
+    handleBlasCalls(cocciFptr, fname, fArgs, arrayPrefix, firstBlas);
 
     // Close coccinelle rules file.
     if (cocciFptr.is_open())
@@ -102,7 +103,7 @@ void BlasToCublasTransform::generate(string inpFile, int *fileCount) {
 }
 
 void handleBlasCalls(ofstream &cocciFptr, string &fname, SgExprListExp *fArgs,
-        string arrayPrefix) {
+        string arrayPrefix, int *firstBlas) {
 
     size_t npos = string::npos;
 
@@ -137,94 +138,94 @@ void handleBlasCalls(ofstream &cocciFptr, string &fname, SgExprListExp *fArgs,
     // Handle gemm routines.
     else if (fname.find("gemm") != npos)
         handleGEMM(cocciFptr, checkBlasCallType, isRowMajor, fname, arrayPrefix,
-                fArgs);
+                fArgs, firstBlas);
 
     // Handle symm and hemm routines.
     else if (fname.find("symm") != npos || fname.find("hemm") != npos)
         handleSYHEMM(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle herk and syrk routines.
     else if (fname.find("herk") != npos || fname.find("syrk") != npos)
         handleSYHERK(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle her2k and syr2k routines.
     else if (fname.find("her2k") != npos || fname.find("syr2k") != npos)
         handleSYHER2K(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle trsm and trmm routines.
     else if (fname.find("trsm") != npos || fname.find("trmm") != npos)
         handleTRSMM(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     /* --------------- BLAS 2 CALLS -----------------*/
 
     // Handle gbmv routines.
     else if (fname.find("gbmv") != npos)
         handleGBMV(cocciFptr, checkBlasCallType, isRowMajor, fname, arrayPrefix,
-                fArgs);
+                fArgs, firstBlas);
 
     // Handle gemv routines.
     else if (fname.find("gemv") != npos)
         handleGEMV(cocciFptr, checkBlasCallType, isRowMajor, fname, arrayPrefix,
-                fArgs);
+                fArgs, firstBlas);
 
     // Handle ger, gerc, geru routines.
     else if (fname.find("ger") != npos)
         handleGER(cocciFptr, checkBlasCallType, isRowMajor, fname, arrayPrefix,
-                fArgs);
+                fArgs, firstBlas);
 
     // Handle hbmv, sbmv routines.
     else if (fname.find("hbmv") != npos || fname.find("sbmv") != npos)
         handleHSBMV(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle hemv, symv routines.
     else if (fname.find("hemv") != npos || fname.find("symv") != npos)
         handleHSEYMV(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle syr2, her2 routines.
     else if (fname.find("her2") != npos || fname.find("syr2") != npos)
         handleHESYR2(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle syr, her routines.
     else if (fname.find("her") != npos || fname.find("syr") != npos)
         handleHESYR(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle hpmv, spmv routines.
     else if (fname.find("hpmv") != npos || fname.find("spmv") != npos)
         handleHSPMV(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle hpr2, spr2 routines.
     else if (fname.find("hpr2") != npos || fname.find("spr2") != npos)
         handleHSPR2(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle hpr, spr routines.
     else if (fname.find("hpr") != npos || fname.find("spr") != npos)
         handleHSPR(cocciFptr, checkBlasCallType, isRowMajor, fname, arrayPrefix,
-                fArgs);
+                fArgs, firstBlas);
 
     // Handle tbmv, tbsv routines.
     else if (fname.find("tbmv") != npos || fname.find("tbsv") != npos)
         handleTBSMV(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle tpmv, tpsv routines.
     else if (fname.find("tpmv") != npos || fname.find("tpsv") != npos)
         handleTPSMV(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     // Handle trmv, trsv routines.
     else if (fname.find("trmv") != npos || fname.find("trsv") != npos)
         handleTRSMV(cocciFptr, checkBlasCallType, isRowMajor, fname,
-                arrayPrefix, fArgs);
+                arrayPrefix, fArgs, firstBlas);
 
     /* --------------- BLAS 1 CALLS -----------------*/
 
@@ -232,43 +233,43 @@ void handleBlasCalls(ofstream &cocciFptr, string &fname, SgExprListExp *fArgs,
     else if (fname.find("asum") != npos || fname.find("nrm2") != npos
             || fname.find("amin") != npos || fname.find("amax") != npos)
 
-            { /*handleSumNrm2Aminmax(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs); */
+            { /*handleSumNrm2Aminmax(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs, firstBlas); */
     }
 
     // Handle axpy routines.
     else if (fname.find("axpy") != npos)
-        handleAXPY(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs);
+        handleAXPY(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs, firstBlas);
 
     // Handle axpby routines.
     else if (fname.find("axpby") != npos)
-        handleAXPBY(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs);
+        handleAXPBY(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs, firstBlas);
 
     // Handle copy routines.
     else if (fname.find("copy") != npos)
-        handleCOPY(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs);
+        handleCOPY(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs, firstBlas);
 
     // Handle dotc, dotu, dot routines.
-    else if (fname.find("dot") != npos) { /*handleDOT(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs); */
+    else if (fname.find("dot") != npos) { /*handleDOT(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs, firstBlas); */
     }
 
     // Handle scal routines.
     else if (fname.find("scal") != npos)
-        handleSCAL(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs);
+        handleSCAL(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs, firstBlas);
 
     // Handle swap routines.
     else if (fname.find("swap") != npos)
-        handleSWAP(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs);
+        handleSWAP(cocciFptr, checkBlasCallType, fname, arrayPrefix, fArgs, firstBlas);
 
     // Handle rotg, rotmg routines - Do nothing since the CUDA BLAS versions are run on CPU.
     else if (fname.find("rotg") != npos || fname.find("rotmg") != npos) {
     }
 
     // Handle rotm routines.
-    else if (fname.find("rotm") != npos) { /*handleROTM(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs); */
+    else if (fname.find("rotm") != npos) { /*handleROTM(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs, firstBlas); */
     }
 
     // Handle rot routines.
-    else if (fname.find("rot") != npos) { /*handleROT(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs); */
+    else if (fname.find("rot") != npos) { /*handleROT(cocciFptr,checkBlasCallType,fname,arrayPrefix,fArgs, firstBlas); */
     }
 
     // Report error in an unknown BLAS call is annotated and quit the transformation.
@@ -279,7 +280,7 @@ void handleBlasCalls(ofstream &cocciFptr, string &fname, SgExprListExp *fArgs,
 }
 
 void cublasHeaderInsert(ofstream &cocciFptr) {
-    // Header (cublas.h) include rules.
+    // Header (cublas_v2.h) include rules.
     cocciFptr << "//Begin Header insertion patch.\n";
 
     cocciFptr << "@initialize:python@ \n\n";
@@ -330,13 +331,16 @@ void cublasHeaderInsert(ofstream &cocciFptr) {
     cocciFptr << "position second_hdr.p; \n";
     cocciFptr << "@@ \n\n";
 
-    cocciFptr << "+#include \"cublas.h\" \n";
+    cocciFptr << "+#include \"cublas_v2.h\" \n";
+    cocciFptr << "+#include \"cuda_runtime.h\" \n";
     cocciFptr << "#include \"...\"@p \n\n";
 
     cocciFptr << "@depends on never done@ \n";
     cocciFptr << "@@ \n\n";
 
-    cocciFptr << "+#include \"cublas.h\" \n";
+    cocciFptr << "+#include \"cublas_v2.h\" \n";
+    cocciFptr << "+#include \"cuda_runtime.h\" \n";
+
     cocciFptr << "#include <...> \n\n";
 
     cocciFptr << "//End Header insertion patch.\n\n";

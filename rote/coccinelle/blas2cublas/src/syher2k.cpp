@@ -3,7 +3,7 @@
 using namespace std;
 
 void handleSYHER2K(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
-        string fname, string uPrefix, SgExprListExp* fArgs) {
+        string fname, string uPrefix, SgExprListExp* fArgs, int *firstBlas) {
 
     ostringstream cocciStream;
     string matARef = "";
@@ -90,9 +90,37 @@ void handleSYHER2K(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
     string cB = "";
     string dimC = "n";
 
+    string handle = "CublasHandle";
+    string cudaStat = "CudaStat";
+    string alpha = "alpha_" + uPrefix;
+    string beta = "beta_" + uPrefix;
+    string stat = "CudaStatReturn";
+
+    if (*firstBlas == 1) {
+
+        cocciStream << "+ cublasHandle_t " << handle << "; \n";
+        cocciStream << "+ cublasStatus_t " << stat << " = cublasCreate(&"
+                << handle << "); \n";
+        cocciStream << "+ cudaError_t " << cudaStat << "; \n";
+        cocciStream << "+  \n";
+        cocciStream << "+ if( " << stat << " != CUBLAS_STATUS_SUCCESS ) { \n";
+        cocciStream
+                << "+        printf ( \"CUBLAS initialization failed \\n\" ); \n";
+        cocciStream << "+        return EXIT_FAILURE; \n";
+        cocciStream << "+  } \n\n";
+        cocciStream << "+  \n";
+        cocciStream << "+ // Move and uncomment the following handle destroy call to the end of your cuda code. \n";
+        cocciStream << "+ // cublasDestroy(&" << handle << "); \n";
+        cocciStream << "+  \n";
+    }
+
+    cocciStream << "+  "<<aType<<" "<< alpha << " = alpha; \n";
+    cocciStream << "+  "<<aType<<" " << beta << " = beta; \n";
+    cocciStream << "+  \n";
+
     if (checkBlasCallType) {
         if (cblasTrans == "CblasTrans") {
-            cuTrans = "\'T\'";
+            cuTrans = "CUBLAS_OP_T";
             rA = "k";
             rB = "k";
             cA = "n";
@@ -104,9 +132,9 @@ void handleSYHER2K(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
             rB = "n";
             cA = "k";
             cB = "k";
-            cuTrans = "\'N\'";
+            cuTrans = "CUBLAS_OP_N";
         } else if (cblasTrans == "CblasConjTrans") {
-            cuTrans = "\'C\'";
+            cuTrans = "CUBLAS_OP_C";
             rA = "k";
             rB = "k";
             cA = "n";
@@ -123,11 +151,11 @@ void handleSYHER2K(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
             cocciStream << "+ int " << cB << "; \n";
             cocciStream << "+ char " << cuTrans << "; \n";
             cocciStream << "+ if(" << cblasTrans << " == CblasTrans) "
-                    << cuTrans << " = \'T\'; \n";
+                    << cuTrans << " = CUBLAS_OP_T; \n";
             cocciStream << "+ else if(" << cblasTrans << " == CblasNoTrans) "
-                    << cuTrans << " = \'N\'; \n";
+                    << cuTrans << " = CUBLAS_OP_N; \n";
             cocciStream << "+ else if(" << cblasTrans << " == CblasConjTrans) "
-                    << cuTrans << " = \'C\'; \n\n";
+                    << cuTrans << " = CUBLAS_OP_C; \n\n";
             cocciStream << "+ if(" << cuTrans << " == CblasNoTrans) { " << rA
                     << " = n; " << cA << " = k; " << rB << " = n; " << cB
                     << " = k; } \n";
@@ -136,41 +164,59 @@ void handleSYHER2K(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
         }
 
         if (cblasUplo == "CblasUpper")
-            cuUplo = "\'U\'";
+            cuUplo = "CUBLAS_FILL_MODE_UPPER";
         else if (cblasUplo == "CblasLower")
-            cuUplo = "\'L\'";
+            cuUplo = "CUBLAS_FILL_MODE_LOWER";
         else {
             cuUplo = uPrefix + "_uplo";
             cocciStream << "+ char " << cuUplo << "; \n";
             cocciStream << "+ if(" << cblasUplo << " == CblasUpper) " << cuUplo
-                    << " = \'U\'; \n";
-            cocciStream << "+ else " << cuUplo << " = \'L\'; \n";
+                    << " = CUBLAS_FILL_MODE_UPPER; \n";
+            cocciStream << "+ else " << cuUplo << " = CUBLAS_FILL_MODE_LOWER; \n";
 
         }
 
-        cocciStream << "+  cublasAlloc(n*k, sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_A);  \n";
-        cocciStream << "+  cublasAlloc(n*k, sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_B);  \n";
-        cocciStream << "+  cublasAlloc(n*n, sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_C);  \n\n";
+        cocciStream << "+  " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_A, n*k* sizeType_" << uPrefix
+                << ");  \n";
+        string arrName = uPrefix+"_A";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+  " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_B, n*k* sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_B";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+  " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_C, n*n* sizeType_" << uPrefix
+                << ");  \n\n";
+        arrName = uPrefix+"_C";
+        memAllocCheck(cocciStream, arrName);
 
         cocciStream << "+  /* Copy matrices to device */   \n";
-        cocciStream << "+  cublasSetMatrix (" << rA << "," << cA
+        cocciStream << "+ " << stat << " = cublasSetMatrix (" << rA << "," << cA
                 << ", sizeType_" << uPrefix << ", (void *)" << matARef << ","
                 << rA << ", (void *) " << uPrefix << "_A," << rA << ");  \n";
-        cocciStream << "+  cublasSetMatrix (" << rB << "," << cB
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetMatrix (" << rB << "," << cB
                 << ", sizeType_" << uPrefix << ", (void *)" << matBRef << ","
                 << rB << ", (void *) " << uPrefix << "_B," << rB << ");  \n\n";
+        arrName = uPrefix+"_B";
+        memCpyCheck(cocciStream, arrName);
+
         cocciStream << "+  /* CUBLAS call */  \n";
         RowMajorWarning(cocciStream, isRowMajor);
-        cocciStream << "+  " << cublasCall << "(" << cuUplo << "," << cuTrans
-                << ",n,k,alpha," << uPrefix << "_A,lda," << uPrefix
-                << "_B,ldb,beta," << uPrefix << "_C,ldc);  \n\n";
+        cocciStream << "+ " << stat << " = " << cublasCall << "(" << cuUplo << "," << cuTrans
+                << ",n,k,&"<<alpha<<"," << uPrefix << "_A,lda," << uPrefix
+                << "_B,ldb,&"<<beta<<"," << uPrefix << "_C,ldc);  \n\n";
+        blasSuccessCheck(cocciStream,cublasCall);
+
         cocciStream << "+  /* Copy result array back to host */ \n";
-        cocciStream << "+  cublasSetMatrix( n, n, sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasGetMatrix( n, n, sizeType_" << uPrefix
                 << ", (void *) " << uPrefix << "_C, n, (void *)" << matCRef
                 << ", n); \n";
+        arrName = uPrefix+"_C";
+        memCpyCheck(cocciStream, arrName);
 
     }
 
@@ -191,30 +237,48 @@ void handleSYHER2K(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
         cocciStream << "+ else { " << rA << " = k; " << rB << " = k; " << cA
                 << " = n; " << cB << " = n; }\n\n";
 
-        cocciStream << "+  cublasAlloc(*(n) * *(k), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_A);  \n";
-        cocciStream << "+  cublasAlloc(*(n) * *(k), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_B);  \n";
-        cocciStream << "+  cublasAlloc(*(n) * *(n), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_C);  \n\n";
+        cocciStream << "+  " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_A,*(n) * *(k) * sizeType_" << uPrefix
+                << ");  \n";
+        string arrName = uPrefix+"_A";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+  " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_B,*(n) * *(k) * sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_B";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+  " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_C, *(n) * *(n) * sizeType_" << uPrefix
+                << ");  \n\n";
+        arrName = uPrefix+"_C";
+        memAllocCheck(cocciStream, arrName);
 
         cocciStream << "+  /* Copy matrices to device */   \n";
-        cocciStream << "+  cublasSetMatrix (" << rA << "," << cA
+        cocciStream << "+ " << stat << " = cublasSetMatrix (" << rA << "," << cA
                 << ", sizeType_" << uPrefix << ", (void *)" << matARef << ","
                 << rA << ", (void *) " << uPrefix << "_A," << rA << ");  \n";
-        cocciStream << "+  cublasSetMatrix (" << rB << "," << cB
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetMatrix (" << rB << "," << cB
                 << ", sizeType_" << uPrefix << ", (void *)" << matBRef << ","
                 << rB << ", (void *) " << uPrefix << "_B," << rB << ");  \n\n";
+        arrName = uPrefix+"_B";
+        memCpyCheck(cocciStream, arrName);
+
         cocciStream << "+  /* CUBLAS call */  \n";
 
-        cocciStream << "+  " << cublasCall
+        cocciStream << "+ " << stat << " = " << cublasCall
                 << "(*(uplo),*(trans),*(n),*(k),*(alpha)," << uPrefix
                 << "_A,*(lda)," << uPrefix << "_B,*(ldb),*(beta)," << uPrefix
                 << "_C,*(ldc));  \n\n";
+        blasSuccessCheck(cocciStream,cublasCall);
+
         cocciStream << "+  /* Copy result array back to host */ \n";
-        cocciStream << "+  cublasSetMatrix( *(n), *(n), sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasGetMatrix( *(n), *(n), sizeType_" << uPrefix
                 << ", (void *) " << uPrefix << "_C, *(n), (void *)" << matCRef
                 << ", *(n)); \n";
+        arrName = uPrefix+"_C";
+        memCpyCheck(cocciStream, arrName);
     }
 
     FreeDeviceMemoryB3(cocciStream, uPrefix, true, true, true);

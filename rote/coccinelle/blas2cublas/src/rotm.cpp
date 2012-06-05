@@ -3,7 +3,7 @@
 using namespace std;
 
 void handleROTM(ofstream &cocciFptr, bool checkBlasCallType, string fname,
-        string uPrefix, SgExprListExp* fArgs) {
+        string uPrefix, SgExprListExp* fArgs, int *firstBlas) {
 
     ostringstream cocciStream;
 

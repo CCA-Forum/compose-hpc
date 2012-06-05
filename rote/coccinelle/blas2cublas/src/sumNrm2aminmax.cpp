@@ -3,7 +3,7 @@
 using namespace std;
 
 void handleSumNrm2Aminmax(ofstream &cocciFptr, bool checkBlasCallType,
-        string fname, string uPrefix, SgExprListExp* fArgs) {
+        string fname, string uPrefix, SgExprListExp* fArgs, int *firstBlas) {
 
     ostringstream cocciStream;
 

@@ -7,11 +7,13 @@ class Visitor: public AstSimpleProcessing {
 protected:
     string inputFile;
     int *fileCount;
+    int *firstBlasCall;
     void virtual visit(SgNode *node);
 public:
-    Visitor(string exfile, int *fcount) {
+    Visitor(string exfile, int *fcount, int *firstBlas) {
         inputFile = exfile;
         fileCount = fcount;
+        firstBlasCall = firstBlas;
     }
 };
 
@@ -34,7 +36,7 @@ void Visitor::visit(SgNode *node) {
     KVAnnotationValue *val = (KVAnnotationValue *) annot->getValue();
 
     BlasToCublasTransform *trans = new BlasToCublasTransform(val, node);
-    trans->generate(inputFile, fileCount);
+    trans->generate(inputFile, fileCount,firstBlasCall);
 
     /*  // make sure it is a key-value annotation!
      val = isKVAnnotationValue(val);
@@ -72,6 +74,8 @@ int main(int argc, char * argv[]) {
     // previous runs on the same input source file.
     int fileCount = 0;
 
+    int firstBlasCall = 0;
+
     // decorate the AST with the PAUL annotations
     paulDecorate(sageProject, "b2cb.paulconf");
 
@@ -81,7 +85,7 @@ int main(int argc, char * argv[]) {
     // Generate DOT file to visualize the AST
     //generateDOT(*sageProject);
 
-    Visitor v(exfile, &fileCount);
+    Visitor v(exfile, &fileCount, &firstBlasCall);
 
     v.traverseInputFiles(sageProject, preorder);
 

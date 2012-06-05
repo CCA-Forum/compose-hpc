@@ -3,7 +3,7 @@
 using namespace std;
 
 void handleGER(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
-        string fname, string uPrefix, SgExprListExp* fArgs) {
+        string fname, string uPrefix, SgExprListExp* fArgs, int *firstBlas) {
 
     ostringstream cocciStream;
 
@@ -69,63 +69,132 @@ void handleGER(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
                 << ",incx," << vecYRef << ",incy," << matARef << ",lda); \n";
 
     DeclareDevicePtrB2(cocciStream, aType, uPrefix, true, true, true);
+    string handle = "CublasHandle";
+    string cudaStat = "CudaStat";
+    string alpha = "alpha_" + uPrefix;
+    string stat = "CudaStatReturn";
+
+    if (*firstBlas == 1) {
+
+        cocciStream << "+ cublasHandle_t " << handle << "; \n";
+        cocciStream << "+ cublasStatus_t " << stat << " = cublasCreate(&"
+                << handle << "); \n";
+        cocciStream << "+ cudaError_t " << cudaStat << "; \n";
+        cocciStream << "+  \n";
+        cocciStream << "+ if( " << stat << " != CUBLAS_STATUS_SUCCESS ) { \n";
+        cocciStream
+                << "+        printf ( \"CUBLAS initialization failed \\n\" ); \n";
+        cocciStream << "+        return EXIT_FAILURE; \n";
+        cocciStream << "+  } \n\n";
+        cocciStream << "+  \n";
+        cocciStream << "+ // Move and uncomment the following handle destroy call to the end of your cuda code. \n";
+        cocciStream << "+ // cublasDestroy(&" << handle << "); \n";
+        cocciStream << "+  \n";
+    }
+
+    cocciStream << "+  "<<aType<<" "<< alpha << " = alpha; \n";
+    cocciStream << "+  \n";
+    string arrName = "";
 
     if (checkBlasCallType) {
 
         cocciStream << "+  /* Allocate device memory */  \n";
-        cocciStream << "+  cublasAlloc(m*n, sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_A);  \n";
-        cocciStream << "+  cublasAlloc(m, sizeType_" << uPrefix << ", (void**)&"
-                << uPrefix << "_X);  \n";
-        cocciStream << "+  cublasAlloc(n, sizeType_" << uPrefix << ", (void**)&"
-                << uPrefix << "_Y);  \n\n";
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_A, m*n * sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_A";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&"
+                << uPrefix << "_X, m * sizeType_" << uPrefix << ");  \n";
+        arrName = uPrefix+"_X";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&"
+                << uPrefix << "_Y, n * sizeType_" << uPrefix << ");  \n\n";
+        arrName = uPrefix+"_Y";
+        memAllocCheck(cocciStream, arrName);
+
         cocciStream << "+  /* Copy matrix, vectors to device */     \n";
-        cocciStream << "+  cublasSetMatrix ( m, n, sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasSetMatrix ( m, n, sizeType_" << uPrefix
                 << ", (void *)" << matARef << ", m, (void *) " << uPrefix
                 << "_A, m);  \n";
-        cocciStream << "+  cublasSetVector ( m, sizeType_" << uPrefix << ","
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetVector ( m, sizeType_" << uPrefix << ","
                 << vecXRef << ", incx, " << uPrefix << "_X, incx);  \n";
-        cocciStream << "+  cublasSetVector ( n, sizeType_" << uPrefix << ","
+        arrName = uPrefix+"_X";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetVector ( n, sizeType_" << uPrefix << ","
                 << vecYRef << ", incy, " << uPrefix << "_Y, incy);  \n\n";
+        arrName = uPrefix+"_Y";
+        memCpyCheck(cocciStream, arrName);
 
         cocciStream << "+  /* CUBLAS call */  \n";
         RowMajorWarning(cocciStream, isRowMajor);
 
-        cocciStream << "+  " << cublasCall << "(m, n, alpha," << uPrefix
+        cocciStream << "+  " << stat << " = " << cublasCall << "(m, n, &"<<alpha<<"," << uPrefix
                 << "_X,incx," << uPrefix << "_Y,incy," << uPrefix
                 << "_A,lda);  \n\n";
+        blasSuccessCheck(cocciStream,cublasCall);
+
         cocciStream << "+  /* Copy result matrix back to host */  \n";
-        cocciStream << "+  cublasSetMatrix ( m, n, sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasGetMatrix ( m, n, sizeType_" << uPrefix
                 << ", (void *)" << uPrefix << "_A, m, (void *) " << matARef
                 << ", m);  \n";
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
     }
 
     else {
 
         cocciStream << "+  /* Allocate device memory */  \n";
-        cocciStream << "+  cublasAlloc(*(m) * *(n), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_A);  \n";
-        cocciStream << "+  cublasAlloc(*(m), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_X);  \n";
-        cocciStream << "+  cublasAlloc(*(n), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_Y);  \n\n";
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_A, *(m) * *(n) * sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_A";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_X, *(m) * sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_X";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_Y, *(n) * sizeType_" << uPrefix
+                << ");  \n\n";
+        arrName = uPrefix+"_Y";
+        memAllocCheck(cocciStream, arrName);
+
         cocciStream << "+  /* Copy matrix, vectors to device */     \n";
-        cocciStream << "+  cublasSetMatrix ( *(m), *(n), sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasSetMatrix ( *(m), *(n), sizeType_" << uPrefix
                 << ", (void *)" << matARef << ", *(m), (void *) " << uPrefix
                 << "_A, *(m));  \n";
-        cocciStream << "+  cublasSetVector ( *(m), sizeType_" << uPrefix << ","
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetVector ( *(m), sizeType_" << uPrefix << ","
                 << vecXRef << ", *(incx), " << uPrefix << "_X, *(incx));  \n";
-        cocciStream << "+  cublasSetVector ( *(n), sizeType_" << uPrefix << ","
+        arrName = uPrefix+"_X";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetVector ( *(n), sizeType_" << uPrefix << ","
                 << vecYRef << ", *(incy), " << uPrefix << "_Y, *(incy));  \n\n";
+        arrName = uPrefix+"_Y";
+        memCpyCheck(cocciStream, arrName);
+
 
         cocciStream << "+  /* CUBLAS call */  \n";
-        cocciStream << "+  " << cublasCall << "(*(m), *(n), *(alpha),"
+        cocciStream << "+  " << stat << " = " << cublasCall << "(*(m), *(n), *(alpha),"
                 << uPrefix << "_X,*(incx)," << uPrefix << "_Y,*(incy),"
                 << uPrefix << "_A,*(lda));  \n\n";
+        blasSuccessCheck(cocciStream,cublasCall);
+
         cocciStream << "+  /* Copy result matrix back to host */  \n";
-        cocciStream << "+  cublasSetMatrix ( *(m), *(n), sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasGetMatrix ( *(m), *(n), sizeType_" << uPrefix
                 << ", (void *)" << uPrefix << "_A, *(m), (void *) " << matARef
                 << ", *(m));  \n";
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
     }
 
     FreeDeviceMemoryB2(cocciStream, uPrefix, true, true, true);

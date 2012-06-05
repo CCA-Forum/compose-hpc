@@ -3,7 +3,7 @@
 using namespace std;
 
 void handleTRSMV(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
-        string fname, string uPrefix, SgExprListExp* fArgs) {
+        string fname, string uPrefix, SgExprListExp* fArgs, int *firstBlas) {
 
     ostringstream cocciStream;
 
@@ -81,116 +81,172 @@ void handleTRSMV(ofstream &cocciFptr, bool checkBlasCallType, bool isRowMajor,
                 << ",lda," << vecXRef << ",incx); \n";
 
     DeclareDevicePtrB2(cocciStream, aType, uPrefix, true, true, false);
+    string handle = "CublasHandle";
+    string cudaStat = "CudaStat";
+    string stat = "CudaStatReturn";
+
+    if (*firstBlas == 1) {
+
+        cocciStream << "+ cublasHandle_t " << handle << "; \n";
+        cocciStream << "+ cublasStatus_t " << stat << " = cublasCreate(&"
+                << handle << "); \n";
+        cocciStream << "+ cudaError_t " << cudaStat << "; \n";
+        cocciStream << "+  \n";
+        cocciStream << "+ if( " << stat << " != CUBLAS_STATUS_SUCCESS ) { \n";
+        cocciStream
+                << "+        printf ( \"CUBLAS initialization failed \\n\" ); \n";
+        cocciStream << "+        return EXIT_FAILURE; \n";
+        cocciStream << "+  } \n\n";
+        cocciStream << "+  \n";
+        cocciStream << "+ // Move and uncomment the following handle destroy call to the end of your cuda code. \n";
+        cocciStream << "+ // cublasDestroy(&" << handle << "); \n";
+        cocciStream << "+  \n";
+    }
+
+    string arrName = "";
 
     if (checkBlasCallType) {
 
         cocciStream << "+  /* Allocate device memory */  \n";
-        cocciStream << "+  cublasAlloc(n*n, sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_A);  \n";
-        cocciStream << "+  cublasAlloc(n, sizeType_" << uPrefix << ", (void**)&"
-                << uPrefix << "_X);  \n\n";
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_A, n*n * sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_A";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_X, n * sizeType_" << uPrefix << ");  \n\n";
+        arrName = uPrefix+"_X";
+        memAllocCheck(cocciStream, arrName);
+
         cocciStream << "+  /* Copy matrix, vector to device */     \n";
-        cocciStream << "+  cublasSetMatrix ( n,n, sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasSetMatrix ( n,n, sizeType_" << uPrefix
                 << ", (void *)" << matARef << ", n, (void *) " << uPrefix
                 << "_A, n);  \n";
-        cocciStream << "+  cublasSetVector ( n, sizeType_" << uPrefix << ","
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetVector ( n, sizeType_" << uPrefix << ","
                 << vecXRef << ", incx, " << uPrefix << "_X, incx);  \n\n";
+        arrName = uPrefix+"_X";
+        memCpyCheck(cocciStream, arrName);
+
         cocciStream << "+  /* CUBLAS call */  \n";
 
         if (cblasUplo == "CblasUpper")
-            uplo = "\'U\'";
+            uplo = "CUBLAS_FILL_MODE_UPPER";
         else if (cblasUplo == "CblasLower")
-            uplo = "\'L\'";
+            uplo = "CUBLAS_FILL_MODE_LOWER";
         else {
             uplo = uPrefix + "_uplo";
             cocciStream << "+ char " << uplo << "; \n";
             cocciStream << "+ if(" << cblasUplo << " == CblasUpper) " << uplo
-                    << " = \'U\'; \n";
-            cocciStream << "+ else " << uplo << " = \'L\'; \n";
+                    << " = CUBLAS_FILL_MODE_UPPER; \n";
+            cocciStream << "+ else " << uplo << " = CUBLAS_FILL_MODE_LOWER; \n";
 
         }
 
         if (isRowMajor) {
             if (cblasTrans == "CblasTrans")
-                cbTrans = "\'N\'";
+                cbTrans = "CUBLAS_OP_N";
             else if (cblasTrans == "CblasNoTrans")
-                cbTrans = "\'T\'";
+                cbTrans = "CUBLAS_OP_T";
             else if (cblasTrans == "CblasConjTrans")
-                cbTrans = "\'C\'";
+                cbTrans = "CUBLAS_OP_C";
             else {
                 cbTrans = uPrefix + "_trans";
                 cocciStream << "+ char " << cbTrans << "; \n";
                 cocciStream << "+ if(" << cblasTrans << " == CblasTrans) "
-                        << cbTrans << " = \'N\'; \n";
+                        << cbTrans << " = CUBLAS_OP_N; \n";
                 cocciStream << "+ else if(" << cblasTrans
-                        << " == CblasNoTrans) " << cbTrans << " = \'T\'; \n";
+                        << " == CblasNoTrans) " << cbTrans << " = CUBLAS_OP_T; \n";
                 cocciStream << "+ else if(" << cblasTrans
                         << " == CblasConjTrans) " << cbTrans
-                        << " = \'C\'; \n\n";
+                        << " = CUBLAS_OP_C; \n\n";
 
             }
         } else {
             if (cblasTrans == "CblasTrans")
-                cbTrans = "\'T\'";
+                cbTrans = "CUBLAS_OP_T";
             else if (cblasTrans == "CblasNoTrans")
-                cbTrans = "\'N\'";
+                cbTrans = "CUBLAS_OP_N";
             else if (cblasTrans == "CblasConjTrans")
-                cbTrans = "\'C\'";
+                cbTrans = "CUBLAS_OP_C";
             else {
                 cbTrans = uPrefix + "_trans";
                 cocciStream << "+ char " << cbTrans << "; \n";
                 cocciStream << "+ if(" << cblasTrans << " == CblasTrans) "
-                        << cbTrans << " = \'T\'; \n";
+                        << cbTrans << " = CUBLAS_OP_T; \n";
                 cocciStream << "+ else if(" << cblasTrans
-                        << " == CblasNoTrans) " << cbTrans << " = \'N\'; \n";
+                        << " == CblasNoTrans) " << cbTrans << " = CUBLAS_OP_N; \n";
                 cocciStream << "+ else if(" << cblasTrans
                         << " == CblasConjTrans) " << cbTrans
-                        << " = \'C\'; \n\n";
+                        << " = CUBLAS_OP_C; \n\n";
 
             }
         }
 
         if (cblasDiag == "CblasNonUnit")
-            diag = "\'N\'";
+            diag = "CUBLAS_DIAG_NON_UNIT";
         else if (cblasDiag == "CblasUnit")
-            diag = "\'U\'";
+            diag = "CUBLAS_DIAG_UNIT";
         else {
             diag = uPrefix + "_diag";
             cocciStream << "+ char " << diag << "; \n";
             cocciStream << "+ if(" << cblasDiag << " == CblasUnit) " << diag
-                    << " = \'U\'; \n";
-            cocciStream << "+ else " << diag << " = \'N\'; \n";
+                    << " = CUBLAS_DIAG_UNIT; \n";
+            cocciStream << "+ else " << diag << " = CUBLAS_DIAG_NON_UNIT; \n";
 
         }
 
-        cocciStream << "+  " << cublasCall << "(" << uplo << "," << cbTrans
+        cocciStream << "+  " << stat << " = " << cublasCall << "(" << uplo << "," << cbTrans
                 << "," << diag << ",n," << uPrefix << "_A,lda," << uPrefix
                 << "_X,incx);  \n\n";
+        blasSuccessCheck(cocciStream,cublasCall);
+
         cocciStream << "+  /* Copy result vector back to host */  \n";
-        cocciStream << "+  cublasSetVector ( n, sizeType_" << uPrefix << ","
+        cocciStream << "+ " << stat << " = cublasGetVector ( n, sizeType_" << uPrefix << ","
                 << uPrefix << "_X, incx, " << vecXRef << ", incx);  \n";
+        arrName = uPrefix+"_X";
+        memCpyCheck(cocciStream, arrName);
+
     }
 
     else {
 
         cocciStream << "+  /* Allocate device memory */  \n";
-        cocciStream << "+  cublasAlloc(*(n) * *(n), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_A);  \n";
-        cocciStream << "+  cublasAlloc(*(n), sizeType_" << uPrefix
-                << ", (void**)&" << uPrefix << "_X);  \n\n";
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_A, *(n) * *(n) * sizeType_" << uPrefix
+                << ");  \n";
+        arrName = uPrefix+"_A";
+        memAllocCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << cudaStat << " = cudaMalloc((void**)&" << uPrefix << "_X, *(n) * sizeType_" << uPrefix
+                << ");  \n\n";
+        arrName = uPrefix+"_X";
+        memAllocCheck(cocciStream, arrName);
+
         cocciStream << "+  /* Copy matrix, vector to device */     \n";
-        cocciStream << "+  cublasSetMatrix ( *(n),*(n), sizeType_" << uPrefix
+        cocciStream << "+ " << stat << " = cublasSetMatrix ( *(n),*(n), sizeType_" << uPrefix
                 << ", (void *)" << matARef << ", *(n), (void *) " << uPrefix
                 << "_A, *(n));  \n";
-        cocciStream << "+  cublasSetVector ( *(n), sizeType_" << uPrefix << ","
+        arrName = uPrefix+"_A";
+        memCpyCheck(cocciStream, arrName);
+
+        cocciStream << "+ " << stat << " = cublasSetVector ( *(n), sizeType_" << uPrefix << ","
                 << vecXRef << ", *(incx), " << uPrefix << "_X, *(incx));  \n\n";
+        arrName = uPrefix+"_X";
+        memCpyCheck(cocciStream, arrName);
+
         cocciStream << "+  /* CUBLAS call */  \n";
 
-        cocciStream << "+  " << cublasCall << "(*(uplo),*(trans),*(diag),*(n),"
+        cocciStream << "+  " << stat << " = " << cublasCall << "(*(uplo),*(trans),*(diag),*(n),"
                 << uPrefix << "_A, *(lda)," << uPrefix << "_X,*(incx));  \n\n";
+        blasSuccessCheck(cocciStream,cublasCall);
+
         cocciStream << "+  /* Copy result vector back to host */  \n";
-        cocciStream << "+  cublasSetVector ( *(n), sizeType_" << uPrefix << ","
+        cocciStream << "+ " << stat << " = cublasGetVector ( *(n), sizeType_" << uPrefix << ","
                 << uPrefix << "_X, *(incx), " << vecXRef << ", *(incx));  \n";
+        arrName = uPrefix+"_X";
+        memCpyCheck(cocciStream, arrName);
+
     }
 
     FreeDeviceMemoryB2(cocciStream, uPrefix, true, true, false);

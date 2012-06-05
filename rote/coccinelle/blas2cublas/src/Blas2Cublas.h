@@ -7,33 +7,33 @@
 #include "rose.h"
 using namespace std;
 
-void handleGEMM(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleSYHEMM(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleSYHERK(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleSYHER2K(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleTRSMM(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleGBMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleGEMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleGER(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHSBMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHSEYMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHESYR2(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHESYR(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHSPMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHSPR2(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleHSPR(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleTBSMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleTPSMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleTRSMV(ofstream &, bool, bool, string, string, SgExprListExp*);
-void handleSumNrm2Aminmax(ofstream &, bool, string, string, SgExprListExp*);
-void handleAXPY(ofstream &, bool, string, string, SgExprListExp*);
-void handleAXPBY(ofstream &, bool, string, string, SgExprListExp*);
-void handleCOPY(ofstream &, bool, string, string, SgExprListExp*);
-void handleDOT(ofstream &, bool, string, string, SgExprListExp*);
-void handleSCAL(ofstream &, bool, string, string, SgExprListExp*);
-void handleSWAP(ofstream &, bool, string, string, SgExprListExp*);
-void handleROTM(ofstream &, bool, string, string, SgExprListExp*);
-void handleROT(ofstream &, bool, string, string, SgExprListExp*);
+void handleGEMM(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleSYHEMM(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleSYHERK(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleSYHER2K(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleTRSMM(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleGBMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleGEMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleGER(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHSBMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHSEYMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHESYR2(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHESYR(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHSPMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHSPR2(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleHSPR(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleTBSMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleTPSMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleTRSMV(ofstream &, bool, bool, string, string, SgExprListExp*, int*);
+void handleSumNrm2Aminmax(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleAXPY(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleAXPBY(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleCOPY(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleDOT(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleSCAL(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleSWAP(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleROTM(ofstream &, bool, string, string, SgExprListExp*, int*);
+void handleROT(ofstream &, bool, string, string, SgExprListExp*, int*);
 
 inline void RowMajorWarning(ostringstream &cocciFptr, bool warnRowMajor) {
     if (warnRowMajor) {
@@ -51,11 +51,11 @@ inline void FreeDeviceMemoryB3(ostringstream &cocciFptr, string arrayPrefix,
     cocciFptr << "+  \n";
     cocciFptr << "+  /* Free device memory */    \n";
     if (a)
-        cocciFptr << "+  cublasFree(" << arrayPrefix << "_A); \n";
+        cocciFptr << "+  cudaFree(" << arrayPrefix << "_A); \n";
     if (b)
-        cocciFptr << "+  cublasFree(" << arrayPrefix << "_B); \n";
+        cocciFptr << "+  cudaFree(" << arrayPrefix << "_B); \n";
     if (c)
-        cocciFptr << "+  cublasFree(" << arrayPrefix << "_C); \n";
+        cocciFptr << "+  cudaFree(" << arrayPrefix << "_C); \n";
     cocciFptr << "+ \n";
 
 }
@@ -66,11 +66,11 @@ inline void FreeDeviceMemoryB2(ostringstream &cocciFptr, string arrayPrefix,
     cocciFptr << "+  \n";
     cocciFptr << "+  /* Free device memory */    \n";
     if (a)
-        cocciFptr << "+  cublasFree(" << arrayPrefix << "_A); \n";
+        cocciFptr << "+  cudaFree(" << arrayPrefix << "_A); \n";
     if (x)
-        cocciFptr << "+  cublasFree(" << arrayPrefix << "_X); \n";
+        cocciFptr << "+  cudaFree(" << arrayPrefix << "_X); \n";
     if (y)
-        cocciFptr << "+  cublasFree(" << arrayPrefix << "_Y); \n";
+        cocciFptr << "+  cudaFree(" << arrayPrefix << "_Y); \n";
     cocciFptr << "+ \n";
 
 }
@@ -100,6 +100,35 @@ inline void DeclareDevicePtrB2(ostringstream &cocciFptr, string aType,
         cocciFptr << "+  " << aType << " *" << arrayPrefix << "_Y;   \n";
     cocciFptr << "+  int sizeType_" << arrayPrefix << " = sizeof(" << aType
             << "); \n";
+    cocciFptr << "+  \n";
+}
+
+inline void memAllocCheck(ostringstream &cocciFptr, string array){
+    cocciFptr << "+  if(CudaStat != cudaSuccess) {\n";
+    cocciFptr
+            << "+              printf(\"Error allocating memory on device for array "
+            << array << "!!\\n\");\n";
+    cocciFptr << "+          return -1;\n";
+    cocciFptr << "+  }\n";
+    cocciFptr << "+  \n";
+}
+
+inline void memCpyCheck(ostringstream &cocciFptr, string array){
+    cocciFptr << "+  if(CudaStatReturn != CUBLAS_STATUS_SUCCESS) {\n";
+    cocciFptr
+            << "+              printf(\"data download/upload failed for array "
+            << array << "!!\\n\");\n";
+    cocciFptr << "+          return -1;\n";
+    cocciFptr << "+  }\n";
+    cocciFptr << "+  \n";
+}
+
+inline void blasSuccessCheck(ostringstream &cocciFptr, string blasCall){
+    cocciFptr << "+  if(CudaStatReturn != CUBLAS_STATUS_SUCCESS) {\n";
+    cocciFptr
+            << "+              printf(\"" << blasCall << " failed!!\\n\");\n";
+    cocciFptr << "+          return -1;\n";
+    cocciFptr << "+  }\n";
     cocciFptr << "+  \n";
 }
 
