@@ -202,7 +202,7 @@ for libdir in `ls -1 -d ../lib*`; do
   
   #set -x
   $MAKE run${language}2${server} \
-        SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
+        SERVER="../../output/libC/libimpl.la ${libdir}/libimpl*.la" \
         IMPL="${TESTCASE}test" \
         EXTRA_LDFLAGS="$extralib" \
         TARGET="run${language}2${server}" ||exit 1 #>/dev/null     ||exit 1
