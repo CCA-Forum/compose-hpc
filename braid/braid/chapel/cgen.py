@@ -570,13 +570,20 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 if scalar_t:
                     #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
                     return 'sidl.Array(%s, %s)'%(scalar_t, Name)
-                else:
-                    # some other struct
-                    if Name[0] == '_' and Name[1] == '_': 
-                        # by convention, Chapel generates structs as
-                        # struct __foo { ... } foo;
-                        return Name[2:] 
-                    return Name
+
+                #if Name == 'sidl__array':
+                #    # We cannot use the "extern record sidl__array"
+                #    # defined in sidlArray.chpl because we need to
+                #    # pass it by reference (which is only possible by
+                #    # using an "extern class" in Chapel.
+                #    return 'opaque /* array< > */'
+
+                # some other struct
+                if Name[0] == '_' and Name[1] == '_': 
+                    # by convention, Chapel generates structs as
+                    # struct __foo { ... } foo;
+                    return Name[2:] 
+                return Name
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return "%s.%s"%(gen(StructName), gen(Item))

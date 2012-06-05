@@ -46,7 +46,8 @@ from cgen import (ChapelFile, ChapelScope, chpl_gen,
 from codegen import c_gen
 from babel import (EPV, lower_ir, ir_babel_object_type, 
                    babel_static_ior_args, babel_object_type, 
-                   is_struct_type, babel_stub_args, strip_common,
+                   is_struct_type, babel_stub_args,
+                   externals, strip_common,
                    ior_type, struct_ior_names, qual_id, vcall, 
                    ir_babel_exception_type, is_obj_type,
                    drop_rarray_ext_args, babel_epv_args,
@@ -56,6 +57,7 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
+extern_def_deref_sidl__array = 'extern proc DEREF_SIDL__ARRAY(in aStruct): sidl__array;'
 extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_interface = 'BaseInterface'
@@ -302,6 +304,7 @@ class GlueCodeGenerator(object):
             chpl_class.new_def('var ' + self_field_name + ': %s__object;' % mod_qname)
 
             common_head = [
+                '  ' + extern_def_deref_sidl__array,
                 '  ' + extern_def_is_not_null,
                 '  ' + extern_def_set_to_null,
                 '  var ex: sidl_BaseInterface__object;',
@@ -707,6 +710,7 @@ class GlueCodeGenerator(object):
             '#define IS_NULL(aPtr)     ((aPtr) == 0)',
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
             '#define SET_TO_NULL(aPtr) ((*aPtr) = 0)',
+            '#define DEREF_SIDL__ARRAY(aStruct) (sidl__array)(*((struct sidl__array*)aStruct))',
             '#endif'
             #] + [self.struct_typedef(pkgname, es) for es in self.pkg_enums_and_structs] + [
             #'%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
@@ -783,6 +787,8 @@ class GlueCodeGenerator(object):
                 # won't recognize the type as an array. Here is the
                 # only place where we actually want a C struct type.
                 iortype = ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], ''))
+                if name == '_retval':
+                    iortype = ir.Pointer_type(ir.pt_void)
 
             elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
                 if typ[1][0] == ir.scoped_id:
@@ -791,14 +797,14 @@ class GlueCodeGenerator(object):
                     t = typ[1][1]
                 iortype = ir.Pointer_type(ir.Struct('sidl_%s__array /* IOR */'%t, [], ''))
                 if mode <> sidl.out:
-                    iorname = name+'.self'
+                    iorname = name+'.ior'
 
                 if mode <> sidl.in_:
                     iorname = '_IOR_' + name
                     # wrap the C type in a native Chapel object
                     pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
                     if mode == sidl.inout:
-                        pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.self')))
+                        pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.ior')))
 
                     conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, iorname])
                     
@@ -931,7 +937,8 @@ class GlueCodeGenerator(object):
         post_call = []
         return_expr = []
         return_stmt = []
-        
+
+        pre_call.append(extern_def_deref_sidl__array)
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
@@ -1018,11 +1025,15 @@ class GlueCodeGenerator(object):
                 if is_struct_type(symbol_table, Type):
                     # use rvar as an additional OUT argument instead
                     # of a return value because Chapel cannot deal
-                    # with return-by-value structs
+                    # with return-by-value classes and every struct
+                    # must be either a struct (value) or a record (reference)
                     call = [ir.Stmt(ir.Call(callee, call_args+[rvar]))]
                 else:
                     call = [ir.Stmt(ir.Assignment(rvar, stubcall))]
-                return_stmt = [ir.Stmt(ir.Return(rx))]
+                    if Type == (sidl.array, [], [], []): # Generic array
+                        return_stmt = [ir.Stmt(ir.Return(ir.Call('DEREF_SIDL__ARRAY', [rx])))]
+                    else:
+                        return_stmt = [ir.Stmt(ir.Return(rx))]
             else:
                 call = [ir.Stmt(ir.Return(stubcall))]
 
@@ -1268,22 +1279,22 @@ class GlueCodeGenerator(object):
             epv_init  = []
             sepv_init = []
             for m in builtins+cls.get_methods():
-                name =  m[2][1] + m[2][2]
+                fname =  m[2][1] + m[2][2]
                 attrs = sidl.method_method_attrs(m)
                 static = member_chk(sidl.static, attrs)
                 def entry(stmts, epv_t, table, field, pointer):
                     stmts.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
 
-                if static: entry(sepv_init, sepv_t, 'sepv', 'f_'+name, name+'_skel')
-                else:      entry(epv_init,   epv_t,  'epv', 'f_'+name, name+'_skel')
+                if static: entry(sepv_init, sepv_t, 'sepv', 'f_'+fname, '%s_%s_skel'%(qname, fname))
+                else:      entry(epv_init,   epv_t,  'epv', 'f_'+fname, '%s_%s_skel'%(qname, fname))
 
                 builtin_names = ['_ctor', '_ctor2', '_dtor']
                 with_hooks = member_chk(ir.hooks, attrs)
-                if name not in builtin_names and with_hooks:
-                    if static: entry(sepv_init, pre_sepv_t,  'pre_sepv',  'f_%s_pre'%name,  'NULL')
-                    else:      entry(epv_init,  pre_epv_t,   'pre_epv',   'f_%s_pre'%name,  'NULL')
-                    if static: entry(sepv_init, post_sepv_t, 'post_sepv', 'f_%s_post'%name, 'NULL')
-                    else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%name, 'NULL')
+                if fname not in builtin_names and with_hooks:
+                    if static: entry(sepv_init, pre_sepv_t,  'pre_sepv',  'f_%s_pre'%fname,  'NULL')
+                    else:      entry(epv_init,  pre_epv_t,   'pre_epv',   'f_%s_pre'%fname,  'NULL')
+                    if static: entry(sepv_init, post_sepv_t, 'post_sepv', 'f_%s_post'%fname, 'NULL')
+                    else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%fname, 'NULL')
             
             cskel.gen(ir.Fn_defn(
                 [], ir.pt_void, qname+'__set_epv',
@@ -1461,7 +1472,8 @@ class GlueCodeGenerator(object):
         return_stmt = []
         skel = ci.chpl_skel
         opt = skel.cstub.optional
-        callee = '%s_impl'%'_'.join(ci.co.qualified_name+[Name])
+        qname = '_'.join(ci.co.qualified_name+[Name])
+        callee = qname+'_impl'
      
         # Argument conversions
         # ---------------------
@@ -1553,7 +1565,7 @@ class GlueCodeGenerator(object):
 
         #TODO: ior_args = drop_rarray_ext_args(Args)
 
-        skeldefn = (ir.fn_defn, [], ctype, Name+'_skel',
+        skeldefn = (ir.fn_defn, [], ctype, qname+'_skel',
                     babel_epv_args(Attrs, Args, ci.epv.symbol_table, ci.epv.name),
                     decls+pre_call+call+post_call+return_stmt,
                     DocComment)
@@ -1586,42 +1598,4 @@ class GlueCodeGenerator(object):
 
 
 
-
-def externals(scopedid):
-    return '''
-#include "sidlOps.h"
-
-// Hold pointer to IOR functions.
-static const struct {a}__external *_externals = NULL;
-
-extern const struct {a}__external* {a}__externals(void);
-
-// Lookup the symbol to get the IOR functions.
-static const struct {a}__external* _loadIOR(void)
-
-// Return pointer to internal IOR functions.
-{{
-#ifdef SIDL_STATIC_LIBRARY
-  _externals = {a}__externals();
-#else
-  _externals = (struct {a}__external*)sidl_dynamicLoadIOR(
-    "ArrayTest.ArrayOps","{a}__externals") ;
-  sidl_checkIORVersion("{b}", _externals->d_ior_major_version, 
-    _externals->d_ior_minor_version, 2, 0);
-#endif
-  return _externals;
-}}
-
-#define _getExternals() (_externals ? _externals : _loadIOR())
-
-// Hold pointer to static entry point vector
-static const struct {a}__sepv *_sepv = NULL;
-
-// Return pointer to static functions.
-#define _getSEPV() (_sepv ? _sepv : (_sepv = (*(_getExternals()->getStaticEPV))()))
-
-// Reset point to static functions.
-#define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
-
-'''.format(a=qual_id(scopedid), b=qual_id(scopedid, '_'))
 

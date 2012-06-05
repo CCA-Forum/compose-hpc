@@ -21,29 +21,32 @@ struct sidl_string__array {
 };
 
 
-// Chapel-compatible typedef
-#define CHAPEL_TYPEDEF(T) \
+// Chapel-compatible typedefs
+#define CHAPEL_RECORD_TYPEDEF(T) \
+  typedef struct T T; 
+
+#define CHAPEL_CLASS_TYPEDEF(T) \
   typedef struct T _##T; \
   typedef _##T* T;
 
-CHAPEL_TYPEDEF(sidl__array)
-CHAPEL_TYPEDEF(sidl_bool__array)        
-CHAPEL_TYPEDEF(sidl_char__array)        
-CHAPEL_TYPEDEF(sidl_dcomplex__array)    
-CHAPEL_TYPEDEF(sidl_double__array)      
-CHAPEL_TYPEDEF(sidl_fcomplex__array)    
-CHAPEL_TYPEDEF(sidl_float__array)       
-CHAPEL_TYPEDEF(sidl_int__array)         
-CHAPEL_TYPEDEF(sidl_long__array)        
-CHAPEL_TYPEDEF(sidl_opaque__array)      
-CHAPEL_TYPEDEF(sidl_string__array)      
-CHAPEL_TYPEDEF(sidl_BaseInterface__array)
+CHAPEL_RECORD_TYPEDEF(sidl__array)
+CHAPEL_CLASS_TYPEDEF(sidl_bool__array)        
+CHAPEL_CLASS_TYPEDEF(sidl_char__array)        
+CHAPEL_CLASS_TYPEDEF(sidl_dcomplex__array)    
+CHAPEL_CLASS_TYPEDEF(sidl_double__array)      
+CHAPEL_CLASS_TYPEDEF(sidl_fcomplex__array)    
+CHAPEL_CLASS_TYPEDEF(sidl_float__array)       
+CHAPEL_CLASS_TYPEDEF(sidl_int__array)         
+CHAPEL_CLASS_TYPEDEF(sidl_long__array)        
+CHAPEL_CLASS_TYPEDEF(sidl_opaque__array)      
+CHAPEL_CLASS_TYPEDEF(sidl_string__array)      
+CHAPEL_CLASS_TYPEDEF(sidl_BaseInterface__array)
 
 // Macro definitions for Chapel-generated C code
 #define sidlArrayElem1Set(array, ind1, val) \
   sidlArrayElem1(array,ind1) = val
 
-// Identity function. We use it to cast * -> opaque
+// Identity function. We use it to cast [anything] -> opaque
 #define bool_ptr(A) A     
 #define char_ptr(A) A     
 #define dcomplex_ptr(A) A 

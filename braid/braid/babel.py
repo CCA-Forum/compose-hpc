@@ -85,10 +85,10 @@ def builtin((name, args)):
                        [], [], [], [], 'builtin method')
 
 builtins = map(builtin,
-    [('_ctor', []), 
-     ('_ctor2', [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')]),
-     ('_dtor', []),
-     ('_load', [])])
+               [('_ctor', []), 
+                ('_ctor2', [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')]),
+                ('_dtor', []),
+                ('_load', [])])
 
 
 def argname((_arg, _attr, _mode, _type, Id)):
@@ -495,4 +495,42 @@ def ior_type(symbol_table, t):
 
     else: return t
 
+
+def externals(scopedid):
+    return '''
+#include "sidlOps.h"
+
+// Hold pointer to IOR functions.
+static const struct {a}__external *_externals = NULL;
+
+extern const struct {a}__external* {a}__externals(void);
+
+// Lookup the symbol to get the IOR functions.
+static const struct {a}__external* _loadIOR(void)
+
+// Return pointer to internal IOR functions.
+{{
+#ifdef SIDL_STATIC_LIBRARY
+  _externals = {a}__externals();
+#else
+  _externals = (struct {a}__external*)sidl_dynamicLoadIOR(
+    "{b}","{a}__externals") ;
+  sidl_checkIORVersion("{b}", _externals->d_ior_major_version, 
+    _externals->d_ior_minor_version, 2, 0);
+#endif
+  return _externals;
+}}
+
+#define _getExternals() (_externals ? _externals : _loadIOR())
+
+// Hold pointer to static entry point vector
+static const struct {a}__sepv *_sepv = NULL;
+
+// Return pointer to static functions.
+#define _getSEPV() (_sepv ? _sepv : (_sepv = (*(_getExternals()->getStaticEPV))()))
+
+// Reset point to static functions.
+#define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
+
+'''.format(a=qual_id(scopedid), b=qual_id(scopedid, '.'))
 

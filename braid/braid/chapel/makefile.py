@@ -151,7 +151,7 @@ CHPL_FLAGS=-std=c99 \
 CHPL_LDFLAGS= \
   -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
   $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
-  -lchpl -lm -lpthread -lsidlstub_chpl
+  -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
 
 CHPL_GASNET_LDFLAGS= \
   -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
@@ -186,7 +186,7 @@ all: lib$(LIBNAME).la $(SCLFILE) $(TARGET) $(TARGET)_real
 
 # actual program
 $(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CXX) lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
           $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
@@ -199,7 +199,7 @@ $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
           -std=c99 -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
 	  -I$(CHPL_MAKE_HOME)/runtime/include -I. \
 	  $(IMPL).chpl.dir/config.c -c -o $@.lo
-	babel-libtool --mode=link $(CC) lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $@.lo $(SERVER) \
           $(CHPL_LAUNCHER_LDFLAGS) $(LAUNCHER_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
@@ -208,7 +208,7 @@ else
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CC) lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
 
