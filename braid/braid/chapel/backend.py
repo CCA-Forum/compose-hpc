@@ -781,8 +781,7 @@ class GlueCodeGenerator(object):
             elif typ == sidl.opaque:
                 iortype = ir.Pointer_type(ir.pt_void)
 
-            elif typ == (sidl.array, [], [], []): # Generic array
-
+            elif typ == (sidl.array, [], [], []): 
                 # This comment is there so the Chapel code generator
                 # won't recognize the type as an array. Here is the
                 # only place where we actually want a C struct type.
@@ -1030,10 +1029,10 @@ class GlueCodeGenerator(object):
                     call = [ir.Stmt(ir.Call(callee, call_args+[rvar]))]
                 else:
                     call = [ir.Stmt(ir.Assignment(rvar, stubcall))]
-                    if Type == (sidl.array, [], [], []): # Generic array
-                        return_stmt = [ir.Stmt(ir.Return(ir.Call('DEREF_SIDL__ARRAY', [rx])))]
-                    else:
-                        return_stmt = [ir.Stmt(ir.Return(rx))]
+                if Type == (sidl.array, [], [], []): # Generic array
+                    return_stmt = [ir.Stmt(ir.Return(ir.Call('DEREF_SIDL__ARRAY', [rx])))]
+                else:
+                    return_stmt = [ir.Stmt(ir.Return(rx))]
             else:
                 call = [ir.Stmt(ir.Return(stubcall))]
 

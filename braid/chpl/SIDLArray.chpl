@@ -175,13 +175,25 @@ SIDL_ARRAY(BaseInterface, int(32))
 
 
   class Array {
-    // Actual Chapel defintions
+    // Actual Chapel definitions
     type ScalarType, IORtype;
-    var ior: IORtype;//sidl_TYPE__array;
+
+    /** IOR representation of the array */
+    var ior: IORtype; /*sidl_TYPE__array;*/
+    /** IOR generic array<> representation of the array */
+    var generic: opaque; 
     //var borrowed: [?dom]ScalarType;
 
     proc Array(type ScalarType, type IORtype, in ior: IORtype) {
       this.ior = ior;
+
+      extern proc generic_array(ior): sidl__array;
+      /* Generic array We need to use opaque as the Chapel
+	 representation because otherwise Chapel would start copying
+	 arguments and thus mess with the invariant that
+	 genarr.d_metadata == genarr */
+      extern proc ior_ptr(ior): opaque;
+      this.generic = ior_ptr(ior);
     }
 
     /* proc Array(type ScalarType, type IORtype, inout borrow_from: [?dom]ScalarType) { */

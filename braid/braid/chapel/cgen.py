@@ -117,11 +117,17 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
               it returns \c None.
     """
 
-    def obj_by_value((arg, attrs, mode, typ, name)):
-        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct and name == 'self':
+    def extern_decl_convs((arg, attrs, mode, typ, name)):
+        # make generic sidl__arrays into opaques for the extern decl
+        if typ == ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], '')):
+            return (arg, attrs, mode, ir.Pointer_type(ir.pt_void), name)
+
+        # make sure objects are passed by value
+        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and name == 'self':
             return (arg, attrs, ir.in_, typ, name)
         elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and mode == ir.in_:
             return (arg, attrs, ir.inout, typ, name)
+
         else:
             return (arg, attrs, mode, typ, name)
 
@@ -215,7 +221,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
                       decls+pre_call+body+post_call, DocComment)], scope.cstub)
 
     # Chapel extern declaration
-    chplstub_decl = ir.Fn_decl([], chpltype, sname, map(obj_by_value, cstub_decl_args), DocComment)
+    chplstub_decl = ir.Fn_decl([], chpltype, sname, map(extern_decl_convs, cstub_decl_args), DocComment)
     scope.new_header_def('extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
@@ -571,12 +577,13 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                     #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
                     return 'sidl.Array(%s, %s)'%(scalar_t, Name)
 
-                #if Name == 'sidl__array':
-                #    # We cannot use the "extern record sidl__array"
-                #    # defined in sidlArray.chpl because we need to
-                #    # pass it by reference (which is only possible by
-                #    # using an "extern class" in Chapel.
-                #    return 'opaque /* array< > */'
+                if Name == 'sidl__array':
+                    # Generic array We
+                    # need to use opaque as the Chapel representation
+                    # because otherwise Chapel would start copying
+                    # arguments and thus mess with the invariant that
+                    # genarr.d_metadata == genarr
+                    return 'opaque /* array< > */'
 
                 # some other struct
                 if Name[0] == '_' and Name[1] == '_': 

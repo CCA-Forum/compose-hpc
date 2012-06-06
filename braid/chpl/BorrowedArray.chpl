@@ -496,24 +496,6 @@ proc createBorrowedSIDLArray(sa: sidl.Array, arraySize: int(64)...?arrayRank) {
   return locArr;
 }
 
-/*
-proc createBorrowedArray(type arrayIndexType, type arrayElmntType,
-        bData: opaque, arrayOrdering: sidl_array_ordering, arraySize: int(64)...?arrayRank) {
-
-  type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, 
-						 arrayIndexType, false);
-  var locDom: locDomType;
-  locDom._value.initIndices((...arraySize));
-
-  type locArrType = chpl__buildArrayRuntimeType(locDom, arrayElmntType);
-  var locArr: locArrType;
-  locArr._value.setArrayOrdering(arrayOrdering);
-  locArr._value.borrow(bData);
-
-  return locArr;
-}
-*/
-
 proc getArrayOrdering(sa: sidl.Array) {
   var arrayOrdering: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order;
   if (sa.isColumnOrder()) {
