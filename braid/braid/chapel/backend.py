@@ -57,7 +57,6 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_babel_param_ex'
-extern_def_deref_sidl__array = 'extern proc DEREF_SIDL__ARRAY(in aStruct): sidl__array;'
 extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_interface = 'BaseInterface'
@@ -304,7 +303,6 @@ class GlueCodeGenerator(object):
             chpl_class.new_def('var ' + self_field_name + ': %s__object;' % mod_qname)
 
             common_head = [
-                '  ' + extern_def_deref_sidl__array,
                 '  ' + extern_def_is_not_null,
                 '  ' + extern_def_set_to_null,
                 '  var ex: sidl_BaseInterface__object;',
@@ -710,7 +708,6 @@ class GlueCodeGenerator(object):
             '#define IS_NULL(aPtr)     ((aPtr) == 0)',
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
             '#define SET_TO_NULL(aPtr) ((*aPtr) = 0)',
-            '#define DEREF_SIDL__ARRAY(aStruct) (sidl__array)(*((struct sidl__array*)aStruct))',
             '#endif'
             #] + [self.struct_typedef(pkgname, es) for es in self.pkg_enums_and_structs] + [
             #'%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
@@ -937,7 +934,6 @@ class GlueCodeGenerator(object):
         return_expr = []
         return_stmt = []
 
-        pre_call.append(extern_def_deref_sidl__array)
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
         pre_call.append(ir.Stmt(ir.Var_decl(ir_babel_exception_type(), '_ex')))
@@ -1029,10 +1025,7 @@ class GlueCodeGenerator(object):
                     call = [ir.Stmt(ir.Call(callee, call_args+[rvar]))]
                 else:
                     call = [ir.Stmt(ir.Assignment(rvar, stubcall))]
-                if Type == (sidl.array, [], [], []): # Generic array
-                    return_stmt = [ir.Stmt(ir.Return(ir.Call('DEREF_SIDL__ARRAY', [rx])))]
-                else:
-                    return_stmt = [ir.Stmt(ir.Return(rx))]
+                return_stmt = [ir.Stmt(ir.Return(rx))]
             else:
                 call = [ir.Stmt(ir.Return(stubcall))]
 
