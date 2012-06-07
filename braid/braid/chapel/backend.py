@@ -45,6 +45,7 @@ from cgen import (ChapelFile, ChapelScope, chpl_gen,
                   incoming, outgoing, gen_doc_comment, strip, deref)
 from codegen import c_gen
 from babel import (EPV, lower_ir, ir_babel_object_type, 
+                   ir_babel_baseinterface_type,
                    babel_static_ior_args, babel_object_type, 
                    is_struct_type, babel_stub_args,
                    externals, strip_common,
@@ -1234,8 +1235,8 @@ class GlueCodeGenerator(object):
             self.pkg_chpl_skel.new_def('use sidl;')
             objname = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name]) + '_Impl'
 
-            self.pkg_chpl_skel.new_def('extern record %s__object { var d_data: %s; };'
-                                       %(qname,objname))
+            self.pkg_chpl_skel.new_def('extern record %s__object { var d_data: opaque; };'
+                                       %qname)#,objname))
             self.pkg_chpl_skel.new_def('extern proc %s__createObject('%qname+
                                  'd_data: int, '+
                                  'out ex: sidl_BaseInterface__object)'+
@@ -1336,7 +1337,6 @@ class GlueCodeGenerator(object):
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
-                self.pkg_chpl_skel.gen(ir.Type_decl(node))
                 self.pkg_enums_and_structs.append(node)
 
             elif (sidl.package, Name, Version, UserTypes, DocComment):
@@ -1351,16 +1351,19 @@ class GlueCodeGenerator(object):
                 else:
                     # new file for the toplevel package
                     self.pkg_chpl_skel = ChapelFile(qname+'_Skel')
-                    self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
+                    #self.pkg_chpl_skel.main_area.new_def('proc __defeat_dce(){\n')
 
                     # new file for the user implementation
                     self.pkg_impl = ChapelFile(qname+'_Impl')
                     self.pkg_impl.gen(ir.Import('sidl'))
+                    self.pkg_impl.new_def('/* DO-NOT-DELETE splicer.begin(%s.Impl) */'%qname)
+                    self.pkg_impl.new_def('/* DO-NOT-DELETE splicer.end(%s.Impl) */'%qname)
+                    self.pkg_impl.new_def('')
 
                     self.pkg_enums_and_structs = []
                     self.in_package = True
                     self.generate_server_pkg(UserTypes, data, pkg_symbol_table)
-                    self.pkg_chpl_skel.main_area.new_def('}\n')
+                    #self.pkg_chpl_skel.main_area.new_def('}\n')
                     self.pkg_chpl_skel.write()
 
                     if self.pkg_enums_and_structs:
@@ -1540,6 +1543,7 @@ class GlueCodeGenerator(object):
                 if is_retval: is_retval = False
                 else:         call_args.append(name)
 
+        call_args.append('_ex')
 
         if not static:
             call_args = ['self->d_data']+call_args
@@ -1573,13 +1577,12 @@ class GlueCodeGenerator(object):
                 return arg, attr, mode, ir.Pointer_type(typ), name
             else: return arg, attr, mode, typ, name
 
-        impldecl = (ir.fn_decl, [], chpltype, callee,
-                    this_arg+map(skel_args, chpl_args),
-                    DocComment)
+        ex_arg = [ir.Arg([], ir.inout, ir_babel_baseinterface_type(), '_ex')]
+        impl_args = this_arg+map(skel_args, chpl_args)+ex_arg
+        impldecl = (ir.fn_decl, [], chpltype, callee, impl_args, DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
-                    Type, Name,
-                    Args,
+                    chpltype, Name, impl_args,
                     [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
                      ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
                     DocComment)

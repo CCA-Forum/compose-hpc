@@ -180,141 +180,345 @@ tracker.writeComment("*** ENABLE FULL CONTRACT CHECKING ***", sidl_ex);
 sidl.EnfPolicy_static.setEnforceAll(sidl.ContractClass.ALLCLASSES, true, sidl_ex);
 
 /* vuIsZero() set */
-init_part("ensuring the zero vector is the zero vector"); run_part(vect.Utils_static.vuIsZero(z(1).generic, tol, sidl_ex), true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the unit vector is not the zero vector"); run_part(vect.Utils_static.vuIsZero(u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuIsZero() a null array"); run_part(vect.Utils_static.vuIsZero(null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuIsZero() a 2D array"); run_part(vect.Utils_static.vuIsZero(t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuIsZero() a negative tolerance"); run_part(vect.Utils_static.vuIsZero(z(1).generic, ntol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("ensuring the zero vector is the zero vector");
+run_part(vect.Utils_static.vuIsZero(z(1).generic, tol, sidl_ex),
+         true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the unit vector is not the zero vector");
+run_part(vect.Utils_static.vuIsZero(u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuIsZero() a null array");
+run_part(vect.Utils_static.vuIsZero(null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuIsZero() a 2D array");
+run_part(vect.Utils_static.vuIsZero(t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuIsZero() a negative tolerance");
+run_part(vect.Utils_static.vuIsZero(z(1).generic, ntol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
 
 /* vuIsUnit() set */
-init_part("ensuring the unit vector is the unit vector"); run_part(vect.Utils_static.vuIsUnit(u(1).generic, tol, sidl_ex), true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the zero vector is not the unit vector"); run_part(vect.Utils_static.vuIsUnit(z(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuIsUnit() a null array"); run_part(vect.Utils_static.vuIsUnit(null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuIsUnit() a 2D array"); run_part(vect.Utils_static.vuIsUnit(t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuIsUnit() a negative tolerance"); run_part(vect.Utils_static.vuIsUnit(u(1).generic, ntol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("ensuring the unit vector is the unit vector");
+run_part(vect.Utils_static.vuIsUnit(u(1).generic, tol, sidl_ex),
+         true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the zero vector is not the unit vector");
+run_part(vect.Utils_static.vuIsUnit(z(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuIsUnit() a null array");
+run_part(vect.Utils_static.vuIsUnit(null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuIsUnit() a 2D array");
+run_part(vect.Utils_static.vuIsUnit(t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuIsUnit() a negative tolerance");
+run_part(vect.Utils_static.vuIsUnit(u(1).generic, ntol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
 
 /* vuAreEqual() set */
-init_part("ensuring the unit and zero vectors are not equal"); run_part(vect.Utils_static.vuAreEqual(u(1).generic, z(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the unit vector is equal to itself"); run_part(vect.Utils_static.vuAreEqual(u(1).generic, u(1).generic, tol, sidl_ex), true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuAreEqual() a null 1st array"); run_part(vect.Utils_static.vuAreEqual(null_array, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreEqual() a 2D 1st array"); run_part(vect.Utils_static.vuAreEqual(t(1).generic, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreEqual() a null 2nd array"); run_part(vect.Utils_static.vuAreEqual(u(1).generic, null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreEqual() a 2D 2nd array"); run_part(vect.Utils_static.vuAreEqual(u(1).generic, t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreEqual() different sized arrays"); run_part(vect.Utils_static.vuAreEqual(u(1).generic, u1(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreEqual() a negative tolerance"); run_part(vect.Utils_static.vuAreEqual(u(1).generic, u(1).generic, ntol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("ensuring the unit and zero vectors are not equal");
+run_part(vect.Utils_static.vuAreEqual(u(1).generic, z(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the unit vector is equal to itself");
+run_part(vect.Utils_static.vuAreEqual(u(1).generic, u(1).generic, tol, sidl_ex),
+         true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuAreEqual() a null 1st array");
+run_part(vect.Utils_static.vuAreEqual(null_array, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreEqual() a 2D 1st array");
+run_part(vect.Utils_static.vuAreEqual(t(1).generic, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreEqual() a null 2nd array");
+run_part(vect.Utils_static.vuAreEqual(u(1).generic, null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreEqual() a 2D 2nd array");
+run_part(vect.Utils_static.vuAreEqual(u(1).generic, t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreEqual() different sized arrays");
+run_part(vect.Utils_static.vuAreEqual(u(1).generic, u1(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreEqual() a negative tolerance");
+run_part(vect.Utils_static.vuAreEqual(u(1).generic, u(1).generic, ntol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
 
 /* vuAreOrth() set */
-init_part("ensuring the unit and zero vectors are orthogonal"); run_part(vect.Utils_static.vuAreOrth(u(1).generic, z(1).generic, tol, sidl_ex), true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the unit and negative unit vectors are not orthogonal"); run_part(vect.Utils_static.vuAreOrth(u(1).generic, nu(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuAreOrth() a null 1st array"); run_part(vect.Utils_static.vuAreOrth(null_array, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreOrth() a 2D 1st array"); run_part(vect.Utils_static.vuAreOrth(t(1).generic, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreOrth() a null 2nd array"); run_part(vect.Utils_static.vuAreOrth(u(1).generic, null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreOrth() a 2D 2nd array"); run_part(vect.Utils_static.vuAreOrth(u(1).generic, t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreOrth() different sized unit arrays"); run_part(vect.Utils_static.vuAreOrth(u(1).generic, u1(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreOrth() a negative tolerance"); run_part(vect.Utils_static.vuAreOrth(u(1).generic, u(1).generic, ntol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuAreOrth() 2D arrays in both arguments"); run_part(vect.Utils_static.vuAreOrth(t(1).generic, t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("ensuring the unit and zero vectors are orthogonal");
+run_part(vect.Utils_static.vuAreOrth(u(1).generic, z(1).generic, tol, sidl_ex),
+         true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the unit and negative unit vectors are not orthogonal");
+run_part(vect.Utils_static.vuAreOrth(u(1).generic, nu(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuAreOrth() a null 1st array");
+run_part(vect.Utils_static.vuAreOrth(null_array, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreOrth() a 2D 1st array");
+run_part(vect.Utils_static.vuAreOrth(t(1).generic, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreOrth() a null 2nd array");
+run_part(vect.Utils_static.vuAreOrth(u(1).generic, null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreOrth() a 2D 2nd array");
+run_part(vect.Utils_static.vuAreOrth(u(1).generic, t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreOrth() different sized unit arrays");
+run_part(vect.Utils_static.vuAreOrth(u(1).generic, u1(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreOrth() a negative tolerance");
+run_part(vect.Utils_static.vuAreOrth(u(1).generic, u(1).generic, ntol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuAreOrth() 2D arrays in both arguments");
+run_part(vect.Utils_static.vuAreOrth(t(1).generic, t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
 
 /* vuSchwarzHolds() set */
-init_part("ensuring schwarz holds for the unit and zero vectors"); run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, z(1).generic, tol, sidl_ex), true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuSchwarzHolds() a null 1st array"); run_part(vect.Utils_static.vuSchwarzHolds(null_array, z(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSchwarzHolds() a 2D 1st array"); run_part(vect.Utils_static.vuSchwarzHolds(t(1).generic, z(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSchwarzHolds() a null 2nd array"); run_part(vect.Utils_static.vuSchwarzHolds(z(1).generic, null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSchwarzHolds() a 2D 2nd array"); run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSchwarzHolds() different sized unit arrays"); run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, u1(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSchwarzHolds() a negative tolerance"); run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, z(1).generic, ntol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("ensuring schwarz holds for the unit and zero vectors");
+run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, z(1).generic, tol, sidl_ex),
+         true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuSchwarzHolds() a null 1st array");
+run_part(vect.Utils_static.vuSchwarzHolds(null_array, z(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSchwarzHolds() a 2D 1st array");
+run_part(vect.Utils_static.vuSchwarzHolds(t(1).generic, z(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSchwarzHolds() a null 2nd array");
+run_part(vect.Utils_static.vuSchwarzHolds(z(1).generic, null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSchwarzHolds() a 2D 2nd array");
+run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSchwarzHolds() different sized unit arrays");
+run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, u1(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSchwarzHolds() a negative tolerance");
+run_part(vect.Utils_static.vuSchwarzHolds(u(1).generic, z(1).generic, ntol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
 
 /* vuTriIneqHolds() set */
-init_part("ensuring the triangle inequality holds for the unit and zero vectors"); run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, z(1).generic, tol, sidl_ex), true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuTriIneqHolds() a null 1st array"); run_part(vect.Utils_static.vuTriIneqHolds(null_array, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuTriIneqHolds() a 2D 1st array"); run_part(vect.Utils_static.vuTriIneqHolds(t(1).generic, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuTriIneqHolds() a null 2nd array"); run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuTriIneqHolds() a 2D 2nd array"); run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, t(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuTriIneqHolds() different sized unit vectors"); run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, u1(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuTriIneqHolds() a negative tolerance"); run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, u(1).generic, ntol, sidl_ex), false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("ensuring the triangle inequality holds for the unit and zero vectors");
+run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, z(1).generic, tol, sidl_ex),
+         true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuTriIneqHolds() a null 1st array");
+run_part(vect.Utils_static.vuTriIneqHolds(null_array, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuTriIneqHolds() a 2D 1st array");
+run_part(vect.Utils_static.vuTriIneqHolds(t(1).generic, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuTriIneqHolds() a null 2nd array");
+run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuTriIneqHolds() a 2D 2nd array");
+run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, t(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuTriIneqHolds() different sized unit vectors");
+run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, u1(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuTriIneqHolds() a negative tolerance");
+run_part(vect.Utils_static.vuTriIneqHolds(u(1).generic, u(1).generic, ntol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.PreExp);
 
 /* vuNorm() set */
-init_part("ensuring the unit vector norm is 1.0"); run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 1.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNorm() a null vector"); run_part(vect.Utils_static.vuNorm(null_array, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNorm() a 2D array"); run_part(vect.Utils_static.vuNorm(t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNorm() a negative tolerance"); run_part(vect.Utils_static.vuNorm(u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNorm() badness level for negative result"); run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex), -5.0, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuNorm() badness level for positive result with zero vector"); run_part(vect.Utils_static.vuNorm(z(1).generic, tol, vect.BadLevel.PosRes, sidl_ex), 5.0, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuNorm() badness level for zero result with non-zero vector"); run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.ZeroRes, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the unit vector norm is 1.0");
+run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         1.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNorm() a null vector");
+run_part(vect.Utils_static.vuNorm(null_array, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNorm() a 2D array");
+run_part(vect.Utils_static.vuNorm(t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNorm() a negative tolerance");
+run_part(vect.Utils_static.vuNorm(u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNorm() badness level for negative result");
+run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex),
+         -5.0, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuNorm() badness level for positive result with zero vector");
+run_part(vect.Utils_static.vuNorm(z(1).generic, tol, vect.BadLevel.PosRes, sidl_ex),
+         5.0, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuNorm() badness level for zero result with non-zero vector");
+run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.ZeroRes, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PostExp);
 
 /* vuDot() set */
-init_part("ensuring the dot of the unit and zero vectors is 0.0"); run_part(vect.Utils_static.vuDot(u(1).generic, z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDot() a null 1st array"); run_part(vect.Utils_static.vuDot(null_array, u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() a 2D 1st array"); run_part(vect.Utils_static.vuDot(t(1).generic, u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() a null 2nd array"); run_part(vect.Utils_static.vuDot(u(1).generic, null_array, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() a 2D 2nd array"); run_part(vect.Utils_static.vuDot(u(1).generic, t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() different sized unit vectors"); run_part(vect.Utils_static.vuDot(u(1).generic, u1(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() a negative tolerance"); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() a 2D arrays in both arguments"); run_part(vect.Utils_static.vuDot(t(1).generic, t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() badness level for negative result with u=v"); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex), -5.0, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuDot() badness level for positive result with u=v=0"); run_part(vect.Utils_static.vuDot(z(1).generic, z(1).generic, tol, vect.BadLevel.PosRes, sidl_ex), 5.0, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the dot of the unit and zero vectors is 0.0");
+run_part(vect.Utils_static.vuDot(u(1).generic, z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDot() a null 1st array");
+run_part(vect.Utils_static.vuDot(null_array, u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() a 2D 1st array");
+run_part(vect.Utils_static.vuDot(t(1).generic, u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() a null 2nd array");
+run_part(vect.Utils_static.vuDot(u(1).generic, null_array, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() a 2D 2nd array");
+run_part(vect.Utils_static.vuDot(u(1).generic, t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() different sized unit vectors");
+run_part(vect.Utils_static.vuDot(u(1).generic, u1(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() a negative tolerance");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() a 2D arrays in both arguments");
+run_part(vect.Utils_static.vuDot(t(1).generic, t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() badness level for negative result with u=v");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex),
+         -5.0, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuDot() badness level for positive result with u=v=0");
+run_part(vect.Utils_static.vuDot(z(1).generic, z(1).generic, tol, vect.BadLevel.PosRes, sidl_ex),
+         5.0, sidl_ex, vect.ExpectExcept.PostExp);
 
 /* /\* vuProduct() set *\/ */
-init_part("ensuring the product of 1 and the unit vector is the unit vector"); run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the product of 2 and the unit vector is not the unit vector"); run_parta(vect.Utils_static.vuProduct(2.0, u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuProduct() a null array"); run_parta(vect.Utils_static.vuProduct(0.0, null_array, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuProduct() a 2D array"); run_parta(vect.Utils_static.vuProduct(1.0, t(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuProduct() badness level for null result"); run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the product of 1 and the unit vector is the unit vector");
+run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the product of 2 and the unit vector is not the unit vector");
+run_parta(vect.Utils_static.vuProduct(2.0, u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuProduct() a null array");
+run_parta(vect.Utils_static.vuProduct(0.0, null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuProduct() a 2D array");
+run_parta(vect.Utils_static.vuProduct(1.0, t(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuProduct() badness level for null result");
+run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 if ALLOW_MEMORY_LEAK_CHECKS then {
-  init_part("passing vuProduct() badness level for 2D result)"); run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.TwoDRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
-  init_part("passing vuProduct() badness level for wrong size result"); run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+  init_part("passing vuProduct() badness level for 2D result)");
+run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.TwoDRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+  init_part("passing vuProduct() badness level for wrong size result");
+run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 } /* ALLOW_MEMORY_LEAK_CHECKS */
 
 /* vuNegate() set */
-init_part("ensuring the negation of the unit vector is its negative"); run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the negation of the unit vector is not the unit vector"); run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNegate() a null array"); run_parta(vect.Utils_static.vuNegate(null_array, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNegate() a 2D array"); run_parta(vect.Utils_static.vuNegate(t(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNegate() badness level for null result"); run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the negation of the unit vector is its negative");
+run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the negation of the unit vector is not the unit vector");
+run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNegate() a null array");
+run_parta(vect.Utils_static.vuNegate(null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNegate() a 2D array");
+run_parta(vect.Utils_static.vuNegate(t(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNegate() badness level for null result");
+run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 if ALLOW_MEMORY_LEAK_CHECKS then {
-init_part("passing vuNegate() badness level for 2D result)"); run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.TwoDRes, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuNegate() badness level for wrong size result"); run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuNegate() badness level for 2D result)");
+run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.TwoDRes, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuNegate() badness level for wrong size result");
+run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 } /* ALLOW_MEMORY_LEAK_CHECKS */
 
 /* vuNormalize() set */
-init_part("ensuring normalize of the unit vector is itself"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring normalize of the unit vector is not its negative"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring normalize of the zero vector raises a DBZ exception"); run_parta(vect.Utils_static.vuNormalize(z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, z(1).generic, true, sidl_ex, vect.ExpectExcept.DBZExp);
-init_part("passing vuNormalize() a null array"); run_parta(vect.Utils_static.vuNormalize(null_array, tol, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNormalize() a 2D array"); run_parta(vect.Utils_static.vuNormalize(t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNormalize() a negative tolerance using the unit vector"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex), ntol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuNormalize() a badness level for null result"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NullRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring normalize of the unit vector is itself");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring normalize of the unit vector is not its negative");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring normalize of the zero vector raises a DBZ exception");
+run_parta(vect.Utils_static.vuNormalize(z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, z(1).generic, true, sidl_ex, vect.ExpectExcept.DBZExp);
+init_part("passing vuNormalize() a null array");
+run_parta(vect.Utils_static.vuNormalize(null_array, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNormalize() a 2D array");
+run_parta(vect.Utils_static.vuNormalize(t(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNormalize() a negative tolerance using the unit vector");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex),
+         ntol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuNormalize() a badness level for null result");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NullRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 if ALLOW_MEMORY_LEAK_CHECKS then {
-init_part("passing vuNormalize() a badness level for 2D result"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.TwoDRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuNormalize() a badness level for wrong size result"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.WrongSizeRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuNormalize() a badness level for 2D result");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.TwoDRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuNormalize() a badness level for wrong size result");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.WrongSizeRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 } /* ALLOW_MEMORY_LEAK_CHECKS */
 
 /* vuSum() set (NOTE: tolerance not relevant to vuSum() API.) */
-init_part("ensuring the sum of the unit and zero vectors is the unit vector"); run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the sum of unit and zero vectors is not the negative of the unit"); run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuSum() a null 1st array"); run_parta(vect.Utils_static.vuSum(null_array, z(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSum() a 2D 1st array"); run_parta(vect.Utils_static.vuSum(t(1).generic, null_array, vect.BadLevel.NoVio, sidl_ex), tol, null_array, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSum() a null 2nd array"); run_parta(vect.Utils_static.vuSum(u(1).generic, null_array, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSum() a 2D as second"); run_parta(vect.Utils_static.vuSum(u(1).generic, t(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, null_array, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSum() different sized unit vectors"); run_parta(vect.Utils_static.vuSum(u(1).generic, u1(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, z(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuSum() badness level for null result"); run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the sum of the unit and zero vectors is the unit vector");
+run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the sum of unit and zero vectors is not the negative of the unit");
+run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuSum() a null 1st array");
+run_parta(vect.Utils_static.vuSum(null_array, z(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSum() a 2D 1st array");
+run_parta(vect.Utils_static.vuSum(t(1).generic, null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSum() a null 2nd array");
+run_parta(vect.Utils_static.vuSum(u(1).generic, null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSum() a 2D as second");
+run_parta(vect.Utils_static.vuSum(u(1).generic, t(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSum() different sized unit vectors");
+run_parta(vect.Utils_static.vuSum(u(1).generic, u1(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, z(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuSum() badness level for null result");
+run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 if ALLOW_MEMORY_LEAK_CHECKS then {
-init_part("passing vuSum() badness level for 2D result"); run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.TwoDRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuSum() badness level for wrong size result"); run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuSum() badness level for 2D result");
+run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.TwoDRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuSum() badness level for wrong size result");
+run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 } /* ALLOW_MEMORY_LEAK_CHECKS */
 
 /* vuDiff() set (NOTE: tolerance not relevant to vuDiff() API.) */
-init_part("ensuring the diff of the zero and unit vectors is the negative unit vector"); run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the diff of the unit and zero vectors is the unit vector"); run_parta(vect.Utils_static.vuDiff(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("ensuring the diff of the unit and zero vectors is not the neg unit vector"); run_parta(vect.Utils_static.vuDiff(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDiff() a null 1st array"); run_parta(vect.Utils_static.vuDiff(null_array, u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDiff() a 2D 1st array"); run_parta(vect.Utils_static.vuDiff(t(1).generic, u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDiff() a null 2nd array"); run_parta(vect.Utils_static.vuDiff(u(1).generic, null_array, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDiff() a 2D 2nd array"); run_parta(vect.Utils_static.vuDiff(u(1).generic, t(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDiff() different sized vectors"); run_parta(vect.Utils_static.vuDiff(u(1).generic, u1(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDiff() badness level for null result"); run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the diff of the zero and unit vectors is the negative unit vector");
+run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the diff of the unit and zero vectors is the unit vector");
+run_parta(vect.Utils_static.vuDiff(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the diff of the unit and zero vectors is not the neg unit vector");
+run_parta(vect.Utils_static.vuDiff(u(1).generic, z(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDiff() a null 1st array");
+run_parta(vect.Utils_static.vuDiff(null_array, u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDiff() a 2D 1st array");
+run_parta(vect.Utils_static.vuDiff(t(1).generic, u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDiff() a null 2nd array");
+run_parta(vect.Utils_static.vuDiff(u(1).generic, null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDiff() a 2D 2nd array");
+run_parta(vect.Utils_static.vuDiff(u(1).generic, t(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDiff() different sized vectors");
+run_parta(vect.Utils_static.vuDiff(u(1).generic, u1(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, u(1).generic, true, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDiff() badness level for null result");
+run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 if ALLOW_MEMORY_LEAK_CHECKS then {
-init_part("passing vuDiff() badness level for 2D result"); run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.TwoDRes, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
-init_part("passing vuDiff() badness level for wrong size result"); run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex), tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuDiff() badness level for 2D result");
+run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.TwoDRes, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("passing vuDiff() badness level for wrong size result");
+run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.WrongSizeRes, sidl_ex),
+         tol, nu(1).generic, true, sidl_ex, vect.ExpectExcept.PostExp);
 } /* ALLOW_MEMORY_LEAK_CHECKS */
 
 //vect.Utils._dump_stats_static(statsFile, "After full checking");
@@ -329,9 +533,15 @@ init_part("passing vuDiff() badness level for wrong size result"); run_parta(vec
 tracker.writeComment("*** ENABLE PRECONDITION ENFORCEMENT ONLY ***", sidl_ex);
 sidl.EnfPolicy_static.setEnforceAll(sidl.ContractClass.PRECONDS, false, sidl_ex);
 
-init_part("ensuring the dot product of the unit and zero vectors is 0.0"); run_part(vect.Utils_static.vuDot(u(1).generic, z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDot() a negative tolerance"); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex), ntol, 1.0, sidl_ex, vect.ExpectExcept.PreExp);
-init_part("passing vuDot() badness level for negative result with u=v"); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex), tol, -5.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("ensuring the dot product of the unit and zero vectors is 0.0");
+run_part(vect.Utils_static.vuDot(u(1).generic, z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDot() a negative tolerance");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex),
+         ntol, 1.0, sidl_ex, vect.ExpectExcept.PreExp);
+init_part("passing vuDot() badness level for negative result with u=v");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex),
+         tol, -5.0, sidl_ex, vect.ExpectExcept.NoneExp);
 
 //vect.Utils._dump_stats_static(statsFile, "After precondition checking");
 
@@ -344,9 +554,15 @@ init_part("passing vuDot() badness level for negative result with u=v"); run_par
 tracker.writeComment("*** ENABLE POSTCONDITION ENFORCEMENT ONLY ***", sidl_ex);
 sidl.EnfPolicy_static.setEnforceAll(sidl.ContractClass.POSTCONDS, false, sidl_ex);
 
-init_part("ensuring the dot product of the unit and zero vectors is 0.0"); run_part(vect.Utils_static.vuDot(u(1).generic, z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDot() a negative tolerance"); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex), ntol, 1.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDot() badness level for negative result with u=v"); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex), tol, -5.0, sidl_ex, vect.ExpectExcept.PostExp);
+init_part("ensuring the dot product of the unit and zero vectors is 0.0");
+run_part(vect.Utils_static.vuDot(u(1).generic, z(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDot() a negative tolerance");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, ntol, vect.BadLevel.NoVio, sidl_ex),
+         ntol, 1.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDot() badness level for negative result with u=v");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex),
+         tol, -5.0, sidl_ex, vect.ExpectExcept.PostExp);
 
 //vect.Utils._dump_stats_static(statsFile, "After Postcondition checking");
 
@@ -358,26 +574,66 @@ init_part("passing vuDot() badness level for negative result with u=v"); run_par
 tracker.writeComment("*** DISABLE ALL CONTRACT ENFORCEMENT ***", sidl_ex);
 sidl.EnfPolicy_static.setEnforceNone(false, sidl_ex);
 
-init_part("passing vuIsZero() a null array - no precondition violation"); run_part(vect.Utils_static.vuIsZero(null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuIsUnit() a null array - no precondition violation"); run_part(vect.Utils_static.vuIsUnit(null_array, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuAreEqual() a null 1st array - no precondition violation"); run_part(vect.Utils_static.vuAreEqual(null_array, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuAreOrth() a null 1st array - no precondition violation"); run_part(vect.Utils_static.vuAreOrth(null_array, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuSchwarzHolds() a null 1st array - no precondition violation"); run_part(vect.Utils_static.vuSchwarzHolds(null_array, z(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing() vuTriIneqHolds() a null 1st array - no precondition violation"); run_part(vect.Utils_static.vuTriIneqHolds(null_array, u(1).generic, tol, sidl_ex), false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing() vuNorm() a null vector - no precondition violation"); run_part(vect.Utils_static.vuNorm(null_array, tol, vect.BadLevel.NoVio, sidl_ex), 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNorm() badness level for negative result - no post violation"); run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex), tol, -5.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDot() a null 1st array - no precondition violation"); run_part(vect.Utils_static.vuDot(null_array, u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex), tol, 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDot() badness level for negative result with u=v - no post vio."); run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex), tol, -5.0, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuProduct() a null array - no precondition violation"); run_parta(vect.Utils_static.vuProduct(0.0, null_array, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuProduct() badness level for null result - no post violation"); run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNegate() a null array - no precondition violation"); run_parta(vect.Utils_static.vuNegate(null_array, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNegate() badness level for null result - no post violation"); run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNormalize() a null array - no precondition violation"); run_parta(vect.Utils_static.vuNormalize(null_array, tol, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuNormalize() a badness level for null result - no post violation"); run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NullRes, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuSum() a null 1st array - no precondition violation"); run_parta(vect.Utils_static.vuSum(null_array, z(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuSum() a badness level for null result - no post violation"); run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDiff() a null 1st array - no precondition violation"); run_parta(vect.Utils_static.vuDiff(null_array, u(1).generic, vect.BadLevel.NoVio, sidl_ex), tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
-init_part("passing vuDiff() badness level for null result - no post violation"); run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.NullRes, sidl_ex), tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuIsZero() a null array - no precondition violation");
+run_part(vect.Utils_static.vuIsZero(null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuIsUnit() a null array - no precondition violation");
+run_part(vect.Utils_static.vuIsUnit(null_array, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuAreEqual() a null 1st array - no precondition violation");
+run_part(vect.Utils_static.vuAreEqual(null_array, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuAreOrth() a null 1st array - no precondition violation");
+run_part(vect.Utils_static.vuAreOrth(null_array, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuSchwarzHolds() a null 1st array - no precondition violation");
+run_part(vect.Utils_static.vuSchwarzHolds(null_array, z(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing() vuTriIneqHolds() a null 1st array - no precondition violation");
+run_part(vect.Utils_static.vuTriIneqHolds(null_array, u(1).generic, tol, sidl_ex),
+         false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing() vuNorm() a null vector - no precondition violation");
+run_part(vect.Utils_static.vuNorm(null_array, tol, vect.BadLevel.NoVio, sidl_ex),
+         0.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNorm() badness level for negative result - no post violation");
+run_part(vect.Utils_static.vuNorm(u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex),
+         tol, -5.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDot() a null 1st array - no precondition violation");
+run_part(vect.Utils_static.vuDot(null_array, u(1).generic, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, 0.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDot() badness level for negative result with u=v - no post vio.");
+run_part(vect.Utils_static.vuDot(u(1).generic, u(1).generic, tol, vect.BadLevel.NegRes, sidl_ex),
+         tol, -5.0, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuProduct() a null array - no precondition violation");
+run_parta(vect.Utils_static.vuProduct(0.0, null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuProduct() badness level for null result - no post violation");
+run_parta(vect.Utils_static.vuProduct(1.0, u(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNegate() a null array - no precondition violation");
+run_parta(vect.Utils_static.vuNegate(null_array, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNegate() badness level for null result - no post violation");
+run_parta(vect.Utils_static.vuNegate(u(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNormalize() a null array - no precondition violation");
+run_parta(vect.Utils_static.vuNormalize(null_array, tol, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuNormalize() a badness level for null result - no post violation");
+run_parta(vect.Utils_static.vuNormalize(u(1).generic, tol, vect.BadLevel.NullRes, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuSum() a null 1st array - no precondition violation");
+run_parta(vect.Utils_static.vuSum(null_array, z(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuSum() a badness level for null result - no post violation");
+run_parta(vect.Utils_static.vuSum(u(1).generic, z(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, u(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDiff() a null 1st array - no precondition violation");
+run_parta(vect.Utils_static.vuDiff(null_array, u(1).generic, vect.BadLevel.NoVio, sidl_ex),
+         tol, null_array, true, sidl_ex, vect.ExpectExcept.NoneExp);
+init_part("passing vuDiff() badness level for null result - no post violation");
+run_parta(vect.Utils_static.vuDiff(z(1).generic, u(1).generic, vect.BadLevel.NullRes, sidl_ex),
+         tol, nu(1).generic, false, sidl_ex, vect.ExpectExcept.NoneExp);
 
 //vect.Utils._dump_stats_static(statsFile, "After no checking");
 
