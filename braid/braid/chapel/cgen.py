@@ -361,7 +361,7 @@ def gen_doc_comment(doc_comment, scope):
                            re.split('\n\s*', doc_comment)
                            )+sep+' */'+sep
 
-sidl_array_regex = re.compile('^sidl(_(\w+))__array$')
+sidl_array_regex = re.compile('^sidl_(\w+)__array$')
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
     """
@@ -384,7 +384,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
     def is_sidl_array(self, struct_name):
         m = sidl_array_regex.match(struct_name)
         if m:
-            t = m.group(2)
+            t = m.group(1)
             try:
                 return self.type_map[t]
             except:
@@ -526,16 +526,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (sidl.array, [], [], []):
                 print '** WARNING: deprecated rule use a sidl__array struct instead'
-                return 'sidl.Array(opaque, sidl__array)'
+                return 'sidl.Array(opaque, sidl__array) /* DEPRECATED */'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                print '** WARNING: deprecated rule use a sidl__array struct instead'
+                print '** WARNING: deprecated rule use a sidl_*__array struct instead'
                 if Scalar_type[0] == ir.scoped_id:
                     ctype = 'BaseInterface'
                 else:
                     ctype = Scalar_type[1]
                 #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
-                return 'sidl.Array(%s, sidl_%s__array)'%(gen(Scalar_type), ctype)
+                return 'sidl.Array(%s, sidl_%s__array) /* DEPRECATED */'%(gen(Scalar_type), ctype)
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"

@@ -19,7 +19,8 @@
     sidl_long_array      = 8,
     sidl_opaque_array    = 9,
     sidl_string_array    = 10,
-    sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
+    //sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
+    sidl_BaseInterface_array = 11 /* an array of sidl.BaseInterface's */
   };
 
   /**
@@ -122,6 +123,7 @@
                    inout upper: int(32),						\
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
                                                                                         \
+  /** borrow a Chapel-created array and wrap it inside of SIDL array metadata */        \
   proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank: int(32);					\
     var lus = computeLowerUpperAndStride(a);				\
@@ -140,26 +142,77 @@
     return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
   }									\
 									\
+  /* Various extern declarations */                                     \
   extern proc sidl_##C_TYPE##__array_create1d(in len: int(32))		\
     : sidl_##C_TYPE##__array;						\
 									\
   extern proc sidl_##C_TYPE##__array_create2dCol(in m: int(32), in n: int(32)) \
     : sidl_##C_TYPE##__array;						\
 									\
+  extern proc sidl_##C_TYPE##__array_cast(in ga: opaque)		\
+    : sidl_##C_TYPE##__array;						\
+									\
   module C_TYPE##_array {						\
+    /**
+     * Create a dense one-dimensional vector of doubles with a lower
+     * index of 0 and an upper index of len-1. This array owns and manages
+     * its data.
+     * This function does not initialize the contents of the array.
+     */									\
     proc create1d(in len: int(32)) {					\
       var ior = sidl_##C_TYPE##__array_create1d(len);			\
       var sidlArray = new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior); \
       return (sidlArray, createBorrowedArray1d(sidlArray));		\
     }									\
 									\
+    /**
+     * Create a dense two-dimensional array of doubles with a lower
+     * indices of (0,0) and an upper indices of (m-1,n-1). The array is
+     * stored in column-major order, and it owns and manages its data.
+     * This function does not initialize the contents of the array.
+     */						                        \
     proc create2dCol(in m: int(32), in n: int(32)) {			\
       var ior = sidl_##C_TYPE##__array_create2dCol(m, n);		\
       var sidlArray = new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior); \
       return (sidlArray, createBorrowedArray2d(sidlArray));		\
     }									\
+									\
+    /**
+     * Create a dense two-dimensional array of doubles with a lower
+     * indices of (0,0) and an upper indices of (m-1,n-1). The array is
+     * stored in row-major order, and it owns and manages its data.
+     * This function does not initialize the contents of the array.
+     */						                        \
+    proc create2dRow(in m: int(32), in n: int(32)) {			\
+      var ior = sidl_##C_TYPE##__array_create2dRow(m, n);		\
+      var sidlArray = new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior); \
+      return (sidlArray, createBorrowedArray2d(sidlArray));		\
+    }									\
+									\
+    /** create a borrowed array from a sidl.Array */			\
+    proc borrow(in sidlArray) {						\
+      select sidlArray.ior.d_metadata.d_dimen {				\
+	when 1 do return (sidlArray, createBorrowedArray1d(sidlArray)); \
+	when 2 do return (sidlArray, createBorrowedArray2d(sidlArray)); \
+	when 3 do return (sidlArray, createBorrowedArray3d(sidlArray)); \
+	when 4 do return (sidlArray, createBorrowedArray4d(sidlArray)); \
+	when 5 do return (sidlArray, createBorrowedArray5d(sidlArray)); \
+	when 6 do return (sidlArray, createBorrowedArray6d(sidlArray)); \
+	when 7 do return (sidlArray, createBorrowedArray7d(sidlArray)); \
+	otherwise return nil;						\
+      } 								\
+    }	      							        \
+									\
+    /** cast a generic array to a specific array */			\
+    proc cast(in generic_array:opaque) {				\
+      if (sidl__array_type(generic_array) !=				\
+	  sidl_array_type.sidl_##C_TYPE##_array) then {			\
+	return nil;							\
+      }									\
+      var ior = sidl_##C_TYPE##__array_cast(generic_array);		\
+      return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
+    }	      							        \
   }
-
 
 SIDL_ARRAY(bool,     bool)
 SIDL_ARRAY(char,     string)
@@ -683,6 +736,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return an integer indicating the type of elements held by the
      * array. Zero is returned if array is NULL.
      */
+    extern proc sidl__array_type(in ga: opaque): int(32);	       
     //int32_t
     //sidl__array_type(const struct sidl__array* array);
 
@@ -697,3 +751,5 @@ SIDL_ARRAY(BaseInterface, int(32))
     //sidl__array_remove(struct sidl__array * const array);
 
     }
+
+extern proc sidl__array_type(in ga: opaque): int(32);	       

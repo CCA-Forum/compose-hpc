@@ -478,6 +478,10 @@ proc chpl__initCopy(a: []) where
   return b;
 }
 
+/** 
+ * Borrow an externally-created SIDL array by wrapping it in Chapel
+ * domain metadata
+ */
 proc createBorrowedSIDLArray(sa: sidl.Array, arraySize: int(64)...?arrayRank) {
   var bData = sa.first();
   var arrayOrdering = getArrayOrdering(sa);
