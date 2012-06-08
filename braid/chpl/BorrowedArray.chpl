@@ -482,12 +482,12 @@ proc chpl__initCopy(a: []) where
  * Borrow an externally-created SIDL array by wrapping it in Chapel
  * domain metadata
  */
-proc createBorrowedSIDLArray(sa: sidl.Array, arraySize: int(64)...?arrayRank) {
+proc createBorrowedSIDLArray(sa: sidl.Array, arraySize: int(32)...?arrayRank) {
   var bData = sa.first();
   var arrayOrdering = getArrayOrdering(sa);
   type arrayElmntType = sa.ScalarType;
 
-  type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, int(64), false);
+  type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, int(32), false);
   var locDom: locDomType;
   locDom._value.initIndices((...arraySize));
 

@@ -2,7 +2,11 @@
 * BRAID 0.2.5
 ** Synched with Chapel 1.5
 ** Implemented contract checking
+** Implemented generic arrays for Chapel
+** Unified client and server generator code
 
+** [module]_static.create_[module]() is now just [module]_static.create()
+** Default index data type for SIDL arrays is now int(32), as it should be
 * BRAID 0.2.4
 ** Synched with Chapel 1.4
 ** Included in Babel 2.0.0

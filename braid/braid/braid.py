@@ -152,7 +152,7 @@ def braid(args):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             print "FIXME Handle imports here after injection of sidl runtime"
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            backend.generate_client(sidl_file, sidl_ast, symtab)
+            backend.generate_bindings(sidl_file, sidl_ast, symtab, with_server=False)
         else:
             print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
             exit(1)
@@ -163,7 +163,7 @@ def braid(args):
         elif re.match(r'([cC]hapel)|(chpl)', args.server):
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            backend.generate_server(sidl_file, sidl_ast, symtab)
+            backend.generate_bindings(sidl_file, sidl_ast, symtab, with_server=True)
         else:
             print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.server)
             exit(1)

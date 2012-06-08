@@ -324,7 +324,7 @@ class ChapelScope(ChapelFile):
     def __str__(self):
         if self.main_area == None:
             self._sep = ';\n'
-            terminator = ';\n';
+            terminator = '\n'
         else:
             terminator = ''
 

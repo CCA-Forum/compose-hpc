@@ -283,7 +283,7 @@ SIDL_ARRAY(BaseInterface, int(32))
     /**
      * Return the dimension of the array.
      */
-    proc dim(): int(64) {
+    proc dim(): int(32) {
       extern proc sidlArrayDim(inout array: sidl__array): int(32);
       return sidlArrayDim(ior.d_metadata);
     }
@@ -296,7 +296,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * sidlLower(array,ind).
      */
 
-    proc lower(in ind: int(32)): int(64) {
+    proc lower(in ind: int(32)): int(32) {
       extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLower(ior.d_metadata, ind);
     }
@@ -307,7 +307,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be less than or equal to
      * sidlUpper(array,ind).
      */
-    proc upper(in ind: int(32)): int(64) {
+    proc upper(in ind: int(32)): int(32) {
       extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlUpper(ior.d_metadata, ind);
     }
@@ -316,7 +316,7 @@ SIDL_ARRAY(BaseInterface, int(32))
     /**
      * Macro to return the number of elements in dimension ind of an array.
      */
-    proc length(in ind: int(32)): int(64) {
+    proc length(in ind: int(32)): int(32) {
       extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlLength(ior.d_metadata, ind);
     }
@@ -327,7 +327,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * To move from the address of element i to element i + 1 in the dimension
      * ind, add sidlStride(array,ind).
      */
-    proc stride(in ind: int(32)): int(64) {
+    proc stride(in ind: int(32)): int(32) {
       extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
       return sidlStride(ior.d_metadata, ind);
     }
@@ -338,7 +338,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * This macro makes multiple references to array and ind, so you should
      * not use ++ or -- on arguments to this macro.
      */
-    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(64) {
+    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
       extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
       return sidlArrayDimCalc(ior.d_metadata, ind, v);
     }

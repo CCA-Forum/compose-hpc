@@ -55,7 +55,8 @@ def generate_server(sidl_file, classes, pkgs, prefix):
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
            skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),
            stubsrcs=' '.join([c+'_cStub.c' for c in classes]),
-           stubhdrs=' '.join([c+'_cStub.h' for c in classes])))
+           stubhdrs=' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
+                              for c in classes])))
 
 def generate_gnumakefile(sidl_file):
     extraflags=''
