@@ -549,11 +549,11 @@ class GlueCodeGenerator(object):
         return 'typedef {0} {1} _{1};\ntypedef _{1}* {1};'.format(
             s[0], pkgname+'_'+s[1][:-6])
 
-    def class_typedefs(self, qname, symbol_table):
-        typedefs = CFile()
+    def class_header(self, qname, symbol_table, ci):
+        header = CFile()
         pkgname = '_'.join(symbol_table.prefix)
-        typedefs._header = [
-            '// Package header (enums, etc...)',
+        header._header = [
+            '// Class header',
             '#include <stdint.h>',
             '#include <%s.h>' % pkgname,
             '#include <%s_IOR.h>'%qname,
@@ -567,11 +567,29 @@ class GlueCodeGenerator(object):
             '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
             '#define SET_TO_NULL(aPtr) ((*aPtr) = 0)',
             '#endif'
-            #] + [self.struct_typedef(pkgname, es) for es in self.pkg_enums_and_structs] + [
-            #'%s__object %s__createObject(%s__object copy, sidl_BaseInterface__object* ex);'
-            #%(qname, qname, qname),
             ]
-        return typedefs
+
+        def gen_cast(scope):
+            """
+            Chapel-specific up-cast macros
+            """
+            base = qual_id(scope)
+            # Cast functions for the IOR
+            header.genh(
+   '#define _cast_{0}(ior,ex) ((struct {0}__object*)((*ior->d_epv->f__cast)(ior,"{1}",ex)))'
+                       .format(base, qual_id(scope, '.')))
+            header.genh('#define {1}_cast_{0}(ior) ((struct {1}__object*)'
+                       '((struct sidl_BaseInterface__object*)ior)->d_object)'
+                       .format(pkgname, base))
+
+        for _, ext in ci.co.extends:
+            gen_cast(ext)
+
+        for _, impl in ci.co.implements:
+            gen_cast(impl)
+                
+
+        return header
 
 
     @matcher(globals(), debug=False)
@@ -916,8 +934,8 @@ class GlueCodeGenerator(object):
         mod_qname = '.'.join(symbol_table.prefix[1:]+[qname])
         mod_name = '.'.join(symbol_table.prefix[1:]+[cls.name])
 
-        typedefs = self.class_typedefs(qname, symbol_table)
-        write_to(qname+'_Stub.h', typedefs.dot_h(qname+'_Stub.h'))
+        header = self.class_header(qname, symbol_table, ci)
+        write_to(qname+'_Stub.h', header.dot_h(qname+'_Stub.h'))
         chpl_stub.new_def('use sidl;')
         extrns = ChapelScope(chpl_stub, relative_indent=0)
 
@@ -1250,21 +1268,10 @@ class GlueCodeGenerator(object):
         iorname = '_'.join([prefix, ci.epv.name])
         ci.ior.genh(ir.Import(prefix))
         ci.ior.genh(ir.Import('sidl'))
-        ci.ior.genh(ir.Import('sidl_BaseInterface_IOR'))
+        for _, ext in ci.co.extends + ci.co.implements:
+            ci.ior.genh(ir.Import(qual_id(ext)+'_IOR'))
 
-        def gen_cast(scope):
-            """
-            this is Chapel-specific... should we move it somewhere else?
-            """
-            base = qual_id(scope)
-            ci.ior.genh(ir.Import(base+'_IOR'))
-            # Cast functions for the IOR
-            ci.ior.genh('#define _cast_{0}(ior,ex) ((struct {0}__object*)((*ior->d_epv->f__cast)(ior,"{1}",ex)))'
-                       .format(base, qual_id(scope, '.')))
-            ci.ior.genh('#define {1}_cast_{0}(ior) ((struct {1}__object*)'
-                       '((struct sidl_BaseInterface__object*)ior)->d_object)'
-                       .format(iorname, base))
-        
+
         def gen_forward_references():
             
             def get_ctype(typ):
@@ -1316,12 +1323,6 @@ class GlueCodeGenerator(object):
             for loop_ref in refs:
                 add_forward_defn(loop_ref)
 
-        for _, ext in ci.co.extends:
-            gen_cast(ext)
-
-        for _, impl in ci.co.implements:
-            gen_cast(impl)
-                
         # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
                 
         ci.ior.genh(ir.Import('stdint'))

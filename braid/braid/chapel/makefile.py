@@ -166,7 +166,7 @@ LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CH
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include/chpl
 CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
-  chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
+  $(SIDL_RUNTIME)/sidl_BaseClass_IOR.h chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
 
 # most of the rest of the file should not require editing
 
