@@ -277,15 +277,23 @@ endif
 .c.lo:
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
+
+# Chapel options used:
+#
+# --savec [dir]  save the generated C code in dir
+# --make [cmd]   used to disable compilation of C code by chpl
+# --devel        turn on more verbose error output
+# --libraty      compile a library
+
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
+	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code only
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code
 	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c

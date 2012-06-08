@@ -100,6 +100,21 @@ def forward_decl(ir_struct):
     """
     return '%s %s;'%(ir_struct[0], ir_struct[1])
 
+def is_static(method):
+    """
+    \return \c true iff the sidl.method \c method has the \c static
+    attribute.
+    """
+    return member_chk(sidl.static, sidl.method_method_attrs(method))
+
+def is_not_static(method):
+    """
+    \return \c false iff the sidl.method \c method has the \c static
+    attribute.
+    """
+    return not is_static(method)
+
+
 class GlueCodeGenerator(object):
     """
     This class provides the methods to transform SIDL to IR.
@@ -213,12 +228,6 @@ class GlueCodeGenerator(object):
 
             if self.server:
                 ci.impl = self.pkg_impl
-                ci.impl.new_def(gen_doc_comment(cls.doc_comment, chpl_stub)+
-                                'class %s_Impl {'%qname)
-
-                splicer = '.'.join(cls.qualified_name+['Impl'])
-                ci.impl.new_def('/* DO-NOT-DELETE splicer.begin(%s) */'%splicer)
-                ci.impl.new_def('/* DO-NOT-DELETE splicer.end(%s) */'%splicer)
 
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             chpl_stub.cstub.genh(ir.Import('sidlType'))
@@ -243,17 +252,37 @@ class GlueCodeGenerator(object):
                 self.generate_client_method(symbol_table, method, ci)
 
             if self.server:
-                for method in builtins+cls.get_methods():                
+                methods = builtins+cls.get_methods()
+                class_methods = filter(is_not_static, methods)
+                static_methods = filter(is_static, methods)
+
+                # Class
+                ci.impl.new_def(gen_doc_comment(cls.doc_comment, chpl_stub)+
+                                'class %s_Impl {'%qname)
+                splicer = '.'.join(cls.qualified_name+['Impl'])
+                ci.impl.new_def('// DO-NOT-DELETE splicer.begin(%s)'%splicer)
+                ci.impl.new_def('// DO-NOT-DELETE splicer.end(%s)'%splicer)
+                for method in class_methods:  
                     self.generate_server_method(symbol_table, method, ci)
 
-            #if self.server: 
-                # recurse to generate method implementation skeletons
-            #gen1(builtins+cls.all_methods, ci)
+                ci.impl.new_def('} // class %s_Impl'%qname)
+                ci.impl.new_def('')
+                ci.impl.new_def('')
 
-            #else:
-            #    # recurse to generate method code
-            #    if qname == 'vect_vDivByZeroExcept': import pdb; pdb.set_trace()
-            #    gen1(cls.all_methods, ci)
+                # Static
+                if static_methods:
+                    ci.impl.new_def('// all static member functions of '+qname)
+                    ci.impl.new_def(gen_doc_comment(cls.doc_comment, chpl_stub)+
+                                    '// FIXME: chpl allows only one module per library //'+
+                                    ' module %s_static_Impl {'%qname)
+
+                    for method in static_methods:
+                        self.generate_server_method(symbol_table, method, ci)
+
+                    ci.impl.new_def('//} // module %s_static_Impl'%qname)
+                    ci.impl.new_def('')
+                    ci.impl.new_def('')
+
 
             # Chapel Stub (client-side Chapel bindings)
             self.generate_chpl_stub(chpl_stub, qname, ci)
@@ -281,7 +310,6 @@ class GlueCodeGenerator(object):
 
             # Skeleton
             if self.server:
-                ci.impl.new_def('} // class %s_Impl'%qname)
                 self.generate_skeleton(ci, qname)
 
             # Makefile
@@ -1208,8 +1236,8 @@ class GlueCodeGenerator(object):
         # new file for the user implementation
         self.pkg_impl = ChapelFile(qname+'_Impl')
         self.pkg_impl.gen(ir.Import('sidl'))
-        self.pkg_impl.new_def('/* DO-NOT-DELETE splicer.begin(%s.Impl) */'%qname)
-        self.pkg_impl.new_def('/* DO-NOT-DELETE splicer.end(%s.Impl) */'%qname)
+        self.pkg_impl.new_def('// DO-NOT-DELETE splicer.begin(%s.Impl)'%qname)
+        self.pkg_impl.new_def('// DO-NOT-DELETE splicer.end(%s.Impl)'%qname)
         self.pkg_impl.new_def('')
 
 
@@ -1522,8 +1550,8 @@ class GlueCodeGenerator(object):
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
                     chpltype, Name, impl_args,
-                    [ir.Comment('DO-NOT-DELETE splicer.begin(%s)'%splicer),
-                     ir.Comment('DO-NOT-DELETE splicer.end(%s)'%splicer)],
+                    ['// DO-NOT-DELETE splicer.begin(%s)'%splicer,
+                     '// DO-NOT-DELETE splicer.end(%s)'%splicer],
                     DocComment)
 
         c_gen(skeldefn, ci.chpl_skel.cstub)
