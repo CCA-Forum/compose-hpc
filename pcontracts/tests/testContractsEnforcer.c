@@ -18,36 +18,6 @@
 #include <string.h>
 #include "ContractsEnforcer.h"
 
-/**
- * Abbreviated names corresponding to (and indexable by) EnforcementClauseEnum.
- *
- * NOTE:  These names MUST be kept in sync with EnforcementClauseEnum values.
- */
-static const char* S_FILE_CLAUSES[8] = {
-  "Non",
-  "Inv",
-  "Pre",
-  "IPr",
-  "Pos"
-  "IPo",
-  "PPo",
-  "IPP"
-};
-
-/**
- * Abbreviated names corresponding to (and indexable by) 
- * EnforcementFrequencyEnum.
- *
- * NOTE:  These names MUST be kept in sync with EnforcementFrequencyEnum values.
- */
-static const char* S_FILE_FREQUENCY[6] = {
-  "Nev",
-  "All",
-  "AdF",
-  "AdT",
-  "Per",
-  "Ran"
-};
 
 /**
  * Test file types.
@@ -68,6 +38,7 @@ static const char* S_FILE_TYPE[2] = {
 };
 
 
+
 /**
  * Creates a filename tailored to the provided options.
  *
@@ -85,33 +56,126 @@ getFilename(
   /* in */ const char*              ext) 
 {
   char* fn = NULL;
-  char* pre = "testContractsEnforcer";
-  char* clauseStr = S_FILENAME_CLAUSES[clauses];
-  char* freqStr = S_FILENAME_FREQUENCY[frequency];
-  char* typeStr = S_FILE_TYPE[fileType];
-  char* extStr = strlen(ext) > 0 ? ext : "csv";
+  const char* pre = "tce";
+  const char* clauseStr = S_ENFORCEMENT_CLAUSE_ABBREV[clauses];
+  const char* freqStr = S_ENFORCEMENT_FREQUENCY[frequency];
+  const char* typeStr = S_FILE_TYPE[fileType];
+  const char* extStr = ((ext != NULL) && (strlen(ext) > 0)) ? ext : "csv";
 
   int len = strlen(pre) + strlen(clauseStr) + strlen(freqStr)
           + strlen(typeStr) + strlen(extStr) + 5;
   fn = (char*)malloc(len*sizeof(char));
   if (fn != NULL) {
     sprintf(fn, "%s-%s-%s-%s.%s", pre, clauseStr, freqStr, typeStr, extStr);
+  } else {
+    printf("\nWARNING:  Unable to allocate space to the filename.\n");
   }
   return fn;
 } /* getFilename */
 
 
-/*
- * TBD/ToDo:  Need to write one or more routines that call and, if 
- * appropriate, check results of calls to "public" ContractsEnforcer 
- * routines.  These should be in loops in order to ensure sampling-
- * based enforcement policies actually engage.
+/**
+ * Mimics contract enforcement calls for a single routine.
  *
- * ContractsEnforcer_enforceClause(enforcer, clause, clauseTime, 
- *                                 routineTime, firstForCall)
- * ContractsEnforcer_dumpStatistics(enforcer, msg)
- * ContractsEnforcer_logTrace(enforcer, times, name, msg)
- */
+ * @param enforcer The responsible contracts enforcer.
+ * @param clauses  Clause(s) to be checked.
+ * @param times    Times associated with the clause and routine.
+ * @return         Number of enforced clauses.
+ */ 
+unsigned int
+checkRoutineClauses(
+  /* inout */ ContractsEnforcerType* enforcer,
+  /* in */    EnforcementClauseEnum  clauses,
+  /* in */    TimeEstimatesType      times)
+{
+  CONTRACTS_BOOL firstTime;
+  unsigned int   numEnforced = 0;
+
+  firstTime = CONTRACTS_TRUE;
+
+  if (clauses & EnforcementClause_INVARIANTS)
+  {
+    numEnforced += 
+      ContractsEnforcer_enforceClause(enforcer, ContractClause_INVARIANT,
+        times.inv, times.routine, firstTime) ? 1 : 0;
+    firstTime = CONTRACTS_FALSE;
+  }
+
+  if (clauses & EnforcementClause_PRECONDITIONS)
+  {
+    numEnforced += 
+      ContractsEnforcer_enforceClause(enforcer, ContractClause_PRECONDITION,
+        times.pre, times.routine, firstTime) ? 1 : 0;
+    firstTime = CONTRACTS_FALSE;
+  }
+
+  if (clauses & EnforcementClause_POSTCONDITIONS)
+  {
+    numEnforced += 
+      ContractsEnforcer_enforceClause(enforcer, ContractClause_POSTCONDITION,
+        times.post, times.routine, firstTime) ?  1 : 0;
+    firstTime = CONTRACTS_FALSE;
+  }
+
+  if (clauses & EnforcementClause_INVARIANTS)
+  {
+    numEnforced += 
+      ContractsEnforcer_enforceClause(enforcer, ContractClause_INVARIANT,
+        times.inv, times.routine, firstTime) ? 1 : 0;
+  }
+
+  ContractsEnforcer_logTrace(enforcer, times, NULL, NULL);
+
+  return numEnforced;
+}  /* checkRoutineClauses */
+
+
+/**
+ * Mimic running checking on an application/program but, instead of 
+ * defining separate meaningful methods, simply run through enforcement
+ * clause options.
+ *
+ * @param enforcer  The responsible contracts enforcer.
+ * @param iters     Number of iterations through the clause(s).
+ * @return          Number of enforced clauses.
+ */ 
+unsigned int
+checkAppClauses(
+  /* inout */ ContractsEnforcerType* enforcer,
+  /* in */    unsigned int           iters)  
+{
+  TimeEstimatesType times;
+  unsigned int      i, ec, numEnforced = 0;
+
+  ec            = (unsigned int) S_ENFORCEMENT_CLAUSE_MAX;
+  times.pre     = 0;
+  times.post    = 0;
+  times.inv     = 0;
+  times.routine = 5;
+
+  for (i=0; i<iters; i++) 
+  {
+    numEnforced += checkRoutineClauses(enforcer, (EnforcementClauseEnum)ec, 
+                                        times);
+
+    ec = (ec > (unsigned int)S_ENFORCEMENT_CLAUSE_MIN) 
+       ? ec-- : (unsigned int)S_ENFORCEMENT_CLAUSE_MAX;
+
+    /* 
+     * Provide variability for adaptive timing policies, though ignoring
+     * the fact that different clauses for a given method call can have
+     * different execution times.
+     */
+    times.pre++;
+    times.post++;
+    times.inv++;
+    times.routine += 5;
+  }
+  
+  ContractsEnforcer_dumpStatistics(enforcer, "Completed checks");
+
+  return numEnforced;
+}  /* checkAppClauses */
 
 
 /**
@@ -121,67 +185,126 @@ getFilename(
 int
 main(int argc, char **argv)
 {
-  ContractsEnforcer* enforcer = NULL;
-  unsigned int max = 100;
-  unsigned int bad = 0;
-  unsigned int good = 0;
-  unsigned int policyValue = max;
-  unsigned int iterations = max;
-  int          val;
+  ContractsEnforcerType* enforcer = NULL;
+  char                   *statsfile, *tracefile;
+  unsigned int           max = 15;
+  unsigned int           iFactor = 30;
+  unsigned int           bad = 0, good = 0;
+  unsigned int           numChecked = 0, passed = 0;
+  unsigned int           policyValue = max, defaultPV = max;
+  unsigned int           iterations = max*iFactor, defaultIters = iterations;
+  int                    ec, ef, val;
+  CONTRACTS_BOOL         checkDefault = CONTRACTS_FALSE;
+  EnforcementClauseEnum  ece;
+  EnforcementFrequencyEnum efe;
+
+  /* 
+   * The numbers of enforced clauses given in the table below MUST match what 
+   * is actually obtained from default options 
+   */
+  unsigned int numEC = S_ENFORCEMENT_CLAUSE_MAX+1;
+  unsigned int numEF = S_ENFORCEMENT_FREQUENCY_MAX+1;
+  unsigned int total = numEC*numEF;
+  unsigned int 
+    defaultEnforced[S_ENFORCEMENT_CLAUSE_MAX+1][S_ENFORCEMENT_FREQUENCY_MAX+1] =
+  { 
+  /* NEVER, ALWAYS,   AF,   AT, PERIODIC, RANDOM */
+    {    0,      0,    0,    0,        0,      0 }, /* NONE */
+    {    0,    900,    8,    8,       60,     60 }, /* INVARIANTS */
+    {    0,    450,    4,    4,       30,     30 }, /* PRECONDITIONS */
+    {    0,   1350,   12,   12,       90,     90 }, /* INVPRE */
+    {    0,    450,    4,    4,       30,     30 }, /* POSTCONDITIONS */
+    {    0,   1350,   12,   12,       90,     90 }, /* INVPOST */
+    {    0,    900,    8,    8,       60,     60 }, /* PREPOST */
+    {    0,   1800,   16,   16,      120,    120 }  /* ALL */
+  };
 
   if (argc == 2) {
     policyValue = atoi(argv[1]);
-    printf("\nAssuming the provided parameter (%d) is the policy value.\n",
-           argv[0]);
-    printf("The number of iterations is defaulting to %d.\n\n", max);
+    printf("\nAssuming the provided parameter (%s) is the policy value (%d).\n",
+           argv[1], policyValue);
+    iterations = policyValue*iFactor;
+    printf("Number of iterations is defaulting to %d X policyValue=%d.\n\n", 
+           iFactor, iterations);
   } else if (argc == 3) {
     policyValue = atoi(argv[1]);
     iterations = atoi(argv[2]);
   } else {
-    printf(
-      "\nUSAGE: %s [<policy-value> [<iterations>]], each defaulting to %d\n",
-      argv[0], max);
+    printf("\nUSAGE: %s [<policy-value> [<iterations>]]", argv[0]);
+    printf("\nwhere\n");
+    printf("  <policy-value>  The overhead percent (adaptive frequencies),\n");
+    printf("                    interval (periodic frequency), and window\n");
+    printf("                    (random frequency).  [default=%d]\n", 
+           policyValue);
+    printf("  <iterations>    The number of check/enforcement iterations.\n");
+    printf("                    This is the testing \"equivalent\" of the\n"); 
+    printf("                    number of instrumented routines being\n");
+    printf("                    simulated by the tests.  [default=%d]\n", 
+           iterations);
+    printf("\nProceeding with default options since none entered.\n");
   }
 
-  for (EnforcementClauseEnum ec = S_ENFORCEMENT_CLAUSE_MIN;
-       ec <= S_ENFORCEMENT_CLAUSE_MAX; ec++)
-  {
-    for (EnforcementFrequencyEnum ef = S_ENFORCEMENT_FREQUENCY_MIN;
-         ef <= S_ENFORCEMENT_FREQUENCY_MAX; ef++)
-    {
-      char* statsFile = getFilename(ec, ef, FileType_STATISTICS, NULL);
-      char* traceFile = getFilename(ec, ef, FileType_TRACE, NULL);
+  if ( (policyValue == defaultPV) && (iterations == defaultIters) ) {
+    checkDefault = CONTRACTS_TRUE;
+  }
+  printf("\nRunning testContractEnforcer tests...\n");
 
-      enforcer = ContractsEnforcer_createEnforcer(ec, ef, policyValue,
-                   statsFile, traceFile);
+  for (ec = (int)S_ENFORCEMENT_CLAUSE_MIN;
+       ec <= (int)S_ENFORCEMENT_CLAUSE_MAX; ec++)
+  {
+    ece = (EnforcementClauseEnum) ec;
+
+    for (ef = (int)S_ENFORCEMENT_FREQUENCY_MIN;
+         ef <= (int)S_ENFORCEMENT_FREQUENCY_MAX; ef++)
+    {
+      efe = (EnforcementFrequencyEnum) ef;
 
       /*
        * Proceed with the test IF a suitable enforcer has been 
        * created.
        */
+      statsfile = getFilename(ece, efe, FileType_STATISTICS, NULL);
+      tracefile = getFilename(ece, efe, FileType_TRACE, NULL);
+      enforcer = ContractsEnforcer_createEnforcer(ece, efe, policyValue,
+                                                  statsfile, tracefile);
       if (enforcer != NULL) {
         good++;
+        printf("  Case %s, %s: ", S_ENFORCEMENT_CLAUSE[ece],
+             S_ENFORCEMENT_FREQUENCY[efe]);
 
-        // TBD/ToDo:  Call routines exercising the "public" methods.
+        numChecked = checkAppClauses(enforcer, iterations);
+
+        if (checkDefault) {
+          if (numChecked == defaultEnforced[ec][ef]) {
+            passed++;
+            printf("  PASSED");
+          } else {
+            printf("  FAILED");
+            printf(": %d vs. %d (expected)", numChecked, defaultEnforced[ec][ef]);
+          }
+        }
 
         ContractsEnforcer_free(enforcer);
       } else {
         bad++;
-        printf("\nFailed to create enforcer for %s and %s\n",
-               S_ENFORCEMENT_CLAUSE[clauses], 
-               S_ENFORCEMENT_FREQUENCY[frequency]);
+        printf("  FAILED: No enforcer");
       }
+      printf("\n");
 
-      if (statsFile != NULL) {
-        free(statsFile);
+      if (statsfile != NULL) {
+        free((void*)statsfile);
       }
-      if (traceFile != NULL) {
-        free(traceFile);
+      if (tracefile != NULL) {
+        free((void*)tracefile);
       }
     }
   }
 
   printf("\n\nResults:\n  %d valid enforcers\n  %d invalid options", good, bad);
+  if (checkDefault) {
+    printf("\n  %d passed out of %d cases\n", passed, total);
+    printf("\n\nTEST SUITE %s\n", (passed==total) ? "PASSED" : "FAILED");
+  }
 
   return 0;
 } /* main */ 
