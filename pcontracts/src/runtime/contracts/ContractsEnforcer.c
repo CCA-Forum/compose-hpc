@@ -27,6 +27,7 @@
 #include "contracts.h"
 #include "contractOptions.h"
 #include "contractPrivateTypes.h"
+#include "ContractsEnforcer.h"
 
 
 #ifdef CONFENF_DEBUG
@@ -68,7 +69,7 @@ newBaseEnforcer(
     memset(enforcer, 0, sizeof(ContractsEnforcerType));
     enforcer->policy.clauses = clauses;
     enforcer->policy.frequency = EnforcementFrequency_NEVER;
-    if (statsfile)
+    if ( (statsfile != NULL) && (strlen(statsfile) > 0) )
     {
       enforcer->stats = (EnforcementFileType*)malloc(
                                               sizeof(EnforcementFileType));
@@ -95,7 +96,7 @@ newBaseEnforcer(
         }
       }
     }
-    if (tracefile)
+    if ( (tracefile != NULL) && (strlen(tracefile) > 0) )
     {
       enforcer->trace = (EnforcementFileType*)malloc(
                                               sizeof(EnforcementFileType));
@@ -139,14 +140,14 @@ newBaseEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createInvEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -170,6 +171,12 @@ createInvEnforcer(
     enforcer = ContractsEnforcer_setEnforceRandom(
                  EnforcementClause_INVARIANTS, value, statsfile, tracefile);
     break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_INVARIANTS, statsfile, 
+                               tracefile);
+    enforcer->policy.value = value;
+    break;
   default:
     /* Not a valid combination */
     break;
@@ -190,14 +197,14 @@ createInvEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createPreEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -221,6 +228,12 @@ createPreEnforcer(
     enforcer = ContractsEnforcer_setEnforceRandom(
                  EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
     break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_PRECONDITIONS, statsfile, 
+                               tracefile);
+    enforcer->policy.value = value;
+    break;
   default:
     /* Not a valid combination */
     break;
@@ -241,14 +254,14 @@ createPreEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createInvPreEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -272,6 +285,11 @@ createInvPreEnforcer(
     enforcer = ContractsEnforcer_setEnforceRandom(
                  EnforcementClause_INVPRE, value, statsfile, tracefile);
     break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_INVPRE, statsfile, tracefile);
+    enforcer->policy.value = value;
+    break;
   default:
     /* Not a valid combination */
     break;
@@ -292,14 +310,14 @@ createInvPreEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createPostEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -323,6 +341,12 @@ createPostEnforcer(
     enforcer = ContractsEnforcer_setEnforceRandom(
                  EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
     break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_POSTCONDITIONS, statsfile, 
+                               tracefile);
+    enforcer->policy.value = value;
+    break;
   default:
     /* Not a valid combination */
     break;
@@ -343,14 +367,14 @@ createPostEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createInvPostEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -374,6 +398,11 @@ createInvPostEnforcer(
     enforcer = ContractsEnforcer_setEnforceRandom(
                  EnforcementClause_INVPOST, value, statsfile, tracefile);
     break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_INVPOST, statsfile, tracefile);
+    enforcer->policy.value = value;
+    break;
   default:
     /* Not a valid combination */
     break;
@@ -395,14 +424,14 @@ createInvPostEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createPrePostEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -426,6 +455,11 @@ createPrePostEnforcer(
     enforcer = ContractsEnforcer_setEnforceRandom(
                  EnforcementClause_PREPOST, value, statsfile, tracefile);
     break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_PREPOST, statsfile, tracefile);
+    enforcer->policy.value = value;
+    break;
   default:
     /* Not a valid combination */
     break;
@@ -446,14 +480,14 @@ createPrePostEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 createAllEnforcer(
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (frequency)
   {
@@ -476,6 +510,11 @@ createAllEnforcer(
   case EnforcementFrequency_RANDOM:
     enforcer = ContractsEnforcer_setEnforceRandom(
                 EnforcementClause_ALL, value, statsfile, tracefile);
+    break;
+  case EnforcementFrequency_NEVER:
+    /* TBD: Is this case even worth doing? */
+    enforcer = newBaseEnforcer(EnforcementClause_ALL, statsfile, tracefile);
+    enforcer->policy.value = value;
     break;
   default:
     /* Not a valid combination */
@@ -510,7 +549,7 @@ resetEnforcementCountdown(
     else if (enforcer->policy.frequency == EnforcementFrequency_RANDOM)
     {
       rcd = (int32_t)(ceil( ((double)rand()/(double)RAND_MAX)
-                          * ((double)s_interval) ) );
+                          * ((double)(enforcer->policy.value)) ) );
       enforcer->data.countdown = enforcer->data.skip + rcd;
       enforcer->data.skip      = enforcer->policy.value - rcd;
     }
@@ -554,7 +593,7 @@ timeToCheckClause(
     case EnforcementFrequency_ADAPTIVE_FIT:
       enforceTotal = clauseTime + enforcer->data.checksTime;
       limit = (double)(routineTime) * (double)enforcer->policy.value/100.0;
-      if ((double)enforceTime <= limit)
+      if ((double)clauseTime <= limit)
       {
         checkIt = CONTRACTS_TRUE;
       }
@@ -617,7 +656,7 @@ timeToCheckClause(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-ContractsEnforcer*
+ContractsEnforcerType*
 ContractsEnforcer_createEnforcer(
   /* in */ EnforcementClauseEnum    clauses, 
   /* in */ EnforcementFrequencyEnum frequency, 
@@ -625,7 +664,7 @@ ContractsEnforcer_createEnforcer(
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
-  ContractsEnforcer* enforcer = NULL;
+  ContractsEnforcerType* enforcer = NULL;
 
   switch (clauses)
   {
@@ -638,28 +677,52 @@ ContractsEnforcer_createEnforcer(
     {
       enforcer = ContractsEnforcer_setEnforceAll(clauses, statsfile, tracefile);
     }
-    /* else ignore any other combinations */
+    else if (frequency == EnforcementFrequency_ADAPTIVE_FIT)
+    {
+      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, 0, statsfile,
+                                                         tracefile);
+    }
+    else if (frequency == EnforcementFrequency_ADAPTIVE_TIMING)
+    {
+      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, 0, 
+                   statsfile, tracefile);
+    }
+    else if (frequency == EnforcementFrequency_PERIODIC)
+    {
+      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, 0, statsfile, 
+                                                      tracefile);
+    }
+    else if (frequency == EnforcementFrequency_RANDOM)
+    {
+      enforcer = ContractsEnforcer_setEnforceRandom(clauses, 0, statsfile, 
+                                                    tracefile);
+    }
+    else 
+    {
+      printf("\nERROR: Unrecognized/unsupported enforcement frequency %d\n",
+             frequency);
+    }
     break;
   case EnforcementClause_INVARIANTS:
-    enforcer = createInvEnforcer(frequency, value);
+    enforcer = createInvEnforcer(frequency, value, statsfile, tracefile);
     break;
   case EnforcementClause_PRECONDITIONS:
-    enforcer = createPreEnforcer(frequency, value);
+    enforcer = createPreEnforcer(frequency, value, statsfile, tracefile);
     break;
   case EnforcementClause_INVPRE:
-    enforcer = createInvPreEnforcer(frequency, value);
+    enforcer = createInvPreEnforcer(frequency, value, statsfile, tracefile);
     break;
   case EnforcementClause_POSTCONDITIONS:
-    enforcer = createPostEnforcer(frequency, value);
+    enforcer = createPostEnforcer(frequency, value, statsfile, tracefile);
     break;
   case EnforcementClause_INVPOST:
-    enforcer = createInvPostEnforcer(frequency, value);
+    enforcer = createInvPostEnforcer(frequency, value, statsfile, tracefile);
     break;
   case EnforcementClause_PREPOST:
-    enforcer = createPrePostEnforcer(frequency, value);
+    enforcer = createPrePostEnforcer(frequency, value, statsfile, tracefile);
     break;
   case EnforcementClause_ALL:
-    enforcer = createAllEnforcer(frequency, value);
+    enforcer = createAllEnforcer(frequency, value, statsfile, tracefile);
     break;
   default:
     printf("ERROR:  Unrecognized enforcement clause option.\n");
@@ -682,15 +745,20 @@ ContractsEnforcer_createEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAll(
   /* in */ EnforcementClauseEnum clauses,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
-  return newBaseEnforcer(clauses, EnforcementFrequency_ALWAYS, 
-                              statsfile, tracefile);
+  ContractsEnforcerType* enforcer = 
+    newBaseEnforcer(clauses, statsfile, tracefile);
+  if (enforcer) {
+    enforcer->policy.frequency = EnforcementFrequency_ALWAYS;
+  }
+  DUMP_DEBUG_STATS(enforcer, "setEnforceAll(): done")
+
+  return enforcer;
 } /* ContractsEnforcer_setEnforceAll */
 
 
@@ -701,12 +769,17 @@ ContractsEnforcer_setEnforceAll(
  * 
  * @return  Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceNone(void)
 {
-  return newBaseEnforcer(EnforcementClause_NONE, 
-                              EnforcementFrequency_NEVER, NULL, NULL);
+  ContractsEnforcerType* enforcer = newBaseEnforcer(EnforcementClause_NONE, 
+                                                    NULL, NULL);
+  if (enforcer) {
+    enforcer->policy.frequency = EnforcementFrequency_NEVER;
+  }
+  DUMP_DEBUG_STATS(enforcer, "setEnforceNone(): done")
+
+  return enforcer;
 } /* ContractsEnforcer_setEnforceNone */
 
 
@@ -724,7 +797,6 @@ ContractsEnforcer_setEnforceNone(void)
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforcePeriodic(
   /* in */ EnforcementClauseEnum  clauses,
@@ -732,10 +804,10 @@ ContractsEnforcer_setEnforcePeriodic(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newBaseEnforcer(
-                                      clauses, EnforcementFrequency_PERIODIC,
-                                      statsfile, tracefile);
+  ContractsEnforcerType* enforcer = 
+    newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
+    enforcer->policy.frequency = EnforcementFrequency_PERIODIC;
     enforcer->policy.value = interval;
     resetEnforcementCountdown(enforcer);
   }
@@ -758,7 +830,6 @@ ContractsEnforcer_setEnforcePeriodic(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceRandom(
   /* in */ EnforcementClauseEnum  clauses,
@@ -766,9 +837,10 @@ ContractsEnforcer_setEnforceRandom(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newBaseEnforcer(clauses, 
-                                                         statsfile, tracefile);
+  ContractsEnforcerType* enforcer = 
+    newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
+    enforcer->policy.frequency = EnforcementFrequency_RANDOM;
     enforcer->policy.value = window;
     resetEnforcementCountdown(enforcer);
   }
@@ -794,7 +866,6 @@ ContractsEnforcer_setEnforceRandom(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ EnforcementClauseEnum  clauses,
@@ -802,9 +873,10 @@ ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newBaseEnforcer(clauses, 
-                                                         statsfile, tracefile);
+  ContractsEnforcerType* enforcer = 
+    newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
+    enforcer->policy.frequency = EnforcementFrequency_ADAPTIVE_FIT;
     if (limit < 1)
     {
       enforcer->policy.value = 1;
@@ -841,7 +913,6 @@ ContractsEnforcer_setEnforceAdaptiveFit(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ EnforcementClauseEnum  clauses,
@@ -849,9 +920,10 @@ ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
-  ContractsEnforcerType* enforcer = newBaseEnforcer(clauses, 
-                                                         statsfile, tracefile);
+  ContractsEnforcerType* enforcer = 
+    newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
+    enforcer->policy.frequency = EnforcementFrequency_ADAPTIVE_TIMING;
     if (limit < 1)
     {
       enforcer->policy.value = 1;
@@ -905,13 +977,12 @@ ContractsEnforcer_dumpStatistics(
         "Message"
        */
       fprintf(enforcer->stats->filePtr, 
-              "%s; %s; %d; %s; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %s\n",
-              S_ENFORCEMENT_CLAUSE[enforcer->clauses],
-              S_ENFORCEMENT_FREQUENCY[enforcer->frequency],
-              enforcer->value,
+              "%s; %s; %d; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %s\n",
+              S_ENFORCEMENT_CLAUSE[enforcer->policy.clauses],
+              S_ENFORCEMENT_FREQUENCY[enforcer->policy.frequency],
+              enforcer->policy.value,
               timeStr,
               enforcer->data.requests,
-              enforcer->data.allowed,
               enforcer->data.allowed,
               enforcer->data.countdown,
               enforcer->data.skip,
@@ -928,13 +999,12 @@ ContractsEnforcer_dumpStatistics(
       /*
        * WARNING:  The following should be kept in sync with the output above.
        */
-      printf("%s; %s; %d; %s; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %s\n",
-             S_ENFORCEMENT_CLAUSE[enforcer->clauses],
-             S_ENFORCEMENT_FREQUENCY[enforcer->frequency],
-             enforcer->value,
+      printf("%s; %s; %d; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %s\n",
+             S_ENFORCEMENT_CLAUSE[enforcer->policy.clauses],
+             S_ENFORCEMENT_FREQUENCY[enforcer->policy.frequency],
+             enforcer->policy.value,
              timeStr,
              enforcer->data.requests,
-             enforcer->data.allowed,
              enforcer->data.allowed,
              enforcer->data.countdown,
              enforcer->data.skip,
@@ -1009,7 +1079,6 @@ ContractsEnforcer_free(
  *                    provided. [default=TRACE]
  * @param msg       [Optional] Message associated with the trace. [default=""]
  */
-CONTRACTS_INLINE
 void
 ContractsEnforcer_logTrace(
   /* in */ ContractsEnforcerType* enforcer,
@@ -1017,15 +1086,13 @@ ContractsEnforcer_logTrace(
   /* in */ const char*            name,
   /* in */ const char*            msg)
 {
-  const char* nm, cmt;
+  const char* nm = (name != NULL) ? name : "TRACE";
+  const char* cmt = (msg != NULL) ? msg : "";
 
   if ( (enforcer != NULL) && (enforcer->trace != NULL) )
   {
     if (enforcer->trace->filePtr != NULL) 
     {
-      nm = (name != NULL) ? name : "TRACE";
-      cmt = (msg != NULL) ? msg : "";
-
       /*
          "Name; ",        Trace identification
          "Pre Time (ms); Post Time (ms); Inv Time (ms); Routine Time (ms);", 
@@ -1089,7 +1156,7 @@ ContractsEnforcer_enforceClause(
         case ContractClause_PRECONDITION:
           (enforcer->data.total.pre) += clauseTime;
           break;
-        case ContractClause_INVARIANT:
+        case ContractClause_POSTCONDITION:
           (enforcer->data.total.post) += clauseTime;
           break;
         default:

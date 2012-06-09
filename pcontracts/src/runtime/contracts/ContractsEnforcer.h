@@ -23,7 +23,7 @@
 #include "contractPrivateTypes.h"
 
 #ifdef __cplusplus
- "C" {
+extern "C" {
 #endif
 
 /*
@@ -63,8 +63,7 @@ typedef struct ContractsEnforcer__struct {
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
-ContractsEnforcer*
+ContractsEnforcerType*
 ContractsEnforcer_createEnforcer(
   /* in */ EnforcementClauseEnum    clauses, 
   /* in */ EnforcementFrequencyEnum frequency, 
@@ -85,7 +84,6 @@ ContractsEnforcer_createEnforcer(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAll(
   /* in */ EnforcementClauseEnum clauses,
@@ -100,7 +98,6 @@ ContractsEnforcer_setEnforceAll(
  * 
  * @return  Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceNone(void);
 
@@ -119,7 +116,6 @@ ContractsEnforcer_setEnforceNone(void);
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforcePeriodic(
   /* in */ EnforcementClauseEnum  clauses,
@@ -141,7 +137,6 @@ ContractsEnforcer_setEnforcePeriodic(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceRandom(
   /* in */ EnforcementClauseEnum  clauses,
@@ -166,7 +161,6 @@ ContractsEnforcer_setEnforceRandom(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ EnforcementClauseEnum  clauses,
@@ -192,7 +186,6 @@ ContractsEnforcer_setEnforceAdaptiveFit(
  * @param tracefile  [Optional] Name of the file to output enforcement traces.
  * @return           Pointer to the initialized enforcer, if successful.
  */
-CONTRACTS_INLINE
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ EnforcementClauseEnum  clauses,
@@ -243,7 +236,6 @@ ContractsEnforcer_free(
  *                    provided. [default=TRACE]
  * @param msg       [Optional] Message associated with the trace. [default=""]
  */
-CONTRACTS_INLINE
 void
 ContractsEnforcer_logTrace(
   /* in */ ContractsEnforcerType* enforcer,

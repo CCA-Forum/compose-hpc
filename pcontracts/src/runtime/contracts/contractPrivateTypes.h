@@ -37,6 +37,18 @@ typedef struct EnforcementPolicy__struct {
 
 
 /**
+ * Interface contract enforcement time estimates, in milliseconds.  This 
+ * data is ONLY applicable to adaptive enforcement policy(ies).
+ */
+typedef struct TimeEstimates__struct {
+  uint64_t pre;     /** Milliseconds spent checking precondition clause. */
+  uint64_t post;    /** Milliseconds spent checking postcondition clause. */
+  uint64_t inv;     /** Milliseconds spent checking invariant clause. */
+  uint64_t routine; /** Milliseconds spent in the routine implementation. */
+} TimeEstimatesType;
+
+
+/**
  * Interface contract enforcement (management) state.  
  */
 typedef struct EnforcementState__struct {
@@ -48,18 +60,6 @@ typedef struct EnforcementState__struct {
   struct timeval     start;      /** TBD?  Starting timestamp. */
   TimeEstimatesType  total;      /** Timing accumulators. */
 } EnforcementStateType;
-
-
-/**
- * Interface contract enforcement time estimates, in milliseconds.  This 
- * data is ONLY applicable to adaptive enforcement policy(ies).
- */
-typedef struct TimeEstimates__struct {
-  uint64_t pre;     /** Milliseconds spent checking precondition clause. */
-  uint64_t post;    /** Milliseconds spent checking postcondition clause. */
-  uint64_t inv;     /** Milliseconds spent checking invariant clause. */
-  uint64_t routine; /** Milliseconds spent in the routine implementation. */
-} TimeEstimatesType;
 
 
 /**

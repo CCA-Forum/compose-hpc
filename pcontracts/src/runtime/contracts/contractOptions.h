@@ -109,7 +109,7 @@ typedef enum EnforcementClause__enum {
  * traversal purposes.
  */
 static const EnforcementClauseEnum S_ENFORCEMENT_CLAUSE_MIN 
-                                   = EnforcementClause_INVARIANTS;
+                                   = EnforcementClause_NONE;
 /**
  * The maximum Enforcement Clause enumeration value.  Provided for
  * traversal purposes.
@@ -129,11 +129,30 @@ static const char* S_ENFORCEMENT_CLAUSE[8] = {
   "None",
   "Invariants",
   "Preconditions",
-  "Invariants+Preconditions",
-  "Postconditions"
-  "Invariants+Postconditions",
-  "Preconditions+Postconditions",
-  "Invariants+Preconditions+Postconditions"
+  "Invariants-Preconditions",
+  "Postconditions",
+  "Invariants-Postconditions",
+  "Preconditions-Postconditions",
+  "Invariants-Preconditions-Postconditions"
+};
+
+/**
+ * Abbreviated names corresponding to (and indexable by) EnforcementClauseEnum.
+ *
+ * NOTE:  While the names shown below could be derived from the
+ *   actual clauses at runtime, it was decided to maintain them
+ *   here for consistency with the other enforcement-related
+ *   enumerations.
+ */
+static const char* S_ENFORCEMENT_CLAUSE_ABBREV[8] = {
+  "None",
+  "Inv",
+  "Pre",
+  "InvPre",
+  "Post",
+  "InvPost",
+  "PrePost",
+  "InvPrePost"
 };
 
 /**
