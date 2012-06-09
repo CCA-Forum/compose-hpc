@@ -1041,9 +1041,10 @@ class CFile(SourceFile):
         """
         s = self._sep.join(self._header)
         if filename:
-            guard = re.sub(r'[/.]', '_', string.upper(filename))
-            s = sep_by('\n', ['#ifndef __%s__'%guard,
-                              '#define __%s__'%guard,
+            #guard = re.sub(r'[/.]', '_', string.upper(filename))
+            guard = re.sub(r'[/.]', '_', filename)
+            s = sep_by('\n', ['#ifndef included_%s'%guard,
+                              '#define included_%s'%guard,
                               s,
                               '#endif'])
         if self._header:

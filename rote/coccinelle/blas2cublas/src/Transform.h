@@ -10,7 +10,9 @@ using namespace std;
 class BlasToCublasTransform {
 protected:
     SgNode *root;
+
 public:
+
     // prefix for variables introduced
     // as part of the transformation.
     string arrayPrefix;
@@ -18,7 +20,7 @@ public:
     // Check if prefix, vector lengths are provided.
     BlasToCublasTransform(KVAnnotationValue*, SgNode*);
     // Generate appropriate Coccinelle rules.
-    void generate(string, int*);
+    void generate(string, int*, int*);
     ~BlasToCublasTransform() { }
 };
 

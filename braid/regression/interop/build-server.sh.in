@@ -76,6 +76,7 @@ sed -i -e 's/(\(IORHDRS\))/(\1) \$(synch_\1)/g' \
        -e 's/(\(TYPEMODULEOBJS\))/(\1) \$(synch_\1)/g' \
     GNUmakefile
 @PERL@ -pi -e "s|^.babel (.*)|\t$BRAID \1 ; $BRAID -c$language --make-prefix=synch_ @BABEL_SRCDIR@/regression/output/output.sidl|" GNUmakefile ||exit 1
+@PERL@ -pi -e 's|(EXTRALIBS=)|\1../../output/libC/libimpl.la|' GNUmakefile ||exit 1
 
 # turn on debugging
 @PERL@ -pi -e"s/(EXTRAFLAGS=)/\1-ggdb -O0 -Wno-all/" GNUmakefile ||exit 1

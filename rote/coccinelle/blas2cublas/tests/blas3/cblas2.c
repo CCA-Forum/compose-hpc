@@ -2,13 +2,16 @@
 #include <stdio.h>
 #include "mkl.h"
 
-#define n 1024
+#define n 100
 
 
 void initMatrix(float* data, int size){
   int i;
-  for( i=0;i<size;i++)
-    data[i] = 1;
+  int c=1;
+  for( i=0;i<size;i++){
+    data[i] = c;
+    c=c+1;
+  }
 }
 
 //Program main
@@ -23,17 +26,21 @@ int main(int argc, char* argv[])
 	//Initialize matrices
 	initMatrix(a,n*n);
 	initMatrix(b,n*n);
-        int bi = 0,ci=0;
+        initMatrix(d1,n*n);
+        int bi = 0,ci=0,i=0;
 
 	//BLAS call
 
         // %BLAS2CUBLAS prefix=device1
-        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0,
-                    &a[0],n, &b[bi+ci],n, 1.0, c,n);
+        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0,
+                    &a[0],n, &b[bi+ci],n, 0.0, c,n);
 
+	// %BLAS2CUBLAS prefix=device2
+	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0,
+                    d1,n, &b[0],n, 0.0, &c[0],n);
 
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0,
-                    d1,n, &b[0],n, 1.0, &c[0],n);
+        for( i=0;i<n*n;i++) printf("%f\n",c[i]);
+	    
 
 	free(a);
 	free(b);

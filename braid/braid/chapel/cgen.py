@@ -117,11 +117,17 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
               it returns \c None.
     """
 
-    def obj_by_value((arg, attrs, mode, typ, name)):
-        if typ[0] == ir.pointer_type and typ[1][0] == ir.struct and name == 'self':
+    def extern_decl_convs((arg, attrs, mode, typ, name)):
+        # make generic sidl__arrays into opaques for the extern decl
+        if typ == ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], '')):
+            return (arg, attrs, mode, ir.Pointer_type(ir.pt_void), name)
+
+        # make sure objects are passed by value
+        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and name == 'self':
             return (arg, attrs, ir.in_, typ, name)
         elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and mode == ir.in_:
             return (arg, attrs, ir.inout, typ, name)
+
         else:
             return (arg, attrs, mode, typ, name)
 
@@ -215,7 +221,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
                       decls+pre_call+body+post_call, DocComment)], scope.cstub)
 
     # Chapel extern declaration
-    chplstub_decl = ir.Fn_decl([], chpltype, sname, map(obj_by_value, cstub_decl_args), DocComment)
+    chplstub_decl = ir.Fn_decl([], chpltype, sname, map(extern_decl_convs, cstub_decl_args), DocComment)
     scope.new_header_def('extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
@@ -318,7 +324,7 @@ class ChapelScope(ChapelFile):
     def __str__(self):
         if self.main_area == None:
             self._sep = ';\n'
-            terminator = ';\n';
+            terminator = '\n'
         else:
             terminator = ''
 
@@ -355,7 +361,7 @@ def gen_doc_comment(doc_comment, scope):
                            re.split('\n\s*', doc_comment)
                            )+sep+' */'+sep
 
-sidl_array_regex = re.compile('^sidl(_(\w+))__array$')
+sidl_array_regex = re.compile('^sidl_(\w+)__array$')
 
 class ChapelCodeGenerator(ClikeCodeGenerator):
     """
@@ -378,7 +384,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
     def is_sidl_array(self, struct_name):
         m = sidl_array_regex.match(struct_name)
         if m:
-            t = m.group(2)
+            t = m.group(1)
             try:
                 return self.type_map[t]
             except:
@@ -520,16 +526,16 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (sidl.array, [], [], []):
                 print '** WARNING: deprecated rule use a sidl__array struct instead'
-                return 'sidl.Array(opaque, sidl__array)'
+                return 'sidl.Array(opaque, sidl__array) /* DEPRECATED */'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                print '** WARNING: deprecated rule use a sidl__array struct instead'
+                print '** WARNING: deprecated rule use a sidl_*__array struct instead'
                 if Scalar_type[0] == ir.scoped_id:
                     ctype = 'BaseInterface'
                 else:
                     ctype = Scalar_type[1]
                 #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
-                return 'sidl.Array(%s, sidl_%s__array)'%(gen(Scalar_type), ctype)
+                return 'sidl.Array(%s, sidl_%s__array) /* DEPRECATED */'%(gen(Scalar_type), ctype)
 
             elif (ir.pointer_type, (ir.const, (ir.primitive_type, ir.char))):
                 return "string"
@@ -570,13 +576,21 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 if scalar_t:
                     #scope.cstub.optional.add('#include <sidl_%s_IOR.h>'%ctype)
                     return 'sidl.Array(%s, %s)'%(scalar_t, Name)
-                else:
-                    # some other struct
-                    if Name[0] == '_' and Name[1] == '_': 
-                        # by convention, Chapel generates structs as
-                        # struct __foo { ... } foo;
-                        return Name[2:] 
-                    return Name
+
+                if Name == 'sidl__array':
+                    # Generic array We
+                    # need to use opaque as the Chapel representation
+                    # because otherwise Chapel would start copying
+                    # arguments and thus mess with the invariant that
+                    # genarr.d_metadata == genarr
+                    return 'opaque /* array< > */'
+
+                # some other struct
+                if Name[0] == '_' and Name[1] == '_': 
+                    # by convention, Chapel generates structs as
+                    # struct __foo { ... } foo;
+                    return Name[2:] 
+                return Name
 
             elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
                 return "%s.%s"%(gen(StructName), gen(Item))

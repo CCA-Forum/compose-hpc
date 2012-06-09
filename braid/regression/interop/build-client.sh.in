@@ -179,21 +179,38 @@ echo 'echo "No chapel server implementation for $TESTCASE"; exit 1' >run${langua
 for libdir in `ls -1 -d ../lib*`; do
   server=`echo $libdir|sed 's/^...lib//g'`
   case $server in
-      F*) extralib="-lgfortran" ;;
-      *)  extralib= ;;
+      F*)     extralib="-lgfortran" 
+	      ;;
+      Chapel) 
+              # It's not possibly to dynamically link Chapel libraries
+              # because the Chapel runtime is precompiled and not PIC.
+              #
+              # Trick the IOR into behaving as if created by a
+              # static-only version of Babel:
+              sed -i -e 's/SIDL_STATIC_LIBRARY/TRUE \/*SIDL_STATIC_LIBRARY*\//g' *_Stub.c
+              extralib=
+	      ;;
+
+      *)      extralib= 
+	      ;;
   esac
   case $language in
       F*) extralib="-lgfortran" ;;
   esac
   echo "--compiling client [ $TESTCASE : $language -> $server ]"
   rm -f run${language}2${server}.sh
+  
   #set -x
   $MAKE run${language}2${server} \
-        SERVER="${libdir}/libimpl*.la ../../output/libC/libimpl.la" \
+        SERVER="../../output/libC/libimpl.la ${libdir}/libimpl*.la" \
         IMPL="${TESTCASE}test" \
         EXTRA_LDFLAGS="$extralib" \
-        TARGET="run${language}2${server}" #>/dev/null     ||exit 1
-  set +x
+        TARGET="run${language}2${server}" ||exit 1 #>/dev/null     ||exit 1
+
+  if [ $server = Chapel ]; then
+      sed -i -e 's/TRUE ..SIDL_STATIC_LIBRARY../SIDL_STATIC_LIBRARY/g' *_Stub.c
+  fi
+
   # generate wrapper scripts
   case "$server" in
       Java)
@@ -214,6 +231,7 @@ exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
     \$1 ./run${language}2${server}
 EOF
 	  ;;
+
       *)
 	  cat >run${language}2${server}.sh <<EOF
 # To debug, run as ./run${language}2${server}.sh gdbtui

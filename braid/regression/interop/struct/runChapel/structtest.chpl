@@ -287,7 +287,7 @@ checkCombinedInv(c: s.s_Combined) : bool
 }
 
 tracker.setExpectations(36, sidl_ex);
-var test = s.StructTest_static.create_StructTest(sidl_ex);
+var test:StructTest = s.StructTest_static.create_StructTest(sidl_ex);
 //MYASSERT(test._not_nil());
 
 {

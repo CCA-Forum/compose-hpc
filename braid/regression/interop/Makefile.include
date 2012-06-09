@@ -130,6 +130,7 @@ $(TESTDIR)/%/libimpl2.la: $(SERVER_DEPS)
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 CLIENT_DEPS=$(TTESTDIR)/build-client.sh \
+            $(TTESTDIR)/driver.sh \
 	    $(TESTDIR)/output/libC/libimpl.la
 
 # ATTN: If we should ever encounter a race condition with this rule,

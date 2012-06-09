@@ -55,7 +55,8 @@ def generate_server(sidl_file, classes, pkgs, prefix):
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
            skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),
            stubsrcs=' '.join([c+'_cStub.c' for c in classes]),
-           stubhdrs=' '.join([c+'_cStub.h' for c in classes])))
+           stubhdrs=' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
+                              for c in classes])))
 
 def generate_gnumakefile(sidl_file):
     extraflags=''
@@ -151,7 +152,7 @@ CHPL_FLAGS=-std=c99 \
 CHPL_LDFLAGS= \
   -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
   $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
-  -lchpl -lm -lpthread -lsidlstub_chpl
+  -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
 
 CHPL_GASNET_LDFLAGS= \
   -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
@@ -165,7 +166,7 @@ LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CH
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include/chpl
 CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
-  chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
+  $(SIDL_RUNTIME)/sidl_BaseClass_IOR.h chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
 
 # most of the rest of the file should not require editing
 
@@ -224,7 +225,6 @@ $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
 	babel-libtool --mode=link --tag=CC $(CC) -o lib$(LIBNAME).la \
-	  -static \
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(CFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
@@ -277,15 +277,23 @@ endif
 .c.lo:
 	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
+
+# Chapel options used:
+#
+# --savec [dir]  save the generated C code in dir
+# --make [cmd]   used to disable compilation of C code by chpl
+# --devel        turn on more verbose error output
+# --libraty      compile a library
+
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code only
+	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code only
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --make true  # gen C-code
+	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code
 	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
 	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c

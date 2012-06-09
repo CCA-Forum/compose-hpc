@@ -19,7 +19,8 @@
     sidl_long_array      = 8,
     sidl_opaque_array    = 9,
     sidl_string_array    = 10,
-    sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
+    //sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
+    sidl_BaseInterface_array = 11 /* an array of sidl.BaseInterface's */
   };
 
   /**
@@ -93,14 +94,14 @@
    * the macros in the header file sidlArray.h.
    */
 # define SIDL_ARRAY(C_TYPE, CHAPEL_TYPE)                                                \
-  extern class sidl_##C_TYPE##__array {                                                \
+  extern class sidl_##C_TYPE##__array {                                                 \
      var d_metadata: sidl__array;                                                       \
      var d_firstElement: opaque;                                                        \
    };                                                                                   \
                                                                                         \
   /**											\
-   * Create an array that uses data memory from another source. This initial		\
-   * contents are determined by the data being borrowed.				\
+   * Wrap an existing Chapel array inside of a new SIDL array. The initial		\
+   * content it determined by the data being borrowed. 	         			\
    *											\
    * A word of WARNING: An array borrowed from Chapel will only work			\
    * until the function calling sidl_*_array_borrow() returns. If you			\
@@ -108,7 +109,7 @@
    * smartCopy().									\
    */											\
   extern proc C_TYPE##_ptr(inout firstElement: CHAPEL_TYPE): opaque;			\
-  extern proc sidl_##C_TYPE##__array_init(                                             \
+  extern proc sidl_##C_TYPE##__array_init(                                              \
                    inout firstElement: CHAPEL_TYPE,                                     \
                    inout sidl_array: sidl_##C_TYPE##__array,				\
                    in dimen: int(32),							\
@@ -122,6 +123,7 @@
                    inout upper: int(32),						\
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
                                                                                         \
+  /** borrow a Chapel-created array and wrap it inside of SIDL array metadata */        \
   proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank: int(32);					\
     var lus = computeLowerUpperAndStride(a);				\
@@ -138,6 +140,78 @@
 					    upper[1],			\
 					    stride[1]);			\
     return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
+  }									\
+									\
+  /* Various extern declarations */                                     \
+  extern proc sidl_##C_TYPE##__array_create1d(in len: int(32))		\
+    : sidl_##C_TYPE##__array;						\
+									\
+  extern proc sidl_##C_TYPE##__array_create2dCol(in m: int(32), in n: int(32)) \
+    : sidl_##C_TYPE##__array;						\
+									\
+  extern proc sidl_##C_TYPE##__array_cast(in ga: opaque)		\
+    : sidl_##C_TYPE##__array;						\
+									\
+  module C_TYPE##_array {						\
+    /**
+     * Create a dense one-dimensional vector of doubles with a lower
+     * index of 0 and an upper index of len-1. This array owns and manages
+     * its data.
+     * This function does not initialize the contents of the array.
+     */									\
+    proc create1d(in len: int(32)) {					\
+      var ior = sidl_##C_TYPE##__array_create1d(len);			\
+      var sidlArray = new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior); \
+      return (sidlArray, createBorrowedArray1d(sidlArray));		\
+    }									\
+									\
+    /**
+     * Create a dense two-dimensional array of doubles with a lower
+     * indices of (0,0) and an upper indices of (m-1,n-1). The array is
+     * stored in column-major order, and it owns and manages its data.
+     * This function does not initialize the contents of the array.
+     */						                        \
+    proc create2dCol(in m: int(32), in n: int(32)) {			\
+      var ior = sidl_##C_TYPE##__array_create2dCol(m, n);		\
+      var sidlArray = new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior); \
+      return (sidlArray, createBorrowedArray2d(sidlArray));		\
+    }									\
+									\
+    /**
+     * Create a dense two-dimensional array of doubles with a lower
+     * indices of (0,0) and an upper indices of (m-1,n-1). The array is
+     * stored in row-major order, and it owns and manages its data.
+     * This function does not initialize the contents of the array.
+     */						                        \
+    proc create2dRow(in m: int(32), in n: int(32)) {			\
+      var ior = sidl_##C_TYPE##__array_create2dRow(m, n);		\
+      var sidlArray = new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior); \
+      return (sidlArray, createBorrowedArray2d(sidlArray));		\
+    }									\
+									\
+    /** create a borrowed array from a sidl.Array */			\
+    proc borrow(in sidlArray) {						\
+      select sidlArray.ior.d_metadata.d_dimen {				\
+	when 1 do return (sidlArray, createBorrowedArray1d(sidlArray)); \
+	when 2 do return (sidlArray, createBorrowedArray2d(sidlArray)); \
+	when 3 do return (sidlArray, createBorrowedArray3d(sidlArray)); \
+	when 4 do return (sidlArray, createBorrowedArray4d(sidlArray)); \
+	when 5 do return (sidlArray, createBorrowedArray5d(sidlArray)); \
+	when 6 do return (sidlArray, createBorrowedArray6d(sidlArray)); \
+	when 7 do return (sidlArray, createBorrowedArray7d(sidlArray)); \
+	otherwise return nil;						\
+      } 								\
+    }	      							        \
+									\
+    /** cast a generic array to a specific array */			\
+    proc cast(in generic_array:opaque) {				\
+      if (sidl__array_type(generic_array) !=				\
+	  sidl_array_type.sidl_##C_TYPE##_array) then {			\
+	return nil;							\
+      }									\
+      var ior = sidl_##C_TYPE##__array_cast(generic_array);		\
+      return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
+    }	      							        \
   }
 
 SIDL_ARRAY(bool,     bool)
@@ -153,29 +227,26 @@ SIDL_ARRAY(string,   string)
 SIDL_ARRAY(BaseInterface, int(32))
 
 
-  // Not a good idea at all: better re-wrap it in a new borrowedArray
-  // after we return from an external call.
-
-//  // These variables shall alias with the (struct sidl_array)
-//  // d_metadata member of struct sidl_<TYPE>__array
-// d_lower :opaque;
-// d_upper :opaque;
-// d_stride:opaque;
-// d_vtable:opaque;
-// d_dimen:    int(32);
-// d_refcount: int(32);
-//  // This pointer shall alias with the d_firstElement pointer of struct sidl_<TYPE>__array
-//  int* _data;
-//}
-
   class Array {
-    // Actual Chapel defintions
+    // Actual Chapel definitions
     type ScalarType, IORtype;
-    var self: IORtype;//sidl_TYPE__array;
+
+    /** IOR representation of the array */
+    var ior: IORtype; /*sidl_TYPE__array;*/
+    /** IOR generic array<> representation of the array */
+    var generic: opaque; 
     //var borrowed: [?dom]ScalarType;
 
-    proc Array(type ScalarType, type IORtype, in self: IORtype) {
-      this.self = self;
+    proc Array(type ScalarType, type IORtype, in ior: IORtype) {
+      this.ior = ior;
+
+      extern proc generic_array(ior): sidl__array;
+      /* Generic array We need to use opaque as the Chapel
+	 representation because otherwise Chapel would start copying
+	 arguments and thus mess with the invariant that
+	 genarr.d_metadata == genarr */
+      extern proc ior_ptr(ior): opaque;
+      this.generic = ior_ptr(ior);
     }
 
     /* proc Array(type ScalarType, type IORtype, inout borrow_from: [?dom]ScalarType) { */
@@ -188,7 +259,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * unintialized Array for now.
      */
     proc _not_nil(): bool {
-      //writeln(self.d_metadata);
+      //writeln(ior.d_metadata);
       return true;
     }
 
@@ -206,15 +277,15 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return pointer to first element of the underlying array
      */
     proc first(): opaque {
-      return self.d_firstElement;
+      return ior.d_firstElement;
     }
 
     /**
      * Return the dimension of the array.
      */
-    proc dim(): int(64) {
+    proc dim(): int(32) {
       extern proc sidlArrayDim(inout array: sidl__array): int(32);
-      return sidlArrayDim(self.d_metadata);
+      return sidlArrayDim(ior.d_metadata);
     }
     //#define sidlArrayDim(array) (((const struct sidl__array *)(array))->d_dimen)
 
@@ -225,9 +296,9 @@ SIDL_ARRAY(BaseInterface, int(32))
      * sidlLower(array,ind).
      */
 
-    proc lower(in ind: int(32)): int(64) {
+    proc lower(in ind: int(32)): int(32) {
       extern proc sidlLower(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlLower(self.d_metadata, ind);
+      return sidlLower(ior.d_metadata, ind);
     }
     //#define sidlLower(array,ind) (((const struct sidl__array *)(array))->d_lower[(ind)])
 
@@ -236,18 +307,18 @@ SIDL_ARRAY(BaseInterface, int(32))
      * A valid index for dimension ind must be less than or equal to
      * sidlUpper(array,ind).
      */
-    proc upper(in ind: int(32)): int(64) {
+    proc upper(in ind: int(32)): int(32) {
       extern proc sidlUpper(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlUpper(self.d_metadata, ind);
+      return sidlUpper(ior.d_metadata, ind);
     }
     //#define sidlUpper(array,ind) (((const struct sidl__array *)(array))->d_upper[(ind)])
 
     /**
      * Macro to return the number of elements in dimension ind of an array.
      */
-    proc length(in ind: int(32)): int(64) {
+    proc length(in ind: int(32)): int(32) {
       extern proc sidlLength(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlLength(self.d_metadata, ind);
+      return sidlLength(ior.d_metadata, ind);
     }
     //#define sidlLength(array,ind) (sidlUpper((array),(ind)) - sidlLower((array),(ind)) + 1)
 
@@ -256,9 +327,9 @@ SIDL_ARRAY(BaseInterface, int(32))
      * To move from the address of element i to element i + 1 in the dimension
      * ind, add sidlStride(array,ind).
      */
-    proc stride(in ind: int(32)): int(64) {
+    proc stride(in ind: int(32)): int(32) {
       extern proc sidlStride(inout array: sidl__array, in ind: int(32)): int(32);
-      return sidlStride(self.d_metadata, ind);
+      return sidlStride(ior.d_metadata, ind);
     }
     //#define sidlStride(array,ind) (((const struct sidl__array *)(array))->d_stride[(ind)])
 
@@ -267,9 +338,9 @@ SIDL_ARRAY(BaseInterface, int(32))
      * This macro makes multiple references to array and ind, so you should
      * not use ++ or -- on arguments to this macro.
      */
-    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(64) {
+    proc arrayDimCalc(in ind: int(32), in v: int(32)): int(32) {
       extern proc sidlArrayDimCalc(inout array: sidl__array, in ind: int(32), in v: int(32)): int(32);
-      return sidlArrayDimCalc(self.d_metadata, ind, v);
+      return sidlArrayDimCalc(ior.d_metadata, ind, v);
     }
     //#define sidlArrayDimCalc(array, ind, var) (sidlStride(array,ind)*((var) - sidlLower(array,ind)))
 
@@ -290,12 +361,12 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     //#define sidlArrayElem1(array, ind1) \
     //  (*(sidlArrayAddr1(array,ind1)))
-    extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32)): ScalarType;
-    extern proc sidlArrayElem1(inout array: sidl__array, in ind: int(32),
-                                in val: int(32)): ScalarType;
+    extern proc sidlArrayElem1(inout array: sidl__array, 
+			       in ind: int(32)): ScalarType;
 
-    proc get(in ind: int(32)): ScalarType      { return sidlArrayElem1(self, ind); }
-    proc set(in ind: int(32), val: ScalarType) { sidlArrayElem1Set(self, ind, val); }
+    proc get(in ind: int(32)): ScalarType { return sidlArrayElem1(ior.d_metadata, ind); }
+    /* proc set(in ind: int(32), val: ScalarType) { 
+       ??? sidlArrayElem1(ior.d_metadata, ind) = val; } */
 
     /**
      * Return the address of an element in a two dimensional array.
@@ -580,7 +651,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     proc smartCopy() {
       extern proc chpl_sidl__array_smartCopy(inout a: sidl__array);
-      chpl_sidl__array_smartCopy(self.d_metadata);
+      chpl_sidl__array_smartCopy(ior.d_metadata);
     }
     //struct sidl__array *
     //sidl__array_smartCopy(struct sidl__array *array);
@@ -592,7 +663,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     proc deleteRef() {
       extern proc chpl_sidl__array_deleteRef(inout a: sidl__array);
-      chpl_sidl__array_deleteRef(self.d_metadata);
+      chpl_sidl__array_deleteRef(ior.d_metadata);
     }
     //void
     //sidl__array_deleteRef(struct sidl__array* array);
@@ -645,7 +716,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     proc isColumnOrder() {
       extern proc chpl_sidl__array_isColumnOrder(inout a: sidl__array): bool;
-      return chpl_sidl__array_isColumnOrder(self.d_metadata);
+      return chpl_sidl__array_isColumnOrder(ior.d_metadata);
     }
     //sidl_bool
     //sidl__array_isColumnOrder(const struct sidl__array* array);
@@ -656,7 +727,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      */
     proc isRowOrder() {
       extern proc chpl_sidl__array_isRowOrder(inout a: sidl__array): bool;
-      return chpl_sidl__array_isRowOrder(self.d_metadata);
+      return chpl_sidl__array_isRowOrder(ior.d_metadata);
     }
     //sidl_bool
     //sidl__array_isRowOrder(const struct sidl__array* array);
@@ -665,6 +736,7 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return an integer indicating the type of elements held by the
      * array. Zero is returned if array is NULL.
      */
+    extern proc sidl__array_type(in ga: opaque): int(32);	       
     //int32_t
     //sidl__array_type(const struct sidl__array* array);
 
@@ -679,3 +751,5 @@ SIDL_ARRAY(BaseInterface, int(32))
     //sidl__array_remove(struct sidl__array * const array);
 
     }
+
+extern proc sidl__array_type(in ga: opaque): int(32);	       
