@@ -24,10 +24,10 @@ check: checkTCE
 .c.o:
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TCE_EXE): $(TCE_EXE).o
+$(TCE_EXE): $(TCE_EXE).o $(CE_OBJ)
 	$(CXX) -o $(TCE_EXE) $(LDFLAGS) $(TCE_EXE).o $(CE_OBJ)
 
-checkTCE:
+checkTCE: $(TCE_EXE)
 	@echo "\nRunning Contracts Enforcer tests with default options..."; \
 	./$(TCE_EXE) > run$(TCE_EXE).out 2>&1; \
 	SUCCESS=`grep "TEST SUITE PASSED" run$(TCE_EXE).out`; \

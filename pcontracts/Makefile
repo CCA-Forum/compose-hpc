@@ -9,7 +9,7 @@ docs: clean-docs
 	@ln -s ${ROSE_HOME} rose; \
 	doxygen
 
-check: 
+check: all
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) check) \
 	done;
