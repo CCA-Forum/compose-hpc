@@ -1201,6 +1201,14 @@ class GlueCodeGenerator(object):
                 if static: entry(sepv_init, post_sepv_t, 'post_sepv', 'f_%s_post'%fname, 'NULL')
                 else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%fname, 'NULL')
 
+        pkgname = '_'.join(ci.epv.symbol_table.prefix)
+        epv_init.append((ir.stmt, 'chpl_init_library(1, &"BRAID_LIBRARY")'))
+        epv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
+        epv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
+        sepv_init.append((ir.stmt, 'chpl_init_library(1, &"BRAID_LIBRARY")'))
+        sepv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
+        sepv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
+
         cskel.gen(ir.Fn_defn(
             [], ir.pt_void, qname+'__set_epv',
             [ir.Arg([], ir.out, epv_t, 'epv'),

@@ -120,16 +120,17 @@ INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(S
 CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
-CHPL_MAKE_MEM=default
-CHPL_MAKE_COMPILER=gnu
-CHPL_MAKE_TASKS=fifo
-CHPL_MAKE_THREADS=pthreads
+CHPL_MAKE_MEM=`$(CHPL_MAKE_HOME)/util/chplenv/mem`
+CHPL_MAKE_COMPILER=`$(CHPL_MAKE_HOME)/util/chplenv/compiler`
+CHPL_MAKE_TASKS=`$(CHPL_MAKE_HOME)/util/chplenv/tasks`
+CHPL_MAKE_THREADS=`$(CHPL_MAKE_HOME)/util/chplenv/threads`
+CHPL_MAKE_SUBSTRATE=`$(CHPL_MAKE_HOME)/util/chplenv/commSubstrate`
+CHPL_MAKE_COMM=`$(CHPL_MAKE_HOME)/util/chplenv/comm`
+CHPL_MAKE_SEG=`$(CHPL_MAKE_HOME)/util/chplenv/commSegment`
 
-ifeq ($(CHPL_MAKE_COMM),gasnet)
-CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-gasnet-nodbg/substrate-udp/seg-none
-else
-CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-none/substrate-none/seg-none
-endif
+
+CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-$(CHPL_MAKE_COMM)/substrate-$(CHPL_MAKE_SUBSTRATE)/seg-$(CHPL_MAKE_SEG)
+
 ####    include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 CHPL=chpl --fast
 # CHPL=chpl --print-commands --print-passes
@@ -137,8 +138,8 @@ CHPL=chpl --fast
 include $(CHPL_MAKE_HOME)/make/Makefile.atomics
 
 CHPL_FLAGS=-std=c99 \
-  -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" \
-  -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" \
+  -DCHPL_TASKS_MODEL_H=\"tasks-$(CHPL_MAKE_TASKS).h\" \
+  -DCHPL_THREADS_MODEL_H=\"threads-$(CHPL_MAKE_THREADS).h\" \
   -I$(CHPL_MAKE_HOME)/runtime/include/tasks/$(CHPL_MAKE_TASKS) \
   -I$(CHPL_MAKE_HOME)/runtime/include/threads/$(CHPL_MAKE_THREADS) \
   -I$(CHPL_MAKE_HOME)/runtime/include/comm/none \
@@ -150,19 +151,19 @@ CHPL_FLAGS=-std=c99 \
   -I. -Wno-all 
 
 CHPL_LDFLAGS= \
-  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
-  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
-  -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
+ -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) \
+ $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/main.o \
+ -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
 
 CHPL_GASNET_LDFLAGS= \
-  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads \
-  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads/main.o \
+  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) \
+  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/main.o \
   -lchpl -lm -lpthread \
   -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHPL_MAKE_COMPILER)/seg-everything/nodbg/lib \
   -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
-LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-fifo/threads-pthreads -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
+LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include/chpl
 CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
@@ -228,7 +229,7 @@ lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(CFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
-          $(CHPL_LDFLAGS) -lchpl \
+          $(CHPL_LDFLAGS) \
 	  $(EXTRALIBS)
  #-rpath $(LIBDIR) 
 
