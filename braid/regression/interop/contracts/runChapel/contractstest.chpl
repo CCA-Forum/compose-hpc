@@ -145,13 +145,13 @@ var nu  = sidl.double_array.create1d(max_size);
 var z 	= sidl.double_array.create1d(max_size);
 var null_array: opaque;
 for i in 0..#max_size do {
-  u(2)[i] = val;
-  u1(2)[i] = val;
-  nu(2)[i] = nval;
-  z(2)[i] = 0;
+  u(2)[i:int(32)] = val;
+  u1(2)[i:int(32)] = val;
+  nu(2)[i:int(32)] = nval;
+  z(2)[i:int(32)] = 0;
 
   for j in 0..#max_size do {
-    t(2)[i,j] = val; 
+    t(2)[i:int(32),j:int(32)] = val; 
   }
  }
 
