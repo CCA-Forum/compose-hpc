@@ -5,12 +5,12 @@
 
 \section IntroductionTag Introduction
 
-This package contains .. FILL THIS IN
+This package contains .. \b ToDo [FILL THIS IN]
 
-Simple makefiles are currently used to build the tools and run examples.
-There are specific environment requirements associated with building this
-software.  Basic instructions for available makefile targets are given
-below and (will be) included in the README file.
+Simple makefiles are currently used to build the tools; run examples; and
+run regression tests.  Specific environment requirements are associated 
+with the build process.  Basic instructions for available makefile targets 
+are given below and (will be) included in the README file.
 
 \b WARNING:  This is a \b work \b in \b progess so, at present, only the 
 contents of the examples and docs directories build.
@@ -44,11 +44,12 @@ line:
 - \b make
 
 
-\section RunTag Running Examples
+\section RunTag Running Examples and Tests
 
 Basic tests can be executed for comparing the results of the two knapsack
-implementations.  The comparison is performed automatically when entering
-the following on the command line:
+implementations as well as the regression test suite for the runtime library.  
+The comparison is performed automatically when entering the following on the 
+command line:
 
 - \b make \b check
 
@@ -56,6 +57,9 @@ Results of running the examples can be found in files with \b .out extensions
 and the comparisons in files with \b .diffs extensions.  These files, which
 are located in the \b examples subdirectory when created, will automatically 
 be removed when the directory is cleaned.
+
+Results of running regression tests are summarized in a file with \b .out
+extension while stats and trace files have \b .csv extensions.
 
 
 \section CleanTag Cleaning Directories

@@ -1,28 +1,26 @@
-SUBDIRS = examples src tests
+#SUBDIRS = annots runtime
+SUBDIRS = runtime
 
 all:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Calling '$(MAKE) all' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) all) \
 	done;
 
-docs: clean-docs
-	@ln -s ${ROSE_HOME} rose; \
-	doxygen
-
-check: all
+check: 
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Calling '$(MAKE) check' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) check) \
 	done;
 
 clean: 
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Calling '$(MAKE) clean' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) clean) \
 	done;
 
-clean-all:  clean-docs
+clean-all: 
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Calling '$(MAKE) clean-all' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) clean-all) \
 	done;
-
-clean-docs:
-	@rm -rf rose docs

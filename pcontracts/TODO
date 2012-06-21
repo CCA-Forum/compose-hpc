@@ -3,18 +3,9 @@ Tasks
 *** Preliminaries:
 
 - Stand-alone enforcement library 
-  TBD:  Should Babel/SIDL tracing be supported?
+  TBD:  Should Babel/SIDL tracing equivalent be supported?
 
-  -- Resume work on:
-     o testContractsEnforcer.c
-       Need routines that use the following -- whether associated
-       with contract clauses or not:
-         ContractsEnforcer_dumpStatistics(enforcer, msg)
-         ContractsEnforcer_logTrace(enforcer, times, name, msg)
-         ContractsEnforcer_enforceClause(enforcer, clause, clauseTime, 
-                                         routineTime, firstForCall)
-     o create build for testContractsEnforcer.c
-     o Iterate on ContractsEnforcer.h & .c as needed
+- Determine desired runtime contract checking runtime instrumentation
 
 - Continue preliminary identification of relevant libpaul features
   -- Resume work on:
