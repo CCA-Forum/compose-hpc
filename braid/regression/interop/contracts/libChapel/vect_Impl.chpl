@@ -197,9 +197,8 @@ export vect_Utils_vuIsZero_impl proc vuIsZero(in u: opaque /* array< > */, in to
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuIsZero)
   var is = true;
   var u_meta = sidl.double_array.cast(u);
-  var u_data = createBorrowedArray1d(u_meta);
-
-  if u_meta._not_nil() then {
+  if u_meta != nil then {
+    var u_data = createBorrowedArray1d(u_meta);
     var maxI = u_meta.upper(0);
     var i = u_meta.lower(0);
     while (i <= maxI) && is {
@@ -251,13 +250,13 @@ export vect_Utils_vuAreEqual_impl proc vuAreEqual(in u: opaque /* array< > */, i
   var   are = false;
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
 
-  if ( (u_meta._not_nil()) && (v_meta._not_nil()) )
+  if ( (u_meta != nil) && (v_meta != nil) )
   {
-    var lenU = u_meta.length(1);
-    var lenV = v_meta.length(1);
+    var u_data = createBorrowedArray1d(u_meta);
+    var v_data = createBorrowedArray1d(v_meta);
+    var lenU = u_meta.length(0);
+    var lenV = v_meta.length(0);
     if ( (lenU == lenV) && (u_meta.dim() == 1) && (v_meta.dim() == 1) )
     {
       are = true;
@@ -288,11 +287,11 @@ export vect_Utils_vuAreOrth_impl proc vuAreOrth(in u: opaque /* array< > */, in 
   var are = false;
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
                                                                               
-  if (u_meta._not_nil()) && (v_meta._not_nil()) then
+  if (u_meta != nil) && (v_meta != nil) then
   {
+    var u_data = createBorrowedArray1d(u_meta);
+    var v_data = createBorrowedArray1d(v_meta);
     var throwaway: sidl.BaseInterface;
     var val = vect.Utils_static.vuDot(u, u, tol, vect.BadLevel.NoVio, throwaway); 
     if ( fabs(val) <= fabs(tol) ) {
@@ -318,11 +317,11 @@ export vect_Utils_vuSchwarzHolds_impl proc vuSchwarzHolds(in u: opaque /* array<
   var  holds = false;
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
 
-  if ( (u_meta._not_nil()) && (v_meta._not_nil()) ) then
+  if ( (u_meta != nil) && (v_meta != nil) ) then
   {
+    var u_data = createBorrowedArray1d(u_meta);
+    var v_data = createBorrowedArray1d(v_meta);
     var throwaway: sidl.BaseInterface;
     var vDot = vect.Utils_static.vuDot(u, v, tol, vect.BadLevel.NoVio, throwaway);
     var absNorms = fabs(vect.Utils_static.vuNorm(u, tol, vect.BadLevel.NoVio, throwaway)
@@ -354,11 +353,11 @@ export vect_Utils_vuTriIneqHolds_impl proc vuTriIneqHolds(in u: opaque /* array<
   var  holds = false;
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
                                                                                 
-  if u_meta._not_nil() && v_meta._not_nil() then
+  if u_meta != nil && v_meta != nil then
   {
+    var u_data = createBorrowedArray1d(u_meta);
+    var v_data = createBorrowedArray1d(v_meta);
     if (u_meta.dim() == 1) && (v_meta.dim() == 1) then {
       var throwaway   : sidl.BaseInterface;
       var sum         = vect.Utils_static.vuSum(u, v, vect.BadLevel.NoVio, throwaway);
@@ -387,7 +386,6 @@ export vect_Utils_vuTriIneqHolds_impl proc vuTriIneqHolds(in u: opaque /* array<
 export vect_Utils_vuNorm_impl proc vuNorm(in u: opaque /* array< > */, in tol: real(64), in badLevel: BadLevel, inout _ex: sidl.sidl_BaseInterface__object): real(64) {
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuNorm)
   var u_meta = sidl.double_array.cast(u);
-  var u_data = createBorrowedArray1d(u_meta);
   var    res = 0.0 :real(64);
 
   var msg = "vuNorm: vNegValExcept: Cannot sqrt() a negative value.";
@@ -395,7 +393,7 @@ export vect_Utils_vuNorm_impl proc vuNorm(in u: opaque /* array< > */, in tol: r
                                                                                 
   if (badLevel == vect.BadLevel.NoVio)
   {
-    if (u_meta._not_nil())
+    if (u_meta != nil)
     {
       var dot = vect.Utils_static.vuDot(u, u, tol, vect.BadLevel.NoVio, throwaway); 
       if (dot > 0.0) then {
@@ -436,18 +434,18 @@ export vect_Utils_vuDot_impl proc vuDot(in u: opaque /* array< > */, in v: opaqu
   var dot = 0.0;
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
          
   var lenU: int(32);
-  if u_meta._not_nil() then lenU = u_meta.length(1); else lenU = 0;
+  if u_meta != nil then lenU = u_meta.length(0); else lenU = 0;
   if (badLevel == vect.BadLevel.NoVio) 
   {
-    if u_meta._not_nil() && v_meta._not_nil() then
+    if u_meta != nil && v_meta != nil then
     {
-      var lenV = v_meta.length(1);
+      var lenV = v_meta.length(0);
       if (lenU == lenV) && (u_meta.dim() == 1) && (v_meta.dim() == 1) then
       {
+	var u_data = createBorrowedArray1d(u_meta);
+	var v_data = createBorrowedArray1d(v_meta);
 	[i in 0..#lenU] dot += u_data[i:int(32)] * v_data[i:int(32)];
       }
     }
@@ -472,15 +470,15 @@ export vect_Utils_vuDot_impl proc vuDot(in u: opaque /* array< > */, in v: opaqu
 export vect_Utils_vuProduct_impl proc vuProduct(in a: real(64), in u: opaque /* array< > */, in badLevel: BadLevel, inout _ex: sidl.sidl_BaseInterface__object): opaque /* array< > */ {
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuProduct)
   var u_meta = sidl.double_array.cast(u);
-  var u_data = createBorrowedArray1d(u_meta);
                                                                                 
   var lenU: int(32);
-  if u_meta._not_nil() then lenU = u_meta.length(1); else lenU = 0;
+  if u_meta != nil then lenU = u_meta.length(0); else lenU = 0;
 
   if badLevel == vect.BadLevel.NoVio then
   {
+    var u_data = createBorrowedArray1d(u_meta);
     var prod = sidl.double_array.create1d(lenU);
-    if u_meta._not_nil() then {
+    if u_meta != nil then {
       [i in 0..#lenU] prod(2)[i:int(32)] = a * u_data[i:int(32)];
     }
     return prod(1).generic;
@@ -516,9 +514,9 @@ export vect_Utils_vuNegate_impl proc vuNegate(in u: opaque /* array< > */, in ba
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuNegate)
   var u_meta = sidl.double_array.cast(u);
   var lenU: int(32);
-  if u_meta._not_nil() then lenU = u_meta.length(1); else lenU = 0;
+  if u_meta != nil then lenU = u_meta.length(0); else lenU = 0;
   if badLevel == vect.BadLevel.NoVio then {
-    if u_meta._not_nil() then {
+    if u_meta != nil then {
       var throwaway: sidl.BaseInterface;
       return vect.Utils_static.vuProduct(-1.0, u, vect.BadLevel.NoVio, throwaway);
     }
@@ -551,11 +549,11 @@ export vect_Utils_vuNormalize_impl proc vuNormalize(in u: opaque /* array< > */,
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuNormalize)
   var u_meta = sidl.double_array.cast(u);
   var lenU: int(32);
-  if u_meta._not_nil() then lenU = u_meta.length(1); else lenU = 0;
+  if u_meta != nil then lenU = u_meta.length(0); else lenU = 0;
 
   if badLevel == vect.BadLevel.NoVio then 
   {
-    if u_meta._not_nil() then
+    if u_meta != nil then
     {
       var throwaway: sidl.BaseInterface;
       var val = vect.Utils_static.vuNorm(u, tol, vect.BadLevel.NoVio, throwaway);
@@ -608,16 +606,16 @@ export vect_Utils_vuSum_impl proc vuSum(in u: opaque /* array< > */, in v: opaqu
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuSum)
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
   var lenU: int(32);
-  if u_meta._not_nil() then lenU = u_meta.length(1); else lenU = 0;
+  if u_meta != nil then lenU = u_meta.length(0); else lenU = 0;
 
   if badLevel == vect.BadLevel.NoVio then 
   {
-    if u_meta._not_nil() && v_meta._not_nil()  then
+    if u_meta != nil && v_meta != nil  then
     {
-      var lenV = v_meta.length(1);  // sidlLength(v._get_ior(), 0);
+      var u_data = createBorrowedArray1d(u_meta);
+      var v_data = createBorrowedArray1d(v_meta);
+      var lenV = v_meta.length(0);  // sidlLength(v._get_ior(), 0);
       if  (lenU == lenV) && (u_meta.dim() == 1) && (v_meta.dim() == 1)  then
       {
 	var sum = sidl.double_array.create1d(lenU);
@@ -649,16 +647,16 @@ export vect_Utils_vuDiff_impl proc vuDiff(in u: opaque /* array< > */, in v: opa
     // DO-NOT-DELETE splicer.begin(vect.Utils.vuDiff)
   var u_meta = sidl.double_array.cast(u);
   var v_meta = sidl.double_array.cast(v);
-  var u_data = createBorrowedArray1d(u_meta);
-  var v_data = createBorrowedArray1d(v_meta);
   var lenU: int(32);
-  if u_meta._not_nil() then lenU = u_meta.length(1); else lenU = 0;
+  if u_meta != nil then lenU = u_meta.length(0); else lenU = 0;
 
   if badLevel == vect.BadLevel.NoVio then
   {
-    if u_meta._not_nil() && v_meta._not_nil()  then
+    if u_meta != nil && v_meta != nil  then
     {
-      var lenV = v_meta.length(1);  // sidlLength(v._get_ior(), 0);
+      var u_data = createBorrowedArray1d(u_meta);
+      var v_data = createBorrowedArray1d(v_meta);
+      var lenV = v_meta.length(0);  // sidlLength(v._get_ior(), 0);
       if  (lenU == lenV) && (u_meta.dim() == 1) && (v_meta.dim() == 1)  then
       {
 	var diff = sidl.double_array.create1d(lenU);

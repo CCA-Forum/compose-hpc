@@ -212,14 +212,14 @@ Index: runtime/src/Makefile.share
 ===================================================================
 --- runtime/src/Makefile.share	(revision 20124)
 +++ runtime/src/Makefile.share	(working copy)
-@@ -4,6 +4,7 @@
- 	config.c \
- 	error.c \
- 	chpltypes.c \
+@@ -10,6 +10,7 @@
+ 	bulkget.c \
+ 	chpl-comm.c \
+ 	chplcopygc.c \
 +	chplinit.c \
- 
- COMMON_NOGEN_SRCS = \
- 	$(COMMON_LAUNCHER_SRCS) \
+ 	chplexit.c \
+ 	chplio.c \
+ 	chplgmp.c \
 Index: runtime/src/main.c
 ===================================================================
 --- runtime/src/main.c	(revision 20124)

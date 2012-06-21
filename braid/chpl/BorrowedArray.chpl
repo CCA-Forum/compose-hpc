@@ -482,10 +482,10 @@ proc chpl__initCopy(a: []) where
  * Borrow an externally-created SIDL array by wrapping it in Chapel
  * domain metadata
  */
-proc createBorrowedSIDLArray(sa: sidl.Array, arraySize: int(32)...?arrayRank) {
-  var bData = sa.first();
-  var arrayOrdering = getArrayOrdering(sa);
-  type arrayElmntType = sa.ScalarType;
+proc createBorrowedSIDLArray(a: sidl.Array, arraySize: int(32)...?arrayRank) {
+  var bData = a.first();
+  var arrayOrdering = getArrayOrdering(a);
+  type arrayElmntType = a.ScalarType;
 
   type locDomType = chpl__buildDomainRuntimeType(defaultBorrowedDistr, arrayRank, int(32), false);
   var locDom: locDomType;
@@ -495,75 +495,75 @@ proc createBorrowedSIDLArray(sa: sidl.Array, arraySize: int(32)...?arrayRank) {
   var locArr: locArrType;
   locArr._value.setArrayOrdering(arrayOrdering);
   locArr._value.borrow(bData);
-  //locArr._value.sidlArray = sa.self;
+  //locArr._value.sidlArray = a.self;
 
   return locArr;
 }
 
-proc getArrayOrdering(sa: sidl.Array) {
+proc getArrayOrdering(a: sidl.Array) {
   var arrayOrdering: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order;
-  if (sa.isColumnOrder()) {
+  if (a.isColumnOrder()) {
     arrayOrdering = sidl_array_ordering.sidl_column_major_order;
   }
   return arrayOrdering;
 }
-proc createBorrowedArray1d(sa: sidl.Array) {
-  if (sa.dim() != 1) {
+proc createBorrowedArray1d(a: sidl.Array) {
+  if (a.dim() != 1) {
     halt("input array is not of rank 1");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0));
   return bArr;
 }
-proc createBorrowedArray2d(sa: sidl.Array) {
-  if (sa.dim() != 2) {
+proc createBorrowedArray2d(a: sidl.Array) {
+  if (a.dim() != 2) {
     halt("input array is not of rank 2");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0), sa.length(1));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0), a.length(1));
   return bArr;
 }
-proc createBorrowedArray3d(sa: sidl.Array) {
-  if (sa.dim() != 3) {
+proc createBorrowedArray3d(a: sidl.Array) {
+  if (a.dim() != 3) {
     halt("input array is not of rank 3");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0), sa.length(1), sa.length(2));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0), a.length(1), a.length(2));
   return bArr;
 }
-proc createBorrowedArray4d(sa: sidl.Array) {
-  if (sa.dim() != 4) {
+proc createBorrowedArray4d(a: sidl.Array) {
+  if (a.dim() != 4) {
     halt("input array is not of rank 4");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0), sa.length(1), sa.length(2), sa.length(3));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0), a.length(1), a.length(2), a.length(3));
   return bArr;
 }
-proc createBorrowedArray5d(sa: sidl.Array) {
-  if (sa.dim() != 5) {
+proc createBorrowedArray5d(a: sidl.Array) {
+  if (a.dim() != 5) {
     halt("input array is not of rank 5");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0), sa.length(1), sa.length(2), sa.length(3),
-				     sa.length(4));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0), a.length(1), a.length(2), a.length(3),
+				     a.length(4));
   return bArr;
 }
-proc createBorrowedArray6d(sa: sidl.Array) {
-  if (sa.dim() != 6) {
+proc createBorrowedArray6d(a: sidl.Array) {
+  if (a.dim() != 6) {
     halt("input array is not of rank 6");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0), sa.length(1), sa.length(2), sa.length(3),
-				     sa.length(4), sa.length(5));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0), a.length(1), a.length(2), a.length(3),
+				     a.length(4), a.length(5));
   return bArr;
 }
-proc createBorrowedArray7d(sa: sidl.Array) {
-  if (sa.dim() != 7) {
+proc createBorrowedArray7d(a: sidl.Array) {
+  if (a.dim() != 7) {
     halt("input array is not of rank 7");
   }
-  var arrayOrdering = getArrayOrdering(sa);
-  var bArr = createBorrowedSIDLArray(sa, sa.length(0), sa.length(1), sa.length(2), sa.length(3),
-				     sa.length(4), sa.length(5), sa.length(6));
+  var arrayOrdering = getArrayOrdering(a);
+  var bArr = createBorrowedSIDLArray(a, a.length(0), a.length(1), a.length(2), a.length(3),
+				     a.length(4), a.length(5), a.length(6));
   return bArr;
 }
 

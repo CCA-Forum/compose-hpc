@@ -127,9 +127,10 @@ CHPL_MAKE_THREADS=`$(CHPL_MAKE_HOME)/util/chplenv/threads`
 CHPL_MAKE_SUBSTRATE=`$(CHPL_MAKE_HOME)/util/chplenv/commSubstrate`
 CHPL_MAKE_COMM=`$(CHPL_MAKE_HOME)/util/chplenv/comm`
 CHPL_MAKE_SEG=`$(CHPL_MAKE_HOME)/util/chplenv/commSegment`
+CHPL_MAKE_ATOMICS=`$(CHPL_MAKE_HOME)/util/chplenv/atomics`
 
 
-CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-$(CHPL_MAKE_COMM)/substrate-$(CHPL_MAKE_SUBSTRATE)/seg-$(CHPL_MAKE_SEG)
+CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/comm-$(CHPL_MAKE_COMM)/substrate-$(CHPL_MAKE_SUBSTRATE)/seg-$(CHPL_MAKE_SEG)/mem-$(CHPL_MAKE_MEM)
 
 ####    include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 CHPL=chpl --fast
@@ -151,8 +152,8 @@ CHPL_FLAGS=-std=c99 \
   -I. -Wno-all 
 
 CHPL_LDFLAGS= \
- -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) \
- $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/main.o \
+ -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/atomics-$(CHPL_MAKE_ATOMICS) \
+ $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/atomics-$(CHPL_MAKE_ATOMICS)/main.o \
  -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
 
 CHPL_GASNET_LDFLAGS= \
