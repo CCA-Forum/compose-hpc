@@ -100,21 +100,6 @@ def forward_decl(ir_struct):
     """
     return '%s %s;'%(ir_struct[0], ir_struct[1])
 
-def is_static(method):
-    """
-    \return \c true iff the sidl.method \c method has the \c static
-    attribute.
-    """
-    return member_chk(sidl.static, sidl.method_method_attrs(method))
-
-def is_not_static(method):
-    """
-    \return \c false iff the sidl.method \c method has the \c static
-    attribute.
-    """
-    return not is_static(method)
-
-
 class GlueCodeGenerator(object):
     """
     This class provides the methods to transform SIDL to IR.
@@ -247,14 +232,18 @@ class GlueCodeGenerator(object):
                                    drop_rarray_ext_args(Args),
                                    Except, From, Requires, Ensures, DocComment))
 
+            # all the methods for which we would generate a server impl
+            impl_methods = builtins+cls.get_methods()
+            impl_methods_names = [sidl.method_method_name(m) for m in impl_methods]
+
             # client
             for method in cls.all_methods:
-                self.generate_client_method(symbol_table, method, ci)
+                has_impl = sidl.method_method_name(method) in impl_methods_names
+                self.generate_client_method(symbol_table, method, ci, has_impl)
 
             if self.server:
-                methods = builtins+cls.get_methods()
-                class_methods = filter(is_not_static, methods)
-                static_methods = filter(is_static, methods)
+                class_methods = filter(sidl.is_not_static, impl_methods)
+                static_methods = filter(sidl.is_static, impl_methods)
 
                 # Class
                 ci.impl.new_def(gen_doc_comment(cls.doc_comment, chpl_stub)+
@@ -621,7 +610,7 @@ class GlueCodeGenerator(object):
 
 
     @matcher(globals(), debug=False)
-    def generate_client_method(self, symbol_table, method, ci):
+    def generate_client_method(self, symbol_table, method, ci, has_impl):
         """
         Generate client code for a method interface.
         \param method        s-expression of the method's SIDL declaration
@@ -870,39 +859,48 @@ class GlueCodeGenerator(object):
         chpl_args.append(ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), chpl_param_ex_name))
         
 
-        #if final:
-            # final : Final methods are the opposite of virtual. While
-            # they may still be inherited by child classes, they
-            # cannot be overridden.
-            
-            # static call
-            #The problem with this is that e.g. C++ symbols usere different names
-            #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
-        #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
-        if static:
-            # static : Static methods are sometimes called "class
-            # methods" because they are part of a class, but do not
-            # depend on an object instance. In non-OO languages, this
-            # means that the typical first argument of an instance is
-            # removed. In OO languages, these are mapped directly to
-            # an Java or C++ static method.
-            epv_type = ci.epv.get_type()
-            obj_type = ci.obj
-            callee = ir.Get_struct_item(
-                epv_type,
-                ir.Deref(ir.Call('_getSEPV', [])),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension))
-            
+        if self.server and has_impl:
+            # if we are generating server code we can take a shortcut
+            # and directly invoke the implementation
+            modname = '_'.join(ci.co.symbol_table.prefix+['Impl'])
+            if not static:
+                qname = '_'.join(ci.co.qualified_name+['Impl'])
+                # FIXME!
+            callee = '.'.join([modname, Name])
         else:
-            # dynamic virtual method call
-            epv_type = ci.epv.get_type()
-            obj_type = ci.obj
-            callee = ir.Deref(ir.Get_struct_item(
-                epv_type,
-                ir.Deref(ir.Get_struct_item(obj_type,
-                                            ir.Deref('self'),
-                                            ir.Struct_item(epv_type, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension)))
+            #if final:
+                # final : Final methods are the opposite of virtual. While
+                # they may still be inherited by child classes, they
+                # cannot be overridden.
+
+                # static call
+                #The problem with this is that e.g. C++ symbols usere different names
+                #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
+            #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+            if static:
+                # static : Static methods are sometimes called "class
+                # methods" because they are part of a class, but do not
+                # depend on an object instance. In non-OO languages, this
+                # means that the typical first argument of an instance is
+                # removed. In OO languages, these are mapped directly to
+                # an Java or C++ static method.
+                epv_type = ci.epv.get_type()
+                obj_type = ci.obj
+                callee = ir.Get_struct_item(
+                    epv_type,
+                    ir.Deref(ir.Call('_getSEPV', [])),
+                    ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension))
+
+            else:
+                # dynamic virtual method call
+                epv_type = ci.epv.get_type()
+                obj_type = ci.obj
+                callee = ir.Deref(ir.Get_struct_item(
+                    epv_type,
+                    ir.Deref(ir.Get_struct_item(obj_type,
+                                                ir.Deref('self'),
+                                                ir.Struct_item(epv_type, 'd_epv'))),
+                    ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension)))
 
 
         stubcall = ir.Call(callee, call_args)
@@ -964,7 +962,9 @@ class GlueCodeGenerator(object):
 
         header = self.class_header(qname, symbol_table, ci)
         write_to(qname+'_Stub.h', header.dot_h(qname+'_Stub.h'))
-        chpl_stub.new_def('use sidl;')
+        chpl_stub.gen(ir.Import('sidl'))
+        if self.server:
+            chpl_stub.gen(ir.Import('%s_Impl'%'_'.join(symbol_table.prefix)))
         extrns = ChapelScope(chpl_stub, relative_indent=0)
 
         def gen_extern_casts(_symtab, _ext, baseclass):
@@ -1202,10 +1202,13 @@ class GlueCodeGenerator(object):
                 else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%fname, 'NULL')
 
         pkgname = '_'.join(ci.epv.symbol_table.prefix)
-        epv_init.append((ir.stmt, 'chpl_init_library(1, &"BRAID_LIBRARY")'))
+        dummyargv = 'const char* name[] = { "BRAID_LIBRARY" };'
+        epv_init.append((ir.stmt, dummyargv))
+        epv_init.append((ir.stmt, 'chpl_init_library(1, &name)'))
         epv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
         epv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
-        sepv_init.append((ir.stmt, 'chpl_init_library(1, &"BRAID_LIBRARY")'))
+        sepv_init.append((ir.stmt, dummyargv))
+        sepv_init.append((ir.stmt, 'chpl_init_library(1, &name)'))
         sepv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
         sepv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
 

@@ -23,7 +23,7 @@
 # </pre>
 #
 
-import config, sidl, ir
+import config, sidl, ir, babel
 from codegen import sidl_gen, c_gen
 from patmat import *
 from sidl_symbols import visit_hierarchy
@@ -33,6 +33,8 @@ from utils import accepts
 
 gen_hooks = False
 gen_contracts = True
+skip_rmi = False
+
 def gen_IOR_c(iorname, cls, _gen_hooks, _gen_contracts):
     """
     generate a Babel-style $classname_IOR.c
@@ -42,7 +44,7 @@ def gen_IOR_c(iorname, cls, _gen_hooks, _gen_contracts):
     global gen_contracts
     gen_contracts = _gen_contracts
     # class hierarchy for the casting function
-    sorted_parents = sorted(cls.get_parents([]), 
+    sorted_parents = sorted(cls.get_parents(), 
                             key = lambda x: qual_id(sidl.type_id(x)))
 
     return Template(text).substitute(
@@ -53,9 +55,14 @@ def gen_IOR_c(iorname, cls, _gen_hooks, _gen_contracts):
         Baseclass = baseclass(cls),
         EPVinits = EPVinits(cls),
         EPVfini = EPVfini(cls),
+        EXEC_METHODS = generateMethodExecs(cls, iorname),
         INIT_SEPV = init_sepv(cls, iorname),
+        INIT_EPV = init_epv(cls, iorname, sorted_parents),
+        GET_EPVS = get_epvs(cls, iorname),
+        S_METHODS = s_methods(cls, iorname),
         SET_CONTRACTS = set_contracts(cls, iorname),
         SET_CONTRACTS_STATIC = set_contracts_static(cls, iorname),
+        SET_EPV_DECL = set_epv_decl(cls, iorname),
         DUMP_STATS = dump_stats(cls, iorname),
         DUMP_STATS_STATIC = dump_stats_static(cls, iorname),
         ParentDecls = ParentDecls(cls),
@@ -197,15 +204,14 @@ ${StaticEPVDecls}
 extern "C" {
 #endif
 
-extern void ${CLASS}__set_epv(
-  struct ${CLASS}__epv* epv,
-    struct ${CLASS}__pre_epv* pre_epv,
-    struct ${CLASS}__post_epv* post_epv);
+${SET_EPV_DECL}
 
 extern void ${CLASS}__call_load(void);
 #ifdef __cplusplus
 }
 #endif
+
+${EXEC_METHODS}
 
 /*
  * CHECKS: Enable/disable contract enforcement.
@@ -365,120 +371,47 @@ struct ${CLASS}__method {
     struct sidl_BaseInterface__object **);
 };
 
+static void
+ior_${CLASS}__exec(
+  struct ${CLASS}__object* self,
+  const char* methodName,
+  struct sidl_rmi_Call__object* inArgs,
+  struct sidl_rmi_Return__object* outArgs,
+  struct sidl_BaseInterface__object **_ex )
+{
+  static const struct ${CLASS}__method  s_methods[] = {
+${S_METHODS}
+  };
+  int i, cmp, l = 0;
+  int u = sizeof(s_methods)/sizeof(struct ${CLASS}__method);
+  *_ex  = NULL; /* default to no exception */
+
+  if (methodName) {
+    /* Use binary search to locate method */
+    while (l < u) {
+      i = (l + u) >> 1;
+      if (!(cmp=strcmp(methodName, s_methods[i].d_name))) {
+        (s_methods[i].d_func)(self, inArgs, outArgs, _ex); SIDL_CHECK(*_ex);
+        return;
+      }
+      else if (cmp < 0) u = i;
+      else l = i + 1;
+    }
+  }
+  /* TODO: add code for method not found */
+  SIDL_THROW(*_ex, sidl_PreViolation, "method name not found");
+  EXIT:
+  return;
+}
+
+
 ${GET_TYPE_STATIC_EPV}
 ${CHECK_SKELETONS}
 ${GET_ENSURE_LOAD_CALLED}
 ${INIT_SEPV}
+${INIT_EPV}
+${GET_EPVS}
 
-/*
- * EPV: create method entry point vector (EPV) structure.
- */
-
-static void ${CLASS}__init_epv(void)
-{
-/*
- * assert( HAVE_LOCKED_STATIC_GLOBALS );
- */
-
-  struct ${CLASS}__epv*         epv  = &s_my_epv__${CLASS_LOW};
-  struct sidl_BaseClass__epv*     e0   = &s_my_epv__sidl_baseclass;
-  struct sidl_BaseInterface__epv* e1   = &s_my_epv__sidl_baseinterface;
-
-  struct sidl_BaseClass__epv* s1 = NULL;
-
-  /*
-   * Get my parent's EPVs so I can start with their functions.
-   */
-
-  sidl_BaseClass__getEPVs(
-    &s_par_epv__sidl_baseinterface,
-    &s_par_epv__sidl_baseclass);
-
-
-  /*
-   * Alias the static epvs to some handy small names.
-   */
-
-  s1  =  s_par_epv__sidl_baseclass;
-
-  epv->f__cast                  = ior_${CLASS}__cast;
-  epv->f__delete                = ior_${CLASS}__delete;
-  epv->f__exec                  = NULL; //ior_${CLASS}__exec;
-  epv->f__getURL                = ior_${CLASS}__getURL;
-  epv->f__raddRef               = ior_${CLASS}__raddRef;
-  epv->f__isRemote              = ior_${CLASS}__isRemote;
-  epv->f__set_hooks             = ior_${CLASS}__set_hooks;
-  epv->f__set_contracts         = ior_${CLASS}__set_contracts;
-  epv->f__dump_stats            = ior_${CLASS}__dump_stats;
-  epv->f_addRef                 = (void (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object **)) s1->f_addRef;
-  epv->f_deleteRef              = (void (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object **)) s1->f_deleteRef;
-  epv->f_isSame                 = (sidl_bool (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) s1->f_isSame;
-  epv->f_isType                 = (sidl_bool (*)(struct ${CLASS}__object*,const char*,struct sidl_BaseInterface__object **)) s1->f_isType;
-  epv->f_getClassInfo           = (struct sidl_ClassInfo__object* (*)(struct ${CLASS}__object*,struct sidl_BaseInterface__object **)) s1->f_getClassInfo;
-
-  ${CLASS}__set_epv(epv, &s_preEPV, &s_postEPV);
-
-  /*
-   * Override function pointers for sidl.BaseClass with mine, as needed.
-   */
-
-  e0->f__cast                 = (void* (*)(struct sidl_BaseClass__object*,const char*, struct sidl_BaseInterface__object**))epv->f__cast;
-  e0->f__delete               = (void (*)(struct sidl_BaseClass__object*, struct sidl_BaseInterface__object **)) epv->f__delete;
-  e0->f__getURL               = (char* (*)(struct sidl_BaseClass__object*, struct sidl_BaseInterface__object **)) epv->f__getURL;
-  e0->f__raddRef              = (void (*)(struct sidl_BaseClass__object*, struct sidl_BaseInterface__object **)) epv->f__raddRef;
-  e0->f__isRemote             = (sidl_bool (*)(struct sidl_BaseClass__object*, struct sidl_BaseInterface__object **)) epv->f__isRemote;
-  e0->f__exec                 = (void (*)(struct sidl_BaseClass__object*,const char*,struct sidl_rmi_Call__object*,struct sidl_rmi_Return__object*,struct sidl_BaseInterface__object **)) epv->f__exec;
-  e0->f_addRef                = (void (*)(struct sidl_BaseClass__object*,struct sidl_BaseInterface__object **)) epv->f_addRef;
-  e0->f_deleteRef             = (void (*)(struct sidl_BaseClass__object*,struct sidl_BaseInterface__object **)) epv->f_deleteRef;
-  e0->f_isSame                = (sidl_bool (*)(struct sidl_BaseClass__object*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) epv->f_isSame;
-  e0->f_isType                = (sidl_bool (*)(struct sidl_BaseClass__object*,const char*,struct sidl_BaseInterface__object **)) epv->f_isType;
-  e0->f_getClassInfo          = (struct sidl_ClassInfo__object* (*)(struct sidl_BaseClass__object*,struct sidl_BaseInterface__object **)) epv->f_getClassInfo;
-
-
-
-  /*
-   * Override function pointers for sidl.BaseInterface with mine, as needed.
-   */
-
-  e1->f__cast                 = (void* (*)(void*,const char*, struct sidl_BaseInterface__object**))epv->f__cast;
-  e1->f__delete               = (void (*)(void*, struct sidl_BaseInterface__object **)) epv->f__delete;
-  e1->f__getURL               = (char* (*)(void*, struct sidl_BaseInterface__object **)) epv->f__getURL;
-  e1->f__raddRef              = (void (*)(void*, struct sidl_BaseInterface__object **)) epv->f__raddRef;
-  e1->f__isRemote             = (sidl_bool (*)(void*, struct sidl_BaseInterface__object **)) epv->f__isRemote;
-  e1->f__exec                 = (void (*)(void*,const char*,struct sidl_rmi_Call__object*,struct sidl_rmi_Return__object*,struct sidl_BaseInterface__object **)) epv->f__exec;
-  e1->f_addRef                = (void (*)(void*,struct sidl_BaseInterface__object **)) epv->f_addRef;
-  e1->f_deleteRef             = (void (*)(void*,struct sidl_BaseInterface__object **)) epv->f_deleteRef;
-  e1->f_isSame                = (sidl_bool (*)(void*,struct sidl_BaseInterface__object*,struct sidl_BaseInterface__object **)) epv->f_isSame;
-  e1->f_isType                = (sidl_bool (*)(void*,const char*,struct sidl_BaseInterface__object **)) epv->f_isType;
-  e1->f_getClassInfo          = (struct sidl_ClassInfo__object* (*)(void*,struct sidl_BaseInterface__object **)) epv->f_getClassInfo;
-
-
-
-  s_method_initialized = 1;
-  ior_${CLASS}__ensure_load_called();
-}
-
-/*
- * ${CLASS}__getEPVs: Get my version of all relevant EPVs.
- */
-
-void ${CLASS}__getEPVs (
-  struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
-  struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
-  struct ${CLASS}__epv **s_arg_epv__${CLASS_LOW},
-  struct ${CLASS}__epv **s_arg_epv_hooks__${CLASS_LOW})
-{
-  LOCK_STATIC_GLOBALS;
-  if (!s_method_initialized) {
-    ${CLASS}__init_epv();
-  }
-  UNLOCK_STATIC_GLOBALS;
-
-  *s_arg_epv__sidl_baseinterface = &s_my_epv__sidl_baseinterface;
-  *s_arg_epv__sidl_baseclass = &s_my_epv__sidl_baseclass;
-  *s_arg_epv__${CLASS_LOW} = &s_my_epv__${CLASS_LOW};
-  *s_arg_epv_hooks__${CLASS_LOW} = &s_my_epv_hooks__${CLASS_LOW};
-}
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
@@ -936,7 +869,7 @@ static void {t}__init_sepv(void)
     r.append('')
 
     if hooks:
-        r.append('ior_%s__set_hooks_static(FALSE, &throwaway_exception);'%t)
+        r.append('  ior_%s__set_hooks_static(FALSE, &throwaway_exception);'%t)
         r.append('')
 
     if contracts:
@@ -952,6 +885,541 @@ static void {t}__init_sepv(void)
     return '\n'.join(r)    
 
 
+def aliasEPVs(r, T, t, cls, parents):
+    """
+    Generate the entry point vector alias for each parent class and each
+    interface as well as a special one for the current object.
+    """
+    # Get the width of the symbols for pretty printing.
+    width = len(T) + 7
+    #w     = Utilities.getWidth(parents) + "struct __epv*".length()
+
+    #if w > width:
+    #    width = w
+
+    # Output the EPV pointer for this class and its class and interface
+    # parents.
+    r.append('  struct %s epv = &s_my_epv__%s;'%(align(T+'__epv*', width), t))
+    if generateContractChecks(cls):
+        r.append('  struct %s cepv = &s_my_epv_contracts__%s;'%(align(T+'__epv*', width), t))
+    
+    if generateHookMethods(cls):
+        r.append('  struct %s hepv = &s_my_epv_hooks__%s;'%(align(T+'__epv*', width), t))    
+
+    e = 0
+    for parent in parents[:-1]:
+        par = make_extendable(cls.symbol_table, parent)
+        P = '_'.join(par.qualified_name)
+        p = str.lower(P)
+        r.append('  struct %s e%d = &s_my_epv__%s;'%(align(P+'__epv*', width), e, p))
+
+        if generateHookMethods(par):
+            r.append('  struct %s he%d = &s_my_epv_hooks__%s;'%(align(P+'__epv*', width), e, p))    
+      
+        e += 1
+    
+    r.append('')
+  
+
+  
+def generateParentEPVs(r, cls, level, width):
+    """
+    Recursively output epv pointers to the SIDL objects for this class and its
+    parents. The self pointers are of the form sN, where N is an integer
+    represented by the level argument. If the width is zero, then the width of
+    all parents is generated automatically.
+    """
+    if cls:
+        # Calculate the width of this class and all parents for pretty output.
+        # Ooh, very pretty.
+        width = 0
+        parent = cls
+        while parent:
+            w = len('_'.join(parent.qualified_name)) + len('struct __epv*')
+            if w > width:
+                width = w
+                
+            parent = parent.get_parent()
+      
+        # Now use the width information to print out symbols.
+        # Get rid of the now unused s0 var. 
+        if level != 0:
+            name = '_'.join(cls.qualified_name)
+            r.append('  struct %s s%d = NULL;'%(align(name+'__epv*', width), level))
+     
+            if generateHookMethods(cls):
+                name = '_'.join(cls.qualified_name)
+                r.append('  struct %s hs%d = NULL;'%(align(name+'__epv*', width), level))
+          
+        generateParentEPVs(r, cls.get_parent(), level + 1, width)
+    
+  
+
+def generateGetParentEPVs(r, T, parent):
+    r.append("  // Get my parent's EPVs so I can start with their functions.")
+
+    r.append('  %s__getEPVs('%'_'.join(parent.qualified_name))
+    listEPVs(r, parent, True)
+    r.append('  );')
+    r.append('')
+  
+def listEPVs(r, cls, first):
+    if cls:
+        listEPVs(r, cls.get_parent(), False);
+        for intf in cls.get_unique_interfaces():
+            ifc = make_extendable(cls.symbol_table, intf)
+            name = str.lower('_'.join(ifc.qualified_name))
+            r.append('    &s_par_epv__%s,'%name)
+            if generateHookEPVs(ifc):
+                r.append('    &s_par_hepv__%s,'%name)
+
+        name = str.lower('_'.join(cls.qualified_name))
+        r.append('    &s_par_epv__%s%s'%(name, ',' if not first or generateHookEPVs(cls) else ''))
+        if generateHookEPVs(cls):
+            r.append('    &s_par_hepv__%s%s'%(name, ',' if not first else ''))
+
+
+def saveEPVs(r, cls, level):
+    """
+    Recursively save the class and interface EPVs in this class and all parent
+    classes. Nothing is done if the class argument is null.
+    """
+
+    if cls:
+        saveEPVs(r, cls.get_parent(), level + 1)
+
+        # Save the class entry point vector.
+        name = str.lower('_'.join(cls.qualified_name))
+        r.append('  s%d = s_par_epv__%s;'%(level, name))
+
+        if generateHookMethods(cls):
+            r.append('  hs%d = s_par_hepv__%s;'%(level, name))
+
+def generateEPVMethodAssignments(r, ext, setType, ptrVar, doStatics):
+    """
+    Generate the appropriate contract or hooks methods assignments.
+    """
+    methods = ext.local_static_methods if doStatics else ext.local_nonstatic_methods
+    #int      mwidth  = Math.max(Utilities.getWidth(methods), s_longestBuiltin)
+    #                 + IOR.getVectorEntry("").length() + ptrVar.length() + 2
+    doChecks = setType == 'set_contracts'
+
+    hasInvs = ext.has_inv_clause(True)
+
+    for m in methods:
+        if (not doChecks) or (hasInvs or m.hasPreClause() or m.hasPostClause()):
+            tName = 'hooks_'+sidl.long_method_name(m) if doChecks else 'check_'+sidl.long_method_name(m)
+            r.append(' %s->f_%s = %s;' % (ptrVar, sidl.long_method_name(m), tName))
+      
+
+def generateNonstaticMethods(r, cls, obj, methods, var, parent, mwidth):
+    """
+    Generate the non-static methods for the specified class.
+    """
+    # Iterate through all of the nonstatic methods. Assign them to NULL if the
+    # parent class does not have the method and to the parent function pointer
+    # if the parent has the method.
+    for method in methods:
+        mname     = sidl.long_method_name(method)
+        parentHas = parent and parent.has_method_by_long_name(mname, _all=True)
+
+        generateNonstaticEPV(r, method, obj, var, parent, parentHas, mwidth)
+        
+        #if (method.getCommunicationModifier() == Method.NONBLOCKING
+        #    and not skip_rmi):
+        #    send = method.spawnNonblockingSend()
+        #    if  send: 
+        #        mname     = sidl.long_method_name(send()
+        #        parentHas = parent and parent.has_method_by_long_name(mname, true)
+        #        assignNonblockingPointer(r, cls, send, mwidth); 
+        #    
+        #    recv = method.spawnNonblockingRecv()
+        #    if  recv != null : 
+        #        mname     = sidl.long_method_name(recv()
+        #        parentHas = parent and parent.has_method_by_long_name(mname, true)
+        #        assignNonblockingPointer(r, cls, recv, mwidth); 
+            
+      
+    r.append('')
+
+    t = '_'.join(cls.qualified_name)
+    # Call the user initialization function to set up the EPV structure.
+    if generateHookEPVs(cls):
+        r.append('  %s__set_epv(%s, &s_preEPV, &s_postEPV);'%(t, var))
+    else:
+        r.append('  %s__set_epv(%s);'%(t, var))
+    
+    # Now, if necessary, clone the static that has been set up and overlay with
+    # local methods for contracts and/or hooks.
+    r.append('')
+    addBlank = False
+    if generateContractChecks(cls):
+        xEPV = "cepv"
+        r.append("  memcpy((void*)%s, %s, sizeof(struct %s__epv));"%(xEPV, var, t))
+        generateEPVMethodAssignments(r, cls, 'set_contracts', xEPV, False)
+        addBlank = True
+    
+
+    if generateHookMethods(cls):
+        xEPV = "hepv"
+        r.append("  memcpy((void*)%s, %s, sizeof(struct %s__epv));"%(xEPV, var, t))
+        if addBlank:
+            r.append('')
+            addBlank = False
+      
+        generateEPVMethodAssignments(r, cls, 'set_hooks', xEPV, False)
+        addBlank = True
+    
+    if addBlank:
+        r.append('')
+    
+def assignNonblockingPointer(r, cls, method, mwidth):
+    """
+    Generate a nonblocking single assignment in initialization of the EPV 
+    pointer.
+  
+    TODO: This kludge should probably be removed when we figure out how we
+    want to do nonblocking for local objects permanently.  This just
+    generates an exception.
+  
+    @param name
+           String name of the extendable
+    @param method
+           The method in the EPV to initialzie
+    @param mwidth
+           formatting parameter related to width of longest method name
+    """
+
+    mname = sidl.long_method_name(method)
+    r.append('  epv->f_%s= ior_%s_%s;'(align(mname, mwidth), '_'.join(cls.qualified_name), mname))
+  
+
+def generateNonstaticEPV(r, m, obj, var, parent, parentHas, width):
+    """
+    Generate the non-static method epv entry for the method.
+    """
+    name = sidl.long_method_name(m)
+    r.append('  %s->f_%s= '%(var, align(name, width)))
+    if parentHas:
+        r.append('    %ss1->f_%s;'%(getCast(m, obj + "*"), name))
+    else:
+        r.append('    NULL;')
+    
+    #if d_context.getConfig().getFastCall() && !IOR.isBuiltinMethod(name):
+    #    if parentHas:
+    #        guard = IOR.getNativeEPVGuard(parent)
+    #        r.append("#ifdef " + guard)
+    #        r.append(var + "->")
+    #        r.append(IOR.getNativeVectorEntry(name), width)
+    #        r.append(" = s1->")
+    #        r.append(IOR.getNativeVectorEntry(name) + ";")
+    #        r.append("#else")
+    #        r.append(var + "->")
+    #        r.append(IOR.getNativeVectorEntry(name), width)
+    #        r.append(" = NULL_NATIVE_EPV;")
+    #        r.append("#endif /*" + guard + "*/")
+    #    else:
+    #        r.append('%s->%s%s= NULL_NATIVE_EPV;'%(var,IOR.getNativeVectorEntry(name), ' '*width))
+
+def align(text, length):
+    return text+' '*(length-len(text))
+
+def copyEPVs(r, symbol_table, parents, renames):
+    """
+    Copy EPV function pointers from the most derived EPV data structure into
+    all parent class and interface EPVs.
+    """
+
+    e = 0;
+    for ext1 in parents[:-1]:
+        # Extract information about the parent extendable object. Generate a list
+        # of the nonstatic methods and calculate the width of every method name.
+        # ext = (Extendable) Utilities.lookupSymbol(d_context, id);
+        ext = make_extendable(symbol_table, ext1)
+        ext.scan_methods()
+
+        methods = ext.all_nonstatic_methods
+        #mwidth = Math.max(Utilities.getWidth(methods), s_longestBuiltin)
+        #           + IOR.getVectorEntry("").length();
+        mwidth = 16
+        name = '_'.join(ext.qualified_name)
+   
+        # Calculate the "self" pointer for the cast function.
+        if ext.is_interface():
+          selfptr = "void*";
+        else:
+          selfptr = 'struct %s__object*'%name;
+   
+        # Generate the assignments for the cast and delete functions.
+        estring  = 'e%d->'%e
+        vecEntry = '_cast'
+        ex = 'struct sidl_BaseInterface__object**'
+   
+        r.append('  // Override function pointers for %s with mine, as needed.'%name)
+        r.append('  %sf_%s= (void* (*)(%s,const char*, %s))epv->f_%s;'
+                 %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
+   
+        vecEntry = '_delete'
+        r.append('  %sf_%s= (void* (*)(%s,%s))epv->f_%s;'
+                 %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
+   
+        if not skip_rmi:
+   
+          vecEntry = '_getURL'
+          r.append('  %sf_%s= (char* (*)(%s,%s))epv->f_%s;'
+                 %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
+   
+          vecEntry = '_raddRef'
+          r.append('  %sf_%s= (void (*)(%s,%s))epv->f_%s;'
+                 %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
+   
+          vecEntry = '_isRemote'
+          r.append('  %sf_%s= (sidl_bool* (*)(%s,%s))epv->f_%s;'
+                 %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
+   
+          # Generate the assignment for exec function
+          vecEntry = '_exec'
+          r.append('  %sf_%s= (void (*)(%s,const char*,struct sidl_rmi_Call__object*,struct sidl_rmi_Return__object*,%s))epv->f_%s;'
+                 %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
+   
+          methList = ext.all_nonblocking_methods
+        
+        else:
+          methList = ext.all_nonstatic_methods
+   
+        T = '_'.join(ext.qualified_name)
+        # Iterate over all methods in the EPV and set the method pointer.
+        for method in methList:
+          name          = T+sidl.long_method_name(method)
+          oldname       = sidl.long_method_name(method)
+          if method in renames.__keys__:
+            newname = sidl.long_method_name(renames[method])
+          else:
+            newname = oldname
+   
+          r.append('  %sf_%s= (%s)epv->%s;'
+                 %(estring,align(vecEntry, mwidth),getCast(method, selfptr),vecEntry))
+   
+   
+        # Do the same for the native EPV entries if enabled
+        r.append('')
+        # if fastcall:
+        #   String guard = IOR.getNativeEPVGuard(ext);
+        #   r.appendlnUnformatted("#ifdef " + guard);
+        #  
+        #   for (Iterator j = methList.iterator(); j.hasNext(); ) {
+        #     Method method        = (Method) j.next();
+        #     String name          = id.getFullName() + ".";
+        #     name                += sidl.long_method_name(method();
+        #     Method renamedMethod = (Method) renames.get(name);
+        #     String oldname       = sidl.long_method_name(method();
+        #     String newname       = null;
+        #     if (renamedMethod != null) {
+        #       newname = sidl.long_method_name(renamedMethod();
+        #     } else { 
+        #       newname = sidl.long_method_name(method();
+        #     }
+        #     r.append(estring);
+        #     r.appendAligned(IOR.getNativeVectorEntry(oldname), mwidth);
+        #     r.appendln(" = epv->" + IOR.getNativeVectorEntry(newname) + ";");
+        #   }
+        #   
+        #   r.appendlnUnformatted("#endif /*" + guard + "*/");
+        # }
+        
+        # JIM add in he stuff here?
+        r.append('');
+        if generateHookMethods(ext):
+          r.append("  memcpy((void*) he%d, e%d, sizeof(struct %s__epv));"%(e, e, T))
+   
+          # Iterate over all methods in the EPV and set the method pointer.
+          # if we're using hooks
+          for method in methods:
+              name          = T+'.'+sidl.long_method_name(method)
+              oldname       = sidl.long_method_name(method)
+              if sidl.method_method_name(method) in renames:
+                  newname = sidl.long_method_name(renames[method])
+              else:
+                  newname = oldname
+              r.append('  %she_%s= %shepv->%s;'
+                       %(estring,align(vecEntry, mwidth),getCast(method, selfptr),vecEntry))
+   
+        r.append('');
+        e += 1;
+
+def getCast(method, selfptr):
+    """
+    Generate a cast string for the specified method.  The string
+    argument self represents the name of the object.  A code generation
+    exception is thrown if any of the required symbols do not exist in
+    the symbol table.
+    """
+    # Begin the cast string with the return type and self object reference.
+    cast = []
+    cast.append("(");
+    cast.append(c_gen(sidl.method_type_void(method)))
+    cast.append(" (*)(")
+
+    # Add the method arguments to the cast clause as well as an
+    # optional exception argument.
+    args = [selfptr]
+    for arg in sidl.method_args(method):
+        args.append(c_gen(sidl.arg_type_void(arg)))
+
+    cast.append(', '.join(args))
+    cast.append("))")
+    return ''.join(cast)
+   
+
+
+
+def init_epv(cls, iorname, sorted_parents):
+    """
+    Generate the function that initializes the method entry point vector for
+    this class. This class performs three functions. First, it saves the EPVs
+    from the parent classes and interfaces (assuming there is a parent).
+    Second, it fills the EPV for this class using information from the parent
+    (if there is a parent, and NULL otherwise). It then calls the skeleton
+    method initialization function for the EPV. Third, this function resets
+    interface EPV pointers and parent EPV pointers to use the correct function
+    pointers from the class EPV structure.
+    """
+    T = iorname
+    t = str.lower(T)
+    r = []
+    r.append('// EPV: create method entry point vector (EPV) structure.')
+
+    # Declare the method signature and open the implementation body.
+    r.append("static void %s__init_epv(void)"%T)
+
+    r.append('{')
+    r.append('  // assert( " + IOR.getHaveLockStaticGlobalsMacroName() + " );')
+
+    # Output entry point vectors aliases for each parent class and interface as
+    # well as a special one for the current object.
+    parents = sorted_parents
+    aliasEPVs(r, T, t, cls, parents)
+
+    # Output pointers to the parent classes to simplify access to their data
+    # structures.
+    if cls.get_parent:
+        generateParentEPVs(r, cls, 0, 0)
+        r.append('')
+    
+    # Get the parent class EPVs so our versions start with theirs.
+    parent = cls.get_parent()
+    # FIXME: inefficient!
+    parent.scan_methods()
+    if parent:
+      generateGetParentEPVs(r, T, parent)
+      
+      # Save all parent interface and class EPVs in static pointers.
+      r.append('')
+      r.append('  // Alias the static epvs to some handy small names.')
+      saveEPVs(r, parent, 1)
+      r.append('')
+
+    # Generate a list of the nonstatic methods in the class and get the width
+    # of every method name.
+    methods = cls.all_nonstatic_methods
+    #mwidth  = max(Utilities.getWidth(methods), s_longestBuiltin)
+    #               + IOR.getVectorEntry("").length()
+    mwidth = 1
+
+    # Output builtin methods.
+    for m in babel.builtin_method_names:
+        if (m <> '_load') and not (m in babel.rmi_related and skip_rmi):
+            mname = 'NULL' if m in ['_ctor', '_ctor2', '_dtor'] else 'ior_%s_%s'%(T, m)
+            r.append('  epv->f_%s = %s;'%(align(m, 16), mname))
+
+    # Output the class methods.
+    generateNonstaticMethods(r, cls, 'struct %s__object'%T, methods, "epv", parent, mwidth)
+
+    # Iterate through all parent EPVs and set each of the function pointers to
+    # use the corresponding function in the parent EPV structure.
+    renames = dict()
+    resolveRenamedMethods(cls, renames)
+    copyEPVs(r, cls.symbol_table, parents, renames)
+    r.append("  s_method_initialized = 1;")
+    r.append("  ior_" + T + "__ensure_load_called();")
+
+    # Close the function definition.
+    r.append("}")
+    r.append('')
+    return '\n'.join(r)
+
+def get_epvs(cls, iorname):
+    """
+    Generate method to return my version of the relevant EPVs -- 
+    mine and all of my ancestors.
+   
+    The purpose of this method is to make my version of the
+    EPVs available to my immediate descendants (so they can
+    use my functions in their versions of their EPVs).
+    """
+    T = iorname
+    r = []
+    r.append("/**")
+    r.append("* %s__getEPVs: Get my version of all relevant EPVs."%T)
+    r.append("*/")
+    r.append("void %s__getEPVs("%T)
+    declareEPVsAsArgs(r, cls, True)
+    r.append("  )")
+    r.append("{")
+
+    # Ensure that the EPV has been initialized.
+    r.append("  LOCK_STATIC_GLOBALS;")
+    r.append("  if (!s_method_initialized) {")
+    r.append("    %s__init_epv();"%T)
+    r.append("  }")
+    r.append("  UNLOCK_STATIC_GLOBALS;")
+    r.append('')
+
+    setEPVsInGetEPVs(r, cls)
+    r.append("}")
+        
+    return '\n'.join(r)
+
+def declareEPVsAsArgs(r, cls, first):
+    if cls:
+        declareEPVsAsArgs(r, cls.get_parent(), False)
+        for ifce in sorted(cls.get_unique_interfaces()):
+            ifc = make_extendable(cls.symbol_table, ifce)
+            T = '_'.join(ifc.qualified_name)
+            t = str.lower(T)
+            r.append('  struct %s__epv **s_arg_epv__%s,'%(T, t))
+            if generateHookEPVs(ifc):
+                r.append('  struct %s__epv **s_arg_epv_hooks__%s,'%(T, t))
+        T = '_'.join(cls.qualified_name)
+        t = str.lower(T)
+        hooks = generateHookEPVs(cls)
+        r.append('  struct %s__epv **s_arg_epv__%s'%(T, t)+(',' if (not first) or hooks else ''))
+        if hooks:
+            r.append('  struct %s__epv **s_arg_epv_hooks__%s'%(T, t)+(',' if not first else ''))
+
+
+def setEPVsInGetEPVs(r, cls):
+    if cls:
+        setEPVsInGetEPVs(r, cls.get_parent())
+        for ifce in sorted(cls.get_unique_interfaces()):
+            ifc = make_extendable(cls.symbol_table, ifce)
+            t = str.lower('_'.join(ifc.qualified_name))
+            r.append('  *s_arg_epv__%s = &s_my_epv__%s;'%(t, t))
+            if generateHookEPVs(ifc):
+                r.append('  *s_arg_epv_hooks__%s = &s_my_epv_hooks__%s;'%(t, t))
+
+        t = str.lower('_'.join(cls.qualified_name))
+        r.append('  *s_arg_epv__%s = &s_my_epv__%s;'%(t, t))
+        if generateHookEPVs(cls):
+            r.append('  *s_arg_epv_hooks__%s = &s_my_epv_hooks__%s;'%(t, t))
+
+
+def s_methods(cls, iorname):
+    r = []
+    for m in cls.all_nonstatic_methods:  
+        ln = sidl.long_method_name(m)
+        r.append('    { "%s", %s_%s__exec },'%(ln, iorname, ln));
+    return '\n'.join(r)
 
 def set_contracts(cls, ior_name):
     return '  /* empty because contract checks not needed */'
@@ -1077,6 +1545,18 @@ def set_contracts_static(cls, ior_name):
     else:
         return '  /* empty since there are no static contracts */'
 
+
+def set_epv_decl(cls, ior_name):
+    if generateHookEPVs(cls):
+        r = '''
+extern void ${CLASS}__set_epv(
+  struct ${CLASS}__epv* epv,
+    struct ${CLASS}__pre_epv* pre_epv,
+    struct ${CLASS}__post_epv* post_epv);
+'''
+    else:
+        r = 'extern void ${CLASS}__set_epv( struct ${CLASS}__epv* epv );'
+    return Template(r).substitute(CLASS=ior_name)
     
 
 builtin_funcs = {
@@ -1336,7 +1816,7 @@ def check_skeletons(cls, ior_name):
         r.append('{')
 
         if Type <> sidl.void:
-            r.append('  %s _retval;'%ctype)
+            r.append('  %s _retval = 0;'%ctype)
 
         r.append(Template(r'''
   struct ${t}__sepv* sepv = ${t}__getTypeStaticEPV(s_SEPV_${T}_BASE);
@@ -1451,7 +1931,7 @@ def check_skeletons(cls, ior_name):
     sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_POSTCONDITION, cComp, 
       TRUE, FALSE, methAvg, cAvg));
 #endif /* SIDL_CONTRACTS_DEBUG */
-  if (sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_POSTCONDITION, cComp, 
+  if (cOkay && sidl_Enforcer_enforceClause(TRUE, sidl_ClauseType_POSTCONDITION, cComp, 
     TRUE, FALSE, methAvg, cAvg)) {
     (ms->tries) += 1;
 ''').substitute(substs))
@@ -1549,6 +2029,272 @@ static VAR_UNUSED struct {t}__method_desc{{
     r.append('')
     return r
 
+def generateMethodExecs(cls, iorname):
+    """
+    Generate the RStub source for a sidl class .  The source
+    file begins with a banner and include files followed by a declaration
+    of static methods and (for a class) external methods expected in the
+    skeleton file.  For classes, the source file then defines a number
+    of functions (cast, delete, initialize EPVs, new, init, and fini).
+    """
+    r = []
+
+    # String my_symbolName = IOR.getSymbolName(id);
+    # Collection c = new LinkedList(cls.getMethods(true));
+    # String self = C.getObjectName(id) + " self";
+    #  
+    # //Adding cast as a possiblity for exec.  We can use if for addrefing connect!
+    # c.add(IOR.getBuiltinMethod(IOR.CAST, cls.getSymbolID(), d_context, false));
+    #  
+    # //Do the same for the set_hooks builtin
+    # if(d_context.getConfig().generateHooks())
+    #   c.add(IOR.getBuiltinMethod(IOR.HOOKS, cls.getSymbolID(), d_context, false));
+    
+    for m in cls.all_methods:
+        needExecErr = False
+        if not sidl.is_static(m):
+            numSerialized = 0  # number of args + return value + exceptions
+            name = sidl.long_method_name(m)
+            returnType = sidl.method_type_void(m)
+            r.append("static void");
+            r.append('%s_%s__exec('%(iorname,name))
+            r.append("        struct %s__object* self,"%iorname);
+            r.append("        struct sidl_rmi_Call__object* inArgs,");
+            r.append("        struct sidl_rmi_Return__object* outArgs,");
+            r.append("        struct sidl_BaseInterface__object** ex) {");
+            r.append("}");
+
+  #         d_writer.tab();
+  #         List args = m.getArgumentList();
+  #         comment("stack space for arguments");
+  #         numSerialized = args.size();
+  #         boolean hasReturn = returnType.getType() != Type.VOID;
+  #         for (Iterator a = args.iterator(); a.hasNext(); ) { 
+  #           Argument arg = (Argument) a.next();
+  #           RMI.declareStackArgs(d_writer,arg, d_context);
+  #         }
+          
+  #         if (hasReturn) {
+  #           ++numSerialized;
+  #           RMI.declareStackReturn(d_writer, returnType,m.isReturnCopy(),
+  #                                  d_context);
+  #         }
+  #         r.append("sidl_BaseInterface _throwaway_exception = " + C.NULL 
+  #                          + ";");
+  #         r.append("sidl_BaseInterface _ex3   = " + C.NULL 
+  #                          + ";");
+  #         //A place to put exceptions that are thrown during serialization
+  #         r.append("sidl_BaseException _SIDLex = " + C.NULL 
+  #                          + ";");
+        
+  #         comment("unpack in and inout argments");
+  #         for (Iterator a = args.iterator(); a.hasNext(); ) { 
+  #           Argument arg = (Argument) a.next();
+  #           if(arg.getMode() == Argument.IN || 
+  #              arg.getMode() == Argument.INOUT) {
+  #             RMI.unpackArg(d_writer, d_context, 
+  #                           cls, "sidl_rmi_Call", "inArgs", arg, true);
+  #           }
+  #         }
+  #         r.append();
+        
+  #         comment("make the call");
+  #         if ( returnType.getType() != Type.VOID ) { 
+  #           d_writer.print( "_retval = ");
+  #         }
+  #         if (m.isStatic()) {
+  #           d_writer.print("(" 
+  #                          + IOR.getStaticEPVVariable(id, IOR.EPV_STATIC, IOR.SET_PUBLIC) 
+  #                          + "." + IOR.getVectorEntry(m.getLongMethodName()) + ")");
+  #         }
+  #         else {
+  #           d_writer.print("(self->" + IOR.getEPVVar(IOR.PUBLIC_EPV) + "->" 
+  #                          + IOR.getVectorEntry(m.getLongMethodName()) + ")");
+  #         }
+  #         r.append("(");
+  #         d_writer.tab();
+  #         IOR.generateArgumentList(d_writer, d_context,
+  #                                  self, false, id, m, false, false, false,
+  #                                "_ex", false, false, false, true );
+  #         r.append(");  SIDL_CHECK(*_ex);");
+  #         d_writer.backTab();
+  #         r.append();
+          
+  #         comment("pack return value");
+  #         if ( returnType.getType() != Type.VOID ) { 
+  #           RMI.packType(d_writer, d_context,
+  #                        "sidl_rmi_Return","outArgs", returnType, 
+  #                        "_retval","_retval", Argument.IN, m.isReturnCopy(), 
+  #                        false, true);
+  #         }
+       
+  #         comment("pack out and inout argments");
+  #         for (Iterator a = args.iterator(); a.hasNext(); ) { 
+  #           Argument arg = (Argument) a.next();
+  #           if (arg.getMode() == Argument.OUT || 
+  #               arg.getMode() == Argument.INOUT) {
+  #             RMI.packArg(d_writer, d_context,
+  #                         "sidl_rmi_Return", "outArgs", arg, true);
+  #           }
+  #         }
+       
+  #         comment("clean-up dangling references");
+       
+  #         for (Iterator a = args.iterator(); a.hasNext(); ) { 
+  #           Argument arg = (Argument) a.next();
+  #           String mod = "";
+  #           if(arg.getMode() != Argument.IN) {
+  #             mod = "*";
+  #           }
+  #           if (arg.getType().getDetailedType() == Type.STRING) {
+  #             r.append("if("+mod+arg.getFormalName()
+  #                              +") {free("+mod+arg.getFormalName()+");}");
+  #           } else if (arg.getType().getDetailedType() == Type.CLASS ||
+  #                      arg.getType().getDetailedType() == Type.INTERFACE) {
+            
+  #             if(arg.getMode() == Argument.IN) {
+  #               if(!arg.isCopy()) {
+  #                 r.append("if("+arg.getFormalName()+
+  #                                  "_str) {free("+arg.getFormalName()+"_str);}");
+  #               }
+  #               r.append("if("+mod+arg.getFormalName()+") {");
+  #               d_writer.tab();
+  #               r.append("sidl_BaseInterface_deleteRef((sidl_BaseInterface)"
+  #                                +mod+arg.getFormalName()+", &_ex3); EXEC_CHECK(_ex3);");
+  #               needExecErr = true;
+  #               d_writer.backTab();
+  #               r.append("}"); 
+       
+  #             } else { //Mode is OUT or INOUT, transfer the reference
+  #               if(arg.isCopy()) {
+  #                 r.append("if("+mod+arg.getFormalName()+") {");
+  #                 d_writer.tab();
+  #                 r.append("sidl_BaseInterface_deleteRef((sidl_BaseInterface)"
+  #                                  +mod+arg.getFormalName()+", &_ex3); EXEC_CHECK(_ex3);");
+  #                 needExecErr = true;
+  #               } else {
+  #                 r.append("if("+mod+arg.getFormalName()+
+  #                                  " && sidl_BaseInterface__isRemote("+
+  #                                  "(sidl_BaseInterface)"+mod+arg.getFormalName()+", &_throwaway_exception)) {");
+                
+  #                 d_writer.tab();
+  #                 r.append("(*((sidl_BaseInterface)"+mod+arg.getFormalName()+
+  #                                  ")->d_epv->f__raddRef)(((sidl_BaseInterface)"
+  #                                  +mod+arg.getFormalName()+")->d_object, &_ex3); EXEC_CHECK(_ex3);");
+  #                 needExecErr = true;
+                
+  #                 r.append("sidl_BaseInterface_deleteRef((sidl_BaseInterface)"+
+  #                                  mod+arg.getFormalName()+", &_ex3); EXEC_CHECK(_ex3);");
+  #               }
+  #             d_writer.backTab();
+  #             r.append("}"); 
+       
+  #             }
+  #           } else if(arg.getType().getDetailedType() == Type.ARRAY) {
+  #             r.append("sidl__array_deleteRef((struct sidl__array*)"+
+  #                              mod+arg.getFormalName()+");");
+  #           }
+       
+       
+  #         }
+       
+  #         //The caller must ignore any (in)out parameters if an exception occured.
+  #         //We get to EXIT whether we see an exception or not.
+  #         //We then attempt to clean up.  Any exceptions in cleanup jump to EXEC_ERR.
+  #         //EXEC_ERR then throws one or zero exceptions, giving priority to _ex.
+  #         //If that fails, throw it back to the caller (probably an ORB).
+  #         //DeleteRef the new exception, it should be duplicatable.
+       
+  #         // retval
+  #         r.append("EXIT:");      
+  #         if(returnType.getDetailedType() == Type.STRING) {
+  #           r.append("if(_retval) {");
+  #           d_writer.tab();
+  #           r.append("free(_retval);");
+  #           d_writer.backTab();
+  #           r.append("}");
+  #         } else if (returnType.getDetailedType() == Type.CLASS ||
+  #                    returnType.getDetailedType() == Type.INTERFACE){
+  #           if(m.isReturnCopy()) {
+  #             r.append("if(_retval) {");
+  #             d_writer.tab();
+  #             r.append("sidl_BaseInterface_deleteRef((sidl_BaseInterface)"+
+  #                              "_retval, &_ex3); EXEC_CHECK(_ex3);");
+  #             needExecErr = true;
+  #             d_writer.backTab();
+  #             r.append("}");
+  #           } else {
+  #             r.append("if(_retval && sidl_BaseInterface__isRemote("+
+  #                              "(sidl_BaseInterface)_retval, &_throwaway_exception)) {");
+  #             d_writer.tab();
+  #             r.append("(*((sidl_BaseInterface)_retval)->d_epv->f__raddRef)(((sidl_BaseInterface)_retval)->d_object, &_ex3); EXEC_CHECK(_ex3);");
+            
+  #             needExecErr = true;
+  #             r.append("sidl_BaseInterface_deleteRef((sidl_BaseInterface)"+
+  #                              "_retval, &_ex3); EXEC_CHECK(_ex3);");
+  #             d_writer.backTab();
+  #             r.append("}");
+  #           }
+  #         } else if(returnType.getDetailedType() == Type.ARRAY) {
+  #           r.append("sidl__array_deleteRef((struct sidl__array*)_retval);");
+  #         }
+       
+       
+  #         // exec_err
+  #         if (needExecErr) {
+  #           r.append("EXEC_ERR:");
+  #         }
+          
+  #         r.append("if(*_ex) { ");
+  #         d_writer.tab();
+  #         r.append("_SIDLex = sidl_BaseException__cast(*_ex,&_throwaway_exception);");
+  #         r.append("sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); ");
+       
+  #         r.append("if(_throwaway_exception) {");
+  #         d_writer.tab();
+  #         comment("Throwing failed, throw _ex up the stack then.");
+  #         r.append("sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);");
+  #         r.append("return;");
+  #         d_writer.backTab();
+  #         r.append("}");
+       
+  #         r.append("sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);");
+  #         r.append("sidl_BaseInterface_deleteRef(*_ex, &_throwaway_exception);");
+  #         r.append("*_ex = NULL;");
+  #         r.append("if(_ex3) { ");
+  #         d_writer.tab();
+  #         r.append("sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);");
+  #         r.append("_ex3 = NULL;");
+  #         d_writer.backTab();
+  #         r.append("}");
+  #         d_writer.backTab();
+  #         r.append("} else if(_ex3) {");
+  #         d_writer.tab();
+  #         r.append("_SIDLex = sidl_BaseException__cast(_ex3,&_throwaway_exception);");
+  #         r.append("sidl_rmi_Return_throwException(outArgs, _SIDLex, &_throwaway_exception); ");
+       
+  #         r.append("if(_throwaway_exception) {");
+  #         d_writer.tab();
+  #         comment("Throwing failed throw _ex3 up the stack then.");
+  #         r.append("sidl_BaseInterface_deleteRef(_throwaway_exception, &_throwaway_exception);");
+  #         r.append("return;");
+  #         d_writer.backTab();
+  #         r.append("}");
+       
+  #         r.append("sidl_BaseException_deleteRef(_SIDLex, &_throwaway_exception);");
+  #         r.append("sidl_BaseInterface_deleteRef(_ex3, &_throwaway_exception);");
+  #         r.append("_ex3 = NULL;");
+  #         d_writer.backTab();
+  #         r.append("}");
+  #         d_writer.backTab();
+       
+  #         r.append("}");
+  #         r.append();
+  #       }
+  #     }
+  #   }
+    return '\n'.join(r)
+
 
 def EPVinits(cls):
     r = []
@@ -1643,6 +2389,30 @@ def EPVfini(cls):
         r.append('  %s__fini(s1, _ex); SIDL_CHECK(*_ex);'%qual_cls(parent) )
 
     return '\n'.join(r)
+
+
+def resolveRenamedMethods(ext, renames):
+    
+    # Check is current ext has renamed, if so add them
+    renamed = ext.get_newmethods()
+    for newM in renamed:
+      oldM = ext.get_renamed_method()
+      renames[oldM+"."+sidl.long_method_name(oldM)] = newM
+    
+    # Check if parent has any methods that are renamed, if so, add to map 
+      for parent in ext.get_parents():
+          for curM in parent.get_methods():
+              # If the method was renamed in a child
+              curM_name = sidl.long_method_name(curM)
+              if (ext.getFullName() + "."+ curM_name) in renames:
+                  # and we haven't already added this parents's version
+                  k = parent.getFullName() + "." + curM_name
+                  if k not in renames.containsKey():
+                      # add this parents version
+                      renames[k] = ext.lookup_method_by_long_name(sidl.long_method_name(curM), True)
+            
+          # After adding the methods from this parent, recursively call the parent
+          resolveRenamedMethods(parent, renames)
 
 
 @accepts(object)
@@ -1775,6 +2545,6 @@ def isException(ext):
    the base exception interface, or it has the base exception class or 
    interface in its type ancestry.
    """
-   base_ex = sidl.Scoped_id(['sidl'], 'BaseException', '')
+   base_ex = (sidl.scoped_id, ('sidl',), 'BaseException', '')
    sid = ext.get_id()
    return sid == base_ex or ext.has_parent_interface(base_ex)

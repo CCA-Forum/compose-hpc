@@ -100,7 +100,7 @@
 #   Literal = ('INT' | 'FLOAT' | 'STR' | pure | result | Complex),
 #   Complex = complex('FLOAT', 'FLOAT')
 # ].
-# 
+#   
 #\endverbatim
 
 
@@ -3354,3 +3354,31 @@ def get_scoped_id(symbol_table, ext):
     if is_scoped_id(tid):
         return tid
     return Scoped_id(symbol_table.prefix, tid, '')
+def is_static(method):
+    """
+    \return \c true iff the sidl.method \c method has the \c static
+    attribute.
+    """
+    from patmat import member_chk
+    return member_chk(static, method_method_attrs(method))
+ 
+def is_nonblocking(method):
+    """
+    \return \c true iff the sidl.method \c method has the \c nonblocking
+    attribute.
+    """
+    from patmat import member_chk
+    return member_chk(nonblocking, method_method_attrs(method))
+ 
+def is_not_static(method):
+    """
+    \return \c false iff the sidl.method \c method has the \c static
+    attribute.
+    """
+    return not is_static(method)
+def long_method_name(m):
+    """
+    \return \the long name of the sidl.method \c method
+    """
+    n = method_method_name(m)
+    return n[1]+n[2]

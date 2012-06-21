@@ -38,7 +38,6 @@ def make_extendable(symbol_table, sidl_ext):
     import pdb; pdb.set_trace()
 
 
-
 class Extendable(object):
     """
     Base class for Class, Interface, ...
@@ -48,21 +47,28 @@ class Extendable(object):
         Create a new Extendable object from the sidl tuple representation.
         """
         self.data = ext
-        self.symbol_table = symbol_table
         self.is_abstract = member_chk(sidl.abstract, attrs)
         if sidl.is_scoped_id(ext[1]):
+            self.symbol_table, _ = symbol_table[ext[1]]
             self.name = ext[1][2]
             self.qualified_name = ext[1][1]+[self.name+ext[1][3]]
         else:
+            self.symbol_table = symbol_table
             self.name = ext[1]
             self.qualified_name = symbol_table.prefix+[self.name]
-        self.qualified_name = symbol_table.prefix+[self.name]
+
         self.extends = ext[2]
         self.implements = [] # default for interface
+        self.all_parents = []
 
         # invoke scan_methods() to populate these
         self.all_methods = None 
         self.has_static_methods = None
+        self.all_nonstatic_methods   = None 
+        self.local_nonstatic_methods = None 
+        self.all_static_methods      = None 
+        self.local_static_methods    = None 
+        self.all_nonblocking_methods = None
 
     def __repr__(self):
         return 'Extendable(%r, %r, %r)'%(self.symbol_table, self.data, [])
@@ -81,15 +87,18 @@ class Extendable(object):
 
         return make_extendable(symbol_table, ext)
 
-    def get_parents(self, all_parents):
+    def get_parents(self):
         """
         Return a list of the names of all base classes and implemented
         interfaces of a class in \c all_parents
         """
-
+        if self.all_parents:
+            return self.all_parents
         start = sidl.Scoped_id(self.symbol_table.prefix, sidl.type_id(self.data), '')
-        visit_hierarchy(start, lambda _st, ext, _id: all_parents.append(ext), self.symbol_table, [])
-        return all_parents
+        visit_hierarchy(start, 
+                        lambda _st, ext, _id: self.all_parents.append(ext), 
+                        self.symbol_table, [])
+        return self.all_parents
 
     def get_parent_interfaces(self):
 
@@ -152,6 +161,17 @@ class Extendable(object):
             unique -= set(parent.get_parent_interfaces())
         return unique
 
+    def get_nonstatic_methods(self, _all):
+        """
+        Return the list of non-static methods in this interface.
+        Each element in the collection is of type <code>Method</code>.
+         
+        @param  all  If TRUE, then return local and parent non-static methods; 
+                     otherwise, return only local non-static methods.
+        """
+        return self.all_nonstatic_methods if _all else self.local_nonstatic_methods
+
+
     def scan_methods(self):
         """
         Recursively resolve the inheritance hierarchy and build a list of
@@ -173,12 +193,64 @@ class Extendable(object):
                      self, 
                      toplevel=True)
 
-        self.has_static_methods = any(map(
-                lambda m: member_chk(sidl.static, sidl.method_method_attrs(m)), 
-                self.all_methods))
+        self.all_nonstatic_methods   = filter(sidl.is_not_static, self.all_methods)
+        self.local_nonstatic_methods = filter(sidl.is_not_static, self.get_methods())
+        self.all_static_methods      = filter(sidl.is_static, self.all_methods)
+        self.local_static_methods    = filter(sidl.is_static, self.get_methods())
+        self.all_nonblocking_methods = filter(sidl.is_nonblocking, self.all_methods)
+        self.has_static_methods = self.all_static_methods <> []
 
     def number_of_methods(self):
         return len(sidl.ext_methods(self.data))
+
+    def get_newmethods(self):
+        # FIXME!!!
+        return []
+
+    def has_method_by_long_name(self, longname, _all):
+        """
+        Return TRUE if the specified method exists by long name; otherwise,
+        return FALSE.
+
+        @param  name  The long method name for the method to be located.
+        @param  all   If TRUE then all local and parent methods are to 
+                      be searched; otherwise, only local methods are to
+                      be searched.
+        """
+        return self.lookup_method_by_long_name(longname, _all) <> None
+
+    def lookup_method_by_long_name(self, longname, _all):
+        """
+        Return the <code>Method</code> with the specified long method name.  
+        If there is none, return null.
+    
+        @param  name  The short method name for the method to be located.
+        @param  all   If TRUE then all local and parent methods are to 
+                      be searched; otherwise, only local methods are to
+                      be searched.
+        """
+        for m in self.all_methods if _all else self.get_methods():
+              name = sidl.method_method_name(m)
+              if name[1]+name[2] == longname:
+                  return m
+        return None  
+
+    def has_inv_clause(self, _all):
+        """
+        Returns TRUE if this Extendable has any assertions in its invariant
+        clause; otherwise, returns FALSE.
+
+        @param   all   If TRUE then check inherited invariant clauses; otherwise, 
+                       only check the local clause.
+        """
+        if _all:
+            for par in self.get_parents():
+                if sidl.ext_invariants(par):
+                    return True
+            return False
+        else:
+            return sidl.ext_invariants(self.data)
+
 
     def is_interface(self):
         return sidl.is_interface(self.data)

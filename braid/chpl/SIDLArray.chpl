@@ -210,7 +210,10 @@
 	return nil;							\
       }									\
       var ior = sidl_##C_TYPE##__array_cast(generic_array);		\
-      return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
+      extern proc IS_NOT_NULL(in aRef): bool;				\
+      if IS_NOT_NULL(ior) then						\
+	return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
+      else return nil;							\
     }	      							        \
   }
 
@@ -241,10 +244,11 @@ SIDL_ARRAY(BaseInterface, int(32))
       this.ior = ior;
 
       extern proc generic_array(ior): sidl__array;
-      /* Generic array We need to use opaque as the Chapel
-	 representation because otherwise Chapel would start copying
-	 arguments and thus mess with the invariant that
-	 genarr.d_metadata == genarr */
+      /* Generic array:
+
+	 We need to use opaque as the Chapel representation because
+	 otherwise Chapel would start copying arguments and thus mess
+	 with the invariant that genarr.d_metadata == genarr */
       extern proc ior_ptr(ior): opaque;
       this.generic = ior_ptr(ior);
     }
@@ -253,15 +257,6 @@ SIDL_ARRAY(BaseInterface, int(32))
     /*   this.borrowed = borrow_from; */
     /* }     */
 
-
-    /**
-     * always returns true, since there is no way to construct an
-     * unintialized Array for now.
-     */
-    proc _not_nil(): bool {
-      //writeln(ior.d_metadata);
-      return true;
-    }
 
     /**
      * The relation operators available in the built-in quantifier operators.

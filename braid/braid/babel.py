@@ -90,6 +90,29 @@ builtins = map(builtin,
                 ('_dtor', []),
                 ('_load', [])])
 
+builtin_method_names = [
+    "_cast",                    # the CAST method
+    "_delete",			# the DELETE method
+    "_exec",			# the reflexive EXEC method
+    "_getURL",			# get's the object's URL (for RMI)
+    "_raddRef",			# Remote addRef, Internal Babel	 
+    "_isRemote",		# TRUE if this object is Remote
+    "_set_hooks",		# the HOOKS method
+    "_set_contracts",		# the Contract CONTRACTS method
+    "_dump_stats",		# the DUMP_STATS method
+    "_ctor",			# the CONSTRUCTOR method
+    "_ctor2",			# the CONSTRUCTOR2 method
+    "_dtor",			# the DESTRUCTOR method
+    "_load"			# the LOAD method
+  ]
+
+rmi_related = [
+    "_exec",
+    "_getURL",
+    "_raddRef",
+    "_isRemote"
+  ]
+
 
 def argname((_arg, _attr, _mode, _type, Id)):
     return Id
