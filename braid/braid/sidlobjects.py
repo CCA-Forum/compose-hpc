@@ -197,7 +197,8 @@ class Extendable(object):
         self.local_nonstatic_methods = filter(sidl.is_not_static, self.get_methods())
         self.all_static_methods      = filter(sidl.is_static, self.all_methods)
         self.local_static_methods    = filter(sidl.is_static, self.get_methods())
-        self.all_nonblocking_methods = filter(sidl.is_nonblocking, self.all_methods)
+        # FIXME: should be all methods + send/recv for nonblocking methods
+        self.all_nonblocking_methods = self.all_methods
         self.has_static_methods = self.all_static_methods <> []
 
     def number_of_methods(self):

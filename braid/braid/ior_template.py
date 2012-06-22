@@ -1099,11 +1099,11 @@ def generateNonstaticEPV(r, m, obj, var, parent, parentHas, width):
     Generate the non-static method epv entry for the method.
     """
     name = sidl.long_method_name(m)
-    r.append('  %s->f_%s= '%(var, align(name, width)))
     if parentHas:
-        r.append('    %ss1->f_%s;'%(getCast(m, obj + "*"), name))
+        r.append('  %s->f_%s= %ss1->f_%s;'%(var, align(name, width), 
+                                            getCast(parent.symbol_table, m, obj + "*"), name))
     else:
-        r.append('    NULL;')
+        r.append('  %s->f_%s= NULL;'%(var, align(name, width)))
     
     #if d_context.getConfig().getFastCall() && !IOR.isBuiltinMethod(name):
     #    if parentHas:
@@ -1192,13 +1192,13 @@ def copyEPVs(r, symbol_table, parents, renames):
         for method in methList:
           name          = T+sidl.long_method_name(method)
           oldname       = sidl.long_method_name(method)
-          if method in renames.__keys__:
+          if sidl.long_method_name(method) in renames:
             newname = sidl.long_method_name(renames[method])
           else:
             newname = oldname
    
-          r.append('  %sf_%s= (%s)epv->%s;'
-                 %(estring,align(vecEntry, mwidth),getCast(method, selfptr),vecEntry))
+          r.append('  %sf_%s= %sepv->f_%s;'
+                 %(estring,align(oldname, mwidth),getCast(symbol_table, method, selfptr),newname))
    
    
         # Do the same for the native EPV entries if enabled
@@ -1242,12 +1242,13 @@ def copyEPVs(r, symbol_table, parents, renames):
               else:
                   newname = oldname
               r.append('  %she_%s= %shepv->%s;'
-                       %(estring,align(vecEntry, mwidth),getCast(method, selfptr),vecEntry))
+                       %(estring,align(vecEntry, mwidth),
+                         getCast(symbol_table, method, selfptr),vecEntry))
    
         r.append('');
         e += 1;
 
-def getCast(method, selfptr):
+def getCast(symbol_table, method, selfptr):
     """
     Generate a cast string for the specified method.  The string
     argument self represents the name of the object.  A code generation
@@ -1257,15 +1258,16 @@ def getCast(method, selfptr):
     # Begin the cast string with the return type and self object reference.
     cast = []
     cast.append("(");
-    cast.append(c_gen(sidl.method_type_void(method)))
+    cast.append(c_gen(babel.lower_ir(symbol_table, sidl.method_type_void(method))))
     cast.append(" (*)(")
 
     # Add the method arguments to the cast clause as well as an
     # optional exception argument.
     args = [selfptr]
     for arg in sidl.method_args(method):
-        args.append(c_gen(sidl.arg_type_void(arg)))
+        args.append(c_gen(babel.lower_ir(symbol_table, sidl.arg_type_void(arg))))
 
+    args.append('struct sidl_BaseInterface__object **') # exception
     cast.append(', '.join(args))
     cast.append("))")
     return ''.join(cast)
@@ -1324,13 +1326,13 @@ def init_epv(cls, iorname, sorted_parents):
     methods = cls.all_nonstatic_methods
     #mwidth  = max(Utilities.getWidth(methods), s_longestBuiltin)
     #               + IOR.getVectorEntry("").length()
-    mwidth = 1
+    mwidth = 16
 
     # Output builtin methods.
     for m in babel.builtin_method_names:
         if (m <> '_load') and not (m in babel.rmi_related and skip_rmi):
             mname = 'NULL' if m in ['_ctor', '_ctor2', '_dtor'] else 'ior_%s_%s'%(T, m)
-            r.append('  epv->f_%s = %s;'%(align(m, 16), mname))
+            r.append('  epv->f_%s= %s;'%(align(m, 16), mname))
 
     # Output the class methods.
     generateNonstaticMethods(r, cls, 'struct %s__object'%T, methods, "epv", parent, mwidth)
@@ -1595,8 +1597,6 @@ def lower_assertion(cls, m, expr):
     """
     convert a SIDL assertion expression into IR code
     """
-    from chapel.backend import lower_ir
-
     def low(e): 
         return lower_assertion(cls, m, e)
 
@@ -1635,7 +1635,7 @@ def lower_assertion(cls, m, expr):
                 except: print "**ERROR: assert function has now arguments: ", sidl_gen(expr)
                 t = get_arg_type(low(arg0))
                 if sidl.is_array(t):
-                    typearg = c_gen(lower_ir(cls.symbol_table, t))
+                    typearg = c_gen(babel.lower_ir(cls.symbol_table, t))
                     return ir.Call('SIDL_ARRAY_'+builtin_funcs[Id], [typearg]+args)
                 else:
                     return ir.Call('SIDL_'+builtin_funcs[Id], args)
@@ -1792,7 +1792,7 @@ ${c}__getTypeStaticEPV(int type){
       
 
 def check_skeletons(cls, ior_name):
-    from chapel.backend import babel_epv_args, lower_ir
+    from chapel.backend import babel_epv_args
     if not generateContractChecks(cls):
         return '  /* no check_* stubs since there are no contracts */'
 
@@ -1803,7 +1803,7 @@ def check_skeletons(cls, ior_name):
         method_name = sidl.method_id(m)
         preconditions = Requires
         postconditions = Ensures
-        ctype = c_gen(lower_ir(cls.symbol_table, Type))
+        ctype = c_gen(babel.lower_ir(cls.symbol_table, Type))
         cargs =  babel_epv_args(Attrs, Args, cls.symbol_table, '_'.join(cls.qualified_name))
         
         substs = { 't' : ior_name,    'T' : str.upper(ior_name), 

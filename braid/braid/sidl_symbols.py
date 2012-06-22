@@ -405,8 +405,17 @@ def scan_methods(symbol_table, is_abstract,
         #raise('?')
 
     def scan_protocols(implements):
-        for impl in implements:
-            for m in symbol_table[impl[1]][1][4]:
+        for impl, ifce_sym in implements:
+            _, ifce = symbol_table[ifce_sym]
+            if impl == sidl.implements_all:
+                scan_methods(symtab, is_abstract,
+                             sidl.interface_extends(ifce), 
+                             [], 
+                             sidl.interface_methods(ifce),
+                             all_names, all_methods, flags, 
+                             toplevel=False)
+
+            for m in sidl.interface_methods(ifce):
                 add_method(m, toplevel and not is_abstract)
 
     for _, ext in extends:
