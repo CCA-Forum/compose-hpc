@@ -42,7 +42,7 @@ def qual_id(scoped_id, sep='_'):
     \arg sep the separation character to use (default="_")
     """
     _, prefix, name, ext = scoped_id
-    return sep.join(prefix+[name])+ext
+    return sep.join(list(prefix)+[name])+ext
 
 def babel_object_type(package, name):
     """

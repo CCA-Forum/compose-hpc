@@ -293,7 +293,7 @@ export vect_Utils_vuAreOrth_impl proc vuAreOrth(in u: opaque /* array< > */, in 
     var u_data = createBorrowedArray1d(u_meta);
     var v_data = createBorrowedArray1d(v_meta);
     var throwaway: sidl.BaseInterface;
-    var val = vect.Utils_static.vuDot(u, u, tol, vect.BadLevel.NoVio, throwaway); 
+    var val = vect.Utils_static.vuDot(u, v, tol, vect.BadLevel.NoVio, throwaway); 
     if ( fabs(val) <= fabs(tol) ) {
       are = true;
     } else {
@@ -446,7 +446,9 @@ export vect_Utils_vuDot_impl proc vuDot(in u: opaque /* array< > */, in v: opaqu
       {
 	var u_data = createBorrowedArray1d(u_meta);
 	var v_data = createBorrowedArray1d(v_meta);
-	[i in 0..#lenU] dot += u_data[i:int(32)] * v_data[i:int(32)];
+	for i in 0..#lenU do {
+	  dot += u_data[i:int(32)] * v_data[i:int(32)];
+	}
       }
     }
   } else if (badLevel == vect.BadLevel.NegRes) {
@@ -476,12 +478,14 @@ export vect_Utils_vuProduct_impl proc vuProduct(in a: real(64), in u: opaque /* 
 
   if badLevel == vect.BadLevel.NoVio then
   {
-    var u_data = createBorrowedArray1d(u_meta);
-    var prod = sidl.double_array.create1d(lenU);
     if u_meta != nil then {
+      var prod = sidl.double_array.create1d(lenU);
+      var u_data = createBorrowedArray1d(u_meta);
       [i in 0..#lenU] prod(2)[i:int(32)] = a * u_data[i:int(32)];
+      return prod(1).generic;
     }
-    return prod(1).generic;
+    var prod: opaque; // NULL
+    return prod;
 
   } else if (badLevel == vect.BadLevel.NullRes) {
     var prod: opaque; // NULL
@@ -574,7 +578,8 @@ export vect_Utils_vuNormalize_impl proc vuNormalize(in u: opaque /* array< > */,
         ex.add("vect_Impl.chpl", 564, "vect.vDivByZeroExcept", throwaway);
 	_ex = ex.as_sidl_BaseInterface();
         //throw ex;
-	return u;
+	var prod: opaque; // NULL
+	return prod;
       }
     }
   } else if badLevel == vect.BadLevel.NullRes then {

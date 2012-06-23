@@ -2330,7 +2330,7 @@ def fixEPVs(r, cls, level, is_new):
     name = qual_cls(cls)
     
     # Modify the class entry point vector.
-    setContractsEPV =  level == 0 and is_new
+    setContractsEPV = generateContractChecks(cls) and level == 0 and is_new
     if setContractsEPV:
         r.append('')
         r.append('#ifdef SIDL_CONTRACTS_DEBUG')

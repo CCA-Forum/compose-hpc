@@ -245,7 +245,7 @@ def Fn_defn(*args):
         print "**GRAMMAR ERROR: expected 6 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
+    if isinstance(args[0], list) or isinstance(args[0], tuple):
         for a in args[0]:
             if a == static:
                 pass
@@ -287,7 +287,7 @@ def Fn_defn(*args):
         print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[3], list):
+    if isinstance(args[3], list) or isinstance(args[3], tuple):
         for a in args[3]:
             if isinstance(a, tuple) and a[0] == arg:
                 pass
@@ -301,7 +301,7 @@ def Fn_defn(*args):
         print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[4], list):
+    if isinstance(args[4], list) or isinstance(args[4], tuple):
         for a in args[4]:
             if isinstance(a, tuple) and a[0] == stmt:
                 pass
@@ -337,7 +337,7 @@ def Fn_decl(*args):
         print "**GRAMMAR ERROR: expected 5 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
+    if isinstance(args[0], list) or isinstance(args[0], tuple):
         for a in args[0]:
             if a == static:
                 pass
@@ -379,7 +379,7 @@ def Fn_decl(*args):
         print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[3], list):
+    if isinstance(args[3], list) or isinstance(args[3], tuple):
         for a in args[3]:
             if isinstance(a, tuple) and a[0] == arg:
                 pass
@@ -532,7 +532,7 @@ def If(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], list):
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == stmt:
                 pass
@@ -676,7 +676,7 @@ def While(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], list):
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == stmt:
                 pass
@@ -705,7 +705,7 @@ def Do_while(*args):
         print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
+    if isinstance(args[0], list) or isinstance(args[0], tuple):
         for a in args[0]:
             if isinstance(a, tuple) and a[0] == stmt:
                 pass
@@ -807,7 +807,7 @@ def Arg(*args):
         print "**GRAMMAR ERROR: expected 4 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
+    if isinstance(args[0], list) or isinstance(args[0], tuple):
         for a in args[0]:
             if a == static:
                 pass
@@ -884,7 +884,7 @@ def Struct(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], list):
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == struct_item:
                 pass
@@ -1072,7 +1072,7 @@ def Scoped_id(*args):
         print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
         print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
         raise Exception("Grammar Error")
-    if isinstance(args[0], list):
+    if isinstance(args[0], list) or isinstance(args[0], tuple):
         for a in args[0]:
             if isinstance(a, PythonTypes.StringType):
                 pass
@@ -1123,7 +1123,7 @@ def Enum(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], list):
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == enumerator:
                 pass
@@ -1454,7 +1454,7 @@ def New(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], list):
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == arg:
                 pass
@@ -2456,7 +2456,7 @@ def Call(*args):
         print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
         print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
-    if isinstance(args[1], list):
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == str:
                 pass

@@ -507,14 +507,16 @@ class GlueCodeGenerator(object):
         with_sidl_baseclass = not cls.is_interface() and cls.qualified_name <> ['sidl', 'BaseClass']
         
         # pointers to the base class' EPV
-        for _, ext in cls.extends:
-            if ext[2] <> 'BaseInterface':
-                gen_inherits(ext)
-                with_sidl_baseclass = False
+        par = cls.get_parent()
+        if par and par.is_class():
+            gen_inherits(par.get_scoped_id())
+            with_sidl_baseclass = False
 
         # pointers to the implemented interface's EPV
-        for _, impl in cls.implements:
-            gen_inherits(impl)
+        if not cls.is_interface():
+            for impl in cls.get_parent_interfaces():
+                if impl <> (sidl.scoped_id, ('sidl',), 'BaseInterface', ''):
+                    gen_inherits(impl)
 
         baseclass = []
         if with_sidl_baseclass:
@@ -522,7 +524,7 @@ class GlueCodeGenerator(object):
                 ir.Struct_item(ir.Struct('sidl_BaseClass__object', [],''),
                                'd_sidl_baseclass'))
 
-        if not cls.is_interface() and not cls.is_abstract:
+        if ior_template.generateContractEPVs(ci.co):
             cstats = [ir.Struct_item(unscope(ci.cstats), 'd_cstats')]
 
             
@@ -1391,6 +1393,9 @@ class GlueCodeGenerator(object):
         ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
             babel_static_ior_args([], ci.epv.symbol_table, ci.epv.name),
             "FINI: deallocate a class instance (destructor)."))
+
+        ci.ior.new_header_def('struct %s__object* %s__createObject('%(iorname, iorname)+
+                              'void* ddata, struct sidl_BaseInterface__object ** _ex);')
 
         if with_ior_c:
             ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co, 

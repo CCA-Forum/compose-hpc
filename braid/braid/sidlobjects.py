@@ -76,9 +76,15 @@ class Extendable(object):
     def __str__(self):
         return self.name
 
+    def get_scoped_id(self):
+        """
+        \return the scoped id of this extendable.
+        """
+        return sidl.Scoped_id(self.symbol_table.prefix, self.name)
+
     def get_parent(self):
         """
-        return the base class/interface of \c class_or_interface
+        \return the base class/interface of \c class_or_interface
         """
         extends = self.data[2]
         if extends == []:
@@ -151,7 +157,7 @@ class Extendable(object):
         """
         Extract the unique interfaces from this extendable object.
         The unique interfaces are those that belong to this class but
-        do not belong to one of its parents (if they exit).  The
+        do not belong to one of its parents (if they exist).  The
         returned set consists of objects of the type
         <code>Interface</code>.
         """

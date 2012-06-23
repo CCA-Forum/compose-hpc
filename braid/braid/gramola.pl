@@ -192,7 +192,8 @@ validation1(Arg, Var, Indent) :- !,
     ;	type_check(Arg, Var, Indent)
     ).
 
-%% validation/2: output validation code for a given grammar node
+%% validation/2: output validation code
+% (=a type constructor) for a given grammar node
 % alternatives
 validation(Arg, Var, Indent) :- !,
     %A =.. [Type|Args],
@@ -230,9 +231,9 @@ type_check(A, Var, Indent) :-
     format('if ~a == ~a:~n', [Var, AS]),
     format('~a    pass~n', [Indent]).
 
-% list
+% list: accept lists and tuples
 type_check([A], Var, Indent) :-
-    format('if isinstance(~a, list):~n', [Var]),
+    format('if isinstance(~a, list) or isinstance(~a, tuple):~n', [Var, Var]),
     format('~a    for a in ~a:~n', [Indent, Var]),
     atom_concat(Indent, '        ', Indent1),
     validation(A, 'a', Indent1).
