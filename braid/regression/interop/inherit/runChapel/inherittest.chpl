@@ -55,19 +55,18 @@ proc clearstack(magicNumber: int): int
 proc testC() {
   var sidlEx: BaseInterface = nil;
   tracker.writeComment("Class C: starts...", sidlEx);
-  var c = Inherit.C_static.create_C(sidlEx);
+  var c = Inherit.C_static.create(sidlEx);
   tracker.writeComment("Class C:", sidlEx);
   init_part("c.c()"); run_part(c.c(sidlEx), "C.c");
   tracker.writeComment("Class C: ends.", sidlEx);
 }
 testC();
 
-
 proc testD() {
   var sidlEx: BaseInterface = nil;
   tracker.writeComment("Class D: starts...", sidlEx);
 
-  var d = Inherit.D_static.create_D(sidl_ex);
+  var d = Inherit.D_static.create(sidl_ex);
   tracker.writeComment("Class D: inheritance of interface A", sidl_ex);
   init_part("d.a()"); run_part(d.a(sidl_ex), "D.a");
   init_part("d.d()"); run_part(d.d(sidl_ex), "D.d");
@@ -101,7 +100,7 @@ proc testD() {
 testD();
 
 proc testE() {
-  var e = Inherit.E_static.create_E(sidl_ex);
+  var e = Inherit.E_static.create(sidl_ex);
   tracker.writeComment("Class E: inheritance of class C", sidl_ex);
   init_part("e.c()"); run_part(e.c(sidl_ex), "C.c");
   init_part("e.e()"); run_part(e.e(sidl_ex), "E.e");
@@ -121,7 +120,7 @@ proc testE() {
 testE();
 
 proc testE2() {
-  var e2 = Inherit.E2_static.create_E2(sidl_ex);
+  var e2 = Inherit.E2_static.create(sidl_ex);
   tracker.writeComment("Class E2: inheritance of class C", sidl_ex);
   init_part("e2.c()"); run_part(e2.c(sidl_ex), "E2.c");
   init_part("e2.e()"); run_part(e2.e(sidl_ex), "E2.e");
@@ -143,7 +142,7 @@ proc testE2() {
 testE2();
 
 proc testF() {
-  var f = Inherit.F_static.create_F(sidl_ex);
+  var f = Inherit.F_static.create(sidl_ex);
   tracker.writeComment("Class F: Multiple inheritance (no overriding)", sidl_ex);
   init_part("f.a()"); run_part(f.a(sidl_ex), "F.a");
   init_part("f.b()"); run_part(f.b(sidl_ex), "F.b");
@@ -190,7 +189,7 @@ proc testF() {
 testF();
 
 proc testF2() {
-  var f2 = Inherit.F2_static.create_F2(sidl_ex);
+  var f2 = Inherit.F2_static.create(sidl_ex);
   tracker.writeComment("Class F2: Multiple inheritance (overrides C.c)", sidl_ex);
   init_part("f2.a()"); run_part(f2.a(sidl_ex), "F2.a");
   init_part("f2.b()"); run_part(f2.b(sidl_ex), "F2.b");
@@ -236,7 +235,7 @@ proc testF2() {
 testF2();
 
 proc testG() {
-  var g = Inherit.G_static.create_G(sidl_ex);
+  var g = Inherit.G_static.create(sidl_ex);
 
   tracker.writeComment("Class G: indirect multiple inheritance ( no overloads)", sidl_ex);
   init_part("g.a()"); run_part(g.a(sidl_ex), "D.a");
@@ -273,7 +272,7 @@ proc testG() {
 testG();
   
 proc testG2() {
-  var g2 = Inherit.G2_static.create_G2(sidl_ex);
+  var g2 = Inherit.G2_static.create(sidl_ex);
 
   tracker.writeComment("Class G2: indirect multiple inheritance (overloads)", sidl_ex);
   init_part("g2.a()"); run_part(g2.a(sidl_ex), "G2.a");
@@ -308,7 +307,7 @@ proc testG2() {
 testG2();
 
 proc testI() {
-  var i = Inherit.I_static.create_I(sidl_ex);
+  var i = Inherit.I_static.create(sidl_ex);
   tracker.writeComment("Class I: implements abstract class H that implements A", sidl_ex);
   init_part("i.a()"); run_part(i.a(sidl_ex), "I.a");
   init_part("i.h()"); run_part(i.h(sidl_ex), "I.h");
@@ -325,7 +324,7 @@ proc testI() {
 testI();
 
 proc testJ() {
-  var j = Inherit.J_static.create_J(sidl_ex);
+  var j = Inherit.J_static.create(sidl_ex);
   tracker.writeComment("\nClass J: implements A and B, extends E. Calls super of E and C\n", sidl_ex);
   init_part("j.a()"); run_part(j.a(sidl_ex), "J.a");
   init_part("j.b()"); run_part(j.b(sidl_ex), "J.b");
@@ -338,7 +337,7 @@ proc testJ() {
 testJ();
 
 proc testK() {
-  var k = Inherit.K_static.create_K(sidl_ex);
+  var k = Inherit.K_static.create(sidl_ex);
   tracker.writeComment("Class K: implements A2, extends H.", sidl_ex);
   init_part("k.a()"); run_part(k.a(sidl_ex), "K.a");
   init_part("k.a(0)"); run_part(k.a2(0, sidl_ex), "K.a2");
@@ -361,7 +360,7 @@ proc testK() {
 testK();
 
 proc testL() {
-  var l = Inherit.L_static.create_L(sidl_ex);
+  var l = Inherit.L_static.create(sidl_ex);
   tracker.writeComment("Class L: implements A, A2.", sidl_ex);
   init_part("l.a()"); run_part(l.aa(sidl_ex), "L.a");
   init_part("l.a(0)"); run_part(l.a2(0, sidl_ex), "L.a2");

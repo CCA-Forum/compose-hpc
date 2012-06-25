@@ -55,7 +55,7 @@ endif
 # Documentation
 # ------------------------------------------------------------------------
 .PHONY: doc
-doc: Doxyfile
+doc: Doxyfile $(srcdir)/doc/braid.1
 	@echo "  GEN [doxygen documentation]"
 	@($(DOXYGEN) >/dev/null && $(MAKE) MAKEFLAGS=-j1 -C doc/latex >/dev/null) \
         || echo "Doxygen not found; SKIPPING"

@@ -38,7 +38,7 @@ proc run_part(msg: string, result: bool) {
   tracker.writeComment("End of part " + part_no, sidl_ex);
 }
 
-var obj = Strings.Cstring_static.create_Cstring(sidl_ex);
+var obj = Strings.Cstring_static.create(sidl_ex);
 tracker.setExpectations(-1, sidl_ex);
   
 { 

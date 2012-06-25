@@ -54,7 +54,7 @@ proc test_EnumsColorwheel() {
   // undefined integer values 
   var outVar: enums.color;
   var inoutVar: enums.color = enums.color.green;
-  var obj: enums.colorwheel = enums.colorwheel_static.create_colorwheel(sidl_ex);
+  var obj: enums.colorwheel = enums.colorwheel_static.create(sidl_ex);
  
   var res: enums.color = obj.returnback(sidl_ex);
   writeln(res);
@@ -85,7 +85,7 @@ proc test_EnumsCar() {
   // fully defined integer values 
   var outVar: enums.car;
   var inoutVar: enums.car  = enums.car.ford;
-  var obj: enums.cartest  = enums.cartest_static.create_cartest(sidl_ex);
+  var obj: enums.cartest  = enums.cartest_static.create(sidl_ex);
   
   // FIXME: Need to support arrays
   // .sidl.array< .enums.car > tin, tout, tinout, tret;
@@ -116,7 +116,7 @@ proc test_EnumsNumber() {
   // partially defined integer values
   var outVar: enums.number;
   var inoutVar: enums.number = enums.number.zero;
-  var obj: enums.numbertest = enums.numbertest_static.create_numbertest(sidl_ex);
+  var obj: enums.numbertest = enums.numbertest_static.create(sidl_ex);
    
   init_part(); run_part(" returnback", obj.returnback(sidl_ex) == enums.number.notOne );
   init_part(); run_part(" passin", obj.passin(enums.number.notZero, sidl_ex));

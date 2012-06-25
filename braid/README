@@ -373,6 +373,16 @@ the memory while using borrowed arrays.
 
 In the above example, a generic SIDL array<> version of the created
 SIDL array could be accessed using the ``a_meta.generic`` data member.
+Generic arrays are passed as Chapel ``opaque`` values. To cast them to
+a proper sidl.Array, use the following code::
+
+    proc generic_array_input(in ga: opaque /* array< > */) {
+      var ga_meta = sidl.double_array.cast(ga);
+      if ga_meta != nil then {
+        var ga_data = createBorrowedArray1d(ga_meta);
+        ga_data[0] = 42;
+      }
+    }
 
 From the user's perspective there is no difference between Chapel
 representation of SIDL arrays and R-arrays. It should be noted that

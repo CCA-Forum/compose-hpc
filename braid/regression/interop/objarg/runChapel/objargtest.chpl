@@ -63,11 +63,11 @@ proc test_Employee() {
   dataArray[5] = ("Heywood Yubuzof",   12:int(32),  20.8e3: real(32), "x");
   dataArray[6] = ("Picov Andropov",    90:int(32), 120.6e3: real(32), "r");
   
-  var a: objarg.EmployeeArray = objarg.EmployeeArray_static.create_EmployeeArray(sidl_ex);
+  var a: objarg.EmployeeArray = objarg.EmployeeArray_static.create(sidl_ex);
   for i in [0 .. #numEmp] do {
 	tracker.writeComment(" Loop.1-" + i, sidl_ex);
 	
-    var e: objarg.Employee = objarg.Employee_static.create_Employee(sidl_ex);
+    var e: objarg.Employee = objarg.Employee_static.create(sidl_ex);
     init_part(); run_part(" init", e.init(dataArray[i][1], dataArray[i][2], dataArray[i][3], dataArray[i][4], sidl_ex));
     init_part(); run_part(" appendEmployee", a.appendEmployee(e, sidl_ex));
     init_part(); run_part(" getLength", a.getLength(sidl_ex) == (i+1));
@@ -100,13 +100,13 @@ proc test_Employee() {
   }
   
   /**
-  var f: objarg.Employee = objarg.Employee_static.create_Employee(sidl_ex);
+  var f: objarg.Employee = objarg.Employee_static.create(sidl_ex);
   f.init("Hire High", 21, 0.0: real(32), "s", sidl_ex);
   init_part(); run_part(" promoteToMaxSalary.1", a.promoteToMaxSalary(f, sidl_ex));
   init_part(); run_part(" getSalary", f.getSalary(sidl_ex) == (483.2e3: real(32)));
   init_part(); run_part(" appendEmployee", a.appendEmployee(f, sidl_ex));
   
-  f = objarg.Employee_static.create_Employee(sidl_ex);
+  f = objarg.Employee_static.create(sidl_ex);
   f.init("Amadeo Avogadro, conte di Quaregna", 225, 6.022045e23: real(32), "d", sidl_ex);
   init_part(); run_part(" promoteToMaxSalary.2", !a.promoteToMaxSalary(f, sidl_ex));
   **/
@@ -122,35 +122,35 @@ proc test_BasicObject() {
   magicNumber = clearstack(magicNumber);	
   tracker.writeComment("Start: test_BasicObject", sidl_ex);	
   
-  var b: objarg.Basic = objarg.Basic_static.create_Basic(sidl_ex);
+  var b: objarg.Basic = objarg.Basic_static.create(sidl_ex);
   var o: sidl.BaseClass;
   var inValue: sidl.BaseClass;
   
   init_part(); run_part(" passIn", b.passIn(o, false, sidl_ex));
   
-  o = sidl.BaseClass_static.create_BaseClass(sidl_ex);
+  o = sidl.BaseClass_static.create(sidl_ex);
   init_part(); run_part(" b.passIn-1", b.passIn(o, true, sidl_ex));
-  init_part(); run_part(" b.passIn-2", b.passIn(sidl.BaseClass_static.create_BaseClass(sidl_ex), true, sidl_ex));
+  init_part(); run_part(" b.passIn-2", b.passIn(sidl.BaseClass_static.create(sidl_ex), true, sidl_ex));
   
-  o = sidl.BaseClass_static.create_BaseClass(sidl_ex);
+  o = sidl.BaseClass_static.create(sidl_ex);
   init_part(); run_part(" b.passInOut-1", b.passInOut(o, false, false, true, sidl_ex));
   // FIXME init_part(); run_part(" o._is_nil-1", o._is_nil(sidl_ex));
 
-  o = sidl.BaseClass_static.create_BaseClass(sidl_ex);
+  o = sidl.BaseClass_static.create(sidl_ex);
   init_part(); run_part(" b.passInOut-2", b.passInOut(o, true, false, false, sidl_ex));
   // FIXME init_part(); run_part(" o._is_nil-2", o._is_nil(sidl_ex));
   
-  o: sidl.BaseClass_static.create_BaseClass(sidl_ex);
+  o: sidl.BaseClass_static.create(sidl_ex);
   inValue = o;
   init_part(); run_part(" b.passInOut-3", b.passInOut(o, true, true, true, sidl_ex));
   // FIXME init_part(); run_part(" inValue.isSame", inValue.isSame(o, sidl_ex));
 
-  o = sidl.BaseClass_static.create_BaseClass(sidl_ex);
+  o = sidl.BaseClass_static.create(sidl_ex);
   inValue = o;
   init_part(); run_part(" b.passInOut-4", b.passInOut(o, true, true, false, sidl_ex));
   // FIXME init_part(); run_part(" !inValue.isSame", !inValue.isSame(o, sidl_ex));
   
-  o = sidl.BaseClass_static.create_BaseClass(sidl_ex);
+  o = sidl.BaseClass_static.create(sidl_ex);
   tracker.writeComment("b.passOut(o, false);", sidl_ex);
   b.passOut(o, false, sidl_ex);
   // FIXME init_part(); run_part(" o._not_nil", o._not_nil(sidl_ex));

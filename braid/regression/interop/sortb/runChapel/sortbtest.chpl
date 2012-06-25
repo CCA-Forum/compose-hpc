@@ -60,9 +60,9 @@ proc test_Sort() {
   tracker.writeComment("Start: test_Sort", sidl_ex);
   
   
-  var merge: sortb.MergeSortB  = sortb.MergeSortB_static.create_MergeSortB(sidl_ex);
-  var quick: sortb.QuickSortB  = sortb.QuickSortB_static.create_QuickSortB(sidl_ex);
-  var heap:  sortb.HeapSortB  = sortb.HeapSortB_static.create_HeapSortB(sidl_ex);
+  var merge: sortb.MergeSortB  = sortb.MergeSortB_static.create(sidl_ex);
+  var quick: sortb.QuickSortB  = sortb.QuickSortB_static.create(sidl_ex);
+  var heap:  sortb.HeapSortB  = sortb.HeapSortB_static.create(sidl_ex);
   
   /*
   // FIXME: We need to support arrays of objects 

@@ -51,14 +51,13 @@ proc clearstack(magicNumber: int): int
   return magicNumber;
 }
 
-
 var TEST_SIZE:int(32) = 345; /* size of one dimensional arrays */
 var TEST_DIM1:int(32) = 17; /* first dimension of 2-d arrays */
 var TEST_DIM2:int(32) = 13; /* second dimension of 2-d arrays */
 
 //synch::ResultType result = synch::ResultType_PASS;
 var magicNumber = 13;
-var obj = ArrayTest.ArrayOps_static.create_ArrayOps(sidl_ex);
+var obj = ArrayTest.ArrayOps_static.create(sidl_ex);
 tracker.setExpectations(-1, sidl_ex);
   
 //tracker.setExpectations(158);
@@ -107,7 +106,7 @@ tracker.setExpectations(-1, sidl_ex);
 {
   magicNumber = clearstack(magicNumber);
   var carray: sidl.Array(string, sidl_char__array) = ArrayTest.ArrayOps_static.createChar(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createChar", carray._not_nil());
+  init_part(); run_part("createChar", carray.is_not_null());
   init_part(); run_part("createChar", ArrayTest.ArrayOps_static.checkChar(carray, sidl_ex) == true);
   init_part(); run_part("createChar", ArrayTest.ArrayOps_static.reverseChar(carray, true, sidl_ex) == true);
   carray.deleteRef();
@@ -128,7 +127,7 @@ tracker.setExpectations(-1, sidl_ex);
 {
   magicNumber = clearstack(magicNumber);
   var iarray: sidl.Array(int(32), sidl_int__array) = ArrayTest.ArrayOps_static.createInt(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createInt", iarray._not_nil());
+  init_part(); run_part("createInt", iarray.is_not_null());
   init_part(); run_part("createInt", ArrayTest.ArrayOps_static.checkInt(iarray, sidl_ex) == true);
   init_part(); run_part("createInt", ArrayTest.ArrayOps_static.reverseInt(iarray, true, sidl_ex) == true);
   iarray.deleteRef();
@@ -160,7 +159,7 @@ tracker.setExpectations(-1, sidl_ex);
      127:int(32), 131:int(32));
 
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
-  init_part(); run_part("borrowed_int: not-nil", borrowed._not_nil());
+  init_part(); run_part("borrowed_int: not-nil", borrowed.is_not_null());
 
   var resCheckInt1 = ArrayTest.ArrayOps_static.checkInt(borrowed, sidl_ex);
   init_part(); run_part("borrowed int: checkInt() before copy", resCheckInt1 == true);
@@ -189,7 +188,7 @@ tracker.setExpectations(-1, sidl_ex);
   var elements = elementsExtra[0..31];
 
   borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
-  init_part(); run_part("borrowed_int:slice: not-nil", borrowed._not_nil());
+  init_part(); run_part("borrowed_int:slice: not-nil", borrowed.is_not_null());
 
   var resCheckInt1 = ArrayTest.ArrayOps_static.checkInt(borrowed, sidl_ex);
   init_part(); run_part("borrowed int:slice: checkInt() before copy", resCheckInt1 == true);
@@ -206,7 +205,7 @@ tracker.setExpectations(-1, sidl_ex);
 {
   magicNumber = clearstack(magicNumber);
   var larray: sidl.Array(int(64), sidl_long__array) = ArrayTest.ArrayOps_static.createLong(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createLong", larray._not_nil());
+  init_part(); run_part("createLong", larray.is_not_null());
   init_part(); run_part("createLong", ArrayTest.ArrayOps_static.checkLong(larray, sidl_ex) == true);
   init_part(); run_part("createLong", ArrayTest.ArrayOps_static.reverseLong(larray, true, sidl_ex) == true);
   larray.deleteRef();
@@ -228,7 +227,7 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var sarray: sidl.Array(string, sidl_string__array);
   sarray = ArrayTest.ArrayOps_static.createString(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createString", sarray._not_nil());
+  init_part(); run_part("createString", sarray.is_not_null());
   init_part(); run_part("createString", ArrayTest.ArrayOps_static.checkString(sarray, sidl_ex) == true);
   init_part(); run_part("createString", ArrayTest.ArrayOps_static.reverseString(sarray, true, sidl_ex) == true);
   sarray.deleteRef();
@@ -250,7 +249,7 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var darray: sidl.Array(real(64), sidl_double__array);
   darray = ArrayTest.ArrayOps_static.createDouble(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createDouble", darray._not_nil());
+  init_part(); run_part("createDouble", darray.is_not_null());
   init_part(); run_part("createDouble", ArrayTest.ArrayOps_static.checkDouble(darray, sidl_ex) == true);
   init_part(); run_part("createDouble", ArrayTest.ArrayOps_static.reverseDouble(darray, true, sidl_ex) == true);
   darray.deleteRef();
@@ -272,7 +271,7 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var farray: sidl.Array(real(32), sidl_float__array);
   farray = ArrayTest.ArrayOps_static.createFloat(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createFloat", farray._not_nil());
+  init_part(); run_part("createFloat", farray.is_not_null());
   init_part(); run_part("createFloat", ArrayTest.ArrayOps_static.checkFloat(farray, sidl_ex) == true);
   init_part(); run_part("createFloat", ArrayTest.ArrayOps_static.reverseFloat(farray, true, sidl_ex) == true);
   farray.deleteRef();
@@ -294,7 +293,7 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var fcarray: sidl.Array(complex(64), sidl_fcomplex__array);
   fcarray = ArrayTest.ArrayOps_static.createFcomplex(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createFcomplex", fcarray._not_nil());
+  init_part(); run_part("createFcomplex", fcarray.is_not_null());
   init_part(); run_part("createFcomplex", ArrayTest.ArrayOps_static.checkFcomplex(fcarray, sidl_ex) == true);
   init_part(); run_part("createFcomplex", ArrayTest.ArrayOps_static.reverseFcomplex(fcarray, true, sidl_ex) == true);
   fcarray.deleteRef();
@@ -316,7 +315,7 @@ tracker.setExpectations(-1, sidl_ex);
   magicNumber = clearstack(magicNumber);
   var dcarray: sidl.Array(complex(128), sidl_dcomplex__array);
   dcarray = ArrayTest.ArrayOps_static.createDcomplex(TEST_SIZE, sidl_ex);
-  init_part(); run_part("createDcomplex", dcarray._not_nil());
+  init_part(); run_part("createDcomplex", dcarray.is_not_null());
   init_part(); run_part("createDcomplex", ArrayTest.ArrayOps_static.checkDcomplex(dcarray, sidl_ex) == true);
   init_part(); run_part("createDcomplex", ArrayTest.ArrayOps_static.reverseDcomplex(dcarray, true, sidl_ex) == true);
   dcarray.deleteRef();
@@ -680,7 +679,7 @@ tracker.setExpectations(-1, sidl_ex);
   /*   magicNumber = clearstack(magicNumber); */
   /*   sidl::array<ArrayTest::ArrayOps> objarray =  */
   /*     sidl::array<ArrayTest::ArrayOps>::create1d(TEST_SIZE); */
-  /*   init_part(); run_part("create1d", objarray._not_nil()); */
+  /*   init_part(); run_part("create1d", objarray.is_not_null()); */
   /*   init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(objarray, sidl_ex) == 0); */
   /*   for(int32_t i = 0; i < TEST_SIZE; i += 2) { */
   /*     objarray.set(i, ArrayTest.ArrayOps_static._create()); */
@@ -688,10 +687,10 @@ tracker.setExpectations(-1, sidl_ex);
   /*   init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(objarray, sidl_ex) == ((TEST_SIZE+1)/2)); */
   /*   sidl::array<ArrayTest::ArrayOps> sliced =  */
   /*     objarray.slice(1, numElem, start, stride); */
-  /*   init_part(); run_part("create1d", sliced._not_nil()); */
+  /*   init_part(); run_part("create1d", sliced.is_not_null()); */
   /*   init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(sliced) == ((TEST_SIZE+1)/2)); */
   /*   sliced = objarray.slice(1, numElemTwo, startTwo, stride); */
-  /*   init_part(); run_part("create1d", sliced._not_nil()); */
+  /*   init_part(); run_part("create1d", sliced.is_not_null()); */
   /*   init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(sliced) == 0); */
   /*   objarray.smartCopy(); */
   /*   init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(objarray, sidl_ex) == ((TEST_SIZE+1)/2)); */
@@ -841,53 +840,60 @@ tracker.setExpectations(-1, sidl_ex);
   /*   magicNumber = clearstack(magicNumber); */
   /* } */
 
-  /* { */
-  /*   int32_t dimen, dimen2, type, type2 = 0; */
-  /*   ::sidl::basearray garray, garrayret, garrayout, garrayinout; */
-  /*   ::sidl::array<int32_t> iarray; */
-  /*   magicNumber = clearstack(magicNumber); */
+  {
+    magicNumber = clearstack(magicNumber);
     
-  /*   ArrayTest.ArrayOps_static.checkGeneric(garray, dimen, type); */
-  /*   init_part(); run_part("Generic array is still Null", garray._is_nil()); */
-  /*   init_part(); run_part("NULL Generic array has no dimension", (dimen == 0)); */
-  /*   init_part(); run_part("NULL Generic array has no type", (type == 0)); */
+    var dimen: int(32);
+    var typ = sidl.sidl_array_type.sidl_undefined_array:int(32);
+    var null_garray: opaque;
+    ArrayTest.ArrayOps_static.checkGeneric(null_garray, dimen, typ, sidl_ex);
+    init_part(); run_part("Generic array is still Null", IS_NULL(null_garray));
+    init_part(); run_part("NULL Generic array has no dimension", (dimen == 0));
+    init_part(); run_part("NULL Generic array has no type", 
+			  (typ == sidl.sidl_array_type.sidl_undefined_array));
 
-  /*   dimen = 1; */
-  /*   type = sidl_int_array; */
-  /*   garray = ArrayTest.ArrayOps_static.createGeneric(dimen, type); */
-  /*   init_part(); run_part("Generic (int) array is not Null", garray._not_nil()); */
-  /*   init_part(); run_part("Generic (int) array has 1 dimension", (dimen == garray.dimen())); */
-  /*   init_part(); run_part("Generic (int) array has int type", type == garray.arrayType()); */
+    dimen = 1;
+    typ = sidl.sidl_array_type.sidl_int_array;
+    var garray = ArrayTest.ArrayOps_static.createGeneric(dimen, typ, sidl_ex);
+    var garray_meta = sidl.int_array.cast(garray);
+    init_part(); run_part("Generic (int) array is not Null", IS_NOT_NULL(garray));
+    init_part(); run_part("Generic (int) array has 1 dimension", (dimen == garray_meta.dim()));
+    init_part(); run_part("Generic (int) array has int type", typ == garray_meta.arrayType());
     
-  /*   ArrayTest.ArrayOps_static.checkGeneric(garray, dimen2, type2); */
-  /*   init_part(); run_part("checkGeneric (int) array has 1 dimension", (dimen == dimen2)); */
-  /*   init_part(); run_part("checkGeneric (int) array has int type", (type == type2)); */
+    var dimen2: int(32);
+    var type2 = sidl.sidl_array_type.sidl_undefined_array:int(32);
+    ArrayTest.ArrayOps_static.checkGeneric(garray, dimen2, type2, sidl_ex);
+    init_part(); run_part("checkGeneric (int) array has 1 dimension", (dimen == dimen2));
+    init_part(); run_part("checkGeneric (int) array has int type", (typ == type2));
 
-  /*   garrayret = ArrayTest.ArrayOps_static.passGeneric(garray, iarray, */
-  /* 					       garrayout); */
-    
-  /*   init_part(); run_part("Generic returned array not NULL", garrayret._not_nil()); */
-  /*   init_part(); run_part("Generic returned array correct dimension",  */
-  /* 	     dimen == garrayret.dimen()); */
-  /*   init_part(); run_part("Generic returned array correct type",  */
-  /* 	     type == garrayret.arrayType()); */
-  /*   init_part(); run_part("Generic returned array correct length",  */
-  /* 	     garray.length(0) == garrayret.length(0)); */
+    var garrayout: opaque;
+    var iarray = new sidl.Array(int(32), sidl_int__array, nil);
+    var garrayret = ArrayTest.ArrayOps_static.passGeneric(garray, iarray.generic, garrayout, sidl_ex);
+    var garrayret_meta = sidl.int_array.cast(garrayret);    
+    init_part(); run_part("Generic returned array not NULL", IS_NOT_NULL(garrayret));
+    init_part(); run_part("Generic returned array correct dimension",
+			  dimen == garrayret_meta.dim());
+    init_part(); run_part("Generic returned array correct type",
+			  typ == garrayret_meta.arrayType());
+    init_part(); run_part("Generic returned array correct length",
+  	     garray_meta.length(0) == garrayret_meta.length(0));
 
-  /*   init_part(); run_part("Generic returned array not NULL", garrayout._not_nil()); */
-  /*   init_part(); run_part("Generic returned array correct dimension",  */
-  /* 	     dimen == garrayout.dimen()); */
-  /*   init_part(); run_part("Generic returned array correct type",  */
-  /* 	     type == garrayout.arrayType()); */
-  /*   init_part(); run_part("Generic returned array correct length",  */
-  /* 	     garray.length(0) == garrayout.length(0)); */
+    var garrayout_meta = sidl.int_array.cast(garrayret);    
+    init_part(); run_part("Generic returned array not NULL", garrayout_meta != nil);
+    init_part(); run_part("Generic returned array correct dimension",
+  	     dimen == garrayout_meta.dim());
+    init_part(); run_part("Generic returned array correct type",
+  	     typ == garrayout_meta.arrayType());
+    init_part(); run_part("Generic returned array correct length",
+  	     garray_meta.length(0) == garrayout_meta.length(0));
 
-  /*   //iarray = ::sidl::array<int32_t>(garray, sidl_ex); */
+    //iarray = ::sidl::array<int32_t>(garray, sidl_ex);
 
-  /*   init_part(); run_part("Generic inout is correct",  */
-  /* 	     ArrayTest.ArrayOps_static.check2Int(iarray, sidl_ex) == true); */
+    init_part(); run_part("Generic inout is correct",
+  	     ArrayTest.ArrayOps_static.check2Int(iarray, sidl_ex) == true);
+    iarray.deleteRef();
 
-  /* } */
+  }
 
   {
     tracker.writeComment("Start: Check initialization for borrowed array int 32b - 1D", sidl_ex);
@@ -1078,7 +1084,7 @@ tracker.setExpectations(-1, sidl_ex);
 
    magicNumber = clearstack(magicNumber);
    var sarray: sidl.Array(string, sidl_string__array) = ArrayTest.ArrayOps_static.create2String(12,13, sidl_ex);
-   init_part(); run_part("createString", sarray._not_nil());
+   init_part(); run_part("createString", sarray.is_not_null());
    init_part(); run_part("createString", ArrayTest.ArrayOps_static.check2String(sarray, sidl_ex) == true);
    sarray.deleteRef();
    magicNumber = clearstack(magicNumber);

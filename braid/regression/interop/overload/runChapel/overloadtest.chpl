@@ -62,10 +62,10 @@ proc test_Overload() {
   var cf1: complex(64); cf1.re =1.1: real(32); cf1.im = 1.1: real(32);
   var cfret: complex(64);
     
-  var t:  Overload.Test         = Overload.Test_static.create_Test(sidl_ex);
-  var ae: Overload.AnException  = Overload.AnException_static.create_AnException(sidl_ex);
-  var ac: Overload.AClass       = Overload.AClass_static.create_AClass(sidl_ex);
-  var bc: Overload.BClass       = Overload.BClass_static.create_BClass(sidl_ex);
+  var t:  Overload.Test         = Overload.Test_static.create(sidl_ex);
+  var ae: Overload.AnException  = Overload.AnException_static.create(sidl_ex);
+  var ac: Overload.AClass       = Overload.AClass_static.create(sidl_ex);
+  var bc: Overload.BClass       = Overload.BClass_static.create(sidl_ex);
   
   init_part(); run_part(" t.getValue", t.getValue(sidl_ex) == 1);
   

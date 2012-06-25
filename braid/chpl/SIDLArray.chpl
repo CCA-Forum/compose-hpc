@@ -1,11 +1,16 @@
 // -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 
+  extern proc IS_NOT_NULL(in aRef: opaque): bool;
+  extern proc IS_NULL(in aRef: opaque): bool;
+
+
   enum sidl_array_ordering {
     sidl_general_order=0, /* this must be zero (i.e. a false value) */
     sidl_column_major_order=1,
     sidl_row_major_order=2
   };
 
+  extern proc sidl__array_type(in ga: opaque): int(32);	       
   enum sidl_array_type {
     sidl_undefined_array = 0,
     /* these values must match values used in F77 & F90 too */
@@ -257,6 +262,12 @@ SIDL_ARRAY(BaseInterface, int(32))
     /*   this.borrowed = borrow_from; */
     /* }     */
 
+    /**
+     * Return true iff the wrapped SIDL array is not NULL.
+     */
+    proc is_not_null(): bool {
+      return IS_NOT_NULL(this.generic);
+    }
 
     /**
      * The relation operators available in the built-in quantifier operators.
@@ -731,7 +742,10 @@ SIDL_ARRAY(BaseInterface, int(32))
      * Return an integer indicating the type of elements held by the
      * array. Zero is returned if array is NULL.
      */
-    extern proc sidl__array_type(in ga: opaque): int(32);	       
+    proc arrayType(): sidl_array_type {
+      return sidl__array_type(this.generic) :sidl_array_type ;
+    }
+
     //int32_t
     //sidl__array_type(const struct sidl__array* array);
 
@@ -746,5 +760,3 @@ SIDL_ARRAY(BaseInterface, int(32))
     //sidl__array_remove(struct sidl__array * const array);
 
     }
-
-extern proc sidl__array_type(in ga: opaque): int(32);	       

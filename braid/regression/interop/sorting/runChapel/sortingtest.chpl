@@ -39,9 +39,9 @@ proc run_part(msg: string, result: bool)
 
 { 
   var magicNumber = 1;
-  var merge = sorting.Mergesort_static.create_Mergesort(sidl_ex);
-  var quick = sorting.Quicksort_static.create_Quicksort(sidl_ex);
-  var heap = sorting.Heapsort_static.create_Heapsort(sidl_ex);
+  var merge = sorting.Mergesort_static.create(sidl_ex);
+  var quick = sorting.Quicksort_static.create(sidl_ex);
+  var heap = sorting.Heapsort_static.create(sidl_ex);
   //  sidl::array<sort::SortingAlgorithm> algs = sidl::array<sort::SortingAlgorithm>::create1d(3);
   tracker.setExpectations(4:int(32), sidl_ex);
 //  init_part(); run_part( (merge._not_nil());

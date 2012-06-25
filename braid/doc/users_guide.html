@@ -747,7 +747,18 @@ deallocation of array data blocks while passing the array reference
 between Babel/BRAID calls. It becomes the user's responsibility to manage
 the memory while using borrowed arrays.</p>
 <p>In the above example, a generic SIDL array&lt;&gt; version of the created
-SIDL array could be accessed using the <tt class="docutils literal">a_meta.generic</tt> data member.</p>
+SIDL array could be accessed using the <tt class="docutils literal">a_meta.generic</tt> data member.
+Generic arrays are passed as Chapel <tt class="docutils literal">opaque</tt> values. To cast them to
+a proper sidl.Array, use the following code:</p>
+<pre class="literal-block">
+proc generic_array_input(in ga: opaque /* array&lt; &gt; */) {
+  var ga_meta = sidl.double_array.cast(ga);
+  if ga_meta != nil then {
+    var ga_data = createBorrowedArray1d(ga_meta);
+    ga_data[0] = 42;
+  }
+}
+</pre>
 <p>From the user's perspective there is no difference between Chapel
 representation of SIDL arrays and R-arrays. It should be noted that
 non column-major arrays will be automatically copied and converted in

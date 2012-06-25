@@ -44,7 +44,7 @@ tracker.setExpectations(4, sidl_ex);
   var test: int(32) = 1;
   //FIXME! hooks.Basics_static._set_hooks_static(true);
 
-  var obj = hooks.Basics_static.create_Basics(sidl_ex);
+  var obj = hooks.Basics_static.create(sidl_ex);
   //FIXME! obj._set_hooks(true);
 
   b = -1;

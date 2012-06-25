@@ -556,7 +556,7 @@ class GlueCodeGenerator(object):
             '#endif'
             ]
 
-        def gen_cast(scope):
+        def gen_cast(_symtab, _ext, scope):
             """
             Chapel-specific up-cast macros
             """
@@ -567,14 +567,14 @@ class GlueCodeGenerator(object):
                        .format(base, qual_id(scope, '.')))
             header.genh('#define {1}_cast_{0}(ior) ((struct {1}__object*)'
                        '((struct sidl_BaseInterface__object*)ior)->d_object)'
-                       .format(pkgname, base))
+                       .format(qname, base))
 
+        extern_hier_visited = []
         for _, ext in ci.co.extends:
-            gen_cast(ext)
+            visit_hierarchy(ext, gen_cast, symbol_table, extern_hier_visited)
 
         for _, impl in ci.co.implements:
-            gen_cast(impl)
-                
+            visit_hierarchy(impl, gen_cast, symbol_table, extern_hier_visited)
 
         return header
 
