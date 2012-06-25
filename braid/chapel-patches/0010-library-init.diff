@@ -14,7 +14,7 @@ Index: runtime/src/chplinit.c
 ===================================================================
 --- runtime/src/chplinit.c	(revision 0)
 +++ runtime/src/chplinit.c	(revision 0)
-@@ -0,0 +1,191 @@
+@@ -0,0 +1,206 @@
 +#include "arg.h"
 +#include "chpl_rt_utils_static.h"
 +#include "chplcast.h"
@@ -155,6 +155,11 @@ Index: runtime/src/chplinit.c
 +
 +}
 +
++/**
++ * This acts as a replacement to be used in chpl_task_callMain() for
++ * Chapel libraries. It is automatically called by
++ * chpl_init_library().
++ */
 +static void chpl_library_init(void) {
 +  // OK, we can create tasks now.
 +  chpl_task_setSerial(false);
@@ -173,10 +178,16 @@ Index: runtime/src/chplinit.c
 +
 +}
 +
-+
++/**
++ * chpl_init_library() installs this as an atexit() handler.
++ */
++static void chpl_library_shutdown(void) {
++  chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
++  chpl_exit_all(0);
++}
 +
 +static bool chpl_init_library_called = false;
-+ 
++
 +/**
 + * Initialize the Chapel runtime
 + *
@@ -191,26 +202,28 @@ Index: runtime/src/chplinit.c
 + *     finalize_chpl( );
 + */
 +int chpl_init_library(int argc, char* argv[]) {
-+ 
++
 +  if (!chpl_init_library_called) {
 +    chpl_init_library_called = true;
-+ 
++
 +    chpl_init(argc, argv);      // establishes "barrier before main"
-+ 
++
 +    if (chpl_localeID != 0) {   // only locale #0 returns control to the
 +                                // external call site
++      chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
 +      chpl_exit_all(0);         // all other locales can be stopped, we are done
++    } else {
++      atexit(&chpl_library_shutdown);
++      chpl_task_callMain(chpl_library_init);
 +    }
-+  
-+    chpl_task_callMain(chpl_library_init);
 +  }
-+ 
++
 +  return chpl_localeID;
 +}
 +
 Index: runtime/src/Makefile.share
 ===================================================================
---- runtime/src/Makefile.share	(revision 20124)
+--- runtime/src/Makefile.share	(revision 20172)
 +++ runtime/src/Makefile.share	(working copy)
 @@ -10,6 +10,7 @@
  	bulkget.c \
@@ -222,7 +235,7 @@ Index: runtime/src/Makefile.share
  	chplgmp.c \
 Index: runtime/src/main.c
 ===================================================================
---- runtime/src/main.c	(revision 20124)
+--- runtime/src/main.c	(revision 20172)
 +++ runtime/src/main.c	(working copy)
 @@ -3,10 +3,8 @@
  #include "chplcast.h"

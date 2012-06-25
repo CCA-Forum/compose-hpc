@@ -61,38 +61,6 @@ chpl_param_ex_name = '_babel_param_ex'
 extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_interface = 'BaseInterface'
-chplmain_extras = r"""
-
-// These definitions are needed if we link a Chapel library against a non-Chapel main
-__attribute__((weak))
-int handleNonstandardArg(int* argc, char* argv[], int argNum, 
-                         int32_t lineno, chpl_string filename) {
-  char* message = chpl_glom_strings(3, "Unexpected flag:  \"", argv[argNum], 
-                                    "\"");
-  chpl_error(message, lineno, filename);
-  return 0;
-}
-
-__attribute__((weak))
-void printAdditionalHelp(void) {
-}
-
-char* chpl_executionCommand;
-
-__attribute__((weak))
-void recordExecutionCommand(int argc, char *argv[]) {
-  int i, length = 0;
-  for (i = 0; i < argc; i++) {
-    length += strlen(argv[i]) + 1;
-  }
-  chpl_executionCommand = (char*)chpl_mem_allocMany(length+1, sizeof(char), CHPL_RT_EXECUTION_COMMAND, 0, 0);
-  sprintf(chpl_executionCommand, "%s", argv[0]);
-  for (i = 1; i < argc; i++) {
-    strcat(chpl_executionCommand, " ");
-    strcat(chpl_executionCommand, argv[i]);
-  }
-}
-"""
 
 def forward_decl(ir_struct):
     """
@@ -1204,13 +1172,13 @@ class GlueCodeGenerator(object):
                 else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%fname, 'NULL')
 
         pkgname = '_'.join(ci.epv.symbol_table.prefix)
-        dummyargv = 'const char* name[] = { "BRAID_LIBRARY" };'
+        dummyargv = 'const char* name[] = { "BRAID_LIBRARY", "-v" }; // verbose Chapel'
         epv_init.append((ir.stmt, dummyargv))
-        epv_init.append((ir.stmt, 'chpl_init_library(1, &name)'))
+        epv_init.append((ir.stmt, 'chpl_init_library(2, &name)'))
         epv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
         epv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
         sepv_init.append((ir.stmt, dummyargv))
-        sepv_init.append((ir.stmt, 'chpl_init_library(1, &name)'))
+        sepv_init.append((ir.stmt, 'chpl_init_library(2, &name)'))
         sepv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
         sepv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
 
@@ -1228,8 +1196,6 @@ class GlueCodeGenerator(object):
                      ir.Arg([], ir.out, pre_sepv_t, 'pre_sepv'),
                      ir.Arg([], ir.out, post_sepv_t, 'post_sepv')],
                     sepv_init, ''))
-
-        write_to('_chplmain.c', chplmain_extras)
 
         # C Skel
         for code in cskel.optional:
