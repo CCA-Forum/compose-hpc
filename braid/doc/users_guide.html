@@ -1,0 +1,940 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
+<title>BRAID User's Guide</title>
+<meta name="date" content="2012-06-25" />
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 5951 2009-05-18 18:03:10Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left{
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: left }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="braid">
+<h1 class="title">BRAID</h1>
+<h2 class="subtitle" id="next-generation-high-performance-language-interoperability">Next-generation high-performance language interoperability</h2>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Date:</th>
+<td>2012-06-25</td></tr>
+<tr><th class="docinfo-name">Version:</th>
+<td>0.2.5</td></tr>
+<tr class="field"><th class="docinfo-name">Manual section:</th><td class="field-body">1</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Manual group:</th><td class="field-body">Compilers and Programming Languages</td>
+</tr>
+</tbody>
+</table>
+<!-- -*- rst -*- -->
+<div class="section" id="synopsis">
+<h1>SYNOPSIS</h1>
+<blockquote>
+<dl class="docutils">
+<dt>braid [-h] [--gen-sexp] [--gen-sidl] [-c &lt;language&gt;] [-s &lt;language&gt;]</dt>
+<dd>[--makefile] [-i] [--suppress-contracts] [-m &lt;prefix&gt;]
+[--debug] [--profile] [--version] [--license] [-v]
+[&lt;file.sidl&gt; [&lt;file.sidl&gt; ...]]</dd>
+</dl>
+</blockquote>
+</div>
+<div class="section" id="description">
+<h1>DESCRIPTION</h1>
+<p>Braid 0.2.5 - Do magically wonderful things with SIDL (scientific interface
+definition language) files. BRAID is a high-performance language</p>
+<div class="section" id="about">
+<h2>About</h2>
+<p>BRAID, the Braid system for Rewriting Abstract Descriptions, is a
+compiler-like tool to generate the glue code necessary for language
+interoperability. Developed by the Components project <a class="footnote-reference" href="#id2" id="id1">[1]</a> at Lawrence
+Livermore National Laboratory, BRAID supports the Scientific Interface
+Definition Language (SIDL) for the language-independent declaration of
+interfaces associated with scientific software packages.</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a></td></tr>
+</tbody>
+</table>
+<img alt="logos/braid-logo-small.png" src="logos/braid-logo-small.png" />
+<div class="section" id="relation-to-babel">
+<h3>Relation to Babel</h3>
+<p>The language bindings generated by BRAID are binary-compatible to
+those generated by the related Babel <a class="footnote-reference" href="#id5" id="id3">[2]</a> tool. While Babel handles
+traditional programming languages (such as C, C++, Fortran (77-2008),
+Python, and Java), BRAID adds support for modern PGAS <a class="footnote-reference" href="#id6" id="id4">[3]</a> languages.</p>
+<p>In practice, this means that if you want to, for example, let a Chapel
+program use a component implemented in Fortran 95, you would invoke
+Babel for the Fortran code and Braid for Chapel code:</p>
+<pre class="literal-block">
+braid --makefile --client=Chapel interface.sidl
+babel --makefile --server=F95    interface.sidl
+</pre>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Partitioned_global_address_space">http://en.wikipedia.org/wiki/Partitioned_global_address_space</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="supported-languages">
+<h2>Supported Languages</h2>
+<p>At this moment Chapel client code is well-tested and considered
+stable. Chapel server support exists, but will be redesigned after the
+next release of the Chapel compiler, which will have support for
+building Chapel libraries:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="26%" />
+<col width="45%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Language</td>
+<td>Client</td>
+<td>Server</td>
+</tr>
+<tr><td>Chapel</td>
+<td>stable</td>
+<td>experimental</td>
+</tr>
+<tr><td>UPC</td>
+<td>planned</td>
+<td>planned</td>
+</tr>
+<tr><td>X10</td>
+<td>planned</td>
+<td>planned</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="notes">
+<h3>Notes</h3>
+<p>In addition to all regular Babel/SIDL features, the Chapel backend
+also extends the Chapel runtime to support <em>borrowed arrays</em>;
+i.e. Arrays that are initialized by an external function and can be
+passed to Chapel code without copying. It also provides an interface
+for <em>distributed arrays</em> which allow non-Chapel code to access
+non-local data residing in the PGAS-space.</p>
+<p>The following features are not yet implemented:</p>
+<p>Generic arrays, arrays of objects, structs, contracts, hooks and RMI.</p>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation</h2>
+<p>BRAID uses an autotools-based build system, so the regular:</p>
+<pre class="literal-block">
+./configure &amp;&amp; make install
+</pre>
+<p>will work just fine. Below is the step-by-step break-down of the the</p>
+<p>installation process:</p>
+<pre class="literal-block">
+tar xvf braid-0.2.3.tar.bz2 &amp;&amp; cd braid-0.2.3
+mkdir build &amp;&amp; cd build
+../configure --prefix=&lt;INSTALL_PATH&gt;
+make [-j&lt;N&gt;] &amp;&amp; make install
+
+# other useful commands
+../configure --help
+make check
+</pre>
+<div class="section" id="compiling-chapel-to-run-on-slurm-managed-clusters-with-infiniband">
+<h3>Compiling Chapel to run on SLURM-managed Clusters with Infiniband</h3>
+<p>We found the following setup to be working with MPI (to spawn
+processes) and direct Infiniband (for the actual communication).</p>
+<p>For Compiling Chapel in CHPL_HOME:</p>
+<pre class="literal-block">
+export CHPL_COMM=gasnet
+export CHPL_COMM_SUBSTRATE=ibv
+make -C ${CHPL_HOME}
+</pre>
+<p>To initialize the environment:</p>
+<pre class="literal-block">
+export CHPL_COMM=gasnet
+export CHPL_COMM_SUBSTRATE=ibv
+cd ${CHPL_HOME}
+source util/setchplenv.bash
+cd -
+</pre>
+<p>To run a Chapel program using Infiniband communication and MPI to spawn
+new processes via SLURM:</p>
+<pre class="literal-block">
+export MPIRUN_CMD=&quot;srun -ppdebug -N %N %P %A&quot; # you can customize this
+./program
+</pre>
+<p>Those are substitutions made by Chapel (or GASnet), here is a list
+taken from one of the Chapel-internal Makefiles:</p>
+<pre class="literal-block">
+# The following substitutions are performed:
+#   %P = program executable name
+#   %N = requested node count
+#   %A = program arguments
+#   %Q = program arguments w/ an extra level of quotes
+#   %D = the current working directory
+#   %H = hostfile (if any)
+CONDUIT_RUNCMD = mpirun -np %N %P %A
+</pre>
+<p>The way I understand it SLURM provides the mpirun launcher on the
+machines it manages. Chapel/GASnet uses this mechanism to trick SLURM
+into launching processes on multiple nodes. If you compiled Chapel
+with the 'ibv' conduit, however, no actual communication will be done
+over MPI, instead GASnet will directly use the Infiniband network to
+exchange data between nodes.</p>
+<p>Using Infiniband directly is supposed to perform better because MPI
+apparently does not do one-sided communication well.</p>
+</div>
+<div class="section" id="patching-the-chapel-compiler">
+<h3>Patching the Chapel compiler</h3>
+<p>You will need to patch your Chapel 1.4.0 compiler using the following
+command _after_ running ./configure:</p>
+<pre class="literal-block">
+bash &lt;builddir&gt;/patch-chapel-compiler.sh
+</pre>
+<p>The script will patch and recompile the compiler automatically. You
+can undo this operation by running:</p>
+<pre class="literal-block">
+bash &lt;builddir&gt;/patch-chapel-compiler.sh --undo
+</pre>
+<p>this will reverse the effects of the patch.</p>
+</div>
+<div class="section" id="user-visible-dependencies">
+<h3>User-visible dependencies</h3>
+<p>If you just want to compile and install BRAID, you will need:
+- Python:                Version 2.6 or higher
+- gcc, ld, Perl, AWK, sed</p>
+<p>If you want to run the regression tests, you will also need:
+- GNU make               Version 3.74 or higher
+- Babel:                 Version 2.0 or higher
+- Chapel:                Version 1.4.0
+- Java:                  JVM 1.6 or higher
+- NumPy:                 Version 1.0.4 or higher</p>
+</div>
+<div class="section" id="developer-only-dependencies">
+<h3>Developer-only dependencies</h3>
+<ul class="simple">
+<li>Make:          GNU make version 3.74 or higher</li>
+<li>Autotools:     Version 2.65 or later</li>
+<li>SWI-Prolog:    Version 5.10.4 or higher (only needed if you intend to modify [ir,sidl].def)</li>
+<li>Doxygen:       Version 1.6 or higher (disable with ./configure --disable-documentation)</li>
+<li>graphviz:      (for Doxygen)</li>
+<li>GNU flex</li>
+</ul>
+</div>
+</div>
+<div class="section" id="development-status">
+<h2>Development status</h2>
+<p>BRAID is written in 98% Python; the SIDL scanner is implemented in
+flex (C). Some of the Python sources are automatically generated from
+a high-level specification (sidl.def, ir.def) by a Prolog script. The
+implementation language choice is motivated by Python being the
+highest-level language that we can assume to be pre-installed on all
+our target systems. So far we have three components:</p>
+<ul>
+<li><p class="first">A complete parser for SIDL which generates an object-oriented
+intermediate representation (IR)</p>
+</li>
+<li><p class="first">A converter to an extensible s-expression-based language
+independent IR</p>
+</li>
+<li><p class="first">Code generators that convert this IR into Chapel and C code.
+Other languages supported by Babel will follow.</p>
+<p>To facilitate the writing of these code generators we put some
+effort into extending Python with a pattern-matching mechanism
+for arbitrarily complex tuples. (And the s-expressions from the
+IR are internally represented as Python tuples.)</p>
+</li>
+</ul>
+<p>This diagram shows the work-flow implemented in BRAID:</p>
+<pre class="literal-block">
+             Parser               Conversion
++-------------+  +------------------+  +---------------------+
+| SIDL        |--| SIDL-based       |--| Language indep. IR  |
+|             |  | declarative IR   |  | (s-expressions)     |
++-------------+  +------------------+  +---------------------+
+                                         |              |   |
+                                         |   Code       |   |
+                                         |   Generators |   |
+                                         |              |   |
+                                       +-----------+ +----------+
+                                       | Chapel    | | C, ...   |
+                                       |           | |          |
+                                       +-----------+ +----------+
+</pre>
+<p>The idea to use the s-expression-based IR to interface with ROTE
+at some later point. Other components (e.g. PAUL) can also
+generate this IR to get access to the code generators.</p>
+</div>
+<div class="section" id="user-s-guide">
+<h2>User's Guide</h2>
+<div class="section" id="anatomy-of-a-babel-call">
+<h3>Anatomy of a Babel call</h3>
+<p>A call from one language into another starts with the client (the
+caller) invoking a <em>stub</em>, which accepts all the arguments of the
+method in the native data format (such as value representation or
+memory layout) of the client language. The stub is automatically
+generated by Braid/Babel and is usually output in the client's
+language, or in C, if the native language is not expressive enough to
+perform the argument conversion, which often involves byte-level
+memory manipulation. Stubs are very small and the compiler can
+sometimes inline them. The stub converts the arguments into the
+intermediate object representation (IOR) which is Babel's native data
+format. It then calls the server implementation, which also has to
+accept the IOR. On the server side resides a <em>skeleton</em>, which does
+the reverse operation of converting the IOR into the native
+representation of the server (callee). The skeleton invokes the
+<em>implementation</em> which is the actual method to be called. Upon return,
+it converts all outgoing arguments and the return value into the IOR
+and returns to the Stub, which performs the translation back to the
+client's data format.</p>
+</div>
+<div class="section" id="scientific-interface-definition-language-sidl">
+<h3>Scientific Interface Definition Language (SIDL)</h3>
+<p>Braid cannot (yet) parse source code. In order to generate bindings
+for a component the user needs to specify the interface that the
+component provides in the SIDL format. A lengthy description of all
+SIDL features can be found in the
+.. _Babel Manual: <a class="reference external" href="https://computation.llnl.gov/casc/components/docs/users_guide/">https://computation.llnl.gov/casc/components/docs/users_guide/</a>
+, Chapter 6.</p>
+</div>
+<div class="section" id="chapel-language-binding">
+<h3>Chapel Language Binding</h3>
+<p>This section describes how the various features of SIDL are mapped
+onto Chapel constructs.</p>
+<div class="section" id="introduction">
+<h4>Introduction</h4>
+<p>Chapel is a modern high-level parallel programming language originally
+developed by Cray Inc. as part of the DARPA HPCS program. In contrast
+to traditional programming languages such as C++, the runtime system
+of the language takes care of executing the code in parallel.  The
+language still offers the user fine-grained control over things such
+as the data layout and the allocation of distributed data, but it
+renders the tedious explicit encoding of communication through, e.g., a
+message-passing interface, obsolete.</p>
+</div>
+<div class="section" id="basics">
+<h4>Basics</h4>
+<p>To see examples of how to use the Chapel language with Braid, please
+refer to the many examples located in the <tt class="docutils literal">braid/regression/interop</tt>
+directory. The corresponding SIDL files can be found in the Babel
+sources the <tt class="docutils literal">regression</tt> subdirectory.</p>
+<div class="section" id="static-functions">
+<h5>Static functions</h5>
+<p>Chapel classes cannot have static methods. BRAID will generate a
+<tt class="docutils literal">&lt;classname_&gt;_static</tt> module that contains all static methods
+defined by the SIDL class <em>classname</em>.</p>
+</div>
+<div class="section" id="object-lifecycle">
+<h5>Object lifecycle</h5>
+<p>Objects are created using the
+<tt class="docutils literal">&lt;classname_&gt;_static.create(out exception)</tt>
+function. This indirection is necessary because constructors may throw
+a SIDL exception. The
+<tt class="docutils literal"><span class="pre">&lt;classname_&gt;_static.wrap_&lt;classname&gt;(in</span> obj, out exception)</tt>
+function can be used to create a Chapel version of an existing
+externally created SIDL object.</p>
+<p>Objects can be up-casted by using the provided <tt class="docutils literal"><span class="pre">as_&lt;baseclass&gt;()</span></tt>
+methods. Down-casting can be down by using the generated
+<tt class="docutils literal"><span class="pre">&lt;baseclass&gt;_cast_&lt;target&gt;()</span></tt> methods.</p>
+</div>
+</div>
+<div class="section" id="scalar-datatypes">
+<h4>Scalar datatypes</h4>
+<p>The following table lists the scalar types supported by SIDL and the
+corresponding Chapel types used by the skeleton or stub while
+converting Chapel code from or into the IOR.  The SIDL scalar types
+are (with the exception of strings) of fixed length and were easy to
+support especially since Chapel has parametric support for the number
+of bits in the integral and floating point types which map to the same
+representation as used by the IOR. It also has native types for both
+single-precision and double-precision complex numbers and supports
+<em>opaque</em> types that allow data to be passed around through Babel/BRAID
+back into the original address space. Chapel also supports enumerated
+type to defines a set of named constants.  On the other hand, the
+Babel IOR and the Chapel compiler use different representations for
+complex numbers, hence BRAID generates glue code to pass around
+copies.  Since Chapel does not have a <em>char</em> type, BRAID generates
+code to convert Chapel unit-length strings into chars using a
+statically allocated lookup table.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="29%" />
+<col width="52%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">SIDL type</th>
+<th class="head">Size (in bits)</th>
+<th class="head">Corresponding Chapel type</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>bool</td>
+<td>1</td>
+<td>bool</td>
+</tr>
+<tr><td>char</td>
+<td>8</td>
+<td>string (length=1)</td>
+</tr>
+<tr><td>int</td>
+<td>32</td>
+<td>int(32)</td>
+</tr>
+<tr><td>long</td>
+<td>64</td>
+<td>int(64)</td>
+</tr>
+<tr><td>float</td>
+<td>32</td>
+<td>real(32)</td>
+</tr>
+<tr><td>double</td>
+<td>64</td>
+<td>real(64)</td>
+</tr>
+<tr><td>fcomplex</td>
+<td>64</td>
+<td>complex(64)</td>
+</tr>
+<tr><td>dcomplex</td>
+<td>128</td>
+<td>complex(128)</td>
+</tr>
+<tr><td>opaque</td>
+<td>64</td>
+<td>int(64)</td>
+</tr>
+<tr><td>string</td>
+<td>varies</td>
+<td>string</td>
+</tr>
+<tr><td>enum</td>
+<td>32</td>
+<td>enum</td>
+</tr>
+</tbody>
+</table>
+<p>Scalar Data Types in SIDL and their Chapel equivalents on a 64-bit
+machine.</p>
+</div>
+<div class="section" id="array-data-types">
+<h4>Array data types</h4>
+<p>SIDL arrays can be generated by using the <tt class="docutils literal"><span class="pre">sidl.&lt;type&gt;_array.create()</span></tt>
+family of functions:</p>
+<pre class="literal-block">
+var max_size = 1024;
+var arr = sidl.double_array.create2dCol(max_size, max_size);
+var a_meta = arr(1)
+var a_data = arr(2)
+for i in 0..#max_size do {
+  for j in 0..#max_size do {
+    a_data[i:int(32),j:int(32)] = 3.14;
+  }
+</pre>
+<p>The create functions return a tuple with SIDL-related metadata and a
+Chapel borrowed array. Borrowed arrays are an extension to Chapel;
+they inherit all the syntactic sugar support Chapel provides
+for natively defined arrays. Hence there is no change in the Chapel
+code while using these arrays except during array creation. We require
+a small extension to the Chapel compiler to support borrowed arrays.
+Borrowed arrays have data blocks allocated external to the Chapel runtime
+unlike traditional Chapel arrays where each array uses a data block
+managed by the Chapel runtime. This avoids superfluous allocation and
+deallocation of array data blocks while passing the array reference
+between Babel/BRAID calls. It becomes the user's responsibility to manage
+the memory while using borrowed arrays.</p>
+<p>In the above example, a generic SIDL array&lt;&gt; version of the created
+SIDL array could be accessed using the <tt class="docutils literal">a_meta.generic</tt> data member.</p>
+<p>From the user's perspective there is no difference between Chapel
+representation of SIDL arrays and R-arrays. It should be noted that
+non column-major arrays will be automatically copied and converted in
+the Chapel stub generated by BRAID.</p>
+</div>
+<div class="section" id="exceptions">
+<h4>Exceptions</h4>
+<p>Chapel does not (yet) support exception handling. To throw an
+exception, a Chapel method should create a new exception object and
+assign it to the <tt class="docutils literal">_ex</tt> argument before returning.</p>
+</div>
+<div class="section" id="client-side">
+<h4>Client-side</h4>
+</div>
+<div class="section" id="implementation-side">
+<h4>Implementation-side</h4>
+</div>
+</div>
+</div>
+<div class="section" id="further-information">
+<h2>Further Information</h2>
+<p>The following files are available at the top of the release directory
+structure provide additional information on the Babel release:</p>
+<ul>
+<li><p class="first">BUGS:       Lists known bugs</p>
+</li>
+<li><p class="first">COPYRIGHT:  Lawrence Livermore National Security, LLC notice</p>
+</li>
+<li><p class="first">INSTALL:    Provides installation instructions</p>
+</li>
+<li><p class="first">README:     This file</p>
+<p>Additional background information can be found at our web site at</p>
+<p><a class="reference external" href="http://www.llnl.gov/CASC/components/">http://www.llnl.gov/CASC/components/</a></p>
+<p>and</p>
+<p><a class="reference external" href="http://compose-hpc.sourceforge.net/">http://compose-hpc.sourceforge.net/</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="authors">
+<h1>Authors</h1>
+<div class="section" id="active-members">
+<h2>Active Members</h2>
+<p>Adrian Prantl: Architect, main author</p>
+</div>
+<div class="section" id="summer-interns">
+<h2>Summer Interns</h2>
+<p>Shams Imam, Rice University
+definition language) files. BRAID is a high-performance language
+interoperability tool that generates Babel-compatible bindings for the Chapel
+programming language. For details on using the command-line tool, please
+consult the Babel manual at <a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a> .</p>
+</div>
+</div>
+<div class="section" id="options">
+<h1>OPTIONS</h1>
+<div class="section" id="positional-arguments">
+<h2>positional arguments</h2>
+<blockquote>
+&lt;file.sidl&gt;           SIDL files to use as input</blockquote>
+</div>
+<div class="section" id="optional-arguments">
+<h2>optional arguments</h2>
+<blockquote>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
+<td>show this help message and exit</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--gen-sexp</span></kbd></td>
+<td>generate an s-expression</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--gen-sidl</span></kbd></td>
+<td>generate SIDL output again</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-c <var>&lt;language&gt;</var></span>, <span class="option">--client <var>&lt;language&gt;</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>generate client code in the specified language
+(Chapel, or any language supported through Babel)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-s <var>&lt;language&gt;</var></span>, <span class="option">--server <var>&lt;language&gt;</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>generate server code in the specified language
+(Chapel, or any language supported through Babel)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--makefile</span></kbd></td>
+<td>generate a default GNUmakefile</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-i</span>, <span class="option">--generate-hooks</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>generate pre-/post-method hooks</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--suppress-contracts</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>refrain from generating contract enforcement from SIDL
+specs</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-m <var>&lt;prefix&gt;</var></span>, <span class="option">--make-prefix <var>&lt;prefix&gt;</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>&lt;prefix&gt; is prepended to the name of babel.make and
+the symbols defined internally to allow Braid to be
+run multiple times in a single directory.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--debug</span></kbd></td>
+<td>enable debugging features</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--profile</span></kbd></td>
+<td>enable profiling</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--version</span></kbd></td>
+<td>print version and exit</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--license</span></kbd></td>
+<td>print licensing details</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></td>
+<td>print more debug info</td></tr>
+</tbody>
+</table>
+</blockquote>
+<p>Please report bugs to &lt;<a class="reference external" href="mailto:components&#64;llnl.gov">components&#64;llnl.gov</a>&gt;.</p>
+</div>
+</div>
+<div class="section" id="copyright-notice">
+<h1>COPYRIGHT NOTICE</h1>
+<p>Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+Produced at the Lawrence Livermore National Laboratory.
+Written by the Components Team &lt;<a class="reference external" href="mailto:components&#64;llnl.gov">components&#64;llnl.gov</a>&gt;.</p>
+<p>LLNL-CODE-473891.
+All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ul class="simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the disclaimer below.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the disclaimer (as noted below)
+in the documentation and/or other materials provided with the
+distribution.</li>
+<li>Neither the name of the LLNS/LLNL nor the names of its contributors
+may be used to endorse or promote products derived from this
+software without specific prior written permission.</li>
+</ul>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE
+LIVERMORE NATIONAL SECURITY, LLC, THE U.S. DEPARTMENT OF ENERGY OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+<p>Additional BSD Notice</p>
+<ol class="arabic simple">
+<li>This notice is required to be provided under our contract with the
+U.S.  Department of Energy (DOE). This work was produced at
+Lawrence Livermore National Laboratory under Contract
+No. DE-AC52-07NA27344 with the DOE.</li>
+<li>Neither the United States Government nor Lawrence Livermore
+National Security, LLC nor any of their employees, makes any
+warranty, express or implied, or assumes any liability or
+responsibility for the accuracy, completeness, or usefulness of any
+information, apparatus, product, or process disclosed, or
+represents that its use would not infringe privately-owned rights.</li>
+<li>Also, reference herein to any specific commercial products,
+process, or services by trade name, trademark, manufacturer or
+otherwise does not necessarily constitute or imply its endorsement,
+recommendation, or favoring by the United States Government or
+Lawrence Livermore National Security, LLC.  The views and opinions
+of authors expressed herein do not necessarily state or reflect
+those of the United States Government or Lawrence Livermore
+National Security, LLC, and shall not be used for advertising or
+product endorsement purposes.</li>
+</ol>
+</div>
+</div>
+<div class="footer">
+<hr class="footer" />
+Generated on: 2012-06-25.
+
+</div>
+</body>
+</html>

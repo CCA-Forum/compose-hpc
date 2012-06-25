@@ -1075,7 +1075,7 @@ class GlueCodeGenerator(object):
                  'as_'+qbase, [],
                  ['var ex: sidl_BaseInterface__object;',
                   ('return _cast_%s(this.' + self_field_name + ', ex);') % qbase],
-                 'Create a down-casted version of the IOR pointer for\n'
+                 'Create a up-casted version of the IOR pointer for\n'
                  'use with the alternate constructor'), chpl_class)
 
         gen_self_cast()

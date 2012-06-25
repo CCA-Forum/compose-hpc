@@ -5294,7 +5294,12 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT 
 	@if test -w $@; then \
              if which rst2man >/dev/null; then \
                  rst2man -v braid.txt $@; \
-             else echo "**WARNING rst2man not installed, did not update $@"; \
+             else echo "**WARNING docutils / rst2man not installed, did not update $@"; \
+	     fi; \
+             if which rst2html >/dev/null; then \
+                 rst2html --title="BRAID User's Guide" --date -v braid.txt \
+                          $(srcdir)/doc/users_guide.html; \
+             else echo "**WARNING docutils / rst2html not installed, did not update $@"; \
              fi \
          else echo "**WARNING $@ is not writable, did not update. (This is OK during distcheck)"; \
          fi
