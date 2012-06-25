@@ -389,7 +389,7 @@ class GenericCodeGenerator(object):
 
     @generator
     @matcher(globals(), debug=False)
-    def generate(self, node, scope=SourceFile()):
+    def generate(self, node, scope):
         """
         Language-independent generator rules.
 
@@ -397,20 +397,44 @@ class GenericCodeGenerator(object):
         \param scope      the \c Scope object the output will be written to
         \return           a string containing the expression for \c node
         """
-        def gen(node):
-            return self.generate(node, scope)
+        def gen(n):
+            return self.generate(n, scope)
+
+        def egen(n):
+            return self.generate_expr(n, scope, self.precedence(node))
 
         with match(node):
             if (ir.stmt, Expr):
                 return scope.new_def(gen(Expr))
 
-            elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], gen(B)))
-            elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], gen(A)))
+            elif (ir.infix_expr, Op, A, B): return ' '.join((gen(A), self.bin_op[Op], egen(B)))
+            elif (ir.prefix_expr, Op, A):   return ' '.join((self.un_op[Op], egen(A)))
             elif (ir.primitive_type, T):    return self.type_map[T]
             elif (ir.float, N):             return str(N)
             elif (ir.double, N):            return str(N)
             else: raise Exception("unhandled node: " + repr(node))
         return scope
+
+    def generate_expr(self, node, scope, parent_precedence):
+        """
+        like \c generate(), but puts parentheses around the generated
+        expression if the precedence of \c node is greater or equal than
+        parent_precedence.
+
+
+        This function uses the method \c precedence() which needs to be
+        provided by derived classes.
+        """
+        r = self.generate(node, scope)
+        if self.precedence(node) >= parent_precedence:
+            return '(%s)'%r
+        else: return r
+
+    def precedence(self, node):
+        """
+        \return an integer denoting the precedence of \c node.
+        """
+        return -1
 
     def generate_non_tuple(self, node, scope):
         """
@@ -581,8 +605,7 @@ class Fortran77CodeGenerator(GenericCodeGenerator):
         ir.minus:   '-',
         ir.times:   '*',
         ir.divide:  '/',
-        ir.modulo:  '%',
-        ir.rem:     'rem',
+        ir.modulo:  'rem',
         ir.pow:     'pow'
         }
 
@@ -782,8 +805,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
         ir.minus:   '-',
         ir.times:   '*',
         ir.divide:  '/',
-        ir.modulo:  '%',
-        ir.rem:     'rem',
+        ir.modulo:  'rem',
         ir.pow:     'pow'
         }
 
@@ -1134,14 +1156,47 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         ir.times:   '*',
         ir.divide:  '/',
         ir.modulo:  '%',
-        ir.rem:     'rem',
         ir.pow:     'pow'
         }
 
     un_op = {
-        ir.log_not: '!',
-        ir.bit_not: '~'
+        ir.log_not:   '!',
+        ir.bit_not:   '~'
+    }
+
+    preced = {
+        ir.log_or:   14,
+        ir.log_and:  13,
+        ir.eq:        9,
+        ir.ne:        9,
+        ir.bit_or:   12,
+        ir.bit_and:  10,
+        ir.bit_xor:  11,
+        ir.lt:        8,
+        ir.gt:        8,
+        ir.ge:        8,
+        ir.le:        8,
+        ir.lshift:    7,
+        ir.rshift:    7,
+        ir.plus:      6,
+        ir.minus:     6,
+        ir.times:     5,
+        ir.divide:    5,
+        ir.modulo:    5,
+        ir.pow:      -1,
+        ir.log_not:   3,
+        ir.bit_not:   3
         }
+
+    def precedence(self, node):
+        if not isinstance(node, tuple): 
+            return -1
+
+        if   node[0] == ir.prefix_expr:  return self.preced[node[1]]
+        elif node[0] == ir.infix_expr:   return self.preced[node[1]]
+        elif node[0] == ir.deref:        return 3
+        elif node[0] == ir.pointer_expr: return 3
+        else: return -1
 
     @generator
     @matcher(globals(), debug=False)
@@ -1149,6 +1204,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
         # recursion
         def gen(node):
             return self.generate(node, scope)
+
+        def egen(n):
+            return self.generate_expr(n, scope, self.precedence(node))
 
         def new_def(s):
             #print 'new_def:', str(s)
@@ -1272,14 +1330,12 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
 
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
-            elif (ir.deref, Expr):        return '*'+gen(Expr)
-            elif (ir.pointer_expr, Expr): return '&'+gen(Expr)
+            elif (ir.deref, Expr):        return '*'+egen(Expr)
+            elif (ir.pointer_expr, Expr): return '&'+egen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'
             elif (ir.typedef_type, Type): return Type
             elif (ir.comment, Comment):   return '/* %s */'%Comment
             elif (ir.return_, Expr):      return 'return '+gen(Expr)
-            elif (ir.log_not):            return '!'
-            elif (ir.eq):                 return '=='
             elif (ir.bool, ir.true):      return 'true'
             elif (ir.bool, ir.false):     return 'false'
             elif (ir.str, S):             return '"%s"'%S
@@ -1597,7 +1653,6 @@ class PythonCodeGenerator(GenericCodeGenerator):
         ir.times:   '*',
         ir.divide:  '/',
         ir.modulo:  '%',
-        ir.rem:     'rem',
         ir.pow:     'pow'
         }
 
@@ -1705,10 +1760,9 @@ class SIDLCodeGenerator(GenericCodeGenerator):
         sidl.minus:   '-',
         sidl.times:   '*',
         sidl.divide:  '/',
-        sidl.modulo:  '%',
-        sidl.rem:     'rem',
+        sidl.modulo:  'rem',
         sidl.pow:     'pow',
-        sidl.implies: 'imples',
+        sidl.implies: 'implies',
         sidl.iff:     'iff'
         }
     un_op = {
