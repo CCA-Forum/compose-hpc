@@ -30,9 +30,9 @@ proc run_part(result: string, template: string)
   var r: ResultType;
   tracker.writeComment("should return " + template, sidl_ex);
   if (result == template) then
-  r = ResultType.PASS;
+    r = ResultType.PASS;
   else 
-  r = ResultType.FAIL;
+    r = ResultType.FAIL;
   tracker.endPart(part_no, r, sidl_ex);
   tracker.writeComment("Method returned " + result, sidl_ex);
 }
@@ -42,13 +42,13 @@ proc run_part(result: string, template: string)
  */
 proc clearstack(magicNumber: int): int
 {
-//  var chunk: 2048*int;
-//  for(i = 0; i < 2048; i++){
-//  chunk[i] = rand() + magicNumber;
-//  }
-//  for(i = 0; i < 16; i++){
-//  magicNumber += chunk[rand() & 2047];
-//  }
+  //  var chunk: 2048*int;
+  //  for(i = 0; i < 2048; i++){
+  //  chunk[i] = rand() + magicNumber;
+  //  }
+  //  for(i = 0; i < 16; i++){
+  //  magicNumber += chunk[rand() & 2047];
+  //  }
   return magicNumber;
 }
 
@@ -78,10 +78,10 @@ proc testD() {
   tracker.startPart(part_no, sidl_ex);
   tracker.writeComment("Casting D to interface A", sidl_ex);
   if ( a == nil) {
-  tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
+    tracker.endPart(part_no, synch.ResultType.FAIL, sidl_ex);
   } else {
-  tracker.endPart(part_no, synch.ResultType.PASS, sidl_ex);
-  init_part("a.a()"); run_part(a.a(sidl_ex), "D.a");
+    tracker.endPart(part_no, synch.ResultType.PASS, sidl_ex);
+    init_part("a.a()"); run_part(a.a(sidl_ex), "D.a");
   }
 
   tracker.writeComment("Class D2: via interface A", sidl_ex);
