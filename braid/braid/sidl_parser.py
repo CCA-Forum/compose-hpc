@@ -1009,7 +1009,10 @@ def p_multExpr_2(p):
                 | powerExpr SLASH multExpr
                 | powerExpr MODULUS multExpr
                 | powerExpr REMAINDER multExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    if p[2] == 'rem':
+        p[0] = sidl.Infix_expr('mod', p[1], p[3])
+    else:
+        p[0] = sidl.Infix_expr(p[2], p[1], p[3])
 
 def p_powerExpr_1(p):
     '''powerExpr : unaryExpr'''

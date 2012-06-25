@@ -101,7 +101,7 @@
                | Literal
                ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge
-	   |lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff),
+	   |lshift|rshift|plus|minus|times|divide|modulo|pow|implies|iff),
   Un_op = ( is|log_not|bit_not ),
   Scoped_id = scoped_id([Module], Id, Extension),
   Module = 'STR',
@@ -126,7 +126,6 @@
 %times = '*'
 %divide = '/'
 %modulo = '%'
-%rem = 'rem'
 %pow = '**'
 % ## sidl primitive types
 %pt_bool = Primitive_type(bool)

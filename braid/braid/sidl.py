@@ -93,7 +93,7 @@
 #                | Literal
 #                ),
 #   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge
-# 	   |lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff),
+# 	   |lshift|rshift|plus|minus|times|divide|modulo|pow|implies|iff),
 #   Un_op = ( is|log_not|bit_not ),
 #   Scoped_id = scoped_id([Module], Id, Extension),
 #   Module = 'STR',
@@ -183,7 +183,6 @@ prefix_expr = 'prefix_expr'
 primitive_type = 'primitive_type'
 pure = 'pure'
 rarray = 'rarray'
-rem = 'rem'
 require = 'require'
 requires = 'requires'
 result = 'result'
@@ -1308,7 +1307,7 @@ def INT():
 # skipping \c Orientation= (row_major|column_major)
 # skipping \c Extents= \c SimpleIntExpression
 # skipping \c SimpleIntExpression= (INT|\c Id)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|pow|implies|iff)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
 def STR():
@@ -1520,8 +1519,6 @@ def Infix_expr(*args):
     elif args[0] == divide:
         pass
     elif args[0] == modulo:
-        pass
-    elif args[0] == rem:
         pass
     elif args[0] == pow:
         pass
@@ -2698,7 +2695,7 @@ def primitive_type_opaque(arg):
 # skipping \c Orientation= (row_major|column_major)
 # skipping \c Extents= \c SimpleIntExpression
 # skipping \c SimpleIntExpression= (INT|\c Id)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|pow|implies|iff)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
 # skipping \c Module=STR
@@ -3166,7 +3163,7 @@ def is_primitive_type(arg):
 # skipping \c Orientation= (row_major|column_major)
 # skipping \c Extents= \c SimpleIntExpression
 # skipping \c SimpleIntExpression= (INT|\c Id)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow|implies|iff)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|pow|implies|iff)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Literal= (INT|FLOAT|STR|pure|result|\c Complex)
 # skipping \c Module=STR
@@ -3287,7 +3284,6 @@ minus = '_'
 times = '*'
 divide = '/'
 modulo = '%'
-rem = 'rem'
 pow = '**'
  ## sidl primitive types
 pt_bool = Primitive_type(bool)

@@ -57,7 +57,7 @@
 # 	     | var_decl_init(Type, Id, Expr)
 # 	     ),
 #   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift
-# 	   |plus|minus|times|divide|modulo|rem|pow),
+# 	   |plus|minus|times|divide|modulo|pow),
 #   Un_op = ( is|log_not|bit_not ),
 #   Literal = (StringLiteral | FloatLiteral | DoubleLiteral | 'INT' | pure | result | Complex | Bool),
 #   FloatLiteral = float( 'FLOAT' ),
@@ -186,7 +186,6 @@ pow = 'pow'
 prefix_expr = 'prefix_expr'
 primitive_type = 'primitive_type'
 pure = 'pure'
-rem = 'rem'
 result = 'result'
 return_ = 'return'
 rshift = 'rshift'
@@ -945,7 +944,7 @@ def Struct_item(*args):
     return tuple(['struct_item']+list(args))
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 def INT():
     return INT
@@ -1884,8 +1883,6 @@ def Infix_expr(*args):
     elif args[0] == divide:
         pass
     elif args[0] == modulo:
-        pass
-    elif args[0] == rem:
         pass
     elif args[0] == pow:
         pass
@@ -2950,7 +2947,7 @@ def struct_item_id(arg):
 
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Bits=INT
 # skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
@@ -3932,7 +3929,7 @@ def is_struct_item(arg):
     return arg[0] == 'struct_item'
 
 # skipping \c VarRefExpr= (\c Id|\c Pointer_expr|\c Deref|\c Get_struct_item|\c Call)
-# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|rem|pow)
+# skipping \c Bin_op= (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge|lshift|rshift|plus|minus|times|divide|modulo|pow)
 # skipping \c Un_op= (is|log_not|bit_not)
 # skipping \c Bits=INT
 # skipping \c Literal= (\c StringLiteral|\c FloatLiteral|\c DoubleLiteral|INT|pure|result|\c Complex|\c Bool)
@@ -4221,7 +4218,6 @@ minus = '_'
 times = '*'
 divide = '/'
 modulo = '%'
-rem = 'rem'
 pow = '**'
  ## ir primitive types
 pt_bool     = Primitive_type(bool)
