@@ -50,7 +50,13 @@ fi
 pushd @CHPL_ROOT@ || exit 1
 for p in `ls -1 $lsflags $base/@top_srcdir@/chapel-patches/ |grep '\.diff\$'`; do
     echo "[" `basename $p` "]"
-    patch $flags -p3 -u < "$base/@top_srcdir@/chapel-patches/$p" || echo "**ERROR"
+    patch="$base/@top_srcdir@/chapel-patches/$p"
+    if head -n1 $patch | grep -q '^From:'; then
+	level=-p3
+    else
+	level=-p0
+    fi
+    patch $flags $level -u < $patch || echo "**ERROR"
 done
 
 # we have to manually remove these files which have been created by the patches
