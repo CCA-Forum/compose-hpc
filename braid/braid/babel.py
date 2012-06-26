@@ -380,16 +380,18 @@ class EPV(object):
              for itype, iname in map(get_type_name, self.static_methods)],
                          'Static Entry Point Vector (SEPV)')
 
+    nonempty = ir.Struct_item(ir.pt_char, 'd_not_empty')
+
     def get_pre_epv_ir(self):
         """
         return an s-expression of the pre_EPV declaration
         """
         self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__pre_epv', '')
-        return ir.Struct(name,
-            [ir.Struct_item(itype, iname)
-             for itype, iname in map(get_type_name, self.pre_methods)],
-                         'Pre Hooks Entry Point Vector (pre_EPV)')
+        elems = [ir.Struct_item(itype, iname)
+                 for itype, iname in map(get_type_name, self.pre_methods)]
+        if elems == []: elems = [self.nonempty]
+        return ir.Struct(name, elems, 'Pre Hooks Entry Point Vector (pre_EPV)')
 
     def get_post_epv_ir(self):
         """
@@ -397,12 +399,10 @@ class EPV(object):
         """
         self.finalized = True
         name = ir.Scoped_id(self.symbol_table.prefix, self.name+'__post_epv', '')
-        return ir.Struct(name,
-            [ir.Struct_item(itype, iname)
-             for itype, iname in map(get_type_name, self.post_methods)],
-                         'Pre Hooks Entry Point Vector (post_EPV)')
-
-    nonempty = ir.Struct_item(ir.pt_char, 'd_not_empty')
+        elems = [ir.Struct_item(itype, iname)
+                 for itype, iname in map(get_type_name, self.post_methods)]
+        if elems == []: elems = [self.nonempty]
+        return ir.Struct(name, elems, 'Pre Hooks Entry Point Vector (post_EPV)')
 
     def get_pre_sepv_ir(self):
         """

@@ -46,12 +46,16 @@ proc run_part(result, exp_result, sidl_ex, expectation)
     if expectation == vect.ExpectExcept.NoneExp then
       if sidl_ex == nil then
 	r = ResultType.PASS;
-      else 
+      else {
 	r = ResultType.FAIL;
+	failed = true;
+      }
     else if sidl_ex.isType(exp_type, ex) then
       r = ResultType.PASS;
-    else 
+    else {
       r = ResultType.FAIL;
+      failed = true;
+    }
   } else {
     r = ResultType.FAIL;
     failed = true;
@@ -75,20 +79,23 @@ proc run_parta(result:opaque, tol, exp_result:opaque, expect_equal:bool,
   var ex: sidl.BaseInterface;
 
   var r: ResultType;
-  if (vect.Utils_static.vuAreEqual(result, exp_result, tol, ex) &&
-      expect_equal) then {
-    if expectation == vect.ExpectExcept.NoneExp then
-      if sidl_ex == nil then
-	r = ResultType.PASS;
-      else 
-	r = ResultType.FAIL;
-    else if sidl_ex.isType(exp_type, ex) then
+  if expectation == vect.ExpectExcept.NoneExp then {
+    if (sidl_ex == nil && 
+	((IS_NULL(result) && IS_NULL(exp_result)) ||
+	 (expect_equal  &&  vect.Utils_static.vuAreEqual(result, exp_result, tol, ex)) ||
+	 (!expect_equal && !vect.Utils_static.vuAreEqual(result, exp_result, tol, ex)))) then {
       r = ResultType.PASS;
-    else 
+    } else {
       r = ResultType.FAIL;
+      failed = true;
+    } 
   } else {
-    r = ResultType.FAIL;
-    failed = true;
+    if sidl_ex.isType(exp_type, ex) then {
+      r = ResultType.PASS;
+    } else {
+      r = ResultType.FAIL;
+      failed = true;
+    }
   }
   tracker.endPart(part_no, r, ex);
   tracker.writeComment("End of part "+part_no, ex);
@@ -108,19 +115,25 @@ proc run_part(result:real(64), tol, exp_result, sidl_ex, expectation)
   var ex: sidl.BaseInterface;
 
   var r: ResultType;
-  if (abs(result - exp_result) <= abs(tol)) then {
-    if expectation == vect.ExpectExcept.NoneExp then
+  if expectation == vect.ExpectExcept.NoneExp then {
+    if (abs(result - exp_result) <= abs(tol)) then {
       if sidl_ex == nil then
 	r = ResultType.PASS;
-      else 
+       else {
 	r = ResultType.FAIL;
-    else if sidl_ex.isType(exp_type, ex) then
-      r = ResultType.PASS;
-    else 
+	failed = true;
+       }
+    } else {
       r = ResultType.FAIL;
+      failed = true;
+    }
   } else {
-    r = ResultType.FAIL;
-    failed = true;
+    if sidl_ex.isType(exp_type, ex) then
+      r = ResultType.PASS;
+    else {
+      r = ResultType.FAIL;
+      failed = true;
+    }
   }
   tracker.endPart(part_no, r, ex);
   tracker.writeComment("End of part "+part_no, ex);
