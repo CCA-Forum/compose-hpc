@@ -482,7 +482,7 @@ class GlueCodeGenerator(object):
 
         # pointers to the implemented interface's EPV
         if not cls.is_interface():
-            for impl in cls.get_parent_interfaces():
+            for impl in cls.get_unique_interfaces():
                 if impl <> (sidl.scoped_id, ('sidl',), 'BaseInterface', ''):
                     gen_inherits(impl)
 
@@ -495,13 +495,19 @@ class GlueCodeGenerator(object):
         if ior_template.generateContractEPVs(ci.co):
             cstats = [ir.Struct_item(unscope(ci.cstats), 'd_cstats')]
 
-            
+        ior_template.gen_hooks = self.config.gen_hooks
+        ior_template.gen_contracts = self.config.gen_contracts
+        epv  = [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_epv')]
+        bepv = [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_bepv')] \
+               if ior_template.generateBaseEPVAttr(ci.co) else []
+
         ci.obj = \
             ir.Struct(ir.Scoped_id(prefix, ci.epv.name+'__object', ''),
                       baseclass+
                       inherits+
-                      [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_epv')]+
-                       cstats+
+                      epv+
+                      bepv+
+                      cstats+
                        [ir.Struct_item(ir.Pointer_type(ir.pt_void),
                                        'd_object' if cls.is_interface() else
                                        'd_data')],
