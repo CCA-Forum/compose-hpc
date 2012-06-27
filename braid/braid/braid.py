@@ -213,7 +213,7 @@ if __name__ == '__main__':
 - Do magically wonderful things with SIDL (scientific interface
   definition language) files.
 
-BRAID is a high-performance language interoperability tool that generates Babel-compatible bindings for the Chapel programming language. For details on using the command-line tool, please consult the Babel manual at https://computation.llnl.gov/casc/components/ .
+BRAID is a high-performance language interoperability tool that generates Babel-compatible bindings for the Chapel programming language. For details on using the command-line tool, please consult the BRAID man page and the Babel user's guide.
 ''',
     epilog="Please report bugs to <%s>."%config.PACKAGE_BUGREPORT)
 
