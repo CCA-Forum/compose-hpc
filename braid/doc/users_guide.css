@@ -1,5 +1,13 @@
 @import url(html4css1.css);
 
+h1.title {
+  text-align: center 
+}
+
+h2.subtitle {
+  text-align: center 
+}
+
 body {
     margin-left: 10%;
     margin-right: 10%;
@@ -21,3 +29,35 @@ pre, tt, dt, dd, kbd {
     font-family: monospace;
     color: #283c4a;
 }
+
+pre.literal-block, pre.doctest-block {
+  border: 1px dotted;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+  background-color: #f8f8f8;
+  margin-left: 2em ;
+  margin-right: 2em }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
