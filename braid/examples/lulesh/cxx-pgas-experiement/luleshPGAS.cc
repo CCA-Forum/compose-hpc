@@ -99,6 +99,35 @@ typedef int    Index_t ; /* array subscript and loop index */
 typedef real8  Real_t ;  /* floating point representation */
 typedef int    Int_t ;   /* integer representation */
 
+/**
+ * Overload the original code's double[] arrays with our own PGAS
+ * array accessor functions
+ */
+template <typename T>
+class DArray {
+public:
+  DArray(): data(NULL) {};
+
+  // using this instead of a constructor so we can use references to
+  // DArrays in struct Domain
+  void allocate(Index_t size) {
+    data = new T[size];
+  };
+
+  ~DArray() {
+    if (data) 
+      delete[] data;
+  };
+
+  T* getRawPtr() { return data; }
+  T** getRawPtrPtr() { return &data; }
+
+  T& operator[](Index_t idx) { return data[idx]; }
+  const T& operator[](Index_t idx) const  { return data[idx]; };
+private:
+  T* data;
+};
+
 inline real4  SQRT(real4  arg) { return sqrtf(arg) ; }
 inline real8  SQRT(real8  arg) { return sqrt(arg) ; }
 inline real10 SQRT(real10 arg) { return sqrtl(arg) ; }
@@ -147,25 +176,25 @@ struct Domain {
 
    Int_t *elemBC ;         /* elem face symm/free-surface flag */
 
-   Real_t *e ;             /* energy */
+   DArray<Real_t> e ;             /* energy */
 
-   Real_t *p ;             /* pressure */
+   DArray<Real_t> p ;             /* pressure */
 
-   Real_t *q ;             /* q */
-   Real_t *ql ;            /* linear term for q */
-   Real_t *qq ;            /* quadratic term for q */
+   DArray<Real_t> q ;             /* q */
+   DArray<Real_t> ql ;            /* linear term for q */
+   DArray<Real_t> qq ;            /* quadratic term for q */
 
-   Real_t *v ;             /* relative volume */
+   DArray<Real_t> v ;             /* relative volume */
 
-   Real_t *volo ;          /* reference volume */
-   Real_t *delv ;          /* m_vnew - m_v */
-   Real_t *vdov ;          /* volume derivative over volume */
+   DArray<Real_t> volo ;          /* reference volume */
+   DArray<Real_t> delv ;          /* m_vnew - m_v */
+   DArray<Real_t> vdov ;          /* volume derivative over volume */
 
-   Real_t *arealg ;        /* elem characteristic length */
+   DArray<Real_t> arealg ;        /* elem characteristic length */
 
-   Real_t *ss ;            /* "sound speed" */
+   DArray<Real_t> ss ;            /* "sound speed" */
 
-   Real_t *elemMass ;      /* mass */
+   DArray<Real_t> elemMass ;      /* mass */
 
    /* Elem temporaries */
 
@@ -185,23 +214,23 @@ struct Domain {
 
    /* Node-centered */
 
-   Real_t *x ;             /* coordinates */
-   Real_t *y ;
-   Real_t *z ;
+   DArray<Real_t> x ;             /* coordinates */
+   DArray<Real_t> y ;
+   DArray<Real_t> z ;
 
-   Real_t *xd ;            /* velocities */
-   Real_t *yd ;
-   Real_t *zd ;
+   DArray<Real_t> xd ;            /* velocities */
+   DArray<Real_t> yd ;
+   DArray<Real_t> zd ;
 
-   Real_t *xdd ;           /* accelerations */
-   Real_t *ydd ;
-   Real_t *zdd ;
+   DArray<Real_t> xdd ;           /* accelerations */
+   DArray<Real_t> ydd ;
+   DArray<Real_t> zdd ;
 
-   Real_t *fx ;            /* forces */
-   Real_t *fy ;
-   Real_t *fz ;
+   DArray<Real_t> fx ;            /* forces */
+   DArray<Real_t> fy ;
+   DArray<Real_t> fz ;
 
-   Real_t *nodalMass ;     /* mass */
+   DArray<Real_t> nodalMass ;     /* mass */
 
    /* Communication Work space */
 
@@ -1790,12 +1819,12 @@ void CommSyncPosVel(Domain *domain) {
       planeMax = false ;
    }
 
-   fieldData[0] = domain->x ;
-   fieldData[1] = domain->y ;
-   fieldData[2] = domain->z ;
-   fieldData[3] = domain->xd ;
-   fieldData[4] = domain->yd ;
-   fieldData[5] = domain->zd ;
+   fieldData[0] = domain->x.getRawPtr() ;
+   fieldData[1] = domain->y.getRawPtr() ;
+   fieldData[2] = domain->z.getRawPtr() ;
+   fieldData[3] = domain->xd.getRawPtr();
+   fieldData[4] = domain->yd.getRawPtr();
+   fieldData[5] = domain->zd.getRawPtr();
 
    MPI_Comm_rank(MPI_COMM_WORLD, &myRank) ;
 
@@ -2383,7 +2412,7 @@ void TimeIncrement(Domain *domain)
 }
 
 static inline
-void InitStressTermsForElems(Real_t *p, Real_t *q,
+void InitStressTermsForElems(DArray<Real_t>& p, DArray<Real_t>& q,
                              Real_t *sigxx, Real_t *sigyy, Real_t *sigzz,
                              Index_t numElem)
 {
@@ -2629,8 +2658,8 @@ void SumElemStressesToNodeForces( const Real_t B[][8],
 
 static inline
 void IntegrateStressForElems( Index_t *nodelist,
-                              Real_t *x,  Real_t *y,  Real_t *z,
-                              Real_t *fx, Real_t *fy, Real_t *fz,
+                              DArray<Real_t>& x,  DArray<Real_t>& y,  DArray<Real_t>& z,
+                              DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
                               Real_t *sigxx, Real_t *sigyy, Real_t *sigzz,
                               Real_t *determ, Index_t numElem)
 {
@@ -2678,7 +2707,7 @@ void IntegrateStressForElems( Index_t *nodelist,
 }
 
 static inline
-void CollectDomainNodesToElemNodes(Real_t *x, Real_t *y, Real_t *z,
+void CollectDomainNodesToElemNodes(DArray<Real_t> &x, DArray<Real_t> &y, DArray<Real_t> &z,
                                    const Index_t* elemToNode,
                                    Real_t elemX[8],
                                    Real_t elemY[8],
@@ -2979,9 +3008,9 @@ void CalcElemFBHourglassForce(Real_t *xd, Real_t *yd, Real_t *zd,  Real_t *hourg
 
 static inline
 void CalcFBHourglassForceForElems( Index_t *nodelist,
-                                   Real_t *ss, Real_t *elemMass,
-                                   Real_t *xd, Real_t *yd, Real_t *zd,
-                                   Real_t *fx, Real_t *fy, Real_t *fz,
+                                   DArray<Real_t>& ss, DArray<Real_t>& elemMass,
+                                   DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
+                                   DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
                                    Real_t *determ,
                                    Real_t *x8n, Real_t *y8n, Real_t *z8n,
                                    Real_t *dvdx, Real_t *dvdy, Real_t *dvdz,
@@ -3303,9 +3332,9 @@ static inline void CalcForceForNodes(Domain *domain)
   /* Calcforce calls partial, force, hourq */
   CalcVolumeForceForElems(domain) ;
 
-  fieldData[0] = domain->fx ;
-  fieldData[1] = domain->fy ;
-  fieldData[2] = domain->fz ;
+  fieldData[0] = domain->fx.getRawPtr() ;
+  fieldData[1] = domain->fy.getRawPtr() ;
+  fieldData[2] = domain->fz.getRawPtr() ;
   CommSend(domain, MSG_COMM_SBN, 3, fieldData,
            domain->sizeX + 1, domain->sizeY + 1, domain->sizeZ +  1,
            true, false) ;
@@ -3313,9 +3342,9 @@ static inline void CalcForceForNodes(Domain *domain)
 }
 
 static inline
-void CalcAccelerationForNodes(Real_t *xdd, Real_t *ydd, Real_t *zdd,
-                              Real_t *fx, Real_t *fy, Real_t *fz,
-                              Real_t *nodalMass, Index_t numNode)
+void CalcAccelerationForNodes(DArray<Real_t>& xdd, DArray<Real_t>& ydd, DArray<Real_t>& zdd,
+                              DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
+                              DArray<Real_t>& nodalMass, Index_t numNode)
 {
    for (Index_t i = 0; i < numNode; ++i) {
       xdd[i] = fx[i] / nodalMass[i];
@@ -3325,8 +3354,8 @@ void CalcAccelerationForNodes(Real_t *xdd, Real_t *ydd, Real_t *zdd,
 }
 
 static inline
-void ApplyAccelerationBoundaryConditionsForNodes(Real_t *xdd, Real_t *ydd,
-                                                 Real_t *zdd, Index_t *symmX,
+void ApplyAccelerationBoundaryConditionsForNodes(DArray<Real_t>& xdd, DArray<Real_t>& ydd,
+                                                 DArray<Real_t>& zdd, Index_t *symmX,
                                                  Index_t *symmY,
                                                  Index_t *symmZ, Index_t size)
 {
@@ -3348,8 +3377,8 @@ void ApplyAccelerationBoundaryConditionsForNodes(Real_t *xdd, Real_t *ydd,
 }
 
 static inline
-void CalcVelocityForNodes(Real_t *xd,  Real_t *yd,  Real_t *zd,
-                          Real_t *xdd, Real_t *ydd, Real_t *zdd,
+void CalcVelocityForNodes(DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_t>& zd,
+                          DArray<Real_t>& xdd, DArray<Real_t>& ydd, DArray<Real_t>& zdd,
                           const Real_t dt, const Real_t u_cut,
                           Index_t numNode)
 {
@@ -3372,8 +3401,8 @@ void CalcVelocityForNodes(Real_t *xd,  Real_t *yd,  Real_t *zd,
 }
 
 static inline
-void CalcPositionForNodes(Real_t *x,  Real_t *y,  Real_t *z,
-                          Real_t *xd, Real_t *yd, Real_t *zd,
+void CalcPositionForNodes(DArray<Real_t>& x,  DArray<Real_t>& y,  DArray<Real_t>& z,
+                          DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
                           const Real_t dt, Index_t numNode)
 {
    for ( Index_t i = 0 ; i < numNode ; ++i )
@@ -3421,12 +3450,12 @@ void LagrangeNodal(Domain *domain)
                         domain->xd, domain->yd, domain->zd,
                         delt, domain->numNode );
 #ifdef SEDOV_SYNC_POS_VEL_EARLY
-   fieldData[0] = domain->x ;
-   fieldData[1] = domain->y ;
-   fieldData[2] = domain->z ;
-   fieldData[3] = domain->xd ;
-   fieldData[4] = domain->yd ;
-   fieldData[5] = domain->zd ;
+   fieldData[0] = domain->x.getRawPtr() ;
+   fieldData[1] = domain->y.getRawPtr() ;
+   fieldData[2] = domain->z.getRawPtr() ;
+   fieldData[3] = domain->xd.getRawPtr() ;
+   fieldData[4] = domain->yd.getRawPtr() ;
+   fieldData[5] = domain->zd.getRawPtr() ;
    
    CommSend(domain, MSG_SYNC_POS_VEL, 6, fieldData,
             domain->sizeX + 1, domain->sizeY + 1, domain->sizeZ + 1,
@@ -3660,11 +3689,11 @@ void CalcElemVelocityGrandient( const Real_t* const xvel,
 
 static inline
 void CalcKinematicsForElems( Index_t *nodelist,
-                             Real_t *x,   Real_t *y,   Real_t *z,
-                             Real_t *xd,  Real_t *yd,  Real_t *zd,
+                             DArray<Real_t>& x,   DArray<Real_t>& y,   DArray<Real_t>& z,
+                             DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_t>& zd,
                              Real_t *dxx, Real_t *dyy, Real_t *dzz,
-                             Real_t *v, Real_t *volo,
-                             Real_t *vnew, Real_t *delv, Real_t *arealg,
+                             DArray<Real_t>& v, DArray<Real_t>& volo,
+                             Real_t *vnew, DArray<Real_t>& delv, DArray<Real_t>& arealg,
                              Real_t deltaTime, Index_t numElem )
 {
   Real_t B[3][8] ; /** shape function derivatives */
@@ -3779,9 +3808,9 @@ void CalcLagrangeElements(Domain *domain)
 }
 
 static inline
-void CalcMonotonicQGradientsForElems(Real_t *x,  Real_t *y,  Real_t *z,
-                                     Real_t *xd, Real_t *yd, Real_t *zd,
-                                     Real_t *volo, Real_t *vnew,
+void CalcMonotonicQGradientsForElems(DArray<Real_t>& x,  DArray<Real_t>& y,  DArray<Real_t>& z,
+                                     DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
+                                     DArray<Real_t>& volo, Real_t *vnew,
                                      Real_t *delv_xi,
                                      Real_t *delv_eta,
                                      Real_t *delv_zeta,
@@ -3942,8 +3971,8 @@ void CalcMonotonicQRegionForElems(
                            Index_t *lzetam, Index_t *lzetap,
                            Real_t *delv_xi,Real_t *delv_eta,Real_t *delv_zeta,
                            Real_t *delx_xi,Real_t *delx_eta,Real_t *delx_zeta,
-                           Real_t *vdov, Real_t *volo, Real_t *vnew,
-                           Real_t *elemMass, Real_t *qq, Real_t *ql,
+                           DArray<Real_t>& vdov, DArray<Real_t>& volo, Real_t *vnew,
+                           DArray<Real_t>& elemMass, DArray<Real_t>& qq, DArray<Real_t>& ql,
                            Real_t qlc_monoq, Real_t qqc_monoq,
                            Real_t monoq_limiter_mult,
                            Real_t monoq_max_slope,
@@ -4342,7 +4371,7 @@ void CalcEnergyForElems(Real_t* p_new, Real_t* e_new, Real_t* q_new,
 }
 
 static inline
-void CalcSoundSpeedForElems(Index_t *matElemlist, Real_t *ss,
+void CalcSoundSpeedForElems(Index_t *matElemlist, DArray<Real_t>& ss,
                             Real_t *vnewc, Real_t rho0, Real_t *enewc,
                             Real_t *pnewc, Real_t *pbvc,
                             Real_t *bvc, Real_t ss4o3, Index_t nz)
@@ -4518,7 +4547,7 @@ void ApplyMaterialPropertiesForElems(Domain *domain)
 }
 
 static inline
-void UpdateVolumesForElems(Real_t *vnew, Real_t *v,
+void UpdateVolumesForElems(Real_t *vnew, DArray<Real_t>& v,
                            Real_t v_cut, Index_t length)
 {
    if (length != 0) {
@@ -4554,8 +4583,8 @@ void LagrangeElements(Domain *domain, Index_t numElem)
 }
 
 static inline
-void CalcCourantConstraintForElems(Index_t *matElemlist, Real_t *ss,
-                                   Real_t *vdov, Real_t *arealg,
+void CalcCourantConstraintForElems(Index_t *matElemlist, DArray<Real_t>& ss,
+                                   DArray<Real_t>& vdov, DArray<Real_t>& arealg,
                                    Real_t qqc, Index_t length,
                                    Real_t *dtcourant)
 {
@@ -4600,7 +4629,7 @@ void CalcCourantConstraintForElems(Index_t *matElemlist, Real_t *ss,
 }
 
 static inline
-void CalcHydroConstraintForElems(Index_t *matElemlist, Real_t *vdov,
+void CalcHydroConstraintForElems(Index_t *matElemlist, DArray<Real_t>& vdov,
                                  Real_t dvovmax, Index_t length,
                                  Real_t *dthydro)
 {
@@ -4738,44 +4767,44 @@ Domain *NewDomain(Index_t colLoc, Index_t rowLoc, Index_t planeLoc, Index_t nx, 
 
    domain->elemBC = new Int_t[domElems] ;  /* elem face symm/free-surface flag */
 
-   domain->e = new Real_t[domElems] ;   /* energy */
-   domain->p = new Real_t[domElems] ;   /* pressure */
+   domain->e.allocate(domElems) ;   /* energy */
+   domain->p.allocate(domElems) ;   /* pressure */
 
-   domain->q = new Real_t[domElems] ;   /* q */
-   domain->ql = new Real_t[domElems] ;  /* linear term for q */
-   domain->qq = new Real_t[domElems] ;  /* quadratic term for q */
+   domain->q.allocate(domElems) ;   /* q */
+   domain->ql.allocate(domElems) ;  /* linear term for q */
+   domain->qq.allocate(domElems) ;  /* quadratic term for q */
 
-   domain->v = new Real_t[domElems] ;     /* relative volume */
+   domain->v.allocate(domElems) ;     /* relative volume */
 
-   domain->volo = new Real_t[domElems] ;  /* reference volume */
-   domain->delv = new Real_t[domElems] ;  /* m_vnew - m_v */
-   domain->vdov = new Real_t[domElems] ;  /* volume derivative over volume */
+   domain->volo.allocate(domElems) ;  /* reference volume */
+   domain->delv.allocate(domElems) ;  /* m_vnew - m_v */
+   domain->vdov.allocate(domElems) ;  /* volume derivative over volume */
 
-   domain->arealg = new Real_t[domElems] ;  /* elem characteristic length */
+   domain->arealg.allocate(domElems) ;  /* elem characteristic length */
 
-   domain->ss = new Real_t[domElems] ;      /* "sound speed" */
+   domain->ss.allocate(domElems) ;      /* "sound speed" */
 
-   domain->elemMass = new Real_t[domElems] ;  /* mass */
+   domain->elemMass.allocate(domElems) ;  /* mass */
 
    /* Node-centered */
 
-   domain->x = new Real_t[domNodes] ;  /* coordinates */
-   domain->y = new Real_t[domNodes] ;
-   domain->z = new Real_t[domNodes] ;
+   domain->x.allocate(domNodes) ;  /* coordinates */
+   domain->y.allocate(domNodes) ;
+   domain->z.allocate(domNodes) ;
 
-   domain->xd = new Real_t[domNodes] ; /* velocities */
-   domain->yd = new Real_t[domNodes] ;
-   domain->zd = new Real_t[domNodes] ;
+   domain->xd.allocate(domNodes) ; /* velocities */
+   domain->yd.allocate(domNodes) ;
+   domain->zd.allocate(domNodes) ;
 
-   domain->xdd = new Real_t[domNodes] ; /* accelerations */
-   domain->ydd = new Real_t[domNodes] ;
-   domain->zdd = new Real_t[domNodes] ;
+   domain->xdd.allocate(domNodes) ; /* accelerations */
+   domain->ydd.allocate(domNodes) ;
+   domain->zdd.allocate(domNodes) ;
 
-   domain->fx = new Real_t[domNodes] ;  /* forces */
-   domain->fy = new Real_t[domNodes] ;
-   domain->fz = new Real_t[domNodes] ;
+   domain->fx.allocate(domNodes) ;  /* forces */
+   domain->fy.allocate(domNodes) ;
+   domain->fz.allocate(domNodes) ;
 
-   domain->nodalMass = new Real_t[domNodes] ;  /* mass */
+   domain->nodalMass.allocate(domNodes) ;  /* mass */
 
    /* allocate a buffer large enough for nodal ghost data */
    Index_t rowMin, rowMax, colMin, colMax, planeMin, planeMax ;
@@ -5404,10 +5433,10 @@ int main(int argc, char *argv[])
    CommRecv(locDom, MSG_COMM_SBN, 1,
             locDom->sizeX + 1, locDom->sizeY + 1, locDom->sizeZ + 1,
             true, false) ;
-   CommSend(locDom, MSG_COMM_SBN, 1, &locDom->nodalMass,
+   CommSend(locDom, MSG_COMM_SBN, 1, /*&*/locDom->nodalMass.getRawPtrPtr(),
             locDom->sizeX + 1, locDom->sizeY + 1, locDom->sizeZ +  1,
             true, false) ;
-   CommSBN(locDom, 1, &locDom->nodalMass) ;
+   CommSBN(locDom, 1, /*&*/locDom->nodalMass.getRawPtrPtr()) ;
 
    /* timestep to solution */
    while(locDom->time < locDom->stoptime) {
