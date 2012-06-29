@@ -1,0 +1,12 @@
+#MSUB -A comp
+#MSUB -l nodes=8
+#MSUB -l partition=ansel
+#MSUB -l walltime=00:30:00
+#MSUB -q pdebug
+#MSUB -m a
+#MSUB -N luleshCHPL
+#MSUB -V
+#MSUB -o /p/lscratchb/prantl1/luleshMPI.cc.txt
+
+export MPIRUN_CMD="srun -N %N %P %A"
+./a.out -nl 8 -v --numThreadsPerLocale=12 --dataParTasksPerLocale=12
