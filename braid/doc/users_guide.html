@@ -5,302 +5,32 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
 <title>BRAID User's Guide</title>
-<meta name="date" content="2012-06-25" />
+<meta name="date" content="2012-06-27" />
 <style type="text/css">
 
-/*
-:Author: David Goodger (goodger@python.org)
-:Id: $Id: html4css1.css 5951 2009-05-18 18:03:10Z milde $
-:Copyright: This stylesheet has been placed in the public domain.
-
-Default cascading style sheet for the HTML output of Docutils.
-
-See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
-customize this style sheet.
-*/
-
-/* used to remove borders from tables and images */
-.borderless, table.borderless td, table.borderless th {
-  border: 0 }
-
-table.borderless td, table.borderless th {
-  /* Override padding for "table.docutils td" with "! important".
-     The right padding separates the table cells. */
-  padding: 0 0.5em 0 0 ! important }
-
-.first {
-  /* Override more specific margin styles with "! important". */
-  margin-top: 0 ! important }
-
-.last, .with-subtitle {
-  margin-bottom: 0 ! important }
-
-.hidden {
-  display: none }
-
-a.toc-backref {
-  text-decoration: none ;
-  color: black }
-
-blockquote.epigraph {
-  margin: 2em 5em ; }
-
-dl.docutils dd {
-  margin-bottom: 0.5em }
-
-/* Uncomment (and remove this text!) to get bold-faced definition list terms
-dl.docutils dt {
-  font-weight: bold }
-*/
-
-div.abstract {
-  margin: 2em 5em }
-
-div.abstract p.topic-title {
-  font-weight: bold ;
-  text-align: center }
-
-div.admonition, div.attention, div.caution, div.danger, div.error,
-div.hint, div.important, div.note, div.tip, div.warning {
-  margin: 2em ;
-  border: medium outset ;
-  padding: 1em }
-
-div.admonition p.admonition-title, div.hint p.admonition-title,
-div.important p.admonition-title, div.note p.admonition-title,
-div.tip p.admonition-title {
-  font-weight: bold ;
-  font-family: sans-serif }
-
-div.attention p.admonition-title, div.caution p.admonition-title,
-div.danger p.admonition-title, div.error p.admonition-title,
-div.warning p.admonition-title {
-  color: red ;
-  font-weight: bold ;
-  font-family: sans-serif }
-
-/* Uncomment (and remove this text!) to get reduced vertical space in
-   compound paragraphs.
-div.compound .compound-first, div.compound .compound-middle {
-  margin-bottom: 0.5em }
-
-div.compound .compound-last, div.compound .compound-middle {
-  margin-top: 0.5em }
-*/
-
-div.dedication {
-  margin: 2em 5em ;
-  text-align: center ;
-  font-style: italic }
-
-div.dedication p.topic-title {
-  font-weight: bold ;
-  font-style: normal }
-
-div.figure {
-  margin-left: 2em ;
-  margin-right: 2em }
-
-div.footer, div.header {
-  clear: both;
-  font-size: smaller }
-
-div.line-block {
-  display: block ;
-  margin-top: 1em ;
-  margin-bottom: 1em }
-
-div.line-block div.line-block {
-  margin-top: 0 ;
-  margin-bottom: 0 ;
-  margin-left: 1.5em }
-
-div.sidebar {
-  margin: 0 0 0.5em 1em ;
-  border: medium outset ;
-  padding: 1em ;
-  background-color: #ffffee ;
-  width: 40% ;
-  float: right ;
-  clear: right }
-
-div.sidebar p.rubric {
-  font-family: sans-serif ;
-  font-size: medium }
-
-div.system-messages {
-  margin: 5em }
-
-div.system-messages h1 {
-  color: red }
-
-div.system-message {
-  border: medium outset ;
-  padding: 1em }
-
-div.system-message p.system-message-title {
-  color: red ;
-  font-weight: bold }
-
-div.topic {
-  margin: 2em }
-
-h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
-h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
-  margin-top: 0.4em }
-
-h1.title {
-  text-align: center }
-
-h2.subtitle {
-  text-align: center }
-
-hr.docutils {
-  width: 75% }
-
-img.align-left, .figure.align-left{
-  clear: left ;
-  float: left ;
-  margin-right: 1em }
-
-img.align-right, .figure.align-right {
-  clear: right ;
-  float: right ;
-  margin-left: 1em }
-
-.align-left {
-  text-align: left }
-
-.align-center {
-  clear: both ;
-  text-align: center }
-
-.align-right {
-  text-align: right }
-
-/* reset inner alignment in figures */
-div.align-right {
-  text-align: left }
-
-/* div.align-center * { */
-/*   text-align: left } */
-
-ol.simple, ul.simple {
-  margin-bottom: 1em }
-
-ol.arabic {
-  list-style: decimal }
-
-ol.loweralpha {
-  list-style: lower-alpha }
-
-ol.upperalpha {
-  list-style: upper-alpha }
-
-ol.lowerroman {
-  list-style: lower-roman }
-
-ol.upperroman {
-  list-style: upper-roman }
-
-p.attribution {
-  text-align: right ;
-  margin-left: 50% }
-
-p.caption {
-  font-style: italic }
-
-p.credits {
-  font-style: italic ;
-  font-size: smaller }
-
-p.label {
-  white-space: nowrap }
-
-p.rubric {
-  font-weight: bold ;
-  font-size: larger ;
-  color: maroon ;
-  text-align: center }
-
-p.sidebar-title {
-  font-family: sans-serif ;
-  font-weight: bold ;
-  font-size: larger }
-
-p.sidebar-subtitle {
-  font-family: sans-serif ;
-  font-weight: bold }
-
-p.topic-title {
-  font-weight: bold }
-
-pre.address {
-  margin-bottom: 0 ;
-  margin-top: 0 ;
-  font: inherit }
-
-pre.literal-block, pre.doctest-block {
-  margin-left: 2em ;
-  margin-right: 2em }
-
-span.classifier {
-  font-family: sans-serif ;
-  font-style: oblique }
-
-span.classifier-delimiter {
-  font-family: sans-serif ;
-  font-weight: bold }
-
-span.interpreted {
-  font-family: sans-serif }
-
-span.option {
-  white-space: nowrap }
-
-span.pre {
-  white-space: pre }
-
-span.problematic {
-  color: red }
-
-span.section-subtitle {
-  /* font-size relative to parent (h1..h6 element) */
-  font-size: 80% }
-
-table.citation {
-  border-left: solid 1px gray;
-  margin-left: 1px }
-
-table.docinfo {
-  margin: 2em 4em }
-
-table.docutils {
-  margin-top: 0.5em ;
-  margin-bottom: 0.5em }
-
-table.footnote {
-  border-left: solid 1px black;
-  margin-left: 1px }
-
-table.docutils td, table.docutils th,
-table.docinfo td, table.docinfo th {
-  padding-left: 0.5em ;
-  padding-right: 0.5em ;
-  vertical-align: top }
-
-table.docutils th.field-name, table.docinfo th.docinfo-name {
-  font-weight: bold ;
-  text-align: left ;
-  white-space: nowrap ;
-  padding-left: 0 }
-
-h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
-h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
-  font-size: 100% }
-
-ul.auto-toc {
-  list-style-type: none }
+@import url(html4css1.css);
+
+body {
+    margin-left: 10%;
+    margin-right: 10%;
+    background: white;
+    color: black;
+    font-size: 12pt;
+    font-family: Antiqua, NewCenturySchlbk, serif;
+    max-width: 56em;
+    text-align:justify;
+    text-justify:inter-word;
+}
+
+img {
+    float: right;
+}
+
+pre, tt, dt, dd, kbd {
+    font-size: 10pt;
+    font-family: monospace;
+    color: #283c4a;
+}
 
 </style>
 </head>
@@ -313,7 +43,7 @@ ul.auto-toc {
 <col class="docinfo-content" />
 <tbody valign="top">
 <tr><th class="docinfo-name">Date:</th>
-<td>2012-06-25</td></tr>
+<td>2012-06-27</td></tr>
 <tr><th class="docinfo-name">Version:</th>
 <td>0.2.5</td></tr>
 <tr class="field"><th class="docinfo-name">Manual section:</th><td class="field-body">1</td>
@@ -337,28 +67,23 @@ ul.auto-toc {
 <div class="section" id="description">
 <h1>DESCRIPTION</h1>
 <p>Braid 0.2.5 - Do magically wonderful things with SIDL (scientific interface
-definition language) files. BRAID is a high-performance language</p>
-<div class="section" id="about">
-<h2>About</h2>
+definition language) files. BRAID is a high-performance language
+interoperability tool that generates Babel-compatible bindings for the Chapel
+programming language. For details on using the command-line tool, please
+consult the BRAID man page and the Babel user's guide.</p>
+<div class="section" id="about-braid-and-its-relation-to-babel">
+<h2>About BRAID and its relation to Babel</h2>
+<img alt="logos/braid-logo-small.png" src="logos/braid-logo-small.png" />
 <p>BRAID, the Braid system for Rewriting Abstract Descriptions, is a
 compiler-like tool to generate the glue code necessary for language
-interoperability. Developed by the Components project <a class="footnote-reference" href="#id2" id="id1">[1]</a> at Lawrence
+interoperability. Developed by the Components project <a class="footnote-reference" href="#id4" id="id1">[1]</a> at Lawrence
 Livermore National Laboratory, BRAID supports the Scientific Interface
 Definition Language (SIDL) for the language-independent declaration of
 interfaces associated with scientific software packages.</p>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a></td></tr>
-</tbody>
-</table>
-<img alt="logos/braid-logo-small.png" src="logos/braid-logo-small.png" />
-<div class="section" id="relation-to-babel">
-<h3>Relation to Babel</h3>
 <p>The language bindings generated by BRAID are binary-compatible to
-those generated by the related Babel <a class="footnote-reference" href="#id5" id="id3">[2]</a> tool. While Babel handles
+those generated by the related Babel <a class="footnote-reference" href="#id5" id="id2">[2]</a> tool. While Babel handles
 traditional programming languages (such as C, C++, Fortran (77-2008),
-Python, and Java), BRAID adds support for modern PGAS <a class="footnote-reference" href="#id6" id="id4">[3]</a> languages.</p>
+Python, and Java), BRAID adds support for modern PGAS <a class="footnote-reference" href="#id6" id="id3">[3]</a> languages.</p>
 <p>In practice, this means that if you want to, for example, let a Chapel
 program use a component implemented in Fortran 95, you would invoke
 Babel for the Fortran code and Braid for Chapel code:</p>
@@ -366,26 +91,32 @@ Babel for the Fortran code and Braid for Chapel code:</p>
 braid --makefile --client=Chapel interface.sidl
 babel --makefile --server=F95    interface.sidl
 </pre>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a></td></tr>
+</tbody>
+</table>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Partitioned_global_address_space">http://en.wikipedia.org/wiki/Partitioned_global_address_space</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Partitioned_global_address_space">http://en.wikipedia.org/wiki/Partitioned_global_address_space</a></td></tr>
 </tbody>
 </table>
-</div>
 </div>
 <div class="section" id="supported-languages">
 <h2>Supported Languages</h2>
 <p>At this moment Chapel client code is well-tested and considered
-stable. Chapel server support exists, but will be redesigned after the
-next release of the Chapel compiler, which will have support for
-building Chapel libraries:</p>
+stable. Chapel server works also fairly well, however, the Chapel
+compiler imposes the limitation that there can only be one copy
+of the Chapel runtime system per executable (e.g., 1 Chapel library
+<em>or</em> one Chapel <tt class="docutils literal">main()</tt> function).</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="29%" />
@@ -399,7 +130,7 @@ building Chapel libraries:</p>
 </tr>
 <tr><td>Chapel</td>
 <td>stable</td>
-<td>experimental</td>
+<td>stable</td>
 </tr>
 <tr><td>UPC</td>
 <td>planned</td>
@@ -411,17 +142,14 @@ building Chapel libraries:</p>
 </tr>
 </tbody>
 </table>
-<div class="section" id="notes">
-<h3>Notes</h3>
 <p>In addition to all regular Babel/SIDL features, the Chapel backend
 also extends the Chapel runtime to support <em>borrowed arrays</em>;
-i.e. Arrays that are initialized by an external function and can be
+i.e., Arrays that are initialized by an external function and can be
 passed to Chapel code without copying. It also provides an interface
 for <em>distributed arrays</em> which allow non-Chapel code to access
 non-local data residing in the PGAS-space.</p>
 <p>The following features are not yet implemented:</p>
 <p>Generic arrays, arrays of objects, structs, contracts, hooks and RMI.</p>
-</div>
 </div>
 <div class="section" id="installation">
 <h2>Installation</h2>
@@ -445,13 +173,16 @@ make check
 <h3>Compiling Chapel to run on SLURM-managed Clusters with Infiniband</h3>
 <p>We found the following setup to be working with MPI (to spawn
 processes) and direct Infiniband (for the actual communication).</p>
-<p>For Compiling Chapel in CHPL_HOME:</p>
+<p>It seems that Chapel (~1.5) cannot be compiled with a GCC version
+newer than 4.6.X, because of issues with GASnet and the Chapel code
+base. A known good version of GCC for compiling Chapel is 4.3.6.
+To compile Chapel in CHPL_HOME use the following commands:</p>
 <pre class="literal-block">
 export CHPL_COMM=gasnet
 export CHPL_COMM_SUBSTRATE=ibv
 make -C ${CHPL_HOME}
 </pre>
-<p>To initialize the environment:</p>
+<p>To initialize the environment (using bash) run:</p>
 <pre class="literal-block">
 export CHPL_COMM=gasnet
 export CHPL_COMM_SUBSTRATE=ibv
@@ -462,7 +193,7 @@ cd -
 <p>To run a Chapel program using Infiniband communication and MPI to spawn
 new processes via SLURM:</p>
 <pre class="literal-block">
-export MPIRUN_CMD=&quot;srun -ppdebug -N %N %P %A&quot; # you can customize this
+export MPIRUN_CMD=&quot;srun -p&lt;partition&gt; -N %N %P %A&quot; # you can customize this
 ./program
 </pre>
 <p>Those are substitutions made by Chapel (or GASnet), here is a list
@@ -523,49 +254,6 @@ bash &lt;builddir&gt;/patch-chapel-compiler.sh --undo
 <li>GNU flex</li>
 </ul>
 </div>
-</div>
-<div class="section" id="development-status">
-<h2>Development status</h2>
-<p>BRAID is written in 98% Python; the SIDL scanner is implemented in
-flex (C). Some of the Python sources are automatically generated from
-a high-level specification (sidl.def, ir.def) by a Prolog script. The
-implementation language choice is motivated by Python being the
-highest-level language that we can assume to be pre-installed on all
-our target systems. So far we have three components:</p>
-<ul>
-<li><p class="first">A complete parser for SIDL which generates an object-oriented
-intermediate representation (IR)</p>
-</li>
-<li><p class="first">A converter to an extensible s-expression-based language
-independent IR</p>
-</li>
-<li><p class="first">Code generators that convert this IR into Chapel and C code.
-Other languages supported by Babel will follow.</p>
-<p>To facilitate the writing of these code generators we put some
-effort into extending Python with a pattern-matching mechanism
-for arbitrarily complex tuples. (And the s-expressions from the
-IR are internally represented as Python tuples.)</p>
-</li>
-</ul>
-<p>This diagram shows the work-flow implemented in BRAID:</p>
-<pre class="literal-block">
-             Parser               Conversion
-+-------------+  +------------------+  +---------------------+
-| SIDL        |--| SIDL-based       |--| Language indep. IR  |
-|             |  | declarative IR   |  | (s-expressions)     |
-+-------------+  +------------------+  +---------------------+
-                                         |              |   |
-                                         |   Code       |   |
-                                         |   Generators |   |
-                                         |              |   |
-                                       +-----------+ +----------+
-                                       | Chapel    | | C, ...   |
-                                       |           | |          |
-                                       +-----------+ +----------+
-</pre>
-<p>The idea to use the s-expression-based IR to interface with ROTE
-at some later point. Other components (e.g. PAUL) can also
-generate this IR to get access to the code generators.</p>
 </div>
 <div class="section" id="user-s-guide">
 <h2>User's Guide</h2>
@@ -778,6 +466,49 @@ assign it to the <tt class="docutils literal">_ex</tt> argument before returning
 </div>
 </div>
 </div>
+<div class="section" id="development-status">
+<h2>Development status</h2>
+<p>BRAID is written in 98% Python; the SIDL scanner is implemented in
+flex (C). Some of the Python sources are automatically generated from
+a high-level specification (sidl.def, ir.def) by a Prolog script. The
+implementation language choice is motivated by Python being the
+highest-level language that we can assume to be pre-installed on all
+our target systems. So far we have three components:</p>
+<ul>
+<li><p class="first">A complete parser for SIDL which generates an object-oriented
+intermediate representation (IR)</p>
+</li>
+<li><p class="first">A converter to an extensible s-expression-based language
+independent IR</p>
+</li>
+<li><p class="first">Code generators that convert this IR into Chapel and C code.
+Other languages supported by Babel will follow.</p>
+<p>To facilitate the writing of these code generators we put some
+effort into extending Python with a pattern-matching mechanism
+for arbitrarily complex tuples. (And the s-expressions from the
+IR are internally represented as Python tuples.)</p>
+</li>
+</ul>
+<p>This diagram shows the work-flow implemented in BRAID:</p>
+<pre class="literal-block">
+             Parser               Conversion
++-------------+  +------------------+  +---------------------+
+| SIDL        |--| SIDL-based       |--| Language indep. IR  |
+|             |  | declarative IR   |  | (s-expressions)     |
++-------------+  +------------------+  +---------------------+
+                                         |              |   |
+                                         |   Code       |   |
+                                         |   Generators |   |
+                                         |              |   |
+                                       +-----------+ +----------+
+                                       | Chapel    | | C, ...   |
+                                       |           | |          |
+                                       +-----------+ +----------+
+</pre>
+<p>The idea to use the s-expression-based IR to interface with ROTE
+at some later point. Other components (e.g. PAUL) can also
+generate this IR to get access to the code generators.</p>
+</div>
 <div class="section" id="further-information">
 <h2>Further Information</h2>
 <p>The following files are available at the top of the release directory
@@ -807,10 +538,7 @@ structure provide additional information on the Babel release:</p>
 <div class="section" id="summer-interns">
 <h2>Summer Interns</h2>
 <p>Shams Imam, Rice University
-definition language) files. BRAID is a high-performance language
-interoperability tool that generates Babel-compatible bindings for the Chapel
-programming language. For details on using the command-line tool, please
-consult the Babel manual at <a class="reference external" href="https://computation.llnl.gov/casc/components/">https://computation.llnl.gov/casc/components/</a> .</p>
+consult the BRAID man page and the Babel user's guide.</p>
 </div>
 </div>
 <div class="section" id="options">
@@ -887,7 +615,7 @@ run multiple times in a single directory.</td></tr>
 </div>
 <div class="section" id="copyright-notice">
 <h1>COPYRIGHT NOTICE</h1>
-<p>Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+<p>Copyright (c) 2011-2012 Lawrence Livermore National Security, LLC.
 Produced at the Lawrence Livermore National Laboratory.
 Written by the Components Team &lt;<a class="reference external" href="mailto:components&#64;llnl.gov">components&#64;llnl.gov</a>&gt;.</p>
 <p>LLNL-CODE-473891.
@@ -944,7 +672,7 @@ product endorsement purposes.</li>
 </div>
 <div class="footer">
 <hr class="footer" />
-Generated on: 2012-06-25.
+Generated on: 2012-06-27.
 
 </div>
 </body>

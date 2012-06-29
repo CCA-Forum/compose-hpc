@@ -1,0 +1,23 @@
+@import url(html4css1.css);
+
+body {
+    margin-left: 10%;
+    margin-right: 10%;
+    background: white;
+    color: black;
+    font-size: 12pt;
+    font-family: Antiqua, NewCenturySchlbk, serif;
+    max-width: 56em;
+    text-align:justify;
+    text-justify:inter-word;
+}
+
+img {
+    float: right;
+}
+
+pre, tt, dt, dd, kbd {
+    font-size: 10pt;
+    font-family: monospace;
+    color: #283c4a;
+}

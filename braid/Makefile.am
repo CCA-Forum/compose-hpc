@@ -70,7 +70,8 @@ if ENABLE_DOCUMENTATION
 EXTRA_DIST+= \
 	doc/html/index.html \
 	doc/html/*.*        \
-	doc/html/search/*.*
+	doc/html/search/*.* \
+        doc/users_guide.css
 #	doc/latex/*.pdf     # I say this is just useless bloat
 
 braid/braid: $(BUILT_SOURCES) doc/html/index.html
@@ -82,7 +83,7 @@ dist_man_MANS = $(srcdir)/doc/braid.1
 # We are distributing the compiled manpage so we don't depend on rst2man
 # Insert the output of braid --help into the MAN page.
 EXTRA_DIST += doc/man_header.txt
-$(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT Makefile README
+$(srcdir)/doc/braid.1: doc/man_header.txt doc/users_guide.css $(top_builddir)/braid/braid COPYRIGHT Makefile README
 	$(AM_V_GEN)
 	@cat $< |sed -e 's/@DATE@/$(shell date +%Y-%m-%d)/g' \
                      -e 's/\@VERSION\@/$(PACKAGE_VERSION)/g' >braid.txt
@@ -93,9 +94,9 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT 
                -e 's/:$$/\n--------------------\n\n/' \
                -e 's/^Braid/\nDESCRIPTION\n===========\n\nBraid/' \
                -e 's/positional/OPTIONS\n=======\n\npositional/' >braid-help.txt
-	@head -n 15 braid-help.txt >>braid.txt
+	@head -n 18 braid-help.txt >>braid.txt
 	@tail -n +6 $(srcdir)/README >>braid.txt
-	@tail -n +15 braid-help.txt >>braid.txt
+	@tail -n +18 braid-help.txt >>braid.txt
 	@echo >>braid.txt
 	@cat $(srcdir)/COPYRIGHT >>braid.txt
 	@if test -w $@; then \
@@ -104,7 +105,9 @@ $(srcdir)/doc/braid.1: doc/man_header.txt $(top_builddir)/braid/braid COPYRIGHT 
              else echo "**WARNING docutils / rst2man not installed, did not update $@"; \
 	     fi; \
              if which rst2html >/dev/null; then \
-                 rst2html --title="BRAID User's Guide" --date -v braid.txt \
+                 rst2html --title="BRAID User's Guide" --date \
+                          --stylesheet=$(srcdir)/doc/users_guide.css \
+                          braid.txt \
                           $(srcdir)/doc/users_guide.html; \
              else echo "**WARNING docutils / rst2html not installed, did not update $@"; \
              fi \
