@@ -5414,6 +5414,8 @@ int main(int argc, char *argv[])
    int row = (myDom / dx) % dy ;
    int plane = myDom / (dx*dy) ;
 
+   printf("[rank %d] col_loc = %d, row_loc = %d, plane_loc = %d.\n", myRank, col, row, plane);
+
 #if 0
    /* thread chunk coords */
    int colOffset = col*tx*nx ;
