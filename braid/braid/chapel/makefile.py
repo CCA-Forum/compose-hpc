@@ -116,7 +116,7 @@ CHPL_MAKE_HOME="""+config.CHPL_ROOT+r"""
 CHPL_MAKE_COMM="""+config.CHPL_COMM+r"""
 
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)
+INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
 CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
