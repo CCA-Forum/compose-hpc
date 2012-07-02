@@ -1,0 +1,19 @@
+//
+// File:        pgas_array.sidl
+// Package:     pgas_array
+// Copyright:   (c) 2012 Lawrence Livermore National Security, LLC
+// Revision:    @(#) $Revision$
+// Date:        $Date$
+// Description: 
+// 
+
+package pgas version 1.0 {
+  class blockedDouble3dArray {
+    /**
+     * allocate a blocked cubic array of doubles in size*size*size
+     */
+    void allocate(in int size);
+    double get(in int idx1, in int idx2, in int idx3);
+    void set(in int idx1, in int idx2, in int idx3, in double val);
+  }
+}
