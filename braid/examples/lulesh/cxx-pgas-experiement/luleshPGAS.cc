@@ -132,6 +132,58 @@ private:
   Real_t* data;
 };
 
+class Proxy {
+public:
+  Proxy(pgas::blockedDouble3dArray *_data, Index_t _idx1, Index_t _idx2, Index_t _idx3 )
+    : data(_data), idx1(_idx1), idx2(_idx2),idx3(_idx3) {}
+
+  Proxy& operator=( const Real_t &val ) {
+    data->set(idx1, idx2, idx3, val);
+  }
+
+  Proxy& operator+=( const Real_t &val ) {
+    data->set(idx1, idx2, idx3, val + data->get(idx1, idx2, idx3));
+  }
+
+  operator Real_t () {
+    return data->get(idx1, idx2, idx3);
+  }
+
+  private:
+  pgas::blockedDouble3dArray *data;
+    Index_t idx1, idx2, idx3;
+};
+
+class PGASarray {
+public:
+  PGASarray() {};
+
+  // using this instead of a constructor so we can use references to
+  // DArrays in struct Domain
+  void allocate(Index_t size) {
+    dim = size;
+    data.allocate(size);
+  };
+
+  Real_t* getRawPtr() { return NULL; }
+  Real_t** getRawPtrPtr() { return NULL; }
+
+  Proxy operator[](Index_t idx) { 
+    Index_t dim_sq  = dim*dim;
+    Index_t dim_rem = idx % dim_sq;
+    Index_t idx1    = idx / dim_sq; 
+    Index_t idx2    = dim_rem / dim;
+    Index_t idx3    = dim_rem % dim;
+    return Proxy(&data, idx1, idx2, idx3); 
+  }
+  //  const Real_t& operator[](Index_t idx) const  { return 0; };
+
+private:
+
+  Index_t dim;
+  pgas::blockedDouble3dArray data;
+};
+
 
 inline real4  SQRT(real4  arg) { return sqrtf(arg) ; }
 inline real8  SQRT(real8  arg) { return sqrt(arg) ; }
@@ -219,9 +271,9 @@ struct Domain {
 
    /* Node-centered */
 
-   DArray<Real_t> x ;             /* coordinates */
-   DArray<Real_t> y ;
-   DArray<Real_t> z ;
+   PGASarray x ;             /* coordinates */
+   PGASarray y ;
+   PGASarray z ;
 
    DArray<Real_t> xd ;            /* velocities */
    DArray<Real_t> yd ;
@@ -2663,7 +2715,7 @@ void SumElemStressesToNodeForces( const Real_t B[][8],
 
 static inline
 void IntegrateStressForElems( Index_t *nodelist,
-                              DArray<Real_t>& x,  DArray<Real_t>& y,  DArray<Real_t>& z,
+                              PGASarray& x,  PGASarray& y,  PGASarray& z,
                               DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
                               Real_t *sigxx, Real_t *sigyy, Real_t *sigzz,
                               Real_t *determ, Index_t numElem)
@@ -2712,7 +2764,7 @@ void IntegrateStressForElems( Index_t *nodelist,
 }
 
 static inline
-void CollectDomainNodesToElemNodes(DArray<Real_t> &x, DArray<Real_t> &y, DArray<Real_t> &z,
+void CollectDomainNodesToElemNodes(PGASarray& x, PGASarray& y, PGASarray& z,
                                    const Index_t* elemToNode,
                                    Real_t elemX[8],
                                    Real_t elemY[8],
@@ -3406,7 +3458,7 @@ void CalcVelocityForNodes(DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_
 }
 
 static inline
-void CalcPositionForNodes(DArray<Real_t>& x,  DArray<Real_t>& y,  DArray<Real_t>& z,
+void CalcPositionForNodes(PGASarray& x,  PGASarray& y,  PGASarray& z,
                           DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
                           const Real_t dt, Index_t numNode)
 {
@@ -3694,7 +3746,7 @@ void CalcElemVelocityGrandient( const Real_t* const xvel,
 
 static inline
 void CalcKinematicsForElems( Index_t *nodelist,
-                             DArray<Real_t>& x,   DArray<Real_t>& y,   DArray<Real_t>& z,
+                             PGASarray& x,   PGASarray& y,   PGASarray& z,
                              DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_t>& zd,
                              Real_t *dxx, Real_t *dyy, Real_t *dzz,
                              DArray<Real_t>& v, DArray<Real_t>& volo,
@@ -3813,7 +3865,7 @@ void CalcLagrangeElements(Domain *domain)
 }
 
 static inline
-void CalcMonotonicQGradientsForElems(DArray<Real_t>& x,  DArray<Real_t>& y,  DArray<Real_t>& z,
+void CalcMonotonicQGradientsForElems(PGASarray& x,  PGASarray& y,  PGASarray& z,
                                      DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
                                      DArray<Real_t>& volo, Real_t *vnew,
                                      Real_t *delv_xi,
