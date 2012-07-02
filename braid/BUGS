@@ -12,12 +12,18 @@ and various Unix systems.
 ** TODO Implement contract checking for Chapel
   *** things we can leave for later:
   **** non-static version necessary only for knapsack
-  **** statistics (gettimeofday)
   **** can directly call skeleton from check routines
 
 ** TODO Make Chapel-Chapel interoperability work
+  *** only remaining problem is on the Chapel runtime side
 ** TODO Implement final methods
-
+   
 ** TODO Warn the user when braid would overwrite a file (especially stub-modules). 
    Maybe we can add a AUTOMATICALLY GENERATED line and check for that
    and only overwrite files if that line is present.
+
+** TODO error detection in SIDL parser
+  *** versioned classes
+  *** underscores in names
+
+** TODO braid sprays parsetab.py all over the place

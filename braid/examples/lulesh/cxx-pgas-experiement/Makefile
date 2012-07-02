@@ -5,10 +5,10 @@ CXX=colorgcc -I/usr/include/mpich2
 
 
 luleshPGAS: luleshPGAS.o Makefile
-	$(CXX) $< -o $@ $(VIZ_LDFLAGS)
+	$(CXX) $< -o $@ $(VIZ_LDFLAGS) $(shell babel-config --libs-c++) 
 
 luleshPGAS.o: luleshPGAS.cc Makefile
-	$(CXX) $(VIZ_CFLAGS) -c -O3 -ggdb $< -o $@
+	$(CXX) $(shell babel-config --includes-c++) $(VIZ_CFLAGS) -c -O3 -ggdb $< -o $@
 
 clean:
 	rm -f luleshPGAS luleshPGAS.o

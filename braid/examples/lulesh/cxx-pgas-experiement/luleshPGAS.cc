@@ -82,6 +82,8 @@ Additional BSD Notice
 #include <stdlib.h>
 #include <mpi.h>
 
+#include "pgas_blockedDouble3dArray.hxx"
+
 #define LULESH_SHOW_PROGRESS 1
 
 enum { VolumeError = -1, QStopError = -2 } ;
@@ -103,15 +105,17 @@ typedef int    Int_t ;   /* integer representation */
  * Overload the original code's double[] arrays with our own PGAS
  * array accessor functions
  */
-template <typename T>
-class DArray {
+template <typename T> class DArray;
+
+template <>
+class DArray<Real_t> {
 public:
   DArray(): data(NULL) {};
 
   // using this instead of a constructor so we can use references to
   // DArrays in struct Domain
   void allocate(Index_t size) {
-    data = new T[size];
+    data = new Real_t[size];
   };
 
   ~DArray() {
@@ -119,14 +123,15 @@ public:
       delete[] data;
   };
 
-  T* getRawPtr() { return data; }
-  T** getRawPtrPtr() { return &data; }
+  Real_t* getRawPtr() { return data; }
+  Real_t** getRawPtrPtr() { return &data; }
 
-  T& operator[](Index_t idx) { return data[idx]; }
-  const T& operator[](Index_t idx) const  { return data[idx]; };
+  Real_t& operator[](Index_t idx) { return data[idx]; }
+  const Real_t& operator[](Index_t idx) const  { return data[idx]; };
 private:
-  T* data;
+  Real_t* data;
 };
+
 
 inline real4  SQRT(real4  arg) { return sqrtf(arg) ; }
 inline real8  SQRT(real8  arg) { return sqrt(arg) ; }
