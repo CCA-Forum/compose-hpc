@@ -552,8 +552,8 @@ class GlueCodeGenerator(object):
             '#include <%s_IOR.h>'%qname,
             'typedef struct %s__object _%s__object;'%(qname, qname),
             'typedef _%s__object* %s__object;'%(qname, qname),
-            '#ifndef SIDL_BASE_INTERFACE_OBJECT',
-            '#define SIDL_BASE_INTERFACE_OBJECT',
+            '#ifndef included_sidl_BaseInterface_Stub_h',
+            '#define included_sidl_BaseInterface_Stub_h',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
             '#define IS_NULL(aPtr)     ((aPtr) == 0)',
@@ -1135,7 +1135,8 @@ class GlueCodeGenerator(object):
         # Skeleton (in C)
         cskel = ci.chpl_skel.cstub
         cskel._name = qname+'_Skel'
-        cskel.gen(ir.Import('stdint'))                
+        cskel.gen(ir.Import('stdint'))
+        cskel.gen(ir.Import('stdio'))
         cskel.gen(ir.Import(cskel._name))
         cskel.gen(ir.Import(qname+'_IOR'))
         cskel.gen(ir.Fn_defn([], ir.pt_void, qname+'__call_load', [],
@@ -1178,13 +1179,32 @@ class GlueCodeGenerator(object):
                 else:      entry(epv_init,  post_epv_t,  'post_epv',  'f_%s_post'%fname, 'NULL')
 
         pkgname = '_'.join(ci.epv.symbol_table.prefix)
-        dummyargv = 'const char* name[] = { "BRAID_LIBRARY", "-v" }; // verbose Chapel'
+
+        dummyargv = '''
+  const char* argv[] = { 
+    "BRAID_LIBRARY", /* fake program name */
+    "-nl", /* number of locales */
+    "",
+    "-v", /* verbose chapel runtime */
+    NULL
+  };
+  argv[2] = getenv("SLURM_NTASKS");
+  if (argv[2] == NULL) {
+    fprintf(stdout, "**ERROR: please set the SLURM_NTASKS environment variable\\n"
+                    "         to the desired number of Chapel locales.");
+    argv[2] = "0";
+  }
+  setenv("GASNET_BACKTRACE", "1", 1);
+'''
+        cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
+        cskel.pre_def('extern int chpl_init_library(int argc, char* argv[]);')
+        cskel.pre_def('extern int chpl_init_%s_Impl(int, const char*);'%pkgname)
         epv_init.append((ir.stmt, dummyargv))
-        epv_init.append((ir.stmt, 'chpl_init_library(2, &name)'))
+        epv_init.append((ir.stmt, 'chpl_init_library(4, &argv)'))
         epv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
         epv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
         sepv_init.append((ir.stmt, dummyargv))
-        sepv_init.append((ir.stmt, 'chpl_init_library(2, &name)'))
+        sepv_init.append((ir.stmt, 'chpl_init_library(4, &name)'))
         sepv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
         sepv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
 

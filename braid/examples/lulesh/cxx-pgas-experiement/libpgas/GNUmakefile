@@ -30,7 +30,7 @@
 
 include babel.make
 # please name the server library here
-LIBNAME=impl
+LIBNAME=pgas
 # please name the SIDL file here
 SIDLFILE= ../pgas_array.sidl
 # extra include/compile flags
@@ -48,12 +48,12 @@ LIBDIR=$(PREFIX)/lib
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
 
-CHPL=/home/prantl1/sw/opt/chapel/bin/linux64/chpl
-CHPL_MAKE_HOME=/home/prantl1/sw/opt/chapel
-CHPL_MAKE_COMM=none
+CHPL=/g/g91/prantl1/sw/opt/chapel/bin/linux64/chpl
+CHPL_MAKE_HOME=/g/g91/prantl1/sw/opt/chapel
+CHPL_MAKE_COMM=gasnet
 
 CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)
+INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)
 CFLAGS=`babel-config --flags-c` -std=c99
 LIBS=`babel-config --libs-c-client`
 
@@ -67,7 +67,7 @@ CHPL_MAKE_SEG=`$(CHPL_MAKE_HOME)/util/chplenv/commSegment`
 CHPL_MAKE_ATOMICS=`$(CHPL_MAKE_HOME)/util/chplenv/atomics`
 
 
-CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/comm-$(CHPL_MAKE_COMM)/substrate-$(CHPL_MAKE_SUBSTRATE)/seg-$(CHPL_MAKE_SEG)/mem-$(CHPL_MAKE_MEM)
+CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-$(CHPL_MAKE_COMM)-nodbg/substrate-$(CHPL_MAKE_SUBSTRATE)/seg-$(CHPL_MAKE_SEG)/
 
 ####    include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 CHPL=chpl --fast
@@ -89,8 +89,8 @@ CHPL_FLAGS=-std=c99 \
   -I. -Wno-all 
 
 CHPL_LDFLAGS= \
- -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/atomics-$(CHPL_MAKE_ATOMICS) \
- $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/atomics-$(CHPL_MAKE_ATOMICS)/main.o \
+ -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) \
+ $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/main.o \
  -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
 
 CHPL_GASNET_LDFLAGS= \
@@ -103,7 +103,7 @@ CHPL_GASNET_LDFLAGS= \
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
 
-SIDL_RUNTIME=/home/prantl1/work/babel/install/include/chpl
+SIDL_RUNTIME=/g/g91/prantl1/install/include/chpl
 CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
   $(SIDL_RUNTIME)/sidl_BaseClass_IOR.h chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
 
@@ -126,7 +126,7 @@ all: lib$(LIBNAME).la $(SCLFILE) $(TARGET) $(TARGET)_real
 
 # actual program
 $(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
           $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 

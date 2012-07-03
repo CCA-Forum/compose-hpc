@@ -43,7 +43,7 @@
 #include "sidlOps.h"
 #endif
 
-#include "pgas_blockedDoubleArray_IOR.h"
+#include "pgas_MPIinitializer_IOR.h"
 #ifndef included_sidl_BaseClass_Impl_h
 #include "sidl_BaseClass_Impl.h"
 #endif
@@ -63,10 +63,10 @@
 
 #include "sidl_thread.h"
 #ifdef HAVE_PTHREAD
-static struct sidl_recursive_mutex_t pgas_blockedDoubleArray__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
-#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &pgas_blockedDoubleArray__mutex )
-#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &pgas_blockedDoubleArray__mutex )
-/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &pgas_blockedDoubleArray__mutex )==EDEADLOCK) */
+static struct sidl_recursive_mutex_t pgas_MPIinitializer__mutex= SIDL_RECURSIVE_MUTEX_INITIALIZER;
+#define LOCK_STATIC_GLOBALS sidl_recursive_mutex_lock( &pgas_MPIinitializer__mutex )
+#define UNLOCK_STATIC_GLOBALS sidl_recursive_mutex_unlock( &pgas_MPIinitializer__mutex )
+/* #define HAVE_LOCKED_STATIC_GLOBALS (sidl_recursive_mutex_trylock( &pgas_MPIinitializer__mutex )==EDEADLOCK) */
 #else
 #define LOCK_STATIC_GLOBALS
 #define UNLOCK_STATIC_GLOBALS
@@ -111,14 +111,14 @@ static int s_load_called = 0;
 static int s_method_initialized = 0;
 static int s_static_initialized = 0;
 
-static struct pgas_blockedDoubleArray__epv s_my_epv__pgas_blockeddoublearray = { 0 };
-static struct pgas_blockedDoubleArray__epv s_my_epv_contracts__pgas_blockeddoublearray = { 0 };
-static struct pgas_blockedDoubleArray__epv s_my_epv_hooks__pgas_blockeddoublearray = { 0 };
+static struct pgas_MPIinitializer__epv s_my_epv__pgas_mpiinitializer = { 0 };
+static struct pgas_MPIinitializer__epv s_my_epv_contracts__pgas_mpiinitializer = { 0 };
+static struct pgas_MPIinitializer__epv s_my_epv_hooks__pgas_mpiinitializer = { 0 };
 
-static struct pgas_blockedDoubleArray__epv  s_my_epv__pgas_blockeddoublearray;
-static struct pgas_blockedDoubleArray__epv  s_my_pre_epv_hooks__pgas_blockeddoublearray;
-static struct pgas_blockedDoubleArray__epv*  s_par_epv__pgas_blockeddoublearray;
-static struct pgas_blockedDoubleArray_pre__epv*  s_par_epv_hooks__pgas_blockeddoublearray;
+static struct pgas_MPIinitializer__epv  s_my_epv__pgas_mpiinitializer;
+static struct pgas_MPIinitializer__epv  s_my_pre_epv_hooks__pgas_mpiinitializer;
+static struct pgas_MPIinitializer__epv*  s_par_epv__pgas_mpiinitializer;
+static struct pgas_MPIinitializer_pre__epv*  s_par_epv_hooks__pgas_mpiinitializer;
 
 static struct sidl_BaseClass__epv  s_my_epv__sidl_baseclass;
 static struct sidl_BaseClass__epv*  s_par_epv__sidl_baseclass;
@@ -126,8 +126,8 @@ static struct sidl_BaseClass__epv*  s_par_epv__sidl_baseclass;
 static struct sidl_BaseInterface__epv  s_my_epv__sidl_baseinterface;
 static struct sidl_BaseInterface__epv*  s_par_epv__sidl_baseinterface;
 
-static struct pgas_blockedDoubleArray__pre_epv s_preEPV;
-static struct pgas_blockedDoubleArray__post_epv s_postEPV;
+static struct pgas_MPIinitializer__pre_epv s_preEPV;
+static struct pgas_MPIinitializer__post_epv s_postEPV;
 
 
 /*
@@ -139,69 +139,55 @@ extern "C" {
 #endif
 
 
-extern void pgas_blockedDoubleArray__set_epv(
-  struct pgas_blockedDoubleArray__epv* epv,
-    struct pgas_blockedDoubleArray__pre_epv* pre_epv,
-    struct pgas_blockedDoubleArray__post_epv* post_epv);
+extern void pgas_MPIinitializer__set_epv(
+  struct pgas_MPIinitializer__epv* epv,
+    struct pgas_MPIinitializer__pre_epv* pre_epv,
+    struct pgas_MPIinitializer__post_epv* post_epv);
 
 
-extern void pgas_blockedDoubleArray__call_load(void);
+extern void pgas_MPIinitializer__call_load(void);
 #ifdef __cplusplus
 }
 #endif
 
 static void
-pgas_blockedDoubleArray_addRef__exec(
-        struct pgas_blockedDoubleArray__object* self,
+pgas_MPIinitializer_addRef__exec(
+        struct pgas_MPIinitializer__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object** ex) {
 }
 static void
-pgas_blockedDoubleArray_deleteRef__exec(
-        struct pgas_blockedDoubleArray__object* self,
+pgas_MPIinitializer_deleteRef__exec(
+        struct pgas_MPIinitializer__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object** ex) {
 }
 static void
-pgas_blockedDoubleArray_isSame__exec(
-        struct pgas_blockedDoubleArray__object* self,
+pgas_MPIinitializer_isSame__exec(
+        struct pgas_MPIinitializer__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object** ex) {
 }
 static void
-pgas_blockedDoubleArray_isType__exec(
-        struct pgas_blockedDoubleArray__object* self,
+pgas_MPIinitializer_isType__exec(
+        struct pgas_MPIinitializer__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object** ex) {
 }
 static void
-pgas_blockedDoubleArray_getClassInfo__exec(
-        struct pgas_blockedDoubleArray__object* self,
+pgas_MPIinitializer_getClassInfo__exec(
+        struct pgas_MPIinitializer__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object** ex) {
 }
 static void
-pgas_blockedDoubleArray_allocate__exec(
-        struct pgas_blockedDoubleArray__object* self,
-        struct sidl_rmi_Call__object* inArgs,
-        struct sidl_rmi_Return__object* outArgs,
-        struct sidl_BaseInterface__object** ex) {
-}
-static void
-pgas_blockedDoubleArray_get__exec(
-        struct pgas_blockedDoubleArray__object* self,
-        struct sidl_rmi_Call__object* inArgs,
-        struct sidl_rmi_Return__object* outArgs,
-        struct sidl_BaseInterface__object** ex) {
-}
-static void
-pgas_blockedDoubleArray_set__exec(
-        struct pgas_blockedDoubleArray__object* self,
+pgas_MPIinitializer_init__exec(
+        struct pgas_MPIinitializer__object* self,
         struct sidl_rmi_Call__object* inArgs,
         struct sidl_rmi_Return__object* outArgs,
         struct sidl_BaseInterface__object** ex) {
@@ -211,8 +197,8 @@ pgas_blockedDoubleArray_set__exec(
  * CHECKS: Enable/disable contract enforcement.
  */
 
-static void ior_pgas_blockedDoubleArray__set_contracts(
-  struct pgas_blockedDoubleArray__object* self,
+static void ior_pgas_MPIinitializer__set_contracts(
+  struct pgas_MPIinitializer__object* self,
   sidl_bool   enable,
   const char* enfFilename,
   sidl_bool   resetCounters,
@@ -226,8 +212,8 @@ static void ior_pgas_blockedDoubleArray__set_contracts(
  * DUMP: Dump interface contract enforcement statistics.
  */
 
-static void ior_pgas_blockedDoubleArray__dump_stats(
-  struct pgas_blockedDoubleArray__object* self,
+static void ior_pgas_MPIinitializer__dump_stats(
+  struct pgas_MPIinitializer__object* self,
   const char* filename,
   const char* prefix,
   struct sidl_BaseInterface__object **_ex)
@@ -237,8 +223,8 @@ static void ior_pgas_blockedDoubleArray__dump_stats(
 }
 
 /* CAST: dynamic type casting support. */
-static void* ior_pgas_blockedDoubleArray__cast(
-  struct pgas_blockedDoubleArray__object* self,
+static void* ior_pgas_MPIinitializer__cast(
+  struct pgas_MPIinitializer__object* self,
   const char* name, sidl_BaseInterface* _ex)
 {
   int cmp;
@@ -251,10 +237,10 @@ static void* ior_pgas_blockedDoubleArray__cast(
     return cast;
   }
   else if (cmp < 0) {
-    cmp = strcmp(name, "pgas.blockedDoubleArray");
+    cmp = strcmp(name, "pgas.MPIinitializer");
     if (!cmp) {
       (*self->d_epv->f_addRef)(self, _ex); SIDL_CHECK(*_ex);
-      cast = ((struct pgas_blockedDoubleArray__object*)self);
+      cast = ((struct pgas_MPIinitializer__object*)self);
       return cast;
     }
   }
@@ -276,8 +262,8 @@ static void* ior_pgas_blockedDoubleArray__cast(
  * HOOKS: Enable/disable hooks.
  */
 
-static void ior_pgas_blockedDoubleArray__set_hooks(
-  struct pgas_blockedDoubleArray__object* self,
+static void ior_pgas_MPIinitializer__set_hooks(
+  struct pgas_MPIinitializer__object* self,
   sidl_bool enable, struct sidl_BaseInterface__object **_ex )
 {
   *_ex  = NULL;
@@ -291,7 +277,7 @@ static void ior_pgas_blockedDoubleArray__set_hooks(
  * HOOKS: Enable/disable static hooks.
  */
 
-static void ior_pgas_blockedDoubleArray__set_hooks_static(
+static void ior_pgas_MPIinitializer__set_hooks_static(
   sidl_bool enable, struct sidl_BaseInterface__object **_ex )
 {
   *_ex  = NULL;
@@ -333,18 +319,18 @@ static void ior_vect_Utils__set_contracts_static(
  * DELETE: call destructor and free object memory.
  */
 
-static void ior_pgas_blockedDoubleArray__delete(
-  struct pgas_blockedDoubleArray__object* self, struct sidl_BaseInterface__object **_ex)
+static void ior_pgas_MPIinitializer__delete(
+  struct pgas_MPIinitializer__object* self, struct sidl_BaseInterface__object **_ex)
 {
   *_ex  = NULL; /* default to no exception */
-  pgas_blockedDoubleArray__fini(self, _ex);
-  memset((void*)self, 0, sizeof(struct pgas_blockedDoubleArray__object));
+  pgas_MPIinitializer__fini(self, _ex);
+  memset((void*)self, 0, sizeof(struct pgas_MPIinitializer__object));
   free((void*) self);
 }
 
 static const char*
-ior_pgas_blockedDoubleArray__getURL(
-  struct pgas_blockedDoubleArray__object* self,
+ior_pgas_MPIinitializer__getURL(
+  struct pgas_MPIinitializer__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
   char* ret  = NULL;
@@ -366,46 +352,44 @@ ior_pgas_blockedDoubleArray__getURL(
   return NULL;
 }
 static void
-ior_pgas_blockedDoubleArray__raddRef(
-    struct pgas_blockedDoubleArray__object* self, sidl_BaseInterface* _ex) {
+ior_pgas_MPIinitializer__raddRef(
+    struct pgas_MPIinitializer__object* self, sidl_BaseInterface* _ex) {
   sidl_BaseInterface_addRef((sidl_BaseInterface)self, _ex);
 }
 
 static sidl_bool
-ior_pgas_blockedDoubleArray__isRemote(
-    struct pgas_blockedDoubleArray__object* self, sidl_BaseInterface* _ex) {
+ior_pgas_MPIinitializer__isRemote(
+    struct pgas_MPIinitializer__object* self, sidl_BaseInterface* _ex) {
   *_ex  = NULL; /* default to no exception */
   return FALSE;
 }
 
-struct pgas_blockedDoubleArray__method {
+struct pgas_MPIinitializer__method {
   const char *d_name;
-  void (*d_func)(struct pgas_blockedDoubleArray__object*,
+  void (*d_func)(struct pgas_MPIinitializer__object*,
     struct sidl_rmi_Call__object *,
     struct sidl_rmi_Return__object *,
     struct sidl_BaseInterface__object **);
 };
 
 static void
-ior_pgas_blockedDoubleArray__exec(
-  struct pgas_blockedDoubleArray__object* self,
+ior_pgas_MPIinitializer__exec(
+  struct pgas_MPIinitializer__object* self,
   const char* methodName,
   struct sidl_rmi_Call__object* inArgs,
   struct sidl_rmi_Return__object* outArgs,
   struct sidl_BaseInterface__object **_ex )
 {
-  static const struct pgas_blockedDoubleArray__method  s_methods[] = {
-    { "addRef", pgas_blockedDoubleArray_addRef__exec },
-    { "deleteRef", pgas_blockedDoubleArray_deleteRef__exec },
-    { "isSame", pgas_blockedDoubleArray_isSame__exec },
-    { "isType", pgas_blockedDoubleArray_isType__exec },
-    { "getClassInfo", pgas_blockedDoubleArray_getClassInfo__exec },
-    { "allocate", pgas_blockedDoubleArray_allocate__exec },
-    { "get", pgas_blockedDoubleArray_get__exec },
-    { "set", pgas_blockedDoubleArray_set__exec },
+  static const struct pgas_MPIinitializer__method  s_methods[] = {
+    { "addRef", pgas_MPIinitializer_addRef__exec },
+    { "deleteRef", pgas_MPIinitializer_deleteRef__exec },
+    { "isSame", pgas_MPIinitializer_isSame__exec },
+    { "isType", pgas_MPIinitializer_isType__exec },
+    { "getClassInfo", pgas_MPIinitializer_getClassInfo__exec },
+    { "init", pgas_MPIinitializer_init__exec },
   };
   int i, cmp, l = 0;
-  int u = sizeof(s_methods)/sizeof(struct pgas_blockedDoubleArray__method);
+  int u = sizeof(s_methods)/sizeof(struct pgas_MPIinitializer__method);
   *_ex  = NULL; /* default to no exception */
 
   if (methodName) {
@@ -430,26 +414,26 @@ ior_pgas_blockedDoubleArray__exec(
 /* no type_static_epv since there are no static contracts */
   /* no check_* stubs since there are no contracts */
 
-static void ior_pgas_blockedDoubleArray__ensure_load_called(void) {
+static void ior_pgas_MPIinitializer__ensure_load_called(void) {
   /*
    * assert( HAVE_LOCKED_STATIC_GLOBALS );
    */
 
   if (! s_load_called ) {
     s_load_called=1;
-    pgas_blockedDoubleArray__call_load();
+    pgas_MPIinitializer__call_load();
 
   }
 }
 
 
 // EPV: create method entry point vector (EPV) structure.
-static void pgas_blockedDoubleArray__init_epv(void)
+static void pgas_MPIinitializer__init_epv(void)
 {
   // assert( " + IOR.getHaveLockStaticGlobalsMacroName() + " );
-  struct pgas_blockedDoubleArray__epv*  epv = &s_my_epv__pgas_blockeddoublearray;
-  struct pgas_blockedDoubleArray__epv*  e0 = &s_my_epv__pgas_blockeddoublearray;
-  struct sidl_BaseClass__epv*           e1 = &s_my_epv__sidl_baseclass;
+  struct pgas_MPIinitializer__epv*  epv = &s_my_epv__pgas_mpiinitializer;
+  struct pgas_MPIinitializer__epv*  e0 = &s_my_epv__pgas_mpiinitializer;
+  struct sidl_BaseClass__epv*       e1 = &s_my_epv__sidl_baseclass;
 
   struct sidl_BaseClass__epv*        s1 = NULL;
 
@@ -463,44 +447,40 @@ static void pgas_blockedDoubleArray__init_epv(void)
   // Alias the static epvs to some handy small names.
   s1 = s_par_epv__sidl_baseclass;
 
-  epv->f__cast           = ior_pgas_blockedDoubleArray__cast;
-  epv->f__delete         = ior_pgas_blockedDoubleArray__delete;
-  epv->f__exec           = ior_pgas_blockedDoubleArray__exec;
-  epv->f__getURL         = ior_pgas_blockedDoubleArray__getURL;
-  epv->f__raddRef        = ior_pgas_blockedDoubleArray__raddRef;
-  epv->f__isRemote       = ior_pgas_blockedDoubleArray__isRemote;
-  epv->f__set_hooks      = ior_pgas_blockedDoubleArray__set_hooks;
-  epv->f__set_contracts  = ior_pgas_blockedDoubleArray__set_contracts;
-  epv->f__dump_stats     = ior_pgas_blockedDoubleArray__dump_stats;
+  epv->f__cast           = ior_pgas_MPIinitializer__cast;
+  epv->f__delete         = ior_pgas_MPIinitializer__delete;
+  epv->f__exec           = ior_pgas_MPIinitializer__exec;
+  epv->f__getURL         = ior_pgas_MPIinitializer__getURL;
+  epv->f__raddRef        = ior_pgas_MPIinitializer__raddRef;
+  epv->f__isRemote       = ior_pgas_MPIinitializer__isRemote;
+  epv->f__set_hooks      = ior_pgas_MPIinitializer__set_hooks;
+  epv->f__set_contracts  = ior_pgas_MPIinitializer__set_contracts;
+  epv->f__dump_stats     = ior_pgas_MPIinitializer__dump_stats;
   epv->f__ctor           = NULL;
   epv->f__ctor2          = NULL;
   epv->f__dtor           = NULL;
-  epv->f_addRef          = (void (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object **))s1->f_addRef;
-  epv->f_deleteRef       = (void (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object **))s1->f_deleteRef;
-  epv->f_isSame          = (sidl_bool (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object*, struct sidl_BaseInterface__object **))s1->f_isSame;
-  epv->f_isType          = (sidl_bool (*)(struct pgas_blockedDoubleArray__object*, const char*, struct sidl_BaseInterface__object **))s1->f_isType;
-  epv->f_getClassInfo    = (struct sidl_ClassInfo__object* (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object **))s1->f_getClassInfo;
-  epv->f_allocate        = NULL;
-  epv->f_get             = NULL;
-  epv->f_set             = NULL;
+  epv->f_addRef          = (void (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))s1->f_addRef;
+  epv->f_deleteRef       = (void (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))s1->f_deleteRef;
+  epv->f_isSame          = (sidl_bool (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object*, struct sidl_BaseInterface__object **))s1->f_isSame;
+  epv->f_isType          = (sidl_bool (*)(struct pgas_MPIinitializer__object*, const char*, struct sidl_BaseInterface__object **))s1->f_isType;
+  epv->f_getClassInfo    = (struct sidl_ClassInfo__object* (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))s1->f_getClassInfo;
+  epv->f_init            = NULL;
 
-  pgas_blockedDoubleArray__set_epv(epv, &s_preEPV, &s_postEPV);
+  pgas_MPIinitializer__set_epv(epv, &s_preEPV, &s_postEPV);
 
-  // Override function pointers for pgas_blockedDoubleArray with mine, as needed.
-  e0->f__cast           = (void* (*)(struct pgas_blockedDoubleArray__object*,const char*, struct sidl_BaseInterface__object**))epv->f__cast;
-  e0->f__delete         = (void* (*)(struct pgas_blockedDoubleArray__object*,struct sidl_BaseInterface__object**))epv->f__delete;
-  e0->f__getURL         = (char* (*)(struct pgas_blockedDoubleArray__object*,struct sidl_BaseInterface__object**))epv->f__getURL;
-  e0->f__raddRef        = (void (*)(struct pgas_blockedDoubleArray__object*,struct sidl_BaseInterface__object**))epv->f__raddRef;
-  e0->f__isRemote       = (sidl_bool* (*)(struct pgas_blockedDoubleArray__object*,struct sidl_BaseInterface__object**))epv->f__isRemote;
-  e0->f__exec           = (void (*)(struct pgas_blockedDoubleArray__object*,const char*,struct sidl_rmi_Call__object*,struct sidl_rmi_Return__object*,struct sidl_BaseInterface__object**))epv->f__exec;
-  e0->f_addRef          = (void (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object **))epv->f_addRef;
-  e0->f_deleteRef       = (void (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object **))epv->f_deleteRef;
-  e0->f_isSame          = (sidl_bool (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object*, struct sidl_BaseInterface__object **))epv->f_isSame;
-  e0->f_isType          = (sidl_bool (*)(struct pgas_blockedDoubleArray__object*, const char*, struct sidl_BaseInterface__object **))epv->f_isType;
-  e0->f_getClassInfo    = (struct sidl_ClassInfo__object* (*)(struct pgas_blockedDoubleArray__object*, struct sidl_BaseInterface__object **))epv->f_getClassInfo;
-  e0->f_allocate        = (void (*)(struct pgas_blockedDoubleArray__object*, int, struct sidl_BaseInterface__object **))epv->f_allocate;
-  e0->f_get             = (double (*)(struct pgas_blockedDoubleArray__object*, int, struct sidl_BaseInterface__object **))epv->f_get;
-  e0->f_set             = (void (*)(struct pgas_blockedDoubleArray__object*, int, double, struct sidl_BaseInterface__object **))epv->f_set;
+  // Override function pointers for pgas_MPIinitializer with mine, as needed.
+  e0->f__cast           = (void* (*)(struct pgas_MPIinitializer__object*,const char*, struct sidl_BaseInterface__object**))epv->f__cast;
+  e0->f__delete         = (void* (*)(struct pgas_MPIinitializer__object*,struct sidl_BaseInterface__object**))epv->f__delete;
+  e0->f__getURL         = (char* (*)(struct pgas_MPIinitializer__object*,struct sidl_BaseInterface__object**))epv->f__getURL;
+  e0->f__raddRef        = (void (*)(struct pgas_MPIinitializer__object*,struct sidl_BaseInterface__object**))epv->f__raddRef;
+  e0->f__isRemote       = (sidl_bool* (*)(struct pgas_MPIinitializer__object*,struct sidl_BaseInterface__object**))epv->f__isRemote;
+  e0->f__exec           = (void (*)(struct pgas_MPIinitializer__object*,const char*,struct sidl_rmi_Call__object*,struct sidl_rmi_Return__object*,struct sidl_BaseInterface__object**))epv->f__exec;
+  e0->f_addRef          = (void (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))epv->f_addRef;
+  e0->f_deleteRef       = (void (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))epv->f_deleteRef;
+  e0->f_isSame          = (sidl_bool (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object*, struct sidl_BaseInterface__object **))epv->f_isSame;
+  e0->f_isType          = (sidl_bool (*)(struct pgas_MPIinitializer__object*, const char*, struct sidl_BaseInterface__object **))epv->f_isType;
+  e0->f_getClassInfo    = (struct sidl_ClassInfo__object* (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))epv->f_getClassInfo;
+  e0->f_init            = (void (*)(struct pgas_MPIinitializer__object*, struct sidl_BaseInterface__object **))epv->f_init;
 
 
 
@@ -520,36 +500,36 @@ static void pgas_blockedDoubleArray__init_epv(void)
 
 
   s_method_initialized = 1;
-  ior_pgas_blockedDoubleArray__ensure_load_called();
+  ior_pgas_MPIinitializer__ensure_load_called();
 }
 
 /**
-* pgas_blockedDoubleArray__getEPVs: Get my version of all relevant EPVs.
+* pgas_MPIinitializer__getEPVs: Get my version of all relevant EPVs.
 */
-void pgas_blockedDoubleArray__getEPVs(
+void pgas_MPIinitializer__getEPVs(
   struct sidl_BaseInterface__epv **s_arg_epv__sidl_baseinterface,
   struct sidl_BaseClass__epv **s_arg_epv__sidl_baseclass,
-  struct pgas_blockedDoubleArray__epv **s_arg_epv__pgas_blockeddoublearray,
-  struct pgas_blockedDoubleArray__epv **s_arg_epv_hooks__pgas_blockeddoublearray
+  struct pgas_MPIinitializer__epv **s_arg_epv__pgas_mpiinitializer,
+  struct pgas_MPIinitializer__epv **s_arg_epv_hooks__pgas_mpiinitializer
   )
 {
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    pgas_blockedDoubleArray__init_epv();
+    pgas_MPIinitializer__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
   *s_arg_epv__sidl_baseinterface = &s_my_epv__sidl_baseinterface;
   *s_arg_epv__sidl_baseclass = &s_my_epv__sidl_baseclass;
-  *s_arg_epv__pgas_blockeddoublearray = &s_my_epv__pgas_blockeddoublearray;
-  *s_arg_epv_hooks__pgas_blockeddoublearray = &s_my_epv_hooks__pgas_blockeddoublearray;
+  *s_arg_epv__pgas_mpiinitializer = &s_my_epv__pgas_mpiinitializer;
+  *s_arg_epv_hooks__pgas_mpiinitializer = &s_my_epv_hooks__pgas_mpiinitializer;
 }
 
 /*
  * __getSuperEPV: returns parent's non-overrided EPV
  */
 
-static struct sidl_BaseClass__epv* pgas_blockedDoubleArray__getSuperEPV(void) {
+static struct sidl_BaseClass__epv* pgas_MPIinitializer__getSuperEPV(void) {
   return s_par_epv__sidl_baseclass;
 }
 
@@ -570,7 +550,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
     impl = sidl_ClassInfoI__create(_ex);
     s_classInfo = sidl_ClassInfo__cast(impl,_ex);
     if (impl) {
-      sidl_ClassInfoI_setName(impl, "pgas.blockedDoubleArray", _ex);
+      sidl_ClassInfoI_setName(impl, "pgas.MPIinitializer", _ex);
       sidl_ClassInfoI_setVersion(impl, "1.0", _ex);
       sidl_ClassInfoI_setIORVersion(impl, s_IOR_MAJOR_VERSION,
         s_IOR_MINOR_VERSION, _ex);
@@ -593,7 +573,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
  */
 
 static void
-initMetadata(struct pgas_blockedDoubleArray__object* self, sidl_BaseInterface* _ex)
+initMetadata(struct pgas_MPIinitializer__object* self, sidl_BaseInterface* _ex)
 {
   *_ex = 0; /* default no exception */
   if (self) {
@@ -609,19 +589,19 @@ return;
 }
 
 /*
- * pgas_blockedDoubleArray__createObject: Allocate the object and initialize it.
+ * pgas_MPIinitializer__createObject: Allocate the object and initialize it.
  */
 
-struct pgas_blockedDoubleArray__object*
-pgas_blockedDoubleArray__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
+struct pgas_MPIinitializer__object*
+pgas_MPIinitializer__createObject(void* ddata, struct sidl_BaseInterface__object ** _ex)
 {
-  struct pgas_blockedDoubleArray__object* self =
-    (struct pgas_blockedDoubleArray__object*) sidl_malloc(
-      sizeof(struct pgas_blockedDoubleArray__object),
-      "Object allocation failed for struct pgas_blockedDoubleArray__object",
-        __FILE__, __LINE__, "pgas_blockedDoubleArray__createObject", _ex);
+  struct pgas_MPIinitializer__object* self =
+    (struct pgas_MPIinitializer__object*) sidl_malloc(
+      sizeof(struct pgas_MPIinitializer__object),
+      "Object allocation failed for struct pgas_MPIinitializer__object",
+        __FILE__, __LINE__, "pgas_MPIinitializer__createObject", _ex);
   if (!self) goto EXIT;
-  pgas_blockedDoubleArray__init(self, ddata, _ex); SIDL_CHECK(*_ex);
+  pgas_MPIinitializer__init(self, ddata, _ex); SIDL_CHECK(*_ex);
   initMetadata(self, _ex); SIDL_CHECK(*_ex);
   return self;
 
@@ -633,18 +613,18 @@ pgas_blockedDoubleArray__createObject(void* ddata, struct sidl_BaseInterface__ob
  * INIT: initialize a new instance of the class object.
  */
 
-void pgas_blockedDoubleArray__init(
-  struct pgas_blockedDoubleArray__object* self,
+void pgas_MPIinitializer__init(
+  struct pgas_MPIinitializer__object* self,
    void* ddata,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct pgas_blockedDoubleArray__object* s0 = self;
-  struct sidl_BaseClass__object*          s1 = &s0->d_sidl_baseclass;
+  struct pgas_MPIinitializer__object* s0 = self;
+  struct sidl_BaseClass__object*      s1 = &s0->d_sidl_baseclass;
 
   *_ex = 0; /* default no exception */
   LOCK_STATIC_GLOBALS;
   if (!s_method_initialized) {
-    pgas_blockedDoubleArray__init_epv();
+    pgas_MPIinitializer__init_epv();
   }
   UNLOCK_STATIC_GLOBALS;
 
@@ -653,10 +633,10 @@ void pgas_blockedDoubleArray__init(
   s1->d_sidl_baseinterface.d_epv = &s_my_epv__sidl_baseinterface;
   s1->d_epv = &s_my_epv__sidl_baseclass;
 
-  s0->d_epv = &s_my_epv__pgas_blockeddoublearray;
+  s0->d_epv = &s_my_epv__pgas_mpiinitializer;
 
 
-  s0->d_epv    = &s_my_epv__pgas_blockeddoublearray;
+  s0->d_epv    = &s_my_epv__pgas_mpiinitializer;
 
   s0->d_data = NULL;
 
@@ -674,12 +654,12 @@ void pgas_blockedDoubleArray__init(
  * FINI: deallocate a class instance (destructor).
  */
 
-void pgas_blockedDoubleArray__fini(
-  struct pgas_blockedDoubleArray__object* self,
+void pgas_MPIinitializer__fini(
+  struct pgas_MPIinitializer__object* self,
   struct sidl_BaseInterface__object **_ex)
 {
-  struct pgas_blockedDoubleArray__object* s0 = self;
-  struct sidl_BaseClass__object*          s1 = &s0->d_sidl_baseclass;
+  struct pgas_MPIinitializer__object* s0 = self;
+  struct sidl_BaseClass__object*      s1 = &s0->d_sidl_baseclass;
 
   *_ex  = NULL; /* default to no exception */
 
@@ -699,17 +679,17 @@ void pgas_blockedDoubleArray__fini(
  */
 
 void
-pgas_blockedDoubleArray__IOR_version(int32_t *major, int32_t *minor)
+pgas_MPIinitializer__IOR_version(int32_t *major, int32_t *minor)
 {
   *major = s_IOR_MAJOR_VERSION;
   *minor = s_IOR_MINOR_VERSION;
 }
 
-static const struct pgas_blockedDoubleArray__external
+static const struct pgas_MPIinitializer__external
 s_externalEntryPoints = {
-  pgas_blockedDoubleArray__createObject,
+  pgas_MPIinitializer__createObject,
   /* no SEPV */
-  pgas_blockedDoubleArray__getSuperEPV,
+  pgas_MPIinitializer__getSuperEPV,
   2, 
   0.0
 };
@@ -720,8 +700,8 @@ s_externalEntryPoints = {
  * one-stop shopping for loading DLLs.
  */
 
-const struct pgas_blockedDoubleArray__external*
-pgas_blockedDoubleArray__externals(void)
+const struct pgas_MPIinitializer__external*
+pgas_MPIinitializer__externals(void)
 {
   return &s_externalEntryPoints;
 }

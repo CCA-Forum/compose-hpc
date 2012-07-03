@@ -1,5 +1,6 @@
 #include <pgas_blockedDouble3dArray_IOR.h>
 #include <pgas_blockedDouble3dArray_Skel.h>
+#include <stdio.h>
 #include <stdint.h>
 /**
  * builtin method
@@ -51,6 +52,9 @@ void pgas_blockedDouble3dArray__call_load() {
   /* FIXME: [ir.Stmt(ir.Call('_load', [])) */
 }
 
+extern void chpl__init_chpl__Program(int, const char*);
+extern int chpl_init_library(int argc, char* argv[]);
+extern int chpl_init_pgas_Impl(int, const char*);
 void pgas_blockedDouble3dArray__set_epv( struct pgas_blockedDouble3dArray__epv* epv, struct pgas_blockedDouble3dArray__pre_epv* pre_epv, struct pgas_blockedDouble3dArray__post_epv* post_epv) {
   epv->f__ctor = pgas_blockedDouble3dArray__ctor_skel;
   epv->f__ctor2 = pgas_blockedDouble3dArray__ctor2_skel;
@@ -59,8 +63,23 @@ void pgas_blockedDouble3dArray__set_epv( struct pgas_blockedDouble3dArray__epv* 
   epv->f_allocate = pgas_blockedDouble3dArray_allocate_skel;
   epv->f_get = pgas_blockedDouble3dArray_get_skel;
   epv->f_set = pgas_blockedDouble3dArray_set_skel;
-  const char* name[] = { "BRAID_LIBRARY", "-v" }; // verbose Chapel;
-  chpl_init_library(2, &name);
+  
+  const char* argv[] = { 
+    "BRAID_LIBRARY", /* fake program name */
+    "-nl", /* number of locales */
+    "",
+    "-v", /* verbose chapel runtime */
+    NULL
+  };
+  argv[2] = getenv("SLURM_NTASKS");
+  if (argv[2] == NULL) {
+    fprintf(stdout, "**ERROR: please set the SLURM_NTASKS environment variable\n"
+                    "         to the desired number of Chapel locales.");
+    argv[2] = "0";
+  }
+  setenv("GASNET_BACKTRACE", "1", 1);
+;
+  chpl_init_library(4, &argv);
   chpl__init_chpl__Program(__LINE__, __FILE__);
   chpl__init_pgas_Impl(__LINE__, __FILE__);
 }
