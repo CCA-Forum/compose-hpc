@@ -198,6 +198,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
       }
     }  /* else weights list size mismatch so assume will false */
   }  /* else no input weights provided so automatically false */
+
   return same;
 } /* sameWeights */
 
@@ -226,6 +227,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   bool has = false;
+
   if (t==0) {
     has = true;
   } else if (i >= n) {
@@ -236,6 +238,7 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   } else {
     has = solve(weights, t, i+1, n);
   }
+
   return has;
 } /* solve */
 
@@ -257,6 +260,8 @@ runIt(Examples::Knapsack* ksack, unsigned int t)
     cout << "N/A";
   }
   cout << "\n";
+
+  return;
 } /* runIt */
 
 

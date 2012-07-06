@@ -54,6 +54,7 @@ knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
   } else {
     has = knapsack(weights, t, i+1, n);
   }
+
   return has;
 } /* knapsack */
 
@@ -76,6 +77,8 @@ runIt(unsigned int* weights, unsigned int t, unsigned int num)
     printf("N/A");
   }
   printf("\n");
+
+  return;
 } /* runIt */
 
 

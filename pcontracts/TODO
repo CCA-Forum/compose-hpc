@@ -5,7 +5,7 @@ Tasks
 - Stand-alone enforcement library 
   TBD:  Should Babel/SIDL tracing equivalent be supported?
 
-- Determine desired runtime contract checking runtime instrumentation
+- Determine desired runtime contract checking instrumentation
 
 - Continue preliminary identification of relevant libpaul features
   -- Resume work on:
@@ -53,4 +53,4 @@ Tasks
      annotation attributes per node as proposed at the coding camp
 
 
-Last Updated:  11 May 2012
+Last Updated:  06 July 2012
