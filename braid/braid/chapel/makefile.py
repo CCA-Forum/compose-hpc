@@ -296,8 +296,6 @@ ifeq ($(IMPLSRCS),)
 else
 .chpl.lo:
 	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code
-	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
-	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
 	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
 	babel-libtool --mode=compile --tag=CC $(CC) \
             -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
