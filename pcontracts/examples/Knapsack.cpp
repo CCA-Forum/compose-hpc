@@ -1,4 +1,4 @@
-/* 
+/**
  * File:  Knapsack.cpp
  *
  * @file
@@ -105,14 +105,6 @@ Examples::Knapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
 }
 
-
-/*
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- ToDo/TBD: Should contracts be placed on private methods?  Probably
- not if SIDL is going to be performing the translation; however, in
- that case the contracts should be in the header not here...
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- */
 
 /**
  * Determine whether the weights of all of the available items are
