@@ -7,6 +7,10 @@
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
  *
+ * The implementation uses a recursive algorithm based on that defined 
+ * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
+ * 1983.
+ *
  * @section LICENSE
  * TBD
  */
@@ -32,15 +36,6 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
-
-/*
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- ToDo/TBD:  Do the contracts belong here or in the header?
-
- Header would be better for documentation purposes; however,
- the implementation makes instrumentation easier.
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- */
 
 /* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
