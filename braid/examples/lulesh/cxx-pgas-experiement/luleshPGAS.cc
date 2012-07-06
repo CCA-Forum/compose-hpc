@@ -82,7 +82,7 @@ Additional BSD Notice
 #include <stdlib.h>
 #include <mpi.h>
 
-#include "pgas_blockedDouble3dArray.hxx"
+#include "pgas.hxx"
 
 #define LULESH_SHOW_PROGRESS 1
 
@@ -161,7 +161,17 @@ public:
   // using this instead of a constructor so we can use references to
   // DArrays in struct Domain
   void allocate(Index_t size) {
+    struct sidl_BaseInterface__object * _exception = NULL;
+    pgas::blockedDouble3dArray::ior_t* ior =
+      (*pgas::blockedDouble3dArray::_get_ext()->createObject)(NULL, &_exception);
+    if (_exception != NULL) {
+      printf("error -- ::pgas::blockedDouble3dArray"
+	     "static constructor\n");
+      MPI_Abort(MPI_COMM_WORLD, -1);
+    }
+
     dim = size;
+    data._set_ior(ior);
     data.allocate(size);
   };
 
@@ -5392,6 +5402,9 @@ void DumpDomain(Domain *domain, int myRank, int numProcs)
 
 int main(int argc, char *argv[])
 {
+   pgas::MPIinitializer chpl_runtime = pgas::MPIinitializer::_create();
+   chpl_runtime.init();
+
    Domain *locDom ;
    int myDom ;
    int numProcs ;
@@ -5470,6 +5483,8 @@ int main(int argc, char *argv[])
    int col = myDom % dx ;
    int row = (myDom / dx) % dy ;
    int plane = myDom / (dx*dy) ;
+
+   printf("[rank %d] col_loc = %d, row_loc = %d, plane_loc = %d.\n", myRank, col, row, plane);
 
 #if 0
    /* thread chunk coords */

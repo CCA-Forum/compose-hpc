@@ -2,7 +2,7 @@
 // File:          pgas_blockedDouble3dArray.hxx
 // Symbol:        pgas.blockedDouble3dArray-v1.0
 // Symbol Type:   class
-// Babel Version: 2.0.0 (Revision: 7481  trunk)
+// Babel Version: 2.0.0 (Revision: 7481 trunk)
 // Description:   Client-side glue code for pgas.blockedDouble3dArray
 // 
 // WARNING: Automatically generated; changes will be lost

@@ -6,8 +6,8 @@
 #include <pgas_blockedDouble3dArray_IOR.h>
 typedef struct pgas_blockedDouble3dArray__object _pgas_blockedDouble3dArray__object;
 typedef _pgas_blockedDouble3dArray__object* pgas_blockedDouble3dArray__object;
-#ifndef SIDL_BASE_INTERFACE_OBJECT
-#define SIDL_BASE_INTERFACE_OBJECT
+#ifndef included_sidl_BaseInterface_Stub_h
+#define included_sidl_BaseInterface_Stub_h
 typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;
 typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;
 #define IS_NULL(aPtr)     ((aPtr) == 0)

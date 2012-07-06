@@ -9,5 +9,5 @@
 #MSUB -o /p/lscratchb/prantl1/luleshPGAS.cc.txt
 
 export MPIRUN_CMD="srun -N %N %P %A"
-## chpl_hybrid/runChapel/runChapel2C -nl {nodes} -v --rowSize=32 --colSize={n} --blkSize={b} --maxThreadsPerLocale=12 --dataParTasksPerLocale=12
 srun -n 8 ./luleshPGAS
+

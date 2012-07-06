@@ -1632,7 +1632,7 @@ def lower_assertion(cls, m, expr):
             args = [low(e) for e in AssertExprs]
             if Id in builtin_funcs.keys():
                 try: arg0 = AssertExprs[0]
-                except: print "**ERROR: assert function has now arguments: ", sidl_gen(expr)
+                except: print "**ERROR: assert function has no arguments: ", sidl_gen(expr)
                 t = get_arg_type(low(arg0))
                 if sidl.is_array(t):
                     typearg = c_gen(babel.lower_ir(cls.symbol_table, t))

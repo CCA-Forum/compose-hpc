@@ -1,0 +1,13 @@
+#MSUB -A comp
+#MSUB -l nodes=27
+#MSUB -l partition=ansel
+#MSUB -l walltime=00:07:00
+#MSUB -q pbatch
+#MSUB -m a
+#MSUB -N luleshPGAS.cc
+#MSUB -V
+#MSUB -o /p/lscratchb/prantl1/luleshPGAS.cc.txt
+
+export MPIRUN_CMD="srun -N %N %P %A"
+srun -n 27 ./luleshPGAS
+

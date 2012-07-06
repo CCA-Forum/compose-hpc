@@ -6,6 +6,59 @@ use BlockDist;
 
 // DO-NOT-DELETE splicer.end(pgas.Impl)
 
+class pgas_MPIinitializer_Impl {
+// DO-NOT-DELETE splicer.begin(pgas.MPIinitializer.Impl)
+// DO-NOT-DELETE splicer.end(pgas.MPIinitializer.Impl)
+
+/**
+ * builtin method
+ */
+export pgas_MPIinitializer__ctor_impl proc _ctor(in _this: opaque, inout _ex: sidl.sidl_BaseInterface__object) {
+    // DO-NOT-DELETE splicer.begin(pgas.MPIinitializer._ctor)
+    // DO-NOT-DELETE splicer.end(pgas.MPIinitializer._ctor)
+}
+
+
+/**
+ * builtin method
+ */
+export pgas_MPIinitializer__ctor2_impl proc _ctor2(in _this: opaque, in private_data: opaque, inout _ex: sidl.sidl_BaseInterface__object) {
+    // DO-NOT-DELETE splicer.begin(pgas.MPIinitializer._ctor2)
+    // DO-NOT-DELETE splicer.end(pgas.MPIinitializer._ctor2)
+}
+
+
+/**
+ * builtin method
+ */
+export pgas_MPIinitializer__dtor_impl proc _dtor(in _this: opaque, inout _ex: sidl.sidl_BaseInterface__object) {
+    // DO-NOT-DELETE splicer.begin(pgas.MPIinitializer._dtor)
+    // DO-NOT-DELETE splicer.end(pgas.MPIinitializer._dtor)
+}
+
+
+/**
+ * builtin method
+ */
+export pgas_MPIinitializer__load_impl proc _load(in _this: opaque, inout _ex: sidl.sidl_BaseInterface__object) {
+    // DO-NOT-DELETE splicer.begin(pgas.MPIinitializer._load)
+    // DO-NOT-DELETE splicer.end(pgas.MPIinitializer._load)
+}
+
+
+/**
+ * 
+ * let's see if initializing Chapels MPI spawner first improves the situation
+ * 
+ */
+export pgas_MPIinitializer_init_impl proc init(in _this: opaque, inout _ex: sidl.sidl_BaseInterface__object) {
+    // DO-NOT-DELETE splicer.begin(pgas.MPIinitializer.init)
+    // DO-NOT-DELETE splicer.end(pgas.MPIinitializer.init)
+}
+
+} // class pgas_MPIinitializer_Impl
+
+
 class pgas_blockedDouble3dArray_Impl {
 // DO-NOT-DELETE splicer.begin(pgas.blockedDouble3dArray.Impl)
 
@@ -81,6 +134,5 @@ export pgas_blockedDouble3dArray_set_impl proc set(in _this: opaque, in idx1: in
 }
 
 } // class pgas_blockedDouble3dArray_Impl
-
 
 
