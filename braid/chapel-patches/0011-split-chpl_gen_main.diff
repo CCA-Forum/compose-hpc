@@ -1,0 +1,224 @@
+Index: compiler/include/symbol.h
+===================================================================
+--- compiler/include/symbol.h	(revision 20172)
++++ compiler/include/symbol.h	(working copy)
+@@ -15,6 +15,8 @@
+ // The function that represents the compiler-generated entry point
+ //
+ extern FnSymbol* chpl_gen_main;
++extern FnSymbol* chpl_gen_init;
++extern FnSymbol* chpl_gen_shutdown;
+ 
+ class SymExpr;
+ class DefExpr;
+Index: compiler/AST/symbol.cpp
+===================================================================
+--- compiler/AST/symbol.cpp	(revision 20172)
++++ compiler/AST/symbol.cpp	(working copy)
+@@ -19,6 +19,8 @@
+ // The function that represents the compiler-generated entry point
+ //
+ FnSymbol *chpl_gen_main = NULL;
++FnSymbol *chpl_gen_init = NULL;
++FnSymbol *chpl_gen_shutdown = NULL;
+ 
+ ModuleSymbol* rootModule = NULL;
+ ModuleSymbol* theProgram = NULL;
+Index: compiler/passes/codegen.cpp
+===================================================================
+--- compiler/passes/codegen.cpp	(revision 20172)
++++ compiler/passes/codegen.cpp	(working copy)
+@@ -124,7 +124,12 @@
+   }
+ 
+   // hilde sez:  This is very kludgy.  What do we really mean?
+-  if ((!strncmp("chpl_", sym->cname, 5) && (strcmp("chpl_gen_main", sym->cname) && strcmp("chpl_user_main", sym->cname))  && sym->cname[5] != '_') ||
++  if ((!strncmp("chpl_", sym->cname, 5) && 
++       (strcmp("chpl_gen_main", sym->cname) &&
++	strcmp("chpl_gen_init", sym->cname) &&
++	strcmp("chpl_gen_shutdown", sym->cname) &&
++	strcmp("chpl_user_main", sym->cname)) 
++       && sym->cname[5] != '_') ||
+       (sym->cname[0] == '_' && (sym->cname[1] == '_' || (sym->cname[1] >= 'A' && sym->cname[1] <= 'Z')))) {
+     sym->cname = astr("chpl__", sym->cname);
+   }
+Index: compiler/passes/insertLineNumbers.cpp
+===================================================================
+--- compiler/passes/insertLineNumbers.cpp	(revision 20172)
++++ compiler/passes/insertLineNumbers.cpp	(working copy)
+@@ -87,6 +87,8 @@
+   } else if (!strcmp(fn->name, "chpl__heapAllocateGlobals") ||
+              !strcmp(fn->name, "chpl__initModuleGuards") ||
+              !strcmp(fn->name, "chpl_gen_main") ||
++             !strcmp(fn->name, "chpl_gen_init") ||
++             !strcmp(fn->name, "chpl_gen_shutdown") ||
+              ((mod->modTag == MOD_USER || mod->modTag == MOD_MAIN) && 
+               !fn->hasFlag(FLAG_TEMP) && !fn->hasFlag(FLAG_INLINE)) ||
+              (developer == true && strcmp(fn->name, "halt"))) {
+Index: compiler/passes/parallel.cpp
+===================================================================
+--- compiler/passes/parallel.cpp	(revision 20172)
++++ compiler/passes/parallel.cpp	(working copy)
+@@ -167,17 +167,23 @@
+   normalize(wrap_fn);
+ }
+ 
+-
+ static void
+ insertEndCount(FnSymbol* fn,
+                Type* endCountType,
+                Vec<FnSymbol*>& queue,
+                Map<FnSymbol*,Symbol*>& endCountMap) {
+   if (fn == chpl_gen_main) {
+-    VarSymbol* var = newTemp("_endCount", endCountType);
++    VarSymbol* var = newTemp("_endCount_global", endCountType);
+     fn->insertAtHead(new DefExpr(var));
+     endCountMap.put(fn, var);
+     queue.add(fn);
++
++  } else if (fn == chpl_gen_init) {
++    ArgSymbol* arg = new ArgSymbol(INTENT_INOUT, "_endCount", endCountType);
++    fn->insertFormalAtTail(arg);
++    endCountMap.put(fn, arg);
++    queue.add(fn);
++
+   } else {
+     ArgSymbol* arg = new ArgSymbol(INTENT_BLANK, "_endCount", endCountType);
+     fn->insertFormalAtTail(arg);
+@@ -1520,3 +1526,5 @@
+ }
+ 
+ 
++
++//  LocalWords:  arg
+Index: compiler/passes/buildDefaultFunctions.cpp
+===================================================================
+--- compiler/passes/buildDefaultFunctions.cpp	(revision 20172)
++++ compiler/passes/buildDefaultFunctions.cpp	(working copy)
+@@ -298,6 +298,44 @@
+   chpl_user_main->cname = "chpl_user_main";
+ 
+   //
++  // global init function
++  //
++  chpl_gen_init = new FnSymbol("chpl_gen_init");
++  chpl_gen_init->cname = "chpl_gen_init";
++  chpl_gen_init->retType = dtVoid;
++  chpl_gen_init->addFlag(FLAG_EXPORT); 
++  chpl_gen_init->addFlag(FLAG_TEMP);
++  mainModule->block->insertAtTail(new DefExpr(chpl_gen_init));
++  normalize(chpl_gen_init);
++
++  // We have to initialize the main module explicitly.
++  // It will initialize all the modules it uses, recursively.
++  chpl_gen_init->insertAtHead(new CallExpr(mainModule->initFn));
++
++  VarSymbol* endCount = newTemp("_endCount");
++  chpl_gen_init->insertAtHead(new CallExpr(PRIM_SET_END_COUNT, endCount));
++  chpl_gen_init->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr("_endCountAlloc")));
++  chpl_gen_init->insertAtHead(new DefExpr(endCount));
++  chpl_gen_init->insertAtHead(new CallExpr("chpl_startTrackingMemory"));
++
++  //
++  // global shutdown function
++  //
++  chpl_gen_shutdown = new FnSymbol("chpl_gen_shutdown");
++  chpl_gen_shutdown->cname = "chpl_gen_shutdown";
++  chpl_gen_shutdown->retType = dtVoid;
++  chpl_gen_shutdown->addFlag(FLAG_EXPORT);
++  chpl_gen_shutdown->addFlag(FLAG_TEMP);
++  mainModule->block->insertAtTail(new DefExpr(chpl_gen_shutdown));
++  normalize(chpl_gen_shutdown);
++
++  endCount = newTemp("_endCount");
++  chpl_gen_shutdown->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr(PRIM_GET_END_COUNT)));
++  chpl_gen_shutdown->insertAtHead(new DefExpr(endCount));
++  chpl_gen_shutdown->insertBeforeReturn(new CallExpr("_waitEndCount"));
++  chpl_gen_shutdown->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
++
++  //
+   // chpl_gen_main is the entry point for the compiler-generated cdoe.
+   // It accounts for the initialization and memory tracking of the
+   // code
+@@ -309,23 +347,12 @@
+   chpl_gen_main->addFlag(FLAG_TEMP);
+   mainModule->block->insertAtTail(new DefExpr(chpl_gen_main));
+   normalize(chpl_gen_main);
+-
++  chpl_gen_main->insertAtHead(new CallExpr("chpl_gen_shutdown"));
+   if (!fLibraryCompile) {
+-    SET_LINENO(chpl_gen_main);
++    SET_LINENO(chpl_gen_init);
+     chpl_gen_main->insertAtHead(new CallExpr("main"));
+   }
+-
+-  // We have to initialize the main module explicitly.
+-  // It will initialize all the modules it uses, recursively.
+-  chpl_gen_main->insertAtHead(new CallExpr(mainModule->initFn));
+-
+-  VarSymbol* endCount = newTemp("_endCount");
+-  chpl_gen_main->insertAtHead(new CallExpr("chpl_startTrackingMemory"));
+-  chpl_gen_main->insertAtHead(new CallExpr(PRIM_SET_END_COUNT, endCount));
+-  chpl_gen_main->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr("_endCountAlloc")));
+-  chpl_gen_main->insertAtHead(new DefExpr(endCount));
+-  chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount"));
+-  //chpl_gen_main->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
++  chpl_gen_main->insertAtHead(new CallExpr("chpl_gen_init"));
+ }
+ 
+ static void build_record_equality_function(ClassType* ct) {
+Index: compiler/resolution/functionResolution.cpp
+===================================================================
+--- compiler/resolution/functionResolution.cpp	(revision 20172)
++++ compiler/resolution/functionResolution.cpp	(working copy)
+@@ -252,7 +252,7 @@
+     else
+       type->symbol->defPoint->insertBefore(call);
+   } else
+-    chpl_gen_main->insertAtHead(call);
++    chpl_gen_init->insertAtHead(call);
+   resolveCall(call);
+   call->remove();
+   return call->isResolved();
+@@ -286,7 +286,7 @@
+ static void
+ resolveAutoCopy(Type* type) {
+   Symbol* tmp = newTemp(type);
+-  chpl_gen_main->insertAtHead(new DefExpr(tmp));
++  chpl_gen_init->insertAtHead(new DefExpr(tmp));
+   CallExpr* call = new CallExpr("chpl__autoCopy", tmp);
+   FnSymbol* fn = resolveUninsertedCall(type, call);
+   resolveFns(fn);
+@@ -298,7 +298,7 @@
+ static void
+ resolveAutoDestroy(Type* type) {
+   Symbol* tmp = newTemp(type);
+-  chpl_gen_main->insertAtHead(new DefExpr(tmp));
++  chpl_gen_shutdown->insertAtHead(new DefExpr(tmp));
+   CallExpr* call = new CallExpr("chpl__autoDestroy", tmp);
+   FnSymbol* fn = resolveUninsertedCall(type, call);
+   resolveFns(fn);
+@@ -4928,6 +4928,8 @@
+   resolveUses(mainModule);
+ 
+   resolveFns(chpl_gen_main);
++  resolveFns(chpl_gen_init);
++  resolveFns(chpl_gen_shutdown);
+   USR_STOP();
+ 
+   resolveExports();
+Index: compiler/resolution/callDestructors.cpp
+===================================================================
+--- compiler/resolution/callDestructors.cpp	(revision 20172)
++++ compiler/resolution/callDestructors.cpp	(working copy)
+@@ -338,8 +338,8 @@
+   const char* name = "chpl__autoDestroyGlobals";
+   FnSymbol* fn = new FnSymbol(name);
+   fn->retType = dtVoid;
+-  chpl_gen_main->defPoint->insertBefore(new DefExpr(fn));
+-  chpl_gen_main->insertBeforeReturnAfterLabel(new CallExpr(fn));
++  chpl_gen_shutdown->defPoint->insertBefore(new DefExpr(fn));
++  chpl_gen_shutdown->insertBeforeReturnAfterLabel(new CallExpr(fn));
+   forv_Vec(DefExpr, def, gDefExprs) {
+     if (isModuleSymbol(def->parentSymbol))
+       if (def->parentSymbol != rootModule)
