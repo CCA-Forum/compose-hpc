@@ -54,18 +54,17 @@ diff --git a/chapel-1.3.0/chapel/runtime/include/chplrt.h b/chapel-1.3.0/chapel/
 index 2391c7e..68f5242 100644
 --- a/chapel-1.3.0/chapel/runtime/include/chplrt.h
 +++ b/chapel-1.3.0/chapel/runtime/include/chplrt.h
-@@ -40,6 +40,11 @@ extern int chpl_threads_initialized;
+@@ -35,6 +35,13 @@
        chpl_error("attempt to dereference nil", lineno, filename);      \
    } while (0)
  
-+#define _REF_BORROW(x, type, data, lineno, filename)     \
-+  if (data == nil)                                                  \
-+      chpl_error("data vector is nil", lineno, filename);           \
-+  (x)->_data = (type*) data
++#define _REF_BORROW(x, type, fieldname data, lineno, filename)		\
++  do {									\
++    if (data == nil)							\
++      chpl_error("data vector is nil", lineno, filename);		\
++  (x)->fieldname = (type*) data;					\
++  } while (0)
 +
- #define _ARRAY_GET(x, i) (&((x)->_data[i]))
- #define _ARRAY_GET_VALUE(x, i) ((x)->_data[i])
- #define _ARRAY_SET(x, i, v) ((x)->_data[i] = v)
--- 
-1.6.6.1
-
+ #define _ARRAY_GET(x, i) (&((x)[i]))
+ #define _ARRAY_GET_VALUE(x, i) ((x)[i])
+ #define _ARRAY_SET(x, i, v) ((x)[i] = v)
