@@ -56,7 +56,11 @@ for p in `ls -1 $lsflags $base/@top_srcdir@/chapel-patches/ |grep '\.diff\$'`; d
     else
 	level=-p0
     fi
-    patch $flags $level -u < $patch || echo "**ERROR"
+    patch $flags $level -u < $patch
+    if [ $? -ne 0 ]; then
+	echo "**ERROR: Ctrl-z to cancel, Enter to continue"
+	read
+    fi	
 done
 
 # we have to manually remove these files which have been created by the patches
