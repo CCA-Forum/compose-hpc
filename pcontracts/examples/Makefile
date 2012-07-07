@@ -22,13 +22,14 @@ ROSE_CXXFLAGS = $(ROSE_INCLUDES) $(ROSE_FLAGS) -Wno-deprecated
 KC_EXE=knapsack
 KCPP_EXE=Knapsack
 CPRINTER_EXE=ContractPrinter
+CAPRINTER_EXE=ContractAssertionPrinter
 
-BINARIES=$(KC_EXE) $(KCPP_EXE) $(CPRINTER_EXE)
+BINARIES=$(KC_EXE) $(KCPP_EXE) $(CPRINTER_EXE) $(CAPRINTER_EXE)
 
 
 all: $(BINARIES)
 
-check: checkKnapsacks checkCPrinter
+check: checkKnapsacks checkRosePrinters
 
 $(KC_EXE): $(KC_EXE).c
 	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c
@@ -41,6 +42,13 @@ $(KCPP_EXE): $(KCPP_EXE).cpp
 $(CPRINTER_EXE): $(CPRINTER_EXE).cpp
 	$(CXX) -c $(ROSE_CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
 	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o
+
+$(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp
+	$(CXX) -c $(ROSE_CXXFLAGS) -DNO_MAIN -o $(CPRINTER_EXE)-mainLess.o  \
+	  $(CPRINTER_EXE).cpp
+	$(CXX) -c $(ROSE_CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp
+	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
+	  $(CPRINTER_EXE)-mainLess.o
 
 checkKnapsacks:
 	@$(MAKE) checkKnapsack KT=-1; \
@@ -60,8 +68,16 @@ checkKnapsack: $(KC_EXE) $(KCPP_EXE)
 	  echo "...Results are identical"; \
 	fi
 
+checkRosePrinters: checkCAPrinter checkCPrinter
+
+checkCAPrinter: $(CAPRINTER_EXE)
+	@$(MAKE) checkRosePrinter EXE=$(CAPRINTER_EXE) PRE="cap"
+
 checkCPrinter: $(CPRINTER_EXE)
-	@echo "Running $(CPRINTER_EXE)..."; \
+	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) PRE="cp"
+
+checkRosePrinter: $(EXE)
+	@echo "Running $(EXE)..."; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
 	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
@@ -71,10 +87,10 @@ checkCPrinter: $(CPRINTER_EXE)
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
 	  echo "...Processing $$BASE.$$EXT"; \
-	  ./$(CPRINTER_EXE) $(ROSE_OPTS) -c $$file > $$BASE.out; \
-	  if [ -s $$BASE.out ]; then \
+	  ./$(EXE) $(ROSE_OPTS) -c $$file > $(PRE)-$$BASE.out; \
+	  if [ -s $(PRE)-$$BASE.out ]; then \
 	    ok=`expr $$ok + 1`; \
-	    echo "......Results in $$BASE.out"; \
+	    echo "......Results in $(PRE)-$$BASE.out"; \
 	  else \
 	    echo "......FAILED on $$file\n"; \
 	  fi; \
