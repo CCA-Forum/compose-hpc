@@ -12,6 +12,9 @@
  *
  * @section LICENSE
  * TBD
+ *
+ * @todo Clean up this example so this class can be re-used "properly"
+ * in ContractAssertionPrinter.cpp.
  */
 
 #include <iostream>
@@ -23,30 +26,16 @@
 using namespace std;
 
 
-/**
- * Determines if the specified directive type is a comment.
- *
- * @param dType  The type of preprocessing directive.
- * @return       true if the directive is a C/C++ comment; otherwise, false.
- */
 bool
-isComment(PreprocessingInfo::DirectiveType dType)
+ContractPrinter::isComment(PreprocessingInfo::DirectiveType dType)
 {
   return (  (dType == PreprocessingInfo::C_StyleComment)
          || (dType == PreprocessingInfo::CplusplusStyleComment)  );
 } /* isComment */
 
 
-/**
- * Prints the specified comment followed by the node type, line, and file 
- * information of the associated node.
- *
- * @param node  The associated AST node.
- * @param cmt   The comment to be printed.
- * @return       true if the directive is a C/C++ comment; otherwise, false.
- */
 void
-printLineComment(SgNode* node, const char* cmt)
+ContractPrinter::printLineComment(SgNode* node, const char* cmt)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if (lNode != NULL)
@@ -112,6 +101,8 @@ ContractPrinter::visit(SgNode* node)
   return;
 } /* ContractPrinter::visit */
 
+
+#ifndef NO_MAIN
 /**
  * Build and process the AST nodes of the input source file(s).
  */
@@ -143,4 +134,5 @@ main(int argc, char* argv[])
 
   return status;
 } /* main */
+#endif /* NO_MAIN */
 
