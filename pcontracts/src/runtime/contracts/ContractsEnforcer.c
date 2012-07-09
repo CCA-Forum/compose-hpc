@@ -1169,7 +1169,7 @@ ContractsEnforcer_enforceClause(
          * assuming we'll NEVER reach the default case above.
          */
         (enforcer->data.checksTime) += clauseTime;
-        DUMP_DEBUG_STATS(enforcer, "enforceClause(): begin")
+        DUMP_DEBUG_STATS(enforcer, "enforceClause(): end")
       }
     }
   }

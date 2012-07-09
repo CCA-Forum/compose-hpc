@@ -1,4 +1,4 @@
-/* 
+/**
  * File:  Knapsack.cpp
  *
  * @file
@@ -6,6 +6,10 @@
  * Class used for printing a solution to the knapsack problem for any 
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
+ *
+ * The implementation uses a recursive algorithm based on that defined 
+ * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
+ * 1983.
  *
  * @section LICENSE
  * TBD
@@ -32,15 +36,6 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
-
-/*
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- ToDo/TBD:  Do the contracts belong here or in the header?
-
- Header would be better for documentation purposes; however,
- the implementation makes instrumentation easier.
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- */
 
 /* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
@@ -110,14 +105,6 @@ Examples::Knapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
 }
 
-
-/*
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- ToDo/TBD: Should contracts be placed on private methods?  Probably
- not if SIDL is going to be performing the translation; however, in
- that case the contracts should be in the header not here...
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- */
 
 /**
  * Determine whether the weights of all of the available items are
@@ -198,6 +185,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
       }
     }  /* else weights list size mismatch so assume will false */
   }  /* else no input weights provided so automatically false */
+
   return same;
 } /* sameWeights */
 
@@ -226,6 +214,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   bool has = false;
+
   if (t==0) {
     has = true;
   } else if (i >= n) {
@@ -236,6 +225,7 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   } else {
     has = solve(weights, t, i+1, n);
   }
+
   return has;
 } /* solve */
 
@@ -257,6 +247,8 @@ runIt(Examples::Knapsack* ksack, unsigned int t)
     cout << "N/A";
   }
   cout << "\n";
+
+  return;
 } /* runIt */
 
 
