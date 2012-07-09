@@ -1196,17 +1196,17 @@ class GlueCodeGenerator(object):
   }
   setenv("GASNET_BACKTRACE", "1", 1);
 '''
-        cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
+        cskel.genh(ir.Import('stdlib'))
         cskel.pre_def('extern int chpl_init_library(int argc, char* argv[]);')
+        cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
         cskel.pre_def('extern int chpl_init_%s_Impl(int, const char*);'%pkgname)
-        epv_init.append((ir.stmt, dummyargv))
-        epv_init.append((ir.stmt, 'chpl_init_library(4, &argv)'))
-        epv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
-        epv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
-        sepv_init.append((ir.stmt, dummyargv))
-        sepv_init.append((ir.stmt, 'chpl_init_library(4, &name)'))
-        sepv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
-        sepv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
+        init_code = [dummyargv,
+                 'chpl_init_library(4, &argv)',
+                 'chpl__init_chpl__Program(__LINE__, __FILE__)',
+                 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname]
+        init_code = map(lambda x: (ir.stmt, x), init_code)
+        epv_init.extend(init_code)
+        sepv_init.extend(init_code)
 
         cskel.gen(ir.Fn_defn(
             [], ir.pt_void, qname+'__set_epv',
