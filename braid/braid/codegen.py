@@ -1392,6 +1392,14 @@ class CCodeGenerator(ClikeCodeGenerator):
             if (ir.primitive_type, Name): return self.type_map[Name]
             elif (ir.const, Type): return "const %s"%gen(Type)
 
+            elif (ir.fn_decl, Attrs, Type, Name, [], DocComment):
+                return super(CCodeGenerator, self).generate(
+                    (ir.fn_decl, Attrs, Type, Name, ['void'], DocComment), scope)
+
+            elif (ir.fn_defn, Attrs, Type, Name, [], Body, DocComment):
+                return super(CCodeGenerator, self).generate(
+                    (ir.fn_defn, Attrs, Type, Name, ['void'], Body, DocComment), scope)
+
             elif (ir.get_struct_item, _, (ir.deref,(ir.deref,StructName)), (ir.struct_item, _, Item)):
                 return "(*%s)->%s"%(gen(StructName),gen(Item))
 
