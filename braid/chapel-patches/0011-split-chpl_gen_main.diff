@@ -252,37 +252,37 @@ Index: compiler/resolution/callDestructors.cpp
 Index: runtime/src/chplinit.c
 ===================================================================
 --- runtime/src/chplinit.c	(revision 20172)
-+++ runtime/src/chplinit.c	(working copy)
-@@ -139,15 +139,6 @@
++++ runtime/src/chplinit.c	(working copy) 
+@@ -139,6 +139,15 @@ void chpl_init(int argc, char* argv[]) {
  }
  
  /**
-- * Global variable to hold the global endCount for Chapel libraries.
-- * It is used by chpl_library_[init|shutdown] and needs to be passed to
-- * every user function that uses parallel constructs (I think).
-- */
--void* chpl_endCount_global = NULL;
--extern void chpl_gen_init(void*);
--extern void chpl_gen_shutdown(void*);
--
--/**
++ * Global variable to hold the global endCount for Chapel libraries.
++ * It is used by chpl_library_[init|shutdown] and needs to be passed to
++ * every user function that uses parallel constructs (I think).
++ */
++void* chpl_endCount_global = NULL;
++extern void chpl_gen_init(void*);
++extern void chpl_gen_shutdown(void*);
++
++/**
   * This acts as a replacement to be used in chpl_task_callMain() for
   * Chapel libraries. It is automatically called by
   * chpl_init_library().
-@@ -168,8 +159,6 @@
+@@ -159,6 +168,8 @@ static void chpl_library_init(void) {
    //
    CHPL_TASK_STD_MODULES_INITIALIZED();
  
--  // This code is generated into chpl_gen_main for non-libraries
--  chpl_gen_init(&chpl_endCount_global);
++  // This code is generated into chpl_gen_main for non-libraries
++  chpl_gen_init(&chpl_endCount_global);
  }
  
  /**
-@@ -177,7 +166,6 @@
+@@ -166,6 +177,7 @@ static void chpl_library_init(void) {
   */
  static void chpl_library_shutdown(void) {
    chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
--  chpl_gen_shutdown(&chpl_endCount_global);
++  chpl_gen_shutdown(&chpl_endCount_global);
    chpl_exit_all(0);
  }
  
