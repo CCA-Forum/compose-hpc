@@ -1198,12 +1198,14 @@ class GlueCodeGenerator(object):
 '''
         cskel.genh(ir.Import('stdlib'))
         cskel.pre_def('extern int chpl_init_library(int argc, char* argv[]);')
-        cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
-        cskel.pre_def('extern void chpl__init_%s_Impl(int, const char*);'%pkgname)
+        # These are called by chpl_init_library -> chpl_gen_init
+        #cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
+        #cskel.pre_def('extern void chpl__init_%s_Impl(int, const char*);'%pkgname)
         init_code = [dummyargv,
                  'int locale_id = chpl_init_library(4, argv)',
-                 'chpl__init_chpl__Program(__LINE__, __FILE__)',
-                 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname]
+        #         'chpl__init_chpl__Program(__LINE__, __FILE__)',
+        #         'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname
+                     ]
         init_code = map(lambda x: (ir.stmt, x), init_code)
         epv_init.extend(init_code)
         sepv_init.extend(init_code)
