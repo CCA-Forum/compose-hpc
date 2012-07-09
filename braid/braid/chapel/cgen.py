@@ -441,6 +441,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         def gen_attrs(attrs):
             return sep_by(' ', attrs)
 
+        def drop_this(args):
+            if args <> []:
+                if args[0] == (ir.arg, [], ir.in_, ir.void_ptr, '_this'):
+                    return args[1:]
+            return args
+
         cbool = 'chpl_bool'
         int32 = 'int32_t'
         int64 = 'int64_t'
@@ -456,7 +462,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 new_scope('%s%sproc %s(%s) {'%
                           (gen_comment(DocComment),
                            gen_attrs(Attrs),
-                           gen(Name), gen_comma_sep(Args)),
+                           gen(Name), gen_comma_sep(drop_this(Args))),
                           Body,
                           '}')
                 new_def('')
@@ -465,7 +471,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 new_scope('%s%sproc %s(%s): %s {'%
                           (gen_comment(DocComment),
                            gen_attrs(Attrs),
-                           gen(Name), gen_comma_sep(Args),
+                           gen(Name), gen_comma_sep(drop_this(Args)),
                            gen(Type)),
                           Body,
                           '}')
