@@ -1181,7 +1181,7 @@ class GlueCodeGenerator(object):
         pkgname = '_'.join(ci.epv.symbol_table.prefix)
 
         dummyargv = '''
-  const char* argv[] = { 
+  char* argv[] = { 
     "BRAID_LIBRARY", /* fake program name */
     "-nl", /* number of locales */
     "",
@@ -1194,14 +1194,14 @@ class GlueCodeGenerator(object):
                     "         to the desired number of Chapel locales.");
     argv[2] = "0";
   }
-  setenv("GASNET_BACKTRACE", "1", 1);
+  int ignored = setenv("GASNET_BACKTRACE", "1", 1);
 '''
         cskel.genh(ir.Import('stdlib'))
         cskel.pre_def('extern int chpl_init_library(int argc, char* argv[]);')
         cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
-        cskel.pre_def('extern int chpl_init_%s_Impl(int, const char*);'%pkgname)
+        cskel.pre_def('extern void chpl__init_%s_Impl(int, const char*);'%pkgname)
         init_code = [dummyargv,
-                 'chpl_init_library(4, &argv)',
+                 'int locale_id = chpl_init_library(4, argv)',
                  'chpl__init_chpl__Program(__LINE__, __FILE__)',
                  'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname]
         init_code = map(lambda x: (ir.stmt, x), init_code)
@@ -1241,6 +1241,7 @@ class GlueCodeGenerator(object):
         # new file for the user implementation
         self.pkg_impl = ChapelFile(qname+'_Impl')
         self.pkg_impl.gen(ir.Import('sidl'))
+        self.pkg_impl.new_def(extern_def_set_to_null)
         self.pkg_impl.new_def('// DO-NOT-DELETE splicer.begin(%s.Impl)'%qname)
         self.pkg_impl.new_def('// DO-NOT-DELETE splicer.end(%s.Impl)'%qname)
         self.pkg_impl.new_def('')
@@ -1558,7 +1559,8 @@ class GlueCodeGenerator(object):
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
                     chpltype, Name, impl_args,
-                    ['// DO-NOT-DELETE splicer.begin(%s)'%splicer,
+                    ['SET_TO_NULL(_ex);',
+                     '// DO-NOT-DELETE splicer.begin(%s)'%splicer,
                      '// DO-NOT-DELETE splicer.end(%s)'%splicer],
                     DocComment)
 
