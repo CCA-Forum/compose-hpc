@@ -119,7 +119,7 @@ static const char* S_CONTRACT_VIOLATION[5] = {
 static const unsigned int S_CONTRACT_VIOLATION_MIN_IND = 0;
 
 /** 
- * The minimum Contract Violation name index.  Provided for traversal purposes.
+ * The maximum Contract Violation name index.  Provided for traversal purposes.
  */
 static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 4;
 

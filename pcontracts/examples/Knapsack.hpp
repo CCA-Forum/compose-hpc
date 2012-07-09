@@ -25,13 +25,6 @@ namespace Examples {
  */
 static const unsigned int MAX_WEIGHTS=10;
 
-
-/*
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- ToDo/TBD:  Do the contracts belong here or in the source?
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- */
-
 class Knapsack 
 {
   protected:

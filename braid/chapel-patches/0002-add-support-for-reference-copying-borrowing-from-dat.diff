@@ -58,7 +58,7 @@ index 2391c7e..68f5242 100644
        chpl_error("attempt to dereference nil", lineno, filename);      \
    } while (0)
  
-+#define _REF_BORROW(x, type, fieldname data, lineno, filename)		\
++#define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
 +  do {									\
 +    if (data == nil)							\
 +      chpl_error("data vector is nil", lineno, filename);		\

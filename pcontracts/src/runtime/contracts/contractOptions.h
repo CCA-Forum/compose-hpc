@@ -199,7 +199,7 @@ static const EnforcementFrequencyEnum S_ENFORCEMENT_FREQUENCY_MIN
                                       = EnforcementFrequency_NEVER;
 
 /**
- * The minimum Enforcement Frequency enumeration value.  Provided for
+ * The maximum Enforcement Frequency enumeration value.  Provided for
  * traversal purposes.
  */
 static const EnforcementFrequencyEnum S_ENFORCEMENT_FREQUENCY_MAX
