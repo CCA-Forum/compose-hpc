@@ -907,7 +907,7 @@ def aliasEPVs(r, T, t, cls, parents):
         r.append('  struct %s hepv = &s_my_epv_hooks__%s;'%(align(T+'__epv*', width), t))    
 
     e = 0
-    for parent in parents[:-1]:
+    for parent in parents[1:]:
         par = make_extendable(cls.symbol_table, parent)
         P = '_'.join(par.qualified_name)
         p = str.lower(P)
@@ -1131,7 +1131,7 @@ def copyEPVs(r, symbol_table, parents, renames):
     """
 
     e = 0;
-    for ext1 in parents[:-1]:
+    for ext1 in parents[1:]:
         # Extract information about the parent extendable object. Generate a list
         # of the nonstatic methods and calculate the width of every method name.
         # ext = (Extendable) Utilities.lookupSymbol(d_context, id);
