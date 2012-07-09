@@ -35,7 +35,7 @@ LIBNAME=client
 # please name the SIDL file here
 SIDLFILE=partest.sidl
 # extra include/compile flags 
-EXTRAFLAGS=
+EXTRAFLAGS=-ggdb -O0
 # extra librarys that the implementation needs to link against
 EXTRALIBS=
 # library version number
@@ -72,19 +72,19 @@ libhello/libhello.la:
 
 partest: lib$(LIBNAME).la libhello/libhello.la partest.lo 
 	babel-libtool --mode=link --tag=CXX $(CXX) -static partest.lo \
-                      -L$(LIBDIR) lib$(LIBNAME).la libhello/libhello.la $(GASNET_LIBS) $(VIZ_LDFLAGS) -o $@ 
+                      -ggdb -L$(LIBDIR) lib$(LIBNAME).la libhello/libhello.la $(GASNET_LIBS) $(VIZ_LDFLAGS) -o $@ 
 
 partest.lo: partest.cc
 	babel-libtool --mode=compile --tag=CXX $(CXX) $(shell babel-config --includes-c++) \
-            $(VIZ_CFLAGS) -c $< -o $@
+            $(CXXFLAGS) $(VIZ_CFLAGS) -c $< -o $@
 
 
 CC=`babel-config --query-var=CC`
 CXX=`babel-config --query-var=CXX`
 INCLUDES=`babel-config --includes-cxx`
 # -*- Makefile -*-
-CFLAGS=`babel-config --flags-c`
-CXXFLAGS=`babel-config --flags-cxx`
+CFLAGS=-O0 -ggdb `babel-config --flags-c`
+CXXFLAGS=-O0 -ggdb `babel-config --flags-cxx`
 LIBS=`babel-config --libs-cxx-client`
 
 STUBOBJS=$(STUBSRCS:.cxx=.lo)
