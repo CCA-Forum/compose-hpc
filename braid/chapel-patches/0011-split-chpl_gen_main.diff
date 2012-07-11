@@ -95,7 +95,7 @@ Index: compiler/passes/parallel.cpp
 +    fn->insertFormalAtTail(arg);
 +    VarSymbol* var = newTemp("_endCount", endCountType);
 +    fn->insertBeforeReturn(new CallExpr(PRIM_MOVE, arg, var));
-+    fn->insertAtHead(new CallExpr(PRIM_MOVE, var, arg));
++    fn->insertAtHead(new CallExpr(PRIM_MOVE, var, new CallExpr(PRIM_DEREF, arg)));
 +    fn->insertAtHead(new DefExpr(var));
 +    endCountMap.put(fn, var);
 +    queue.add(fn);
