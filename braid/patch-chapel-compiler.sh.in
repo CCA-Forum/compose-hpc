@@ -66,6 +66,7 @@ done
 # we have to manually remove these files which have been created by the patches
 if [ "x$1" == "x--undo" ]; then
     rm -rf examples/borrowed
+    rm -rf runtime/src/chplinit.c runtime/include/chplinit.h
 fi
 
 popd

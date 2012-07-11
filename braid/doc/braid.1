@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH BRAID 1 "2012-07-09" "0.2.5" "Compilers and Programming Languages"
+.TH BRAID 1 "2012-07-03" "0.2.5" "Compilers and Programming Languages"
 .SH NAME
 BRAID \- Next-generation high-performance language interoperability
 .
@@ -37,21 +37,19 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .INDENT 3.5
 .INDENT 0.0
 .TP
-.B braid [\-h] [\-\-gen\-sexp] [\-\-gen\-sidl] [\-c <language>] [\-s <language>]
+.B braid [\-h] [\-\-gen\-sexp] [\-\-gen\-sidl] [\-c <language>] [\-s <language>] [\-\-makefile] [\-i] [\-\-suppress\-contracts] [\-m <prefix>] [\-\-debug] [\-\-profile]
 .
-[\-\-makefile] [\-i] [\-\-suppress\-contracts] [\-m <prefix>]
-[\-\-debug] [\-\-profile] [\-\-version] [\-\-license] [\-v]
+[\-\-version] [\-\-license] [\-v]
 [<file.sidl> [<file.sidl> ...]]
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .SH DESCRIPTION
 .sp
-Braid 0.2.5 \- Do magically wonderful things with SIDL (scientific interface
-definition language) files. BRAID is a high\-performance language
-interoperability tool that generates Babel\-compatible bindings for the Chapel
-programming language. For details on using the command\-line tool, please
-consult the BRAID man page and the Babel user\(aqs guide.
+Braid 0.2.5 \- Do magically wonderful things with SIDL (scientific interface definition language) files. BRAID is a high\-performance language interoperability tool
+that generates Babel\-compatible bindings for the Chapel programming language. For details on using the command\-line tool, please consult the BRAID man page and the
+Babel user\(aqs guide.
+.SH OPTIONS
 .SS About BRAID and its relation to Babel
 [image: logos/braid-logo-small.png]
 .sp
@@ -618,9 +616,13 @@ Adrian Prantl: Architect, main author
 .SS Summer Interns
 .sp
 Shams Imam, Rice University
+
 .sp
-consult the BRAID man page and the Babel user\(aqs guide.
-.SH OPTIONS
+.ce
+----
+
+.ce 0
+.sp
 .SS positional arguments
 .INDENT 0.0
 .INDENT 3.5
@@ -647,13 +649,11 @@ generate SIDL output again
 .TP
 .BI \-c \ <language>, \ \-\-client \ <language>
 .
-generate client code in the specified language
-(Chapel, or any language supported through Babel)
+generate client code in the specified language (Chapel, or any language supported through Babel)
 .TP
 .BI \-s \ <language>, \ \-\-server \ <language>
 .
-generate server code in the specified language
-(Chapel, or any language supported through Babel)
+generate server code in the specified language (Chapel, or any language supported through Babel)
 .TP
 .B \-\-makefile
 .
@@ -665,14 +665,12 @@ generate pre\-/post\-method hooks
 .TP
 .B \-\-suppress\-contracts
 .
-refrain from generating contract enforcement from SIDL
-specs
+refrain from generating contract enforcement from SIDL specs
 .TP
 .BI \-m \ <prefix>, \ \-\-make\-prefix \ <prefix>
 .
-<prefix> is prepended to the name of babel.make and
-the symbols defined internally to allow Braid to be
-run multiple times in a single directory.
+<prefix> is prepended to the name of babel.make and the symbols defined internally to allow Braid to be run multiple times in a single
+directory.
 .TP
 .B \-\-debug
 .

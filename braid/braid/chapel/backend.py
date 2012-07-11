@@ -1181,8 +1181,8 @@ class GlueCodeGenerator(object):
         pkgname = '_'.join(ci.epv.symbol_table.prefix)
 
         dummyargv = '''
-  const char* argv[] = { 
-    "BRAID_LIBRARY", /* fake program name */
+  char* argv[] = { 
+    babel_program_name,
     "-nl", /* number of locales */
     "",
     "-v", /* verbose chapel runtime */
@@ -1194,19 +1194,23 @@ class GlueCodeGenerator(object):
                     "         to the desired number of Chapel locales.");
     argv[2] = "0";
   }
-  setenv("GASNET_BACKTRACE", "1", 1);
+  int ignored = setenv("GASNET_BACKTRACE", "1", 1);
 '''
-        cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
+        cskel.genh(ir.Import('stdlib'))
         cskel.pre_def('extern int chpl_init_library(int argc, char* argv[]);')
-        cskel.pre_def('extern int chpl_init_%s_Impl(int, const char*);'%pkgname)
-        epv_init.append((ir.stmt, dummyargv))
-        epv_init.append((ir.stmt, 'chpl_init_library(4, &argv)'))
-        epv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
-        epv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
-        sepv_init.append((ir.stmt, dummyargv))
-        sepv_init.append((ir.stmt, 'chpl_init_library(4, &name)'))
-        sepv_init.append((ir.stmt, 'chpl__init_chpl__Program(__LINE__, __FILE__)'))
-        sepv_init.append((ir.stmt, 'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname))
+        cskel.pre_def('// You can set this to argv[0] in main() to get better debugging output')
+        cskel.pre_def('char* babel_program_name = "BRAID_LIBRARY";')
+        # These are now called by chpl_init_library -> chpl_gen_init
+        #cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
+        #cskel.pre_def('extern void chpl__init_%s_Impl(int, const char*);'%pkgname)
+        init_code = [dummyargv,
+                 'int locale_id = chpl_init_library(4, argv)',
+        #         'chpl__init_chpl__Program(__LINE__, __FILE__)',
+        #         'chpl__init_%s_Impl(__LINE__, __FILE__)'%pkgname
+                     ]
+        init_code = map(lambda x: (ir.stmt, x), init_code)
+        epv_init.extend(init_code)
+        sepv_init.extend(init_code)
 
         cskel.gen(ir.Fn_defn(
             [], ir.pt_void, qname+'__set_epv',
@@ -1241,6 +1245,7 @@ class GlueCodeGenerator(object):
         # new file for the user implementation
         self.pkg_impl = ChapelFile(qname+'_Impl')
         self.pkg_impl.gen(ir.Import('sidl'))
+        self.pkg_impl.new_def(extern_def_set_to_null)
         self.pkg_impl.new_def('// DO-NOT-DELETE splicer.begin(%s.Impl)'%qname)
         self.pkg_impl.new_def('// DO-NOT-DELETE splicer.end(%s.Impl)'%qname)
         self.pkg_impl.new_def('')
@@ -1558,7 +1563,8 @@ class GlueCodeGenerator(object):
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
                     chpltype, Name, impl_args,
-                    ['// DO-NOT-DELETE splicer.begin(%s)'%splicer,
+                    ['SET_TO_NULL(_ex);',
+                     '// DO-NOT-DELETE splicer.begin(%s)'%splicer,
                      '// DO-NOT-DELETE splicer.end(%s)'%splicer],
                     DocComment)
 

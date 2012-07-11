@@ -81,7 +81,7 @@ Index: compiler/passes/parallel.cpp
 +
 +  } else if (fn == chpl_gen_init) {
 +    // expects a reference to the global end count
-+    ArgSymbol* arg = new ArgSymbol(INTENT_BLANK, "_endCount", endCountType->getRefType());
++    ArgSymbol* arg = new ArgSymbol(INTENT_OUT, "_endCount", endCountType->getRefType());
 +    fn->insertFormalAtTail(arg);
      VarSymbol* var = newTemp("_endCount", endCountType);
      fn->insertAtHead(new DefExpr(var));
@@ -141,10 +141,10 @@ Index: compiler/passes/buildDefaultFunctions.cpp
 +  chpl_gen_init->insertAtHead(new CallExpr(mainModule->initFn));
 +
 +  VarSymbol* endCount = newTemp("_endCount");
++  chpl_gen_init->insertAtHead(new CallExpr("chpl_startTrackingMemory"));
 +  chpl_gen_init->insertAtHead(new CallExpr(PRIM_SET_END_COUNT, endCount));
 +  chpl_gen_init->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr("_endCountAlloc")));
 +  chpl_gen_init->insertAtHead(new DefExpr(endCount));
-+  chpl_gen_init->insertAtHead(new CallExpr("chpl_startTrackingMemory"));
 +
 +  //
 +  // global shutdown function
