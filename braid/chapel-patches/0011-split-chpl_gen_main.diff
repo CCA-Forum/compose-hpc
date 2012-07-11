@@ -261,7 +261,7 @@ Index: runtime/src/chplinit.c
 + * It is used by chpl_library_[init|shutdown] and needs to be passed to
 + * every user function that uses parallel constructs (I think).
 + */
-+void* chpl_endCount_global = NULL;
++struct { int locale; void* addr; } chpl_endCount_global = { 0, NULL };
 +extern void chpl_gen_init(void*);
 +extern void chpl_gen_shutdown(void*);
 +
