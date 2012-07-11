@@ -74,7 +74,7 @@ EXTRA_DIST+= \
         doc/users_guide.css
 #	doc/latex/*.pdf     # I say this is just useless bloat
 
-braid/braid: $(BUILT_SOURCES) doc/html/index.html
+braid/braid: $(BUILT_SOURCES) # doc/html/index.html
 endif
 
 info_TEXINFOS = doc/braid.texi
