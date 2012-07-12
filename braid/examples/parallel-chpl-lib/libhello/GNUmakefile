@@ -26,7 +26,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 # This Makefile uses GNU make extensions, so it may not work with
-# other implementations of make.
+# other helloementations of make.
 
 include babel.make
 # please name the server library here
@@ -35,12 +35,12 @@ LIBNAME=hello
 SIDLFILE= ../partest.sidl
 # extra include/compile flags
 EXTRAFLAGS=
-# extra libraries that the implementation needs to link against
+# extra libraries that the helloementation needs to link against
 EXTRALIBS=
 # library version number
 VERSION=0.1.1
 # PREFIX specifies the top of the installation directory
-PREFIX=$(HOME)/install
+PREFIX=/usr/local
 # the default installation installs the .la and .scl (if any) into the
 # LIBDIR
 LIBDIR=$(PREFIX)/lib
@@ -50,7 +50,7 @@ INCLDIR=$(PREFIX)/include
 
 CHPL_MAKE_HOME=/g/g91/prantl1/sw/opt/chapel
 
-BABEL_CC=$(shell babel-config --query-var=CC)
+BABEL_CC=$(CC) # use Chapel runtime CC $(shell babel-config --query-var=CC)
 BABEL_INCLUDES=$(shell babel-config --includes) -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
 BABEL_CFLAGS=$(shell babel-config --flags-c)
 BABEL_LIBS=$(shell babel-config --libs-c-client)
@@ -98,7 +98,7 @@ else
   SCLFILE=lib$(LIBNAME).scl
   BABELFLAG=--server=Chapel
   MODFLAG=-module
-  DCE= #--no-dead-code-elimination # include everything in libimpl.la
+  DCE= #--no-dead-code-elimination # include everything in libhello.la
 endif
 
 ifeq ($(CHPL_MAKE_COMM),gasnet)
@@ -116,11 +116,11 @@ $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo $(TARGET)_real
 	echo "#include \"chplcgfns.h\"" > $(IMPL).chpl.dir/config.c
 	echo "#include \"config.h\""   >> $(IMPL).chpl.dir/config.c
 	echo "#include \"_config.c\""  >> $(IMPL).chpl.dir/config.c
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
+	babel-libtool --mode=compile --tag=CC $(CC) \
           -std=c99 -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
 	  -I$(CHPL_MAKE_HOME)/runtime/include -I. \
 	  $(IMPL).chpl.dir/config.c -c -o $@.lo
-	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $@.lo $(SERVER) \
           $(CHPL_LAUNCHER_LDFLAGS) $(LAUNCHER_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
@@ -130,7 +130,7 @@ all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CONDUIT_LIBS) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
 
 STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
@@ -187,7 +187,7 @@ else
 	echo '<scl>' >> $@
 	if test `uname` = "Darwin"; then scope="global"; else scope="local"; fi ; \
 	echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
-	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$@
+	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/hello\" />\n", $$1 }' >>$@
 	echo "  </library>" >>$@
 	echo "</scl>" >>$@
 endif
@@ -195,7 +195,7 @@ endif
 .SUFFIXES: .lo .chpl
 
 .c.lo:
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
+	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) $(CHPL_FLAGS) -c -o $@ $<
 
 
 # Chapel options used:
@@ -217,15 +217,6 @@ ifeq ($(IMPLSRCS),)
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	@echo ----------------------------------------
-	@echo CHPL_MAKE_COMM=\"$(CHPL_MAKE_COMM)\"
-	@echo
-	@echo GEN_CFLAGS=\"$(GEN_CFLAGS)\"
-	@echo
-	@echo  COMP_GEN_CFLAGS=\"$(COMP_GEN_CFLAGS)\"
-	@echo
-	@echo  CHPL_RT_INC_DIR=\"$(CHPL_RT_INC_DIR)\"
-	@echo
 	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
 	    $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
 	true #perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
@@ -259,7 +250,7 @@ ifneq ($(IORSRCS),)
 	echo '<scl>' >> $(LIBDIR)/lib$(LIBNAME).scl
 	if test `uname` = "Darwin"; then scope="global"; else scope="local"; fi ; \
 	echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
-	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
+	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/hello\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "  </library>" >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "</scl>" >>$(LIBDIR)/lib$(LIBNAME).scl
 endif

@@ -113,7 +113,7 @@ INCLDIR=$(PREFIX)/include
 
 CHPL_MAKE_HOME="""+config.CHPL_ROOT+r"""
 
-BABEL_CC=$(shell babel-config --query-var=CC)
+BABEL_CC=$(CC) # use Chapel runtime CC $(shell babel-config --query-var=CC)
 BABEL_INCLUDES=$(shell babel-config --includes) -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
 BABEL_CFLAGS=$(shell babel-config --flags-c)
 BABEL_LIBS=$(shell babel-config --libs-c-client)
@@ -142,7 +142,6 @@ CHPL_GASNET_LDFLAGS= \
   -L$(CHPL_RT_LIB_DIR) \
   $(CHPL_GASNET_LFLAGS) \
   -lchpl -lm -lpthread
-#  -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
@@ -179,11 +178,11 @@ $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo $(TARGET)_real
 	echo "#include \"chplcgfns.h\"" > $(IMPL).chpl.dir/config.c
 	echo "#include \"config.h\""   >> $(IMPL).chpl.dir/config.c
 	echo "#include \"_config.c\""  >> $(IMPL).chpl.dir/config.c
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
+	babel-libtool --mode=compile --tag=CC $(CC) \
           -std=c99 -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
 	  -I$(CHPL_MAKE_HOME)/runtime/include -I. \
 	  $(IMPL).chpl.dir/config.c -c -o $@.lo
-	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $@.lo $(SERVER) \
           $(CHPL_LAUNCHER_LDFLAGS) $(LAUNCHER_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
@@ -193,7 +192,7 @@ all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CONDUIT_LIBS) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
 
 STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
@@ -258,7 +257,7 @@ endif
 .SUFFIXES: .lo .chpl
 
 .c.lo:
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
+	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) $(CHPL_FLAGS) -c -o $@ $<
 
 
 # Chapel options used:
@@ -280,15 +279,6 @@ ifeq ($(IMPLSRCS),)
             $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	@echo ----------------------------------------
-	@echo CHPL_MAKE_COMM=\"$(CHPL_MAKE_COMM)\"
-	@echo
-	@echo GEN_CFLAGS=\"$(GEN_CFLAGS)\"
-	@echo
-	@echo  COMP_GEN_CFLAGS=\"$(COMP_GEN_CFLAGS)\"
-	@echo
-	@echo  CHPL_RT_INC_DIR=\"$(CHPL_RT_INC_DIR)\"
-	@echo
 	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
 	    $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
 	true #perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
