@@ -1,0 +1,19 @@
+#MSUB -A comp
+#MSUB -l nodes=4
+#MSUB -l partition=ansel
+#MSUB -l walltime=00:00:30
+#MSUB -q pdebug
+#MSUB -m a
+#MSUB -N partest.cc
+#MSUB -V
+#MSUB -o /p/lscratchb/prantl1/luleshPGAS.cc.txt
+
+#export GASNET_VERBOSEENV=1
+
+#export GASNET_TRACEFILE=/p/lscratchb/prantl1/gasnet.log
+export MPIRUN_CMD="srun -N %N %P %A"
+srun -N4 -P pdebug ./partest
+#echo "----"
+#dmesg | tail -n 80
+#echo "----"
+#echo

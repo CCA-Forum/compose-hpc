@@ -1,0 +1,14 @@
+//
+// File:        partest.sidl
+// Package:     partest
+// Copyright:   (c) 2012 Lawrence Livermore National Security, LLC
+// Revision:    @(#) $Revision$
+// Date:        $Date$
+// Description: 
+// 
+
+package partest version 1.0 {
+    class Hello {
+	void sayHello();
+    }
+}
