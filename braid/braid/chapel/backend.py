@@ -1199,7 +1199,7 @@ class GlueCodeGenerator(object):
         cskel.genh(ir.Import('stdlib'))
         cskel.pre_def('extern int chpl_init_library(int argc, char* argv[]);')
         cskel.pre_def('// You can set this to argv[0] in main() to get better debugging output')
-        cskel.pre_def('char* babel_program_name = "BRAID_LIBRARY";')
+        cskel.pre_def('char* __attribute__((weak)) babel_program_name = "BRAID_LIBRARY";')
         # These are now called by chpl_init_library -> chpl_gen_init
         #cskel.pre_def('extern void chpl__init_chpl__Program(int, const char*);')
         #cskel.pre_def('extern void chpl__init_%s_Impl(int, const char*);'%pkgname)
