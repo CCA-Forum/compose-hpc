@@ -1,0 +1,65 @@
+diff --git a/runtime/src/chplinit.c b/runtime/src/chplinit.c
+index 522cb7b..09896a3 100644
+--- a/runtime/src/chplinit.c
++++ b/runtime/src/chplinit.c
+@@ -169,15 +169,26 @@ static void chpl_library_init(void) {
+   CHPL_TASK_STD_MODULES_INITIALIZED();
+ 
+   // This code is generated into chpl_gen_main for non-libraries
+-  chpl_gen_init(&chpl_endCount_global);
++  chpl_wide_endCount_global.locale = chpl_localeID;
++  chpl_endCount_global.locale = chpl_localeID;
++  chpl_gen_init(&chpl_wide_endCount_global);
+ }
+ 
+ /**
+- * chpl_init_library() installs this as an atexit() handler.
++ * chpl_init_library() installs this as an atexit() handler for locale 0.
+  */
+-static void chpl_library_shutdown(void) {
+-  chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
+-  chpl_gen_shutdown(&chpl_endCount_global);
++static void chpl_library_shutdown_locale_0(void) {
++  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
++  chpl_gen_shutdown(&chpl_wide_endCount_global);
++  chpl_exit_all(0);
++}
++
++/**
++ * chpl_init_library() installs this as an atexit() handler for
++ * non-zero locales.
++ */
++static void chpl_library_shutdown_locale_n(void) {
++  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
+   chpl_exit_all(0);
+ }
+ 
+@@ -201,18 +212,20 @@ int chpl_init_library(int argc, char* argv[]) {
+   if (!chpl_init_library_called) {
+     chpl_init_library_called = true;
+ 
+-    chpl_init(argc, argv);      // establishes "barrier before main"
++    // establishes "barrier before main"
++    chpl_init(argc, argv);
+ 
+-    if (chpl_localeID != 0) {   // only locale #0 returns control to the
+-                                // external call site
+-      chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
+-      chpl_exit_all(0);         // all other locales can be stopped, we are done
+-    } else {
+-      atexit(&chpl_library_shutdown);
++    if (chpl_localeID == 0) {
++      // register master exit handler
++      atexit(&chpl_library_shutdown_locale_0);
++      // initialize Chapel runtime
+       chpl_task_callMain(chpl_library_init);
++
++    } else {
++      // register other exit handlers
++      atexit(&chpl_library_shutdown_locale_n);
+     }
+   }
+ 
+   return chpl_localeID;
+ }
+-
