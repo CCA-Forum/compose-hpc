@@ -26,7 +26,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 # This Makefile uses GNU make extensions, so it may not work with
-# other helloementations of make.
+# other implementations of make.
 
 include babel.make
 # please name the server library here
@@ -35,7 +35,7 @@ LIBNAME=hello
 SIDLFILE= ../partest.sidl
 # extra include/compile flags
 EXTRAFLAGS=
-# extra libraries that the helloementation needs to link against
+# extra libraries that the implementation needs to link against
 EXTRALIBS=
 # library version number
 VERSION=0.1.1
@@ -50,16 +50,18 @@ INCLDIR=$(PREFIX)/include
 
 CHPL_MAKE_HOME=/g/g91/prantl1/sw/opt/chapel
 
-BABEL_CC=$(CC) # use Chapel runtime CC $(shell babel-config --query-var=CC)
+# use Chapel runtime's CC 
+BABEL_CC=$(CC)
+# BABEL_CC=$(shell babel-config --query-var=CC)
 BABEL_INCLUDES=$(shell babel-config --includes) -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
-BABEL_CFLAGS=$(shell babel-config --flags-c)
+BABEL_CFLAGS=$(patsubst -Wall,, $(shell babel-config --flags-c))
 BABEL_LIBS=$(shell babel-config --libs-c-client)
 
-include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
+# triggers -DCHPL_OPTIMIZE
+OPTIMIZE=1
 
 # Get runtime headers and required -D flags.
-# sets RUNTIME_INCLUDE_ROOT RUNTIME_CFLAGS RUNTIME_INCLS
-# include $(CHPL_MAKE_HOME)/runtime/make/Makefile.runtime.include
+include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 
 COMP_GEN_CFLAGS=$(WARN_GEN_CFLAGS) $(IEEE_FLOAT_GEN_CFLAGS)
 CHPL_CFLAGS_FULL=$(GEN_CFLAGS) $(COMP_GEN_CFLAGS) $(CHPL_RT_INC_DIR)
@@ -67,7 +69,8 @@ CHPL_FLAGS=$(patsubst -Wmissing-declarations,, \
 	   $(patsubst -W%-prototypes,, \
            $(patsubst -Werror,, \
            $(CHPL_CFLAGS_FULL)))) \
-	   $(CHPL_GASNET_CFLAGS)
+	   $(CHPL_GASNET_CFLAGS) \
+	   $(GASNET_OPT_CFLAGS)
 
 CHPL_LDFLAGS= \
  $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
@@ -79,7 +82,6 @@ CHPL_GASNET_LDFLAGS= \
   -L$(CHPL_RT_LIB_DIR) \
   $(CHPL_GASNET_LFLAGS) \
   -lchpl -lm -lpthread
-#  -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
 
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
@@ -98,7 +100,7 @@ else
   SCLFILE=lib$(LIBNAME).scl
   BABELFLAG=--server=Chapel
   MODFLAG=-module
-  DCE= #--no-dead-code-elimination # include everything in libhello.la
+  DCE= #--no-dead-code-elimination # include everything in libimpl.la
 endif
 
 ifeq ($(CHPL_MAKE_COMM),gasnet)
@@ -187,7 +189,7 @@ else
 	echo '<scl>' >> $@
 	if test `uname` = "Darwin"; then scope="global"; else scope="local"; fi ; \
 	echo '  <library uri="'`pwd`/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $@
-	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/hello\" />\n", $$1 }' >>$@
+	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$@
 	echo "  </library>" >>$@
 	echo "</scl>" >>$@
 endif
@@ -195,7 +197,7 @@ endif
 .SUFFIXES: .lo .chpl
 
 .c.lo:
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) $(CHPL_FLAGS) -c -o $@ $<
+	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(CHPL_FLAGS) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 
 # Chapel options used:
@@ -206,15 +208,21 @@ endif
 # --library      compile a library
 # --fast         optimize
 # --print-commands --print-passes
-
+#
+# NOTE
+# ----
+# Because of the order of the -I options, it is crucial that
+# CHPL_FLAGS come before BABEL_CFLAGS and friends.
+#
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
 	$(CHPL) --fast --devel --savec $<.dir  --make true $< \
             $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
             -I./$<.dir \
+	    $(CHPL_FLAGS) \
 	    $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
-            $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
+            -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
 	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
@@ -222,8 +230,9 @@ else
 	true #perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
             -I./$<.dir \
+	    $(CHPL_FLAGS) \
             $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
-            $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
+            -c -o $@ $<.dir/_main.c
 endif
 
 
@@ -250,7 +259,7 @@ ifneq ($(IORSRCS),)
 	echo '<scl>' >> $(LIBDIR)/lib$(LIBNAME).scl
 	if test `uname` = "Darwin"; then scope="global"; else scope="local"; fi ; \
 	echo '  <library uri="'$(LIBDIR)/lib$(LIBNAME).la'" scope="'"$$scope"'" resolution="lazy" >' >> $(LIBDIR)/lib$(LIBNAME).scl
-	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/hello\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
+	grep __set_epv $^ /dev/null | awk 'BEGIN {FS=":"} { print $$1}' | sort -u | sed -e 's/_IOR.c//g' -e 's/_/./g' | awk ' { printf "    <class name=\"%s\" desc=\"ior/impl\" />\n", $$1 }' >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "  </library>" >>$(LIBDIR)/lib$(LIBNAME).scl
 	echo "</scl>" >>$(LIBDIR)/lib$(LIBNAME).scl
 endif
