@@ -8,12 +8,12 @@
 // 
 
 package pgas version 1.0 {
-    /**
-     * let's see if initializing Chapels MPI spawner first improves the situation
-     */
-    class MPIinitializer {
-	void init();
-    }
+   // /**
+    //  * let's see if initializing Chapels MPI spawner first improves the situation
+    //  */
+    // class MPIinitializer {
+    // 	void init();
+    // }
 
     class blockedDouble3dArray {
 	/**

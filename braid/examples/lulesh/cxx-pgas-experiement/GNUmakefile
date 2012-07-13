@@ -69,6 +69,8 @@ CPPFLAGS=-ggdb -O0
 
 all : lib$(LIBNAME).la $(SCLFILE) luleshPGAS
 
+.PHONY: libpgas/libpgas.la
+
 libpgas/libpgas.la:
 	$(MAKE) -C libpgas
 

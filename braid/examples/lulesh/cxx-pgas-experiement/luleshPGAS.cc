@@ -162,6 +162,7 @@ public:
   // DArrays in struct Domain
   void allocate(Index_t size) {
     struct sidl_BaseInterface__object * _exception = NULL;
+    printf("before createObject()\n");
     pgas::blockedDouble3dArray::ior_t* ior =
       (*pgas::blockedDouble3dArray::_get_ext()->createObject)(NULL, &_exception);
     if (_exception != NULL) {
@@ -169,14 +170,17 @@ public:
 	     "static constructor\n");
       MPI_Abort(MPI_COMM_WORLD, -1);
     }
+    printf("createObject() SUCCESS!\n");
 
     dim = size;
     data._set_ior(ior);
+    printf("before allocate\n");
     data.allocate(size);
+    printf("allocate() SUCCESS!\n");
   };
 
-  Real_t* getRawPtr() { return NULL; }
-  Real_t** getRawPtrPtr() { return NULL; }
+  //  Real_t* getRawPtr() { return NULL; }
+  //  Real_t** getRawPtrPtr() { return NULL; }
 
   Proxy operator[](Index_t idx) { 
     Index_t dim_sq  = dim*dim;
@@ -184,6 +188,7 @@ public:
     Index_t idx1    = idx / dim_sq; 
     Index_t idx2    = dim_rem / dim;
     Index_t idx3    = dim_rem % dim;
+    printf("read/write to loc (%d, %d, %d)\n", idx1, idx2, idx3);    
     return Proxy(&data, idx1, idx2, idx3); 
   }
   //  const Real_t& operator[](Index_t idx) const  { return 0; };
@@ -285,9 +290,9 @@ struct Domain {
    PGASarray y ;
    PGASarray z ;
 
-   DArray<Real_t> xd ;            /* velocities */
-   DArray<Real_t> yd ;
-   DArray<Real_t> zd ;
+   PGASarray xd ;            /* velocities */
+   PGASarray yd ;
+   PGASarray zd ;
 
    DArray<Real_t> xdd ;           /* accelerations */
    DArray<Real_t> ydd ;
@@ -445,7 +450,11 @@ void Release(T **ptr)
    SEDOV_SYNC_POS_VEL_LATE
 */
 
+#define PGAS
+// We define NONE of these because we use PGAS for synching
+#ifndef PGAS
 #define SEDOV_SYNC_POS_VEL_EARLY 1
+#endif
 
 /*
    There are coherence issues for packing and unpacking message
@@ -1846,6 +1855,7 @@ void CommSBN(Domain *domain, int xferFields, Real_t **fieldData) {
    }
 }
 
+#ifndef PGAS
 void CommSyncPosVel(Domain *domain) {
 
    if (domain->numProcs == 1) return ;
@@ -2275,6 +2285,7 @@ void CommSyncPosVel(Domain *domain) {
       ++cmsg ;
    }
 }
+#endif
 
 void CommMonoQ(Domain *domain)
 {
@@ -3076,7 +3087,7 @@ void CalcElemFBHourglassForce(Real_t *xd, Real_t *yd, Real_t *zd,  Real_t *hourg
 static inline
 void CalcFBHourglassForceForElems( Index_t *nodelist,
                                    DArray<Real_t>& ss, DArray<Real_t>& elemMass,
-                                   DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
+                                   PGASarray& xd, PGASarray& yd, PGASarray& zd,
                                    DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
                                    Real_t *determ,
                                    Real_t *x8n, Real_t *y8n, Real_t *z8n,
@@ -3444,7 +3455,7 @@ void ApplyAccelerationBoundaryConditionsForNodes(DArray<Real_t>& xdd, DArray<Rea
 }
 
 static inline
-void CalcVelocityForNodes(DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_t>& zd,
+void CalcVelocityForNodes(PGASarray& xd,  PGASarray& yd,  PGASarray& zd,
                           DArray<Real_t>& xdd, DArray<Real_t>& ydd, DArray<Real_t>& zdd,
                           const Real_t dt, const Real_t u_cut,
                           Index_t numNode)
@@ -3469,7 +3480,7 @@ void CalcVelocityForNodes(DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_
 
 static inline
 void CalcPositionForNodes(PGASarray& x,  PGASarray& y,  PGASarray& z,
-                          DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
+                          PGASarray& xd, PGASarray& yd, PGASarray& zd,
                           const Real_t dt, Index_t numNode)
 {
    for ( Index_t i = 0 ; i < numNode ; ++i )
@@ -3757,7 +3768,7 @@ void CalcElemVelocityGrandient( const Real_t* const xvel,
 static inline
 void CalcKinematicsForElems( Index_t *nodelist,
                              PGASarray& x,   PGASarray& y,   PGASarray& z,
-                             DArray<Real_t>& xd,  DArray<Real_t>& yd,  DArray<Real_t>& zd,
+                             PGASarray& xd,  PGASarray& yd,  PGASarray& zd,
                              Real_t *dxx, Real_t *dyy, Real_t *dzz,
                              DArray<Real_t>& v, DArray<Real_t>& volo,
                              Real_t *vnew, DArray<Real_t>& delv, DArray<Real_t>& arealg,
@@ -3876,7 +3887,7 @@ void CalcLagrangeElements(Domain *domain)
 
 static inline
 void CalcMonotonicQGradientsForElems(PGASarray& x,  PGASarray& y,  PGASarray& z,
-                                     DArray<Real_t>& xd, DArray<Real_t>& yd, DArray<Real_t>& zd,
+                                     PGASarray& xd, PGASarray& yd, PGASarray& zd,
                                      DArray<Real_t>& volo, Real_t *vnew,
                                      Real_t *delv_xi,
                                      Real_t *delv_eta,
@@ -5402,9 +5413,6 @@ void DumpDomain(Domain *domain, int myRank, int numProcs)
 
 int main(int argc, char *argv[])
 {
-   pgas::MPIinitializer chpl_runtime = pgas::MPIinitializer::_create();
-   chpl_runtime.init();
-
    Domain *locDom ;
    int myDom ;
    int numProcs ;
