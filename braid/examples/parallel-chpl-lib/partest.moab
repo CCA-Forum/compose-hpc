@@ -1,5 +1,5 @@
 #MSUB -A comp
-#MSUB -l nodes=4
+#MSUB -l nodes=8
 #MSUB -l partition=ansel
 #MSUB -l walltime=00:00:30
 #MSUB -q pdebug
@@ -12,7 +12,7 @@
 
 #export GASNET_TRACEFILE=/p/lscratchb/prantl1/gasnet.log
 export MPIRUN_CMD="srun -N %N %P %A"
-srun -N4 -P pdebug ./partest
+srun -N8 -P pdebug ./partest
 #echo "----"
 #dmesg | tail -n 80
 #echo "----"

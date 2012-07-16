@@ -81,7 +81,7 @@ Additional BSD Notice
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-
+#include <gasnet.h>
 #include "pgas.hxx"
 
 #define LULESH_SHOW_PROGRESS 1
@@ -132,55 +132,49 @@ private:
   Real_t* data;
 };
 
-class Proxy {
-public:
-  Proxy(pgas::blockedDouble3dArray *_data, Index_t _idx1, Index_t _idx2, Index_t _idx3 )
-    : data(_data), idx1(_idx1), idx2(_idx2),idx3(_idx3) {}
-
-  Proxy& operator=( const Real_t &val ) {
-    data->set(idx1, idx2, idx3, val);
-  }
-
-  Proxy& operator+=( const Real_t &val ) {
-    data->set(idx1, idx2, idx3, val + data->get(idx1, idx2, idx3));
-  }
-
-  operator Real_t () {
-    return data->get(idx1, idx2, idx3);
-  }
-
-  private:
-  pgas::blockedDouble3dArray *data;
-    Index_t idx1, idx2, idx3;
-};
-
-class PGASarray {
-public:
-  PGASarray() {};
-
-  // using this instead of a constructor so we can use references to
-  // DArrays in struct Domain
-  void allocate(Index_t size) {
-    struct sidl_BaseInterface__object * _exception = NULL;
-    printf("before createObject()\n");
-    pgas::blockedDouble3dArray::ior_t* ior =
-      (*pgas::blockedDouble3dArray::_get_ext()->createObject)(NULL, &_exception);
-    if (_exception != NULL) {
-      printf("error -- ::pgas::blockedDouble3dArray"
-	     "static constructor\n");
-      MPI_Abort(MPI_COMM_WORLD, -1);
-    }
-    printf("createObject() SUCCESS!\n");
-
-    dim = size;
-    data._set_ior(ior);
-    printf("before allocate\n");
-    data.allocate(size);
-    printf("allocate() SUCCESS!\n");
+// Translate between objects and the global PGAS variable names
+#define PROXY(X)						\
+  class X ## Proxy {						\
+  public:							\
+  X ## Proxy(Index_t _idx1, Index_t _idx2, Index_t _idx3 )	\
+  : idx1(_idx1), idx2(_idx2),idx3(_idx3) {}			\
+  								\
+  X ## Proxy& operator=( const Real_t &val ) {			\
+    pgas_data.set##X(idx1, idx2, idx3, val);			\
+    return *this;						\
+  }								\
+  								\
+  X ## Proxy& operator+=( const Real_t &val ) {				\
+    pgas_data.set##X(idx1, idx2, idx3,					\
+		     val + pgas_data.get##X(idx1, idx2, idx3));		\
+    return *this;							\
+  }									\
+  									\
+  operator Real_t () {							\
+    return pgas_data.get##X(idx1, idx2, idx3);				\
+  }									\
+  private:								\
+  Index_t idx1, idx2, idx3;						\
   };
 
-  //  Real_t* getRawPtr() { return NULL; }
-  //  Real_t** getRawPtrPtr() { return NULL; }
+pgas::GlobalData pgas_data;
+
+PROXY(x)
+PROXY(y)
+PROXY(z)
+PROXY(xd)
+PROXY(yd)
+PROXY(zd)
+
+template <class Proxy> class PGASarray {
+public:
+  PGASarray():dim(0) {};
+
+  // using this function instead of a constructor so we can use references to
+  // DArrays in struct Domain
+  void allocate(Index_t size) {
+    dim = size;
+  };
 
   Proxy operator[](Index_t idx) { 
     Index_t dim_sq  = dim*dim;
@@ -188,15 +182,15 @@ public:
     Index_t idx1    = idx / dim_sq; 
     Index_t idx2    = dim_rem / dim;
     Index_t idx3    = dim_rem % dim;
-    printf("read/write to loc (%d, %d, %d)\n", idx1, idx2, idx3);    
-    return Proxy(&data, idx1, idx2, idx3); 
+    static int count = 0;
+    //if (++count < 2)
+    //  printf("read/write to loc %d (%d) (%d, %d, %d)\n", idx, dim, idx1, idx2, idx3);    
+    return Proxy(idx1, idx2, idx3); 
   }
-  //  const Real_t& operator[](Index_t idx) const  { return 0; };
 
 private:
 
   Index_t dim;
-  pgas::blockedDouble3dArray data;
 };
 
 
@@ -286,13 +280,13 @@ struct Domain {
 
    /* Node-centered */
 
-   PGASarray x ;             /* coordinates */
-   PGASarray y ;
-   PGASarray z ;
+   PGASarray<xProxy> x ;             /* coordinates */
+   PGASarray<yProxy> y ;
+   PGASarray<zProxy> z ;
 
-   PGASarray xd ;            /* velocities */
-   PGASarray yd ;
-   PGASarray zd ;
+   PGASarray<xdProxy> xd ;            /* velocities */
+   PGASarray<ydProxy> yd ;
+   PGASarray<zdProxy> zd ;
 
    DArray<Real_t> xdd ;           /* accelerations */
    DArray<Real_t> ydd ;
@@ -2736,7 +2730,7 @@ void SumElemStressesToNodeForces( const Real_t B[][8],
 
 static inline
 void IntegrateStressForElems( Index_t *nodelist,
-                              PGASarray& x,  PGASarray& y,  PGASarray& z,
+                              PGASarray<xProxy>& x,  PGASarray<yProxy>& y,  PGASarray<zProxy>& z,
                               DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
                               Real_t *sigxx, Real_t *sigyy, Real_t *sigzz,
                               Real_t *determ, Index_t numElem)
@@ -2785,7 +2779,7 @@ void IntegrateStressForElems( Index_t *nodelist,
 }
 
 static inline
-void CollectDomainNodesToElemNodes(PGASarray& x, PGASarray& y, PGASarray& z,
+void CollectDomainNodesToElemNodes(PGASarray<xProxy>& x, PGASarray<yProxy>& y, PGASarray<zProxy>& z,
                                    const Index_t* elemToNode,
                                    Real_t elemX[8],
                                    Real_t elemY[8],
@@ -3087,7 +3081,7 @@ void CalcElemFBHourglassForce(Real_t *xd, Real_t *yd, Real_t *zd,  Real_t *hourg
 static inline
 void CalcFBHourglassForceForElems( Index_t *nodelist,
                                    DArray<Real_t>& ss, DArray<Real_t>& elemMass,
-                                   PGASarray& xd, PGASarray& yd, PGASarray& zd,
+                                   PGASarray<xdProxy>& xd, PGASarray<ydProxy>& yd, PGASarray<zdProxy>& zd,
                                    DArray<Real_t>& fx, DArray<Real_t>& fy, DArray<Real_t>& fz,
                                    Real_t *determ,
                                    Real_t *x8n, Real_t *y8n, Real_t *z8n,
@@ -3455,7 +3449,7 @@ void ApplyAccelerationBoundaryConditionsForNodes(DArray<Real_t>& xdd, DArray<Rea
 }
 
 static inline
-void CalcVelocityForNodes(PGASarray& xd,  PGASarray& yd,  PGASarray& zd,
+void CalcVelocityForNodes(PGASarray<xdProxy>& xd,  PGASarray<ydProxy>& yd,  PGASarray<zdProxy>& zd,
                           DArray<Real_t>& xdd, DArray<Real_t>& ydd, DArray<Real_t>& zdd,
                           const Real_t dt, const Real_t u_cut,
                           Index_t numNode)
@@ -3479,8 +3473,8 @@ void CalcVelocityForNodes(PGASarray& xd,  PGASarray& yd,  PGASarray& zd,
 }
 
 static inline
-void CalcPositionForNodes(PGASarray& x,  PGASarray& y,  PGASarray& z,
-                          PGASarray& xd, PGASarray& yd, PGASarray& zd,
+void CalcPositionForNodes(PGASarray<xProxy>& x,  PGASarray<yProxy>& y,  PGASarray<zProxy>& z,
+                          PGASarray<xdProxy>& xd, PGASarray<ydProxy>& yd, PGASarray<zdProxy>& zd,
                           const Real_t dt, Index_t numNode)
 {
    for ( Index_t i = 0 ; i < numNode ; ++i )
@@ -3500,10 +3494,14 @@ void LagrangeNodal(Domain *domain)
 
   const Real_t delt = domain->deltatime ;
   Real_t u_cut = domain->u_cut ;
+  gasnet_barrier_notify(0, GASNET_BARRIERFLAG_ANONYMOUS);
+  gasnet_barrier_wait(0, GASNET_BARRIERFLAG_ANONYMOUS);
 
   /* time of boundary condition evaluation is beginning of step for force and
    * acceleration boundary conditions. */
   CalcForceForNodes(domain);
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
 #ifdef SEDOV_SYNC_POS_VEL_EARLY
    CommRecv(domain, MSG_SYNC_POS_VEL, 6,
@@ -3767,8 +3765,8 @@ void CalcElemVelocityGrandient( const Real_t* const xvel,
 
 static inline
 void CalcKinematicsForElems( Index_t *nodelist,
-                             PGASarray& x,   PGASarray& y,   PGASarray& z,
-                             PGASarray& xd,  PGASarray& yd,  PGASarray& zd,
+                             PGASarray<xProxy>& x,   PGASarray<yProxy>& y,   PGASarray<zProxy>& z,
+                             PGASarray<xdProxy>& xd,  PGASarray<ydProxy>& yd,  PGASarray<zdProxy>& zd,
                              Real_t *dxx, Real_t *dyy, Real_t *dzz,
                              DArray<Real_t>& v, DArray<Real_t>& volo,
                              Real_t *vnew, DArray<Real_t>& delv, DArray<Real_t>& arealg,
@@ -3886,8 +3884,8 @@ void CalcLagrangeElements(Domain *domain)
 }
 
 static inline
-void CalcMonotonicQGradientsForElems(PGASarray& x,  PGASarray& y,  PGASarray& z,
-                                     PGASarray& xd, PGASarray& yd, PGASarray& zd,
+void CalcMonotonicQGradientsForElems(PGASarray<xProxy>& x,  PGASarray<yProxy>& y,  PGASarray<zProxy>& z,
+                                     PGASarray<xdProxy>& xd, PGASarray<ydProxy>& yd, PGASarray<zdProxy>& zd,
                                      DArray<Real_t>& volo, Real_t *vnew,
                                      Real_t *delv_xi,
                                      Real_t *delv_eta,
@@ -4649,8 +4647,13 @@ void LagrangeElements(Domain *domain, Index_t numElem)
 
   CalcLagrangeElements(domain) ;
 
+  gasnet_barrier_notify(0, GASNET_BARRIERFLAG_ANONYMOUS);
+  gasnet_barrier_wait(0, GASNET_BARRIERFLAG_ANONYMOUS);
+
   /* Calculate Q.  (Monotonic q option requires communication) */
   CalcQForElems(domain) ;
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   ApplyMaterialPropertiesForElems(domain) ;
 
@@ -4756,6 +4759,8 @@ void LagrangeLeapFrog(Domain *domain)
 
    /* calculate nodal forces, accelerations, velocities, positions, with
     * applied boundary conditions and slide surface considerations */
+   printf("LagrangeLeapFrog()\n");
+   printf("LagrangeNodal()\n");
    LagrangeNodal(domain);
 
 #ifdef SEDOV_SYNC_POS_VEL_LATE
@@ -4763,6 +4768,7 @@ void LagrangeLeapFrog(Domain *domain)
 
    /* calculate element quantities (i.e. velocity gradient & q), and update
     * material states */
+   printf("LagrangeElements()\n");
    LagrangeElements(domain, domain->numElem);
 
 #ifdef SEDOV_SYNC_POS_VEL_LATE
@@ -4782,6 +4788,7 @@ void LagrangeLeapFrog(Domain *domain)
             false, false) ;
 #endif
 
+   printf("CalcTimeConstraintsForElems()\n");
    CalcTimeConstraintsForElems(domain);
 
 #ifdef SEDOV_SYNC_POS_VEL_LATE
@@ -4865,14 +4872,13 @@ Domain *NewDomain(Index_t colLoc, Index_t rowLoc, Index_t planeLoc, Index_t nx, 
    domain->elemMass.allocate(domElems) ;  /* mass */
 
    /* Node-centered */
+   domain->x.allocate(edgeNodes /* *numProcs */ /*domNodes*/) ;  /* coordinates */
+   domain->y.allocate(edgeNodes /* *numProcs */ /*domNodes*/) ;
+   domain->z.allocate(edgeNodes /* *numProcs */ /*domNodes*/) ;
 
-   domain->x.allocate(domNodes) ;  /* coordinates */
-   domain->y.allocate(domNodes) ;
-   domain->z.allocate(domNodes) ;
-
-   domain->xd.allocate(domNodes) ; /* velocities */
-   domain->yd.allocate(domNodes) ;
-   domain->zd.allocate(domNodes) ;
+   domain->xd.allocate(edgeNodes /* *numProcs */ /*domNodes*/) ; /* velocities */
+   domain->yd.allocate(edgeNodes /* *numProcs */ /*domNodes*/) ;
+   domain->zd.allocate(edgeNodes /* *numProcs */ /*domNodes*/) ;
 
    domain->xdd.allocate(domNodes) ; /* accelerations */
    domain->ydd.allocate(domNodes) ;
@@ -5401,6 +5407,7 @@ void DumpDomain(Domain *domain, int myRank, int numProcs)
                             local parallelism > #cores?
       outer   inner               no                yes
    -------------------------------------------------------------------
+
        MPI     MPI         domain-per-core    domain-overload-per-core
        MPI     OpenMP
        MPI     Pthread
@@ -5410,17 +5417,37 @@ void DumpDomain(Domain *domain, int myRank, int numProcs)
 /* -dx -dy -dz  subdomains along each dimension */
 /* -tx -ty -tz  threads in each subdomain along each dimension */
 /* -px -py -pz  size of each thread patch along each dimension */
+extern char* babel_program_name;
 
 int main(int argc, char *argv[])
 {
+   babel_program_name = argv[0];
    Domain *locDom ;
    int myDom ;
    int numProcs ;
    int myRank ;
    int testProcs ;
-   MPI_Init(&argc, &argv) ;
+   int isMPIinit = 0;
+   MPI_Initialized(&isMPIinit);
+   if (!isMPIinit) 
+     MPI_Init(&argc, &argv) ;
    MPI_Comm_size(MPI_COMM_WORLD, &numProcs) ;
    MPI_Comm_rank(MPI_COMM_WORLD, &myRank) ;
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   printf("[rank %d] before chapel init\n", myRank); 
+   pgas_data = pgas::GlobalData::_create();
+   printf("[rank %d] after chapel init\n", myRank); 
+   printf("before allocate\n");
+   int nodeDim = 45+1;
+   if (myRank == 0)
+     pgas_data.allocate(nodeDim) ;
+   printf("[rank %d] hit barrier\n", myRank); 
+   gasnet_barrier_notify(0, GASNET_BARRIERFLAG_ANONYMOUS);
+   gasnet_barrier_wait(0, GASNET_BARRIERFLAG_ANONYMOUS);
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   printf("after allocate\n");
 
    /* Assume cube processor layout for now */
    testProcs = (int) (cbrt(double(numProcs))+0.5) ;
@@ -5510,6 +5537,10 @@ int main(int argc, char *argv[])
    locDom = NewDomain(col, row, plane, nx, testProcs) ;
    locDom->numProcs = numProcs ;
 
+   printf("Comm...()\n");
+   gasnet_barrier_notify(0, GASNET_BARRIERFLAG_ANONYMOUS);
+   gasnet_barrier_wait(0, GASNET_BARRIERFLAG_ANONYMOUS);
+
    CommRecv(locDom, MSG_COMM_SBN, 1,
             locDom->sizeX + 1, locDom->sizeY + 1, locDom->sizeZ + 1,
             true, false) ;
@@ -5517,6 +5548,9 @@ int main(int argc, char *argv[])
             locDom->sizeX + 1, locDom->sizeY + 1, locDom->sizeZ +  1,
             true, false) ;
    CommSBN(locDom, 1, /*&*/locDom->nodalMass.getRawPtrPtr()) ;
+
+
+   MPI_Barrier(MPI_COMM_WORLD);
 
    /* timestep to solution */
    while(locDom->time < locDom->stoptime) {
@@ -5542,9 +5576,7 @@ int main(int argc, char *argv[])
    }
 #endif
 
-  MPI_Finalize() ;
+   // MPI_Finalize() ;
 
   return 0 ;
 }
-
-

@@ -132,8 +132,9 @@ CHPL_FLAGS=$(patsubst -Wmissing-declarations,, \
 	   $(patsubst -W%-prototypes,, \
            $(patsubst -Werror,, \
            $(CHPL_CFLAGS_FULL)))) \
-	   $(CHPL_GASNET_CFLAGS) \
-	   $(GASNET_OPT_CFLAGS)
+
+#	   $(CHPL_GASNET_CFLAGS) \
+#	   $(GASNET_OPT_CFLAGS)
 
 CHPL_LDFLAGS= \
  $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
@@ -214,6 +215,7 @@ lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
 	  -no-undefined $(MODFLAG) \
 	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \
           $(CHPL_LDFLAGS) \
+	  $(CONDUIT_LIBS) $(CHPL_GASNET_LDFLAGS) \
 	  $(EXTRALIBS)
  #-rpath $(LIBDIR) 
 
@@ -281,6 +283,7 @@ ifeq ($(IMPLSRCS),)
 .chpl.lo:
 	$(CHPL) --fast --devel --savec $<.dir  --make true $< \
             $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
+	@echo ----------
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
             -I./$<.dir \
 	    $(CHPL_FLAGS) \
@@ -290,7 +293,7 @@ else
 .chpl.lo:
 	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
 	    $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
-	true #perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
+	@echo ----------
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
             -I./$<.dir \
 	    $(CHPL_FLAGS) \

@@ -58,8 +58,7 @@ BABEL_CFLAGS=$(patsubst -Wall,, $(shell babel-config --flags-c))
 BABEL_LIBS=$(shell babel-config --libs-c-client)
 
 # triggers -DCHPL_OPTIMIZE
-OPTIMIZE=0
-DEBUG=1
+OPTIMIZE=1
 
 # Get runtime headers and required -D flags.
 include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
@@ -81,8 +80,8 @@ CHPL_LDFLAGS= \
 CHPL_GASNET_LDFLAGS= \
   $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
   -L$(CHPL_RT_LIB_DIR) \
-  $(CHPL_GASNET_LFLAGS) \
-  -lchpl -lm -lpthread
+  -lchpl -lm -lpthread \
+  $(CHPL_GASNET_LFLAGS)
 
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
@@ -152,6 +151,7 @@ lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
 	  -no-undefined $(MODFLAG) \
 	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \
           $(CHPL_LDFLAGS) \
+          $(CHPL_GASNET_LFLAGS) \
 	  $(EXTRALIBS)
  #-rpath $(LIBDIR) 
 
@@ -226,13 +226,14 @@ ifeq ($(IMPLSRCS),)
             -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --devel --library --savec $<.dir --make true $< \
+	@echo +++++++
+	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
 	    $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
-	true #perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
+	@echo +++++++
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
-            -O0 -ggdb -I./$<.dir \
+            -I./$<.dir \
 	    $(CHPL_FLAGS) \
-            $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -O0 -ggdb \
+            $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
             -c -o $@ $<.dir/_main.c
 endif
 

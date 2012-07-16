@@ -4,6 +4,11 @@ extern proc SET_TO_NULL(inout aRef);
 // DO-NOT-DELETE splicer.begin(partest.Impl)
 writeln("Unsolicited hi from", here.id);
 
+use BlockDist;
+const CubeIndex = [0..0, 0..0, 0..0];
+var CubeDom = [CubeIndex] dmapped Block(CubeIndex);
+var x: [CubeDom] real(64);
+
 coforall loc in Locales do
   if loc.id == 2 then
     on loc do
@@ -58,6 +63,10 @@ export partest_Hello_sayHello_impl proc sayHello(inout _ex: sidl.sidl_BaseInterf
     SET_TO_NULL(_ex);
     // DO-NOT-DELETE splicer.begin(partest.Hello.sayHello)
   writeln("Hello from locale #", here.id);
+  writeln("Trying to initialize an array, local and dist");
+  var a = [0..32,0..32, 0..32];
+  x[0,0,0] = 0;
+  writeln("...success!");
     // DO-NOT-DELETE splicer.end(partest.Hello.sayHello)
 }
 
