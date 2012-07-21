@@ -14,7 +14,7 @@
  * TBD
  *
  * @todo  Spend some time determining why multiple assertion expressions are NOT
- *   being printed when a label is involved.
+ *   being printed when a label is involved.  ((Bad use of strtok!!!))
  *
  * @todo  Make sure the output matches what is expected from the input.
  */
