@@ -25,7 +25,9 @@ SUBDIRECTORIES
   The subdirectories contained within the Paul Contracts root are:
 
     ./conf                    # Configuration file(s)
-    ./examples                # Example programs with contract annotations
+    ./examples                # Example programs 
+                              # ...With contract annotations
+                              # ...Related ROSE codes
     ./include                 # Include files
     ./src                     # Source files
     ./src/annots              # ...Annotation sources
@@ -36,4 +38,4 @@ SUBDIRECTORIES
   
 
 
-Last Updated:  23 Apr 2012
+Last Updated:  2012 July 20

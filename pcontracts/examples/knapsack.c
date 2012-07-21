@@ -32,12 +32,11 @@
 /*
  %CONTRACT REQUIRE 
     has_weights: weights != 0;
-    has_target: t > 0;
     has_n: n > 0;
  */
 /*
  %CONTRACT ENSURE
-    valid_result: _inrange(result, 0, 1);
+    valid_result: _inrange(_result, 0, 1);
  */
 int 
 knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
@@ -65,7 +64,12 @@ knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
  *
  * @param weights  The weights of available items.
  * @param t        The target weight.
- * @param n        The number of items (or weights) in the knapsack.
+ * @param num      The number of items (or weights) in the knapsack.
+ */
+/*
+ %CONTRACT REQUIRE 
+    has_weights: weights != 0;
+    has_length: num > 0;
  */
 void
 runIt(unsigned int* weights, unsigned int t, unsigned int num)

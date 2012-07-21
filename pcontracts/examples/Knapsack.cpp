@@ -47,7 +47,7 @@ Examples::Knapsack::Knapsack() {
 }
 
 /* %CONTRACT REQUIRE 
-    pos_weights: (weights != null) implies all(weights > 0, len); 
+    pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len); 
  */
 /* %CONTRACT ENSURE 
     has_new_weights: hasWeights(weights, len); 
@@ -86,7 +86,7 @@ Examples::Knapsack::onlyPosWeights() {
 }
 
 /* %CONTRACT REQUIRE 
-    pos_weights: (weights != null) implies all(weights > 0, len); 
+  pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len);
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -117,7 +117,7 @@ Examples::Knapsack::hasSolution(unsigned int t) {
  *                   returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: (weights != null) implies all(weights > 0, len); 
+    pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len);
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -152,8 +152,8 @@ onlyPos(unsigned int* weights, unsigned int len)
  *                otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: (nW != null) implies all(nW > 0, lenW); 
-    pos_weights: (nS != null) implies all(nS > 0, lenS); 
+    pos_w_weights: ((nW!=null) and (lenW>0)) implies _all(nW>0, lenW); 
+    pos_s_weights: ((nS!=null) and (lenS>0)) implies _all(nS>0, lenS); 
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -206,7 +206,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *                   the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: (weights != null) implies all(weights > 0, n); 
+    pos_weights: ((weights!=null) and (n>0)) implies _all(weights>0, n); 
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -237,11 +237,14 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
  * @param ksack  The knapsack instance.
  * @param t      The target weight.
  */
+/* %CONTRACT REQUIRE 
+    has_sack: ksack != null;
+ */
 void
 runIt(Examples::Knapsack* ksack, unsigned int t)
 {
   cout << "Solution for target=" << t <<"?: ";
-  if (!ksack->hasSolution(t)) {
+  if ( (ksack != NULL) && !ksack->hasSolution(t) ) {
     cout << "None";
   } else if (t == 0) {
     cout << "N/A";

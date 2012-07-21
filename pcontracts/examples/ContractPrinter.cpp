@@ -2,7 +2,7 @@
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 July 6
+ * Last Modified: 2012 July 20
  *
  * @file
  * @section DESCRIPTION
@@ -12,6 +12,8 @@
  *
  * @section LICENSE
  * TBD
+ *
+ * @todo  Make sure the output matches what is expected from the input.
  *
  * @todo Clean up this example so this class can be re-used "properly"
  * in ContractAssertionPrinter.cpp.
@@ -27,7 +29,7 @@ using namespace std;
 
 
 bool
-ContractPrinter::isComment(PreprocessingInfo::DirectiveType dType)
+isComment(PreprocessingInfo::DirectiveType dType)
 {
   return (  (dType == PreprocessingInfo::C_StyleComment)
          || (dType == PreprocessingInfo::CplusplusStyleComment)  );
@@ -35,7 +37,7 @@ ContractPrinter::isComment(PreprocessingInfo::DirectiveType dType)
 
 
 void
-ContractPrinter::printLineComment(SgNode* node, const char* cmt)
+printLineComment(SgNode* node, const char* cmt)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if (lNode != NULL)
