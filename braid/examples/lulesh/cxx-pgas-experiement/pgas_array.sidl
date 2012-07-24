@@ -8,19 +8,29 @@
 // 
 
 package pgas version 1.0 {
-    /**
-     * let's see if initializing Chapels MPI spawner first improves the situation
-     */
-    class MPIinitializer {
-	void init();
-    }
+   // /**
+    //  * let's see if initializing Chapels MPI spawner first improves the situation
+    //  */
+    // class MPIinitializer {
+    // 	void init();
+    // }
 
-    class blockedDouble3dArray {
+    class GlobalData {
 	/**
 	 * allocate a blocked cubic array of doubles in size*size*size
 	 */
-	void allocate(in int size);
-	double get(in int idx1, in int idx2, in int idx3);
-	void set(in int idx1, in int idx2, in int idx3, in double val);
+	void allocate(in long size);
+	double getx(in long idx1, in long idx2, in long idx3);
+	void   setx(in long idx1, in long idx2, in long idx3, in double val);
+	double gety(in long idx1, in long idx2, in long idx3);
+	void   sety(in long idx1, in long idx2, in long idx3, in double val);
+	double getz(in long idx1, in long idx2, in long idx3);
+	void   setz(in long idx1, in long idx2, in long idx3, in double val);
+	double getxd(in long idx1, in long idx2, in long idx3);
+	void   setxd(in long idx1, in long idx2, in long idx3, in double val);
+	double getyd(in long idx1, in long idx2, in long idx3);
+	void   setyd(in long idx1, in long idx2, in long idx3, in double val);
+	double getzd(in long idx1, in long idx2, in long idx3);
+	void   setzd(in long idx1, in long idx2, in long idx3, in double val);
     }
 }

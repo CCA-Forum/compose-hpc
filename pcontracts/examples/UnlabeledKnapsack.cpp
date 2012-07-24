@@ -1,11 +1,14 @@
 /**
- * File:  Knapsack.cpp
+ * File:  UnlabeledKnapsack.cpp
  *
  * @file
  * @section DESCRIPTION
  * Class used for printing a solution to the knapsack problem for any 
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
+ *
+ * The contract annotations in this version of the program do NOT
+ * contain the optional label.
  *
  * The implementation uses a recursive algorithm based on that defined 
  * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
@@ -18,7 +21,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
-#include "Knapsack.hpp"
+#include "UnlabeledKnapsack.hpp"
 
 using namespace std;
 
@@ -37,23 +40,22 @@ bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
 
-/* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
+/* %CONTRACT INVARIANT onlyPosWeights(); */
 
 
-Examples::Knapsack::Knapsack() {
+Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
   d_nextIndex = 0;
   memset(d_weights, 0, (size_t)(MAX_WEIGHTS*sizeof(int)));
   return;
-}
+} /* UnlabeledKnapsack */
+
 
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len); 
+    ((weights!=null) and (len>0)) implies _all(weights>0, len); 
  */
-/* %CONTRACT ENSURE 
-    has_new_weights: hasWeights(weights, len); 
- */
+/* %CONTRACT ENSURE hasWeights(weights, len); */
 void
-Examples::Knapsack::initialize(unsigned int* weights, unsigned int len)
+Examples::UnlabeledKnapsack::initialize(unsigned int* weights, unsigned int len)
 {
   unsigned int i;
 
@@ -75,35 +77,33 @@ Examples::Knapsack::initialize(unsigned int* weights, unsigned int len)
   }
 
   return;  
-}
+} /* initialize */
 
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+
+/* %CONTRACT ENSURE is pure; */
 bool
-Examples::Knapsack::onlyPosWeights() {
+Examples::UnlabeledKnapsack::onlyPosWeights() {
   return onlyPos(d_weights, d_nextIndex);
-}
+} /* onlyPosWeights */
+
 
 /* %CONTRACT REQUIRE 
-  pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len);
+  ((weights!=null) and (len>0)) implies _all(weights>0, len);
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE is pure; */
 bool
-Examples::Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
+Examples::UnlabeledKnapsack::hasWeights(unsigned int* weights, 
+                                        unsigned int len) 
+{
   return sameWeights(d_weights, d_nextIndex, weights, len);
-}
+} /* hasWeights */
 
 
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE is pure; */
 bool
-Examples::Knapsack::hasSolution(unsigned int t) {
+Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
-}
+} /* hasSolution */
 
 
 /**
@@ -117,11 +117,9 @@ Examples::Knapsack::hasSolution(unsigned int t) {
  *                   returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len);
+    ((weights!=null) and (len>0)) implies _all(weights>0, len);
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE is pure; */
 bool
 onlyPos(unsigned int* weights, unsigned int len) 
 {
@@ -152,12 +150,10 @@ onlyPos(unsigned int* weights, unsigned int len)
  *                otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_w_weights: ((nW!=null) and (lenW>0)) implies _all(nW>0, lenW); 
-    pos_s_weights: ((nS!=null) and (lenS>0)) implies _all(nS>0, lenS); 
+    ((nW!=null) and (lenW>0)) implies _all(nW>0, lenW); 
+    ((nS!=null) and (lenS>0)) implies _all(nS>0, lenS); 
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE is pure; */
 bool
 sameWeights(unsigned int* nW, unsigned int lenW, 
             unsigned int* nS, unsigned int lenS)
@@ -206,11 +202,9 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *                   the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=null) and (n>0)) implies _all(weights>0, n); 
+    ((weights!=null) and (n>0)) implies _all(weights>0, n); 
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE is pure; */
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   bool has = false;
@@ -231,17 +225,15 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
 
 
 /**
- * Perform a single solve, relying on the Knapsack class to output the
- * result from a successful run.
+ * Perform a single solve, relying on the UnlabeledKnapsack class to output 
+ * the result from a successful run.
  *
  * @param ksack  The knapsack instance.
  * @param t      The target weight.
  */
-/* %CONTRACT REQUIRE 
-    has_sack: ksack != null;
- */
+/* %CONTRACT REQUIRE ksack != null; */
 void
-runIt(Examples::Knapsack* ksack, unsigned int t)
+runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
 {
   cout << "Solution for target=" << t <<"?: ";
   if ( (ksack != NULL) && !ksack->hasSolution(t) ) {
@@ -280,7 +272,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  Examples::Knapsack* ksack = new Examples::Knapsack();
+  Examples::UnlabeledKnapsack* ksack = new Examples::UnlabeledKnapsack();
   if (ksack != NULL) {
     ksack->initialize(weights, num);
 

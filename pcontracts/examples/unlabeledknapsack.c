@@ -1,11 +1,14 @@
 /**
- * File:  knapsack.c
+ * File:  unlabeledknapsack.c
  *
  * @file
  * @section DESCRIPTION
  * A program for printing a solution to the knapsack problem for any
  * given target based on a known set of possible weights, where the 
  * size of the list is restricted.
+ *
+ * The contract annotations in this version of the program do NOT
+ * contain the optional label.
  *
  * A recursive algorithm is implemented based on that defined in "Data
  * Structures and Algorithms" by Aho, Hopcroft, and Ulman (c) 1983.
@@ -19,7 +22,7 @@
 
 
 /**
- * Determine if there is a solution to the knapsack problem based on
+ * Determine if there is a solution to the unlabeledknapsack problem based on
  * the list of weights for avaialbe items, target weight, and current 
  * position.
  *
@@ -29,15 +32,8 @@
  * @param n        The number of items (or weights) in the list.
  * @return         Returns 1 if a solution is detected; otherwise, returns 0.
  */
-/*
- %CONTRACT REQUIRE 
-    has_weights: weights != 0;
-    has_n: n > 0;
- */
-/*
- %CONTRACT ENSURE
-    valid_result: _inrange(_result, 0, 1);
- */
+/* %CONTRACT REQUIRE weights != 0; n > 0; */
+/* %CONTRACT ENSURE _inrange(_result, 0, 1); */
 int 
 knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
 {
@@ -64,13 +60,9 @@ knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
  *
  * @param weights  The weights of available items.
  * @param t        The target weight.
- * @param num      The number of items (or weights) in the knapsack.
+ * @param num      The number of items (or weights) in the unlabeledknapsack.
  */
-/*
- %CONTRACT REQUIRE 
-    has_weights: weights != 0;
-    has_length: num > 0;
- */
+/* %CONTRACT REQUIRE weights != 0; num > 0; */
 void
 runIt(unsigned int* weights, unsigned int t, unsigned int num)
 {

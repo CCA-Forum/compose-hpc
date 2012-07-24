@@ -1,15 +1,8 @@
-diff --git a/runtime/src/chplinit.c b/runtime/src/chplinit.c
-index 522cb7b..09896a3 100644
---- a/runtime/src/chplinit.c
-+++ b/runtime/src/chplinit.c
-@@ -169,15 +169,26 @@ static void chpl_library_init(void) {
-   CHPL_TASK_STD_MODULES_INITIALIZED();
- 
-   // This code is generated into chpl_gen_main for non-libraries
--  chpl_gen_init(&chpl_endCount_global);
-+  chpl_wide_endCount_global.locale = chpl_localeID;
-+  chpl_endCount_global.locale = chpl_localeID;
-+  chpl_gen_init(&chpl_wide_endCount_global);
+Index: runtime/src/chplinit.c
+===================================================================
+--- runtime/src/chplinit.c	(revision 0)
++++ runtime/src/chplinit.c	(revision 0)
+@@ -177,14 +177,23 @@
  }
  
  /**
@@ -18,23 +11,25 @@ index 522cb7b..09896a3 100644
   */
 -static void chpl_library_shutdown(void) {
 -  chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
--  chpl_gen_shutdown(&chpl_endCount_global);
 +static void chpl_library_shutdown_locale_0(void) {
 +  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
-+  chpl_gen_shutdown(&chpl_wide_endCount_global);
-+  chpl_exit_all(0);
-+}
-+
+   chpl_gen_shutdown(&chpl_wide_endCount_global);
+   chpl_exit_all(0);
+ }
+ 
 +/**
 + * chpl_init_library() installs this as an atexit() handler for
 + * non-zero locales.
 + */
 +static void chpl_library_shutdown_locale_n(void) {
 +  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
-   chpl_exit_all(0);
- }
++  chpl_exit_all(0);
++}
++
+ static bool chpl_init_library_called = false;
  
-@@ -201,18 +212,20 @@ int chpl_init_library(int argc, char* argv[]) {
+ /**
+@@ -205,18 +214,20 @@
    if (!chpl_init_library_called) {
      chpl_init_library_called = true;
  
@@ -61,5 +56,8 @@ index 522cb7b..09896a3 100644
    }
  
    return chpl_localeID;
- }
+-}
 -
++}
+\ No newline at end of file
+

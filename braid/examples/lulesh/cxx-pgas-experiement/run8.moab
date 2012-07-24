@@ -1,7 +1,7 @@
 #MSUB -A comp
 #MSUB -l nodes=8
 #MSUB -l partition=ansel
-#MSUB -l walltime=00:07:00
+#MSUB -l walltime=00:15:30
 #MSUB -q pdebug
 #MSUB -m a
 #MSUB -N luleshPGAS.cc

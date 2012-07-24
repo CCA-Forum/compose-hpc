@@ -18,22 +18,34 @@ ROSE_OPTS =
 ROSE_LDFLAGS = $(ROSE_LIB) $(BOOST_LIB) $(FLAGS)
 ROSE_CXXFLAGS = $(ROSE_INCLUDES) $(ROSE_FLAGS) -Wno-deprecated
 
+ODIR=./results
+EX_ODIR=$(ODIR)/examples
+ROSE_ODIR=$(ODIR)/rose
 
-KC_EXE=knapsack
-KCPP_EXE=Knapsack
+LKC_EXE=knapsack
+UKC_EXE=unlabeledknapsack
+LKCPP_EXE=Knapsack
+UKCPP_EXE=UnlabeledKnapsack
 CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
 
-BINARIES=$(KC_EXE) $(KCPP_EXE) $(CPRINTER_EXE) $(CAPRINTER_EXE)
+KS_BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE)
+ROSE_BINARIES= $(CPRINTER_EXE) $(CAPRINTER_EXE)
+
+BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 
 
 all: $(BINARIES)
 
-check: checkKnapsacks checkRosePrinters
+check: checkKnapsackTests checkRosePrinters
 
 $(KC_EXE): $(KC_EXE).c
 	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c
 	$(CXX) -o $(KC_EXE) $(LDFLAGS) $(KC_EXE).o
+
+$(LKC_EXE): $(LKC_EXE).c
+	$(CXX) -c $(CXXFLAGS) -o $(LKC_EXE).o $(LKC_EXE).c
+	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o
 
 $(KCPP_EXE): $(KCPP_EXE).cpp
 	$(CXX) -c $(CXXFLAGS) -o $(KCPP_EXE).o $(KCPP_EXE).cpp
@@ -50,23 +62,58 @@ $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp
 	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
 	  $(CPRINTER_EXE)-mainLess.o
 
-checkKnapsacks:
-	@$(MAKE) checkKnapsack KT=-1; \
-	$(MAKE) checkKnapsack KT=0; \
-	$(MAKE) checkKnapsack KT=10; \
-	$(MAKE) checkKnapsack KT=; \
-	echo "\nDONE"
-
-checkKnapsack: $(KC_EXE) $(KCPP_EXE)
-	@echo "Running knapsack solvers with target=$$KT..."; \
-	./Knapsack $$KT > runKcpp$$KT.out; \
-	./knapsack $$KT > runKc$$KT.out; \
-	diff runKcpp$$KT.out runKc$$KT.out > runK$$KT.diffs; \
-        if [ -s runK$$KT.diffs ]; then \
-	  echo "...Results are different"; \
+checkKnapsackDiffs: 
+	@echo "...Comparing runs of $$EXE1 and $$EXE2 with target $$KT..."; \
+	mkdir -p $(EX_ODIR); \
+	if [ "$$EXE1" != "" ]; then \
+	  if [ "$$EXE2" != "" ]; then \
+	    if [ "$$PRE" != "" ]; then \
+	      if [ "$$COMP" != "" ]; then \
+	        OFN1=$(EX_ODIR)/$$EXE1-$$KT.out; \
+	        ./$$EXE1 $$KT > $$OFN1; \
+	        OFN2=$(EX_ODIR)/$$EXE2-$$KT.out; \
+	        ./$$EXE2 $$KT > $$OFN2; \
+	        DIFFS=$(EX_ODIR)/$$PRE-$$KT.diffs; \
+	        diff $$OFN1 $$OFN2 > $$DIFFS; \
+                if [ -s $$DIFFS ]; then \
+	          echo "......*** $$PRE $$COMP are different ***"; \
+	        else \
+	          echo "......$$PRE $$COMP are identical"; \
+	          if [ -f $$DIFFS ]; then \
+	            echo ".........Removing empty differences file"; \
+	            rm -f $$DIFFS; \
+	          fi; \
+	        fi; \
+	      else \
+	        echo "......ERROR:  Missing COMP definition"; \
+	      fi; \
+	    else \
+	      echo "......ERROR:  Missing PRE definition"; \
+	    fi; \
+	  else \
+	    echo "......ERROR:  Missing EXE2 definition"; \
+	  fi; \
 	else \
-	  echo "...Results are identical"; \
-	fi
+	  echo "......ERROR:  Missing EXE1 definition"; \
+	fi;
+
+checkKnapsacks: $(KS_BINARIES)
+	@echo; echo "Running solvers with target=$$KT..."; \
+	$(MAKE) checkKnapsackDiffs EXE1=$(LKC_EXE) EXE2=$(LKCPP_EXE) \
+	  PRE="Labeled" COMP="C -> C++"; \
+	$(MAKE) checkKnapsackDiffs EXE1=$(UKC_EXE) EXE2=$(UKCPP_EXE) \
+	  PRE="Unlabeled" COMP="C -> C++"; \
+	$(MAKE) checkKnapsackDiffs EXE1=$(UKC_EXE) EXE2=$(LKC_EXE) \
+	  PRE="U2L-C" COMP="Unlabeled -> Labeled"; \
+	$(MAKE) checkKnapsackDiffs EXE1=$(UKCPP_EXE) EXE2=$(LKCPP_EXE) \
+	  PRE="U2L-CPP" COMP="Unlabeled -> Labeled"
+
+checkKnapsackTests:
+	@$(MAKE) checkKnapsacks KT=-1; \
+	$(MAKE) checkKnapsacks KT=0; \
+	$(MAKE) checkKnapsacks KT=10; \
+	$(MAKE) checkKnapsacks KT=; \
+	echo "\nDONE"
 
 checkRosePrinters: checkCAPrinter checkCPrinter
 
@@ -77,7 +124,8 @@ checkCPrinter: $(CPRINTER_EXE)
 	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) PRE="cp"
 
 checkRosePrinter: $(EXE)
-	@echo "Running $(EXE)..."; \
+	@echo; echo "Running $(EXE)..."; \
+	mkdir -p $(ROSE_ODIR); \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
 	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
@@ -87,19 +135,20 @@ checkRosePrinter: $(EXE)
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
 	  echo "...Processing $$BASE.$$EXT"; \
-	  ./$(EXE) $(ROSE_OPTS) -c $$file > $(PRE)-$$BASE.out; \
-	  if [ -s $(PRE)-$$BASE.out ]; then \
+	  OFN=$(ROSE_ODIR)/$$PRE-$$BASE.out; \
+	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
+	  if [ -s $$OFN ]; then \
 	    ok=`expr $$ok + 1`; \
-	    echo "......Results in $(PRE)-$$BASE.out"; \
+	    echo "......Results in $$OFN"; \
 	  else \
-	    echo "......FAILED on $$file\n"; \
+	    echo "......FAILED on $$file"; echo; \
 	  fi; \
 	done; \
 	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
 
 
 clean:
-	@rm -f *.o *.out *.diffs *.ti
+	@rm -f *.o *.out *.diffs *.ti rose_*
 
 clean-all: clean
-	@rm -f $(BINARIES) *.dot *.pdf
+	@rm -rf $(BINARIES) *.dot *.pdf $(ODIR)/*

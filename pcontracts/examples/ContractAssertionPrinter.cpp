@@ -2,7 +2,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 July 6
+ * Last Modified: 2012 July 20
  *
  * @file
  * @section DESCRIPTION
@@ -13,11 +13,10 @@
  * @section LICENSE
  * TBD
  *
- * @todo Clean up this example so it can "properly" re-use ContractPrinter.
+ * @todo  Spend some time determining why multiple assertion expressions are NOT
+ *   being printed when a label is involved.  ((Bad use of strtok!!!))
  *
- * @todo Need to "properly" dispose of any trailing comment marks.
- *
- * @todo 
+ * @todo  Make sure the output matches what is expected from the input.
  */
 
 #include <iostream>
@@ -28,6 +27,32 @@
 #include "ContractPrinter.hpp"
 
 using namespace std;
+
+
+/**
+ * Extract the substring that does not contain preceeding or trailing 
+ * whitespace.
+ *
+ * @param str  The string to be cleaned up.
+ */
+string
+removePrePostWS(string str)
+{
+  string res;
+
+  if (!str.empty())
+  {
+    size_t start, end;
+    start=str.find_first_not_of(" ");
+    end=str.find_last_not_of(" ");
+    if ( (start != string::npos) && (end != string::npos) )
+    {
+      res = str.substr(start, end-start+1);
+    }
+  }
+
+  return res;
+} /* removePrePostWS */
 
 
 /**
@@ -42,36 +67,57 @@ printStatement(string statement)
 {
   if (!statement.empty())
   {
-    int i = 0;
-    string labels[] = { "label/error comment", "assertion" };
-
-    char* str = new char [statement.size()+1]; 
-    strcpy(str, statement.c_str());
-
-    char* ptr = strtok(str, ":");
-    while (ptr != NULL)
+    string labels[] = { 
+     "label/error comment", 
+     "assertion          " 
+    };
+    if (statement.find(":") != string::npos)
     {
-      if (i<=1)
+      char* str = new char [statement.size()+1]; 
+      strcpy(str, statement.c_str());
+  
+      int i = 0;
+      char* ptr = strtok(str, ":");
+      while (ptr != NULL)
       {
-        cout<<"  "<<labels[i++]<<": ";
-      }
-      cout<<ptr<<endl;
-      ptr = strtok(NULL, ":");
-    }
+        string baseStr = removePrePostWS(ptr);
+        if (!baseStr.empty())
+        {
+          if (i<=1)
+          {
+            cout<<"  "<<labels[i++]<<": ";
+          }
+          cout<<baseStr<<"\n";
+        }
+        else
+        {
+          i++;
+        }
 
-    delete [] str;
+        ptr = strtok(NULL, ":");
+      }
+  
+      delete [] str;
+    }
+    else
+    {
+      string baseStr = removePrePostWS(statement);
+      if (!baseStr.empty())
+      {
+        cout<<"  "<<labels[1]<<": "<<baseStr<<"\n";
+      }
+    }
   }
 
   return;
 } /* printStatement */
+
 
 /**
  * Print individual contract clause assertions.
  *
  * @param clause  The contract clause text extracted from the structured 
  *                  comment.
- *
- * @todo Properly remove comment marks.
  */
 void
 printAssertions(string clause)
@@ -80,22 +126,77 @@ printAssertions(string clause)
 
   if (!clause.empty())
   {
+    /* First get rid of 'pesky' formatting characters. */
+    size_t pos;
+    string ws[] = { "\n", "\t" };
+    list<string> badChars (ws, ws+2);
+    list<string>::iterator iter;
+    for (iter=badChars.begin(); iter != badChars.end(); iter++)
+    {
+      while ( (pos = clause.find(*iter)) != string::npos)
+      {
+        clause[pos] = ' ';
+      }
+    }
+
+    /* Now break the clause into assertion expressions. */
     char* cstr = new char [clause.size()+1]; 
     strcpy(cstr, clause.c_str());
-
     ptr = strtok(cstr, ";");
     while (ptr != NULL)
     {
+      char* tempStr = new char[strlen(ptr)+1];
+      strcpy(tempStr, ptr);
       printStatement(ptr);
+      delete [] tempStr;
+
       ptr = strtok(NULL, ";");
     }
-    cout<<endl;
 
     delete [] cstr;
   }
 
   return;
 } /* printAssertions */
+
+
+/**
+ * Process the comment, processing encountered contract clauses.
+ *
+ * @param cmt  Comment contents.
+ */
+void
+processCommentContents(SgNode* node, const string cmt)
+{
+  if ( (node != NULL) && !cmt.empty() )
+  {
+    size_t pos;
+    if ((pos=cmt.find("CONTRACT"))!=string::npos)
+    {
+      if ((pos=cmt.find("REQUIRE"))!=string::npos)
+      {
+        printLineComment(node, "Precondition clause:");
+        printAssertions(cmt.substr(pos+7));
+      }
+      else if ((pos=cmt.find("ENSURE"))!=string::npos)
+      {
+        printLineComment(node, "Postcondition clause:");
+        printAssertions(cmt.substr(pos+6));
+      }
+      else if ((pos=cmt.find("INVARIANT"))!=string::npos)
+      {
+        printLineComment(node, "Invariant clause:");
+        printAssertions(cmt.substr(pos+9));
+      }
+      else
+      {
+        printLineComment(node, "WARNING: Unidentified contract clause:");
+        printAssertions(cmt.substr(pos+8));
+      }
+    }
+  }
+  return;
+} /* processCommentContents */
 
 
 void
@@ -110,37 +211,29 @@ ContractAssertionPrinter::visit(SgNode* node)
       AttachedPreprocessingInfoType::iterator iter;
       for (iter = cmts->begin(); iter != cmts->end(); iter++)
       {
-        size_t cInd;
-        if (isComment(((*iter)->getTypeOfDirective())))
+        switch ((*iter)->getTypeOfDirective())
         {
-          size_t pos;
-          string str = (*iter)->getString();
-          if ((pos=str.find("CONTRACT"))!=string::npos)
-          {
-            if ((pos=str.find("REQUIRE"))!=string::npos)
+          case PreprocessingInfo::C_StyleComment:
             {
-              printLineComment(node, "Precondition clause:");
-	      printAssertions((*iter)->getString().substr(pos+7));
+              string str = (*iter)->getString();
+              processCommentContents(node, str.substr(2, str.size()-4));
             }
-            else if ((pos=str.find("ENSURE"))!=string::npos)
+            break;
+          case PreprocessingInfo::CplusplusStyleComment:
             {
-              printLineComment(node, "Postcondition clause:");
-	      printAssertions((*iter)->getString().substr(pos+6));
+              string str = (*iter)->getString();
+              processCommentContents(node, str.substr(2));
             }
-            else if ((pos=str.find("INVARIANT"))!=string::npos)
+            break;
+          case PreprocessingInfo::FortranStyleComment:
+          case PreprocessingInfo::F90StyleComment:
             {
-              printLineComment(node, "Invariant clause:");
-	      printAssertions((*iter)->getString().substr(pos+9));
+              string str = (*iter)->getString();
+              processCommentContents(node, str.substr(1));
             }
-            else
-            {
-              printLineComment(node, "WARNING: Unidentified contract clause:");
-	      printAssertions((*iter)->getString().substr(pos+8));
-            }
-          }
+            break;
         }
       }
-      cout<<endl;
     }
 
     /* Do NOT attempt to delete lNode or cmts! */

@@ -48,57 +48,40 @@ LIBDIR=$(PREFIX)/lib
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
 
-CHPL=/g/g91/prantl1/sw/opt/chapel/bin/linux64/chpl
 CHPL_MAKE_HOME=/g/g91/prantl1/sw/opt/chapel
-CHPL_MAKE_COMM=gasnet
 
-CC=`babel-config --query-var=CC`
-INCLUDES=`babel-config --includes` -I. -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(CHPL_MAKE_HOME)/runtime/include -I$(SIDL_RUNTIME)
-CFLAGS=`babel-config --flags-c` -std=c99
-LIBS=`babel-config --libs-c-client`
+# use Chapel runtime's CC 
+BABEL_CC=$(CC)
+# BABEL_CC=$(shell babel-config --query-var=CC)
+BABEL_INCLUDES=$(shell babel-config --includes) -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
+BABEL_CFLAGS=$(patsubst -Wall,, $(shell babel-config --flags-c))
+BABEL_LIBS=$(shell babel-config --libs-c-client)
 
-CHPL_MAKE_MEM=`$(CHPL_MAKE_HOME)/util/chplenv/mem`
-CHPL_MAKE_COMPILER=`$(CHPL_MAKE_HOME)/util/chplenv/compiler`
-CHPL_MAKE_TASKS=`$(CHPL_MAKE_HOME)/util/chplenv/tasks`
-CHPL_MAKE_THREADS=`$(CHPL_MAKE_HOME)/util/chplenv/threads`
-CHPL_MAKE_SUBSTRATE=`$(CHPL_MAKE_HOME)/util/chplenv/commSubstrate`
-CHPL_MAKE_COMM=`$(CHPL_MAKE_HOME)/util/chplenv/comm`
-CHPL_MAKE_SEG=`$(CHPL_MAKE_HOME)/util/chplenv/commSegment`
-CHPL_MAKE_ATOMICS=`$(CHPL_MAKE_HOME)/util/chplenv/atomics`
+# triggers -DCHPL_OPTIMIZE
+OPTIMIZE=1
 
+# Get runtime headers and required -D flags.
+include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
 
-CHPL_MAKE_SUBSTRATE_DIR=$(CHPL_MAKE_HOME)/lib/$(CHPL_HOST_PLATFORM)/$(CHPL_MAKE_COMPILER)/mem-$(CHPL_MAKE_MEM)/comm-$(CHPL_MAKE_COMM)-nodbg/substrate-$(CHPL_MAKE_SUBSTRATE)/seg-$(CHPL_MAKE_SEG)/
-
-####    include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
-CHPL=chpl --fast
-# CHPL=chpl --print-commands --print-passes
-
-include $(CHPL_MAKE_HOME)/make/Makefile.atomics
-
-CHPL_FLAGS=-std=c99 \
-  -DCHPL_TASKS_MODEL_H=\"tasks-$(CHPL_MAKE_TASKS).h\" \
-  -DCHPL_THREADS_MODEL_H=\"threads-$(CHPL_MAKE_THREADS).h\" \
-  -I$(CHPL_MAKE_HOME)/runtime/include/tasks/$(CHPL_MAKE_TASKS) \
-  -I$(CHPL_MAKE_HOME)/runtime/include/threads/$(CHPL_MAKE_THREADS) \
-  -I$(CHPL_MAKE_HOME)/runtime/include/comm/none \
-  -I$(CHPL_MAKE_HOME)/runtime/include/comp-gnu \
-  -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
-  -I$(CHPL_MAKE_HOME)/runtime/include/atomics/$(CHPL_MAKE_ATOMICS) \
-  -I$(CHPL_MAKE_HOME)/runtime/include/mem/$(CHPL_MAKE_MEM) \
-  -I$(CHPL_MAKE_HOME)/runtime/include \
-  -I. -Wno-all 
+COMP_GEN_CFLAGS=$(WARN_GEN_CFLAGS) $(IEEE_FLOAT_GEN_CFLAGS)
+CHPL_CFLAGS_FULL=$(GEN_CFLAGS) $(COMP_GEN_CFLAGS) $(CHPL_RT_INC_DIR)
+CHPL_FLAGS=$(patsubst -Wmissing-declarations,, \
+	   $(patsubst -W%-prototypes,, \
+           $(patsubst -Werror,, \
+           $(CHPL_CFLAGS_FULL)))) \
+	   $(CHPL_GASNET_CFLAGS) \
+	   $(GASNET_OPT_CFLAGS)
 
 CHPL_LDFLAGS= \
- -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) \
- $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/main.o \
+ $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
+ -L$(CHPL_RT_LIB_DIR) \
  -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
 
 CHPL_GASNET_LDFLAGS= \
-  -L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) \
-  $(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS)/main.o \
+  $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
+  -L$(CHPL_RT_LIB_DIR) \
   -lchpl -lm -lpthread \
-  -L$(CHPL_MAKE_HOME)/third-party/gasnet/install/$(CHPL_HOST_PLATFORM)-$(CHPL_MAKE_COMPILER)/seg-everything/nodbg/lib \
-  -lgasnet-udp-par -lamudp -lpthread -lgcc -lm
+  $(CHPL_GASNET_LFLAGS)
 
 CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
 LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
@@ -122,16 +105,16 @@ endif
 
 ifeq ($(CHPL_MAKE_COMM),gasnet)
 
-all: lib$(LIBNAME).la $(SCLFILE) $(TARGET) $(TARGET)_real
+all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 # actual program
 $(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
-          $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
+          $(CONDUIT_LIBS) $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
 # launcher
-$(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
+$(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo $(TARGET)_real
 	echo "#include \"chplcgfns.h\"" > $(IMPL).chpl.dir/config.c
 	echo "#include \"config.h\""   >> $(IMPL).chpl.dir/config.c
 	echo "#include \"_config.c\""  >> $(IMPL).chpl.dir/config.c
@@ -148,7 +131,7 @@ else
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 endif
 
@@ -163,11 +146,12 @@ BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
 $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
-	babel-libtool --mode=link --tag=CC $(CC) -o lib$(LIBNAME).la \
+	babel-libtool --mode=link --tag=CC $(BABEL_CC) -o lib$(LIBNAME).la \
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
-	  $(CFLAGS) $(EXTRAFLAGS) $^ $(LIBS) \
+	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \
           $(CHPL_LDFLAGS) \
+          $(CHPL_GASNET_LFLAGS) \
 	  $(EXTRALIBS)
  #-rpath $(LIBDIR) 
 
@@ -214,31 +198,43 @@ endif
 .SUFFIXES: .lo .chpl
 
 .c.lo:
-	babel-libtool --mode=compile --tag=CC $(CC) $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
+	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(CHPL_FLAGS) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 
 # Chapel options used:
 #
 # --savec [dir]  save the generated C code in dir
-# --make [cmd]   used to disable compilation of C code by chpl
+# --make [cmd]   used to disable compilation of C code by chpl by using "true" as $MAKE
 # --devel        turn on more verbose error output
-# --libraty      compile a library
-
+# --library      compile a library
+# --fast         optimize
+# --print-commands --print-passes
+#
+# NOTE
+# ----
+# Because of the order of the -I options, it is crucial that
+# CHPL_FLAGS come before BABEL_CFLAGS and friends.
+#
 ifeq ($(IMPLSRCS),)
 .chpl.lo:
-	$(CHPL) --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code only
-	babel-libtool --mode=compile --tag=CC $(CC) \
-            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
-            $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
+	$(CHPL) --fast --devel --savec $<.dir  --make true $< \
+            $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
+	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
+            -I./$<.dir \
+	    $(CHPL_FLAGS) \
+	    $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
+            -c -o $@ $<.dir/_main.c
 else
 .chpl.lo:
-	$(CHPL) --library --savec $<.dir $< $(STUBHDRS) $(CHPL_HEADERS) $(DCE) --devel --make true  # gen C-code
-	#headerize $<.dir/_config.c $<.dir/Chapel*.c $<.dir/Default*.c $<.dir/DSIUtil.c $<.dir/chpl*.c $<.dir/List.c $<.dir/Math.c $<.dir/Search.c $<.dir/Sort.c $<.dir/Types.c
-	#perl -pi -e 's/((chpl__autoDestroyGlobals)|(chpl_user_main)|(chpl__init)|(chpl_main))/$*_\1/g' $<.dir/$*.c
-	perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
-	babel-libtool --mode=compile --tag=CC $(CC) \
-            -I./$<.dir $(INCLUDES) $(CFLAGS) $(EXTRAFLAGS) \
-            $(CHPL_FLAGS) -c -o $@ $<.dir/_main.c
+	@echo +++++++
+	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
+	    $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
+	@echo +++++++
+	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
+            -I./$<.dir \
+	    $(CHPL_FLAGS) \
+            $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
+            -c -o $@ $<.dir/_main.c
 endif
 
 

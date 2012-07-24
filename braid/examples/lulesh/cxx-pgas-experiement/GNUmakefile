@@ -35,7 +35,7 @@ LIBNAME=client
 # please name the SIDL file here
 SIDLFILE=pgas_array.sidl
 # extra include/compile flags 
-EXTRAFLAGS=
+EXTRAFLAGS=-DGASNET_PAR -D_REENTRANT -D_GNU_SOURCE -I/g/g91/prantl1/sw/opt/chapel/third-party/gasnet/install/linux64-gnu/seg-everything/nodbg/include -I/g/g91/prantl1/sw/opt/chapel/third-party/gasnet/install/linux64-gnu/seg-everything/nodbg/include/ibv-conduit -DGASNET_CONDUIT_IBV  #-std=c99 -O3 -O0 -ggdb --param max-inline-insns-single=35000 --param inline-unit-growth=10000 --param large-function-growth=200000 -Winline -DCHPL_TASKS_MODEL_H=\"tasks-fifo.h\" -DCHPL_THREADS_MODEL_H=\"threads-pthreads.h\" -DCHPL_OPTIMIZE -Wall -Wpointer-arith -Wwrite-strings  -Wnested-externs -Wdeclaration-after-statement -Wmissing-format-attribute -Wno-unused -Wno-uninitialized -I. -I/g/g91/prantl1/sw/opt/chapel/runtime//include/comm/gasnet -I/g/g91/prantl1/sw/opt/chapel/runtime//include/tasks/fifo -I/g/g91/prantl1/sw/opt/chapel/runtime//include/threads/pthreads -I/g/g91/prantl1/sw/opt/chapel/runtime//include/comp-gnu -I/g/g91/prantl1/sw/opt/chapel/runtime//include/linux64 -I/g/g91/prantl1/sw/opt/chapel/runtime//include -I/g/g91/prantl1/sw/opt/chapel/runtime//include/atomics/intrinsics -I/g/g91/prantl1/sw/opt/chapel/runtime//include/mem/default -I/g/g91/prantl1/sw/opt/chapel/third-party/utf8-decoder
 # extra librarys that the implementation needs to link against
 EXTRALIBS=
 # library version number
@@ -61,33 +61,38 @@ else
   MODFLAG=-module
 endif
 
-VIZ_CFLAGS=-I/usr/gapps/visit/2.5.1/linux-x86_64-chaos4/include/silo/include/ -DVIZ_MESH=1
-VIZ_LDFLAGS=-L/usr/gapps/visit/2.5.1/linux-x86_64/archives/ -lsiloh5 -Wl,-rpath -Wl,/usr/gapps/visit/2.5.1/linux-x86_64-chaos4/lib -lhdf5 -lhdf5_hl
-GASNET_LIBS=-lchpl -lm  -lpthread -L$(HOME)/sw/opt/chapel/third-party/gasnet/install/linux64-gnu/seg-everything/nodbg/lib -L/usr/lib64  -lgasnet-ibv-par -libverbs  
+#VIZ_CFLAGS=-I/usr/gapps/visit/2.5.1/linux-x86_64-chaos4/include/silo/include/ -DVIZ_MESH=1
+#VIZ_LDFLAGS=-L/usr/gapps/visit/2.5.1/linux-x86_64/archives/ -lsiloh5 -Wl,-rpath -Wl,/usr/gapps/visit/2.5.1/linux-x86_64-chaos4/lib -lhdf5 -lhdf5_hl
+GASNET_LIBS=-L$(HOME)/sw/opt/chapel/third-party/gasnet/install/linux64-gnu/seg-everything/nodbg/lib -L/usr/lib64  -lgasnet-ibv-par -libverbs  
 CPPFLAGS=-ggdb -O0
 #CXX=colorgcc -I/usr/include/mpich2
 
 all : lib$(LIBNAME).la $(SCLFILE) luleshPGAS
 
+.PHONY: libpgas/libpgas.la
+
 libpgas/libpgas.la:
 	$(MAKE) -C libpgas
+
+xxx:
+	babel-libtool --mode=link --tag=CXX $(CXX) -static luleshPGAS.lo \
+                      -L$(LIBDIR) lib$(LIBNAME).la ../../parallel-chpl-lib/libhello/libhello.la $(GASNET_LIBS) $(VIZ_LDFLAGS) -o $@ 
 
 luleshPGAS: lib$(LIBNAME).la libpgas/libpgas.la luleshPGAS.lo 
 	babel-libtool --mode=link --tag=CXX $(CXX) -static luleshPGAS.lo \
                       -L$(LIBDIR) lib$(LIBNAME).la libpgas/libpgas.la $(GASNET_LIBS) $(VIZ_LDFLAGS) -o $@ 
 
 luleshPGAS.lo: luleshPGAS.cc
-	babel-libtool --mode=compile --tag=CXX $(CXX) $(shell babel-config --includes-c++) \
-            $(VIZ_CFLAGS) -c $< -o $@
+	babel-libtool --mode=compile --tag=CXX $(CXX) -O0 -ggdb $(INCLUDES) $(EXTRAFLAGS) $(CXXFLAGS) \
+            $(VIZ_CFLAGS) -O0 -c $< -o $@
 
 
-CC=`babel-config --query-var=CC`
-CXX=`babel-config --query-var=CXX`
-INCLUDES=`babel-config --includes-cxx`
-# -*- Makefile -*-
-CFLAGS=`babel-config --flags-c`
-CXXFLAGS=`babel-config --flags-cxx`
-LIBS=`babel-config --libs-cxx-client`
+CC=$(shell babel-config --query-var=CC)
+CXX=$(shell babel-config --query-var=CXX)
+INCLUDES=$(shell babel-config --includes-cxx)
+CFLAGS=$(shell babel-config --flags-c)
+CXXFLAGS=$(shell babel-config --flags-cxx)
+LIBS=$(shell babel-config --libs-cxx-client)
 
 STUBOBJS=$(STUBSRCS:.cxx=.lo)
 IOROBJS=$(IORSRCS:.c=.lo)
