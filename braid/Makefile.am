@@ -185,7 +185,4 @@ libsidlstub_upc_la_SOURCES = $(UPC_SIDLSTUB_SRCS)
 libsidlstub_upc_la_CPPFLAGS = -static -I$(builddir)/upc -I$(srcdir)/upc -I$(BABEL_INCLUDEDIR) -I$(UPC_ROOT)/runtime/include
 lib_LTLIBRARIES += libsidlstub_upc.la
 
-xxx:
-	echo $(libsidlstub_upc_la_SOURCES)
-
 endif

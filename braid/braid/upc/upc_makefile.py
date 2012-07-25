@@ -25,7 +25,7 @@
 from utils import write_to
 import config
 
-def generate_client(sidl_file, classes, prefix):
+def gen_client(sidl_file, classes, prefix):
     """
     FIXME: make this a file copy from $prefix/share
     """
@@ -37,7 +37,7 @@ def generate_client(sidl_file, classes, prefix):
 # {file}_Stub.chpl
     write_to(prefix+'babel.make', files)
 
-def generate_server(sidl_file, classes, pkgs, prefix):
+def gen_server(sidl_file, classes, pkgs, prefix):
     """
     FIXME: make this a file copy from $prefix/share
     """
@@ -58,7 +58,7 @@ def generate_server(sidl_file, classes, pkgs, prefix):
            stubhdrs=' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
                               for c in classes])))
 
-def generate_gnumakefile(sidl_file):
+def gen_gnumakefile(sidl_file):
     extraflags=''
     #extraflags='-ggdb -O0'
     write_to('GNUmakefile', r"""

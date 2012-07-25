@@ -48,7 +48,6 @@ SH_LOG_COMPILER = sh regression/interop/driver.sh
 
 if BABEL_LANG_C # for symmetry -- can't do much without C ..?
 languages = C
-#check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libC/libimpl.la)
 check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/client-stamp)
 # by using $$ we can record a list of prerequisites that will get
 # %-expanded when used in a rule
@@ -56,44 +55,32 @@ check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runC/client-stamp)
 
 if BABEL_LANG_CXX
   languages += Cxx
-#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libCxx/libimpl.la)
   check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runCxx/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libCxx/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F77
   languages += F77
-#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF77/libimpl.la)
   check_DATA += $(BABEL_TESTNAMES77:%=$(TESTDIR)/%/runF77/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF77/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F90
   languages += F90
-#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF90/libimpl.la)
   check_DATA += $(BABEL_TESTNAMES77:%=$(TESTDIR)/%/runF90/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF90/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_F03
   languages += F03
-#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libF03/libimpl.la)
   check_DATA += $(BABEL_TESTNAMES77:%=$(TESTDIR)/%/runF03/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libF03/libimpl.la,$(check_DATA))
 endif
 
 if BABEL_LANG_JAVA
   languages += Java
-#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libJava/libimpl.jar)
   check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runJava/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libJava/libimpl.jar,$(check_DATA))
 endif
 
 if BABEL_LANG_PYTHON
   languages += Python
-#  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libPython/libimpl2.la)
   check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runPython/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libPython/libimpl2.la,$(check_DATA))
 endif
 
 if BABEL_LANG_CHPL
@@ -103,8 +90,13 @@ if BABEL_LANG_CHPL
 # check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/libChapel/libimpl.la)
 
   check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runChapel/client-stamp)
-#  SERVER_DEPS += $$(filter $(TESTDIR)/%/libChapel/libimpl.la,$(check_DATA))
 endif
+
+if BABEL_LANG_UPC
+  languages += UPC
+  check_DATA += $(BABEL_TESTNAMES:%=$(TESTDIR)/%/runUPC/client-stamp)
+endif
+
 
 endif
 

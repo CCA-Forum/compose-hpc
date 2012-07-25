@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH BRAID 1 "2012-07-24" "0.2.5" "Compilers and Programming Languages"
+.TH BRAID 1 "2012-07-25" "0.2.6" "Compilers and Programming Languages"
 .SH NAME
 BRAID \- Next-generation high-performance language interoperability
 .
@@ -47,7 +47,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .SH DESCRIPTION
 .sp
-Braid 0.2.5 \- Do magically wonderful things with SIDL (scientific interface
+Braid 0.2.6 \- Do magically wonderful things with SIDL (scientific interface
 definition language) files. BRAID is a high\-performance language
 interoperability tool that generates Babel\-compatible bindings for the Chapel
 programming language. For details on using the command\-line tool, please
@@ -116,7 +116,7 @@ _
 T{
 UPC
 T}	T{
-planned
+testing
 T}	T{
 planned
 T}
@@ -534,6 +534,12 @@ exception, a Chapel method should create a new exception object and
 assign it to the \fC_ex\fP argument before returning.
 .SS Client\-side
 .SS Implementation\-side
+.SS UPC Language Binding
+.sp
+This section describes how the various features of SIDL are mapped
+onto Unified Parallel C constructs.
+.sp
+TODO.
 .SS Development status
 .sp
 BRAID is written in 98% Python; the SIDL scanner is implemented in

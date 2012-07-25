@@ -232,7 +232,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 pkg_h = CFile(qname)
 
                 pkg_h.genh(ir.Import('sidlType'))
-                pkg_h.genh(ir.Import('chpltypes'))
                 for es in self.pkg_enums_and_structs:
                     es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h)
                     pkg_h.gen(ir.Type_decl(es_ior))
@@ -730,8 +729,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
                 
         ci.ior.genh(ir.Import('stdint'))
-        ci.ior.genh(ir.Import('chpl_sidl_array'))
-        ci.ior.genh(ir.Import('chpltypes'))
         gen_forward_references()
         if ci.methodcstats: 
             ci.ior.gen(ir.Type_decl(ci.methodcstats))

@@ -1241,8 +1241,8 @@ def copyEPVs(r, symbol_table, parents, renames):
                   newname = sidl.long_method_name(renames[method])
               else:
                   newname = oldname
-              r.append('  %she_%s= %shepv->%s;'
-                       %(estring,align(vecEntry, mwidth),
+              r.append('// TODO  %she_%s= %shepv->%s;'
+                       %(estring,align(newname, mwidth),
                          getCast(symbol_table, method, selfptr),vecEntry))
    
         r.append('');
@@ -1792,7 +1792,6 @@ ${c}__getTypeStaticEPV(int type){
       
 
 def check_skeletons(cls, ior_name):
-    from chapel.backend import babel_epv_args
     if not generateContractChecks(cls):
         return '  /* no check_* stubs since there are no contracts */'
 
@@ -1804,7 +1803,7 @@ def check_skeletons(cls, ior_name):
         preconditions = Requires
         postconditions = Ensures
         ctype = c_gen(babel.lower_ir(cls.symbol_table, Type))
-        cargs =  babel_epv_args(Attrs, Args, cls.symbol_table, '_'.join(cls.qualified_name))
+        cargs =  babel.epv_args(Attrs, Args, cls.symbol_table, '_'.join(cls.qualified_name))
         
         substs = { 't' : ior_name,    'T' : str.upper(ior_name), 
                    'm' : method_name, 'M' : str.upper(method_name) }
