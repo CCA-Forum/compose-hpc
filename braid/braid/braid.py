@@ -137,10 +137,7 @@ def braid(args):
     # No. Braid called to action!
     backend = []
     def select_backend(backend, lang):
-       if backend <> []:
-           print "**ERROR: can only perform one operation per directory"
-           exit(1)
-
+       if backend: return
        if re.match(r'([cC]hapel)|(chpl)', lang):
            backend.append(chpl_be.GlueCodeGenerator(args))
        elif re.match(r'(UPC)|(upc)', lang):

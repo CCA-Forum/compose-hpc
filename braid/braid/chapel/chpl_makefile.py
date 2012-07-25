@@ -116,6 +116,7 @@ CHPL_MAKE_HOME="""+config.CHPL_ROOT+r"""
 # use Chapel runtime's CC 
 BABEL_CC=$(CC)
 # BABEL_CC=$(shell babel-config --query-var=CC)
+BABEL_CXX=$(shell babel-config --query-var=CXX)
 BABEL_INCLUDES=$(shell babel-config --includes) -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
 BABEL_CFLAGS=$(patsubst -Wall,, $(shell babel-config --flags-c))
 BABEL_LIBS=$(shell babel-config --libs-c-client)
@@ -173,8 +174,9 @@ all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 # actual program
 $(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(BABEL_CXX) -static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
+	  $(CHPL_LDFLAGS) $(CHPL_RT_LIB_DIR)/main.o $(CHPL_CL_OBJS) \
           $(CONDUIT_LIBS) $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
 
 # launcher
@@ -195,8 +197,10 @@ else
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
+	babel-libtool --mode=link --tag=CC $(CC) -static lib$(LIBNAME).la \
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
+	  $(CHPL_LDFLAGS) $(CHPL_RT_LIB_DIR)/main.o $(CHPL_CL_OBJS) \
+	  $(EXTRA_LDFLAGS) -o $@
 endif
 
 STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))

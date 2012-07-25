@@ -858,7 +858,7 @@ tracker.setExpectations(-1, sidl_ex);
     var garray_meta = sidl.int_array.cast(garray);
     init_part(); run_part("Generic (int) array is not Null", IS_NOT_NULL(garray));
     init_part(); run_part("Generic (int) array has 1 dimension", (dimen == garray_meta.dim()));
-    init_part(); run_part("Generic (int) array has int type", typ == garray_meta.arrayType());
+    init_part(); run_part("Generic (int) array has int type", typ == garray_meta.arrayType():int(32));
     
     var dimen2: int(32);
     var type2 = sidl.sidl_array_type.sidl_undefined_array:int(32);
@@ -874,7 +874,7 @@ tracker.setExpectations(-1, sidl_ex);
     init_part(); run_part("Generic returned array correct dimension",
 			  dimen == garrayret_meta.dim());
     init_part(); run_part("Generic returned array correct type",
-			  typ == garrayret_meta.arrayType());
+			  typ == garrayret_meta.arrayType():int(32));
     init_part(); run_part("Generic returned array correct length",
   	     garray_meta.length(0) == garrayret_meta.length(0));
 
@@ -883,7 +883,7 @@ tracker.setExpectations(-1, sidl_ex);
     init_part(); run_part("Generic returned array correct dimension",
   	     dimen == garrayout_meta.dim());
     init_part(); run_part("Generic returned array correct type",
-  	     typ == garrayout_meta.arrayType());
+			  typ == garrayout_meta.arrayType():int(32));
     init_part(); run_part("Generic returned array correct length",
   	     garray_meta.length(0) == garrayout_meta.length(0));
 

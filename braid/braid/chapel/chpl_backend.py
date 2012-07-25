@@ -519,6 +519,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             
             var _babel_wrapped_local_{arg}: {iortype} = {iortype}_borrow(
                 {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
+                //_babel_local_{arg}(_babel_local_{arg}.domain.low),
                 {a}rank,
                 {a}lower[1],
                 {a}upper[1],

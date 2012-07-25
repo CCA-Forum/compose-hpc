@@ -11,14 +11,15 @@ extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
 extern proc deallocateData(opData: opaque): opaque;
 
 // dynamic data block class
-// Chapel 1.4: 
-// pragma "data class"
+pragma "no object"
+pragma "no default functions"
+pragma "data class"
 class _borrowedData {
   type eltType;
   var opData: opaque;
   var owner: bool;
-  var _data: opaque; // replacement for pragma "data class"
 
+  /*
   proc ~_borrowedData() {
     // Nothing to free, no data owned!
     // Owner though needs to free allocated data
@@ -29,13 +30,52 @@ class _borrowedData {
   proc init(opaqueData: opaque) {
     // Just copy over the reference to the data
     this.opData = opaqueData;
-    __primitive("ref_borrow", this, "_data", opaqueData);
+    __primitive("ref_borrow", this, opaqueData);
   }
+  */
   proc this(i: integral) var {
     // rely on chapel compiler to generate lvalue
     return __primitive("array_get", this, i);
   }
 }
+
+inline proc _cast(type t, x) where t:_borrowedData && x:_nilType {
+  return __primitive("cast", t, x);
+}
+
+inline proc _borrowedData_init(type eltType, opaqueData) {
+  var ret:_borrowedData(eltType);
+  // Just copy over the reference to the data
+  __primitive("ref_borrow", ret, opaqueData);
+  return ret;
+}
+
+inline proc _borrowedData_free(data: _borrowedData) {
+  __primitive("array_free", data);
+}
+
+inline proc ==(a: _borrowedData, b: _borrowedData) where a.eltType == b.eltType {
+  return __primitive("ptr_eq", a, b);
+}
+inline proc ==(a: _borrowedData, b: _nilType) {
+  return __primitive("ptr_eq", a, nil);
+}
+inline proc ==(a: _nilType, b: _borrowedData) {
+  return __primitive("ptr_eq", nil, b);
+}
+
+inline proc !=(a: _borrowedData, b: _borrowedData) where a.eltType == b.eltType {
+  return __primitive("ptr_neq", a, b);
+}
+inline proc !=(a: _borrowedData, b: _nilType) {
+  return __primitive("ptr_neq", a, nil);
+}
+inline proc !=(a: _nilType, b: _borrowedData) {
+  return __primitive("ptr_neq", nil, b);
+}
+
+inline proc _cond_test(x: _borrowedData) return x != nil;
+
 
 /**
  * Sample signatures of methods to allocate memory externally.
@@ -189,7 +229,6 @@ class BorrowedRectangularDom: BaseRectangularDom {
  */
 
 class BorrowedRectangularArr: BaseArr {
-
   type eltType;
   param rank : int;
   type idxType;
@@ -201,8 +240,10 @@ class BorrowedRectangularArr: BaseArr {
   var str: rank*chpl__signedType(idxType);
   var origin: idxType;
   var factoredOffs: idxType;
-  var bData : _borrowedData(eltType);
+  var bData : _borrowedData(eltType) = nil;
   var noinit: bool = false;
+
+  var owner: bool = false;
   var arrayOrdering: sidl_array_ordering = sidl_array_ordering.sidl_row_major_order;
 
   proc canCopyFromDevice param return true;
@@ -216,8 +257,8 @@ class BorrowedRectangularArr: BaseArr {
     }
   }
 
-  proc setDataOwner(owner: bool) {
-    bData.owner = owner;
+  proc setDataOwner(_owner: bool) {
+    owner = _owner;
   }
 
   proc computeForArrayOrdering() {
@@ -240,7 +281,7 @@ class BorrowedRectangularArr: BaseArr {
   proc dsiGetBaseDom() { return dom; }
 
   proc dsiDestroyData() {
-    if (!bData.owner) {
+    if (!owner) {
       // Not the owner, not responsible for deleting the data
       return;
     } else {
@@ -259,7 +300,7 @@ class BorrowedRectangularArr: BaseArr {
 	  }
 	}
       }
-      delete bData;
+      _borrowedData_free(bData);
     }
   }
 
@@ -329,9 +370,10 @@ class BorrowedRectangularArr: BaseArr {
     // Do not initialize data here, user will explicitly init the data
   }
 
-  proc borrow(opData: opaque) {
-    this.bData = new _borrowedData(eltType);
-    this.bData.init(opData);
+  proc borrow(opData) {
+    this.bData = _borrowedData_init(eltType, opData);
+    // this.bData = new _borrowedData(eltType);
+    // this.bData.init(opData);
   }
 
   proc getDataIndex(ind: idxType ...1) where rank == 1 {
@@ -464,7 +506,7 @@ proc chpl__initCopy(a: []) where
   var b : [a._dom] a.eltType;
   b._value.setArrayOrdering(a._value.arrayOrdering);
   // FIXME: Use reference counting instead of allocating new memory
-  if (a._value.bData.owner) {
+  if (a._value.owner) {
     // Allocate data and make element-wise copy
     var opData: opaque = allocateData(numBits(a.eltType), a.numElements:int(32));
     b._value.borrow(opData);
@@ -472,7 +514,7 @@ proc chpl__initCopy(a: []) where
     [i in a.domain] b(i) = a(i);
   } else {
     // free to borrow data from non-owning array
-    b._value.borrow(a._value.bData.opData);
+    b._value.borrow(a._value.bData);
     b._value.setDataOwner(false);
   }
 

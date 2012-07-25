@@ -117,7 +117,7 @@ proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
   var arrayOrderMode = getArrayOrderMode(srcArray);
 
   for i in [1..arrayRank] {
-    var r: range = srcDom.dim(i);
+    var r = srcDom.dim(i);
     result[0][i] = r.low;
     result[1][i] = r.high;
   }
