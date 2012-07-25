@@ -1,4 +1,7 @@
 -*- org -*-
+* BRAID 0.2.6
+** UPC backend
+
 * BRAID 0.2.5
 ** Synched with Chapel 1.5
 ** Implemented contract checking
@@ -7,6 +10,9 @@
 
 ** [module]_static.create_[module]() is now just [module]_static.create()
 ** Default index data type for SIDL arrays is now int(32), as it should be
+** Patch for Chapel runtime initialization
+** More robust Chapel library initialization
+** Examples for parallel Chapel interoperability
 * BRAID 0.2.4
 ** Synched with Chapel 1.4
 ** Included in Babel 2.0.0

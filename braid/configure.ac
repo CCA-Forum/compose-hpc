@@ -1,6 +1,6 @@
 AC_PREREQ(2.65)
 dnl gantlet expects the following statement to be exactly one line.
-AC_INIT([Braid],[0.2.5],[components@llnl.gov],[braid],[http://compose-hpc.sourceforge.net/])
+AC_INIT([Braid],[0.2.6],[components@llnl.gov],[braid],[http://compose-hpc.sourceforge.net/])
 AC_CONFIG_SRCDIR([COPYRIGHT])
 AC_CONFIG_MACRO_DIR([m4])
 CCA_DIAGNOSE_INIT(toolcheck.log)
@@ -131,8 +131,12 @@ AS_IF([test -n "$CHPL" -a -x "$CHPL"],
           [AC_SUBST([CHPL_COMM], [$CHPL_COMM])
            AC_MSG_NOTICE([Chapel: CHPL_COMM=$CHPL_COMM])],
 	  [AC_SUBST([CHPL_COMM], ["none"])
-           AC_MSG_NOTICE([The environment variable CHPL_COMM was not set, defaulting to "none".
-Please see the $CHPL_ROOT/doc/README.multilocale for more details.])
+           AC_MSG_NOTICE([
+========================================================================
+The environment variable CHPL_COMM was not set, defaulting to "none".
+Please see the file $CHPL_ROOT/doc/README.multilocale for more details.
+========================================================================
+])
 	  ])
     ],
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
@@ -149,7 +153,6 @@ dnl AX_WITH_PROG(UPC, [upcc upc])
 AS_IF([test -n "$UPC"], 
       [UPC_ROOT=`dirname \`dirname \\\`which $UPC\\\`\``
        AC_SUBST([UPC_ROOT], [$UPC_ROOT])
-       AC_MSG_RESULT([using $UPC])
        $UPC --version |head -n 1
       ],
       [AC_MSG_NOTICE([Did not find UPC compiler in PATH!])
