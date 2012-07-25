@@ -2,19 +2,22 @@
 use DSIUtil;
 use DefaultRectangular;
 
-///////////////////////////////////////////////////////////////////////////
-// The generic borrowed data class
-///////////////////////////////////////////////////////////////////////////
+/**
+ * The generic borrowed data class
+ * Implementation based on DefaultRectangular.chpl
+ */
 
 extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
 extern proc deallocateData(opData: opaque): opaque;
 
 // dynamic data block class
-pragma "data class"
+// Chapel 1.4: 
+// pragma "data class"
 class _borrowedData {
   type eltType;
   var opData: opaque;
   var owner: bool;
+  var _data: opaque; // replacement for pragma "data class"
 
   proc ~_borrowedData() {
     // Nothing to free, no data owned!
@@ -45,9 +48,9 @@ class _borrowedData {
  *
  */
 
-///////////////////////////////////////////////////////////////////////////
-// BorrowedDistribution class to create the BorrowedDomain
-///////////////////////////////////////////////////////////////////////////
+/**
+ * BorrowedDistribution class to create the BorrowedDomain
+ */
 
 class BorrowedDist: BaseDist {
 
@@ -59,13 +62,13 @@ class BorrowedDist: BaseDist {
     return new BorrowedRectangularDom(rank, idxType, stridable, this);
 }
 
-///////////////////////////////////////////////////////////////////////////
-// BorrowedRectangular domain to create the borrowed array
-// delegates almost all its methods to the standard DefaultRectangularDom
-// Main method that has changed:
-// - dsiBuildArray()
-// - ranges()
-///////////////////////////////////////////////////////////////////////////
+/**
+ * BorrowedRectangular domain to create the borrowed array
+ * delegates almost all its methods to the standard DefaultRectangularDom
+ * Main method that has changed:
+ * - dsiBuildArray()
+ * - ranges()
+ */
 
 class BorrowedRectangularDom: BaseRectangularDom {
   param rank : int;
@@ -169,21 +172,21 @@ class BorrowedRectangularDom: BaseRectangularDom {
   }
 }
 
-///////////////////////////////////////////////////////////////////////////
-// BorrowedRectangular array that can refer to externally allocated memory
-// based on DefaultRectangularArr, notable method changes are:
-// - this()
-// - dsiDestroyData()
-// - initialize()
-// - dsiReindex()
-// - dsiSlice()
-// - dsiRankChange()
-// - dsiReallocate()
-// - dsiLocalSlice()
-// - setArrayOrdering()
-// - computeForArrayOrdering()
-// - setDataOwner()
-///////////////////////////////////////////////////////////////////////////
+/**
+ * BorrowedRectangular array that can refer to externally allocated memory
+ * based on DefaultRectangularArr, notable method changes are:
+ * - this()
+ * - dsiDestroyData()
+ * - initialize()
+ * - dsiReindex()
+ * - dsiSlice()
+ * - dsiRankChange()
+ * - dsiReallocate()
+ * - dsiLocalSlice()
+ * - setArrayOrdering()
+ * - computeForArrayOrdering()
+ * - setDataOwner()
+ */
 
 class BorrowedRectangularArr: BaseArr {
 
@@ -240,26 +243,24 @@ class BorrowedRectangularArr: BaseArr {
     if (!bData.owner) {
       // Not the owner, not responsible for deleting the data
       return;
-    }
-    if dom.dsiNumIndices > 0 {
-      writeln("FIXME: this causes a compile-time error with chpl 1.5!");
-      /*
-      pragma "no copy" pragma "no auto destroy" var dr = bData;
-      pragma "no copy" pragma "no auto destroy" var dv = __primitive("get ref", dr);
-      pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, 0);
-      pragma "no copy" pragma "no auto destroy" var ev = __primitive("get ref", er);
-      if (chpl__maybeAutoDestroyed(ev)) {
-        for i in 0..dom.dsiNumIndices-1 {
-          pragma "no copy" pragma "no auto destroy" var dr = bData;
-          pragma "no copy" pragma "no auto destroy" var dv = __primitive("get ref", dr);
-          pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, i);
-          pragma "no copy" pragma "no auto destroy" var ev = __primitive("get ref", er);
-          chpl__autoDestroy(ev);
-        }
+    } else {
+      if dom.dsiNumIndices > 0 {
+	pragma "no copy" pragma "no auto destroy" var dr = bData;
+	pragma "no copy" pragma "no auto destroy" var dv = __primitive("deref", dr);
+	pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, 0);
+	pragma "no copy" pragma "no auto destroy" var ev = __primitive("deref", er);
+	if (chpl__maybeAutoDestroyed(ev)) {
+	  for i in 0..dom.dsiNumIndices-1 {
+	    pragma "no copy" pragma "no auto destroy" var dr = bData;
+	    pragma "no copy" pragma "no auto destroy" var dv = __primitive("deref", dr);
+	    pragma "no copy" pragma "no auto destroy" var er = __primitive("array_get", dv, i);
+	    pragma "no copy" pragma "no auto destroy" var ev = __primitive("deref", er);
+	    chpl__autoDestroy(ev);
+	  }
+	}
       }
-      */
+      delete bData;
     }
-    delete bData;
   }
 
   iter these() var {
@@ -450,9 +451,9 @@ proc BorrowedRectangularArr.dsiSerialWrite(f: Writer) {
 }
 
 
-///////////////////////////////////////////////////////////////////////////
-// Utility functions to create borrowed arrays
-///////////////////////////////////////////////////////////////////////////
+/**
+ * Utility functions to create borrowed arrays
+ */
 
 var defaultBorrowedDistr = _newDistribution(new BorrowedDist());
 
@@ -584,35 +585,32 @@ proc isBorrowedArray(in a: [?aDom]): bool {
   return false;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Start example use of borrowed array
-///////////////////////////////////////////////////////////////////////////
-//
-// extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
-//
-// type arrayIndexType = int(32);
-// type arrayElmntType = real(64);
-// var arraySize1d = 10;
-//
-// var bData1d: opaque;
-// local { bData1d = allocateData(numBits(arrayElmntType), arraySize1d); }
-//
-// var bArr1d = createBorrowedArray(arrayIndexType, arrayElmntType, bData1d,
-//       sidl_array_ordering.sidl_row_major_order, arraySize1d);
-// [i in 0.. #arraySize1d by 2] { bArr1d(i) = i; }
-// [i in 0.. #arraySize1d] { writeln("bArr1d(", i, ") = ", bArr1d(i)); }
-//
-// var arraySize2di = 3;
-// var arraySize2dj = 5;
-//
-// var bData2d: opaque;
-// local { bData2d = allocateData(numBits(arrayElmntType), arraySize2di * arraySize2dj); }
-//
-// var bArr2d = createBorrowedArray(arrayIndexType, arrayElmntType, bData2d,
-//       sidl_array_ordering.sidl_column_major_order, arraySize2di, arraySize2dj);
-// [(i, j) in [0.. #arraySize2di, 0.. #arraySize2dj by 2]] { bArr2d(i, j) = (10 * i) + j; }
-// [(i, j) in [0.. #arraySize2di, 0.. #arraySize2dj]] { writeln("bArr2d(", i, ", ", j, ") = ", bArr2d(i, j)); }
-//
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+/**
+ * Start example use of borrowed array
+ * extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
+ *
+ * type arrayIndexType = int(32);
+ * type arrayElmntType = real(64);
+ * var arraySize1d = 10;
+ *
+ * var bData1d: opaque;
+ * local { bData1d = allocateData(numBits(arrayElmntType), arraySize1d); }
+ *
+ * var bArr1d = createBorrowedArray(arrayIndexType, arrayElmntType, bData1d,
+ *       sidl_array_ordering.sidl_row_major_order, arraySize1d);
+ * [i in 0.. #arraySize1d by 2] { bArr1d(i) = i; }
+ * [i in 0.. #arraySize1d] { writeln("bArr1d(", i, ") = ", bArr1d(i)); }
+ *
+ * var arraySize2di = 3;
+ * var arraySize2dj = 5;
+ *
+ * var bData2d: opaque;
+ * local { bData2d = allocateData(numBits(arrayElmntType), arraySize2di * arraySize2dj); }
+ *
+ * var bArr2d = createBorrowedArray(arrayIndexType, arrayElmntType, bData2d,
+ *       sidl_array_ordering.sidl_column_major_order, arraySize2di, arraySize2dj);
+ * [(i, j) in [0.. #arraySize2di, 0.. #arraySize2dj by 2]] { bArr2d(i, j) = (10 * i) + j; }
+ * [(i, j) in [0.. #arraySize2di, 0.. #arraySize2dj]] { writeln("bArr2d(", i, ", ", j, ") = ", bArr2d(i, j)); }
+ *
+ */
 
