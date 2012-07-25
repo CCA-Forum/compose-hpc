@@ -34,7 +34,6 @@ EXTRA_DIST= \
 # Recursive make considered harmful
 include braid/Makefile.include
 include regression/interop/Makefile.include
-include chpl/Makefile.include
 include chapel-patches/Makefile.include
 
 CLEANFILES = toolcheck.log
@@ -118,14 +117,18 @@ $(srcdir)/doc/braid.1: doc/man_header.txt doc/users_guide.css $(top_builddir)/br
 
 
 
-# Babel functionality: 
+
+# Babel functionality: Chapel
 # ------------------------------------------------------------------------
+BRAID=env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py
+
+include chpl/Makefile.include
 
 # Runtime support files
 nobase_include_HEADERS += \
   chpl/chpl_sidl_array.h \
   chpl/sidl.chpl \
-  $(SIDLSTUB_HDRS)
+  $(CHPL_SIDLSTUB_HDRS)
 
 CHPL_RUNTIME_FILES = \
 	chpl/SIDLArray.chpl \
@@ -144,9 +147,7 @@ chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(MKDIR_P) chpl
 	$(AM_V_GEN)
 	@echo "generating Chapel bindings for the SIDL runtime"
-	@cd chpl && \
-          env PYTHONPATH=../braid:../$(top_srcdir)/braid:../braid/.libs:../$(top_srcdir)/contrib/argparse-1.1:../$(top_srcdir)/contrib/ply:$(PYTHONPATH) $(PYTHON) ../$(top_srcdir)/braid/braid.py \
-            -cchpl $(SIDL_PATH)/sidl.sidl --verbose #--profile
+	@cd chpl && $(BRAID) -c chpl $(SIDL_PATH)/sidl.sidl --verbose #--profile
 	@echo "generating Chapel array extensions"
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/SIDLArray.chpl >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/BorrowedArray.chpl >>$@
@@ -154,8 +155,37 @@ chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/ArraySupport.chpl >>$@
 
 # Rules to build the Chapel stubs for the SIDL runtime
-$(SIDLSTUB_SRCS): chpl/sidl.chpl
+$(CHPL_SIDLSTUB_SRCS): chpl/sidl.chpl
 lib_LTLIBRARIES = libsidlstub_chpl.la
-libsidlstub_chpl_la_SOURCES = $(SIDLSTUB_SRCS)
-AM_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
+libsidlstub_chpl_la_SOURCES = $(CHPL_SIDLSTUB_SRCS)
+libsidlstub_chpl_la_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
 AM_CFLAGS = -Werror
+# ------------------------------------------------------------------------
+
+
+
+# Babel functionality: UPC
+# ------------------------------------------------------------------------
+if BABEL_LANG_UPC
+
+include upc/Makefile.include
+nobase_include_HEADERS += $(UPC_SIDLSTUB_HDRS)
+
+# We list only one of the files as target, otherwise make -j will run
+# havoc and try to make all of them in parallel
+upc/sidl_BaseClass_Stub.upc: $(nobase_python_PYTHON)
+	@$(MKDIR_P) upc
+	$(AM_V_GEN)
+	@echo "generating UPC bindings for the SIDL runtime"
+	@cd upc && $(BRAID) -c upc $(SIDL_PATH)/sidl.sidl --verbose #--profile
+
+# Rules to build the UPC stubs for the SIDL runtime
+$(UPC_SIDLSTUB_SRCS): upc/sidl_BaseClass_Stub.upc
+libsidlstub_upc_la_SOURCES = $(UPC_SIDLSTUB_SRCS)
+libsidlstub_upc_la_CPPFLAGS = -static -I$(builddir)/upc -I$(srcdir)/upc -I$(BABEL_INCLUDEDIR) -I$(UPC_ROOT)/runtime/include
+lib_LTLIBRARIES += libsidlstub_upc.la
+
+xxx:
+	echo $(libsidlstub_upc_la_SOURCES)
+
+endif

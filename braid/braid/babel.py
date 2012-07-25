@@ -44,7 +44,7 @@ def qual_id(scoped_id, sep='_'):
     _, prefix, name, ext = scoped_id
     return sep.join(list(prefix)+[name])+ext
 
-def babel_object_type(package, name):
+def object_type(package, name):
     """
     \return the SIDL node for the type of a Babel object 'name'
     \param name    the name of the object
@@ -54,31 +54,31 @@ def babel_object_type(package, name):
         name = name[1]
     return sidl.Scoped_id(package, name, '')
 
-def babel_exception_type():
+def exception_type():
     """
     \return the SIDL node for the Babel exception type
     """
-    return babel_object_type(['sidl'], 'BaseInterface')
+    return object_type(['sidl'], 'BaseInterface')
 
-def ir_babel_object_type(package, name):
+def ir_object_type(package, name):
     """
     \return the IR node for the type of a Babel object 'name'
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Pointer_type(ir.Struct(babel_object_type(package, name+'__object'), [], ''))
+    return ir.Pointer_type(ir.Struct(object_type(package, name+'__object'), [], ''))
 
-def ir_babel_exception_type():
+def ir_exception_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir_babel_object_type(['sidl'], 'BaseInterface')
+    return ir_object_type(['sidl'], 'BaseInterface')
 
-def ir_babel_baseinterface_type():
+def ir_baseinterface_type():
     """
     \return the IR node for the Babel exception type
     """
-    return ir_babel_object_type(['sidl'], 'BaseInterface')
+    return ir_object_type(['sidl'], 'BaseInterface')
 
 def builtin((name, args)):
     return sidl.Method(sidl.void, sidl.Method_name(name, ''), [], args,
@@ -268,11 +268,11 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower
 
         elif (sidl.class_, ScopedId, _, _, _, _, _):
             if not lower_scoped_ids: return ScopedId
-            else: return ir_babel_object_type(ScopedId[1], ScopedId[2])
+            else: return ir_object_type(ScopedId[1], ScopedId[2])
         
         elif (sidl.interface, ScopedId, _, _, _, _):
             if not lower_scoped_ids: return ScopedId
-            return ir_babel_object_type(ScopedId[1], ScopedId[2])
+            return ir_object_type(ScopedId[1], ScopedId[2])
         
         elif (Terms):
             if (isinstance(Terms, list)):
@@ -322,7 +322,7 @@ class EPV(object):
             attrs.discard(sidl.abstract)
             attrs.discard(sidl.final)
             attrs = list(attrs)
-            args = babel_epv_args(attrs, Args, self.symbol_table, self.name)
+            args = epv_args(attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(attrs, typ, name+suffix, args, DocComment)
 
         if self.finalized:
@@ -456,19 +456,19 @@ class EPV(object):
         return ir.Struct(name, [], 'Static Entry Point Vector (SEPV)')
 
 
-def babel_static_ior_args(args, symbol_table, class_name):
+def static_ior_args(args, symbol_table, class_name):
     """
     \return a SIDL -> Ir lowered version of 
     [self]+args+(sidl_BaseInterface__object*)[*ex]
     """
     arg_self = [ir.Arg([], ir.in_, 
-                       ir_babel_object_type(symbol_table.prefix, class_name),
+                       ir_object_type(symbol_table.prefix, class_name),
                        'self')]
-    arg_ex = [ir.Arg([], sidl.out, ir_babel_baseinterface_type(), '_ex')]
+    arg_ex = [ir.Arg([], sidl.out, ir_baseinterface_type(), '_ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
 
-def babel_epv_args(attrs, args, symbol_table, class_name):
+def epv_args(attrs, args, symbol_table, class_name):
     """
     \return a SIDL -> Ir lowered version of [self]+args+[*ex]
     """
@@ -477,13 +477,13 @@ def babel_epv_args(attrs, args, symbol_table, class_name):
     else:
         arg_self = \
             [ir.Arg([], ir.in_, 
-                    ir_babel_object_type(symbol_table.prefix, class_name),
+                    ir_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
-        [ir.Arg([], ir.out, ir_babel_baseinterface_type(), '_ex')]
+        [ir.Arg([], ir.out, ir_baseinterface_type(), '_ex')]
     return arg_self+lower_ir(symbol_table, args)+arg_ex
 
-def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs):
+def stub_args(attrs, args, symbol_table, class_name, extra_attrs):
     """
     \return a SIDL -> [*self]+args+[*ex]
     """
@@ -492,9 +492,9 @@ def babel_stub_args(attrs, args, symbol_table, class_name, extra_attrs):
     else:
         arg_self = [
             ir.Arg(extra_attrs, sidl.in_, 
-                ir_babel_object_type(symbol_table.prefix, class_name), 'self')]
+                ir_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg(extra_attrs, sidl.out, ir_babel_exception_type(), '_ex')]
+        [ir.Arg(extra_attrs, sidl.out, ir_exception_type(), '_ex')]
     return arg_self+args+arg_ex
 
 
@@ -513,8 +513,8 @@ def ior_type(symbol_table, t):
     else return \c t.
     """
     if (t[0] == sidl.scoped_id and symbol_table[t][1][0] in [sidl.class_, sidl.interface]):
-    #    return ir_babel_object_type(*symbol_table.get_full_name(t[1]))
-        return ir_babel_object_type(t[1], t[2])
+    #    return ir_object_type(*symbol_table.get_full_name(t[1]))
+        return ir_object_type(t[1], t[2])
 
     else: return t
 

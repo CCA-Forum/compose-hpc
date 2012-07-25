@@ -5,4 +5,4 @@
 # Babel functionality for the Chapel PGAS language
 # http://chapel.cray.com/
 #
-__all__ = ['backend', 'chpl', 'cgen', 'makefile', 'conversions']
+__all__ = ['chpl_backend', 'chpl', 'chpl_code', 'chpl_makefile', 'chpl_conversions']

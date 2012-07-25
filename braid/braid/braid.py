@@ -116,7 +116,8 @@ import argparse, re, sys
 import config, legal
 
 def braid(args):
-    import chapel.backend as chpl_be
+    import chapel.chpl_backend as chpl_be
+    import     upc.upc_backend as upc_be
     import sidl_parser, sidl_symbols, codegen
 
     # Babel pass-through?
@@ -134,7 +135,20 @@ def braid(args):
         args.make_prefix = ''
 
     # No. Braid called to action!
-    backend = chpl_be.GlueCodeGenerator(args)
+    backend = []
+    def select_backend(backend, lang):
+       if backend <> []:
+           print "**ERROR: can only perform one operation per directory"
+           exit(1)
+
+       if re.match(r'([cC]hapel)|(chpl)', lang):
+           backend.append(chpl_be.GlueCodeGenerator(args))
+       elif re.match(r'(UPC)|(upc)', lang):
+           backend.append(upc_be.GlueCodeGenerator(args))
+       else:
+           print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
+           exit(1)
+
 
     for sidl_file in args.sidl_files:
         sidl_ast = sidl_parser.parse(sidl_file)
@@ -148,31 +162,28 @@ def braid(args):
         # Client code generation
         if args.client == None:
             pass
-        elif re.match(r'([cC]hapel)|(chpl)', args.client):            
+        else:
+            select_backend(backend, args.client)
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             print "FIXME Handle imports here after injection of sidl runtime"
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            backend.generate_bindings(sidl_file, sidl_ast, symtab, with_server=False)
-        else:
-            print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.client)
-            exit(1)
+            backend[0].generate_bindings(sidl_file, sidl_ast, symtab, with_server=False)
 
         # Server code generation
         if args.server == None:
             pass
-        elif re.match(r'([cC]hapel)|(chpl)', args.server):
+        else:
+            select_backend(backend, args.server)
             sidl_ast = inject_sidl_runtime(sidl_ast, args)
             sidl_ast, symtab = sidl_symbols.resolve(sidl_ast, args.verbose)
-            backend.generate_bindings(sidl_file, sidl_ast, symtab, with_server=True)
-        else:
-            print "**ERROR: (%s) Unknown language `%s'." % (sys.argv[0], args.server)
-            exit(1)
+            backend[0].generate_bindings(sidl_file, sidl_ast, symtab, with_server=True)
 
     if args.makefile:
+        assert(backend)
         if args.client:
-            backend.generate_makefile()
+            backend[0].generate_makefile()
         else:
-            backend.generate_makefile()
+            backend[0].generate_makefile()
 
 def inject_sidl_runtime(sidl_ast, args):
     """
@@ -228,11 +239,11 @@ BRAID is a high-performance language interoperability tool that generates Babel-
 
     cmdline.add_argument('-c', '--client', metavar='<language>',
                          help='generate client code in the specified language'+
-                         ' (Chapel, or any language supported through Babel)')
+                         ' (Chapel, UPC, or any language supported through Babel)')
 
     cmdline.add_argument('-s', '--server', metavar='<language>',
                          help='generate server code in the specified language'+
-                         ' (Chapel, or any language supported through Babel)')
+                         ' (Chapel, UPC, or any language supported through Babel)')
 
     cmdline.add_argument('--makefile', action='store_true',
                          help='generate a default GNUmakefile')
@@ -259,7 +270,7 @@ BRAID is a high-performance language interoperability tool that generates Babel-
     if args.license:
         print config.PACKAGE_STRING
         print '''
-Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+Copyright (c) 2010-2012 Lawrence Livermore National Security, LLC.
 Produced at the Lawrence Livermore National Laboratory.
 Written by Adrian Prantl <adrian@llnl.gov>.
 LLNL-CODE-473891. All rights reserved.

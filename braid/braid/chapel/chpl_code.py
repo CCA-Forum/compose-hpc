@@ -38,7 +38,7 @@ from codegen import (
     SourceFile, CFile, CCompoundStmt, Scope, generator, accepts,
     sep_by
 )
-import conversions as conv
+import chpl_conversions as conv
 
 def drop(lst):
     """

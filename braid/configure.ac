@@ -142,6 +142,23 @@ AM_CONDITIONAL([BABEL_LANG_CHPL], [echo $CHPL])
 
 ############################################################
 #
+# UPC
+#
+AM_PROG_UPC
+dnl AX_WITH_PROG(UPC, [upcc upc])
+AS_IF([test -n "$UPC"], 
+      [UPC_ROOT=`dirname \`dirname \\\`which $UPC\\\`\``
+       AC_SUBST([UPC_ROOT], [$UPC_ROOT])
+       AC_MSG_RESULT([using $UPC])
+       $UPC --version |head -n 1
+      ],
+      [AC_MSG_NOTICE([Did not find UPC compiler in PATH!])
+       AC_SUBST([UPC], [])
+      ])
+AM_CONDITIONAL([BABEL_LANG_UPC], [echo $UPC])
+
+############################################################
+#
 # SWI-Prolog (compile-time-only dependency)
 #
 PKG_CHECK_MODULES(PL, [pl >= 5.8.0],
@@ -178,6 +195,7 @@ AS_IF([test -n "${BABEL_PREFIX}"],
        sh $srcdir/regression/interop/gen-test-deps.sh $BABEL_SRCDIR $srcdir \
          >$srcdir/regression/interop/tests.mk 2>/dev/null
        grep "^# Total" $srcdir/regression/interop/tests.mk])
+sh $srcdir/gen-runtime-deps.sh $srcdir
 
 AC_CONFIG_FILES([Makefile 
   braid/braid 
@@ -207,5 +225,8 @@ AS_IF([test -z "${CHPL_ROOT}"],
       AC_MSG_RESULT([    Chapel ........... NO]),
       [AC_MSG_RESULT([    Chapel .......... YES (${CHPL_VERSION} in ${CHPL_ROOT})])
        AC_MSG_RESULT([  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh])])
+AS_IF([test -z "${UPC}"], 
+      AC_MSG_RESULT([    UPC .............. NO]),
+      [AC_MSG_RESULT([    UPC ............. YES (in ${UPC_ROOT})])])
 AC_MSG_RESULT([==============================================================])
 AC_MSG_RESULT([BRAID configured successfully!])

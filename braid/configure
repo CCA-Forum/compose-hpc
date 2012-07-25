@@ -627,6 +627,15 @@ SWIPL_LIBS
 SWIPL_CFLAGS
 PL_LIBS
 PL_CFLAGS
+BABEL_LANG_UPC_FALSE
+BABEL_LANG_UPC_TRUE
+UPC_ROOT
+am__fastdepUPC_FALSE
+am__fastdepUPC_TRUE
+UPCDEPMODE
+ac_ct_UPC
+UPCFLAGS
+UPC
 BABEL_LANG_CHPL_FALSE
 BABEL_LANG_CHPL_TRUE
 CHPL_COMM
@@ -854,6 +863,8 @@ PKG_CONFIG
 BABEL_CFLAGS
 BABEL_LIBS
 CHPL
+UPC
+UPCFLAGS
 PL_CFLAGS
 PL_LIBS
 SWIPL_CFLAGS
@@ -1535,6 +1546,8 @@ Some influential environment variables:
               C compiler flags for BABEL, overriding pkg-config
   BABEL_LIBS  linker flags for BABEL, overriding pkg-config
   CHPL        Absolute path to chpl executable
+  UPC         Unified Parallel C compiler command
+  UPCFLAGS    Unified Parallel C compiler flags
   PL_CFLAGS   C compiler flags for PL, overriding pkg-config
   PL_LIBS     linker flags for PL, overriding pkg-config
   SWIPL_CFLAGS
@@ -15236,6 +15249,262 @@ fi
 
 ############################################################
 #
+# UPC
+#
+if test -n "$ac_tool_prefix"; then
+  for ac_prog in upcc upc
+  do
+    # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
+set dummy $ac_tool_prefix$ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_UPC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$UPC"; then
+  ac_cv_prog_UPC="$UPC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_UPC="$ac_tool_prefix$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+UPC=$ac_cv_prog_UPC
+if test -n "$UPC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $UPC" >&5
+$as_echo "$UPC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    test -n "$UPC" && break
+  done
+fi
+if test -z "$UPC"; then
+  ac_ct_UPC=$UPC
+  for ac_prog in upcc upc
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_ac_ct_UPC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_UPC"; then
+  ac_cv_prog_ac_ct_UPC="$ac_ct_UPC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_ac_ct_UPC="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_UPC=$ac_cv_prog_ac_ct_UPC
+if test -n "$ac_ct_UPC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_UPC" >&5
+$as_echo "$ac_ct_UPC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$ac_ct_UPC" && break
+done
+
+  if test "x$ac_ct_UPC" = x; then
+    UPC=":"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    UPC=$ac_ct_UPC
+  fi
+fi
+
+if test "$UPC" = :; then
+  as_fn_error 77 "no Unified Parallel C compiler was found" "$LINENO" 5
+fi
+
+depcc="$UPC"  am_compiler_list=
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking dependency style of $depcc" >&5
+$as_echo_n "checking dependency style of $depcc... " >&6; }
+if ${am_cv_UPC_dependencies_compiler_type+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
+  # We make a subdir and do the tests there.  Otherwise we can end up
+  # making bogus files that we don't know about and never remove.  For
+  # instance it was reported that on HP-UX the gcc test will end up
+  # making a dummy file named `D' -- because `-MD' means `put the output
+  # in D'.
+  mkdir conftest.dir
+  # Copy depcomp to subdir because otherwise we won't find it if we're
+  # using a relative directory.
+  cp "$am_depcomp" conftest.dir
+  cd conftest.dir
+  # We will build objects and dependencies in a subdirectory because
+  # it helps to detect inapplicable dependency modes.  For instance
+  # both Tru64's cc and ICC support -MD to output dependencies as a
+  # side effect of compilation, but ICC will put the dependencies in
+  # the current directory while Tru64 will put them in the object
+  # directory.
+  mkdir sub
+
+  am_cv_UPC_dependencies_compiler_type=none
+  if test "$am_compiler_list" = ""; then
+     am_compiler_list=`sed -n 's/^#*\([a-zA-Z0-9]*\))$/\1/p' < ./depcomp`
+  fi
+  am__universal=false
+
+
+  for depmode in $am_compiler_list; do
+    # Setup a source with many dependencies, because some compilers
+    # like to wrap large dependency lists on column 80 (with \), and
+    # we should not choose a depcomp mode which is confused by this.
+    #
+    # We need to recreate these files for each test, as the compiler may
+    # overwrite some of them when testing with obscure command lines.
+    # This happens at least with the AIX C compiler.
+    : > sub/conftest.c
+    for i in 1 2 3 4 5 6; do
+      echo '#include "conftst'$i'.h"' >> sub/conftest.c
+      # Using `: > sub/conftst$i.h' creates only sub/conftst1.h with
+      # Solaris 8's {/usr,}/bin/sh.
+      touch sub/conftst$i.h
+    done
+    echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf
+
+    # We check with `-c' and `-o' for the sake of the "dashmstdout"
+    # mode.  It turns out that the SunPro C++ compiler does not properly
+    # handle `-M -o', and we need to detect this.  Also, some Intel
+    # versions had trouble with output in subdirs
+    am__obj=sub/conftest.${OBJEXT-o}
+    am__minus_obj="-o $am__obj"
+    case $depmode in
+    gcc)
+      # This depmode causes a compiler race in universal mode.
+      test "$am__universal" = false || continue
+      ;;
+    nosideeffect)
+      # after this tag, mechanisms are not by side-effect, so they'll
+      # only be used when explicitly requested
+      if test "x$enable_dependency_tracking" = xyes; then
+	continue
+      else
+	break
+      fi
+      ;;
+    msvisualcpp | msvcmsys)
+      # This compiler won't grok `-c -o', but also, the minuso test has
+      # not run yet.  These depmodes are late enough in the game, and
+      # so weak that their functioning should not be impacted.
+      am__obj=conftest.${OBJEXT-o}
+      am__minus_obj=
+      ;;
+    none) break ;;
+    esac
+    if depmode=$depmode \
+       source=sub/conftest.c object=$am__obj \
+       depfile=sub/conftest.Po tmpdepfile=sub/conftest.TPo \
+       $SHELL ./depcomp $depcc -c $am__minus_obj sub/conftest.c \
+         >/dev/null 2>conftest.err &&
+       grep sub/conftst1.h sub/conftest.Po > /dev/null 2>&1 &&
+       grep sub/conftst6.h sub/conftest.Po > /dev/null 2>&1 &&
+       grep $am__obj sub/conftest.Po > /dev/null 2>&1 &&
+       ${MAKE-make} -s -f confmf > /dev/null 2>&1; then
+      # icc doesn't choke on unknown options, it will just issue warnings
+      # or remarks (even with -Werror).  So we grep stderr for any message
+      # that says an option was ignored or not supported.
+      # When given -MP, icc 7.0 and 7.1 complain thusly:
+      #   icc: Command line warning: ignoring option '-M'; no argument required
+      # The diagnosis changed in icc 8.0:
+      #   icc: Command line remark: option '-MP' not supported
+      if (grep 'ignoring option' conftest.err ||
+          grep 'not supported' conftest.err) >/dev/null 2>&1; then :; else
+        am_cv_UPC_dependencies_compiler_type=$depmode
+        break
+      fi
+    fi
+  done
+
+  cd ..
+  rm -rf conftest.dir
+else
+  am_cv_UPC_dependencies_compiler_type=none
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_UPC_dependencies_compiler_type" >&5
+$as_echo "$am_cv_UPC_dependencies_compiler_type" >&6; }
+UPCDEPMODE=depmode=$am_cv_UPC_dependencies_compiler_type
+
+ if
+  test "x$enable_dependency_tracking" != xno \
+  && test "$am_cv_UPC_dependencies_compiler_type" = gcc3; then
+  am__fastdepUPC_TRUE=
+  am__fastdepUPC_FALSE='#'
+else
+  am__fastdepUPC_TRUE='#'
+  am__fastdepUPC_FALSE=
+fi
+
+
+if test -n "$UPC"; then :
+  UPC_ROOT=`dirname \`dirname \\\`which $UPC\\\`\``
+       UPC_ROOT=$UPC_ROOT
+
+       { $as_echo "$as_me:${as_lineno-$LINENO}: result: using $UPC" >&5
+$as_echo "using $UPC" >&6; }
+       $UPC --version |head -n 1
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find UPC compiler in PATH!" >&5
+$as_echo "$as_me: Did not find UPC compiler in PATH!" >&6;}
+
+
+fi
+ if echo $UPC; then
+  BABEL_LANG_UPC_TRUE=
+  BABEL_LANG_UPC_FALSE='#'
+else
+  BABEL_LANG_UPC_TRUE='#'
+  BABEL_LANG_UPC_FALSE=
+fi
+
+
+############################################################
+#
 # SWI-Prolog (compile-time-only dependency)
 #
 
@@ -15539,6 +15808,7 @@ if test -n "${BABEL_PREFIX}"; then :
          >$srcdir/regression/interop/tests.mk 2>/dev/null
        grep "^# Total" $srcdir/regression/interop/tests.mk
 fi
+sh $srcdir/gen-runtime-deps.sh $srcdir
 
 ac_config_files="$ac_config_files Makefile braid/braid braid/rote2braid braid/config.py braid/pyburg Doxyfile patch-chapel-compiler.sh regression/interop/build-client.sh regression/interop/build-server.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
 
@@ -15770,6 +16040,14 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BABEL_LANG_CHPL_TRUE}" && test -z "${BABEL_LANG_CHPL_FALSE}"; then
   as_fn_error $? "conditional \"BABEL_LANG_CHPL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${am__fastdepUPC_TRUE}" && test -z "${am__fastdepUPC_FALSE}"; then
+  as_fn_error $? "conditional \"am__fastdepUPC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BABEL_LANG_UPC_TRUE}" && test -z "${BABEL_LANG_UPC_FALSE}"; then
+  as_fn_error $? "conditional \"BABEL_LANG_UPC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_INTEROP_REGRESSION_TRUE}" && test -z "${ENABLE_INTEROP_REGRESSION_FALSE}"; then
@@ -17884,6 +18162,13 @@ else
 $as_echo "    Chapel .......... YES (${CHPL_VERSION} in ${CHPL_ROOT})" >&6; }
        { $as_echo "$as_me:${as_lineno-$LINENO}: result:   **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh" >&5
 $as_echo "  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh" >&6; }
+fi
+if test -z "${UPC}"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     UPC .............. NO" >&5
+$as_echo "    UPC .............. NO" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     UPC ............. YES (in ${UPC_ROOT})" >&5
+$as_echo "    UPC ............. YES (in ${UPC_ROOT})" >&6; }
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ==============================================================" >&5
 $as_echo "==============================================================" >&6; }
