@@ -54,27 +54,37 @@ proc test_Employee() {
   tracker.writeComment("Start: test_Employee", sidl_ex);	
   
   var numEmp = 7;
-  var dataArray: [0 .. #numEmp] (string, int(32), real(32), string);
-  dataArray[0] = ("John Smith",        35:int(32),  75.7e3: real(32), "c");
-  dataArray[1] = ("Jane Doe"  ,        40:int(32),  85.5e3: real(32), "m");
-  dataArray[2] = ("Ella Vader",        64:int(32), 144.2e3: real(32), "r");
-  dataArray[3] = ("Marge Inovera",     32:int(32), 483.2e3: real(32), "s");
-  dataArray[4] = ("Hughy Louis Dewey", 45:int(32), 182.9e3: real(32), "m");
-  dataArray[5] = ("Heywood Yubuzof",   12:int(32),  20.8e3: real(32), "x");
-  dataArray[6] = ("Picov Andropov",    90:int(32), 120.6e3: real(32), "r");
+  type recrd = (string, int(32), real(32), string);
+  var dataArray: [0 .. #numEmp] recrd = 
+    (
+     ("John Smith",		35:int(32),  75.7e3: real(32), "c"),
+     ("Jane Doe"  ,		40:int(32),  85.5e3: real(32), "m"),
+     ("Ella Vader",		64:int(32), 144.2e3: real(32), "r"),
+     ("Marge Inovera",		32:int(32), 483.2e3: real(32), "s"),
+     ("Hughy Louis Dewey", 	45:int(32), 182.9e3: real(32), "m"),
+     ("Heywood Yubuzof",	12:int(32),  20.8e3: real(32), "x"),
+     ("Picov Andropov",		90:int(32), 120.6e3: real(32), "r")
+     );
   
   var a: objarg.EmployeeArray = objarg.EmployeeArray_static.create(sidl_ex);
-  for i in [0 .. #numEmp] do {
-	tracker.writeComment(" Loop.1-" + i, sidl_ex);
-	
+  for i in 0 .. #numEmp do {
+    tracker.writeComment(" Loop.1-" + i, sidl_ex);
+    var as = [(1:int(32),2:int(32),"s"),(1:int(32),2:int(32),"a"),(1:int(32),3:int(32),"s")];
+    var a1: (int(32),int(32),string) = as(1);
+    var entry: recrd = dataArray(i);
     var e: objarg.Employee = objarg.Employee_static.create(sidl_ex);
-    init_part(); run_part(" init", e.init(dataArray[i][1], dataArray[i][2], dataArray[i][3], dataArray[i][4], sidl_ex));
+    init_part(); run_part(" init", 
+			  e.init(entry(1), 
+				 entry(2), 
+				 entry(3), 
+				 entry(4), 
+				 sidl_ex));
     init_part(); run_part(" appendEmployee", a.appendEmployee(e, sidl_ex));
     init_part(); run_part(" getLength", a.getLength(sidl_ex) == (i+1));
     
-    init_part(); run_part(" getAge-1.1", e.getAge(sidl_ex) == dataArray[i][2]);
-    init_part(); run_part(" getSalary-1.1", e.getSalary(sidl_ex) == dataArray[i][3]);
-    init_part(); run_part(" getStatus-1.1", e.getStatus(sidl_ex) == dataArray[i][4]);
+    init_part(); run_part(" getAge-1.1", e.getAge(sidl_ex) == entry[2]);
+    init_part(); run_part(" getSalary-1.1", e.getSalary(sidl_ex) == entry[3]);
+    init_part(); run_part(" getStatus-1.1", e.getStatus(sidl_ex) == entry[4]);
     
     var e2: objarg.Employee = a.at((i+1):int(32), sidl_ex);
     init_part(); run_part(" getName-1.2", e.getName(sidl_ex) == e2.getName(sidl_ex));
@@ -83,7 +93,7 @@ proc test_Employee() {
     init_part(); run_part(" getStatus-1.2", e.getStatus(sidl_ex) == e2.getStatus(sidl_ex));
   }
   
-  for i in [0 .. #numEmp] do {
+  for i in 0 .. #numEmp do {
     tracker.writeComment(" Loop.2-" + i, sidl_ex);
     
     var e: objarg.Employee;

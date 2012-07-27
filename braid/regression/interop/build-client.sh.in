@@ -47,7 +47,7 @@ cd regression/interop                                   ||exit 1
 mkdir -p $TESTCASE
 cd $TESTCASE                                            ||exit 1
 case $language in
-    Chapel)
+    Chapel|UPC)
 	cp -r ../@srcdir@/$TESTCASE/run${language} .    ||exit 1
 	;;
     *)	cp -r @BABEL_SRCDIR@/regression/$TESTCASE/run${language} . ||exit 1
@@ -221,7 +221,7 @@ for libdir in `ls -1 -d ../lib*`; do
         SERVER="../../output/libC/libimpl.la ${libdir}/libimpl*.la" \
         IMPL="${TESTCASE}test" \
         EXTRA_LDFLAGS="$extralib" \
-        TARGET="run${language}2${server}" >/dev/null     ||exit 1
+        TARGET="run${language}2${server}" ||exit 1 #>/dev/null     ||exit 1
 
   if [ $server = Chapel ]; then
       sed -i -e 's/TRUE ..SIDL_STATIC_LIBRARY../SIDL_STATIC_LIBRARY/g' *_Stub.c

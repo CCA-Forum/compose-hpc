@@ -57,6 +57,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
     def __init__(self, config):
         super(GlueCodeGenerator, self).__init__(config)
         self.makefile = upc_makefile
+        self.exts = []
 
     @matcher(globals(), debug=False)
     def generate_glue_code(self, node, data, symbol_table):
@@ -71,6 +72,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             """
             # Qualified name (C Version)
             qname = '_'.join(symbol_table.prefix+[cls.name])
+            self.exts.append(qname)
 
             if self.config.verbose:
                 import sys
@@ -88,7 +90,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             # if self.server:
             #     ci.impl = self.pkg_impl
 
-            ci.stub.genh(ir.Import(qname+'_IOR'))
             if cls.has_static_methods:
                 ci.stub.new_def(babel.externals(cls.get_scoped_id()))
 
@@ -168,6 +169,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             if self.server:
                 self.generate_skeleton(ci, qname)
 
+            # Convenience header
+            ext_h = CFile(qname)
+            ext_h.genh(ir.Import(qname+'_IOR'))
+            ext_h.genh(ir.Import(qname+'_Stub'))
+            ext_h.genh('typedef struct %s__object %s;'%(qname,qname))
+            ext_h.write()
+
             # Makefile
             self.classes.append(qname)
 
@@ -185,8 +193,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 # self.pkg_chpl_stub.gen(ir.Type_decl(lower_ir(symbol_table, node, struct_suffix='')))
 
                 # record it for later, when the package is being finished
-                # self.pkg_enums_and_structs.append(struct_ior_names(node))
-                pass
+                self.pkg_enums_and_structs.append(struct_ior_names(node))
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
@@ -230,24 +237,14 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                     self.pkgs.append(qname)
 
                 pkg_h = CFile(qname)
-
-                pkg_h.genh(ir.Import('sidlType'))
+                pkg_h = pkg_h
+                pkg_h.genh(ir.Import('sidl_header'))
                 for es in self.pkg_enums_and_structs:
-                    es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h)
+                    es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h, qualify_names=True)
                     pkg_h.gen(ir.Type_decl(es_ior))
-                    # generate also the chapel version of the struct, if different
-                    if es[0] == sidl.struct:
-                        es_chpl = conv.ir_type_to_chpl(es_ior)
-                        if es_chpl <> es_ior: 
-                            pkg_h.new_header_def('#ifndef CHPL_GEN_CODE')
-                            pkg_h.genh(ir.Comment(
-                                    'Chapel will generate its own conflicting version of'+
-                                    "structs and enums since we can't use the extern "+
-                                    'keyword for them.'))
-                            pkg_h.gen(ir.Type_decl(es_chpl))
-                            pkg_h.new_header_def('#else // CHPL_GEN_CODE')
-                            pkg_h.new_header_def(forward_decl(es_chpl))
-                            pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
+
+                for ext in self.exts:
+                    pkg_h.genh(ir.Import(ext))
 
                 pkg_h.write()
 
@@ -650,7 +647,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         pkg_h = CFile(qname)
         pkg_h.genh(ir.Import('sidlType'))
         for es in self.pkg_enums_and_structs:
-            es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h)
+            es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h, qualify_names=True)
             es_chpl = es_ior
             if es[0] == sidl.struct:
                 es_ior = conv.ir_type_to_chpl(es_ior)
@@ -669,11 +666,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         """
         prefix = '_'.join(ci.epv.symbol_table.prefix)
         iorname = '_'.join([prefix, ci.epv.name])
-        ci.ior.genh(ir.Import(prefix))
+        for ext in ci.co.get_parents():
+            ci.ior.genh(ir.Import(qual_id(ext[1])+'_IOR'))
         ci.ior.genh(ir.Import('sidl'))
-        for _, ext in ci.co.extends + ci.co.implements:
-            ci.ior.genh(ir.Import(qual_id(ext)+'_IOR'))
-
 
         def gen_forward_references():
             
@@ -730,6 +725,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 
         ci.ior.genh(ir.Import('stdint'))
         gen_forward_references()
+        ci.ior.genh('#ifndef included_sidl_h')
         if ci.methodcstats: 
             ci.ior.gen(ir.Type_decl(ci.methodcstats))
         ci.ior._header.extend(ior_template.contract_decls(ci.co, iorname))
@@ -756,6 +752,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         ci.ior.new_header_def('struct %s__object* %s__createObject('%(iorname, iorname)+
                               'void* ddata, struct sidl_BaseInterface__object ** _ex);')
+
+        ci.ior.genh('#endif /* included_sidl_h */')
 
         if with_ior_c:
             ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co, 

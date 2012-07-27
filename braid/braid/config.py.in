@@ -48,3 +48,6 @@ CHPL            = "@CHPL@"
 CHPL_ROOT       = "@CHPL_ROOT@"
 CHPL_COMM       = "@CHPL_COMM@"
 CHPL_VERSION    = "@CHPL_VERSION@"
+
+UPC            = "@UPC@"
+UPC_ROOT       = "@UPC_ROOT@"

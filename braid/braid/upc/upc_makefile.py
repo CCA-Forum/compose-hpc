@@ -32,9 +32,7 @@ def gen_client(sidl_file, classes, prefix):
     files = prefix+'IORHDRS = '+' '.join([c+'_IOR.h' for c in classes])+'\n'
     files+= prefix+'STUBHDRS = '+' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
                                     for c in classes])+'\n'
-    files+= prefix+'STUBSRCS = '+' '.join([c+'_cStub.c' for c in classes])+'\n'
-# this is handled by the use statement in the implementation instead:
-# {file}_Stub.chpl
+    files+= prefix+'STUBSRCS = '+' '.join([c+'_Stub.upc' for c in classes])+'\n'
     write_to(prefix+'babel.make', files)
 
 def gen_server(sidl_file, classes, pkgs, prefix):
@@ -50,11 +48,11 @@ def gen_server(sidl_file, classes, pkgs, prefix):
 {prefix}STUBHDRS = {stubhdrs}
 {prefix}STUBSRCS = {stubsrcs}
 """.format(prefix=prefix,
-           impls=' '.join([p+'_Impl.chpl'       for p in pkgs]),
+           impls=' '.join([p+'_Impl.upc'       for p in pkgs]),
            iorhdrs=' '.join([c+'_IOR.h'    for c in classes]),
            iorsrcs=' '.join([c+'_IOR.c'    for c in classes]),
-           skelsrcs=' '.join([c+'_Skel.c'  for c in classes]),
-           stubsrcs=' '.join([c+'_cStub.c' for c in classes]),
+           skelsrcs=' '.join([c+'_Skel.upc'  for c in classes]),
+           stubsrcs=' '.join([c+'_Stub.upc' for c in classes]),
            stubhdrs=' '.join(['{c}_Stub.h {c}_cStub.h'.format(c=c)
                               for c in classes])))
 
@@ -64,7 +62,7 @@ def gen_gnumakefile(sidl_file):
     write_to('GNUmakefile', r"""
 # Generic Upc Babel wrapper GNU Makefile
 #
-# Copyright (c) 2008, 2012,Lawrence Livermore National Security, LLC.
+# Copyright (c) 2008, 2012, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory.
 # Written by the Components Team <components@llnl.gov>
 # UCRL-CODE-2002-054
@@ -89,7 +87,7 @@ def gen_gnumakefile(sidl_file):
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 # This Makefile uses GNU make extensions, so it may not work with
-# other implementations of make.
+# other implementations of make. "
 
 include babel.make
 # please name the server library here
@@ -111,97 +109,36 @@ LIBDIR=$(PREFIX)/lib
 # in INCLDIR
 INCLDIR=$(PREFIX)/include
 
-CHPL_MAKE_HOME="""+config.CHPL_ROOT+r"""
-
-# use Chapel runtime's CC 
-BABEL_CC=$(CC)
-# BABEL_CC=$(shell babel-config --query-var=CC)
-BABEL_INCLUDES=$(shell babel-config --includes) -I. -I$(CHPL_MAKE_HOME)/runtime/include -I$(CHPL_MAKE_HOME)/third-party/utf8-decoder -I$(SIDL_RUNTIME)
-BABEL_CFLAGS=$(patsubst -Wall,, $(shell babel-config --flags-c))
+UPC="""+config.UPC+r"""
+BABEL_CC=$(shell babel-config --query-var=CC)
+BABEL_INCLUDES=$(shell babel-config --includes) -I$(SIDL_RUNTIME)
+BABEL_CFLAGS=$(shell babel-config --flags-c)
 BABEL_LIBS=$(shell babel-config --libs-c-client)
 
-# triggers -DCHPL_OPTIMIZE
-OPTIMIZE=1
-
-# Get runtime headers and required -D flags.
-include $(CHPL_MAKE_HOME)/runtime/etc/Makefile.include
-
-COMP_GEN_CFLAGS=$(WARN_GEN_CFLAGS) $(IEEE_FLOAT_GEN_CFLAGS)
-CHPL_CFLAGS_FULL=$(GEN_CFLAGS) $(COMP_GEN_CFLAGS) $(CHPL_RT_INC_DIR)
-CHPL_FLAGS=$(patsubst -Wmissing-declarations,, \
-	   $(patsubst -W%-prototypes,, \
-           $(patsubst -Werror,, \
-           $(CHPL_CFLAGS_FULL)))) \
-	   $(CHPL_GASNET_CFLAGS) \
-	   $(GASNET_OPT_CFLAGS)
-
-CHPL_LDFLAGS= \
- $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
- -L$(CHPL_RT_LIB_DIR) \
- -lchpl -lm -lpthread -lsidlstub_chpl -lsidl
-
-CHPL_GASNET_LDFLAGS= \
-  $(GEN_LFLAGS) $(COMP_GEN_LFLAGS) \
-  -L$(CHPL_RT_LIB_DIR) \
-  $(CHPL_GASNET_LFLAGS) \
-  -lchpl -lm -lpthread
-
-CHPL_LAUNCHER_LDFLAGS=$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun/main_launcher.o
-LAUNCHER_LDFLAGS=-L$(CHPL_MAKE_SUBSTRATE_DIR)/tasks-$(CHPL_MAKE_TASKS)/threads-$(CHPL_MAKE_THREADS) -L$(CHPL_MAKE_SUBSTRATE_DIR)/launch-amudprun -lchpllaunch -lchpl -lm
-
-SIDL_RUNTIME="""+config.PREFIX+r"""/include/chpl
-CHPL_HEADERS=-I$(SIDL_RUNTIME) -M$(SIDL_RUNTIME) \
-  $(SIDL_RUNTIME)/sidl_BaseClass_IOR.h chpl_sidl_array.h $(SIDL_RUNTIME)/sidl_*_Stub.h
+SIDL_RUNTIME="""+config.PREFIX+r"""/include/upc
 
 # most of the rest of the file should not require editing
 
 ifeq ($(IMPLSRCS),)
   SCLFILE=
-  BABELFLAG=--client=Chapel
+  BABELFLAG=--client=UPC
   MODFLAG=
 else
   SCLFILE=lib$(LIBNAME).scl
-  BABELFLAG=--server=Chapel
+  BABELFLAG=--server=UPC
   MODFLAG=-module
-  DCE= #--no-dead-code-elimination # include everything in libimpl.la
 endif
-
-ifeq ($(CHPL_MAKE_COMM),gasnet)
-
-all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
-
-# actual program
-$(TARGET)_real: lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(CXX) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER) \
-          $(CONDUIT_LIBS) $(CHPL_GASNET_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
-
-# launcher
-$(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo $(TARGET)_real
-	echo "#include \"chplcgfns.h\"" > $(IMPL).chpl.dir/config.c
-	echo "#include \"config.h\""   >> $(IMPL).chpl.dir/config.c
-	echo "#include \"_config.c\""  >> $(IMPL).chpl.dir/config.c
-	babel-libtool --mode=compile --tag=CC $(CC) \
-          -std=c99 -I$(CHPL_MAKE_HOME)/runtime/include/$(CHPL_HOST_PLATFORM) \
-	  -I$(CHPL_MAKE_HOME)/runtime/include -I. \
-	  $(IMPL).chpl.dir/config.c -c -o $@.lo
-	babel-libtool --mode=link $(CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $@.lo $(SERVER) \
-          $(CHPL_LAUNCHER_LDFLAGS) $(LAUNCHER_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
-
-else
 
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
 	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
-	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(CHPL_LDFLAGS) $(EXTRA_LDFLAGS) -o $@
-endif
+	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(EXTRA_LDFLAGS) -o $@
 
-STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
-IOROBJS=$(IORSRCS:.c=.lo)
-SKELOBJS=$(SKELSRCS:.c=.lo)
-IMPLOBJS=$(IMPLSRCS:.chpl=.lo)
+STUBOBJS=$(patsubst .upc, .lo, $(STUBSRCS:.c=.lo))
+IOROBJS=$(IORSRCS:.upc=.lo)
+SKELOBJS=$(SKELSRCS:.upc=.lo)
+IMPLOBJS=$(IMPLSRCS:.upc=.lo)
 
 PUREBABELGEN=$(IORHDRS) $(IORSRCS) $(STUBSRCS) $(STUBHDRS) $(SKELSRCS)
 BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
@@ -213,7 +150,6 @@ lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \
-          $(CHPL_LDFLAGS) \
 	  $(EXTRALIBS)
  #-rpath $(LIBDIR) 
 
@@ -257,46 +193,16 @@ else
 	echo "</scl>" >>$@
 endif
 
-.SUFFIXES: .lo .chpl
+.SUFFIXES: .lo .upc
 
 .c.lo:
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) $(CHPL_FLAGS) $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
-
-
-# Chapel options used:
-#
-# --savec [dir]  save the generated C code in dir
-# --make [cmd]   used to disable compilation of C code by chpl by using "true" as $MAKE
-# --devel        turn on more verbose error output
-# --library      compile a library
-# --fast         optimize
-# --print-commands --print-passes
-#
-# NOTE
-# ----
-# Because of the order of the -I options, it is crucial that
-# CHPL_FLAGS come before BABEL_CFLAGS and friends.
-#
-ifeq ($(IMPLSRCS),)
-.chpl.lo:
-	$(CHPL) --fast --devel --savec $<.dir  --make true $< \
-            $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
-            -I./$<.dir \
-	    $(CHPL_FLAGS) \
-	    $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
-            -c -o $@ $<.dir/_main.c
-else
-.chpl.lo:
-	$(CHPL) --fast --devel --library --savec $<.dir --make true $< \
-	    $(STUBHDRS) $(CHPL_HEADERS) $(DCE)
-	true #perl -pi -e 's|^  if .$*|  chpl_bool $*_chpl__init_$*_p = false;\n  if ($*|' $<.dir/$*.c
-	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
-            -I./$<.dir \
-	    $(CHPL_FLAGS) \
-            $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) \
-            -c -o $@ $<.dir/_main.c
-endif
+            $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
+
+.upc.lo:
+	babel-libtool --mode=compile --tag=UPC $(UPC) -static \
+	    $(BABEL_INCLUDES) $(EXTRAFLAGS) \
+            -c -o $@ $<
 
 
 clean :
