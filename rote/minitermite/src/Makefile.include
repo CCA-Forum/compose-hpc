@@ -109,8 +109,7 @@ enum-stamp: src/find-enums
 	@echo "#include <rosePublicConfig.h>" >RoseEnumNames.cc
 	@echo "#include <sage3basic.h>"      >>RoseEnumNames.cc
 	$(AM_V_GEN) $< --edg:no_warnings -O0 -DROSE_SKIP_COMPILATION_OF_WAVE -I$(ROSE_INCLUDE_DIR) \
-	                                   -c RoseEnumNames.cc \
-	    | sed 's/^Red/\/\/ Red/g' >__RoseEnumNames.h
+           -c RoseEnumNames.cc > __RoseEnumNames.h
 	@$(MKDIR_P) src/minitermite
 	@mv __RoseEnumNames.h src/minitermite/RoseEnumNames.h
 	@mv -f enum-temp $@

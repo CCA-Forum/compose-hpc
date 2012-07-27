@@ -7,7 +7,7 @@ AC_CONFIG_SRCDIR([README])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([silent-rules foreign no-installinfo no-texinfo.tex 1.11 
-  dist-bzip2 parallel-tests color-tests silent-rules std-options])
+  dist-bzip2 parallel-tests color-tests std-options])
 dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
 AM_SILENT_RULES([yes])
 
