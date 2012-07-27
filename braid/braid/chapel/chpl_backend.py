@@ -124,7 +124,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 ci.impl = self.pkg_impl
 
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
-            chpl_stub.cstub.genh(ir.Import('sidlType'))
+            chpl_stub.cstub.genh(ir.Import('sidl_header'))
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             chpl_stub.cstub.genh(ir.Import('chpltypes'))
             if cls.has_static_methods:
@@ -227,7 +227,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 self.pkg_chpl_stub.gen(ir.Type_decl(babel.lower_ir(symbol_table, node, struct_suffix='')))
 
                 # record it for later, when the package is being finished
-                self.pkg_enums_and_structs.append(struct_ior_names(node))
+                self.pkg_enums_and_structs.append(babel.struct_ior_names(node))
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
@@ -272,10 +272,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
                 pkg_h = CFile(qname)
 
-                pkg_h.genh(ir.Import('sidlType'))
+                pkg_h.genh(ir.Import('sidl_header'))
                 pkg_h.genh(ir.Import('chpltypes'))
                 for es in self.pkg_enums_and_structs:
-                    es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h)
+                    es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h, qualify_names=True)
                     pkg_h.gen(ir.Type_decl(es_ior))
                     # generate also the chapel version of the struct, if different
                     if es[0] == sidl.struct:
@@ -548,13 +548,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         (Method, Type, (MName,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
-        ior_args = babel.drop_rarray_ext_args(Args)
+        ior_type = babel.lower_ir(symbol_table, Type, struct_suffix='', lower_scoped_ids=False)
+        ior_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args), 
+                                  struct_suffix='', lower_scoped_ids=False)
 
         chpl_args = []
-        chpl_args.extend(babel.lower_ir(symbol_table, Args, struct_suffix='', lower_scoped_ids=False))
-        
-        #ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
-        #                   Except, From, Requires, Ensures, DocComment))
+        chpl_args.extend(babel.lower_ir(symbol_table, Args, struct_suffix='', 
+                                        lower_scoped_ids=False, qualify_names=False))
 
         abstract = member_chk(sidl.abstract, Attrs)
         #final = member_chk(sidl.final, Attrs)
@@ -595,7 +595,11 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         call_args, cdecl_args = unzip(map(convert_arg, ior_args))
         
         # return value type conversion -- treat it as an out argument
-        _, (_,_,_,iortype,_) = convert_arg((ir.arg, [], ir.out, Type, '_retval'))
+        _, (_,_,_,iortype,_) = convert_arg((ir.arg, [], ir.out, ior_type, '_retval'))
+        if iortype[0] == ir.enum: 
+            chpl_type = babel.lower_ir(symbol_table, Type, struct_suffix='', 
+                                       lower_scoped_ids=False, qualify_names=False)
+        else: chpl_type = iortype
 
         cdecl_args = babel.stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
         cdecl = ir.Fn_decl(attrs, iortype, Name + Extension, cdecl_args, DocComment)
@@ -632,6 +636,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             if static:
                 # static : Static methods are sometimes called "class
                 # methods" because they are part of a class, but do not
+
                 # depend on an object instance. In non-OO languages, this
                 # means that the typical first argument of an instance is
                 # removed. In OO languages, these are mapped directly to
@@ -666,7 +671,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                     if iortype[0] == ir.struct:
                         iortype = babel.lower_ir(*symbol_table[Type], struct_suffix='')
 
-                    pre_call.append(ir.Stmt(ir.Var_decl(iortype, rvar)))
+                    pre_call.append(ir.Stmt(ir.Var_decl(chpl_type, rvar)))
                     rx = rvar
                 else:
                     rx = return_expr[0]
@@ -684,14 +689,17 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 call = [ir.Stmt(ir.Return(stubcall))]
 
         defn = (ir.fn_defn, [],
-                babel.lower_ir(symbol_table, Type, struct_suffix='', lower_scoped_ids=False),
+                babel.lower_ir(symbol_table, Type, struct_suffix='', 
+                               lower_scoped_ids=False, qualify_names=False),
                 Name + Extension, chpl_args,
                 pre_call+call+post_call+return_stmt,
                 DocComment)
 
         if static:
+            ci.chpl_static_stub.prefix=symbol_table.prefix
             chpl_gen(defn, ci.chpl_static_stub)
         else:
+            ci.chpl_method_stub.prefix=symbol_table.prefix
             chpl_gen(defn, ci.chpl_method_stub)
 
 
@@ -1059,9 +1067,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         """
         pkg_chpl = ChapelFile(qname)
         pkg_h = CFile(qname)
-        pkg_h.genh(ir.Import('sidlType'))
+        pkg_h.genh(ir.Import('sidl_header'))
         for es in self.pkg_enums_and_structs:
-            es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h)
+            es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h, qualify_names=True)
             es_chpl = es_ior
             if es[0] == sidl.struct:
                 es_ior = conv.ir_type_to_chpl(es_ior)

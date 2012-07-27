@@ -117,6 +117,14 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
               it returns \c None.
     """
 
+    def unscope(enum):
+        m = re.match(r'^'+'_'.join(scope.prefix)+r'_(\w+)__enum$', enum)
+        return m.group(1)
+
+    def unscope_retval(r):
+        if r[0] == ir.enum: return r[0], unscope(r[1]), r[2], r[3]
+        return r
+
     def extern_decl_convs((arg, attrs, mode, typ, name)):
         # make generic sidl__arrays into opaques for the extern decl
         if typ == ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], '')):
@@ -127,6 +135,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
             return (arg, attrs, ir.in_, typ, name)
         elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and mode == ir.in_:
             return (arg, attrs, ir.inout, typ, name)
+
+        elif typ[0] == ir.enum:
+            return (arg, attrs, ir.inout, 
+                    (ir.enum, unscope(typ[1]), typ[2], typ[3]), name)
 
         else:
             return (arg, attrs, mode, typ, name)
@@ -221,7 +233,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
                       decls+pre_call+body+post_call, DocComment)], scope.cstub)
 
     # Chapel extern declaration
-    chplstub_decl = ir.Fn_decl([], chpltype, sname, map(extern_decl_convs, cstub_decl_args), DocComment)
+    chplstub_decl = ir.Fn_decl([], unscope_retval(chpltype), sname, 
+                               map(extern_decl_convs, cstub_decl_args), 
+                               DocComment)
+
     scope.new_header_def('extern '+chpl_gen(chplstub_decl)+';')
 
     return drop(retval_arg)
@@ -246,11 +261,13 @@ class ChapelFile(SourceFile):
         if parent:
             self.cstub = parent.cstub
             self.main_area = parent.main_area
+            self.prefix = parent.prefix
         else:
             self.cstub = CFile()
             # This is for definitions that are generated in multiple
             # locations but should be written out only once.
             self.cstub.optional = set()
+            self.prefix=[]
             # Tricky circular initialization
             self.main_area = None
             main_area = ChapelScope(self, relative_indent=0)

@@ -22,6 +22,7 @@
 
 import ir, sidl
 from patmat import *
+from sidl_symbols import SymbolTable
 
 def strip_common(prefix, a):
     """
@@ -43,6 +44,16 @@ def qual_id(scoped_id, sep='_'):
     """
     _, prefix, name, ext = scoped_id
     return sep.join(list(prefix)+[name])+ext
+
+def qual_name(symbol_table, name, sep='_'):
+    """
+    Return the qualified name of an identifier in the form "prefix1.prefix2.name".
+    \arg symbol_table     the \c SymbolTable
+    \arg name             the identifier
+    \arg sep              the separation character to use (default="_")
+    """
+    return sep.join(symbol_table.prefix+[name])
+
 
 def object_type(package, name):
     """
@@ -179,7 +190,8 @@ def notnone(fn):
 
 @notnone
 @matcher(globals(), debug=False)
-def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower_scoped_ids=True):
+def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', 
+             lower_scoped_ids=True, qualify_names=True):
     """
     FIXME!! can we merge this with convert_arg??
     lower SIDL types into IR
@@ -192,9 +204,13 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower
                              node types such as array, rarray, and
                              class.  If False, then these types will
                              not be lowered.
+                            
+    @param qualify_names     If \c True, enum values will get prefixed
+                             with the full qualified name of the enum.
     """
     def low(sidl_term):
-        return lower_ir(symbol_table, sidl_term, header, struct_suffix, lower_scoped_ids)
+        return lower_ir(symbol_table, sidl_term, header, struct_suffix, 
+                        lower_scoped_ids, qualify_names)
 
     # print 'low(',sidl_term, ')'
 
@@ -220,9 +236,24 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower
         elif (sidl.primitive_type, sidl.bool):   return ir.Typedef_type('sidl_bool')
         elif (sidl.primitive_type, sidl.long):   return ir.Typedef_type('int64_t')
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
-        elif (sidl.enum, _, _, _):               return sidl_term # identical
-        elif (sidl.enumerator, _):               return sidl_term
-        elif (sidl.enumerator, _, _):            return sidl_term
+
+        elif (sidl.enum, Name, Enumerators, DocComment):
+            if qualify_names:
+                es = lower_ir(SymbolTable(symbol_table, 
+                                          symbol_table.prefix+[Name]),
+                              Enumerators, header, struct_suffix, 
+                              lower_scoped_ids, qualify_names)
+                return ir.Enum(qual_name(symbol_table, sidl_term[1])+'__enum', es, DocComment)
+            else:
+                return ir.Enum(sidl_term[1], low(Enumerators), DocComment)
+
+        elif (sidl.enumerator, Name):
+            if qualify_names: return ir.Enumerator(qual_name(symbol_table, Name))
+            else:             return sidl_term
+
+        elif (sidl.enumerator_value, Name, Val):
+            if qualify_names: return ir.Enumerator_value(qual_name(symbol_table, Name), Val)
+            else:             return sidl_term
 
 
         elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
@@ -230,8 +261,7 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower
             return ir.Struct(qual_id(sidl_term[1])+struct_suffix, low(Items), '')
 
         elif (sidl.struct, Name, Items, DocComment):
-            qname = '_'.join(symbol_table.prefix+[Name])
-            return ir.Struct(qname, low(Items), '')
+            return ir.Struct(qual_name(symbol_table, Name), low(Items), '')
 
         elif (sidl.struct_item, Type, Name):
             return (ir.struct_item, low(Type), Name)
@@ -277,8 +307,9 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', lower
         elif (Terms):
             if (isinstance(Terms, list)):
                 return map(low, Terms)
-        else:
-            raise Exception("lower_ir: Not implemented: " + str(sidl_term))
+            else:
+                raise Exception("lower_ir: Not implemented: " + str(sidl_term))
+        else: raise Exception("match error")
 
 
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
@@ -465,7 +496,7 @@ def static_ior_args(args, symbol_table, class_name):
                        ir_object_type(symbol_table.prefix, class_name),
                        'self')]
     arg_ex = [ir.Arg([], sidl.out, ir_baseinterface_type(), '_ex')]
-    return arg_self+lower_ir(symbol_table, args)+arg_ex
+    return arg_self+lower_ir(symbol_table, args, qualify_names=True)+arg_ex
 
 
 def epv_args(attrs, args, symbol_table, class_name):
@@ -481,7 +512,7 @@ def epv_args(attrs, args, symbol_table, class_name):
                     'self')]
     arg_ex = \
         [ir.Arg([], ir.out, ir_baseinterface_type(), '_ex')]
-    return arg_self+lower_ir(symbol_table, args)+arg_ex
+    return arg_self+lower_ir(symbol_table, args, qualify_names=True)+arg_ex
 
 def stub_args(attrs, args, symbol_table, class_name, extra_attrs):
     """
