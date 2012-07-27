@@ -1,4 +1,6 @@
 minitermite Changelog                                       -*- org -*-
+* minitermite 1.2
+** Rose enums are now automatically extracted from Rose sources
 * minitermite 1.1
 ** Released on May 31 2012
 ** Includes preliminary support for Fortran
