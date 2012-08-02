@@ -110,10 +110,15 @@ LIBDIR=$(PREFIX)/lib
 INCLDIR=$(PREFIX)/include
 
 UPC="""+config.UPC+r"""
+UPC_VERSION="""+config.UPC_VERSION+r"""
 BABEL_CC=$(shell babel-config --query-var=CC)
 BABEL_INCLUDES=$(shell babel-config --includes) -I$(SIDL_RUNTIME)
 BABEL_CFLAGS=$(shell babel-config --flags-c)
 BABEL_LIBS=$(shell babel-config --libs-c-client)
+UPC_CPPFLAGS="""+config.UPC_CPPFLAGS+r"""
+UPC_CFLAGS="""+config.UPC_CFLAGS+r"""
+UPC_LDFLAGS="""+config.UPC_LDFLAGS+r""" -L"""+config.PREFIX+r"""/lib
+UPC_LIBS="""+config.UPC_LIBS+r""" libsidlstub_upc.la
 
 SIDL_RUNTIME="""+config.PREFIX+r"""/include/upc
 
@@ -146,7 +151,8 @@ BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
 $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
-	babel-libtool --mode=link --tag=CC $(BABEL_CC) -o lib$(LIBNAME).la \
+	babel-libtool --mode=link --tag=UPC $(CC) -o lib$(LIBNAME).la \
+	  $(UPC_LDFLAGS) $(UPC_LIBS) \
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \
@@ -199,6 +205,7 @@ endif
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
             $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
+# $(UPC_CFLAGS) are automatically passed to cc by upcc
 .upc.lo:
 	babel-libtool --mode=compile --tag=UPC $(UPC) -static \
 	    $(BABEL_INCLUDES) $(EXTRAFLAGS) \

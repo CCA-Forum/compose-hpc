@@ -629,6 +629,11 @@ PL_LIBS
 PL_CFLAGS
 BABEL_LANG_UPC_FALSE
 BABEL_LANG_UPC_TRUE
+UPC_LIBS
+UPC_LDFLAGS
+UPC_CPPFLAGS
+UPC_CFLAGS
+UPC_VERSION
 UPC_ROOT
 am__fastdepUPC_FALSE
 am__fastdepUPC_TRUE
@@ -15127,7 +15132,7 @@ fi
 
 
 if test -n "$CHPL" -a -x "$CHPL"; then :
-  CHPL_VERSION=`$CHPL --version |grep Version |awk '{print \$3}'`
+  CHPL_VERSION=`$CHPL --version |grep Version |$AWK '{print \$3}'`
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: using $CHPL (version $CHPL_VERSION)" >&5
 $as_echo "using $CHPL (version $CHPL_VERSION)" >&6; }
 
@@ -15246,7 +15251,7 @@ $as_echo "$as_me: Did not find Chapel compiler in PATH!" >&6;}
 
 fi
 
- if echo $CHPL; then
+ if test -n "$CHPL"; then
   BABEL_LANG_CHPL_TRUE=
   BABEL_LANG_CHPL_FALSE='#'
 else
@@ -15492,7 +15497,74 @@ if test -n "$UPC"; then :
   UPC_ROOT=`dirname \`dirname \\\`which $UPC\\\`\``
        UPC_ROOT=$UPC_ROOT
 
-       $UPC --version |head -n 1
+       if $UPC --version |head -n 1 |grep -q Berkeley; then :
+
+              ###########################################
+              # Berkeley UPC
+              ###########################################
+	      UPC_VERSION=`$UPC --version |head -n 1 |$AWK '{ print $NF }'`
+
+	      { $as_echo "$as_me:${as_lineno-$LINENO}: detected Berkeley UPC version $UPC_VERSION" >&5
+$as_echo "$as_me: detected Berkeley UPC version $UPC_VERSION" >&6;}
+	      UPC_CFLAGS=`$UPC --echo-var GASNET_CFLAGS`
+
+	      UPC_CPPFLAGS=`$UPC --echo-var UPCR_CPPFLAGS`
+
+	      UPC_LDFLAGS=`$UPC --echo-var UPCR_LDFLAGS`
+
+	      UPC_LIBS=`$UPC --echo-var UPCR_LIBS`
+
+
+	      # compile an empty file and extract the auto-generated
+	      # startup code for inclusion in the braid upc runtime
+	      { $as_echo "$as_me:${as_lineno-$LINENO}: checking UPC runtime startup code" >&5
+$as_echo_n "checking UPC runtime startup code... " >&6; }
+	      ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+	      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+int main(int argc, char** argv) { return 0; }
+_ACEOF
+	      mv conftest.c upc_stub.upc                     || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "no conftest?
+See \`config.log' for more details" "$LINENO" 5; }
+	      $UPC --save-all-temps upc_stub.upc -o upc_stub || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "invoking $UPC
+See \`config.log' for more details" "$LINENO" 5; }
+	      $MKDIR_P upc                                   || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "mkdir
+See \`config.log' for more details" "$LINENO" 5; }
+	      mv upc_stub_temps/upc_stub_startup_tmp.c upc/upc_startup.c || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "
+Unexpected startup code layout. You are probably using a too new version of UPC.
+Please see the README for the supported versions.
+See \`config.log' for more details" "$LINENO" 5; }
+       	      $RM -r upc_stub*                               || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "removing temp. files
+See \`config.log' for more details" "$LINENO" 5; }
+	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
+$as_echo "ok" >&6; }
+
+else
+
+	       ###########################################
+	       # Unknown UPC implementation
+               ###########################################
+	       UPC_VERSION=`$UPC --version`
+
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $UPC is not yet fully supported by BRAID. Right now BRAID only supports the Berkeley UPC compiler." >&5
+$as_echo "$as_me: WARNING: $UPC is not yet fully supported by BRAID. Right now BRAID only supports the Berkeley UPC compiler." >&2;}
+
+fi
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find UPC compiler in PATH!" >&5
@@ -15500,7 +15572,7 @@ $as_echo "$as_me: Did not find UPC compiler in PATH!" >&6;}
 
 
 fi
- if echo $UPC; then
+ if test -n "$UPC"; then
   BABEL_LANG_UPC_TRUE=
   BABEL_LANG_UPC_FALSE='#'
 else
@@ -15668,7 +15740,7 @@ $as_echo "yes" >&6; }
 
          SWIPL="${SWIPL_PREFIX}/bin/swipl"
 
-         SWIPL_VERSION=`${SWIPL} --version | awk '{print $3}'`
+         SWIPL_VERSION=`${SWIPL} --version | $AWK '{print $3}'`
 
 
 fi
@@ -15768,7 +15840,7 @@ $as_echo "yes" >&6; }
 
          SWIPL="${SWIPL_PREFIX}/bin/swipl"
 
-         SWIPL_VERSION=`${SWIPL} --version | awk '{print $3}'`
+         SWIPL_VERSION=`${SWIPL} --version | $AWK '{print $3}'`
 
 
 fi
@@ -15787,7 +15859,7 @@ else
   SWIPL="${SWIPL_PREFIX}/bin/pl"
 
 fi
-     SWIPL_VERSION=`${SWIPL} --version | awk '{print $3}'`
+     SWIPL_VERSION=`${SWIPL} --version | $AWK '{print $3}'`
 
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: using ${SWIPL}" >&5
 $as_echo "using ${SWIPL}" >&6; }
@@ -18173,8 +18245,8 @@ if test -z "${UPC}"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result:     UPC .............. NO" >&5
 $as_echo "    UPC .............. NO" >&6; }
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     UPC ............. YES (in ${UPC_ROOT})" >&5
-$as_echo "    UPC ............. YES (in ${UPC_ROOT})" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result:     UPC ............. YES (${UPC_VERSION} in ${UPC_ROOT})" >&5
+$as_echo "    UPC ............. YES (${UPC_VERSION} in ${UPC_ROOT})" >&6; }
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ==============================================================" >&5
 $as_echo "==============================================================" >&6; }
