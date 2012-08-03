@@ -206,7 +206,8 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *                   the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=null) and (n>0)) implies _all(weights>0, n); 
+    pos_weights: ((weights!=null) and (n>0)) 
+			implies _all(weights>0, n); 
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
