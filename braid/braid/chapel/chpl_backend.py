@@ -1209,7 +1209,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         def unscoped_args((arg, attr, mode, typ, name)):
             if typ[0] == ir.enum:
-                return (arg, attrs, ir.inout, 
+                return (arg, attrs, mode, 
                         (ir.enum, unscope(ci.epv.symbol_table, typ[1]), typ[2], typ[3]),
                         name)
             return arg, attr, mode, typ, name

@@ -136,7 +136,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
             return (arg, attrs, ir.inout, typ, name)
 
         elif typ[0] == ir.enum:
-            return (arg, attrs, ir.inout, 
+            return (arg, attrs, mode, 
                     (ir.enum, unscope(scope, typ[1]), typ[2], typ[3]), name)
 
         else:
@@ -236,7 +236,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
                                map(extern_decl_convs, cstub_decl_args), 
                                DocComment)
 
-    scope.new_header_def('extern '+chpl_gen(chplstub_decl)+';')
+    scope.new_header_def('extern '+chpl_gen(chplstub_decl))
 
     return drop(retval_arg)
 
