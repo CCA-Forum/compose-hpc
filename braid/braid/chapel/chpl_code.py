@@ -100,6 +100,13 @@ def strip(typ):
         return typ[0]
     return typ
 
+def unscope(scope, enum):
+    m = re.match(r'^'+'_'.join(scope.prefix)+r'_(\w+)__enum$', enum)
+    return m.group(1)
+
+def unscope_retval(scope, r):
+    if r[0] == ir.enum: return r[0], unscope(scope, r[1]), r[2], r[3]
+    return r
 
 def need_return_arg(typ):
     """
@@ -117,14 +124,6 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
               it returns \c None.
     """
 
-    def unscope(enum):
-        m = re.match(r'^'+'_'.join(scope.prefix)+r'_(\w+)__enum$', enum)
-        return m.group(1)
-
-    def unscope_retval(r):
-        if r[0] == ir.enum: return r[0], unscope(r[1]), r[2], r[3]
-        return r
-
     def extern_decl_convs((arg, attrs, mode, typ, name)):
         # make generic sidl__arrays into opaques for the extern decl
         if typ == ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], '')):
@@ -138,7 +137,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
 
         elif typ[0] == ir.enum:
             return (arg, attrs, ir.inout, 
-                    (ir.enum, unscope(typ[1]), typ[2], typ[3]), name)
+                    (ir.enum, unscope(scope, typ[1]), typ[2], typ[3]), name)
 
         else:
             return (arg, attrs, mode, typ, name)
@@ -233,7 +232,7 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
                       decls+pre_call+body+post_call, DocComment)], scope.cstub)
 
     # Chapel extern declaration
-    chplstub_decl = ir.Fn_decl([], unscope_retval(chpltype), sname, 
+    chplstub_decl = ir.Fn_decl([], unscope_retval(scope, chpltype), sname, 
                                map(extern_decl_convs, cstub_decl_args), 
                                DocComment)
 

@@ -40,7 +40,7 @@ from patmat import *
 from codegen import CFile, c_gen
 from sidl_symbols import visit_hierarchy
 import chpl_conversions as conv
-from chpl_code import (ChapelFile, ChapelScope, chpl_gen, 
+from chpl_code import (ChapelFile, ChapelScope, chpl_gen, unscope, unscope_retval,
                   incoming, outgoing, gen_doc_comment, strip, deref)
 import backend
 import chpl_makefile
@@ -1197,22 +1197,31 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                     DocComment)
 
         def skel_args((arg, attr, mode, typ, name)):
-            # lower array args
             if typ[0] == sidl.array:
+                # lower array args
                 return arg, attr, mode, ir.pt_void, name
-            # complex is always passed as a pointer since chpl 1.5
             elif mode == ir.in_ and typ[0] == ir.typedef_type and (
+                # complex is always passed as a pointer since chpl 1.5
                 typ[1] == '_complex64' or
                 typ[1] == '_complex128'):
                 return arg, attr, mode, ir.Pointer_type(typ), name
             else: return arg, attr, mode, typ, name
+
+        def unscoped_args((arg, attr, mode, typ, name)):
+            if typ[0] == ir.enum:
+                return (arg, attrs, ir.inout, 
+                        (ir.enum, unscope(ci.epv.symbol_table, typ[1]), typ[2], typ[3]),
+                        name)
+            return arg, attr, mode, typ, name
 
         ex_arg = [ir.Arg([], ir.inout, babel.ir_baseinterface_type(), '_ex')]
         impl_args = this_arg+map(skel_args, chpl_args)+ex_arg
         impldecl = (ir.fn_decl, [], chpltype, callee, impl_args, DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
-                    chpltype, Name, impl_args,
+                    unscope_retval(ci.epv.symbol_table, chpltype), 
+                    Name,
+                    map(unscoped_args, impl_args),
                     ['SET_TO_NULL(_ex);',
                      '// DO-NOT-DELETE splicer.begin(%s)'%splicer,
                      '// DO-NOT-DELETE splicer.end(%s)'%splicer],
