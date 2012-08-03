@@ -204,14 +204,14 @@ validation(Arg, Var, Indent) :- !,
     ;	type_check(Arg, Var, Indent)
     ),
     format('~aelse:~n', [Indent]),
+    format('~a    print "\\n","*"*72, "\\n** GRAMMAR ERROR in argument \
+	    ~a = %s"%repr(~a),"\\n", "*"*72~n', [Indent, Var, Var]),
     format('~a    print f.__name__+"():\\n    \\"\\"\\"%s\\"\\"\\"\\n" \
 	%f.__doc__.replace("\\\\n","\\n")\
                   .replace("\\return","Returns")\
                   .replace("\\\\c ","")~n',
 	  [Indent]),
-    format('~a    print "**GRAMMAR ERROR in argument \
-	    ~a = %s"%repr(~a)~n', [Indent, Var, Var]),
-    format('~a    print "  Most likely you now want to enter \\"up<enter>l<enter>\\"\\n \
+    format('~a    print "\\n  Most likely you now want to enter \\"up<enter>l<enter>\\"\\n \
 	   into the debugger to see what happened.\\n"~n', [Indent]),	    
     format('~a    raise Exception("Grammar Error")~n', [Indent]).
 

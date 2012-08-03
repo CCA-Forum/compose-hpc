@@ -203,7 +203,7 @@ $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo
 	  $(EXTRA_LDFLAGS) -o $@
 endif
 
-STUBOBJS=$(patsubst .chpl, .lo, $(STUBSRCS:.c=.lo))
+STUBOBJS=$(patsubst %.chpl, %.lo, $(STUBSRCS:.c=.lo))
 IOROBJS=$(IORSRCS:.c=.lo)
 SKELOBJS=$(SKELSRCS:.c=.lo)
 IMPLOBJS=$(IMPLSRCS:.chpl=.lo)
@@ -214,7 +214,7 @@ BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
 $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
-	babel-libtool --mode=link --tag=CC $(BABEL_CC) -o lib$(LIBNAME).la \
+	babel-libtool --mode=link --tag=CC $(BABEL_CC) -o $@ \
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \

@@ -629,6 +629,7 @@ PL_LIBS
 PL_CFLAGS
 BABEL_LANG_UPC_FALSE
 BABEL_LANG_UPC_TRUE
+UPCC_POSTTRANS_CPPFLAGS
 UPC_LIBS
 UPC_LDFLAGS
 UPC_CPPFLAGS
@@ -15506,13 +15507,15 @@ if test -n "$UPC"; then :
 
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: detected Berkeley UPC version $UPC_VERSION" >&5
 $as_echo "$as_me: detected Berkeley UPC version $UPC_VERSION" >&6;}
-	      UPC_CFLAGS=`$UPC --echo-var GASNET_CFLAGS`
+	      UPC_CFLAGS=`$UPC $UPCFLAGS --echo-var GASNET_CFLAGS`
 
-	      UPC_CPPFLAGS=`$UPC --echo-var UPCR_CPPFLAGS`
+	      UPC_CPPFLAGS=`$UPC $UPCFLAGS --echo-var UPCR_CPPFLAGS`
 
-	      UPC_LDFLAGS=`$UPC --echo-var UPCR_LDFLAGS`
+	      UPC_LDFLAGS=`$UPC $UPCFLAGS --echo-var UPCR_LDFLAGS`
 
-	      UPC_LIBS=`$UPC --echo-var UPCR_LIBS`
+	      UPC_LIBS=`$UPC $UPCFLAGS --echo-var UPCR_LIBS`
+
+	      UPCC_POSTTRANS_CPPFLAGS=`$UPC $UPC_FLAGS --echo-var UPCC_POSTTRANS_CPPFLAGS`
 
 
 	      # compile an empty file and extract the auto-generated
@@ -15529,27 +15532,35 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 /* end confdefs.h.  */
 int main(int argc, char** argv) { return 0; }
 _ACEOF
-	      mv conftest.c upc_stub.upc                     || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+	      mv conftest.c upc_stub.upc || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "no conftest?
 See \`config.log' for more details" "$LINENO" 5; }
-	      $UPC --save-all-temps upc_stub.upc -o upc_stub || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+	      $UPC $UPCFLAGS --save-all-temps upc_stub.upc -o upc_stub || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "invoking $UPC
 See \`config.log' for more details" "$LINENO" 5; }
-	      $MKDIR_P upc                                   || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+	      $MKDIR_P upc || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "mkdir
 See \`config.log' for more details" "$LINENO" 5; }
-	      mv upc_stub_temps/upc_stub_startup_tmp.c upc/upc_startup.c || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+	      UPC_RUNTIME_FILES="upc/upc_stub_startup_tmp.c upc/upcr_trans_extra.c upc/upc_stub.trans.c"
+	      mv upc_stub_temps/upc_stub_startup_tmp.c \
+	         upc_stub_temps/upcr_trans_extra.c \
+		 upc_stub_temps/upc_stub.trans.c \
+		 upc/ || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "
-Unexpected startup code layout. You are probably using a too new version of UPC.
-Please see the README for the supported versions.
+Unexpected startup code layout. You are probably an unsupported version of UPC.
+Please see the README for a list of supported versions.
 See \`config.log' for more details" "$LINENO" 5; }
-       	      $RM -r upc_stub*                               || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+       	      $RM -r upc_stub* || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "removing temp. files
+See \`config.log' for more details" "$LINENO" 5; }
+	      $SED -i 's/user_main/_braid_disabled/' upc/upc_stub.trans.c || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "sed
 See \`config.log' for more details" "$LINENO" 5; }
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
 $as_echo "ok" >&6; }
@@ -15711,11 +15722,11 @@ $as_echo "no" >&6; }
                 { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&5
+      unless you intend to modify the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&6;}
+      unless you intend to modify the IR grammar." >&6;}
          SWIPL=""
 
 
@@ -15723,11 +15734,11 @@ elif test $pkg_failed = untried; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&5
+      unless you intend to modify the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&6;}
+      unless you intend to modify the IR grammar." >&6;}
          SWIPL=""
 
 
@@ -15811,11 +15822,11 @@ $as_echo "no" >&6; }
                 { $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&5
+      unless you intend to modify the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&6;}
+      unless you intend to modify the IR grammar." >&6;}
          SWIPL=""
 
 
@@ -15823,11 +15834,11 @@ elif test $pkg_failed = untried; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&5
+      unless you intend to modify the IR grammar." >&5
 $as_echo "$as_me: Did not find SWI-Prolog version 5.8 or later!
 Please remember to set PKG_CONFIG_PATH accordingly.
 Note: You won't need to have this installed
-      unless you intend to modyfy the IR grammar." >&6;}
+      unless you intend to modify the IR grammar." >&6;}
          SWIPL=""
 
 
@@ -15886,7 +15897,9 @@ if test -n "${BABEL_PREFIX}"; then :
          >$srcdir/regression/interop/tests.mk 2>/dev/null
        grep "^# Total" $srcdir/regression/interop/tests.mk
 fi
+
 sh $srcdir/gen-runtime-deps.sh $srcdir
+echo "UPC_RUNTIME_EXTRA=$UPC_RUNTIME_FILES">>${srcdir}/upc/Makefile.include
 
 ac_config_files="$ac_config_files Makefile braid/braid braid/rote2braid braid/config.py braid/pyburg Doxyfile patch-chapel-compiler.sh regression/interop/build-client.sh regression/interop/build-server.sh regression/interop/build-tracker.sh regression/interop/driver.sh"
 

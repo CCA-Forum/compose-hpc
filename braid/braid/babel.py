@@ -23,6 +23,7 @@
 import ir, sidl
 from patmat import *
 from sidl_symbols import SymbolTable
+from string import Template
 
 def strip_common(prefix, a):
     """
@@ -551,34 +552,43 @@ def ior_type(symbol_table, t):
 
 
 def externals(scopedid):
-    return '''
+    return Template('''
 #include "sidlOps.h"
+#include "sidl.h"
+#include "sidl_BaseException_IOR.h"
+#include "sidl_rmi_InstanceHandle_IOR.h"
+
+// Avoid mixing Braid and Babel headers
+#ifndef included_sidl_BaseException_h
+#define included_sidl_BaseException_h
+#endif
+#include "sidl_Exception.h"
 
 // Hold pointer to IOR functions.
-static const struct {a}__external *_externals = NULL;
+static const struct ${ext}__external *_externals = NULL;
 
-extern const struct {a}__external* {a}__externals(void);
+extern const struct ${ext}__external* ${ext}__externals(void);
 
 // Lookup the symbol to get the IOR functions.
-static const struct {a}__external* _loadIOR(void)
+static const struct ${ext}__external* _loadIOR(void)
 
 // Return pointer to internal IOR functions.
-{{
+{
 #ifdef SIDL_STATIC_LIBRARY
-  _externals = {a}__externals();
+  _externals = ${ext}__externals();
 #else
-  _externals = (struct {a}__external*)sidl_dynamicLoadIOR(
-    "{b}","{a}__externals") ;
-  sidl_checkIORVersion("{b}", _externals->d_ior_major_version, 
+  _externals = (struct ${ext}__external*)sidl_dynamicLoadIOR(
+    "${ext_dots}","${ext}__externals") ;
+  sidl_checkIORVersion("${ext_dots}", _externals->d_ior_major_version, 
     _externals->d_ior_minor_version, 2, 0);
 #endif
   return _externals;
-}}
+}
 
 #define _getExternals() (_externals ? _externals : _loadIOR())
 
 // Hold pointer to static entry point vector
-static const struct {a}__sepv *_sepv = NULL;
+static const struct ${ext}__sepv *_sepv = NULL;
 
 // Return pointer to static functions.
 #define _getSEPV() (_sepv ? _sepv : (_sepv = (*(_getExternals()->getStaticEPV))()))
@@ -586,5 +596,216 @@ static const struct {a}__sepv *_sepv = NULL;
 // Reset point to static functions.
 #define _resetSEPV() (_sepv = (*(_getExternals()->getStaticEPV))())
 
-'''.format(a=qual_id(scopedid), b=qual_id(scopedid, '.'))
+''').substitute(ext=qual_id(scopedid), ext_dots=qual_id(scopedid, '.'))
 
+def builtin_stub_functions(scopedid):
+    '''
+    builtins ususally included in the C-bases server stub
+    '''
+    return Template('''
+/*
+ * Constructor function for the class.
+ */
+#pragma weak ${ext}__create
+${ext}
+${ext}__create(sidl_BaseInterface* _ex)
+{
+  return (*(_getExternals()->createObject))(NULL,_ex);
+}
+
+/**
+ * Wraps up the private data struct pointer (struct ${ext}__data) passed in rather than running the constructor.
+ */
+#pragma weak ${ext}__wrapObj
+${ext}
+${ext}__wrapObj(void* data, sidl_BaseInterface* _ex)
+{
+  return (*(_getExternals()->createObject))(data, _ex);
+}
+
+#ifdef WITH_RMI
+
+static ${ext} ${ext}__remoteCreate(const char* url, sidl_BaseInterface
+  *_ex);
+/*
+ * RMI constructor function for the class.
+ */
+#pragma weak ${ext}__createRemote
+${ext}
+${ext}__createRemote(const char* url, sidl_BaseInterface *_ex)
+{
+  return NULL;//${ext}__remoteCreate(url, _ex);
+}
+
+static struct ${ext}__object* ${ext}__remoteConnect(const char* url,
+  sidl_bool ar, sidl_BaseInterface *_ex) {return 0;/*FIXME*/}
+static struct ${ext}__object* ${ext}__IHConnect(struct
+  sidl_rmi_InstanceHandle__object* instance, sidl_BaseInterface *_ex) {return NULL;/*FIXME*/}
+
+/*
+ * RMI connector function for the class.
+ */
+#pragma weak ${ext}__connect
+${ext}
+${ext}__connect(const char* url, sidl_BaseInterface *_ex)
+{
+  return NULL;//${ext}__remoteConnect(url, TRUE, _ex);
+}
+
+#endif /*WITH_RMI*/
+
+/*
+ * Method to enable/disable interface contract enforcement.
+ */
+#pragma weak ${ext}__set_contracts
+void
+${ext}__set_contracts(
+  ${ext} self,
+  sidl_bool   enable,
+  const char* enfFilename,
+  sidl_bool   resetCounters,
+  struct sidl_BaseInterface__object **_ex)
+{
+  (*self->d_epv->f__set_contracts)(
+  self,
+  enable, enfFilename, resetCounters, _ex);
+}
+
+/*
+ * Method to dump interface contract enforcement statistics.
+ */
+#pragma weak ${ext}__dump_stats
+void
+${ext}__dump_stats(
+  ${ext} self,
+  const char* filename,
+  const char* prefix,
+  struct sidl_BaseInterface__object **_ex)
+{
+  (*self->d_epv->f__dump_stats)(
+  self,
+  filename, prefix, _ex);
+}
+
+/*
+ * Cast method for interface and class type conversions.
+ */
+#pragma weak ${ext}__cast
+${ext}
+${ext}__cast(
+  void* obj,
+  sidl_BaseInterface* _ex)
+{
+  ${ext} cast = NULL;
+
+#ifdef WITH_RMI
+  static int connect_loaded = 0;
+  if (!connect_loaded) {
+    connect_loaded = 1;
+    sidl_rmi_ConnectRegistry_registerConnect("${ext_dots}", (
+      void*)${ext}__IHConnect,_ex);SIDL_CHECK(*_ex);
+  }
+#endif /*WITH_RMI*/
+  if (obj != NULL) {
+    sidl_BaseInterface base = (sidl_BaseInterface) obj;
+    cast = (${ext}) (*base->d_epv->f__cast)(
+      base->d_object,
+      "${ext_dots}", _ex); SIDL_CHECK(*_ex);
+  }
+
+  EXIT:
+  return cast;
+}
+
+/*
+ * String cast method for interface and class type conversions.
+ */
+#pragma weak ${ext}__cast2
+void*
+${ext}__cast2(
+  void* obj,
+  const char* type,
+  sidl_BaseInterface* _ex)
+{
+  void* cast = NULL;
+
+  if (obj != NULL) {
+    sidl_BaseInterface base = (sidl_BaseInterface) obj;
+    cast = (*base->d_epv->f__cast)(base->d_object, type, _ex); SIDL_CHECK(*_ex);
+  }
+
+  EXIT:
+  return cast;
+}
+
+
+
+
+/*
+ * TRUE if this object is remote, false if local
+ */
+#pragma weak ${ext}__isLocal
+sidl_bool
+${ext}__isLocal(
+  /* in */ ${ext} self,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  return !${ext}__isRemote(self, _ex);
+}           
+
+// FIXME: this does not belong here. It should be in stub.h
+#pragma weak ${ext}__isRemote
+sidl_bool
+${ext}__isRemote(
+  /* in */ ${ext} self,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  sidl_bool _result;
+  _result = (*self->d_epv->f__isRemote)(
+    self,
+    _ex);
+  return _result;
+}
+
+''').substitute(ext=qual_id(scopedid), ext_dots=qual_id(scopedid, '.'))
+
+def build_function_call(ci, cdecl, static):
+    '''
+    Build an IR expression that consists of the EPV lookup for a
+    possibly virtual function call using Babel IOR.
+    '''
+    #if final:
+        # final : Final methods are the opposite of virtual. While
+        # they may still be inherited by child classes, they
+        # cannot be overridden.
+
+        # static call
+        #The problem with this is that e.g. C++ symbols usere different names
+        #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
+    #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
+    if static:
+        # static : Static methods are sometimes called "class
+        # methods" because they are part of a class, but do not
+        # depend on an object instance. In non-OO languages, this
+        # means that the typical first argument of an instance is
+        # removed. In OO languages, these are mapped directly to
+        # an Java or C++ static method.
+        epv_type = ci.epv.get_type()
+        obj_type = ci.obj
+        callee = ir.Get_struct_item(
+            epv_type,
+            ir.Deref(ir.Call('_getSEPV', [])),
+            ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+ir.fn_decl_id(cdecl)))
+
+    else:
+        # dynamic virtual method call
+        epv_type = ci.epv.get_type()
+        obj_type = ci.obj
+        callee = ir.Deref(ir.Get_struct_item(
+            epv_type,
+            ir.Deref(ir.Get_struct_item(obj_type,
+                                        ir.Deref('self'),
+                                        ir.Struct_item(epv_type, 'd_epv'))),
+            ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+ir.fn_decl_id(cdecl))))
+
+    return callee

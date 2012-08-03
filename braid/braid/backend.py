@@ -42,6 +42,7 @@ class GlueCodeGenerator(object):
         Create a new code generator
         \param config.gen_hooks       generate pre-/post-method hooks
         \param config.gen_contracts   generate contract enforcement code
+        \param config.skip_rmi        do not generate RMI
         \param config.make_prefix     prefix for babel.make
         \param config.verbose         if \c True, print extra messages
         """
@@ -224,8 +225,7 @@ class GlueCodeGenerator(object):
         if ior_template.generateContractEPVs(ci.co):
             cstats = [ir.Struct_item(unscope(ci.cstats), 'd_cstats')]
 
-        ior_template.gen_hooks = self.config.gen_hooks
-        ior_template.gen_contracts = self.config.gen_contracts
+        ior_template.braid_config = self.config
         epv  = [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_epv')]
         bepv = [ir.Struct_item(ir.Pointer_type(unscope(ci.epv.get_type())), 'd_bepv')] \
                if ior_template.generateBaseEPVAttr(ci.co) else []
