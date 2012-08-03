@@ -90,9 +90,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             # if self.server:
             #     ci.impl = self.pkg_impl
 
-            if cls.has_static_methods:
-                ci.stub.new_def(babel.externals(cls.get_scoped_id()))
-
+            ci.stub.new_def(babel.externals(cls.get_scoped_id()))
+            ci.stub.new_def(babel.builtin_stub_functions(cls.get_scoped_id()))
+                
             has_contracts = ior_template.generateContractChecks(cls)
             self.gen_default_methods(cls, has_contracts, ci)
 
@@ -162,7 +162,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             ci.stub.write()
 
             # IOR
-            self.generate_ior(ci, with_ior_c=self.server)
+            ior_template.generate_ior(ci, with_ior_c=self.server, _braid_config=self.config )
             ci.ior.write()
 
             # Skeleton
@@ -173,7 +173,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             ext_h = CFile(qname)
             ext_h.genh(ir.Import(qname+'_IOR'))
             ext_h.genh(ir.Import(qname+'_Stub'))
-            ext_h.genh('typedef struct %s__object* %s;'%(qname,qname))
             ext_h.write()
 
             # Makefile
@@ -296,9 +295,42 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         ior_type = babel.lower_ir(symbol_table, Type)
         ior_args = babel.epv_args(Attrs, Args, symbol_table, ci.epv.name)
+        call_args = map(lambda arg: ir.arg_id(arg), ior_args)
+        cdecl = ir.Fn_decl(attrs, ior_type, Name + Extension, ior_args, DocComment)
         qname = '_'.join(ci.co.qualified_name+[Name]) + Extension
+
+        if self.server and has_impl:
+            # if we are generating server code we can take a shortcut
+            # and directly invoke the implementation
+            modname = '_'.join(ci.co.symbol_table.prefix+['Impl'])
+            if not static:
+                qname = '_'.join(ci.co.qualified_name+['Impl'])
+                # FIXME!
+            callee = '_'.join([modname, ir.fn_decl_id(cdecl)])
+        else:
+            callee = babel.build_function_call(ci, cdecl, static)
+
+        if Type == sidl.void:
+            call = [ir.Stmt(ir.Call(callee, call_args))]
+        else:
+            call = [ir.Stmt(ir.Return(ir.Call(callee, call_args)))]
+
         cdecl = ir.Fn_decl(attrs, ior_type, qname, ior_args, DocComment)
-        ci.stub.genh(cdecl)
+        cdefn = ir.Fn_defn(attrs, ior_type, qname, ior_args, call, DocComment)
+
+        if static:
+            # TODO: [performance] we would only need to put the
+            # _externals variable into the _Stub.c, not necessarily
+            # all the function definitions
+            ci.stub.gen(cdecl)
+            ci.stub.new_def('#pragma weak '+qname)
+            ci.stub.gen(cdefn)
+        else:
+            # FIXME: can't UPC handle the inline keyword??
+            ci.stub.new_header_def('static inline')
+            ci.stub.genh(cdefn)
+            # ci.stub.gen(cdecl)
+            # ci.stub.gen(cdefn)
 
 
     def generate_skeleton(self, ci, qname):
@@ -438,7 +470,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         # new file for the user implementation
         self.pkg_impl = ChapelFile(qname+'_Impl')
-        self.pkg_impl.gen(ir.Import('sidl'))
         self.pkg_impl.new_def(extern_def_set_to_null)
         self.pkg_impl.new_def('// DO-NOT-DELETE splicer.begin(%s.Impl)'%qname)
         self.pkg_impl.new_def('// DO-NOT-DELETE splicer.end(%s.Impl)'%qname)
@@ -490,108 +521,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         pkg_h.write()
         pkg_chpl.write()
-
-
-    def generate_ior(self, ci, with_ior_c):
-        """
-        Generate the IOR header file in C and the IOR C file.
-        """
-        prefix = '_'.join(ci.epv.symbol_table.prefix)
-        iorname = '_'.join([prefix, ci.epv.name])
-        for ext in ci.co.get_parents():
-            ci.ior.genh(ir.Import(qual_id(ext[1])+'_IOR'))
-        ci.ior.genh(ir.Import('sidl'))
-
-        def gen_forward_references():
-            
-            def get_ctype(typ):
-                """
-                Extract name and generate argument conversions
-                """
-                ctype = ''
-                if not typ:
-                    pass
-                elif typ[0] == sidl.scoped_id:
-                    # Symbol
-                    ctype = qual_id(typ)
-                elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                    ctype = get_ctype(typ[1])    
-                elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
-                    ctype = get_ctype(typ[1]) 
-    
-                return ctype
-            
-            def add_forward_defn(name):
-                ci.ior.genh('struct ' + name + '__array;')
-                ci.ior.genh('struct ' + name + '__object;')
-            
-            add_forward_defn(iorname)
-            refs = ['sidl_BaseException', 'sidl_BaseInterface', 
-                    'sidl_rmi_Call', 'sidl_rmi_Return']
-            
-            # lookup extends/impls clause
-            for _, ext in ci.co.extends:
-                refs.append(qual_id(ext))
-
-            for _, impl in ci.co.implements:
-                refs.append(qual_id(impl))
-                    
-            # lookup method args and return types
-            for loop_method in ci.co.all_methods:
-                (_, _, _, _, loop_args, _, _, _, _, _) = loop_method
-                for loop_arg in loop_args:
-                    (_, _, _, loop_typ, _) = loop_arg
-                    loop_ctype = get_ctype(loop_typ)
-                    if loop_ctype:
-                        refs.append(loop_ctype)
-            
-            # lookup static function args and return types
-            
-            # sort the refs and the add the forward references to the header
-            refs = list(set(refs))
-            refs.sort()
-            for loop_ref in refs:
-                add_forward_defn(loop_ref)
-
-        # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
-                
-        ci.ior.genh(ir.Import('stdint'))
-        gen_forward_references()
-        ci.ior.genh('#ifndef included_sidl_h')
-        if ci.methodcstats: 
-            ci.ior.gen(ir.Type_decl(ci.methodcstats))
-        ci.ior._header.extend(ior_template.contract_decls(ci.co, iorname))
-        ci.ior.gen(ir.Type_decl(ci.cstats))
-        ci.ior.gen(ir.Type_decl(ci.obj))
-        ci.ior.gen(ir.Type_decl(ci.external))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_pre_epv_ir()))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_post_epv_ir()))
-
-        sepv = ci.epv.get_sepv_ir() 
-        if sepv:
-            ci.ior.gen(ir.Type_decl(sepv))
-            ci.ior.gen(ir.Type_decl(ci.epv.get_pre_sepv_ir()))
-            ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
-
-        ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__init',
-            babel.static_ior_args([ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
-                           ci.epv.symbol_table, ci.epv.name),
-            "INIT: initialize a new instance of the class object."))
-        ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
-            babel.static_ior_args([], ci.epv.symbol_table, ci.epv.name),
-            "FINI: deallocate a class instance (destructor)."))
-
-        ci.ior.new_header_def('struct %s__object* %s__createObject('%(iorname, iorname)+
-                              'void* ddata, struct sidl_BaseInterface__object ** _ex);')
-
-        ci.ior.genh('#endif /* included_sidl_h */')
-
-        if with_ior_c:
-            ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co, 
-                                                  self.config.gen_hooks, 
-                                                  self.config.gen_contracts))
-
     
     @matcher(globals(), debug=False)
     def generate_server_method(self, symbol_table, method, ci):

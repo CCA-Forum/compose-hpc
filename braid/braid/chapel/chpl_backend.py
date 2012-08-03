@@ -127,8 +127,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             chpl_stub.cstub.genh(ir.Import('sidl_header'))
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             chpl_stub.cstub.genh(ir.Import('chpltypes'))
-            if cls.has_static_methods:
-                chpl_stub.cstub.new_def(babel.externals(cls.get_scoped_id()))
+            chpl_stub.cstub.new_def(babel.externals(cls.get_scoped_id()))
+            if self.server: 
+                chpl_stub.cstub.new_def(babel.builtin_stub_functions(cls.get_scoped_id()))
 
             has_contracts = ior_template.generateContractChecks(cls)
             self.gen_default_methods(cls, has_contracts, ci)
@@ -203,7 +204,11 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             cstub.write()
 
             # IOR
-            self.generate_ior(ci, with_ior_c=self.server)
+            ci.ior.genh(ir.Import(pkg_name))
+            ci.ior.genh(ir.Import('sidl'))
+            ci.ior.genh(ir.Import('chpl_sidl_array'))
+            ci.ior.genh(ir.Import('chpltypes'))
+            ior_template.generate_ior(ci, with_ior_c=self.server, _braid_config=self.config )
             ci.ior.write()
 
             # Skeleton
@@ -613,8 +618,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         call_args = call_self + call_args + ['_ex']
         # Add the exception to the chapel method signature
         chpl_args.append(ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), chpl_param_ex_name))
-        
-
         if self.server and has_impl:
             # if we are generating server code we can take a shortcut
             # and directly invoke the implementation
@@ -622,43 +625,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             if not static:
                 qname = '_'.join(ci.co.qualified_name+['Impl'])
                 # FIXME!
-            callee = '.'.join([modname, Name])
+            callee = '.'.join([modname, ir.fn_decl_id(cdecl)])
         else:
-            #if final:
-                # final : Final methods are the opposite of virtual. While
-                # they may still be inherited by child classes, they
-                # cannot be overridden.
-
-                # static call
-                #The problem with this is that e.g. C++ symbols usere different names
-                #We should modify Babel to generate  __attribute__ ((weak, alias ("__entry")))
-            #    callee = '_'.join(['impl']+symbol_table.prefix+[ci.epv.name,Name])
-            if static:
-                # static : Static methods are sometimes called "class
-                # methods" because they are part of a class, but do not
-
-                # depend on an object instance. In non-OO languages, this
-                # means that the typical first argument of an instance is
-                # removed. In OO languages, these are mapped directly to
-                # an Java or C++ static method.
-                epv_type = ci.epv.get_type()
-                obj_type = ci.obj
-                callee = ir.Get_struct_item(
-                    epv_type,
-                    ir.Deref(ir.Call('_getSEPV', [])),
-                    ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension))
-
-            else:
-                # dynamic virtual method call
-                epv_type = ci.epv.get_type()
-                obj_type = ci.obj
-                callee = ir.Deref(ir.Get_struct_item(
-                    epv_type,
-                    ir.Deref(ir.Get_struct_item(obj_type,
-                                                ir.Deref('self'),
-                                                ir.Struct_item(epv_type, 'd_epv'))),
-                    ir.Struct_item(ir.Pointer_type(cdecl), 'f_' + Name + Extension)))
-
+            callee = babel.build_function_call(ci, cdecl, static)
 
         stubcall = ir.Call(callee, call_args)
         if Type == sidl.void:
@@ -1080,109 +1049,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         pkg_h.write()
         pkg_chpl.write()
-
-
-    def generate_ior(self, ci, with_ior_c):
-        """
-        Generate the IOR header file in C and the IOR C file.
-        """
-        prefix = '_'.join(ci.epv.symbol_table.prefix)
-        iorname = '_'.join([prefix, ci.epv.name])
-        ci.ior.genh(ir.Import(prefix))
-        ci.ior.genh(ir.Import('sidl'))
-        for _, ext in ci.co.extends + ci.co.implements:
-            ci.ior.genh(ir.Import(qual_id(ext)+'_IOR'))
-
-
-        def gen_forward_references():
-            
-            def get_ctype(typ):
-                """
-                Extract name and generate argument conversions
-                """
-                ctype = ''
-                if not typ:
-                    pass
-                elif typ[0] == sidl.scoped_id:
-                    # Symbol
-                    ctype = qual_id(typ)
-                elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                    ctype = get_ctype(typ[1])    
-                elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
-                    ctype = get_ctype(typ[1]) 
-    
-                return ctype
-            
-            def add_forward_defn(name):
-                ci.ior.genh('struct ' + name + '__array;')
-                ci.ior.genh('struct ' + name + '__object;')
-            
-            add_forward_defn(iorname)
-            refs = ['sidl_BaseException', 'sidl_BaseInterface', 
-                    'sidl_rmi_Call', 'sidl_rmi_Return']
-            
-            # lookup extends/impls clause
-            for _, ext in ci.co.extends:
-                refs.append(qual_id(ext))
-
-            for _, impl in ci.co.implements:
-                refs.append(qual_id(impl))
-                    
-            # lookup method args and return types
-            for loop_method in ci.co.all_methods:
-                (_, _, _, _, loop_args, _, _, _, _, _) = loop_method
-                for loop_arg in loop_args:
-                    (_, _, _, loop_typ, _) = loop_arg
-                    loop_ctype = get_ctype(loop_typ)
-                    if loop_ctype:
-                        refs.append(loop_ctype)
-            
-            # lookup static function args and return types
-            
-            # sort the refs and the add the forward references to the header
-            refs = list(set(refs))
-            refs.sort()
-            for loop_ref in refs:
-                add_forward_defn(loop_ref)
-
-        # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
-                
-        ci.ior.genh(ir.Import('stdint'))
-        ci.ior.genh(ir.Import('chpl_sidl_array'))
-        ci.ior.genh(ir.Import('chpltypes'))
-        gen_forward_references()
-        if ci.methodcstats: 
-            ci.ior.gen(ir.Type_decl(ci.methodcstats))
-        ci.ior._header.extend(ior_template.contract_decls(ci.co, iorname))
-        ci.ior.gen(ir.Type_decl(ci.cstats))
-        ci.ior.gen(ir.Type_decl(ci.obj))
-        ci.ior.gen(ir.Type_decl(ci.external))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_pre_epv_ir()))
-        ci.ior.gen(ir.Type_decl(ci.epv.get_post_epv_ir()))
-
-        sepv = ci.epv.get_sepv_ir() 
-        if sepv:
-            ci.ior.gen(ir.Type_decl(sepv))
-            ci.ior.gen(ir.Type_decl(ci.epv.get_pre_sepv_ir()))
-            ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
-
-        ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__init',
-            babel.static_ior_args([ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
-                           ci.epv.symbol_table, ci.epv.name),
-            "INIT: initialize a new instance of the class object."))
-        ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
-            babel.static_ior_args([], ci.epv.symbol_table, ci.epv.name),
-            "FINI: deallocate a class instance (destructor)."))
-
-        ci.ior.new_header_def('struct %s__object* %s__createObject('%(iorname, iorname)+
-                              'void* ddata, struct sidl_BaseInterface__object ** _ex);')
-
-        if with_ior_c:
-            ci.ior.new_def(ior_template.gen_IOR_c(iorname, ci.co, 
-                                                  self.config.gen_hooks, 
-                                                  self.config.gen_contracts))
-
     
     @matcher(globals(), debug=False)
     def generate_server_method(self, symbol_table, method, ci):

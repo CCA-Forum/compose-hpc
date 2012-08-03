@@ -139,3 +139,4 @@ UPC_SIDLSTUB_HDRS = \
   upc/sidl_RuntimeException_IOR.h \
   upc/sidl_SIDLException_Stub.h \
   upc/sidl_SIDLException_IOR.h#
+UPC_RUNTIME_EXTRA=upc/upc_stub_startup_tmp.c upc/upcr_trans_extra.c upc/upc_stub.trans.c

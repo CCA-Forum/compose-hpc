@@ -31,21 +31,114 @@ from sidlobjects import make_extendable
 from string import Template
 from utils import accepts
 
-gen_hooks = False
-gen_contracts = True
-skip_rmi = False
+def generate_ior(ci, with_ior_c, _braid_config):
+    """
+    Generate the IOR header file in C and the IOR C file.
+    """
+    prefix = '_'.join(ci.epv.symbol_table.prefix)
+    iorname = '_'.join([prefix, ci.epv.name])
+    for _, ext in ci.co.extends + ci.co.implements:
+        ci.ior.genh(ir.Import(qual_id(ext)+'_IOR'))
 
-def gen_IOR_c(iorname, cls, _gen_hooks, _gen_contracts):
+
+    def gen_forward_references():
+
+        def get_ctype(typ):
+            """
+            Extract name and generate argument conversions
+            """
+            ctype = ''
+            if not typ:
+                pass
+            elif typ[0] == sidl.scoped_id:
+                # Symbol
+                ctype = qual_id(typ)
+            elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+                ctype = get_ctype(typ[1])    
+            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
+                ctype = get_ctype(typ[1]) 
+
+            return ctype
+
+        def add_forward_defn(name):
+            ci.ior.genh('struct ' + name + '__array;')
+            ci.ior.genh('struct ' + name + '__object;')
+
+        add_forward_defn(iorname)
+        refs = ['sidl_BaseException', 'sidl_BaseInterface', 
+                'sidl_rmi_Call', 'sidl_rmi_Return']
+
+        # lookup extends/impls clause
+        for _, ext in ci.co.extends:
+            refs.append(qual_id(ext))
+
+        for _, impl in ci.co.implements:
+            refs.append(qual_id(impl))
+
+        # lookup method args and return types
+        for loop_method in ci.co.all_methods:
+            (_, _, _, _, loop_args, _, _, _, _, _) = loop_method
+            for loop_arg in loop_args:
+                (_, _, _, loop_typ, _) = loop_arg
+                loop_ctype = get_ctype(loop_typ)
+                if loop_ctype:
+                    refs.append(loop_ctype)
+
+        # lookup static function args and return types
+
+        # sort the refs and the add the forward references to the header
+        refs = list(set(refs))
+        refs.sort()
+        for loop_ref in refs:
+            add_forward_defn(loop_ref)
+
+    # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
+
+    ci.ior.genh(ir.Import('stdint'))
+    gen_forward_references()
+    if ci.methodcstats: 
+        ci.ior.gen(ir.Type_decl(ci.methodcstats))
+    ci.ior._header.extend(contract_decls(ci.co, iorname))
+    ci.ior.gen(ir.Type_decl(ci.cstats))
+    ci.ior.gen(ir.Type_decl(ci.obj))
+    ci.ior.gen(ir.Type_decl(ci.external))
+    ci.ior.gen(ir.Type_decl(ci.epv.get_ir()))
+    ci.ior.gen(ir.Type_decl(ci.epv.get_pre_epv_ir()))
+    ci.ior.gen(ir.Type_decl(ci.epv.get_post_epv_ir()))
+
+    sepv = ci.epv.get_sepv_ir() 
+    if sepv:
+        ci.ior.gen(ir.Type_decl(sepv))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_pre_sepv_ir()))
+        ci.ior.gen(ir.Type_decl(ci.epv.get_post_sepv_ir()))
+
+    ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__init',
+        babel.static_ior_args([ir.Arg([], ir.in_, ir.void_ptr, 'ddata')],
+                       ci.epv.symbol_table, ci.epv.name),
+        "INIT: initialize a new instance of the class object."))
+    ci.ior.gen(ir.Fn_decl([], ir.pt_void, iorname+'__fini',
+        babel.static_ior_args([], ci.epv.symbol_table, ci.epv.name),
+        "FINI: deallocate a class instance (destructor)."))
+
+    ci.ior.new_header_def('struct %s__object* %s__createObject('%(iorname, iorname)+
+                          'void* ddata, struct sidl_BaseInterface__object ** _ex);')
+
+    ci.ior.new_header_def('typedef struct %s__object* %s;'%(iorname,iorname))
+    if with_ior_c:
+        ci.ior.new_def(gen_IOR_c(iorname, ci.co, _braid_config))
+
+    return
+
+
+def gen_IOR_c(iorname, cls, _braid_config):
     """
     generate a Babel-style $classname_IOR.c
     """
-    global gen_hooks
-    gen_hooks = _gen_hooks
-    global gen_contracts
-    gen_contracts = _gen_contracts
+    global braid_config
+    braid_config = _braid_config
     # class hierarchy for the casting function
     sorted_parents = sorted(cls.get_parents(), 
-                            key = lambda x: qual_id(sidl.type_id(x)))
+                            key = lambda x: qual_id(sidl.type_id(x), '.'))
 
     return Template(text).substitute(
         CLASS = iorname, 
@@ -597,7 +690,7 @@ def cast_binary_search(sorted_types, cls, addref):
         if lower < upper:
             middle = (lower + upper) / 2;
             e = sorted_types[middle];
-            r += [ind+'cmp = strcmp(name, "%s");'%qual_id(e[1]),
+            r += [ind+'cmp = strcmp(name, "%s");'%qual_id(e[1], '.'),
                   ind+'if (!cmp) {',
                   ind+'  (*self->d_epv->f_addRef)(self, _ex); SIDL_CHECK(*_ex);' if addref else '',
                   ind+'  cast = %s;' % class_to_interface_ptr(cls, e),
@@ -704,12 +797,10 @@ def class_to_interface_ptr(cls, e):
         return 'NULL'
     
 
-def qual_id(scoped_id, sep='.'):
-    _, prefix, name, ext = scoped_id
-    return sep.join(list(prefix)+[name])+ext  
-  
-def qual_id_low(scoped_id, sep='.'):
-    return str.lower(qual_id(scoped_id, sep))
+qual_id = babel.qual_id
+
+def qual_id_low(scoped_id):
+    return str.lower(qual_id(scoped_id))
 
 def qual_name(symbol_table, cls):
     assert not sidl.is_scoped_id(cls)
@@ -790,7 +881,7 @@ def StaticEPVDecls(sorted_parents, cls, ior_name):
     new_interfaces = cls.get_unique_interfaces()
     for parent in sorted_parents:
         is_par   = not sidl.hashable_type_id(parent) in new_interfaces
-        t = qual_id(sidl.type_id(parent), '_')
+        t = qual_id(sidl.type_id(parent))
         n = str.lower(t)
         r.append('static struct %s__epv  s_my_epv__%s;'% (t, n))
         with_parent_hooks = generateHookEPVs(make_extendable(cls.symbol_table, parent))
@@ -1163,7 +1254,7 @@ def copyEPVs(r, symbol_table, parents, renames):
         r.append('  %sf_%s= (void* (*)(%s,%s))epv->f_%s;'
                  %(estring,align(vecEntry, mwidth),selfptr,ex,vecEntry))
    
-        if not skip_rmi:
+        if not braid_config.skip_rmi:
    
           vecEntry = '_getURL'
           r.append('  %sf_%s= (char* (*)(%s,%s))epv->f_%s;'
@@ -1330,7 +1421,7 @@ def init_epv(cls, iorname, sorted_parents):
 
     # Output builtin methods.
     for m in babel.builtin_method_names:
-        if (m <> '_load') and not (m in babel.rmi_related and skip_rmi):
+        if (m <> '_load') and not (m in babel.rmi_related and braid_config.skip_rmi):
             mname = 'NULL' if m in ['_ctor', '_ctor2', '_dtor'] else 'ior_%s_%s'%(T, m)
             r.append('  epv->f_%s= %s;'%(align(m, 16), mname))
 
@@ -2322,7 +2413,7 @@ def fixEPVs(r, cls, level, is_new):
     #width   = Utilities.getWidth(ifce) + epv.length() + 3;
 
     for i in ifce:
-        name        = qual_id_low(i, '_')
+        name        = qual_id_low(i)
         r.append('  %s->d_%s.d_%s = %ss_%s%s__%s;' %(_self, name, epv, prefix, epvType, epv, name))
 
     name_low = qual_cls_low(cls)
@@ -2424,7 +2515,7 @@ def generateHookMethods(ext):
     2) Hook methods are only generated if configuration indicates
        their generation is required.
     """
-    return generateHookEPVs(ext) and gen_hooks
+    return generateHookEPVs(ext) and braid_config.gen_hooks
 
    
 @accepts(object)
@@ -2464,7 +2555,7 @@ def generateContractChecks(ext):
     """     
     return generateContractEPVs(ext) \
         and class_contracts(ext) \
-        and gen_contracts
+        and braid_config.gen_contracts
    
 
 @accepts(object)

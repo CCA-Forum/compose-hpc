@@ -110,11 +110,16 @@ LIBDIR=$(PREFIX)/lib
 INCLDIR=$(PREFIX)/include
 
 UPC="""+config.UPC+r"""
+UPCFLAGS="""+config.UPCFLAGS+r"""
+UPC_VERSION="""+config.UPC_VERSION+r"""
 BABEL_CC=$(shell babel-config --query-var=CC)
 BABEL_INCLUDES=$(shell babel-config --includes) -I$(SIDL_RUNTIME)
 BABEL_CFLAGS=$(shell babel-config --flags-c)
 BABEL_LIBS=$(shell babel-config --libs-c-client)
-
+UPC_CPPFLAGS="""+config.UPC_CPPFLAGS+r"""
+UPC_CFLAGS="""+config.UPC_CFLAGS+r"""
+UPC_LDFLAGS="""+config.UPC_LDFLAGS+r""" -L"""+config.PREFIX+r"""/lib
+UPC_LIBS="""+config.UPC_LIBS+r""" -lsidlstub_upc -lupc_runtime_extra
 SIDL_RUNTIME="""+config.PREFIX+r"""/include/upc
 
 # most of the rest of the file should not require editing
@@ -132,10 +137,10 @@ endif
 all: lib$(LIBNAME).la $(SCLFILE) $(TARGET)
 
 $(TARGET): lib$(LIBNAME).la $(SERVER) $(IMPLOBJS) $(IMPL).lo 
-	babel-libtool --mode=link $(BABEL_CC) -static lib$(LIBNAME).la \
+	babel-libtool --mode=link $(BABEL_CC) -all-static lib$(LIBNAME).la \
 	  $(IMPLOBJS) $(IMPL).lo $(SERVER) $(EXTRA_LDFLAGS) -o $@
 
-STUBOBJS=$(patsubst .upc, .lo, $(STUBSRCS:.c=.lo))
+STUBOBJS=$(patsubst %.upc, %.lo, $(STUBSRCS:.c=.lo))
 IOROBJS=$(IORSRCS:.upc=.lo)
 SKELOBJS=$(SKELSRCS:.upc=.lo)
 IMPLOBJS=$(IMPLSRCS:.upc=.lo)
@@ -146,12 +151,13 @@ BABELGEN=$(IMPLHDRS) $(IMPLSRCS)
 $(IMPLOBJS) : $(STUBHDRS) $(IORHDRS) $(IMPLHDRS)
 
 lib$(LIBNAME).la : $(STUBOBJS) $(IOROBJS) $(IMPLOBJS) $(SKELOBJS)
-	babel-libtool --mode=link --tag=CC $(BABEL_CC) -o lib$(LIBNAME).la \
+	babel-libtool --mode=link --tag=CC $(UPC) $(UPCFLAGS) -o $@ \
+	  -all-static \
           -release $(VERSION) \
 	  -no-undefined $(MODFLAG) \
 	  $(BABEL_CFLAGS) $(EXTRAFLAGS) $^ $(BABEL_LIBS) $(LIBS) \
+	  $(UPC_LDFLAGS) $(UPC_LIBS) \
 	  $(EXTRALIBS)
- #-rpath $(LIBDIR) 
 
 $(PUREBABELGEN) $(BABELGEN) : babel-stamp
 # cf. http://www.gnu.org/software/automake/manual/automake.html#Multiple-Outputs
@@ -199,11 +205,11 @@ endif
 	babel-libtool --mode=compile --tag=CC $(BABEL_CC) \
             $(BABEL_INCLUDES) $(BABEL_CFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
+# $(UPC_CFLAGS) are automatically passed to cc by upcc
 .upc.lo:
-	babel-libtool --mode=compile --tag=UPC $(UPC) -static \
+	babel-libtool --mode=compile --tag=UPC $(UPC) $(UPCFLAGS) -static \
 	    $(BABEL_INCLUDES) $(EXTRAFLAGS) \
             -c -o $@ $<
-
 
 clean :
 	-rm -f $(PUREBABELGEN) babel-temp babel-stamp *.o *.lo

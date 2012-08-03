@@ -216,16 +216,16 @@ def Requires(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == version:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['requires']+list(args))
 
@@ -243,16 +243,16 @@ def Import(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == version:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['import']+list(args))
 
@@ -280,14 +280,14 @@ def User_type(*args):
             elif isinstance(a, tuple) and a[0] == custom_attribute_assoc:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == class_:
         pass
@@ -300,9 +300,9 @@ def User_type(*args):
     elif isinstance(args[1], tuple) and args[1][0] == enum:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['user_type']+list(args))
 
@@ -322,42 +322,42 @@ def File(*args):
             if isinstance(a, tuple) and a[0] == requires:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == import_:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], list) or isinstance(args[2], tuple):
         for a in args[2]:
             if isinstance(a, tuple) and a[0] == user_type:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['file']+list(args))
 
@@ -383,9 +383,9 @@ def Version(*args):
     elif isinstance(args[0], PythonTypes.IntType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['version']+list(args))
 
@@ -405,28 +405,28 @@ def Scoped_id(*args):
             if isinstance(a, PythonTypes.StringType):
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['scoped_id']+list(args))
 
@@ -448,37 +448,37 @@ def Package(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == version:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], list) or isinstance(args[2], tuple):
         for a in args[2]:
             if isinstance(a, tuple) and a[0] == user_type:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[3], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[3] = %s"%repr(args[3]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['package']+list(args))
 
@@ -499,30 +499,30 @@ def Struct(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == struct_item:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['struct']+list(args))
 
@@ -540,9 +540,9 @@ def Enum(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
@@ -551,21 +551,21 @@ def Enum(*args):
             elif isinstance(a, tuple) and a[0] == enumerator_value:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['enum']+list(args))
 
@@ -583,58 +583,58 @@ def Interface(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == extends:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], list) or isinstance(args[2], tuple):
         for a in args[2]:
             if isinstance(a, tuple) and a[0] == invariant:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[3], list) or isinstance(args[3], tuple):
         for a in args[3]:
             if isinstance(a, tuple) and a[0] == method:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[3] = %s"%repr(args[3]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[4], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[4] = %s"%repr(args[4]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[4] = %s"%repr(args[4])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['interface']+list(args))
 
@@ -652,23 +652,23 @@ def Class(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
             if isinstance(a, tuple) and a[0] == extends:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], list) or isinstance(args[2], tuple):
         for a in args[2]:
@@ -677,49 +677,49 @@ def Class(*args):
             elif isinstance(a, tuple) and a[0] == implements_all:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[3], list) or isinstance(args[3], tuple):
         for a in args[3]:
             if isinstance(a, tuple) and a[0] == invariant:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[3] = %s"%repr(args[3]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[4], list) or isinstance(args[4], tuple):
         for a in args[4]:
             if isinstance(a, tuple) and a[0] == method:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[4] = %s"%repr(args[4]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[4] = %s"%repr(args[4])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[5], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[5] = %s"%repr(args[5]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[5] = %s"%repr(args[5])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['class']+list(args))
 
@@ -748,16 +748,16 @@ def Struct_item(*args):
     elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['struct_item']+list(args))
 
@@ -776,25 +776,25 @@ def Rarray(*args):
     if isinstance(args[0], tuple) and args[0][0] == primitive_type:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.IntType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], PythonTypes.IntType):
         pass
     elif isinstance(args[2], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['rarray']+list(args))
 
@@ -812,9 +812,9 @@ def Extends(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['extends']+list(args))
 
@@ -833,9 +833,9 @@ def Invariant(*args):
     if isinstance(args[0], tuple) and args[0][0] == assertion:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['invariant']+list(args))
 
@@ -859,16 +859,16 @@ def Method(*args):
     elif isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == method_name:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], list) or isinstance(args[2], tuple):
         for a in args[2]:
@@ -887,91 +887,91 @@ def Method(*args):
             elif a == copy:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[3], list) or isinstance(args[3], tuple):
         for a in args[3]:
             if isinstance(a, tuple) and a[0] == arg:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[3] = %s"%repr(args[3]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[4], list) or isinstance(args[4], tuple):
         for a in args[4]:
             if isinstance(a, tuple) and a[0] == except_:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[4] = %s"%repr(args[4]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[4] = %s"%repr(args[4])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[5], list) or isinstance(args[5], tuple):
         for a in args[5]:
             if isinstance(a, tuple) and a[0] == from_:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[5] = %s"%repr(args[5]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[5] = %s"%repr(args[5])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[6], list) or isinstance(args[6], tuple):
         for a in args[6]:
             if isinstance(a, tuple) and a[0] == require:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[6] = %s"%repr(args[6]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[6] = %s"%repr(args[6])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[7], list) or isinstance(args[7], tuple):
         for a in args[7]:
             if isinstance(a, tuple) and a[0] == ensure:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[7] = %s"%repr(args[7]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[7] = %s"%repr(args[7])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[8], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[8] = %s"%repr(args[8]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[8] = %s"%repr(args[8])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['method']+list(args))
 
@@ -998,19 +998,19 @@ def Arg(*args):
                     if isinstance(a, PythonTypes.StringType):
                         pass
                     else:
+                        print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                        print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                         raise Exception("Grammar Error")
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if args[1] == in_:
         pass
@@ -1019,9 +1019,9 @@ def Arg(*args):
     elif args[1] == inout:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if args[2] == void:
         pass
@@ -1034,16 +1034,16 @@ def Arg(*args):
     elif isinstance(args[2], tuple) and args[2][0] == rarray:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[3], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[3] = %s"%repr(args[3]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[3] = %s"%repr(args[3])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['arg']+list(args))
 
@@ -1061,9 +1061,9 @@ def Except(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['except']+list(args))
 
@@ -1081,9 +1081,9 @@ def From(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['from']+list(args))
 
@@ -1101,9 +1101,9 @@ def Require(*args):
     if isinstance(args[0], tuple) and args[0][0] == assertion:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['require']+list(args))
 
@@ -1121,9 +1121,9 @@ def Ensure(*args):
     if isinstance(args[0], tuple) and args[0][0] == assertion:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['ensure']+list(args))
 
@@ -1141,16 +1141,16 @@ def Method_name(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['method_name']+list(args))
 
@@ -1171,9 +1171,9 @@ def Assertion(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
@@ -1198,9 +1198,9 @@ def Assertion(*args):
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['assertion']+list(args))
 
@@ -1223,25 +1223,25 @@ def Array(*args):
     elif isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.IntType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if args[2] == row_major:
         pass
     elif args[2] == column_major:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['array']+list(args))
 
@@ -1295,9 +1295,9 @@ def Primitive_type(*args):
     elif args[0] == opaque:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['primitive_type']+list(args))
 
@@ -1326,16 +1326,16 @@ def Complex(*args):
     if isinstance(args[0], PythonTypes.FloatType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.FloatType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['complex']+list(args))
 
@@ -1353,9 +1353,9 @@ def Enumerator(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['enumerator']+list(args))
 
@@ -1373,16 +1373,16 @@ def Enumerator_value(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.IntType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['enumerator_value']+list(args))
 
@@ -1400,9 +1400,9 @@ def Implements(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['implements']+list(args))
 
@@ -1420,9 +1420,9 @@ def Implements_all(*args):
     if isinstance(args[0], tuple) and args[0][0] == scoped_id:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['implements_all']+list(args))
 
@@ -1440,9 +1440,9 @@ def Custom_attribute(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['custom_attribute']+list(args))
 
@@ -1460,16 +1460,16 @@ def Custom_attribute_assoc(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['custom_attribute_assoc']+list(args))
 
@@ -1527,9 +1527,9 @@ def Infix_expr(*args):
     elif args[0] == iff:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
@@ -1554,9 +1554,9 @@ def Infix_expr(*args):
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[2], tuple) and args[2][0] == infix_expr:
         pass
@@ -1581,9 +1581,9 @@ def Infix_expr(*args):
     elif isinstance(args[2], tuple) and args[2][0] == complex:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[2] = %s"%repr(args[2])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['infix_expr']+list(args))
 
@@ -1605,9 +1605,9 @@ def Prefix_expr(*args):
     elif args[0] == bit_not:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], tuple) and args[1][0] == infix_expr:
         pass
@@ -1632,9 +1632,9 @@ def Prefix_expr(*args):
     elif isinstance(args[1], tuple) and args[1][0] == complex:
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['prefix_expr']+list(args))
 
@@ -1652,9 +1652,9 @@ def Fn_eval(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     if isinstance(args[1], list) or isinstance(args[1], tuple):
         for a in args[1]:
@@ -1681,14 +1681,14 @@ def Fn_eval(*args):
             elif isinstance(a, tuple) and a[0] == complex:
                 pass
             else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
                 print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-                print "**GRAMMAR ERROR in argument a = %s"%repr(a)
-                print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
                 raise Exception("Grammar Error")
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[1] = %s"%repr(args[1])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['fn_eval']+list(args))
 
@@ -1706,9 +1706,9 @@ def Var_ref(*args):
     if isinstance(args[0], PythonTypes.StringType):
         pass
     else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
-        print "**GRAMMAR ERROR in argument args[0] = %s"%repr(args[0])
-        print "  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
         raise Exception("Grammar Error")
     return tuple(['var_ref']+list(args))
 

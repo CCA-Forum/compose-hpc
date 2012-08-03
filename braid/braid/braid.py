@@ -263,6 +263,7 @@ BRAID is a high-performance language interoperability tool that generates Babel-
     cmdline.add_argument('-v', '--verbose', action='store_true', help='print more debug info')    
 
     args = cmdline.parse_args()
+    args.skip_rmi = False
 
     if args.license:
         print config.PACKAGE_STRING

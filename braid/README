@@ -361,6 +361,8 @@ UPC Language Binding
 This section describes how the various features of SIDL are mapped
 onto Unified Parallel C constructs.
 
+Braid so far has been tested with Berkeley UPC v. 2.14.2.
+
 TODO.
 
 Development status                                
