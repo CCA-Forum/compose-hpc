@@ -26,6 +26,30 @@
 extern "C" {
 #endif
 
+
+/**
+ * Macro to check an assertion expression.
+ */
+#define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR) { \
+  ContractViolationEnum _pce_vio = ContractViolation_NONE; \
+  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR), (FT)) { \
+    if (!(EXPR)) { \
+      printf("ERROR: %s Violation: %s: %s\n", S_CONTRACT_CLAUSE[TP], \
+             (LBL), (EXPR)); \
+      _pce_vio = (ContractViolationEnum)(TP); \
+    } \
+  } \
+}
+
+/**
+ * Macro to check an assertion expression and terminate if violated.
+ */
+#define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, FT, LBL, EXPR) { \
+  PCE_CHECK_EXPR(ENF, TP, TA, TR, FT LBL, EXPR) \
+  if (_pce_vio != ContractViolation_NONE) { exit(1); } \
+}
+
+
 /*
  **********************************************************************
  * ATTRIBUTES/DATA

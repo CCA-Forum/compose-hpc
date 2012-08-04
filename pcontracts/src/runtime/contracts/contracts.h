@@ -74,6 +74,9 @@ extern "C" {
 
 /**
  * Contract enforcement (clause) violation types.
+ *
+ * WARNING: Expected to be kept in sync with corresponding 
+ *   ContractClause__enum values.
  */
 typedef enum ContractViolation__enum {
   /** No violation occurred. */
@@ -83,9 +86,9 @@ typedef enum ContractViolation__enum {
   /** A precondition clause was violated. */
   ContractViolation_PRECONDITION   = 2,
   /** A postcondition clause was violated. */
-  ContractViolation_POSTCONDITION  = 3,
+  ContractViolation_POSTCONDITION  = 4,
   /** Future Work Placeholder */
-  ContractViolation_CUSTOM         = 4
+  ContractViolation_CUSTOM         = 8
 } ContractViolationEnum;
 
 /** 
@@ -104,12 +107,18 @@ static const ContractViolationEnum S_CONTRACT_VIOLATION_MAX
 
 /**
  * Names corresponding to (and indexable by) ContractViolationEnum.
+ *
+ * @todo  Consider an alternative...
  */
 static const char* S_CONTRACT_VIOLATION[5] = {
   "None",
   "Invariant",
   "Precondition",
+  "**undefined**",
   "Postcondition",
+  "**undefined**",
+  "**undefined**",
+  "**undefined**",
   "Custom"
 };
 

@@ -107,7 +107,7 @@ main(int argc, char **argv) {
       t = 0;
     }
   } else {
-    printf("USAGE: %s [<target-value]\n");
+    printf("USAGE: %s [<target-value]\n", argv[0]);
     exit(1);
   }
 

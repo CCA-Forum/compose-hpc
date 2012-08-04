@@ -2,6 +2,12 @@ Tasks
 
 *** Preliminaries:
 
+- ContractsInstrumenter example
+  -- Identify and translate check arguments to proper AST nodes
+  -- Change to visitor pattern (see ContractsAssertionPrinter)
+  -- Add insertion of relevant includes (to SgGlobal)
+  -- See other "todo" items for more complete list
+
 - Stand-alone enforcement library 
   TBD:  Should Babel/SIDL tracing equivalent be supported?
 

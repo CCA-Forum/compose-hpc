@@ -2,7 +2,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 August 03
+ * Last Modified: 2012 August 3
  *
  * @file
  * @section DESCRIPTION
@@ -25,6 +25,7 @@
 #include "Cxx_Grammar.h"
 #include "ContractAssertionPrinter.hpp"
 #include "ContractPrinter.hpp"
+#include "RoseHelpers.hpp"
 
 using namespace std;
 
