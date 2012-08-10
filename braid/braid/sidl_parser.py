@@ -429,14 +429,33 @@ def no_comma(t):
         error([t], "unexpected ','")
 
 def error(p, description):
-    print description
-    p[0] = '<'+description+'>'
+    # set everything up so p_error can generate a nicer error message
+    lineno, msg = nice_error_msg(p.lexpos(1), p.lineno(1), None)
+
+    print '**ERROR: in %s:%d %s' %(sidlFile, lineno, description)
+    print msg
     exit(1)
+
+def nice_error_msg(lexpos, lineno, value):
+    '''
+    print a nicely formatted error message
+    '''
+    global sidlFile
+
+    i = 0
+    pos = lexpos
+    for line in open(sidlFile):
+        i += 1
+        if i == lineno or len(line) >= pos:
+            l = 1
+            if hasattr(value, '__len__'):
+                l = len(value)
+            return i, line+' '*(pos)+'^'*l+'\n'
+        pos -= len(line)
+    return 0, '<unknown position>'
 
 # Generate a nice looking error report that highlights the suspicious token
 def p_error(errorToken):
-    global sidlFile
-
     if errorToken == None:
         print 'successfully parsed', sidlFile
         return
@@ -444,18 +463,8 @@ def p_error(errorToken):
     sys.stdout.write('**ERROR: in %s:%d:\n  Syntax error near "%s" (recognized as %s).\n' %
                          (sidlFile, errorToken.lineno, errorToken.value, errorToken.type))
 
-    i = 0
-    pos = errorToken.lexpos
-    for line in open(sidlFile):
-        i += 1
-        if i == errorToken.lineno:
-            sys.stdout.write(line)
-            l = 1
-            if hasattr(errorToken.value, '__len__'):
-                l = len(errorToken.value)
-            print ' '*(pos)+'^'*l
-            break
-        pos -= len(line)
+    _, msg = nice_error_msg(errorToken.lexpos, errorToken.lineno, errorToken.value)
+    sys.stdout.write(msg)
     sys.stdout.write("Possible reason(s): \n")
 
 def p_version(p):
@@ -860,16 +869,23 @@ def p_orientation(p):
 
 def p_rarray(p):
     '''rarray : RARRAY LT primitiveType dimension GT name LPAREN maybeExtents RPAREN'''
-    dimension = p[4] if p[4] else -1
-    p[0] = (sidl.rarray, p[3], dimension, p[6], (p[8]))
+    nexps = len(p[8])
+    if p[4]:
+        dimension = p[4]
+    elif nexps > 0:
+        dimension = nexps
+    else:
+        dimension = 1
+        nexps = 0
+    if nexps <> dimension:
+        error(p, 'Expected %d extent expressions in rarray declaration, but there are %d.'
+              %(dimension, nexps))
+    p[0] = (sidl.rarray, p[3], dimension, p[6], tuple(p[8]))
 
 def p_maybeExtents(p):
     '''maybeExtents : empty
                     | extents'''
-    if p[1] <> []:
-        p[0] = p[1][0]
-    else:
-        p[0] = -1
+    p[0] = p[1]
 
 def p_extents(p): # +
     '''extents : simpleIntExpression
@@ -892,15 +908,15 @@ def p_simpleIntTerm_1(p):
 
 def p_simpleIntTerm_2(p):
     '''simpleIntTerm : simpleIntPrimary STAR simpleIntPrimary'''
-    p[0] = p[1] * p[3]
+    p[0] = sidl.Simple_int_infix_expr(p[2], p[1], p[3])
 
 def p_simpleIntTerm_3(p):
     '''simpleIntTerm : simpleIntPrimary SLASH simpleIntPrimary'''
-    p[0] = p[1] / p[3]
+    p[0] = sidl.Simple_int_infix_expr(p[2], p[1], p[3])
 
 def p_simpleIntPrimary_1(p):
     '''simpleIntPrimary : name'''
-    p[0] = p[1]
+    p[0] = sidl.Var_ref(p[1])
 
 def p_simpleIntPrimary_2(p):
     '''simpleIntPrimary : integer'''

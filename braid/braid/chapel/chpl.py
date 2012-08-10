@@ -19,3 +19,5 @@ rarray   = 'chpl', sidl.rarray
 struct   = 'chpl', sidl.struct
 pointer_type = 'chpl', ir.pointer_type
 new_array = 'chpl', 'new_array'
+ext      = 'chpl', 'extendable'
+opaque   = 'chpl', sidl.pt_opaque

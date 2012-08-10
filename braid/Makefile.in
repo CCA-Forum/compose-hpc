@@ -1830,7 +1830,7 @@ BABEL_TESTNAMES77 = \
 @BABEL_LANG_C_TRUE@@ENABLE_INTEROP_REGRESSION_TRUE@	$(am__append_18)
 @ENABLE_INTEROP_REGRESSION_TRUE@SERVER_DEPS = $(TTESTDIR)/build-server.sh \
 @ENABLE_INTEROP_REGRESSION_TRUE@	$(TESTDIR)/output/libC/libimpl.la \
-@ENABLE_INTEROP_REGRESSION_TRUE@	$(nobase_python_PYTHON)
+@ENABLE_INTEROP_REGRESSION_TRUE@        $(nobase_python_PYTHON)
 
 @ENABLE_INTEROP_REGRESSION_TRUE@CLIENT_DEPS = $(TTESTDIR)/build-client.sh \
 @ENABLE_INTEROP_REGRESSION_TRUE@            $(TTESTDIR)/driver.sh \
@@ -4904,7 +4904,7 @@ clean-braid:
 @ENABLE_INTEROP_REGRESSION_TRUE@	  fi; \
 @ENABLE_INTEROP_REGRESSION_TRUE@	fi
 
-@ENABLE_INTEROP_REGRESSION_TRUE@regression/interop/arrays/runChapel/client-stamp: $(CLIENT_DEPS) regression/interop/arrays/libPython/libimpl2.la regression/interop/arrays/libJava/libimpl.la regression/interop/arrays/libF90/libimpl.la regression/interop/arrays/libF77/libimpl.la regression/interop/arrays/libF03/libimpl.la regression/interop/arrays/libCxx/libimpl.la regression/interop/arrays/libC/libimpl.la 
+@ENABLE_INTEROP_REGRESSION_TRUE@regression/interop/arrays/runChapel/client-stamp: $(CLIENT_DEPS) regression/interop/arrays/libC/libimpl.la 
 @ENABLE_INTEROP_REGRESSION_TRUE@	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runUPC

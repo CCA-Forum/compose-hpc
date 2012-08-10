@@ -268,6 +268,7 @@ scanner_token(PyObject *self, PyObject *args)
     doc_comment = NULL;
     doc_comment_alloc = 0;
     doc_comment_len = 0;
+    yypos = 0;
     return Py_None;
   }
 

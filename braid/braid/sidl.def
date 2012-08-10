@@ -90,14 +90,18 @@
   Scalar_type = (Primitive_type|Scoped_id),
   Dimension = 'INT',
   Orientation = (row_major|column_major),
-  Rarray = rarray(Primitive_type, Dimension, Extents),
-  Extents = SimpleIntExpression,
-  SimpleIntExpression = ('INT' | Id), % FIXME
+  Rarray = rarray(Primitive_type, Dimension, [Extents]),
+  Extents = SimpleIntExpr,
+  SimpleIntExpr = ( simple_int_infix_expr(Bin_op, SimpleIntExpr, SimpleIntExpr)
+               | simple_int_prefix_expr(Un_op, SimpleIntExpr)
+               | simple_int_fn_eval(Id, [SimpleIntExpr])
+               | var_ref(Id)
+               | 'INT'
+               ),
   AssertExpr = ( infix_expr(Bin_op, AssertExpr, AssertExpr)
                | prefix_expr(Un_op, AssertExpr)
                | fn_eval(Id, [AssertExpr])
                | var_ref(Id)
-               | Id
                | Literal
                ),
   Bin_op = (log_or|log_and|eq|ne|bit_or|bit_and|bit_xor|lt|gt|le|ge

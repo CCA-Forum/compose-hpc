@@ -18,3 +18,4 @@ rarray   = sidl.rarray
 struct   = ir.struct
 void     = ir.pt_void
 pointer_type = ir.pointer_type 
+ext      = 'extendable'

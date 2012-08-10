@@ -89,6 +89,7 @@
 # 	 | const(Type) 
 # 	 | Struct
 # 	 | Enum
+# 	 | Rarray
 # 	 % | Class
 # 	 ),
 #   Primitive_type = primitive_type(
@@ -104,6 +105,15 @@
 #     | dcomplex
 #     | string
 #     | void ),
+#   Rarray = rarray(Primitive_type, Dimension, [Extents]),
+#   Dimension = 'INT',
+#   Extents = SimpleIntExpr,
+#   SimpleIntExpr = ( simple_int_infix_expr(Bin_op, SimpleIntExpr, SimpleIntExpr)
+#                | simple_int_prefix_expr(Un_op, SimpleIntExpr)
+#                | simple_int_fn_eval(Id, [SimpleIntExpr])
+#                | var_ref(Id)
+#                | 'INT'
+#                ),
 #   Pointer_type = pointer_type(Type|Fn_decl),
 #   Scoped_id = scoped_id([Module], Id, Extension),
 #   Module = 'STR',
@@ -186,6 +196,7 @@ pow = 'pow'
 prefix_expr = 'prefix_expr'
 primitive_type = 'primitive_type'
 pure = 'pure'
+rarray = 'rarray'
 result = 'result'
 return_ = 'return'
 rshift = 'rshift'
@@ -193,6 +204,9 @@ scoped_id = 'scoped_id'
 set_arg = 'set_arg'
 set_struct_item = 'set_struct_item'
 sign_extend = 'sign_extend'
+simple_int_fn_eval = 'simple_int_fn_eval'
+simple_int_infix_expr = 'simple_int_infix_expr'
+simple_int_prefix_expr = 'simple_int_prefix_expr'
 static = 'static'
 stmt = 'stmt'
 str = 'str'
@@ -205,13 +219,14 @@ type_decl = 'type_decl'
 typedef_type = 'typedef_type'
 var_decl = 'var_decl'
 var_decl_init = 'var_decl_init'
+var_ref = 'var_ref'
 void = 'void'
 while_ = 'while'
 
 
 ## Constructor definitions
 
-# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum)
+# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum|\c Rarray)
 def Import(*args):
     """
     Construct a "import" node. Valid arguments are 
@@ -273,6 +288,8 @@ def Fn_defn(*args):
     elif isinstance(args[1], tuple) and args[1][0] == struct:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == enum:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == rarray:
         pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
@@ -365,6 +382,8 @@ def Fn_decl(*args):
     elif isinstance(args[1], tuple) and args[1][0] == struct:
         pass
     elif isinstance(args[1], tuple) and args[1][0] == enum:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == rarray:
         pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
@@ -847,6 +866,8 @@ def Arg(*args):
         pass
     elif isinstance(args[2], tuple) and args[2][0] == enum:
         pass
+    elif isinstance(args[2], tuple) and args[2][0] == rarray:
+        pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -928,6 +949,8 @@ def Struct_item(*args):
     elif isinstance(args[0], tuple) and args[0][0] == struct:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
@@ -1205,6 +1228,55 @@ def Pointer_expr(*args):
 
 # skipping \c Attr= (static|pure|hooks)
 # skipping \c Mode= (in|out|inout)
+def Rarray(*args):
+    """
+    Construct a "rarray" node. Valid arguments are 
+    (\c Primitive_type(), \c Dimension(), [\c Extents()])
+    \return (\c "Rarray", \c Primitive_type(), \c Dimension(), [\c Extents()])
+    """
+    f = Rarray
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == primitive_type:
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], PythonTypes.IntType):
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], list) or isinstance(args[2], tuple):
+        for a in args[2]:
+            if isinstance(a, tuple) and a[0] == simple_int_infix_expr:
+                pass
+            elif isinstance(a, tuple) and a[0] == simple_int_prefix_expr:
+                pass
+            elif isinstance(a, tuple) and a[0] == simple_int_fn_eval:
+                pass
+            elif isinstance(a, tuple) and a[0] == var_ref:
+                pass
+            elif isinstance(a, PythonTypes.IntType):
+                pass
+            else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
+                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                raise Exception("Grammar Error")
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['rarray']+list(args))
+
 def Pointer_type(*args):
     """
     Construct a "pointer_type" node. Valid arguments are 
@@ -1229,6 +1301,8 @@ def Pointer_type(*args):
     elif isinstance(args[0], tuple) and args[0][0] == struct:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == fn_decl:
         pass
@@ -1303,6 +1377,10 @@ def Primitive_type(*args):
         raise Exception("Grammar Error")
     return tuple(['primitive_type']+list(args))
 
+# skipping \c Extents= \c SimpleIntExpr
+def INT():
+    return INT
+# skipping \c SimpleIntExpr= (\c Simple_int_infix_expr|\c Simple_int_prefix_expr|\c Simple_int_fn_eval|\c Var_ref|INT)
 def STR():
     return STR
 def STR():
@@ -1329,6 +1407,8 @@ def Type_decl(*args):
     elif isinstance(args[0], tuple) and args[0][0] == struct:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
@@ -1448,6 +1528,8 @@ def New(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
+        pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -1491,6 +1573,8 @@ def Cast(*args):
     elif isinstance(args[0], tuple) and args[0][0] == struct:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
@@ -2164,6 +2248,8 @@ def Var_decl(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
+        pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -2200,6 +2286,8 @@ def Var_decl_init(*args):
     elif isinstance(args[0], tuple) and args[0][0] == struct:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
         pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
@@ -2556,6 +2644,8 @@ def Const(*args):
         pass
     elif isinstance(args[0], tuple) and args[0][0] == enum:
         pass
+    elif isinstance(args[0], tuple) and args[0][0] == rarray:
+        pass
     else:
         print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
         print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
@@ -2563,11 +2653,198 @@ def Const(*args):
         raise Exception("Grammar Error")
     return tuple(['const']+list(args))
 
+def Simple_int_infix_expr(*args):
+    """
+    Construct a "simple_int_infix_expr" node. Valid arguments are 
+    (\c Bin_op(), \c SimpleIntExpr(), \c SimpleIntExpr())
+    \return (\c "Simple_int_infix_expr", \c Bin_op(), \c SimpleIntExpr(), \c SimpleIntExpr())
+    """
+    f = Simple_int_infix_expr
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if args[0] == log_or:
+        pass
+    elif args[0] == log_and:
+        pass
+    elif args[0] == eq:
+        pass
+    elif args[0] == ne:
+        pass
+    elif args[0] == bit_or:
+        pass
+    elif args[0] == bit_and:
+        pass
+    elif args[0] == bit_xor:
+        pass
+    elif args[0] == lt:
+        pass
+    elif args[0] == gt:
+        pass
+    elif args[0] == le:
+        pass
+    elif args[0] == ge:
+        pass
+    elif args[0] == lshift:
+        pass
+    elif args[0] == rshift:
+        pass
+    elif args[0] == plus:
+        pass
+    elif args[0] == minus:
+        pass
+    elif args[0] == times:
+        pass
+    elif args[0] == divide:
+        pass
+    elif args[0] == modulo:
+        pass
+    elif args[0] == pow:
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], tuple) and args[1][0] == simple_int_infix_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == simple_int_prefix_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == simple_int_fn_eval:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == var_ref:
+        pass
+    elif isinstance(args[1], PythonTypes.IntType):
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], tuple) and args[2][0] == simple_int_infix_expr:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == simple_int_prefix_expr:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == simple_int_fn_eval:
+        pass
+    elif isinstance(args[2], tuple) and args[2][0] == var_ref:
+        pass
+    elif isinstance(args[2], PythonTypes.IntType):
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['simple_int_infix_expr']+list(args))
+
+def Simple_int_prefix_expr(*args):
+    """
+    Construct a "simple_int_prefix_expr" node. Valid arguments are 
+    (\c Un_op(), \c SimpleIntExpr())
+    \return (\c "Simple_int_prefix_expr", \c Un_op(), \c SimpleIntExpr())
+    """
+    f = Simple_int_prefix_expr
+    if len(args) <> 2:
+        print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if args[0] == is_:
+        pass
+    elif args[0] == log_not:
+        pass
+    elif args[0] == bit_not:
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], tuple) and args[1][0] == simple_int_infix_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == simple_int_prefix_expr:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == simple_int_fn_eval:
+        pass
+    elif isinstance(args[1], tuple) and args[1][0] == var_ref:
+        pass
+    elif isinstance(args[1], PythonTypes.IntType):
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['simple_int_prefix_expr']+list(args))
+
+def Simple_int_fn_eval(*args):
+    """
+    Construct a "simple_int_fn_eval" node. Valid arguments are 
+    (\c Id(), [\c SimpleIntExpr()])
+    \return (\c "Simple_int_fn_eval", \c Id(), [\c SimpleIntExpr()])
+    """
+    f = Simple_int_fn_eval
+    if len(args) <> 2:
+        print "**GRAMMAR ERROR: expected 2 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], PythonTypes.StringType):
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
+        for a in args[1]:
+            if isinstance(a, tuple) and a[0] == simple_int_infix_expr:
+                pass
+            elif isinstance(a, tuple) and a[0] == simple_int_prefix_expr:
+                pass
+            elif isinstance(a, tuple) and a[0] == simple_int_fn_eval:
+                pass
+            elif isinstance(a, tuple) and a[0] == var_ref:
+                pass
+            elif isinstance(a, PythonTypes.IntType):
+                pass
+            else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
+                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                raise Exception("Grammar Error")
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['simple_int_fn_eval']+list(args))
+
+def Var_ref(*args):
+    """
+    Construct a "var_ref" node. Valid arguments are 
+    (\c Id())
+    \return (\c "Var_ref", \c Id())
+    """
+    f = Var_ref
+    if len(args) <> 1:
+        print "**GRAMMAR ERROR: expected 1 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], PythonTypes.StringType):
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['var_ref']+list(args))
+
 
 
 ## Accessor functions
 
-# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum)
+# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum|\c Rarray)
 def import_id(arg):
     """
     Accessor function.
@@ -3135,6 +3412,42 @@ def pointer_expr_varRefExpr(arg):
 
 # skipping \c Attr= (static|pure|hooks)
 # skipping \c Mode= (in|out|inout)
+def rarray_primitive_type(arg):
+    """
+    Accessor function.
+    \return the "primitive_type" member of a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'rarray':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def rarray_dimension(arg):
+    """
+    Accessor function.
+    \return the "dimension" member of a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'rarray':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def rarray_extents(arg):
+    """
+    Accessor function.
+    \return the "extents" member of a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'rarray':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
 def pointer_type_type(arg):
     """
     Accessor function.
@@ -3303,6 +3616,9 @@ def primitive_type_void(arg):
     else: return arg[1]
 
 
+# skipping \c Extents= \c SimpleIntExpr
+# skipping \c Dimension=INT
+# skipping \c SimpleIntExpr= (\c Simple_int_infix_expr|\c Simple_int_prefix_expr|\c Simple_int_fn_eval|\c Var_ref|INT)
 # skipping \c Module=STR
 # skipping \c Extension=STR
 def type_decl_type(arg):
@@ -3809,11 +4125,107 @@ def const_type(arg):
     else: return arg[1]
 
 
+def simple_int_infix_expr_bin_op(arg):
+    """
+    Accessor function.
+    \return the "bin_op" member of a "simple_int_infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_infix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def simple_int_infix_expr_simpleIntExpr(arg):
+    """
+    Accessor function.
+    \return the "simpleIntExpr" member of a "simple_int_infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_infix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def simple_int_infix_expr_simpleIntExpr(arg):
+    """
+    Accessor function.
+    \return the "simpleIntExpr" member of a "simple_int_infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_infix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
+def simple_int_prefix_expr_un_op(arg):
+    """
+    Accessor function.
+    \return the "un_op" member of a "simple_int_prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_prefix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def simple_int_prefix_expr_simpleIntExpr(arg):
+    """
+    Accessor function.
+    \return the "simpleIntExpr" member of a "simple_int_prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_prefix_expr':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def simple_int_fn_eval_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "simple_int_fn_eval" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_fn_eval':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def simple_int_fn_eval_simpleIntExprs(arg):
+    """
+    Accessor function.
+    \return the "simpleIntExprs" member of a "simple_int_fn_eval" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'simple_int_fn_eval':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def var_ref_id(arg):
+    """
+    Accessor function.
+    \return the "id" member of a "var_ref" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'var_ref':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
 
 
 ## instance checks
 
-# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum)
+# skipping \c Type= (\c Primitive_type|\c Pointer_type|\c Typedef_type|\c Const|\c Struct|\c Enum|\c Rarray)
 def is_import(arg):
     """
     instanceof-like function.
@@ -4018,6 +4430,15 @@ def is_pointer_expr(arg):
 
 # skipping \c Attr= (static|pure|hooks)
 # skipping \c Mode= (in|out|inout)
+def is_rarray(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "rarray" node.
+    """
+    if not isinstance(arg, tuple):
+        return False
+    return arg[0] == 'rarray'
+
 def is_pointer_type(arg):
     """
     instanceof-like function.
@@ -4036,6 +4457,9 @@ def is_primitive_type(arg):
         return False
     return arg[0] == 'primitive_type'
 
+# skipping \c Extents= \c SimpleIntExpr
+# skipping \c Dimension=INT
+# skipping \c SimpleIntExpr= (\c Simple_int_infix_expr|\c Simple_int_prefix_expr|\c Simple_int_fn_eval|\c Var_ref|INT)
 # skipping \c Module=STR
 # skipping \c Extension=STR
 def is_type_decl(arg):
@@ -4199,6 +4623,42 @@ def is_const(arg):
     if not isinstance(arg, tuple):
         return False
     return arg[0] == 'const'
+
+def is_simple_int_infix_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "simple_int_infix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        return False
+    return arg[0] == 'simple_int_infix_expr'
+
+def is_simple_int_prefix_expr(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "simple_int_prefix_expr" node.
+    """
+    if not isinstance(arg, tuple):
+        return False
+    return arg[0] == 'simple_int_prefix_expr'
+
+def is_simple_int_fn_eval(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "simple_int_fn_eval" node.
+    """
+    if not isinstance(arg, tuple):
+        return False
+    return arg[0] == 'simple_int_fn_eval'
+
+def is_var_ref(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "var_ref" node.
+    """
+    if not isinstance(arg, tuple):
+        return False
+    return arg[0] == 'var_ref'
 
  ## token overrides fir sidl.def compatibility
 bit_not = '~'

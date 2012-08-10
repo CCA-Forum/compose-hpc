@@ -6,6 +6,23 @@
 #
 # Please report bugs to <adrian@llnl.gov>.
 #
+# Calls are modeled as follows:
+# <pre>
+# bool f(in a:int, inout b:char)
+#
+#              assign
+#              /    \
+#            cons   call
+#            /  \    / \
+#          ret  b   f  cons
+#                      /  \
+#                     a    b
+#
+# rules can be
+# chpl <-- cons(chpl, chpl)
+#
+# </pre> 
+#
 # \authors <pre>
 #
 # Copyright (c) 2011, 2012 Lawrence Livermore National Security, LLC.
@@ -26,10 +43,10 @@
 #------------------------------------------------------------------------
 # Declaration of additional arguments for the rule actions
 #------------------------------------------------------------------------
-%action arguments: (convs, skel, dest, full_type)
+%action arguments: (convs, skel, dest, full_type, type_conv)
 
 #------------------------------------------------------------------------
-import ior, ir, sidl
+import babel, ior, ir, sidl
 import chapel.chpl as chpl
 from codegen import CCodeGenerator, CFile
 
@@ -37,6 +54,75 @@ def c_gen(ir, scope=None):
     if scope == None:
         scope = CFile()
     return CCodeGenerator().generate(ir, scope)
+
+# def XXXXsidl_arg_to_ir(symbol_table, (arg, attrs, mode, typ, name)):
+#     return arg, attrs, mode, sidl_type_to_ir(symbol_table, typ), name
+
+# def XXXXsidl_type_to_ir(symbol_table, typ):
+#     """
+#     Converts objects and arrays into their corresponding chapel types.
+#     The implicit expectation is that typ was passed to
+#     \c babel.lower_ir(lower_scoped_ids=False) .
+
+#     FIX ME merge this code with lower_ir!!!!!!!!!!!!!!!!!!!
+
+#     """
+#     if babel.is_obj_type(symbol_table, typ):
+#         iortype = babel.ior_type(symbol_table, typ)
+    
+#     elif typ[0] == sidl.struct: #babel.is_struct_type(symbol_table, typ):
+#         #iortype = babel.lower_ir(*symbol_table[typ])
+#         #if (mode == sidl.in_):
+#         #    iortype = ir.Pointer_type(iortype)
+
+#         def conv_rarray_items((struct, name, items, docstring)):
+#             def f((item, typ, name)):
+#                 #if typ[0] == ir.rarray:
+#                 #    import pdb; pdb.set_trace()
+#                 #    return item, convert_arg((arg, attrs, mode, typ, name))[2][3], name
+#                 #el
+#                 if typ[0] == ir.struct:
+#                     return item, conv_rarray_items(typ), name
+#                 else: return item, sidl_type_to_ir(symbol_table, typ), name
+
+#             return struct, name, map(f, items), docstring
+
+#         iortype = conv_rarray_items(typ)
+
+#     elif typ[0] == sidl.scoped_id:
+#         import pdb; pdb.set_trace()
+#         # Other Symbol
+#         iortype = symbol_table[typ][1]
+
+#     elif typ == sidl.void:
+#         iortype = ir.pt_void
+
+#     elif typ == sidl.opaque:
+#         iortype = ir.Pointer_type(ir.pt_void)
+
+#     elif typ == (sidl.array, [], [], []): 
+#         # This comment is there so the Chapel code generator won't
+#         # recognize the type as an array. For generic SIDL arrays, we
+#         # actually want a C struct type.
+#         iortype = ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], ''))
+#         if name == '_retval':
+#             iortype = ir.Pointer_type(ir.pt_void)
+
+#     elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+#         if typ[1][0] == ir.scoped_id:
+#             t = 'BaseInterface'
+#         else:
+#             t = typ[1][1]
+#         iortype = ir.Pointer_type(ir.Struct('sidl_%s__array /* IOR */'%t, [], ''))
+
+#     elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
+#         iortype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
+    
+#     else: 
+#         iortype = typ
+#     return iortype
+
+
 
 def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
     return arg, attrs, mode, ir_type_to_chpl(typ), name
@@ -72,7 +158,7 @@ def ir_type_to_chpl(typ):
             # part of the hack for self dereferencing
             return typ[1]
         if typ[0] == ir.pointer_type:
-             return ir.Pointer_type(ir_type_to_chpl(typ[1]))
+            return ir.Pointer_type(ir_type_to_chpl(typ[1]))
 
         if typ[0] == ir.struct:
             _, name, items, comment = typ
@@ -81,7 +167,7 @@ def ir_type_to_chpl(typ):
             # '__data' suffix, so we can use the actual name for the
             # Chapel version of the struct.
             if name[-6:] == '__data': 
-                name = '__'+name[:-6] # Wow, is this unelegant!
+                name = name[:-6] # Wow, is this unelegant!
 
             return ir.Struct(name, items1, comment)
 
@@ -91,21 +177,25 @@ def ir_type_to_chpl(typ):
         if typ[0] == sidl.array:
             return get_array_type(typ)[1]
 
+        if typ[0] == sidl.rarray:
+            return get_array_type(typ)[1]
+
         return typ
 
 
 def strip(typ):
-    if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
-        return ior.bool
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+        return ir.struct
     # strip unnecessary details from aggregate types
+    if (typ[0] == sidl.class_ or 
+        typ[0] == sidl.interface):
+        return ior.ext
     if (typ[0] == ir.enum or
-        typ[0] == sidl.array or
-        typ[0] == sidl.rarray or
+        typ[0] == ir.rarray or
         typ[0] == ir.pointer_type or
         typ[0] == ir.struct):
         return typ[0]
     return typ
-
 
 def copy_other_items(convs, items, a0, dest):
     """
@@ -129,15 +219,76 @@ def elem_access(typ):
     else: return ''
 
 def get_array_type(full_type):
-    if full_type[1] == []:
-        t = ''
-    elif full_type[1][0] == ir.scoped_id:
-        t = '_BaseInterface'
-    else:
-        t = '_'+full_type[1][1]
-    name = 'sidl%s__array'%t
-    iortype = ir.Pointer_type(ir.Struct(name, [], ''))
-    return name, iortype 
+   if full_type[1] == []:
+       t = ''
+   elif full_type[1][0] == ir.scoped_id:
+       t = '_BaseInterface'
+   else:
+       t = '_'+full_type[1][1]
+   name = 'sidl%s__array'%t
+   iortype = ir.Pointer_type(ir.Struct(name, [], ''))
+   return name, iortype 
+
+def get_ior_array_type(sidl_array):
+    struct_name = sidl_array[1][1]
+    m = babel.sidl_array_regex.match(struct_name)
+    return m.group(1) if m else ir.void_ptr
+
+
+def wrap_rarray(convs, a0, fulltype, dest):
+    data  = '_braid_%s_data'  %a0
+    dom   = '_braid_%s_dom'   %a0
+    local = '_braid_%s_local' %a0
+    scalar_type = fulltype[1][1]
+    iortype = ir.Typedef_type('sidl_%s__array'%scalar_type)
+
+    # sanity check on input array: ensure domain is rectangular
+    convs.append(ir.Stmt(ir.Call('performSanityCheck', [dom, '"%s"'%a0])))
+
+    # ensure we are working with a 'local' array
+    # FIXME Hack to define a variable without explicitly specifying type
+    # should we change the IR to support this?
+    convs.append(ir.Stmt(ir.Assignment('var ' + data,
+                                      ir.Call("getOpaqueData", [ir.Call(a0, [dom+'.low'])]))))
+    convs.append(ir.Stmt(ir.Assignment('var ' + local,
+                                      ir.Call("ensureLocalArray", [a0, data]))))
+
+                    
+    # Babel is strange when it comes to Rarrays. The convention is to
+    # wrap Rarrays inside of a SIDL-Array in the Stub and to unpack it
+    # in the Skeleton. However, in some languages (C, C++) we could
+    # just directly call the Impl and save all that wrapper code.
+    #
+    # I found out the the reason behind this is that r-arrays were
+    # never meant to be a performance enhancement, but syntactic sugar
+    # around the SIDL array implementation to offer a more native
+    # interface.
+    #
+    # TODO: Change the IOR in Babel to use the r-array calling
+    # convention.  This will complicate the Python/Fortran/Java
+    # backends but simplify the C/C++ ones.
+    sidl_wrapping = (ir.stmt, """
+var {a}rank = _braid_dom_{arg}.rank: int(32);
+
+var {a}lus = computeLowerUpperAndStride(_braid_local_{arg});
+var {a}lower = {a}lus(0): int(32);
+var {a}upper = {a}lus(1): int(32);
+var {a}stride = {a}lus(2): int(32);
+
+{dest} = {iortype}_borrow(
+    {stype}_ptr(_braid_local_{arg}(_braid_local_{arg}.domain.low)),
+    //_braid_local_{arg}(_braid_local_{arg}.domain.low),
+    {a}rank,
+    {a}lower[1],
+    {a}upper[1],
+    {a}stride[1])""".format(a='_braid_%s_'%a0,
+                            arg=a0,
+                            dest=dest,
+                            iortype=iortype[1],
+                            stype=scalar_type))
+    
+    convs.append(sidl_wrapping)
+    # post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp)'))
 
 
 char_lut = '''
@@ -223,6 +374,22 @@ chpl.enum @ C <-- ior.enum: cost(1)
 #     convs.append(ir.Stmt(ir.Assignment(dest, '(({0})((struct sidl_BaseInterface__object*)self)<--d_object)'.format(c_gen(typ)))))
 #     return dest
 
+# OBJECTS
+#------------------------------------------------------------------------
+ior.ext @chpl <-- chpl.ext: cost(1)
+     s_id = full_type[1][1]
+     name = s_id[2]
+     convs.append((ir.stmt, '%s = %s.self_%s'%(dest, a0, name)))
+
+chpl.ext @chpl <-- ior.ext: cost(1)
+     s_id = full_type[1][1]     
+     # drop the id's extension, which we hijacked for '__object'
+     s_id1 = ir.Scoped_id(s_id[1], s_id[2], '')
+     name = s_id[2]
+     #mod_name = '.'.join(full_type[1]+[name])
+     wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [a0, '_ex'])
+     convs.append(ir.Stmt(ir.Assignment(dest, wrap)))
+
 # STRING
 #------------------------------------------------------------------------
 ior.string @C <-- chpl.string: cost(0)
@@ -247,9 +414,33 @@ ior.long @C <-- chpl.long: cost(0)
 chpl.long @C <-- ior.long: cost(0)
     pass
 
+# FLOAT
+#------------------------------------------------------------------------
+ior.float @C <-- chpl.float: cost(0)
+    pass
+chpl.float @C <-- ior.float: cost(0)
+    pass
+
+# DOUBLE
+#------------------------------------------------------------------------
+ior.double @C <-- chpl.double: cost(0)
+    pass
+chpl.double @C <-- ior.double: cost(0)
+    pass
+
+
 # VOID return type
 #------------------------------------------------------------------------
 chpl.void @C <-- ior.void:cost(0)
+    pass
+ior.void @C <-- chpl.void:cost(0)
+    pass
+
+# OPAQUE
+#------------------------------------------------------------------------
+chpl.opaque @chpl <-- chpl.pointer_type:cost(0)
+    pass
+chpl.pointer_type @chpl <-- chpl.opaque:cost(0)
     pass
 
 # FIXME:
@@ -265,22 +456,24 @@ ior.pointer_type @C <-- chpl.pointer_type :cost(0)
 # STRUCT
 #------------------------------------------------------------------------
 # FIXME: we would actually need dynamic costs for this situation
-ior.struct @C <-- chpl.struct: cost(3)
+ior.struct @C <-- chpl.struct: cost(9)
     items = get_struct_items(full_type)
+
+    #print name, typ, ir_type_to_chpl(typ)
 
     # recursively generate conversions for all items in the struct
     map(lambda (_, typ, name):
-          codegen((('chpl', strip(typ)), a0+name+elem_access(typ)), strip(typ),
-                  convs, skel, dest+'.'+name, typ), items)
+          codegen(type_conv(typ), a0+name+elem_access(typ), strip(typ),
+                  convs, skel, dest+'.'+name, typ), items, type_conv)
 
     # if we need to convert one of the items, we need to convert all of them
     if convs: copy_other_items(convs, items, a0, '%s'%dest)
 
-chpl.struct @C <-- ior.struct: cost(3)
+chpl.struct @C <-- ior.struct: cost(9)
     items = get_struct_items(full_type)
     map(lambda (_, typ, name):
-          codegen((strip(typ), a0+'.'+name), ('chpl', strip(typ)),
-                  convs, skel, dest+'.'+name, typ), items)
+          codegen((strip(typ), a0+'.'+name), type_conv(typ),
+                  convs, skel, dest+'.'+name, typ), items, type_conv)
     if convs: copy_other_items(convs, items, '%s.'%a0, dest)
 
 # SIDL ARRAY
@@ -288,21 +481,31 @@ chpl.struct @C <-- ior.struct: cost(3)
 
 # for sidl arrays we invoke a chapel code fragment from the C stub
 chpl.array @chpl <-- chpl.new_array: cost(1)
-    iorname, iortype = get_array_type(full_type)
-    convs.append((ir.stmt, '{dest} = ({typ}){n}.self'
-                  .format(dest=dest, n=a0, typ=iorname)))
-
-chpl.new_array @chpl <-- ior.array @chpl: cost(2)
-    iorname, iortype = get_array_type(full_type)
-    skel.new_def(ir.Fn_defn([], ir.pt_void, '%s_to_chpl'%iorname, 
-                            [ir.Arg([], ir.in_, iortype, 'ior')],
-                            [ir.Stmt((ir.new, 'sidl.Array', [iorname, iortype, dest]))],
-                            'argument conversion codelet'))
+    scalar_type = get_ior_array_type(full_type)
+    convs.append(ir.Stmt(ir.Assignment(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [a0]))))
 
 
-ior.array @chpl <-- chpl.array: cost(2)
-    iorname, iortype = get_array_type(full_type)
-    convs.append(ir.Assignment(dest, ir.Call('%s_to_chpl'%iorname, [a0])))
+chpl.new_array @chpl <-- ior.array @chpl: cost(1)
+    scalar_type = get_ior_array_type(full_type)
+# now part of sidl.chpl:
+#    skel.gen(ir.Fn_defn(
+#            [], ir.pt_void, '%s_to_chpl'%fu_type, 
+#            [ir.Arg([], ir.in_, full_type, 'ior')],
+#            [ir.Stmt((ir.new, 'sidl.Array', [scalar_type, full_type, dest]))],
+#            'argument conversion codelet'))
+
+
+ior.array @chpl <-- chpl.array: cost(1)
+    scalar_type = get_ior_array_type(full_type)
+    if scalar_type == ir.void_ptr:
+        convs.append(ir.Stmt(ir.Assignment(dest, a0)))
+    else:
+        convs.append(ir.Stmt(ir.Assignment(dest, a0+'.ior')))
+
+#ior.array @C <-- chpl.array: cost(1)
+#    scalar_type = get_array_type(full_type)
+#    convs.append((ir.stmt, '{dest} = ({typ}){n}.self'
+#                  .format(dest=dest, n=a0, typ=scalar_type)))
 
     # wrap the C type in a native Chapel object
     #if mode == sidl.inout:
@@ -313,3 +516,18 @@ ior.array @chpl <-- chpl.array: cost(2)
     #     return_expr.append(conv)
     # else:
     #     post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+
+# RAW ARRAY
+#------------------------------------------------------------------------
+ior.rarray @chpl <-- chpl.array: cost(4)
+    wrap_rarray(convs, a0, full_type, dest)
+
+chpl.array @chpl <-- ior.rarray: cost(4)
+    # emit code to copy back elements into non-local array
+    sarray = "_braid_wrapped_local_{arg}_sarray".format(arg=a0)
+    barray = "_babel_wrapped_local_{arg}_barray".format(arg=a0)
+    sarr = ir.Call("new Array", ["%s.eltType"%a0, full_type[1], ior])
+    barr = ir.Call("createBorrowedArray{dim}d".format(dim=full_typ[2]), [sarray])
+    convs.append(ir.Stmt(ir.Assignment('var ' + sarray, sarr)))
+    convs.append(ir.Stmt(ir.Assignment('var ' + barray, barr)))
+    convs.append(ir.Stmt(ir.Call('syncNonLocalArray', [barray, a0])))

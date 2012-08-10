@@ -29,7 +29,7 @@
 #
 # </pre>
 #
-import ir, sidl, re
+import babel, ir, sidl, re
 import ior
 from patmat import *
 from utils import *
@@ -86,21 +86,10 @@ def deref_retval(typ, name):
         return '(*%s)'%name
     else: return name
 
-def strip(typ):
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
-        return ir.struct
-    if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool':
-        return ior.bool
-    # strip unnecessary details from aggregate types
-    if (typ[0] == ir.enum or
-        #typ[0] == sidl.array or
-        typ[0] == sidl.rarray or
-        typ[0] == ir.pointer_type or
-        typ[0] == ir.struct):
-        return typ[0]
-    return typ
-
 def unscope(scope, enum):
+    '''
+    FIXME: can we get rid of this?
+    '''
     m = re.match(r'^'+'_'.join(scope.prefix)+r'_(\w+)__enum$', enum)
     return m.group(1)
 
@@ -155,25 +144,28 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
     post_call = []
     retval_arg = []
     opt = scope.cstub.optional
+    strip = conv.strip
+
+    def to_chpl(typ): return 'chpl', strip(typ)
 
     # IN
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((('chpl', strip(typ)), deref(mode, typ, name)), strip(typ),
-                       pre_call, scope, '_ior_'+name, typ),
+          conv.codegen((to_chpl(typ), deref(mode, typ, name)), strip(typ),
+                       pre_call, scope, '_ior_'+name, typ, to_chpl),
         filter(incoming, Args))
 
     # OUT
     map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((strip(typ), '_ior_'+name), ('chpl', strip(typ)),
-                       post_call, scope, '(*%s)'%name, typ),
+          conv.codegen((strip(typ), '_ior_'+name), to_chpl(typ),
+                       post_call, scope, '(*%s)'%name, typ, to_chpl),
         filter(outgoing, Args))
 
     cstub_decl_args = map(ir_arg_to_chpl, Args)
 
     # RETURN value type conversion -- treated like an out argument
     rarg = ir.Arg([], ir.out, Type, '_retval')
-    conv.codegen((strip(Type), '_ior__retval'), ('chpl', strip(Type)), 
-                 post_call, scope, deref_retval(Type, '_retval'), Type)
+    conv.codegen((strip(Type), '_ior__retval'), to_chpl(Type),
+                 post_call, scope, deref_retval(Type, '_retval'), Type, to_chpl)
     crarg = ir_arg_to_chpl(rarg)
 
     _,_,_,chpltype,_ = crarg
@@ -377,8 +369,6 @@ def gen_doc_comment(doc_comment, scope):
                            re.split('\n\s*', doc_comment)
                            )+sep+' */'+sep
 
-sidl_array_regex = re.compile('^sidl_(\w+)__array$')
-
 class ChapelCodeGenerator(ClikeCodeGenerator):
     """
     A BRAID-style code generator for Chapel.
@@ -398,7 +388,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         }
 
     def is_sidl_array(self, struct_name):
-        m = sidl_array_regex.match(struct_name)
+        '''
+        return the scalar type of a sidl__array struct or \c None if it isn't one
+        '''
+        m = babel.sidl_array_regex.match(struct_name)
         if m:
             t = m.group(1)
             try:
@@ -406,7 +399,6 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             except:
                 return 'opaque'
         return None
-
 
     @generator
     @matcher(globals(), debug=False)
@@ -533,10 +525,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return '/*FIXME: CONST*/'+gen(Type)
 
             # Special handling of rarray types
-            elif (ir.arg, Attrs, Mode, (sidl.rarray, Scalar_type, Dimension, Extents), Name):
+            elif (ir.arg, Attrs, Mode, (ir.rarray, Scalar_type, Dimension, Extents), Name):
                 (arg_mode, arg_name) = (gen(Mode), gen(Name))
                 # rarray type will include a new domain variable definition
-                arg_type = '[?_babel_dom_%s] %s'%(Name, gen(Scalar_type))
+                arg_type = '[?_braid_dom_%s] %s'%(Name, gen(Scalar_type))
                 return '%s %s: %s'%(arg_mode, arg_name, arg_type)
 
             elif (ir.arg, Attrs, ir.inout, Type, '_ex'):
@@ -622,6 +614,10 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
+
+            elif (ir.struct_item, (sidl.array, Scalar_type, Dimension, Extents), Name):
+                return '%s: []%s'%(gen(Name), gen(Scalar_type))
+
 
             elif (ir.type_decl, (ir.struct, Name, Items, DocComment)):
                 itemdecls = gen_semicolon_sep(map(lambda i: ir.Var_decl(i[1], i[2]), Items))

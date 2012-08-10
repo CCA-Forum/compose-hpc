@@ -51,7 +51,7 @@
 # </pre>
 
 import re, string, sys
-import ir, sidl
+import babel, ir, sidl
 from patmat import *
 from utils import *
 
@@ -1310,8 +1310,13 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 args = gen_comma_sep(Args)
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), args if args else 'void')
 
-            #elif (ir.struct_item, (ir.struct, SName, Items, DocComment), Name):
-            #    return '%s %s;'%(gen((ir.type_decl, (ir.struct, SName, Items, DocComment))), gen(Name))
+            elif (ir.struct_item, (ir.rarray, Type, Dimension, Extents), Name): 
+                if babel.is_fixed_rarray(node[1]):
+                    lens = babel.rarray_len(node[1])
+                    return '%s %s%s;'%(gen(Type), gen(Name), repr(lens))
+                else:
+                    return '%s *%s;'%(gen(Type), gen(Name))
+
             elif (ir.struct_item, Type, Name): return '%s %s;'%(gen(Type),gen(Name))
 
             elif (ir.enum, Name, Items, DocComment):
@@ -1328,6 +1333,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)):
                 return "%s (*%s)(%s);"%(gen(Type), gen(Name), gen_comma_sep(Args))
+
+            elif (ir.rarray, Type, Dimension, Extents):
+                return str(gen(Type))+'*'
 
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
             elif (ir.deref, Expr):        return '*'+egen(Expr)
@@ -1360,7 +1368,7 @@ class CCodeGenerator(ClikeCodeGenerator):
         'fcomplex':    "struct sidl_fcomplex",
         'float':       "float",
         'int':         "int",
-        'long':        "long",
+        'long':        "int64_t",
         'opaque':      "void*",
         'string':      "const char*",
         'enum':        "enum",
@@ -1418,7 +1426,7 @@ class CCodeGenerator(ClikeCodeGenerator):
                 return '%s.%s = %s' % (gen(StructName), gen(Item), gen(Value))
 
             elif (ir.scoped_id, Prefix, Name, Ext):
-                return '_'.join(list(Prefix)+[Name])
+                return '_'.join(list(Prefix)+[Name+Ext])
 
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
                 return gen(#(ir.pointer_type,

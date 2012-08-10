@@ -97,6 +97,7 @@
 	 | const(Type) 
 	 | Struct
 	 | Enum
+	 | Rarray
 	 % | Class
 	 ),
   Primitive_type = primitive_type(
@@ -112,6 +113,15 @@
     | dcomplex
     | string
     | void ),
+  Rarray = rarray(Primitive_type, Dimension, [Extents]),
+  Dimension = 'INT',
+  Extents = SimpleIntExpr,
+  SimpleIntExpr = ( simple_int_infix_expr(Bin_op, SimpleIntExpr, SimpleIntExpr)
+               | simple_int_prefix_expr(Un_op, SimpleIntExpr)
+               | simple_int_fn_eval(Id, [SimpleIntExpr])
+               | var_ref(Id)
+               | 'INT'
+               ),
   Pointer_type = pointer_type(Type|Fn_decl),
   Scoped_id = scoped_id([Module], Id, Extension),
   Module = 'STR',

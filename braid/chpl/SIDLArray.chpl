@@ -129,7 +129,7 @@
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
                                                                                         \
   /** borrow a Chapel-created array and wrap it inside of SIDL array metadata */        \
-  proc borrow_##C_TYPE##_Array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
+  proc borrow_##C_TYPE##_array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank: int(32);					\
     var lus = computeLowerUpperAndStride(a);				\
     var lower = lus(0): int(32);					\
@@ -144,6 +144,12 @@
 					    lower[1],			\
 					    upper[1],			\
 					    stride[1]);			\
+    return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
+  }									\
+									\
+  /** wrap a SIDL array inside a Chapel object */			\
+  export wrap_##C_TYPE##_array						\
+  proc wrap_##C_TYPE##_array(in ior: sidl_##C_TYPE##__array) {		\
     return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
   }									\
 									\
@@ -243,7 +249,6 @@ SIDL_ARRAY(BaseInterface, int(32))
     var ior: IORtype; /*sidl_TYPE__array;*/
     /** IOR generic array<> representation of the array */
     var generic: opaque; 
-    //var borrowed: [?dom]ScalarType;
 
     proc Array(type ScalarType, type IORtype, in ior: IORtype) {
       this.ior = ior;
@@ -257,10 +262,6 @@ SIDL_ARRAY(BaseInterface, int(32))
       extern proc ior_ptr(ior): opaque;
       this.generic = ior_ptr(ior);
     }
-
-    /* proc Array(type ScalarType, type IORtype, inout borrow_from: [?dom]ScalarType) { */
-    /*   this.borrowed = borrow_from; */
-    /* }     */
 
     /**
      * Return true iff the wrapped SIDL array is not NULL.

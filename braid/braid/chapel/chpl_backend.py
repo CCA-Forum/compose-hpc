@@ -16,11 +16,11 @@
 # Copyright (c) 2010, 2011, 2012 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
-# 
+#
 # Contributors/Acknowledgements:
 #
 # Summer interns at LLNL:
-# * 2010, 2011 Shams Imam <shams@rice.edu> 
+# * 2010, 2011 Shams Imam <shams@rice.edu>
 #   contributed to argument conversions, r-array handling, exception
 #   handling, the distributed array interface and the borrowed array
 #   patch for the Chapel compiler
@@ -34,14 +34,15 @@
 # </pre>
 #
 
-import ior_template, ir, os.path, sidl, sidlobjects, splicer
+import ior, ior_template, ir, os.path, sidl, sidlobjects, splicer
 from utils import write_to, unzip
 from patmat import *
 from codegen import CFile, c_gen
 from sidl_symbols import visit_hierarchy
 import chpl_conversions as conv
+strip = conv.strip
 from chpl_code import (ChapelFile, ChapelScope, chpl_gen, unscope, unscope_retval,
-                  incoming, outgoing, gen_doc_comment, strip, deref)
+                  incoming, outgoing, gen_doc_comment, deref)
 import backend
 import chpl_makefile
 import babel
@@ -49,7 +50,7 @@ import babel
 chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
-chpl_param_ex_name = '_babel_param_ex'
+chpl_param_ex_name = '_ex'
 extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
 extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
 chpl_base_interface = 'BaseInterface'
@@ -65,7 +66,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
     """
     This class provides the methods to transform SIDL to IR.
     """
-    
+
     class ClassInfo(backend.GlueCodeGenerator.ClassInfo):
         """
         Holder object for the code generation scopes and other data
@@ -79,8 +80,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             self.co = class_object
             self.chpl_method_stub = ChapelFile(parent=stub_parent, relative_indent=4)
             self.chpl_skel = ChapelFile(parent=skel_parent, relative_indent=0)
-            self.chpl_static_stub = ChapelFile(parent=stub_parent)            
-            self.chpl_static_skel = ChapelFile(parent=skel_parent)            
+            self.chpl_static_stub = ChapelFile(parent=stub_parent)
+            self.chpl_static_skel = ChapelFile(parent=skel_parent)
             self.skel = CFile()
             self.epv = babel.EPV(class_object)
             self.ior = CFile('_'.join(class_object.qualified_name)+'_IOR')
@@ -91,12 +92,12 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         self.makefile = chpl_makefile
 
     @matcher(globals(), debug=False)
-    def generate_glue_code(self, node, data, symbol_table):
+    def generate_glue_code(self, node, data, symbol_table, pkg_h=None):
         """
         Generate glue code for \c node .
         """
-        def gen(node): 
-            return self.generate_glue_code(node, data, symbol_table)
+        def gen(node):
+            return self.generate_glue_code(node, data, symbol_table, pkg_h)
 
         def generate_ext_stub(cls):
             """
@@ -114,7 +115,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             # Consolidate all methods, defined and inherited
             cls.scan_methods()
-                
+
             # Initialize all class-specific code generation data structures
             chpl_stub = ChapelFile()
             # chpl_defs = ChapelScope(chpl_stub)
@@ -128,7 +129,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             chpl_stub.cstub.genh(ir.Import('chpltypes'))
             chpl_stub.cstub.new_def(babel.externals(cls.get_scoped_id()))
-            if self.server: 
+            if self.server:
                 chpl_stub.cstub.new_def(babel.builtin_stub_functions(cls.get_scoped_id()))
 
             has_contracts = ior_template.generateContractChecks(cls)
@@ -136,9 +137,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             #print qname, map(lambda x: x[2][1]+x[2][2], cls.all_methods)
             for method in cls.all_methods:
-                (Method, Type, Name, Attrs, Args, 
+                (Method, Type, Name, Attrs, Args,
                  Except, From, Requires, Ensures, DocComment) = method
-                ci.epv.add_method((method, Type, Name, Attrs, 
+                ci.epv.add_method((method, Type, Name, Attrs,
                                    babel.drop_rarray_ext_args(Args),
                                    Except, From, Requires, Ensures, DocComment))
 
@@ -161,7 +162,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 splicer = '.'.join(cls.qualified_name+['Impl'])
                 ci.impl.new_def('// DO-NOT-DELETE splicer.begin(%s)'%splicer)
                 ci.impl.new_def('// DO-NOT-DELETE splicer.end(%s)'%splicer)
-                for method in class_methods:  
+                for method in class_methods:
                     self.generate_server_method(symbol_table, method, ci)
 
                 ci.impl.new_def('} // class %s_Impl'%qname)
@@ -185,7 +186,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             # Chapel Stub (client-side Chapel bindings)
             self.generate_chpl_stub(chpl_stub, qname, ci)
-            
+
             # Because of Chapel's implicit (filename-based) modules it
             # is important for the Chapel stub to be one file, but we
             # generate separate files for the cstubs
@@ -194,13 +195,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             # Stub (in C), the order of these definitions is somewhat sensitive
             cstub = chpl_stub.cstub
             cstub._name = qname+'_cStub'
-            cstub.genh_top(ir.Import(qname+'_IOR'))
+            #cstub.genh_top(ir.Import(qname+'_IOR'))
+            pkg_name = '_'.join(symbol_table.prefix)
+            cstub.gen(ir.Import(pkg_name))
             cstub.gen(ir.Import(cstub._name))
             for code in cstub.optional:
                 cstub.new_global_def(code)
 
-            pkg_name = '_'.join(symbol_table.prefix)
-            cstub.gen(ir.Import(pkg_name))
             cstub.write()
 
             # IOR
@@ -229,10 +230,31 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             elif (sidl.struct, (Name), Items, DocComment):
                 # Generate Chapel stub
-                self.pkg_chpl_stub.gen(ir.Type_decl(babel.lower_ir(symbol_table, node, struct_suffix='')))
+                struct_chpl_ior  = babel.lower_ir(symbol_table, node,
+                                                  qualify_names=False, qualify_enums=False,
+                                                  lower_scoped_ids=False, struct_suffix='')
+                struct_chpl_chpl = conv.ir_type_to_chpl(struct_chpl_ior)
+                struct_c_chpl    = babel.lower_ir(symbol_table, node, qualify_enums=False)
+                # self.pkg_chpl_stub.gen(ir.Type_decl(struct_c_chpl))
+                self.pkg_chpl_stub.gen(ir.Type_decl(struct_chpl_chpl))
+
+                struct_c_c       = babel.lower_ir(symbol_table, node, header=pkg_h)
+                struct_chpl_c    = conv.ir_type_to_chpl(struct_c_c)
+
+                pkg_h.gen(ir.Type_decl(struct_c_c))
+                pkg_h.new_header_def('#ifndef CHPL_GEN_CODE')
+                pkg_h.genh(ir.Comment(
+                        'Chapel will generate its own conflicting version of '+
+                        "structs and enums since we can't use the extern "+
+                        'keyword for them.'))
+                pkg_h.gen(ir.Type_decl(struct_chpl_c))
+                pkg_h.new_header_def('#else // CHPL_GEN_CODE')
+                pkg_h.new_header_def(forward_decl(struct_chpl_c))
+                pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
 
                 # record it for later, when the package is being finished
-                self.pkg_enums_and_structs.append(babel.struct_ior_names(node))
+                # self.pkg_enums_and_structs.append(babel.struct_ior_names(node))
+                # self.pkg_enums_and_structs.append(node)
 
             elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
@@ -241,63 +263,81 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             elif (sidl.enum, Name, Items, DocComment):
                 # Generate Chapel stub
-                self.pkg_chpl_stub.gen(ir.Type_decl(node))
+                enum_chpl_ior = babel.lower_ir(symbol_table, node, qualify_enums=False)
+                enum_chpl     = conv.ir_type_to_chpl(enum_chpl_ior)
+                self.pkg_chpl_stub.gen(ir.Type_decl(enum_chpl))
+                enum_ior      = babel.lower_ir(symbol_table, node, header=pkg_h)
+                pkg_h.gen(ir.Type_decl(enum_ior))
 
                 # record it for later, when the package is being finished
-                self.pkg_enums_and_structs.append(node)
-                
+                # self.pkg_enums_and_structs.append(node)
+
             elif (sidl.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel stub
                 qname = '_'.join(symbol_table.prefix+[Name])
                 _, pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
 
+                # header for package-wide definitions (enums, structs).
+                pkg_h = CFile(qname)
+                pkg_h.genh(ir.Import('sidl_header'))
+                pkg_h.genh(ir.Import('chpltypes'))
+                pkg_h.genh(ir.Comment('Braid package header file for'+
+                                           '.'.join(symbol_table.prefix+[Name])))
+
                 if self.in_package:
                     # nested modules are generated in-line
                     self.pkg_chpl_stub.new_def('module %s {'%Name)
-                    self.generate_glue_code(UserTypes, data, pkg_symbol_table)
+                    self.generate_glue_code(UserTypes, data, pkg_symbol_table, pkg_h)
                     self.pkg_chpl_stub.new_def('}')
                 else:
                     # server-side Chapel implementation template
                     if self.server: self.begin_impl(qname)
 
                     # new file for the toplevel package
-                    self.pkg_chpl_stub = ChapelFile(relative_indent=0)
-                    self.pkg_enums_and_structs = []
+                    self.pkg_chpl_stub = ChapelFile(qname, relative_indent=0)
+
+                    # self.pkg_enums_and_structs = []
                     self.in_package = True
-                    
+
                     # recursion!
-                    self.generate_glue_code(UserTypes, data, pkg_symbol_table)
-                    write_to(qname+'.chpl', str(self.pkg_chpl_stub))
+                    self.generate_glue_code(UserTypes, data, pkg_symbol_table, pkg_h)
+                    #write_to(qname+'.chpl', str(self.pkg_chpl_stub))
 
                     # server-side Chapel implementation template
                     if self.server: self.end_impl(qname)
-     
+
                     # Makefile
                     self.pkgs.append(qname)
 
-                pkg_h = CFile(qname)
-
-                pkg_h.genh(ir.Import('sidl_header'))
-                pkg_h.genh(ir.Import('chpltypes'))
-                for es in self.pkg_enums_and_structs:
-                    es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h, qualify_names=True)
-                    pkg_h.gen(ir.Type_decl(es_ior))
-                    # generate also the chapel version of the struct, if different
-                    if es[0] == sidl.struct:
-                        es_chpl = conv.ir_type_to_chpl(es_ior)
-                        if es_chpl <> es_ior: 
-                            pkg_h.new_header_def('#ifndef CHPL_GEN_CODE')
-                            pkg_h.genh(ir.Comment(
-                                    'Chapel will generate its own conflicting version of'+
-                                    "structs and enums since we can't use the extern "+
-                                    'keyword for them.'))
-                            pkg_h.gen(ir.Type_decl(es_chpl))
-                            pkg_h.new_header_def('#else // CHPL_GEN_CODE')
-                            pkg_h.new_header_def(forward_decl(es_chpl))
-                            pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
-
+                # write package header
+                self.pkg_chpl_stub.write()
                 pkg_h.write()
 
+
+                # for es in self.pkg_enums_and_structs:
+                #     es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h,
+                #                             lower_scoped_ids=True, qualify_names=True)
+                #     pkg_h.gen(ir.Type_decl(es_ior))
+                #     # generate also the chapel version of the struct, if different
+                #     #es_chpl = es_ior
+                #     es_chpl = conv.ir_type_to_chpl(es_ior)
+                #     if es[0] == sidl.struct:
+                #         # es_ior = conv.ir_type_to_chpl(es_ior)
+                #         # es_chpl = conv.ir_type_to_chpl(es)
+                #         if True or es_chpl <> es_ior:
+                #             pkg_h.new_header_def('#ifndef CHPL_GEN_CODE')
+                #             pkg_h.genh(ir.Comment(
+                #                     'Chapel will generate its own conflicting version of '+
+                #                     "structs and enums since we can't use the extern "+
+                #                     'keyword for them.'))
+                #             pkg_h.gen(ir.Type_decl(es_chpl))
+                #             pkg_h.new_header_def('#else // CHPL_GEN_CODE')
+                #             pkg_h.new_header_def(forward_decl(es_chpl))
+                #             pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
+
+
+                # pkg_h.write()
+                # pass
 
             elif (sidl.user_type, Attrs, Cipse):
                 self.class_attrs = Attrs
@@ -382,184 +422,220 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         C (or in a macro).
         """
 
-        def convert_arg((arg, attrs, mode, typ, name)):
-            """
-            Extract name and generate argument conversions
-            """
-            iorname = name
-            iortype = typ
-            if babel.is_obj_type(symbol_table, typ):
-                iortype = babel.ior_type(symbol_table, typ)
-                if mode <> sidl.out:
-                    iorname = name + '.self_' + typ[2]
+        # def convert_arg((arg, attrs, mode, typ, name)):
+        #     """
+        #     Extract name and generate argument conversions
+        #     """
+        #     iorname = name
+        #     iortype = typ
+        #     print name, typ
+        #     if babel.is_obj_type(symbol_table, typ):
+        #         iortype = babel.ior_type(symbol_table, typ)
+        #         if mode <> sidl.out:
+        #             iorname = name + '.self_' + typ[2]
 
-                if mode <> sidl.in_:
-                    iorname = '_IOR_' + name
-                    
-                    pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
-                    
-                    # wrap the C type in a native Chapel object
-                    chpl_class_name = typ[2]
-                    mod_chpl_class_name = '.'.join(typ[1]+[chpl_class_name])
-                    conv = ir.Call(qual_id(typ, '.') + '_static.wrap_' + chpl_class_name, 
-                                   [iorname, chpl_param_ex_name])
-                    
-                    if name == '_retval':
-                        post_call.append(ir.Stmt(ir.Var_decl(
-                                    (ir.typedef_type, mod_chpl_class_name), name)))
-                    post_call.append(ir.Stmt(ir.Assignment(name, conv)))
-                    
-                    if name == '_retval':
-                        return_expr.append(name)
+        #         if mode <> sidl.in_:
+        #             iorname = '_IOR_' + name
+
+        #             pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
+
+        #             # wrap the C type in a native Chapel object
+        #             chpl_class_name = typ[2]
+        #             mod_chpl_class_name = '.'.join(typ[1]+[chpl_class_name])
+        #             conv = ir.Call(qual_id(typ, '.') + '_static.wrap_' + chpl_class_name,
+        #                            [iorname, chpl_param_ex_name])
+
+        #             if name == '_retval':
+        #                 post_call.append(ir.Stmt(ir.Var_decl(
+        #                             (ir.typedef_type, mod_chpl_class_name), name)))
+        #             post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+
+        #             if name == '_retval':
+        #                 return_expr.append(name)
+
+        #     elif babel.is_struct_type(symbol_table, typ):
+        #         iortype = babel.lower_ir(*symbol_table[typ])
+        #         if (mode == sidl.in_):
+        #             iortype = ir.Pointer_type(iortype)
+
+        #         def conv_rarray_items((struct, name, items, docstring)):
+        #             def f((item, typ, name)):
+        #                 if typ[0] == ir.rarray:
+        #                     import pdb; pdb.set_trace()
+        #                     return item, convert_arg((arg, attrs, mode, typ, name))[2][3], name
+        #                 elif typ[0] == ir.struct:
+        #                     return item, conv_rarray_items(typ), name
+        #                 else: return item, typ, name
+
+        #             return struct, name, map(f, items), docstring
+
+        #         import pdb; pdb.set_trace()
+        #         iortype = conv_rarray_items(iortype)
+
+        #     elif typ[0] == sidl.scoped_id:
+        #         # Other Symbol
+        #         iortype = symbol_table[typ][1]
+
+        #     elif typ == sidl.void:
+        #         iortype = ir.pt_void
+
+        #     elif typ == sidl.opaque:
+        #         iortype = ir.Pointer_type(ir.pt_void)
+
+        #     elif typ == (sidl.array, [], [], []):
+        #         # This comment is there so the Chapel code generator
+        #         # won't recognize the type as an array. Here is the
+        #         # only place where we actually want a C struct type.
+        #         iortype = ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], ''))
+        #         if name == '_retval':
+        #             iortype = ir.Pointer_type(ir.pt_void)
+
+        #     elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+        #         if typ[1][0] == ir.scoped_id:
+        #             t = 'BaseInterface'
+        #         else:
+        #             t = typ[1][1]
+        #         iortype = ir.Pointer_type(ir.Struct('sidl_%s__array /* IOR */'%t, [], ''))
+        #         if mode <> sidl.out:
+        #             iorname = name+'.ior'
+
+        #         if mode <> sidl.in_:
+        #             iorname = '_IOR_' + name
+        #             # wrap the C type in a native Chapel object
+        #             pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
+        #             if mode == sidl.inout:
+        #                 pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.ior')))
+
+        #             conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, iorname])
+
+        #             if name == '_retval':
+        #                 return_expr.append(conv)
+        #             else:
+        #                 post_call.append(ir.Stmt(ir.Assignment(name, conv)))
+
+        #     elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
+        #         # get the type of the scalar element
+        #         iortype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
+        #         arg_name = name# convert_el_res[0]
+        #         chpl_data_var_name = chpl_data_var_template.format(arg_name=arg_name)
+        #         chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
+        #         chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
+
+        #         # sanity check on input array: ensure domain is rectangular
+        #         pre_call.append(ir.Stmt(ir.Call('performSanityCheck',
+        #             [chpl_dom_var_name, '"{arg_name}"'.format(arg_name=arg_name)])))
+        #         # ensure we are working with a 'local' array
+        #         # FIXME Hack to define a variable without explicitly specifying type
+        #         # should we change the IR to support this?
+        #         pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_data_var_name,
+        #             ir.Call("getOpaqueData", [ir.Call(arg_name, [chpl_dom_var_name + ".low"])])))
+        #         )
+        #         pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name,
+        #             ir.Call("ensureLocalArray", [arg_name, chpl_data_var_name])))
+        #         )
+
+        #         if mode <> sidl.in_:
+        #             # emit code to copy back elements into non-local array
+        #             chpl_wrapper_ior_name = "_babel_wrapped_local_{arg}".format(arg=arg_name)
+        #             chpl_wrapper_sarray_name = "_babel_wrapped_local_{arg}_sarray".format(arg=arg_name)
+        #             chpl_wrapper_barray_name = "_babel_wrapped_local_{arg}_barray".format(arg=arg_name)
+        #             post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_sarray_name,
+        #                 ir.Call("new Array", ["{arg}.eltType".format(arg=arg_name),
+        #                          iortype[1], chpl_wrapper_ior_name]))))
+        #             post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_barray_name,
+        #                 ir.Call("createBorrowedArray{dim}d".format(dim=typ[2]), [chpl_wrapper_sarray_name]))))
+        #             post_call.append(ir.Stmt(ir.Call('syncNonLocalArray',
+        #                 [chpl_wrapper_barray_name, arg_name])))
+
+        #         # Babel is strange when it comes to Rarrays. The
+        #         # convention is to wrap Rarrays inside of a SIDL-Array
+        #         # in the Stub and to unpack it in the
+        #         # Skeleton. However, in some languages (C, C++) we
+        #         # could just directly call the Impl and save all that
+        #         # wrapper code.
+        #         #
+        #         # I found out the the reason behind this is that
+        #         # r-arrays were never meant to be a performance
+        #         # enhancement, but syntactic sugar around the SIDL
+        #         # array implementation to offer a more native
+        #         # interface.
+        #         #
+        #         # TODO: Change the IOR in Babel to use the r-array
+        #         # calling convention.  This will complicate the
+        #         # Python/Fortran/Java backends but simplify the C/C++
+        #         # ones.
+        #         sidl_wrapping = (ir.stmt, """
+        #     var {a}rank = _babel_dom_{arg}.rank: int(32);
+
+        #     var {a}lus = computeLowerUpperAndStride(_babel_local_{arg});
+        #     var {a}lower = {a}lus(0): int(32);
+        #     var {a}upper = {a}lus(1): int(32);
+        #     var {a}stride = {a}lus(2): int(32);
+
+        #     var _babel_wrapped_local_{arg}: {iortype} = {iortype}_borrow(
+        #         {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
+        #         //_babel_local_{arg}(_babel_local_{arg}.domain.low),
+        #         {a}rank,
+        #         {a}lower[1],
+        #         {a}upper[1],
+        #         {a}stride[1])""".format(a='_babel_%s_'%arg_name,
+        #                                  arg=arg_name,
+        #                                  iortype=iortype[1],
+        #                                  stype=typ[1][1]))
+
+        #         pre_call.append(sidl_wrapping)
+        #         post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp)'))
+
+        #         # reference the lowest element of the array using the domain
+        #         #call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
+        #         #return (call_expr_str, convert_el_res[1])
+        #         return '_babel_wrapped_local_'+arg_name, (arg, attrs, mode, iortype, name)
+
+        #     return iorname, (arg, attrs, mode, iortype, name)
+
+        # def obj_by_value((arg, attrs, mode, typ, name)):
+        #     if babel.is_obj_type(symbol_table, typ):
+        #         return (arg, attrs, sidl.in_, typ, name)
+        #     else:
+        #         return (arg, attrs, mode, typ, name)
+
+        def lower_rarray_args((arg, attrs, mode, typ, name)):
+            if typ[0] == sidl.rarray:
+                return arg, attrs, mode, conv.get_array_type(typ)[1], name
+            return arg, attrs, mode, typ, name
+
+        def structs_identical((s1, n1, items1, d1), (s2, n2, items2, d2)):
+            '''
+            compare two structs for structural equivalence (aka duck typing)
+            '''
+            def struct_item_identical(((i1, typ1, n1), (i2, typ2, n2))):
+                if typ1[0] == ir.struct and typ2[0] == ir.struct:
+                    return structs_identical(typ1, typ2)
+                return typ1 == typ2
             
-            elif babel.is_struct_type(symbol_table, typ):
-                iortype = babel.lower_ir(*symbol_table[typ])
-                if (mode == sidl.in_):
-                    iortype = ir.Pointer_type(iortype)
+            return reduce(lambda x,y: x and y,
+                          map(struct_item_identical, zip(items1, items2)))
 
-            elif typ[0] == sidl.scoped_id:
-                # Other Symbol
-                iortype = symbol_table[typ][1]
-
-            elif typ == sidl.void:
-                iortype = ir.pt_void
-
-            elif typ == sidl.opaque:
-                iortype = ir.Pointer_type(ir.pt_void)
-
-            elif typ == (sidl.array, [], [], []): 
-                # This comment is there so the Chapel code generator
-                # won't recognize the type as an array. Here is the
-                # only place where we actually want a C struct type.
-                iortype = ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], ''))
-                if name == '_retval':
-                    iortype = ir.Pointer_type(ir.pt_void)
-
-            elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-                if typ[1][0] == ir.scoped_id:
-                    t = 'BaseInterface'
-                else:
-                    t = typ[1][1]
-                iortype = ir.Pointer_type(ir.Struct('sidl_%s__array /* IOR */'%t, [], ''))
-                if mode <> sidl.out:
-                    iorname = name+'.ior'
-
-                if mode <> sidl.in_:
-                    iorname = '_IOR_' + name
-                    # wrap the C type in a native Chapel object
-                    pre_call.append(ir.Stmt(ir.Var_decl(iortype, iorname)))
-                    if mode == sidl.inout:
-                        pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.ior')))
-
-                    conv = (ir.new, 'sidl.Array', [typ[1], 'sidl_%s__array'%t, iorname])
-                    
-                    if name == '_retval':
-                        return_expr.append(conv)
-                    else:
-                        post_call.append(ir.Stmt(ir.Assignment(name, conv)))
-
-            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
-                # mode is always inout for an array
-                original_mode = mode
-                #mode = sidl.inout
-                # get the type of the scalar element
-                #convert_el_res = convert_arg((arg, attrs, mode, typ[1], name))
-                #print convert_el_res
-                iortype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
-                arg_name = name# convert_el_res[0]
-                chpl_data_var_name = chpl_data_var_template.format(arg_name=arg_name)
-                chpl_dom_var_name = chpl_dom_var_template.format(arg_name=arg_name)
-                chpl_local_var_name = chpl_local_var_template.format(arg_name=arg_name)
-                
-                # sanity check on input array: ensure domain is rectangular
-                pre_call.append(ir.Stmt(ir.Call('performSanityCheck',
-                    [chpl_dom_var_name, '"{arg_name}"'.format(arg_name=arg_name)])))
-                # ensure we are working with a 'local' array
-                # FIXME Hack to define a variable without explicitly specifying type
-                # should we change the IR to support this?
-                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_data_var_name,
-                    ir.Call("getOpaqueData", [ir.Call(arg_name, [chpl_dom_var_name + ".low"])])))
-                )
-                pre_call.append(ir.Stmt(ir.Assignment('var ' + chpl_local_var_name,
-                    ir.Call("ensureLocalArray", [arg_name, chpl_data_var_name])))
-                )
-                
-                if original_mode <> sidl.in_:
-                    # emit code to copy back elements into non-local array
-                    chpl_wrapper_ior_name = "_babel_wrapped_local_{arg}".format(arg=arg_name)
-                    chpl_wrapper_sarray_name = "_babel_wrapped_local_{arg}_sarray".format(arg=arg_name)
-                    chpl_wrapper_barray_name = "_babel_wrapped_local_{arg}_barray".format(arg=arg_name)
-                    post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_sarray_name,
-                        ir.Call("new Array", ["{arg}.eltType".format(arg=arg_name),
-                                 iortype[1], chpl_wrapper_ior_name]))))
-                    post_call.append(ir.Stmt(ir.Assignment('var ' + chpl_wrapper_barray_name,
-                        ir.Call("createBorrowedArray{dim}d".format(dim=typ[2]), [chpl_wrapper_sarray_name]))))
-                    post_call.append(ir.Stmt(ir.Call('syncNonLocalArray',
-                        [chpl_wrapper_barray_name, arg_name])))
-                    
-                # Babel is strange when it comes to Rarrays. The
-                # convention is to wrap Rarrays inside of a SIDL-Array
-                # in the Stub and to unpack it in the
-                # Skeleton. However, in some languages (C, C++) we
-                # could just directly call the Impl and save all that
-                # wrapper code.
-                #
-                # I found out the the reason behind this is that
-                # r-arrays were never meant to be a performance
-                # enhancement, but syntactic sugar around the SIDL
-                # array implementation to offer a more native
-                # interface.
-                #
-                # TODO: Change the IOR in Babel to use the r-array
-                # calling convention.  This will complicate the
-                # Python/Fortran/Java backends but simplify the C/C++
-                # ones.
-                sidl_wrapping = (ir.stmt, """
-            var {a}rank = _babel_dom_{arg}.rank: int(32);
-
-            var {a}lus = computeLowerUpperAndStride(_babel_local_{arg});
-            var {a}lower = {a}lus(0): int(32);
-            var {a}upper = {a}lus(1): int(32);
-            var {a}stride = {a}lus(2): int(32);
-            
-            var _babel_wrapped_local_{arg}: {iortype} = {iortype}_borrow(
-                {stype}_ptr(_babel_local_{arg}(_babel_local_{arg}.domain.low)),
-                //_babel_local_{arg}(_babel_local_{arg}.domain.low),
-                {a}rank,
-                {a}lower[1],
-                {a}upper[1],
-                {a}stride[1])""".format(a='_babel_%s_'%arg_name,
-                                         arg=arg_name,
-                                         iortype=iortype[1],
-                                         stype=typ[1][1]))
-                
-                pre_call.append(sidl_wrapping)
-                post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp)'))
-
-                # reference the lowest element of the array using the domain
-                #call_expr_str = chpl_local_var_name + '(' + chpl_local_var_name + '.domain.low' + ')'
-                #return (call_expr_str, convert_el_res[1])
-                return '_babel_wrapped_local_'+arg_name, (arg, attrs, mode, iortype, name)
-                
-            return iorname, (arg, attrs, mode, iortype, name)
-
-        def obj_by_value((arg, attrs, mode, typ, name)):
-            if babel.is_obj_type(symbol_table, typ):
-                return (arg, attrs, sidl.in_, typ, name)
-            else:
-                return (arg, attrs, mode, typ, name)
 
         # Chapel stub
         (Method, Type, (MName,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
-        ior_type = babel.lower_ir(symbol_table, Type, struct_suffix='', lower_scoped_ids=False)
-        ior_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args), 
-                                  struct_suffix='', lower_scoped_ids=False)
+        ior_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False)
+        ior_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args),
+                                  lower_scoped_ids=False)
+
+        cdecl_type = babel.lower_ir(symbol_table, Type)
+        cdecl_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args))
+
+        #map(lambda arg: conv.sidl_arg_to_ir(symbol_table, arg), ior_args)
 
         chpl_args = []
-        chpl_args.extend(babel.lower_ir(symbol_table, Args, struct_suffix='', 
-                                        lower_scoped_ids=False, qualify_names=False))
+        chpl_args.extend(babel.lower_ir(symbol_table, Args, lower_scoped_ids=False,
+                                        qualify_names=False, qualify_enums=False,
+                                        struct_suffix=''))
+        chpl_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False,
+                                   qualify_names=False, qualify_enums=False)
 
         abstract = member_chk(sidl.abstract, Attrs)
         #final = member_chk(sidl.final, Attrs)
@@ -571,7 +647,12 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             # since it might me a virtual function call through an
             # abstract interface
             pass
-        if static: attrs.append(ir.static)
+
+        if static:
+            attrs.append(ir.static)
+            chpl_scope = ci.chpl_static_stub
+        else:
+            chpl_scope = ci.chpl_method_stub
 
         # this is an ugly hack to force generate_method_stub to to wrap the
         # self argument with a call to upcast()
@@ -581,96 +662,134 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         pre_call = []
         post_call = []
-        return_expr = []
         return_stmt = []
 
+        ior_ex = '_ior_ex'
         pre_call.append(extern_def_is_not_null)
         pre_call.append(extern_def_set_to_null)
-        pre_call.append(ir.Stmt(ir.Var_decl(babel.ir_exception_type(), '_ex')))
-        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", ['_ex'])))
-        
+        pre_call.append(ir.Stmt(ir.Var_decl(babel.ir_exception_type(), ior_ex)))
+        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", [ior_ex])))
+
         post_call.append(ir.Stmt(ir.If(
-            ir.Call("IS_NOT_NULL", ['_ex']),
+            ir.Call("IS_NOT_NULL", [ior_ex]),
             [
                 ir.Stmt(ir.Assignment(chpl_param_ex_name,
-                                   ir.Call("new " + chpl_base_interface, ['_ex'])))
+                                   ir.Call("new " + chpl_base_interface, [ior_ex])))
             ]
         )))
-        
-        call_args, cdecl_args = unzip(map(convert_arg, ior_args))
-        
-        # return value type conversion -- treat it as an out argument
-        _, (_,_,_,iortype,_) = convert_arg((ir.arg, [], ir.out, ior_type, '_retval'))
-        if iortype[0] == ir.enum: 
-            chpl_type = babel.lower_ir(symbol_table, Type, struct_suffix='', 
-                                       lower_scoped_ids=False, qualify_names=False)
-        else: chpl_type = iortype
 
-        cdecl_args = babel.stub_args(attrs, cdecl_args, symbol_table, ci.epv.name, docast)
-        cdecl = ir.Fn_decl(attrs, iortype, Name + Extension, cdecl_args, DocComment)
+        # return value type conversion -- treat it as an out argument
+        srarg = (sidl.arg, [], sidl.out, Type, '_retval')
+        rarg  = (ir.arg, [], sidl.out, ior_type, '_retval')
+        crarg = (ir.arg, [], ir.out, cdecl_type, '_retval') #conv.sidl_arg_to_ir(symbol_table, rarg)
+        _,_,_,ctype,_ = crarg
+
+        # Proxy declarations / revised names of call arguments
+        call_args = []
+        decls = []
+        for (_,_,mode,c_t,name), (_,_,_,chpl_t,_), (_,_,_,sidl_t,_) in (
+            zip(cdecl_args+[crarg], ior_args+[rarg], Args+[srarg])):
+            if c_t <> sidl_t and c_t[0] <> ir.enum and sidl_t <> sidl.void:
+                if c_t[0] == ir.struct:
+                    print '-'*72
+                    print sidl_t
+                    print c_t
+                    print chpl_t
+                    if structs_identical(c_t, chpl_t):
+                        continue
+                    print '... != ...'
+                iorname = '_ior_'+name
+                # c_t_low = babel.lower_ir(symbol_table, c_t)
+                decls.append(ir.Stmt(ir.Var_decl(c_t, iorname)))
+
+                if babel.is_obj_type(symbol_table, chpl_t):
+                    t = ior.ext
+                elif sidl_t[0] == sidl.rarray: 
+                    t = sidl.array
+                else:
+                    t = strip(chpl_t)
+
+                def type_conv(typ):
+                    if typ == sidl.pt_opaque: return 'chpl',ir.pointer_type
+                    return strip(typ)
+
+                def deref(typ, name):
+                    return name+'.' if typ == ir.struct else name
+
+                # Argument conversions:
+                # incoming
+                if mode <> ir.out:
+                    conv.codegen((('chpl', t), deref(t, name)), type_conv(t), 
+                                 pre_call, chpl_scope, iorname, c_t, type_conv)
+                # outgoing
+                if mode <> ir.in_:
+                    conv.codegen((type_conv(t), iorname), ('chpl', t), 
+                                 post_call, chpl_scope, name, c_t, type_conv)
+
+                call_args.append(iorname)
+            else:
+                call_args.append(name)
+
+        # get rid of retval in call args
+        call_args = call_args[:-1]
+
+        babel_cdecl_args = babel.stub_args(attrs, map(lower_rarray_args, cdecl_args), 
+                                           symbol_table, ci.epv.name, docast)
+        cdecl = ir.Fn_decl(attrs, ctype, Name + Extension, babel_cdecl_args, DocComment)
 
         if static:
             call_self = []
         else:
             call_self = ['this.self_' + ci.epv.name]
-                
 
-        call_args = call_self + call_args + ['_ex']
+
+        call_args = call_self + call_args + [ior_ex]
         # Add the exception to the chapel method signature
-        chpl_args.append(ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), chpl_param_ex_name))
+        chpl_args.append(ir.Arg([], ir.out,
+                                (ir.typedef_type, chpl_base_interface),
+                                chpl_param_ex_name))
+
         if self.server and has_impl:
             # if we are generating server code we can take a shortcut
             # and directly invoke the implementation
             modname = '_'.join(ci.co.symbol_table.prefix+['Impl'])
-            if not static:
-                qname = '_'.join(ci.co.qualified_name+['Impl'])
-                # FIXME!
+            #if not static:
+            #    qname = '_'.join(ci.co.qualified_name+['Impl'])
+            #    # FIXME!
             callee = '.'.join([modname, ir.fn_decl_id(cdecl)])
         else:
             callee = babel.build_function_call(ci, cdecl, static)
 
-        stubcall = ir.Call(callee, call_args)
-        if Type == sidl.void:
-            Type = ir.pt_void
-            call = [ir.Stmt(stubcall)]
-        else:
-            if return_expr or post_call:
-                rvar = '_IOR__retval'
-                if not return_expr:                                
-                    if iortype[0] == ir.struct:
-                        iortype = babel.lower_ir(*symbol_table[Type], struct_suffix='')
+        if Type <> sidl.void:
+            rvar = '_retval'
+            ior_rvar = '_ior_'+rvar if rarg <> crarg else rvar
 
-                    pre_call.append(ir.Stmt(ir.Var_decl(chpl_type, rvar)))
-                    rx = rvar
-                else:
-                    rx = return_expr[0]
+            if chpl_type[0] == ir.struct:
+                chpl_type = babel.lower_ir(*symbol_table[Type], struct_suffix='')
 
-                if babel.is_struct_type(symbol_table, Type):
-                    # use rvar as an additional OUT argument instead
-                    # of a return value because Chapel cannot deal
-                    # with return-by-value classes and every struct
-                    # must be either a struct (value) or a record (reference)
-                    call = [ir.Stmt(ir.Call(callee, call_args+[rvar]))]
-                else:
-                    call = [ir.Stmt(ir.Assignment(rvar, stubcall))]
-                return_stmt = [ir.Stmt(ir.Return(rx))]
+            pre_call.append(ir.Stmt((ir.var_decl, chpl_type, rvar)))
+
+            if babel.is_struct_type(symbol_table, Type):
+                # use rvar as an additional OUT argument instead
+                # of a return value because Chapel cannot deal
+                # with return-by-value classes and every struct
+                # must be either a struct (value) or a record (reference)
+                call = [ir.Stmt(ir.Call(callee, call_args+[rvar]))]
             else:
-                call = [ir.Stmt(ir.Return(stubcall))]
+                call = [ir.Stmt(ir.Assignment(ior_rvar, ir.Call(callee, call_args)))]
 
-        defn = (ir.fn_defn, [],
-                babel.lower_ir(symbol_table, Type, struct_suffix='', 
-                               lower_scoped_ids=False, qualify_names=False),
+            return_stmt = [ir.Stmt(ir.Return(rvar))]
+        else:
+            call = [ir.Stmt(ir.Call(callee, call_args))]
+
+
+        defn = (ir.fn_defn, [], chpl_type,
                 Name + Extension, chpl_args,
-                pre_call+call+post_call+return_stmt,
+                decls+pre_call+call+post_call+return_stmt,
                 DocComment)
 
-        if static:
-            ci.chpl_static_stub.prefix=symbol_table.prefix
-            chpl_gen(defn, ci.chpl_static_stub)
-        else:
-            ci.chpl_method_stub.prefix=symbol_table.prefix
-            chpl_gen(defn, ci.chpl_method_stub)
-
+        chpl_scope.prefix=symbol_table.prefix
+        chpl_gen(defn, chpl_scope)
 
     def generate_chpl_stub(self, chpl_stub, qname, ci):
         """
@@ -708,13 +827,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         parent_classes = []
         extern_hier_visited = []
         for _, ext in cls.extends:
-            visit_hierarchy(ext, gen_extern_casts, symbol_table, 
+            visit_hierarchy(ext, gen_extern_casts, symbol_table,
                             extern_hier_visited)
             parent_classes += babel.strip_common(symbol_table.prefix, ext[1])
 
         parent_interfaces = []
         for _, impl in cls.implements:
-            visit_hierarchy(impl, gen_extern_casts, symbol_table,  
+            visit_hierarchy(impl, gen_extern_casts, symbol_table,
                             extern_hier_visited)
             parent_interfaces += babel.strip_common(symbol_table.prefix, impl[1])
 
@@ -828,7 +947,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         def gen_cast(_symtab, _ext, base):
             qbase = qual_id(base)
-            mod_base = '.'.join(base[1]+[qbase])  
+            mod_base = '.'.join(base[1]+[qbase])
             chpl_gen(
                 (ir.fn_defn, [], (ir.typedef_type, '%s__object' % mod_base),
                  'as_'+qbase, [],
@@ -934,7 +1053,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         pkgname = '_'.join(ci.epv.symbol_table.prefix)
 
         dummyargv = '''
-  char* argv[] = { 
+  char* argv[] = {
     babel_program_name,
     "-nl", /* number of locales */
     "",
@@ -1014,8 +1133,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         self.pkg_chpl_skel.write()
 
         # deal with the impl file
-        if self.pkg_enums_and_structs:
-            self.pkg_impl._header.append(chpl_gen(ir.Import(qname)))
+        # if self.pkg_enums_and_structs:
+        self.pkg_impl._header.append(chpl_gen(ir.Import(qname)))
 
         impl = qname+'_Impl.chpl'
 
@@ -1029,27 +1148,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         else:
             write_to(impl, str(self.pkg_impl))
 
-
-    def generate_server_es_defs(self, pkg_symbol_table, es, qname):
-        """
-        Write the package-wide definitions (enums, structs).
-        """
-        pkg_chpl = ChapelFile(qname)
-        pkg_h = CFile(qname)
-        pkg_h.genh(ir.Import('sidl_header'))
-        for es in self.pkg_enums_and_structs:
-            es_ior = babel.lower_ir(pkg_symbol_table, es, header=pkg_h, qualify_names=True)
-            es_chpl = es_ior
-            if es[0] == sidl.struct:
-                es_ior = conv.ir_type_to_chpl(es_ior)
-                es_chpl = conv.ir_type_to_chpl(es)
-
-            pkg_h.gen(ir.Type_decl(es_ior))
-            pkg_chpl.gen(ir.Type_decl(es_chpl))
-
-        pkg_h.write()
-        pkg_chpl.write()
-    
     @matcher(globals(), debug=False)
     def generate_server_method(self, symbol_table, method, ci):
         """
@@ -1057,7 +1155,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         generates a C-callable skeleton for the method and generates a
         Skeleton of Chapel code complete with splicer blocks for the
         user to fill in.
-        
+
         \param method        s-expression of the method's SIDL declaration
         \param symbol_table  the symbol table of the SIDL file
         \param ci            a ClassInfo object
@@ -1076,7 +1174,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
          Except, From, Requires, Ensures, DocComment) = method
 
          #ior_args = drop_rarray_ext_args(Args)
-        
+
 #        ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
 #                           Except, From, Requires, Ensures, DocComment))
 
@@ -1099,46 +1197,37 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         opt = skel.cstub.optional
         qname = '_'.join(ci.co.qualified_name+[Name])
         callee = qname+'_impl'
-     
+
         # Argument conversions
         # ---------------------
 
         # self
         this_arg = [] if static else [ir.Arg([], ir.in_, ir.void_ptr, '_this')]
-     
+
         # IN
         map(lambda (arg, attr, mode, typ, name):
               conv.codegen((strip(typ), deref(mode, typ, name)), ('chpl', strip(typ)),
-                           pre_call, skel, '_CHPL_'+name, typ),
+                           pre_call, skel, '_CHPL_'+name, typ, id),
             filter(incoming, ior_args))
-     
+
         # OUT
         map(lambda (arg, attr, mode, typ, name):
               conv.codegen((('chpl', strip(typ)), '_CHPL_'+name), strip(typ),
-                           post_call, skel, '(*%s)'%name, typ),
+                           post_call, skel, '(*%s)'%name, typ, id),
             filter(outgoing, ior_args))
 
         # RETURN value type conversion -- treated just like an OUT argument
         rarg = (ir.arg, [], ir.out, ctype, '_retval')
         conv.codegen((('chpl', strip(ctype)), '_CHPL__retval'), strip(ctype),
-                     post_call, skel, '_retval', ctype)
+                     post_call, skel, '_retval', ctype, id)
         chpl_rarg = conv.ir_arg_to_chpl(rarg)
         _,_,_,chpltype,_ = chpl_rarg
         if Type <> sidl.void:
             decls.append(ir.Stmt(ir.Var_decl(ctype, '_retval')))
 
-        # def pointerize_struct((arg, attr, mode, typ, name)):
-        #   # FIXME: this is borked.. instead we should remove this
-        #   # _and_ the code in codegenerator that strips the
-        #   # pointer_type again
-        #   if typ[0] == ir.struct:
-        #         return (arg, attr, mode, (ir.pointer_type, typ), name)
-        #   else: return (arg, attr, mode, typ, name)
-
-        # chpl_args = map(pointerize_struct, map(conv.ir_arg_to_chpl, ior_args))
         chpl_args = map(conv.ir_arg_to_chpl, ior_args)
 
-     
+
         # Proxy declarations / revised names of call arguments
         is_retval = True
         for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) \
@@ -1153,17 +1242,17 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                     c_t = c_t[1]
                     is_struct = True
                     proxy_t = chpl_t[1]
-     
+
                 # FIXME see comment in chpl_to_ior
                 name = '_CHPL_'+name
                 decls.append(ir.Stmt(ir.Var_decl(proxy_t, name)))
-                if (mode <> sidl.in_ or is_struct 
+                if (mode <> sidl.in_ or is_struct
                     # TODO this should be handled by a conversion rule
                     or (mode == sidl.in_ and (
-                            c_t == ir.pt_fcomplex or 
+                            c_t == ir.pt_fcomplex or
                             c_t == ir.pt_dcomplex))):
                     name = ir.Pointer_expr(name)
-     
+
             if name == 'self' and member_chk(ir.pure, attrs):
                 # part of the hack for self dereferencing
                 upcast = ('({0}*)(((struct sidl_BaseInterface__object*)self)->d_object)'
@@ -1209,7 +1298,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         def unscoped_args((arg, attr, mode, typ, name)):
             if typ[0] == ir.enum:
-                return (arg, attrs, mode, 
+                return (arg, attrs, mode,
                         (ir.enum, unscope(ci.epv.symbol_table, typ[1]), typ[2], typ[3]),
                         name)
             return arg, attr, mode, typ, name
@@ -1218,8 +1307,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         impl_args = this_arg+map(skel_args, chpl_args)+ex_arg
         impldecl = (ir.fn_decl, [], chpltype, callee, impl_args, DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
-        impldefn = (ir.fn_defn, ['export '+callee], 
-                    unscope_retval(ci.epv.symbol_table, chpltype), 
+        impldefn = (ir.fn_defn, ['export '+callee],
+                    unscope_retval(ci.epv.symbol_table, chpltype),
                     Name,
                     map(unscoped_args, impl_args),
                     ['SET_TO_NULL(_ex);',
@@ -1230,7 +1319,3 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         c_gen(skeldefn, ci.chpl_skel.cstub)
         c_gen(impldecl, ci.chpl_skel.cstub)
         chpl_gen(impldefn, ci.impl)
-
-
-
-

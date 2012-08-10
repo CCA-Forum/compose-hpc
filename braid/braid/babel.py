@@ -10,7 +10,7 @@
 # Copyright (c) 2012, Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
-# 
+#
 # LLNL-CODE-473891.
 # All rights reserved.
 #
@@ -25,14 +25,16 @@ from patmat import *
 from sidl_symbols import SymbolTable
 from string import Template
 
+sidl_array_regex = re.compile('^sidl_(\w+)__array$')
+
 def strip_common(prefix, a):
     """
     \return \c a with the common prefix of \c prefix removed
     """
-    while (len(prefix) and 
+    while (len(prefix) and
            len(a) and
            prefix[0] == a[0]):
-        
+
         a = a[1:]
         prefix = prefix[1:]
     return a
@@ -78,7 +80,7 @@ def ir_object_type(package, name):
     \param name    the name of the object
     \param package the list of IDs making up the package
     """
-    return ir.Pointer_type(ir.Struct(object_type(package, name+'__object'), [], ''))
+    return ir.Pointer_type(ir.Struct(ir.Scoped_id(package, name, '__object'), [], ''))
 
 def ir_exception_type():
     """
@@ -97,7 +99,7 @@ def builtin((name, args)):
                        [], [], [], [], 'builtin method')
 
 builtins = map(builtin,
-               [('_ctor', []), 
+               [('_ctor', []),
                 ('_ctor2', [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')]),
                 ('_dtor', []),
                 ('_load', [])])
@@ -107,7 +109,7 @@ builtin_method_names = [
     "_delete",			# the DELETE method
     "_exec",			# the reflexive EXEC method
     "_getURL",			# get's the object's URL (for RMI)
-    "_raddRef",			# Remote addRef, Internal Babel	 
+    "_raddRef",			# Remote addRef, Internal Babel
     "_isRemote",		# TRUE if this object is Remote
     "_set_hooks",		# the HOOKS method
     "_set_contracts",		# the Contract CONTRACTS method
@@ -143,7 +145,7 @@ def vcall(name, args, ci):
         _, attrs0, mode0, type0, name0 = arguments[0]
         arguments = [ir.Arg([ir.pure], mode0, type0, name0)]+arguments[1:]
         cdecl = ir.Fn_decl(attrs, type_, id_, arguments, doc)
-        
+
     return ir.Stmt(ir.Call(ir.Deref(ir.Get_struct_item(epv,
                 ir.Deref(ir.Get_struct_item(ci.obj,
                                             ir.Deref('self'),
@@ -166,16 +168,16 @@ def drop_rarray_ext_args(args):
 
     return filter(lambda a: a[4] not in names, args)
 
-def struct_ior_names((struct, name, items, docstring)):
-    """
-    Append '__data' to a struct's name and all nested structs' names. 
-    """
-    def f((item, typ, name)):
-        if typ[0] == ir.struct:
-            return item, struct_ior_names(typ), name
-        else: return item, typ, name
-
-    return struct, name+'__data', map(f, items), docstring
+# def struct_ior_names((struct, name, items, docstring)):
+#     """
+#     Append '__data' to a struct's name and all nested structs' names.
+#     """
+#     def f((item, typ, name)):
+#         if typ[0] == ir.struct:
+#             return item, struct_ior_names(typ), name
+#         else: return item, typ, name
+#
+#     return struct, name+'__data', map(f, items), docstring
 
 
 def notnone(fn):
@@ -191,8 +193,12 @@ def notnone(fn):
 
 @notnone
 @matcher(globals(), debug=False)
-def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data', 
-             lower_scoped_ids=True, qualify_names=True):
+def lower_ir(symbol_table, sidl_term, header=None,
+             struct_suffix='__data',
+             enum_suffix='__enum',
+             lower_scoped_ids=True,
+             qualify_names=True,
+             qualify_enums=True):
     """
     FIXME!! can we merge this with convert_arg??
     lower SIDL types into IR
@@ -205,13 +211,15 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data',
                              node types such as array, rarray, and
                              class.  If False, then these types will
                              not be lowered.
-                            
+
     @param qualify_names     If \c True, enum values will get prefixed
                              with the full qualified name of the enum.
     """
     def low(sidl_term):
-        return lower_ir(symbol_table, sidl_term, header, struct_suffix, 
-                        lower_scoped_ids, qualify_names)
+        return lower_ir(symbol_table, sidl_term, header,
+                        struct_suffix, enum_suffix,
+                        lower_scoped_ids,
+                        qualify_names, qualify_enums)
 
     # print 'low(',sidl_term, ')'
 
@@ -229,31 +237,29 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data',
 
         elif (sidl.scoped_id, Prefix, Name, Ext):
             return low(symbol_table[sidl_term][1])
-        
+
         elif (sidl.void):                        return ir.pt_void
         elif (ir.void_ptr):                      return ir.void_ptr
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
         elif (sidl.primitive_type, sidl.string): return ir.const_str
-        elif (sidl.primitive_type, sidl.bool):   return ir.Typedef_type('sidl_bool')
-        elif (sidl.primitive_type, sidl.long):   return ir.Typedef_type('int64_t')
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
 
         elif (sidl.enum, Name, Enumerators, DocComment):
-            if qualify_names:
-                es = lower_ir(SymbolTable(symbol_table, 
+            if qualify_enums:
+                es = lower_ir(SymbolTable(symbol_table,
                                           symbol_table.prefix+[Name]),
-                              Enumerators, header, struct_suffix, 
+                              Enumerators, header, struct_suffix,
                               lower_scoped_ids, qualify_names)
-                return ir.Enum(qual_name(symbol_table, sidl_term[1])+'__enum', es, DocComment)
+                return ir.Enum(qual_name(symbol_table, sidl_term[1])+enum_suffix, es, DocComment)
             else:
                 return ir.Enum(sidl_term[1], low(Enumerators), DocComment)
 
         elif (sidl.enumerator, Name):
-            if qualify_names: return ir.Enumerator(qual_name(symbol_table, Name))
+            if qualify_enums: return ir.Enumerator(qual_name(symbol_table, Name))
             else:             return sidl_term
 
         elif (sidl.enumerator_value, Name, Val):
-            if qualify_names: return ir.Enumerator_value(qual_name(symbol_table, Name), Val)
+            if qualify_enums: return ir.Enumerator_value(qual_name(symbol_table, Name), Val)
             else:             return sidl_term
 
 
@@ -262,9 +268,16 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data',
             return ir.Struct(qual_id(sidl_term[1])+struct_suffix, low(Items), '')
 
         elif (sidl.struct, Name, Items, DocComment):
-            return ir.Struct(qual_name(symbol_table, Name), low(Items), '')
+            return ir.Struct(qual_name(symbol_table, Name)+struct_suffix, low(Items), '')
 
         elif (sidl.struct_item, Type, Name):
+            if Type[0] == sidl.scoped_id:
+                t = symbol_table[Type][1]
+                if t[0] == sidl.class_ or t[0] == sidl.interface:
+                    t = ir.Pointer_type(ir_object_type(t[1][1],t[1][2]))
+                elif t[0] == sidl.struct or t[0] == sidl.enum:
+                    return (ir.struct_item, low(t), Name)
+                return (ir.struct_item, t, Name)
             return (ir.struct_item, low(Type), Name)
 
         # elif (sidl.rarray, Scalar_type, Dimension, Extents):
@@ -275,9 +288,7 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data',
         #     return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
 
         elif (sidl.rarray, Scalar_type, Dimension, Extents):
-            if not lower_scoped_ids: return sidl_term
-            # Rarray appearing inside of a struct
-            return ir.Pointer_type(Scalar_type)
+            return ir.Rarray(low(Scalar_type), Dimension, Extents)
 
         elif (sidl.array, [], [], []):
             #if not lower_scoped_ids: return sidl_term
@@ -300,11 +311,11 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data',
         elif (sidl.class_, ScopedId, _, _, _, _, _):
             if not lower_scoped_ids: return ScopedId
             else: return ir_object_type(ScopedId[1], ScopedId[2])
-        
+
         elif (sidl.interface, ScopedId, _, _, _, _):
             if not lower_scoped_ids: return ScopedId
             return ir_object_type(ScopedId[1], ScopedId[2])
-        
+
         elif (Terms):
             if (isinstance(Terms, list)):
                 return map(low, Terms)
@@ -315,6 +326,62 @@ def lower_ir(symbol_table, sidl_term, header=None, struct_suffix='__data',
 
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
     return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
+
+
+def is_fixed_rarray(rarray):
+    '''
+    \return True iff the extent expressions of \c rarray are constant.
+    '''
+    return reduce(lambda a, b: a and b, map(lambda n: n > 0, rarray_len(rarray)))
+
+@matcher(globals())
+def rarray_len(rarray):
+    '''
+    \return a tuple of all the constant extent expressions of \c rarray.
+    non-constant extents will be returned as -1
+    '''
+    def fail(Exp):
+        import codegen
+        print ("**ERROR: The %s expression is not supported "
+               %codegen.sidl_gen(Exp)+
+               "for rarray extent expressions.")
+        exit(1)
+
+    def l(extent):
+        with match(extent):
+            if (ir.simple_int_infix_expr, Op, A, B):
+                if A < 0 or B < 0:    return -1
+                elif Op == ir.plus:   return A+B
+                elif Op == ir.minus:  return A-B
+                elif Op == ir.times:  return A*B
+                elif Op == ir.divide: return A//B
+                elif Op == ir.modulo: return A%B
+                elif Op == ir.lshift: return A<<B
+                elif Op == ir.rshift: return A>>B
+                elif Op == ir.pow:    return A**B
+                else: fail(extent)
+
+            elif (ir.simple_int_prefix_expr, Op, A):
+                if A < 0:            return -1
+                elif Op == ir.minus: return -A
+                else: fail(extent)
+
+            elif (ir.simple_int_fn_eval, Id, A):
+                fail(extent)
+                import pdb; pdb.set_trace()
+                if A < 0: return -1
+                else: fail(extent)
+
+            elif (ir.var_ref, Id):
+                return -1
+
+            else:
+                if isinstance(extent, int):
+                    return extent
+                fail(extent)
+
+    return map(l, ir.rarray_extents(rarray))
+
 
 class EPV(object):
     """
@@ -448,7 +515,7 @@ class EPV(object):
 
         if self.static_post_methods:
             entries = [ir.Struct_item(itype, iname)
-                       for itype, iname in 
+                       for itype, iname in
                        map(get_type_name, self.static_pre_methods)]
         else:
             entries = [self.nonempty]
@@ -466,7 +533,7 @@ class EPV(object):
 
         if self.static_post_methods:
             entries = [ir.Struct_item(itype, iname)
-                       for itype, iname in 
+                       for itype, iname in
                        map(get_type_name, self.static_post_methods)]
         else:
             entries = [self.nonempty]
@@ -490,10 +557,10 @@ class EPV(object):
 
 def static_ior_args(args, symbol_table, class_name):
     """
-    \return a SIDL -> Ir lowered version of 
+    \return a SIDL -> Ir lowered version of
     [self]+args+(sidl_BaseInterface__object*)[*ex]
     """
-    arg_self = [ir.Arg([], ir.in_, 
+    arg_self = [ir.Arg([], ir.in_,
                        ir_object_type(symbol_table.prefix, class_name),
                        'self')]
     arg_ex = [ir.Arg([], sidl.out, ir_baseinterface_type(), '_ex')]
@@ -508,7 +575,7 @@ def epv_args(attrs, args, symbol_table, class_name):
         arg_self = []
     else:
         arg_self = \
-            [ir.Arg([], ir.in_, 
+            [ir.Arg([], ir.in_,
                     ir_object_type(symbol_table.prefix, class_name),
                     'self')]
     arg_ex = \
@@ -523,7 +590,7 @@ def stub_args(attrs, args, symbol_table, class_name, extra_attrs):
         arg_self = []
     else:
         arg_self = [
-            ir.Arg(extra_attrs, sidl.in_, 
+            ir.Arg(extra_attrs, sidl.in_,
                 ir_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
         [ir.Arg(extra_attrs, sidl.out, ir_exception_type(), '_ex')]
@@ -579,7 +646,7 @@ static const struct ${ext}__external* _loadIOR(void)
 #else
   _externals = (struct ${ext}__external*)sidl_dynamicLoadIOR(
     "${ext_dots}","${ext}__externals") ;
-  sidl_checkIORVersion("${ext_dots}", _externals->d_ior_major_version, 
+  sidl_checkIORVersion("${ext_dots}", _externals->d_ior_major_version,
     _externals->d_ior_minor_version, 2, 0);
 #endif
   return _externals;
@@ -751,7 +818,7 @@ ${ext}__isLocal(
   /* out */ sidl_BaseInterface *_ex)
 {
   return !${ext}__isRemote(self, _ex);
-}           
+}
 
 // FIXME: this does not belong here. It should be in stub.h
 #pragma weak ${ext}__isRemote
