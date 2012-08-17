@@ -2,7 +2,7 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 August 3
+ * Last Modified:  2012 August 17
  *
  * @file
  * @section DESCRIPTION
@@ -109,51 +109,62 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
 
   if ( (body != NULL) && !label.empty() && !expr.empty() )
   {
-    string cmt;
+    string cmt, clauseTime;
     SgExprListExp* parms = new SgExprListExp(FILE_INFO);
 
-    switch (clauseType)
+    if (parms != NULL)
     {
-      case ContractClause_PRECONDITION:
-        {
-          parms->append_expression(new SgStringVal(FILE_INFO, 
-            "ContractClause_PRECONDITION"));
-          cmt = "PContract Precondition";
-        }
-        break;
-      case ContractClause_POSTCONDITION:
-        {
-          parms->append_expression(new SgStringVal(FILE_INFO, 
-            "ContractClause_POSTCONDITION"));
-          cmt = "PContract Postcondition";
-        }
-        break;
-      case ContractClause_INVARIANT:
-        {
-          parms->append_expression(new SgStringVal(FILE_INFO, 
-            "ContractClause_INVARIANT"));
-          cmt = "PContract Invariant";
-        }
-        break;
-      default:
-        {
-          /*  WARNING:  This should NEVER happen... */
-          parms->append_expression(new SgStringVal(FILE_INFO, 
-            "ContractClause_NONE"));
-          cmt = "PContract Error:  Contact Developer(s)!";
-        }
-        break;
-    }
-    parms->append_expression(new SgStringVal(FILE_INFO, 
-      "pce_def_times.routine"));
-    parms->append_expression(new SgStringVal(FILE_INFO, 
-      (firstTime) ? "CONTRACTS_TRUE" : "CONTRACTS_FALSE"));
-    parms->append_expression(new SgStringVal(FILE_INFO, label));
-    parms->append_expression(new SgStringVal(FILE_INFO, expr));
+      parms->append_expression(SageBuilder::buildVarRefExp("pce_enforcer"));
+  
+      switch (clauseType)
+      {
+        case ContractClause_PRECONDITION:
+          {
+            parms->append_expression(SageBuilder::buildVarRefExp(
+              "ContractClause_PRECONDITION"));
+            clauseTime = "pce_def_times.pre";
+            cmt = "PContract Precondition";
+          }
+          break;
+        case ContractClause_POSTCONDITION:
+          {
+            parms->append_expression(SageBuilder::buildVarRefExp(
+              "ContractClause_POSTCONDITION"));
+            clauseTime = "pce_def_times.post";
+            cmt = "PContract Postcondition";
+          }
+          break;
+        case ContractClause_INVARIANT:
+          {
+            parms->append_expression(SageBuilder::buildVarRefExp(
+              "ContractClause_INVARIANT"));
+            clauseTime = "pce_def_times.inv";
+            cmt = "PContract Invariant";
+          }
+          break;
+        default:
+          {
+            /*  WARNING:  This should NEVER happen... */
+            parms->append_expression(SageBuilder::buildVarRefExp(
+              "ContractClause_NONE"));
+            clauseTime = "0";
+            cmt = "PContract Error:  Contact Developer(s)!";
+          }
+          break;
+      }
 
-    sttmt = SageBuilder::buildFunctionCallStmt("PCE_CHECK_EXPR_TERM", 
-      SageBuilder::buildVoidType(), parms, body);
-    attachTranslationComment(sttmt, cmt);
+      parms->append_expression(SageBuilder::buildVarRefExp(clauseTime));
+      parms->append_expression(SageBuilder::buildVarRefExp(
+        "pce_def_times.routine"));
+      parms->append_expression(SageBuilder::buildVarRefExp(
+        (firstTime) ? "CONTRACTS_TRUE" : "CONTRACTS_FALSE"));
+      parms->append_expression(new SgStringVal(FILE_INFO, label));
+      parms->append_expression(SageBuilder::buildVarRefExp(expr));
+  
+      sttmt = SageBuilder::buildFunctionCallStmt("PCE_CHECK_EXPR_TERM", 
+        SageBuilder::buildVoidType(), parms, body);
+      attachTranslationComment(sttmt, cmt);
+    }
   }
               
   return sttmt;
