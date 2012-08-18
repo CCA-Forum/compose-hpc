@@ -1,9 +1,14 @@
 /**
- * File:  ContractsEnforcer.h
+ * File:           ContractsEnforcer.h
+ * Author:         T. Dahlgren
+ * Created:        2012 May 11
+ * Last Modified:  2012 August 17
  *
  * @file
  * @section DESCRIPTION
- * Interface contract enforcement manager
+ * Interface contract enforcement manager.
+ *
+ * @section SOURCE
  * The implementation is based heavily on Babel's sidl_Enforcer and 
  * sidl_EnfPolicy.
  *
@@ -30,13 +35,12 @@ extern "C" {
 /**
  * Macro to check an assertion expression.
  */
-#define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR) { \
-  ContractViolationEnum _pce_vio = ContractViolation_NONE; \
-  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR), (FT)) { \
+#define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR, CVE) { \
+  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR), (FT))) { \
     if (!(EXPR)) { \
       printf("ERROR: %s Violation: %s: %s\n", S_CONTRACT_CLAUSE[TP], \
              (LBL), (EXPR)); \
-      _pce_vio = (ContractViolationEnum)(TP); \
+      (CVE) = (ContractViolationEnum)(TP); \
     } \
   } \
 }
@@ -45,7 +49,8 @@ extern "C" {
  * Macro to check an assertion expression and terminate if violated.
  */
 #define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, FT, LBL, EXPR) { \
-  PCE_CHECK_EXPR(ENF, TP, TA, TR, FT LBL, EXPR) \
+  ContractViolationEnum _pce_vio = ContractViolation_NONE; \
+  PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (FT), (LBL), (EXPR), _pce_vio) \
   if (_pce_vio != ContractViolation_NONE) { exit(1); } \
 }
 
@@ -67,11 +72,44 @@ typedef struct ContractsEnforcer__struct {
 } ContractsEnforcerType;
 
 
+/**
+ * Active "instance" data.
+ */
+extern const char*            pce_config_filename;
+extern ContractsEnforcerType* pce_enforcer;
+extern TimeEstimatesType      pce_def_times;
+
+
 /*
  **********************************************************************
  * PUBLIC METHODS/ROUTINES
  **********************************************************************
  */
+
+/**
+ * FOR APPLICATION/AUTOMATED INSTRUMENTATION USE.  
+ *
+ * Create a global enforcer configured based on the optional input file.
+ * If no input file is provided, then default contract enforcement options
+ * are used.
+ *
+ * @param configfile [Optional] Name of the contract enforcement configuration
+ *                     file.
+ */
+void
+ContractsEnforcer_initialize(
+  /* in */ const char* configfile);
+
+
+/**
+ * FOR APPLICATION/AUTOMATED INSTRUMENTATION USE.  
+ *
+ * Finalize the global enforcer, releasing memory and performing associated
+ * clean up.
+ */
+void
+ContractsEnforcer_finalize(void);
+
 
 /**
  * FOR APPLICATION USE.  

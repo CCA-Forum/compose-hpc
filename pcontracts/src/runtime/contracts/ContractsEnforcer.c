@@ -1,5 +1,8 @@
 /**
- * File:  ContractsEnforcer.c
+ * File:           ContractsEnforcer.c
+ * Author:         T. Dahlgren
+ * Created:        2012 May 11
+ * Last Modified:  2012 August 17
  *
  * @file
  * @section DESCRIPTION
@@ -35,6 +38,14 @@
 #else
 #define DUMP_DEBUG_STATS(ENF, MSG)
 #endif /* DEBUG */
+
+
+/**
+ * Active "instance" data.
+ */
+const char*            pce_config_filename;
+ContractsEnforcerType* pce_enforcer;
+TimeEstimatesType      pce_def_times;
 
 
 /*
@@ -641,6 +652,97 @@ timeToCheckClause(
  * PUBLIC METHODS/ROUTINES
  **********************************************************************
  */
+
+
+/**
+ * FOR APPLICATION USE.  
+ *
+ * Create a global enforcer configured based on the optional input file.
+ * If no input file is provided, then default contract enforcement options
+ * are used.
+ *
+ * @param configfile [Optional] Name of the contract enforcement configuration
+ *                     file.
+ */
+void
+ContractsEnforcer_initialize(
+  /* in */ const char* configfile)
+{
+  FILE* cfPtr = NULL;
+
+  if (configfile == NULL)
+  {
+    pce_config_filename = configfile;
+    memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
+    pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
+      NULL, NULL);
+  }
+  else if (strlen(configfile) > 0)
+  {
+#if TBD_PCE_CONFIGURATION
+    /*
+     * @todo Review potential runtime location issues with configuration file. 
+     */
+    pce_config_filename = strdup(configfile);
+    cfPtr = fopen(configfile, "r");
+    if (cfPtr!= NULL) 
+    {
+      /*
+       * Read entries from the configuration file to set the following:
+       *
+       * - Enforcement clause(s);
+       * - Enforcement frequency;
+       * - Enforcement value (see frequency options);
+       * - Statistics (output) file;
+       * - Trace (output) file; and
+       * - Default clause and routine timing data: pce_def_times.
+       */
+
+      fclose(cfPtr);
+    }
+#endif /* TBD_PCE_CONFIGURATION */
+    printf("\nFATAL: %s %s\n",
+           "Contract enforcement initialization from configuration file",
+           "not yet supported.");
+    exit(1);
+  }
+  else
+  {
+    printf("\nFATAL: %s %s\n",
+           "Contract enforcement initialization with non-NULL configuration",
+           "file requires a non-empty file name.");
+    exit(1);
+  }
+
+  return;
+}  /* ContractsEnforcer_initialize */
+
+
+/**
+ * FOR APPLICATION/AUTOMATED INSTRUMENTATION USE.  
+ *
+ * Finalize the global enforcer, releasing memory and performing associated
+ * clean up.
+ */
+void
+ContractsEnforcer_finalize(void)
+{
+  ContractsEnforcer_free(pce_enforcer);
+
+  if (pce_config_filename != NULL) 
+  {
+    free((void*)pce_config_filename);
+  }
+
+  /* Just make SURE everything is cleared. */
+  pce_enforcer = NULL;
+  pce_config_filename = NULL;
+  memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
+
+  return;
+}  /* ContractsEnforcer_finialize */
+
+
 
 /**
  * FOR APPLICATION USE.  
