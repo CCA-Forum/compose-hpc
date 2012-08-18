@@ -1,5 +1,8 @@
 /**
- * File:  contracts.h
+ * File:           contracts.h
+ * Author:         T. Dahlgren
+ * Created:        2012 April 12
+ * Last Modified:  2012 August 17
  * 
  * @file
  * @section DESCRIPTION

@@ -1,7 +1,12 @@
 /*
- * File:        contractMacros.h
- * Description: convenient C macros for managing contract enforcement
- * Source:      Based heavily on Babel's sidlAsserts.h.
+ * File:           contractMacros.h
+ * Author:         T. Dahlgren
+ * Created:        2012 June 8
+ * Last Modified:  2012 August 17
+ * Description:    convenient C macros for managing contract enforcement
+ * Source:         Based heavily on Babel's sidlAsserts.h.
+ *
+ * @todo Is this file even relevant in this context?
  *
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC
  * Produced at the Lawrence Livermore National Laboratory.
