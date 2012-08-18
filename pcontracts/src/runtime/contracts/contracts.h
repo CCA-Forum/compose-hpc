@@ -110,7 +110,7 @@ static const ContractViolationEnum S_CONTRACT_VIOLATION_MAX
  *
  * @todo  Consider an alternative...
  */
-static const char* S_CONTRACT_VIOLATION[5] = {
+static const char* S_CONTRACT_VIOLATION[9] = {
   "None",
   "Invariant",
   "Precondition",
@@ -130,7 +130,7 @@ static const unsigned int S_CONTRACT_VIOLATION_MIN_IND = 0;
 /** 
  * The maximum Contract Violation name index.  Provided for traversal purposes.
  */
-static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 4;
+static const unsigned int S_CONTRACT_VIOLATION_MAX_IND = 8;
 
 
 #ifdef __cplusplus
