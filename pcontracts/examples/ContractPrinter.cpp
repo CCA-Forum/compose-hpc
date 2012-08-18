@@ -2,7 +2,7 @@
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 August 3
+ * Last Modified: 2012 August 17
  *
  * @file
  * @section DESCRIPTION
@@ -12,8 +12,6 @@
  *
  * @section LICENSE
  * TBD
- *
- * @todo  Make sure the output matches what is expected from the input.
  *
  * @todo Clean up this example so this class can be re-used "properly"
  * in ContractAssertionPrinter.cpp.
@@ -63,9 +61,20 @@ ContractPrinter::visit(SgNode* node)
               printLineComment(node, "Invariant clause:");
               cout<<(*iter)->getString()<<endl;
             }
+            else if (str.find("INIT")!=string::npos)
+            {
+              printLineComment(node, "Initialization:");
+              cout<<(*iter)->getString()<<endl;
+            }
+            else if (str.find("FINAL")!=string::npos)
+            {
+              printLineComment(node, "Finalization:");
+              cout<<(*iter)->getString()<<endl;
+            }
             else
             {
-              printLineComment(node, "WARNING: Unidentified contract clause:");
+              printLineComment(node, 
+                "WARNING: Unidentified contract annotation:");
               cout<<(*iter)->getString()<<endl;
             }
           }

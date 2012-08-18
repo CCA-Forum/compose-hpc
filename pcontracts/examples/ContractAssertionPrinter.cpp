@@ -2,7 +2,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 August 3
+ * Last Modified: 2012 August 17
  *
  * @file
  * @section DESCRIPTION
@@ -12,11 +12,6 @@
  *
  * @section LICENSE
  * TBD
- *
- * @todo  Spend some time determining why multiple assertion expressions are NOT
- *   being printed when a label is involved.  ((Bad use of strtok!!!))
- *
- * @todo  Make sure the output matches what is expected from the input.
  */
 
 #include <iostream>
@@ -134,9 +129,19 @@ processCommentContents(SgNode* node, const string cmt)
         printLineComment(node, "Invariant clause:");
         printClause(cmt.substr(pos+9));
       }
+      else if ((pos=cmt.find("INIT"))!=string::npos)
+      {
+        printLineComment(node, "Initialization:");
+        printClause(cmt.substr(pos+4));
+      }
+      else if ((pos=cmt.find("FINAL"))!=string::npos)
+      {
+        printLineComment(node, "Finalization:");
+        printClause(cmt.substr(pos+5));
+      }
       else
       {
-        printLineComment(node, "WARNING: Unidentified contract clause:");
+        printLineComment(node, "WARNING: Unidentified contract annotation:");
         printClause(cmt.substr(pos+8));
       }
     }

@@ -252,6 +252,8 @@ runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
  * solve.  If no target value is provided, then multiple solutions will be
  * generated for targets in a predetermined range.
  */
+/* %CONTRACT INIT */
+/* %CONTRACT FINAL */
 int 
 main(int argc, char **argv) {
   int t;
