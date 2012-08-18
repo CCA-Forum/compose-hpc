@@ -9,15 +9,10 @@
  * Experimental contract enforcement instrumentation.
  *
  *
- * @todo Translate instrumentation arguments to the proper node types.
- *
  * @todo Change this to a visitor since must extract actual contract
  *  clauses.
  *
  * @todo Use SgGlobal to insert required includes.
- *
- * @todo Write and instrument routines for instantiating the enforcer 
- *  "instance".
  *
  * @todo Give some thought to process for obtaining execution time 
  *  estimates for contract clauses and routine.
@@ -45,22 +40,63 @@ using namespace std;
 
 
 /**
- * Print usage information (i.e., how to run the executable).
+ * Add requisite include file(s).
+ *
+ * @param project         The Sage project representing the initial AST of the
+ *                          file(s).
+ * @param skipTransforms  True if the transformations are to be skipped;
+ *                          otherwise, false.
+ * @return                The processing status: 0 for success, non-0 for 
+ *                          failure.
  */
-void
-printUsage()
+int
+addIncludes(SgProject* project, bool skipTransforms)
 {
-  cout << "\nUSAGE:  ContractInstrumenter [option] <source-file-list>\n\n";
-  cout << "where option can include one or more basic ROSE options, such as:\n";
-  cout << "  -rose:verbose [LEVEL]\n";
-  cout << "              Verbosely list internal processing, with higher\n";
-  cout << "              levels generating more output (default 0).\n";
-  cout << "  -rose:skip_transformation\n";
-  cout << "              Read input file but skip all transformations.\n";
-  cout << "and\n";
-  cout << "  <source-file-list>  is a list of one or more source file names.\n";
-  return;
-}  /* printUsage */
+  int status = 0;
+
+  if (project != NULL)
+  {
+    Rose_STL_Container<SgNode*> globalScopeList = 
+      NodeQuery::querySubTree(project, V_SgGlobal);
+    for (Rose_STL_Container<SgNode*>::iterator i = globalScopeList.begin();
+         i != globalScopeList.end(); i++)
+    {
+      Sg_File_Info* info;
+      SgGlobal* globalScope;
+      if ( (  (globalScope = isSgGlobal(*i)) != NULL)
+           && ((info=globalScope->get_file_info()) != NULL)
+           && isInputFile(project, info->get_raw_filename()) )
+      {
+        if (skipTransforms)
+        {
+          cout<<"\naddIncludes: "<<info->get_raw_filename()<<"\n";
+        }
+        else
+        {
+          string contractsHdr = "#include \"contracts.h\"";
+          string enforcerHdr  = "#include \"ContractsEnforcer.h\"";
+          string optionsHdr   = "#include \"contractOptions.h\"";
+          string includes     = contractsHdr + "\n" + enforcerHdr + "\n"
+            + optionsHdr;
+
+          SageInterface::attachComment(globalScope,
+            "Added contract enforcement includes.", PreprocessingInfo::before,
+            PreprocessingInfo::C_StyleComment);
+    
+          SageInterface::addTextForUnparser(globalScope, includes,
+            AstUnparseAttribute::e_after);
+        }
+      }
+    }
+  }
+  else
+  {
+    cerr<<"\nSkipping addition of includes due to lack of project.\n";
+    status = 1;
+  }
+
+  return status;
+}  /* addIncludes */
 
 
 /**
@@ -163,7 +199,10 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
   
       sttmt = SageBuilder::buildFunctionCallStmt("PCE_CHECK_EXPR_TERM", 
         SageBuilder::buildVoidType(), parms, body);
-      attachTranslationComment(sttmt, cmt);
+      if (sttmt != NULL)
+      {
+        attachTranslationComment(sttmt, cmt);
+      }
     }
   }
               
@@ -172,22 +211,81 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
 
 
 /**
+ * Build contract enforcement finalization call.
+ *
+ * @param body       Pointer to the function body.
+ */
+SgExprStatement*
+buildFinalize(SgBasicBlock* body)
+{
+  SgExprStatement* sttmt = NULL;
+
+  if (body != NULL)
+  {
+    SgExprListExp* parms = new SgExprListExp(FILE_INFO);
+    if (parms != NULL)
+    {
+      sttmt = SageBuilder::buildFunctionCallStmt(
+        "ContractsEnforcer_finalize", SageBuilder::buildVoidType(), 
+        parms, body);
+      if (sttmt != NULL)
+      {
+        attachTranslationComment(sttmt, "Contract Enforcement Finalization");
+      }
+    }
+  }
+              
+  return sttmt;
+}  /* buildFinalize */
+
+
+/**
+ * Build contract enforcement initialization call.
+ *
+ * @param body       Pointer to the function body.
+ */
+SgExprStatement*
+buildInitialize(SgBasicBlock* body)
+{
+  SgExprStatement* sttmt = NULL;
+
+  if (body != NULL)
+  {
+    SgExprListExp* parms = new SgExprListExp(FILE_INFO);
+    if (parms != NULL)
+    {
+      parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
+      sttmt = SageBuilder::buildFunctionCallStmt(
+        "ContractsEnforcer_initialize", SageBuilder::buildVoidType(), 
+        parms, body);
+      if (sttmt != NULL)
+      {
+        attachTranslationComment(sttmt, "Contract Enforcement Initialization");
+      }
+    }
+  }
+              
+  return sttmt;
+}  /* buildInitialize */
+
+
+/**
  * Add (test) contract assertion checks to each routine.
  *
- * @param project   The Sage project representing the initial AST of the
- *                    file(s).
- * @return          The processing status: 0 for success, non-0 for failure.
+ * @param project         The Sage project representing the initial AST of the
+ *                          file(s).
+ * @param skipTransforms  True if the transformations are to be skipped;
+ *                          otherwise, false.
+ * @return                The processing status: 0 for success, non-0 for 
+ *                          failure.
  */
 int
-instrumentRoutines(SgProject* project)
+instrumentRoutines(SgProject* project, bool skipTransforms)
 {
   int status = 0;
 
   if (project != NULL)
   {
-    /* Prepare to honor the ROSE transformation command line option. */
-    bool skipTransforms = project->get_skip_transformation();
-
     /* Find all function definitions. */
     vector<SgNode*> fdList = 
       NodeQuery::querySubTree(project, V_SgFunctionDefinition);
@@ -195,9 +293,6 @@ instrumentRoutines(SgProject* project)
     if (!fdList.empty())
     {
       int num = 0;
-
-      if (skipTransforms)
-        cout << "WARNING:  Skipping transformations per ROSE option.\n\n";
 
       vector<SgNode*>::iterator iter;
       for (iter=fdList.begin(); iter!=fdList.end(); iter++)
@@ -247,6 +342,16 @@ instrumentRoutines(SgProject* project)
                 num++;
               }
   
+              /* Build and insert (first) enforcer initialization. */
+              if (nm == "main")
+              {
+                sttmt = buildInitialize(body);
+                if (sttmt != NULL)
+                {
+                  body->prepend_statement(sttmt);
+                }
+              }
+
               /* Build and insert postcondition and/or invariant check(s). */
               sttmt = buildCheck(body, ContractClause_INVARIANT, false, 
                 "testInv", "CONTRACTS_TRUE" );
@@ -263,6 +368,17 @@ instrumentRoutines(SgProject* project)
                 int i = SageInterface::instrumentEndOfFunction(
                          def->get_declaration(), sttmt);
                 num+=i;
+              }
+
+              /* Build and insert (last) enforcer finalization. */
+              if (nm == "main")
+              {
+                sttmt = buildFinalize(body);
+                if (sttmt != NULL)
+                {
+                  int i = SageInterface::instrumentEndOfFunction(
+                           def->get_declaration(), sttmt);
+                }
               }
 
 #ifdef DEBUG
@@ -286,17 +402,34 @@ instrumentRoutines(SgProject* project)
 #ifdef DEBUG
     cout<<"Processed "<<fdList.size()<<" function definitions.\n\n";
 #endif /* DEBUG */
-    //delete fdList;
-    delete project;
   }
   else
   {
-    cout << "\nERROR:  Failed to build the AST.\n";
+    cerr<<"\nSkipping routines instrumentation to lack of project.\n";
     status = 1;
   }
 
   return status;
 }  /* instrumentRoutines */
+
+
+/**
+ * Print usage information (i.e., how to run the executable).
+ */
+void
+printUsage()
+{
+  cout << "\nUSAGE:  ContractInstrumenter [option] <source-file-list>\n\n";
+  cout << "where option can include one or more basic ROSE options, such as:\n";
+  cout << "  -rose:verbose [LEVEL]\n";
+  cout << "              Verbosely list internal processing, with higher\n";
+  cout << "              levels generating more output (default 0).\n";
+  cout << "  -rose:skip_transformation\n";
+  cout << "              Read input file but skip all transformations.\n";
+  cout << "and\n";
+  cout << "  <source-file-list>  is a list of one or more source file names.\n";
+  return;
+}  /* printUsage */
 
 
 /**
@@ -312,8 +445,35 @@ main(int argc, char* argv[])
     /* Build initial (ROSE) AST. */
     SgProject* project = frontend(argc, argv);
 
-    /* Now instrument routines. */
-    status = instrumentRoutines(project);
+    if (project != NULL)
+    {
+      /* Prepare to honor the ROSE transformation command line option. */
+      bool skipTransforms = project->get_skip_transformation();
+  
+      if (skipTransforms)
+        cout << "WARNING:  Skipping transformations per ROSE option.\n\n";
+  
+      /* First add requisite include files. */
+      status = addIncludes(project, skipTransforms);
+  
+      /* Now instrument routines. */
+      if (status == 0)
+      {
+        status = instrumentRoutines(project, skipTransforms);
+      }
+      else
+      {
+        cerr << "ERROR: Skipping routines instrumentation call due to ";
+        cerr << "previous error(s).\n";
+      }
+
+      delete project;
+    }
+    else
+    {
+      cerr << "\nERROR:  Failed to build the AST.\n";
+      status = 1;
+    }
   }
   else 
   {

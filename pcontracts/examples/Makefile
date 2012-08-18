@@ -47,7 +47,7 @@ BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 
 all: $(BINARIES)
 
-check: checkKnapsackTests checkRosePrinters checkRoseTranslators
+check: checkKnapsackTests checkRose
 
 $(KC_EXE): $(KC_EXE).c
 	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c
@@ -60,6 +60,10 @@ $(LKC_EXE): $(LKC_EXE).c
 $(KCPP_EXE): $(KCPP_EXE).cpp
 	$(CXX) -c $(CXXFLAGS) -o $(KCPP_EXE).o $(KCPP_EXE).cpp
 	$(CXX) -o $(KCPP_EXE) $(LDFLAGS) $(KCPP_EXE).o
+
+$(UKCPP_EXE): $(UKCPP_EXE).cpp
+	$(CXX) -c $(CXXFLAGS) -o $(UKCPP_EXE).o $(UKCPP_EXE).cpp
+	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o
 
 $(CPRINTER_EXE): $(CPRINTER_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
 	$(CXX) -c $(ROSE_CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
@@ -132,17 +136,20 @@ checkKnapsackTests:
 	$(MAKE) checkKnapsacks KT=; \
 	echo "\nDONE"
 
+checkRose: checkRosePrinters checkRoseTranslators
+
 checkRosePrinters: checkCAPrinter checkCPrinter
 
 checkCAPrinter: $(CAPRINTER_EXE)
-	@$(MAKE) checkRosePrinter EXE=$(CAPRINTER_EXE) PRE="cap"
+	@$(MAKE) checkRosePrinter EXE=$(CAPRINTER_EXE) SDIR="cap"
 
 checkCPrinter: $(CPRINTER_EXE)
-	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) PRE="cp"
+	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) SDIR="cp"
 
 checkRosePrinter: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
-	mkdir -p $(ROSE_ODIR); \
+	OUTDIR=$(ROSE_ODIR)/$$SDIR; \
+	mkdir -p $$OUTDIR; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
 	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
@@ -152,7 +159,7 @@ checkRosePrinter: $(EXE)
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
 	  echo "...Processing $$BASE.$$EXT"; \
-	  OFN=$(ROSE_ODIR)/$$PRE-$$BASE.out; \
+	  OFN=$$OUTDIR/$$BASE.out; \
 	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
 	  if [ -s $$OFN ]; then \
 	    ok=`expr $$ok + 1`; \
@@ -167,11 +174,12 @@ checkRosePrinter: $(EXE)
 checkRoseTranslators: checkCI
 
 checkCI: $(CI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(CI_EXE) SUB="ci"
+	@$(MAKE) checkRoseTrans EXE=$(CI_EXE) SDIR="ci"
 
 checkRoseTrans: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
-	mkdir -p $(ROSE_ODIR)/$(SUB); \
+	OUTDIR=$(ROSE_ODIR)/$$SDIR; \
+	mkdir -p $$OUTDIR; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
 	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
@@ -182,11 +190,11 @@ checkRoseTrans: $(EXE)
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
 	  echo "...Processing $$BASE.$$EXT"; \
 	  OFN=rose_$$BASE.$$EXT; \
-	  ERRFN=$(ROSE_ODIR)/$(SUB)/$$BASE.err; \
+	  ERRFN=$$OUTDIR/$$BASE.err; \
 	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
 	  if [ -f $$OFN ]; then \
 	    ok=`expr $$ok + 1`; \
-	    DESTFN=$(ROSE_ODIR)/$(SUB)/$$BASE.$$EXT; \
+	    DESTFN=$$OUTDIR/$$BASE.$$EXT; \
 	    mv -f $$OFN $$DESTFN; \
 	    echo "......Unparse results in $$DESTFN"; \
 	  else \
@@ -198,7 +206,12 @@ checkRoseTrans: $(EXE)
 	  fi; \
 	  echo; \
 	done; \
-	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
+	echo "\n...Successfully processed $$ok of $$n files.\n"; \
+	echo "Copying Makefile to $$OUTDIR"; \
+	cp -f Makefile.trans $$OUTDIR/Makefile; \
+	echo "Copying header files to $$OUTDIR"; \
+	cp -f *ack*.h* $$OUTDIR; \
+	echo "DONE"
 
 
 clean:
