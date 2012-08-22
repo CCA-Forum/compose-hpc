@@ -135,8 +135,20 @@ def vcall(name, args, ci):
     """
     \return the IR for a non-static Babel virtual method call
     """
-    epv = ci.epv.get_type()
-    cdecl = ci.epv.find_method(name)
+    try:
+        cdecl = ci.epv.find_method(name)
+        epv_type = ci.epv.get_type()
+        epv = ir.Get_struct_item(ci.obj,
+                                 ir.Deref(args[0]),
+                                 ir.Struct_item(epv_type, 'd_epv'))
+    except:
+        if False:# FIXME no_contracts and no_hooks:
+            return ir.Call('_'.join(ci.co.qualified_name+[name]), args)
+        else:
+            cdecl = ci.epv.find_static_method(name)
+            epv_type = ci.epv.get_sepv_type()
+            epv = '_getSEPV()'
+
     # this is part of an ugly hack to make sure that self is
     # dereferenced as self->d_object (by setting attr of self to the
     # unused value of 'pure')
@@ -145,16 +157,14 @@ def vcall(name, args, ci):
         _, attrs0, mode0, type0, name0 = arguments[0]
         arguments = [ir.Arg([ir.pure], mode0, type0, name0)]+arguments[1:]
         cdecl = ir.Fn_decl(attrs, type_, id_, arguments, doc)
-
-    return ir.Stmt(ir.Call(ir.Deref(ir.Get_struct_item(epv,
-                ir.Deref(ir.Get_struct_item(ci.obj,
-                                            ir.Deref('self'),
-                                            ir.Struct_item(epv, 'd_epv'))),
-                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args))
+            
+    return ir.Call(ir.Deref(ir.Get_struct_item(epv_type,
+                ir.Deref(epv),
+                ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args)
 
 def drop_rarray_ext_args(args):
     """
-    Now here it's becoming funny: Since R-arrays are wrapped inside
+    Now here gets funny: Since R-arrays are wrapped inside
     SIDL-Arrays in the IOR, convention says that we should remove all
     redundant arguments that can be derived from the SIDL-array's
     metadata.
@@ -241,7 +251,7 @@ def lower_ir(symbol_table, sidl_term, header=None,
         elif (sidl.void):                        return ir.pt_void
         elif (ir.void_ptr):                      return ir.void_ptr
         elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
-        elif (sidl.primitive_type, sidl.string): return ir.const_str
+        elif (sidl.primitive_type, sidl.string): return sidl_term #ir.const_str
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
 
         elif (sidl.enum, Name, Enumerators, DocComment):
@@ -449,7 +459,17 @@ class EPV(object):
             fn_decl, attrs, typ, name, args, doc = m
             if name == 'f_'+method:
                 return fn_decl, attrs, typ, name[2:], args, doc
-        import pdb; pdb.set_trace()
+        raise Exception()
+
+    def find_static_method(self, method):
+        """
+        Perform a linear search through the list of static methods and return
+        the first with a matching name.
+        """
+        for m in self.static_methods:
+            fn_decl, attrs, typ, name, args, doc = m
+            if name == 'f_'+method:
+                return fn_decl, attrs, typ, name[2:], args, doc
         raise Exception()
 
     def get_ir(self):

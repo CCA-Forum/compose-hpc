@@ -1090,6 +1090,7 @@ class CFile(SourceFile):
 
     def gen(self, ir):
         """
+        FIXME!! Alias this to new_def!
         Invoke the C code generator on \c ir and append the result to
         this CFile.
         """
@@ -1338,6 +1339,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
                 return str(gen(Type))+'*'
 
             elif (ir.assignment, Var, Expr): return '%s = %s'%(gen(Var), gen(Expr))
+            elif (ir.pointer_expr, (ir.deref, Expr)): return gen(Expr)
             elif (ir.deref, Expr):        return '*'+egen(Expr)
             elif (ir.pointer_expr, Expr): return '&'+egen(Expr)
             elif (ir.pointer_type, Type): return str(gen(Type))+'*'

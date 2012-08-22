@@ -268,7 +268,7 @@ regression/interop/arrays/runChapel/runChapel2Python.sh regression/interop/array
 	  fi; \
 	fi
 
-regression/interop/arrays/runChapel/client-stamp: $(CLIENT_DEPS) regression/interop/arrays/libPython/libimpl2.la regression/interop/arrays/libJava/libimpl.la regression/interop/arrays/libF90/libimpl.la regression/interop/arrays/libF77/libimpl.la regression/interop/arrays/libF03/libimpl.la regression/interop/arrays/libCxx/libimpl.la regression/interop/arrays/libC/libimpl.la 
+regression/interop/arrays/runChapel/client-stamp: $(CLIENT_DEPS) regression/interop/arrays/libC/libimpl.la 
 	@sh $< $@ $(MAKE) $(MAKEFLAGS)
 
 # client: runUPC

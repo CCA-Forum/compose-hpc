@@ -251,6 +251,9 @@ BRAID is a high-performance language interoperability tool that generates Babel-
     cmdline.add_argument('--suppress-contracts', action='store_true', dest='suppress_contracts',
                          help='refrain from generating contract enforcement from SIDL specs')
 
+    #cmdline.add_argument('-f', '--fuse', action='store_true', dest='fuse',
+    #                     help='experimental')
+
     cmdline.add_argument('-m', '--make-prefix', metavar='<prefix>', dest='make_prefix',
                          help='<prefix> is prepended to the name of babel.make and the '+
                          'symbols defined internally to allow Braid to be run multiple '+

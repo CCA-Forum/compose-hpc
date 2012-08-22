@@ -405,6 +405,52 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         return header
 
 
+    def babel_method_call(self, chpl_scope, symbol_table, cdecl, arguments, ci):
+        # Build a burg tree for the function call
+        def tmp(name):
+            #return '_%s_ior_%s'%(ir.fn_decl_id(cdecl), name)
+            return '_ior_%s'%name
+
+        def incoming(((_, attrs, mode, typ, name), param_exp)):
+            if mode <> sidl.out:
+                param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
+                return conv.ir_to_chpl_native(typ, tmp(name), param, param)
+            else: return conv.outgoing_arg, param_exp
+
+        def outgoing(((_, attrs, mode, typ, name), param_exp)):
+            if mode <> sidl.in_:
+                param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
+                return conv.ir_to_chpl_ior(typ, param, tmp(name), param)
+            else: return []
+
+        def cons_with(f, l):
+            l1 = [i for i in map(f, l) if i]
+            if   len(l1) > 1: return reduce(lambda a, b: (conv.cons, a, b), l1)
+            elif len(l1) > 0: return l1[0]
+            else: return conv.none,
+
+        # Type conversion
+        cdecl_type = ir.fn_decl_type(cdecl)
+        crarg = (ir.arg, [], ir.out, cdecl_type, '_retval')
+        if cdecl_type == ir.pt_void:
+            rname, retval = [], []
+        else:
+            rname, retval = ['_retval'], [crarg]
+
+        # Invoke the BURG tree pattern matcher
+        if ir.static in ir.fn_decl_attrs(cdecl):
+            method = (conv.nonvirtual_method, cdecl_type, ir.fn_decl_id(cdecl), ci)
+        else:
+            method = (conv.virtual_method, cdecl_type, ir.fn_decl_id(cdecl), ci)
+
+        args = ir.fn_decl_args(cdecl)
+        ins = cons_with(incoming, zip(args, arguments))
+        outs = cons_with(outgoing, zip(args+retval, arguments+rname))
+        assert(len(arguments) == len(args))
+        burg_call = (conv.call_assign, (conv.call, method, ins), outs)
+        conv.codegen(burg_call, conv.stmt, chpl_scope, chpl_scope.cstub)
+
+
     @matcher(globals(), debug=False)
     def generate_client_method(self, symbol_table, method, ci, has_impl):
         """
@@ -621,11 +667,12 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         (Method, Type, (MName,  Name, Extension), Attrs, Args,
          Except, From, Requires, Ensures, DocComment) = method
 
-        ior_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False)
-        ior_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args),
-                                  lower_scoped_ids=False)
+        #ior_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False)
+        #ior_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args),
+        #                          lower_scoped_ids=False)
 
         cdecl_type = babel.lower_ir(symbol_table, Type)
+        cdecl_self = babel.lower_ir(symbol_table, ci.co.get_qualified_data())
         cdecl_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args))
 
         #map(lambda arg: conv.sidl_arg_to_ir(symbol_table, arg), ior_args)
@@ -651,8 +698,12 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         if static:
             attrs.append(ir.static)
             chpl_scope = ci.chpl_static_stub
+            selfarg = []
+            m = ci.epv.find_static_method(Name+Extension)
         else:
             chpl_scope = ci.chpl_method_stub
+            selfarg = ['self']
+            m = ci.epv.find_method(Name+Extension)
 
         # this is an ugly hack to force generate_method_stub to to wrap the
         # self argument with a call to upcast()
@@ -660,17 +711,30 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             docast = [ir.pure]
         else: docast = []
 
-        pre_call = []
-        post_call = []
-        return_stmt = []
+        #pre_call = []
+        #post_call = []
+        #return_stmt = []
 
-        ior_ex = '_ior_ex'
-        pre_call.append(extern_def_is_not_null)
-        pre_call.append(extern_def_set_to_null)
-        pre_call.append(ir.Stmt(ir.Var_decl(babel.ir_exception_type(), ior_ex)))
-        pre_call.append(ir.Stmt(ir.Call("SET_TO_NULL", [ior_ex])))
+        body = ChapelScope(chpl_scope)
 
-        post_call.append(ir.Stmt(ir.If(
+        ior_ex = '_%s_ior_ex'%Name
+        body.new_def(extern_def_is_not_null)
+        body.new_def(extern_def_set_to_null)
+        #body.gen(ir.Stmt(ir.Var_decl(babel.ir_exception_type(), ior_ex)))
+        body.gen(ir.Stmt(ir.Call("SET_TO_NULL", [ior_ex])))
+
+        # return value type conversion -- treat it as an out argument
+        #srarg = (sidl.arg, [], sidl.out, Type, '_retval')
+        #rarg  = (ir.arg, [], sidl.out, cdecl_type, '_retval')
+        #crarg = (ir.arg, [], ir.out, cdecl_type, '_retval') #conv.sidl_arg_to_ir(symbol_table, rarg)
+        #_,_,_,ctype,_ = crarg
+        args = selfarg+map(lambda arg: ir.arg_id(arg), cdecl_args)+['_ex']
+
+        body.prefix=symbol_table.prefix
+        self.babel_method_call(body, symbol_table, m, args, ci)
+                               #ci.co.get_qualified_data(), arg_names)
+
+        body.gen(ir.Stmt(ir.If(
             ir.Call("IS_NOT_NULL", [ior_ex]),
             [
                 ir.Stmt(ir.Assignment(chpl_param_ex_name,
@@ -678,11 +742,17 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             ]
         )))
 
-        # return value type conversion -- treat it as an out argument
-        srarg = (sidl.arg, [], sidl.out, Type, '_retval')
-        rarg  = (ir.arg, [], sidl.out, ior_type, '_retval')
-        crarg = (ir.arg, [], ir.out, cdecl_type, '_retval') #conv.sidl_arg_to_ir(symbol_table, rarg)
-        _,_,_,ctype,_ = crarg
+
+        if Type <> sidl.void:
+            body.gen(ir.Stmt(ir.Return('_ior_retval')))
+
+        defn = (ir.fn_defn, [], cdecl_type,
+                Name + Extension, cdecl_args,
+                [str(body)],
+                DocComment)
+
+        chpl_scope.gen(defn)
+        return
 
         # Proxy declarations / revised names of call arguments
         call_args = []
@@ -791,6 +861,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         chpl_scope.prefix=symbol_table.prefix
         chpl_gen(defn, chpl_scope)
 
+
+    def vcall(self, chpl_scope, name, args, ci):
+        chpl_scope.gen(ir.Stmt(ir.Call(name+'_cStub', args)))
+
     def generate_chpl_stub(self, chpl_stub, qname, ci):
         """
         Chapel Stub (client-side Chapel bindings)
@@ -871,25 +945,25 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             '  SET_TO_NULL(ex);'
         ]
         common_tail = [
-            babel.vcall('addRef', ['this.' + self_field_name, 'ex'], ci),
             '  if (IS_NOT_NULL(ex)) {',
             '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_interface) ,
             '  }'
         ]
 
         # The create() method to create a new IOR instance
-        create_body = []
-        create_body.extend(common_head)
-        create_body.append('  this.' + self_field_name + ' = %s__createObject(0, ex);' % qname)
-        create_body.extend(common_tail)
+        create_body = ChapelScope(chpl_class)
+        create_body.gen(common_head)
+        create_body.new_def('  this.' + self_field_name + ' = %s__createObject(0, ex);' % qname)
+        self.vcall(create_body, 'addRef', ['this.' + self_field_name, 'ex'], ci)
+        create_body.gen(common_tail)
         wrapped_ex_arg = ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), chpl_param_ex_name)
         if not cls.is_interface():
             # Interfaces instances cannot be created!
-            chpl_gen(
+            chpl_class.gen(
                 (ir.fn_defn, [], ir.pt_void,
                  'init_' + name,
                  [wrapped_ex_arg],
-                 create_body, 'Pseudo-Constructor to initialize the IOR object'), chpl_class)
+                 [str(create_body)], 'Pseudo-Constructor to initialize the IOR object'))
             # Create a static function to create the object using create()
             wrap_static_defn = (ir.fn_defn, [], mod_name,
                 'create', #_' + name,
@@ -928,15 +1002,15 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         chpl_gen(wrap_static_defn, chpl_static_helper)
 
         # Provide a destructor for the class
-        destructor_body = []
-        destructor_body.append('var ex: sidl_BaseInterface__object;')
-        destructor_body.append(babel.vcall('deleteRef', ['this.' + self_field_name, 'ex'], ci))
+        destructor_body = ChapelScope(chpl_class)
+        destructor_body.new_def('var ex: sidl_BaseInterface__object;')
+        self.vcall(destructor_body, 'deleteRef', ['this.' + self_field_name, 'ex'], ci)
         if not cls.is_interface():
             # Interfaces have no destructor
-            destructor_body.append(babel.vcall('_dtor', ['this.' + self_field_name, 'ex'], ci))
-        chpl_gen(
+            self.vcall(destructor_body, '_dtor', ['this.' + self_field_name, 'ex'], ci)
+        chpl_class.gen(
             (ir.fn_defn, [], ir.pt_void, '~'+chpl_gen(name), [],
-             destructor_body, 'Destructor'), chpl_class)
+             [str(destructor_body)], 'Destructor'))
 
         def gen_self_cast():
             chpl_gen(

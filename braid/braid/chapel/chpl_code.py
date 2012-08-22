@@ -307,6 +307,13 @@ class ChapelFile(SourceFile):
         """
         ChapelCodeGenerator().generate(ir, self)
 
+    def genh(self, ir):
+        """
+        Invoke the Chapel code generator on \c ir and append the result to
+        this CFile's header.
+        """
+        self.new_header_def(str(ChapelCodeGenerator().generate(ir, ChapelFile())))
+
     def write(self):
         """
         Atomically write the ChapelFile and its cStub to disk, using the
@@ -585,7 +592,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
                 #print 'prefix %s, name %s, ext %s' %(Prefix, Name, Ext)
-                return '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])])
+                return '.'.join(list(Prefix)+['_'.join(list(Prefix)+[Name+Ext])])
 
             elif (ir.struct, Name, Items, DocComment):
                 # special rule for handling SIDL arrays
@@ -609,7 +616,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                     return Name[2:] 
                 return Name
 
-            elif (ir.get_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item)):
+            elif (ir.get_struct_item, _, StructName, (ir.struct_item, _, Item)):
                 return "%s.%s"%(gen(StructName), gen(Item))
 
             elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
@@ -666,6 +673,8 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return new_scope1('enum %s {'%gen(Name), gen_comma_sep(items_to_use), '}')
 
             elif (ir.import_, Name): new_def('use %s;'%Name)
+
+            elif (ir.deref, Name): return Name
 
 
             elif (ir.float, N):   

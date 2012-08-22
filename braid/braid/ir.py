@@ -70,7 +70,7 @@
 #   Enum = enum(Id, [Enumerator], DocComment),
 #   Enumerator = ( enumerator(Id) | enumerator_value(Id, 'INT')),
 #   %Class = class(Scoped_id, [Fn_defn], Doc_comment),
-#   VarRefExpr = ( Id
+#   VarRefExpr = ( Id % untyped variable
 # 	       | Pointer_expr
 # 	       | Deref
 # 	       | get_struct_item(Struct, Expr, Struct_item)
@@ -4721,3 +4721,9 @@ def Set_struct_item_stmt(struct, sname, iname, expr):
         if id == iname:
             return Stmt(Set_struct_item(struct, sname, item, expr))
     raise Exception('lookup failed')
+ 
+def Copy(A, B):
+    """
+    same as Stmt(Assignment(A, B))
+    """
+    return Stmt(Assignment(A, B))

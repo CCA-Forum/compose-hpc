@@ -18,7 +18,7 @@
 #
 # \authors <pre>
 #
-# Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2011, 2012 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
 # 
@@ -36,8 +36,8 @@ import argparse, re
 from parse_tree import parse_tree
 
 def error(msg):
-    print '**ERROR', msg
-    print 'in line', line_number
+    global filename
+    print '%s:%d error: %s'%(filename, line_number, msg)
     exit(1)
 
 if __name__ == '__main__':
@@ -56,14 +56,17 @@ if __name__ == '__main__':
                          help='print version and exit')
 
     args = cmdline.parse_args()
-    if args.version:  print '1.0';                 exit(0)
+    if args.version:  print '2.0';                 exit(0)
     if not args.spec: print 'no input specified!'; exit(1)
 
+    filename = args.spec.name
 
     # Initialization
     signature = None
     rules = []
     nonterminals = set()
+    possible_terminals = []
+    arities = dict()
     line_number = 0
     state = 'in_verbatim'
     f = open(args.output, 'w')
@@ -102,7 +105,7 @@ debug = False
                 have_rule_body = True
             else:
                 if not have_rule_body:
-                    f.write('    pass')
+                    f.write('    return a0')
                 f.write('\n')
 
                 state = 'base'
@@ -114,20 +117,17 @@ debug = False
                 # we are using the following grammar:
                 # target @lang <-- src @lang? : cost(c)
                 #      code
-                m = re.match('(.*)@(.+)<--(.*?)(@(.+))?:cost\((\d+)\)',
-                             re.sub('\s','', line))
+                m = re.match('(.*)<--(.*?):cost\((\d+)\)', re.sub('\s','', line))
                 if not m: error('Bad rule syntax\n'+line)
 
                 def chk(match, n, errmsg):
                     return match.group(n) if match.group(n) \
-                        else error('Syntax Error in '+errmsg)
+                        else error('Syntax error in '+errmsg)
 
                 # parse the components of the rule declaration
                 target      = chk(m, 1, 'target')
-                target_lang = chk(m, 2, 'target lang')
-                src         = parse_tree(chk(m, 3, 'src'))
-                src_lang    = m.group(5) if m.group(5) else target_lang
-                cost        = int(chk(m, 6, 'cost'))
+                src         = parse_tree(chk(m, 2, 'src'))
+                cost        = int(chk(m, 3, 'cost'))
 
                 # add the rule to our internal bookkeeping
                 action = 'action_%s_to_%s'%(str(src), target)
@@ -135,10 +135,26 @@ debug = False
                 nonterminals.add(target)
                 rules.append((target, src, cost, action))
 
+                # store the arity of src
+                if isinstance(src, tuple):
+                    src_arity = len(src)-1
+                    src_functor = src[0]
+                    possible_terminals.extend(src)
+                else:
+                    src_arity = 0
+                    src_functor = src
+                    possible_terminals.append(src_functor)
+                    
+                if src_functor in arities and arities[src_functor] <> src_arity:
+                    error('inconsistent arity for "%s" (%d versus %d)'
+                          %(src, arities[src_functor],src_arity))
+                else:
+                    arities[src_functor] = src_arity
+
                 # print the rule action
                 f.write('# '+line)
                 if isinstance(src, tuple): # add an extra argument for each children
-                    args = ', '+', '.join(['a%d'%i for i in range(0, len(src))])
+                    args = ', '+', '.join(['a%d'%i for i in range(0, src_arity)])
                 else: args = ', a0'
                 if not signature: 
                     error('no action signature specified so far')
@@ -149,14 +165,29 @@ debug = False
             else: f.write('##ERR?\n')
 
     f.write('\n')
+    f.write('# Terminals and Functors\n')
+    for t in set(possible_terminals):
+        if t not in nonterminals:
+            if t not in arities.keys(): arities[t] = 0
+            f.write('%s = %r\n'%(t, t))
+    f.write('\n')
+    f.write('# Nonterminals\n')
+    for nt in nonterminals:
+        f.write('%s = %r\n'%(nt, nt))
+    f.write('\n')
     f.write('rules = [\n')
     for target, src, cost, action in rules:
         f.write('    (%s, %s, %r, %s),\n' % (target, src, cost, action))
     f.write('  ]\n')
     f.write('nonterminals = %r\n'%nonterminals)
     f.write('\n')
+    f.write('# number of children for each node type\n')
+    f.write('arities = %r\n'%arities)    
+    f.write('\n')
+    f.write('# number of additional user-defined  arguments for every action\n')
     f.write('action_arity = %s\n'%action_arity)
-    f.write('def no_action(*args): pass\n')
+    f.write('\n')
+    f.write('def no_action(*args): return args[-1]\n')
 
     # Write the library code
     f.write('''
@@ -170,11 +201,19 @@ debug = False
 from parse_tree import *
 from utils import *
 
+def is_terminal(symbol):
+    # FIXME (performance) replace this hashtable lookup with a flag or a lookup-table
+    return symbol not in nonterminals
+
 def labelx(tree):
     return label1(parse_tree(tree.replace('.','_')))
 
+def untup(tup):
+    if len(tup) == 1: return tup[0]
+    return tup
+
 @accepts(tuple)
-def label(args):
+def label(node):
     """
     Find a cost-minimal cover of the tree \c tree using the the rules
     defined in the global variable \c rules.
@@ -183,25 +222,23 @@ def label(args):
     \c (node, child_name1, child_name2, other_data, ....)
     where node is a tuple containting of 
     (functor, child1, child2, ...)
-
-    The purpose of data is to pass extra arguments to the actions,
-    e.g., the file to print to.
     """
 
-    data = list(args[1:])
-    if isinstance(args, str): import pdb; pdb.set_trace()
-    node = args[0]
-    functor = node[0]
-    arity = len(node) if isinstance(node, tuple) else 0
-    if arity < 0: import pdb; pdb.set_trace()
-    if arity > 0:
+    arity = arities[node[0]]
+    if arity > len(node): raise Exception('node <%r> has not enough children'%node)
+    if arity < 0:         raise Exception()
+    elif arity == 0:
+        child_labels = []
+        # FIXME (performance) replace this with a hardcoded array
+        my_labels = { node[0]: ((untup(node[1:]), '<terminal>', 0, no_action), 0) }
+        # print 'terminal', node
+    else: # arity > 0
         if isinstance(node, str): import pdb; pdb.set_trace()
-        child_labels = map(label, zip(node[1:], data))
+        functor = node[0]
+        # print 'FN', functor
+        child_labels = map(label, list(node[1:]))
         # FIXME (performance) replace this with a hardcoded array
         my_labels = dict()
-    else: # arity == 0
-        child_labels = []
-        my_labels = { args[0]: ((args, '<terminal>', 0, no_action), 0) }
 
     def current_cost(target):
         for (t, src, _, action), cost in my_labels.values():
@@ -229,28 +266,37 @@ def label(args):
 
             target, src, cost, action = r
 
-            #print 'src =', src
-
+            #print 'src =', src, '?'
+     
             # is the arity compatible?
             if arity and not (isinstance(src, tuple)
-                              and len(src) == arity  # have the same arity
-                              and (src[0] == node    # compound
-                                or src == node)):    # aggregate
+                              and len(src)-1 == arity # have the same arity
+                              and (src[0] == node[0]  # compound
+                                or src == node)):     # aggregate
                 # sadly there's an ambiguity between compound types
                 # and n-ary nonterminals
                 continue # not compatible
 
-            if len(node[1])>1 and node[1][0] == 'enum': import pdb; pdb.set_trace()
+            #if node[0] == cons: import pdb; pdb.set_trace()
 
-            # can we reach the rule's src sink from our node?
+
+            #if len(node[1])>1 and node[1][0] == 'enum': import pdb; pdb.set_trace()
+
             if arity == 0:
+                # can we reach the rule's src sink from our node?
                 try:    _, basecost = my_labels[src]
-                except: continue # rule does not match
+                except KeyError: continue # rule does not match
 
-            # can we reach the rule's argument src sinks from our node?
-            for i in range(1, arity):
-                try:    _, basecost = child_labels[src[i][0]]
-                except: continue # rule does not match
+            else:
+                # can we reach the rule's argument src sinks from our node?
+                fail = False
+                for i in range(arity):
+                    #print 'childlables[%d]='%i,child_labels[i]
+                    #print src[i+1]
+                    try:    _, basecost = child_labels[i][0][src[i+1]]
+                    except KeyError: fail = True; break # rule does not match
+                #if fail: print 'FAIL', node[0], target, src
+                if fail: continue
 
             # decide whether it pays off to add this rule
             if cost < current_cost(target) and target not in visited:
@@ -263,65 +309,89 @@ def label(args):
     if debug:
         for r, cost in my_labels.values():
             print '   ', r, ':', cost
-    #if len(my_labels) == 0:
-    #     print '**ERROR: no labelling found for <%s>'%repr(args)
+    if len(my_labels) == 0:
+        print '**ERROR: no labeling found for <%s>'%repr(node)
+        if debug: raise Exception() 
+        else:     exit(1)
 
-    return tuple([my_labels]+data)
+    return [my_labels]+child_labels
 
-def reducetree(label, target, src, *args):
+def reducetree(labels, target, debug_src, *user_args):
     """
     Reduce a tree of labels (as generated by \c label() ) to \c target
     and execute all the code generation action associated with the
     labels as side effects.
     """
-    my_labels = label[0]
 
-    try:
-        success = False
-        while target in my_labels:
-            r, cost = my_labels[target]
-            del my_labels[target]
-     
-            _, target, _, action = r
-            if debug:
-                print r, cost
-                try:
-                    action(*tuple(list(args)+[label[-1]]))
-                except:
-                    import pdb, sys
-                    print "Exception caught in action:", sys.exc_info()[0]
-                    print sys.exc_info()
-                    pdb.post_mortem()
-            else:
-                action(*tuple(list(args)+[label[-1]]))
+    def error():
+        print "**ERROR: no cover found for:"
+        print "  %s --> %s"%(debug_src,target)
+        if my_labels.keys():
+            print "**Hint: If the tree above is well-formed, "+ \
+                  "try adding a rule for <<%s <-- %s>> !"% \
+                  (target, my_labels.keys()[0])
+        print
+        if debug: raise Exception() 
+        else:     exit(1)
 
-            success = True
+    arity = len(labels)
+    my_labels = labels[0]
 
-        if not success:
-            print "**ERROR: no cover found for %r --> %r."%(src[0],target)
-            raise Exception()
+    #print "#%d  %s --> %s"%(arity,debug_src,target)
 
-    except TypeError:
-        pass # non-hashable
+    if not target in my_labels.keys(): 
+        error()
 
-    for i in range(1, len(label)-1): # for each children
-        reducetree(label[i], target, src, *args)
+    r, cost = my_labels[target]
+    # del my_labels[target]
 
-def codegen(src, target, *args):
-    if len(args) <> action_arity:
+    user_data, target1, _, action = r
+
+    #print '>>',my_labels[target]
+
+    if arity > 1:
+      # for each children
+      args = map(lambda (l,tgt): reducetree(l, tgt, user_data, *user_args), 
+                 zip(labels[1:], target1[1:]))
+
+    else:
+      # for this node (chain rules)
+      if target1 == '<terminal>':
+          args = [user_data]
+      else:
+          args = [reducetree(my_labels if isinstance(my_labels, list) else [my_labels], 
+                            target1, debug_src, *user_args)]
+
+    #print '!', action.__name__, args
+    if debug:
+        print r, cost
+        try:
+            return action(*tuple(list(user_args)+args))
+        except:
+            import pdb, sys
+            print "Exception caught in action:", sys.exc_info()[0]
+            print sys.exc_info()
+            pdb.post_mortem()
+    else:
+        return action(*tuple(list(user_args)+args))
+
+
+def codegen(src, target, *user_args):
+    if len(user_args) <> action_arity:
         raise Exception()
     labels = label(src)
     if debug:
-        print 'labels = ', labels
+        import pprint
+        print 'labels = '
+        pprint.pprint(labels)
         print 'cost-optimal cover:'
-    return reducetree(labels, target, src, *args)
+    return reducetree(labels, target, src, *user_args)
+
 
 if __name__ == '__main__':
     try:
-        codegen((chpl.char, 'test'), ior.char, [], set(), '*')
-        #reducetree(label(('chpl.Char')), 'ior.str', ior.char, [], set())
-        #print
-        #reducetree(label('upcast(ior.object)'), 'ior.baseobject', ior.char, [], set())
+        # the user can define this function for debugging purposes
+        test_harness()
     except:
         # Invoke the post-mortem debugger
         import pdb, sys

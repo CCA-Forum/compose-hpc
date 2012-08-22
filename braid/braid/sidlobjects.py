@@ -315,6 +315,15 @@ class Class(Extendable):
 
         return False
 
+    def get_qualified_data(self):
+        """
+        return the fully scoped SIDL data for this class_
+        """
+        # fully scope the name
+        class_, _, extends, implementes, invariants, methods, doc_comment = self.data
+        return class_, self.get_scoped_id(), extends, implementes, invariants, methods, doc_comment
+
+
 
 class Interface(Extendable):
     """
@@ -336,3 +345,12 @@ class Interface(Extendable):
 
     def get_methods(self):
         return sidl.interface_methods(self.data)
+
+    def get_qualified_data(self):
+        """
+        return the fully scoped SIDL data for this interface
+        """
+        # fully scope the name
+        interface, _, extends, invariants, methods, doc_comment = self.data
+        return interface, self.get_scoped_id(), extends, invariants, methods, doc_comment
+
