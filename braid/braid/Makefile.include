@@ -135,7 +135,7 @@ braid/legal.py: $(top_srcdir)/COPYRIGHT
 BURG=env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/burg.py
 %.py: %.burg $(srcdir)/braid/burg.py
 	@$(MKDIR_P) `dirname $@`
-	$(AM_V_GEN) $(BURG) $< -o $@
+	$(AM_V_GEN) $(BURG) $< -o $@ --dot $(patsubst %.py,%.dot,$@)
 
 # We keep this file in srcdir because we only regenerate them if the
 # user has swipl installed

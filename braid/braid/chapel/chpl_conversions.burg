@@ -50,78 +50,6 @@ def c_gen(ir, scope=None):
         scope = CFile()
     return CCodeGenerator().generate(ir, scope)
 
-# def XXXXsidl_arg_to_ir(symbol_table, (arg, attrs, mode, typ, name)):
-#     return arg, attrs, mode, sidl_type_to_ir(symbol_table, typ), name
-
-# def XXXXsidl_type_to_ir(symbol_table, typ):
-#     """
-#     Converts objects and arrays into their corresponding chapel types.
-#     The implicit expectation is that typ was passed to
-#     \c babel.lower_ir(lower_scoped_ids=False) .
-
-#     FIX ME merge this code with lower_ir!!!!!!!!!!!!!!!!!!!
-
-#     """
-#     if babel.is_obj_type(symbol_table, typ):
-#         iortype = babel.ior_type(symbol_table, typ)
-    
-#     elif typ[0] == sidl.struct: #babel.is_struct_type(symbol_table, typ):
-#         #iortype = babel.lower_ir(*symbol_table[typ])
-#         #if (mode == sidl.in_):
-#         #    iortype = ir.Pointer_type(iortype)
-
-#         def conv_rarray_items((struct, name, items, docstring)):
-#             def f((item, typ, name)):
-#                 #if typ[0] == ir.rarray:
-#                 #    import pdb; pdb.set_trace()
-#                 #    return item, convert_arg((arg, attrs, mode, typ, name))[2][3], name
-#                 #el
-#                 if typ[0] == ir.struct:
-#                     return item, conv_rarray_items(typ), name
-#                 else: return item, sidl_type_to_ir(symbol_table, typ), name
-
-#             return struct, name, map(f, items), docstring
-
-#         iortype = conv_rarray_items(typ)
-
-#     elif typ[0] == sidl.scoped_id:
-#         import pdb; pdb.set_trace()
-#         # Other Symbol
-#         iortype = symbol_table[typ][1]
-
-#     elif typ == sidl.void:
-#         iortype = ir.pt_void
-
-#     elif typ == sidl.opaque:
-#         iortype = ir.Pointer_type(ir.pt_void)
-
-#     elif typ == (sidl.array, [], [], []): 
-#         # This comment is there so the Chapel code generator won't
-#         # recognize the type as an array. For generic SIDL arrays, we
-#         # actually want a C struct type.
-#         iortype = ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], ''))
-#         if name == '_retval':
-#             iortype = ir.Pointer_type(ir.pt_void)
-
-#     elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
-#         if typ[1][0] == ir.scoped_id:
-#             t = 'BaseInterface'
-#         else:
-#             t = typ[1][1]
-#         iortype = ir.Pointer_type(ir.Struct('sidl_%s__array /* IOR */'%t, [], ''))
-
-#     elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
-#         iortype = ir.Typedef_type('sidl_%s__array'%typ[1][1])
-    
-#     else: 
-#         iortype = typ
-#     return iortype
-
-
-
-def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
-    return arg, attrs, mode, ir_type_to_chpl(typ), name
-
 def ir_type_to_chpl(typ):
     """
     Convert only the datatype \c typ into its chapel equivalent
@@ -148,6 +76,7 @@ def ir_type_to_chpl(typ):
             enum, name, items, comment = typ
             return enum, name, items, 'chpl '+comment
         if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool': 
+            import pdb; pdb.set_trace()
             return ir.Typedef_type('chpl_bool')
         if typ[0] == 'upcast':
             # part of the hack for self dereferencing
@@ -221,7 +150,7 @@ def get_array_type(full_type):
    else:
        t = '_'+full_type[1][1]
    name = 'sidl%s__array'%t
-   iortype = ir.Pointer_type(ir.Struct(name, [], ''))
+   iortype = ir.Pointer_type(ir.Struct(name, (), ''))
    return name, iortype 
 
 def get_ior_array_type(sidl_array):
@@ -310,81 +239,92 @@ def Cons(a, b):
     elif not isinstance(b, list): b = [b]
     return a+b
 
-def ir_to_chpl_native(typ, *user_data):
-    type_map={
-        ir.bool:     bool_native_chpl,
-        ir.char:     char_native_chpl,
-        ir.dcomplex: dcomplex_native_chpl,
-        ir.double:   double_native_chpl,
-        ir.float:    float_native_chpl,
-        ir.fcomplex: fcomplex_native_chpl,
-        ir.int:      int_native_chpl,
-        ir.long:     long_native_chpl,
-        ir.string:   string_native_chpl,
+def ir_to_burg(typ, language, *user_data):
+    '''
+    convert an IR datatype into its native chapel equivalent and
+    return the corresponding BURG expression. Invoking codegen() on
+    this expression as argument to one of the \c call rules will yield
+    a conversion to the IOR.
+    '''
+    chpl_type_map={
+        ir.pt_bool:     bool_chpl_chpl,
+        ir.pt_char:     char_chpl_chpl,
+        ir.pt_dcomplex: dcomplex_chpl_chpl,
+        ir.pt_double:   double_chpl_chpl,
+        ir.pt_float:    float_chpl_chpl,
+        ir.pt_fcomplex: fcomplex_chpl_chpl,
+        ir.pt_int:      int_chpl_chpl,
+        ir.pt_long:     long_chpl_chpl,
+        ir.pt_string:   string_chpl_chpl,
+        ir.void_ptr:    opaque_chpl_chpl,
+
+        ir.enum:        enum_chpl_chpl,
+        'ext':          ext_chpl_chpl,
+        'array':        array_chpl_chpl,
+        ir.rarray:      array_chpl_chpl
         }
 
-    if typ[0] == ir.primitive_type:
-        return type_map[typ[1]], user_data
+    ior_type_map={
+        ir.pt_bool:     bool_ior_c,
+        ir.pt_char:     char_ior_c,
+        ir.pt_dcomplex: dcomplex_ior_c,
+        ir.pt_double:   double_ior_c,
+        ir.pt_float:    float_ior_c,
+        ir.pt_fcomplex: fcomplex_ior_c,
+        ir.pt_int:      int_ior_c,
+        ir.pt_long:     long_ior_c,
+        ir.pt_string:   string_ior_c,
+        ir.void_ptr:    pointer_type_ior_c,
 
-    elif typ[0] in [sidl.class_, sidl.interface]:
-        return ext_native_chpl, typ, user_data
+        ir.enum:        enum_ior_c,
+        'ext':          ext_ior_c,
+        'array':        array_ior_c,
+        ir.rarray:      rarray_ior_c
+        }
+
+    if language == 'ior':
+        type_map = ior_type_map
+    else:
+        type_map = chpl_type_map
+
+    try:
+        return type_map[typ], user_data
+    except KeyError:  pass # not found
+    except TypeError: pass # not hashable
+
+    if typ[0] in [sidl.class_, sidl.interface]:
+        return type_map['ext'], typ, user_data
 
     elif typ[0] == ir.pointer_type:
         if typ == ir.void_ptr:
-            return opaque_native_chpl, user_data
+            return type_map[ir.opaque], user_data
 
         elif typ[1][0] == ir.struct:
             if typ[1][1][0] == ir.scoped_id:
-                return ext_native_chpl, typ, user_data
+                return type_map['ext'], typ, user_data
             else:
                 ptr, (struct, name, items, docstr) = typ
                 hashable_typ = (ptr, (struct, name, tuple(items), docstr))
-                return array_native_chpl, hashable_typ, user_data
+                return type_map['array'], hashable_typ, user_data
+        else: raise Exception()
+
+    elif typ[0] == ir.rarray:
+        return type_map[ir.rarray], typ, user_data
 
     elif typ[0] == ir.enum:
         enum, name, items, docstr = typ
         hashable_typ = enum, name, tuple(items), docstr
-        return enum_native_chpl, hashable_typ, user_data
+        return type_map[ir.enum], hashable_typ, user_data
 
     raise Exception()
 
-def ir_to_chpl_ior(typ, *user_data):
-    type_map={
-        ir.bool:     bool_ior_c,
-        ir.char:     char_ior_c,
-        ir.dcomplex: dcomplex_ior_c,
-        ir.double:   double_ior_c,
-        ir.float:    float_ior_c,
-        ir.fcomplex: fcomplex_ior_c,
-        ir.int:      int_ior_c,
-        ir.long:     long_ior_c,
-        ir.string:   string_ior_c,
-        }
-
-    if typ[0] == ir.primitive_type:
-        return type_map[typ[1]], user_data
-
-    elif typ[0] in [sidl.class_, sidl.interface]:
-        return ext_ior_chpl, typ, user_data
-
-    elif typ[0] == ir.pointer_type:
-        if typ == ir.void_ptr:
-            return pointer_type_ior_c, user_data
-
-        elif typ[1][0] == ir.struct:
-            if typ[1][1][0] == ir.scoped_id:
-                return ext_ior_chpl, typ, user_data
-            else:
-                ptr, (struct, name, items, docstr) = typ
-                hashable_typ = (ptr, (struct, name, tuple(items), docstr))
-                return array_ior_chpl, hashable_typ, user_data
-
-    elif typ[0] == ir.enum:
-        enum, name, items, docstr = typ
-        hashable_typ = enum, name, tuple(items), docstr
-        return enum_ior_c, hashable_typ, user_data
-
-    raise Exception()
+def array_ior_type(array):
+    '''
+    in case we actually _mean_ the raw IOR struct, objuscate the type,
+    so the code generator doesn't recognize it as an array
+    '''
+    (ptr, (struct, name, items, docs)) = array
+    return (ptr, (struct, '/* IOR */'+name, items, docs))
 
 
 def copy_over(typ, a0):
@@ -392,11 +332,11 @@ def copy_over(typ, a0):
     merely copy over src into dest without any conversion
     '''
     dest, src, orig = a0
-    return typ, orig, orig, None
+    return typ, (orig, orig, None)
 
 def c_convs(a):
     'extract the postponed c conversions from an Xvalue_ior_c, if any'
-    _, _, _, c_xvalue = a 
+    _, (_, _, c_xvalue) = a 
     if c_xvalue == None: 
         return []
     _t, _dest, _src, conv = c_xvalue
@@ -407,7 +347,7 @@ def make_carg(name, inargs, outargs):
     # [inout]args = typ, dest_name, src_name, (None | (ctype, cdest_name, csrc_name, conv))
     mode = ir.inout
     for arg in inargs:
-        typ2, _, name2, conv = arg
+        typ2, (_, name2, conv) = arg
         if name <> name2: 
             continue
 
@@ -415,7 +355,7 @@ def make_carg(name, inargs, outargs):
         mode = ir.in_
 
     for arg in outargs:
-        typ3, name3, _, conv = arg
+        typ3, (name3, _, conv) = arg
         if name <> name3: 
             continue
         
@@ -425,13 +365,13 @@ def make_carg(name, inargs, outargs):
     return ir.Arg([], mode, typ, name)
 
 def get_c_tmp1(arg):
-    typ, name, _, conv = arg
+    typ, (_, name, conv) = arg # return src to signal 'no temp needed'
     if conv:
         typ, name, _, _ = conv # use c ior type if available
     return typ, name
 
 def get_c_tmp2(arg):
-    typ, _, name, conv = arg
+    typ, (name, _, conv) = arg
     if conv:
         typ, _, name, _ = conv # use c ior type if available
     return typ, name
@@ -441,13 +381,17 @@ def ensure_list(a):
     if not isinstance(a, list): return [a]
     return a
 
-def insert_return(a):
+def assigns_retval(stmts):
     '''
-    if a is \c _retval=value replace it with \c return(value).
+    figure out if stmts assign _retval
     '''
-    if a[0] == ir.stmt and a[1][0] == ir.assignment and a[1][1] == '_retval':
-        return ir.Stmt(ir.Return(a[1][2]))
-    return a
+    for stmt in stmts:
+        if stmt[1][0] == ir.assignment:
+            if stmt[1][1] == '_retval':
+                return True
+            if stmt[1][1][0] == ir.get_struct_item and stmt[1][1][2] == '_retval':
+                return True
+    return False
 
 def strip_deref(a):
     if isinstance(a, tuple) and a[0] == ir.deref: 
@@ -455,17 +399,19 @@ def strip_deref(a):
     return a
 
 def deref_to_addr(arg):
-    _, a1, a2, conv = arg
+    _, (a1, a2, conv) = arg
     if conv: 
         _, a1, a2, _ = conv # use c ior type if available
-    
+    else:
+        a1 = a2 # use src, because there is no ior conversion
+
     if isinstance(a2, tuple) and a2[0] == ir.deref: 
-        return ir.Pointer_expr(a1)
+        return ir.Pointer_expr(a1)        
     return a1
 
 def strip_derefs(lvalue):
-    t, dest, src, data = lvalue
-    return t, strip_deref(dest), strip_deref(src), data
+    t, (dest, src, data) = lvalue
+    return t, (strip_deref(dest), strip_deref(src), data)
 
 #------------------------------------------------------------------------
 # Test harness
@@ -473,14 +419,14 @@ def strip_derefs(lvalue):
 def test_harness():
     global debug
     debug = 1
-    b = bool_native_chpl
+    b = bool_chpl_chpl
     #codegen((b, 'a'), rvalue_ior_c, 0,0,0,0,0)
     #codegen((cons, (b, 'a'), (b, 'b')), rvalue_ior_c, 0,0,0,0,0)
     import chapel.chpl_code as cc
     scope = cc.ChapelFile()
     c_scope = scope.cstub
     codegen((call_assign, (call, (nonvirtual_method, ir.pt_int, 'f', None), 
-             (cons, (ext_native_chpl, 
+             (cons, (ext_chpl_chpl, 
                      babel.ir_object_type([], 'name'),
                      ('self', '_f_ior_foo')), 
               (cons, (b, '_f_ior_a', 'a'), (b, '_f_ior_b', 'b')))), #incoming
@@ -495,7 +441,6 @@ def test_harness():
 # Declaration of additional arguments for the rule actions
 #------------------------------------------------------------------------
 %action arguments: (scope, c_scope)
-# (convs, skel, dest, full_type, type_conv)
 #------------------------------------------------------------------------
 %rules:
 # Rule format
@@ -509,17 +454,28 @@ def test_harness():
 # lvalue_ior_chpl
 # {nodetype}_{representation}_{language the type was created in}
 
+# How to read these rules:
+#
+#    rvalue_ior_c <-- call(any_method, rvalue_ior_c) :cost(2)
+#
+# This is a call to a function that expects ior_c arguments 
+# (IOR format, call in the C language)
+
+#
+# CLIENT
+#
+
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
-stmt <-- call_assign(rvalue_ior_c, lvalue_ior_c)    :cost(1)
+stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     cstub, name, arg_names, inargs, call = a0
     inargs = ensure_list(inargs)
     outargs = map(strip_derefs, ensure_list(a1))
 
     # now that we know all of them, declare temporary variables for
     # the Chapel stub
-    unique_temps = set(map(lambda a: (a[0], a[1]), inargs)+
-                       map(lambda a: (a[0], a[2]), outargs))
+    unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
+                       map(lambda a: (a[0], a[1][1]), outargs))
     for tmp in unique_temps:
         scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
 
@@ -527,8 +483,8 @@ stmt <-- call_assign(rvalue_ior_c, lvalue_ior_c)    :cost(1)
     #
     # generate the remaining conversions (.?value_ior_c)
     #
-    if len(outargs) > 0 and outargs[-1][1] == '_retval':
-        ftype, _, retval, convs = outargs[-1]
+    if len(outargs) > 0 and outargs[-1][1][0] == '_retval':
+        ftype, (_, retval, convs) = outargs[-1]
         if convs: retval = convs[2]
     else:
         ftype = ir.pt_void
@@ -548,13 +504,17 @@ stmt <-- call_assign(rvalue_ior_c, lvalue_ior_c)    :cost(1)
 
     if ftype <> ir.pt_void:
         if post_call:
+            pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
             ior_call = [ir.Copy(retval, call)]
+            if not assigns_retval(post_call):
+                post_call.append(ir.Copy('_retval', retval))
+            post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
             ior_call = [ir.Stmt(ir.Return(call))]
     else:
         ior_call = [ir.Stmt(call)]
 
-    cstub_body0 = cstub_decls+pre_call+ior_call+map(insert_return, post_call)
+    cstub_body0 = cstub_decls+pre_call+ior_call+post_call
     cstub_body = [s for s in (cstub_body0) if s]
     scope.cstub.gen(ir.Fn_defn(attrs, cstub_type, cstub, cstub_args, cstub_body, 
                                'remaining Stub in C'))
@@ -563,15 +523,15 @@ stmt <-- call_assign(rvalue_ior_c, lvalue_ior_c)    :cost(1)
 
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
-stmt <-- call_assign(rvalue_ior_chpl, lvalue_ior_chpl) :cost(1)
+stmt <-- ior_call_assign(rvalue_ior_chpl, lvalue_chpl_chpl) :cost(1)
     cstub, name, arg_names, inargs = a0
     inargs = ensure_list(inargs)
     outargs = map(strip_derefs, ensure_list(a1))
 
     # now that we know all of them, declare temporary variables for
     # the Chapel stub
-    unique_temps = set(map(lambda a: (a[0], a[1]), inargs)+
-                       map(lambda a: (a[0], a[2]), outargs))
+    unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
+                       map(lambda a: (a[0], a[1][1]), outargs))
     for tmp in unique_temps:
         scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
 
@@ -586,166 +546,230 @@ any_method <-- nonvirtual_method : cost(0)
 #
 # Conversion rules are expected to return a tuple
 # typ, dest_name, src_name, (None | (ctype, cdest_name, csrc_name, conv))
-rvalue_ior_c <-- call(any_method, rvalue_ior_c) :cost(2)
+rvalue_ior_c <-- ior_call(any_method, rvalue_ior_c) :cost(2)
     ftype, name, ci = a0
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
 
-    #def assrt(arg):
-    #    if arg.count('_ior_') or arg.count('.'):
-    #        import pdb; pdb.set_trace()
-    #    return arg
-    #map (assrt, args)
+    # generate the call to the C Stub
+    cstub_params = map(lambda a: strip_derefs(a)[1][0], args)
+    arg_names    = map(lambda a: strip_derefs(a)[1][1], args)
 
-    #stub_args = map(lambda n: '_%s_ior_%s'%(name, n), args)
-    call_args = map(lambda a: deref_to_addr(a), la1)
-    arg_names = map(lambda a: strip_derefs(a)[2], args)
-    #print args
-    #print arg_names
     cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
     if ftype <> ir.pt_void:
-        scope.gen(ir.Copy('_ior_retval', ir.Call(cstub, call_args)))
+        scope.gen(ir.Copy('_ior__retval', ir.Call(cstub, cstub_params)))
     else:
-        scope.gen(ir.Stmt(ir.Call(cstub, call_args)))
+        scope.gen(ir.Stmt(ir.Call(cstub, cstub_params)))
 
     # the outgoing pseudo-args are only there to pass the expressions in the right order
     inargs = filter(lambda a: a[0] <> outgoing_arg, args)
 
+    # generate the call to the real function implementation
+    call_args = map(lambda a: deref_to_addr(a), la1)
     call = babel.vcall(name, call_args, ci)
     return cstub, name, arg_names, inargs, call
 
 # nonvirtual methods
-rvalue_ior_chpl <-- call(nonvirtual_method, rvalue_ior_chpl) :cost(1)
+rvalue_ior_chpl <-- ior_call(nonvirtual_method, rvalue_ior_chpl) :cost(1)
     ftype, name, ci = a0
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
-    arg_names = map(lambda a: a[1], args)
     call_args = map(lambda a: deref_to_addr(a), la1)
+    import pdb; pdb.set_trace()
+    print 'IMPLEMENT ME'
 
     if ftype <> ir.pt_void:
-        scope.gen(ir.Copy('_ior_retval', ir.Call(name, call_args)))
+        scope.gen(ir.Copy('_ior_retval', ir.Call(name, call_params)))
     else:
-        scope.gen(ir.Stmt(ir.Call(cstub, call_args)))
+        scope.gen(ir.Stmt(ir.Call(name, call_params)))
 
     # the outgoing pseudo-args are only there to pass the expressions in the right order
     inargs = filter(lambda a: a[0] <> outgoing_arg, args)
+    call_args = map(lambda a: deref_to_addr(a), la1)
     call = ir.Call(a0, call_args)
-    return cstub, name, arg_names, inargs
+    return name, name, arg_names, inargs
+
+#
+# SERVER
+#
+
+# skeleton -> implementation calls
+stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_chpl) :cost(1)
+    inargs = a0
+    inargs = ensure_list(inargs)
+    outargs = map(strip_derefs, ensure_list(a1))
+
+    # now that we know all of them, declare temporary variables for
+    # the Chapel stub
+    unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
+                       map(lambda a: (a[0], a[1][1]), outargs))
+    for tmp in unique_temps:
+        scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
+
+    return None
+
+# skeleton -> impl method calls
+rvalue_chpl_chpl <-- chpl_call(any_method, rvalue_chpl_chpl) :cost(1)
+    ftype, name, ci = a0
+    la1 = ensure_list(a1)
+    args = map(strip_derefs, la1)
+
+    # generate the call to the C Stub
+    cstub_params = map(lambda a: strip_derefs(a)[1][0], args)
+    arg_names    = map(lambda a: strip_derefs(a)[1][1], args)
+
+    cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
+    if ftype <> ir.pt_void:
+        scope.gen(ir.Copy('_ior__retval', ir.Call(cstub, cstub_params)))
+    else:
+        scope.gen(ir.Stmt(ir.Call(cstub, cstub_params)))
+
+    # the outgoing pseudo-args are only there to pass the expressions in the right order
+    inargs = filter(lambda a: a[0] <> outgoing_arg, args)
+
+    # generate the call to the real function implementation
+    call_args = map(lambda a: deref_to_addr(a), la1)
+    scope.gen(ir.Stmt(ir.Call(name, call_args)))
+    return inargs
 
 
-
-stmt <-- call(virtual_method, rvalue_native_chpl) :cost(1)
-    gen_tmp_vardecls(scope, list(a1))
-    scope.gen(ir.Fn_defn('%s_skel'%a0, a1))
+#
+# FUSION
+#
 
 stmt <-- call(method, rvalue_native_fortran) :cost(1)
     gen_tmp_vardecls(scope, list(a1))
     scope.gen(ir.Call('%s_fuse'%a0, a1))
 
+#
+# MISCELLANEOUS
+#
+
 lvalue_ior_c            <-- none :cost(0)
-lvalue_ior_c            <-- cons(lvalue_ior_c,    none)            : cost(0)
-lvalue_ior_c            <-- cons(lvalue_ior_c,    lvalue_ior_c)    : cost(0)
+lvalue_ior_c            <-- cons(lvalue_ior_c,     none)             : cost(0)
+lvalue_ior_c            <-- cons(lvalue_ior_c,     lvalue_ior_c)     : cost(0)
+    return Cons(a0, a1)                                              
+                                                                     
+lvalue_ior_chpl         <-- none :cost(0)                            
+lvalue_ior_chpl         <-- cons(lvalue_ior_chpl,  none)             : cost(0)
+lvalue_ior_chpl         <-- cons(lvalue_ior_chpl,  lvalue_ior_chpl)  : cost(0)
     return Cons(a0, a1)
 
-lvalue_ior_chpl         <-- none :cost(0)
-lvalue_ior_chpl         <-- cons(lvalue_ior_chpl, none)            : cost(0)
-lvalue_ior_chpl         <-- cons(lvalue_ior_chpl, lvalue_ior_chpl) : cost(0)
+lvalue_chpl_c           <-- none :cost(0)
+lvalue_chpl_c           <-- cons(lvalue_chpl_c,    none)             : cost(0)
+lvalue_chpl_c           <-- cons(lvalue_chpl_c,    lvalue_chpl_c)    : cost(0)
     return Cons(a0, a1)
 
 rvalue_ior_c            <-- none :cost(0)
-rvalue_ior_c            <-- cons(rvalue_ior_c,    none)            : cost(0)
-rvalue_ior_c            <-- cons(rvalue_ior_c,    rvalue_ior_c)    : cost(0)
+rvalue_ior_c            <-- cons(rvalue_ior_c,     none)             : cost(0)
+rvalue_ior_c            <-- cons(rvalue_ior_c,     rvalue_ior_c)     : cost(0)
+    return Cons(a0, a1)                                              
+                                                                     
+rvalue_ior_chpl         <-- none :cost(0)                            
+rvalue_ior_chpl         <-- cons(rvalue_ior_chpl,  none)             : cost(0)
+rvalue_ior_chpl         <-- cons(rvalue_ior_chpl,  rvalue_ior_chpl)  : cost(0)
     return Cons(a0, a1)
 
-rvalue_ior_chpl         <-- none :cost(0)
-rvalue_ior_chpl         <-- cons(rvalue_ior_chpl, none)            : cost(0)
-rvalue_ior_chpl         <-- cons(rvalue_ior_chpl, rvalue_ior_chpl) : cost(0)
+rvalue_chpl_chpl        <-- none :cost(0)
+rvalue_chpl_chpl        <-- cons(rvalue_chpl_chpl, none)             : cost(0)
+rvalue_chpl_chpl        <-- cons(rvalue_chpl_chpl, rvalue_chpl_chpl) : cost(0)
     return Cons(a0, a1)
+
 
 # this is a pseudo-arg to have all arguments (including the outgoing
 # ones) appear in the right order in the call rule
-rvalue_ior_c    <-- outgoing_arg  :cost(0)
-    return outgoing_arg, a0, a0, None
+rvalue_ior_c     <-- outgoing_arg  :cost(0)
+    return outgoing_arg, (a0, a0, None)
+
+rvalue_chpl_chpl <-- outgoing_arg  :cost(0)
+    return outgoing_arg, (a0, a0, None)
 
 # this conversion is essentially a no-op; it says that values
 # converted at the chpl level are also compatible with a stub
-#lvalue_ior_c <-- lvalue_ior_chpl   :cost(1)
-rvalue_ior_c <-- rvalue_ior_chpl   :cost(1)
+value_ior_c     <-- value_ior_chpl   :cost(0)
+value_ior_chpl  <-- value_ior_c      :cost(0)
+value_chpl_c    <-- value_chpl_chpl  :cost(0)
+value_chpl_chpl <-- value_chpl_c     :cost(0)
 
-lvalue_ior_c    <-- bool_native_chpl :cost(0) 
-#lvalue_ior_c    <-- bool_ior_c    :cost(0) 
+# rvalue and lvalue only serve to make the call rules more readable
+lvalue_ior_c     <-- value_ior_c    :cost(0)
+rvalue_ior_c     <-- value_ior_c    :cost(0)
+lvalue_ior_chpl  <-- value_ior_chpl :cost(0)
+rvalue_ior_chpl  <-- value_ior_chpl :cost(0)
+lvalue_chpl_c    <-- value_chpl_c   :cost(0)
+rvalue_chpl_c    <-- value_chpl_c   :cost(0)
+lvalue_chpl_chpl <-- value_chpl_chpl:cost(0)
+rvalue_chpl_chpl <-- value_chpl_chpl:cost(0)
 
-rvalue_ior_chpl <-- bool_ior_chpl :cost(0) 
-rvalue_ior_c    <-- bool_ior_c    :cost(0) 
+value_chpl_c    <-- bool_chpl_c   :cost(0) 
+value_ior_c     <-- bool_ior_c    :cost(0) 
+value_chpl_chpl <-- bool_chpl_chpl:cost(0) 
+value_ior_chpl  <-- bool_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- char_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- char_ior_chpl :cost(0) 
-lvalue_ior_c    <-- char_native_chpl    :cost(0) 
-rvalue_ior_c    <-- char_ior_c    :cost(0) 
+value_chpl_c    <-- char_chpl_c   :cost(0) 
+value_ior_c     <-- char_ior_c    :cost(0) 
+value_chpl_chpl <-- char_chpl_chpl:cost(0) 
+value_ior_chpl  <-- char_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- string_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- string_ior_chpl :cost(0) 
-lvalue_ior_c    <-- string_native_chpl    :cost(0) 
-rvalue_ior_c    <-- string_ior_c    :cost(0) 
+value_chpl_c    <-- string_chpl_c   :cost(0) 
+value_ior_c     <-- string_ior_c    :cost(0) 
+value_chpl_chpl <-- string_chpl_chpl:cost(0) 
+value_ior_chpl  <-- string_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- int_ior_chpl    :cost(0) 
-#rvalue_ior_chpl <-- int_ior_chpl    :cost(0) 
-lvalue_ior_c    <-- int_native_chpl       :cost(0) 
-rvalue_ior_c    <-- int_ior_c       :cost(0) 
-                                     
-#lvalue_ior_chpl <-- long_ior_chpl   :cost(0) 
-#rvalue_ior_chpl <-- long_ior_chpl   :cost(0) 
-lvalue_ior_c    <-- long_native_chpl      :cost(0) 
-rvalue_ior_c    <-- long_ior_c      :cost(0) 
+value_chpl_c    <-- int_chpl_c   :cost(0) 
+value_ior_c     <-- int_ior_c    :cost(0) 
+value_chpl_chpl <-- int_chpl_chpl:cost(0) 
+value_ior_chpl  <-- int_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- float_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- float_ior_chpl :cost(0) 
-lvalue_ior_c    <-- float_native_chpl    :cost(0) 
-rvalue_ior_c    <-- float_ior_c    :cost(0) 
+value_chpl_c    <-- long_chpl_c   :cost(0) 
+value_ior_c     <-- long_ior_c    :cost(0) 
+value_chpl_chpl <-- long_chpl_chpl:cost(0) 
+value_ior_chpl  <-- long_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- double_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- double_ior_chpl :cost(0) 
-lvalue_ior_c    <-- double_native_chpl    :cost(0) 
-rvalue_ior_c    <-- double_ior_c    :cost(0) 
+value_chpl_c    <-- float_chpl_c   :cost(0) 
+value_ior_c     <-- float_ior_c    :cost(0) 
+value_chpl_chpl <-- float_chpl_chpl:cost(0) 
+value_ior_chpl  <-- float_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- fcomplex_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- fcomplex_ior_chpl :cost(0) 
-lvalue_ior_c    <-- fcomplex_native_chpl    :cost(0) 
-rvalue_ior_c    <-- fcomplex_ior_c    :cost(0) 
+value_chpl_c    <-- double_chpl_c   :cost(0) 
+value_ior_c     <-- double_ior_c    :cost(0) 
+value_chpl_chpl <-- double_chpl_chpl:cost(0) 
+value_ior_chpl  <-- double_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- dcomplex_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- dcomplex_ior_chpl :cost(0) 
-lvalue_ior_c    <-- dcomplex_native_chpl    :cost(0) 
-rvalue_ior_c    <-- dcomplex_ior_c    :cost(0) 
+value_chpl_c    <-- fcomplex_chpl_c   :cost(0) 
+value_ior_c     <-- fcomplex_ior_c    :cost(0) 
+value_chpl_chpl <-- fcomplex_chpl_chpl:cost(0) 
+value_ior_chpl  <-- fcomplex_ior_chpl :cost(0) 
 
-lvalue_ior_c    <-- opaque_native_chpl :cost(0) 
-rvalue_ior_c    <-- pointer_type_ior_c :cost(0) 
+value_chpl_c    <-- dcomplex_chpl_c   :cost(0) 
+value_ior_c     <-- dcomplex_ior_c    :cost(0) 
+value_chpl_chpl <-- dcomplex_chpl_chpl:cost(0) 
+value_ior_chpl  <-- dcomplex_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- enum_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- enum_ior_chpl :cost(0) 
-lvalue_ior_c    <-- enum_native_chpl    :cost(0) 
-rvalue_ior_c    <-- enum_ior_c    :cost(0) 
+value_chpl_c   <-- opaque_chpl_c      :cost(0) 
+value_ior_c    <-- pointer_type_ior_c :cost(0) 
+value_chpl_chpl<-- opaque_chpl_chpl   :cost(0) 
+value_ior_chpl <-- pointer_type_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- struct_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- struct_ior_chpl :cost(0) 
-lvalue_ior_c    <-- struct_native_chpl    :cost(0) 
-rvalue_ior_c    <-- struct_ior_c    :cost(0) 
+value_chpl_c   <-- enum_chpl_c :cost(0) 
+value_ior_c    <-- enum_ior_c    :cost(0) 
+value_chpl_chpl<-- enum_chpl_chpl :cost(0) 
+value_ior_chpl <-- enum_ior_chpl :cost(0) 
 
-lvalue_ior_chpl <-- array_ior_chpl :cost(0) 
-rvalue_ior_chpl <-- array_ior_chpl :cost(0) 
-lvalue_ior_c    <-- array_native_chpl    :cost(0) 
-rvalue_ior_c    <-- array_ior_chpl    :cost(0) 
+value_chpl_c   <-- struct_chpl_c :cost(0) 
+value_ior_c    <-- struct_ior_c    :cost(0) 
+value_chpl_chpl<-- struct_chpl_chpl :cost(0) 
+value_ior_chpl <-- struct_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- rarray_ior_chpl :cost(0) 
-#rvalue_ior_chpl <-- rarray_ior_chpl :cost(0) 
-#lvalue_ior_c    <-- rarray_native_chpl    :cost(0) 
-#rvalue_ior_c    <-- rarray_ior_c    :cost(0) 
+value_chpl_c   <-- array_chpl_c   :cost(0) 
+value_ior_c    <-- array_ior_c    :cost(0) 
+value_chpl_chpl<-- array_chpl_chpl:cost(0) 
+value_ior_chpl <-- array_ior_chpl :cost(0) 
 
-#lvalue_ior_chpl <-- ext_ior_chpl  :cost(0) 
-#rvalue_ior_chpl <-- ext_ior_chpl  :cost(0) 
-lvalue_ior_c    <-- ext_native_chpl  :cost(0)
-rvalue_ior_c    <-- ext_ior_chpl  :cost(0)
-
+value_chpl_c    <-- ext_chpl_c    :cost(0) 
+value_ior_c     <-- ext_ior_c     :cost(0)
+value_chpl_chpl <-- ext_chpl_chpl :cost(0) 
+value_ior_chpl  <-- ext_ior_chpl  :cost(0) 
 
 # SELF
 #------------------------------------------------------------------------
@@ -758,184 +782,235 @@ rvalue_ior_c    <-- ext_ior_chpl  :cost(0)
 
 # OBJECTS
 #------------------------------------------------------------------------
-ext_ior_chpl    <-- ext_native_chpl:cost(1)
-    t, (dest, src, _) = a0
+# conversion is handled in Chapel, ior-chpl -> ior-c is identity
+ext_ior_chpl    <-- ext_ior_c    :cost(0)
+ext_ior_c       <-- ext_ior_chpl    :cost(0)
+# 
+ext_chpl_c      <-- ext_chpl_chpl :cost(0)
+ext_chpl_chpl   <-- ext_chpl_c    :cost(0)
 
-#    if t[0] == sidl.class_:
-#        class_, _id, extends, implements, invariants, methods, doc_comment = t
-#        t = (class_, sidl.hashable(_id), tuple(extends), tuple(implements), 
-#             tuple(invariants), tuple(methods), doc_comment)
-#    else:
-#        interface, _id, extends, invariants, methods, doc_comment = t
-#        t = (interface, sidl.hashable(_id), tuple(extends),
-#             tuple(invariants), tuple(methods), doc_comment)
+ext_ior_chpl    <-- ext_chpl_chpl:cost(1)
+    t, (dest, src, _) = a0
     ptr, (struct, s_id, items, doc) = t
     h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
     name = s_id[2]+s_id[3]
     scope.gen(ir.Copy(dest, '%s.self_%s'%(src, name)))
-    return h_t, dest, src, None
+    return h_t, (dest, src, None)
 
-ext_native_chpl <-- ext_ior_chpl :cost(1)
-    t, (dest, src, _) = a0
+ext_chpl_c    <-- ext_ior_c :cost(30)
+    t, (dest, src, orig) = a0
     ptr, (struct, s_id, items, doc) = t
     h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
+    # hardcoded: self argument
+    if src == 'self':
+        scope.gen(ir.Copy(dest, access(src, 'd_data')))
+        return h_t, (dest, src, None)
+ 
+    # hardcoded: Babel exception argument
+    if src == '_ior__ex':
+        return h_t, (orig, orig, None)
+    # else call static wrap function
+    # FIXME
+    import pdb; pdb.set_trace()
+
+ext_chpl_chpl <-- ext_ior_chpl :cost(1)
+    t, (dest, src, orig) = a0
+    ptr, (struct, s_id, items, doc) = t
+    h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
+
+    # hardcoded: Babel exception argument
+    if src == '_ior__ex':
+        scope.gen(ir.Stmt(ir.If(
+                    ir.Call("IS_NOT_NULL", ['_ex']), 
+                    [ir.Copy('_chpl_ex', ir.Call("new BaseInterface", ['_ex']))])))
+        return h_t, (orig, orig, None)
+
+    # regular object (interface/class)
+
     # drop the id's extension, which we hijacked for '__object'
     s_id1 = ir.Scoped_id(s_id[1], s_id[2], '')
     name = s_id[2]
     #mod_name = '.'.join(full_type[1]+[name])
     wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [src, '_ex'])
     scope.gen(ir.Copy(dest, wrap))
-    return h_t, dest, src, None #(h_t, [ir.Copy(dest, src)])
+    return h_t, (dest, src, None) #(h_t, [ir.Copy(dest, src)])
 
 # BOOL
 #------------------------------------------------------------------------
-bool_ior_c      <-- bool_native_chpl: cost(1)
+bool_chpl_c      <-- bool_chpl_chpl :cost(0)
+bool_chpl_chpl   <-- bool_chpl_c    :cost(0)
+
+bool_ior_c      <-- bool_chpl_c: cost(1)
     dest, src, orig = a0
-    t = ir_type_to_chpl(ir.pt_bool)
+    t = ir.Typedef_type('chpl_bool')
     conv = [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
             ir.Copy(dest,'(%s)%s'%(c_gen(ir.pt_int),c_gen(src)))]
-    return t, orig, orig, (ir.pt_int, dest, src, conv)
+    return t, (orig, orig, (ir.pt_int, dest, src, conv))
 
-bool_native_chpl <-- bool_ior_c: cost(1)
+bool_chpl_c <-- bool_ior_c: cost(1)
     dest, src, orig = a0
-    t = ir_type_to_chpl(ir.pt_bool)
+    t = ir.Typedef_type('chpl_bool')
     conv = [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
             ir.Copy(dest,'(%s)%s'%(c_gen(t),c_gen(src)))]
-    return t, orig, orig, (ir.pt_int, dest, src, conv)
+    return t, (orig, orig, (ir.pt_int, dest, src, conv))
 
-bool_ior_chpl   <-- bool_native_chpl: cost(3)
+bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
     dest, src, orig = a0
-    t = ir_type_to_chpl(ir.pt_bool)
-    conv = ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", src))
-    return t, orig, orig, (it.pt_int, dest, src, conv)
+    t = ir.Typedef_type('chpl_bool')
+    conv = ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", [src]))
+    return t, (orig, orig, (ir.pt_int, dest, src, conv))
 
 
 # CHAR
 #------------------------------------------------------------------------
-
-char_ior_c <-- char_native_chpl : cost(1)
+char_chpl_c      <-- char_chpl_chpl :cost(0)
+char_chpl_chpl   <-- char_chpl_c    :cost(0)
+char_ior_c <-- char_chpl_c : cost(1)
     dest, src, orig = a0
     conv = [ir.Comment('in chapel, a char is a string of length 1'),
             ir.Copy(dest, ir.Deref(src))] # deref takes 1st char of string
     c_scope.optional.add(char_lut)
-    return ir.pt_string, orig, orig, (ir.pt_char, dest, src, conv)
+    return ir.pt_string, (orig, orig, (ir.pt_char, dest, src, conv))
 
-char_native_chpl <-- char_ior_c : cost(1)
+char_chpl_c <-- char_ior_c : cost(1)
     dest, src, orig = a0
     conv = []
     conv.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     conv.append(ir.Copy(dest, '(const char*)&chpl_char_lut[2*(unsigned char)%s]'%c_gen(src)))
     c_scope.optional.add(char_lut)
-    return ir.pt_string, orig, orig, (ir.pt_char, dest, src, conv)
+    return ir.pt_string, (orig, orig, (ir.pt_char, dest, src, conv))
 
 # COMPLEX - 32/64 Bit components
 #------------------------------------------------------------------------
-fcomplex_ior_c <-- fcomplex_native_chpl : cost(2)
+fcomplex_chpl_c      <-- fcomplex_chpl_chpl :cost(0)
+fcomplex_chpl_chpl   <-- fcomplex_chpl_c    :cost(0)
+dcomplex_chpl_c      <-- dcomplex_chpl_chpl :cost(0)
+dcomplex_chpl_chpl   <-- dcomplex_chpl_c    :cost(0)
+
+fcomplex_ior_c <-- fcomplex_chpl_c : cost(2)
     dest, src, orig = a0
     conv = []
     conv.append(ir.Copy(access(dest, 'real'),access(src, 're')))
     conv.append(ir.Copy(access(dest, 'imaginary'),access(src, 'im')))
-    return ir.Typedef_type('_complex64'), orig, orig, (ir.pt_fcomplex, dest, src, conv)
+    return ir.Typedef_type('_complex64'), (orig, orig, (ir.pt_fcomplex, dest, src, conv))
 
-dcomplex_ior_c <-- dcomplex_native_chpl : cost(2)
+dcomplex_ior_c <-- dcomplex_chpl_c : cost(2)
     dest, src, orig = a0
     conv = []
     conv.append(ir.Copy(access(dest, 'real'),access(src, 're')))
     conv.append(ir.Copy(access(dest, 'imaginary'),access(src, 'im')))
-    return ir.Typedef_type('_complex128'), orig, orig, (ir.pt_dcomplex, dest, src, conv)
+    return ir.Typedef_type('_complex128'), (orig, orig, (ir.pt_dcomplex, dest, src, conv))
 
-fcomplex_native_chpl <-- fcomplex_ior_c : cost(2)
+fcomplex_chpl_c <-- fcomplex_ior_c : cost(2)
     dest, src, orig = a0
     conv = []
     conv.append(ir.Copy(access(dest, 're'),access(src, 'real')))
     conv.append(ir.Copy(access(dest, 'im'),access(src, 'imaginary')))
-    return ir.Typedef_type('_complex64'), orig, orig, (ir.pt_fcomplex, dest, src, conv)
+    return ir.Typedef_type('_complex64'), (orig, orig, (ir.pt_fcomplex, dest, src, conv))
 
-dcomplex_native_chpl <-- dcomplex_ior_c : cost(2)
+dcomplex_chpl_c <-- dcomplex_ior_c : cost(2)
     dest, src, orig = a0
     conv = []
     conv.append(ir.Copy(access(dest, 're'),access(src, 'real')))
     conv.append(ir.Copy(access(dest, 'im'),access(src, 'imaginary')))
-    return ir.Typedef_type('_complex128'), orig, orig, (ir.pt_dcomplex, dest, src, conv)
+    return ir.Typedef_type('_complex128'), (orig, orig, (ir.pt_dcomplex, dest, src, conv))
 
 # ENUM
 #------------------------------------------------------------------------
-enum_ior_c <-- enum_native_chpl : cost(1)
+enum_chpl_c      <-- enum_chpl_chpl :cost(0)
+enum_chpl_chpl   <-- enum_chpl_c    :cost(0)
+enum_ior_c <-- enum_chpl_c : cost(1)
     t, (dest, src, orig) = a0
     # No special treatment for enums, rely on chpl runtime to set it
-    return t, orig, orig, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))])
+    return t, (orig, orig, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
 
-enum_native_chpl <-- enum_ior_c : cost(1)
+enum_chpl_c <-- enum_ior_c : cost(1)
     t, (dest, src, orig) = a0
-    return t, orig, orig, (t, dest, src, [ir.Copy(dest, src)])
+    return t, (orig, orig, (t, dest, src, [ir.Copy(dest, src)]))
 
 # STRING
 #------------------------------------------------------------------------
-string_ior_c <-- string_native_chpl : cost(0)
+string_chpl_c      <-- string_chpl_chpl :cost(0)
+string_chpl_chpl   <-- string_chpl_c    :cost(0)
+string_ior_c <-- string_chpl_c : cost(0)
     dest, src, orig = a0
-    return ir.pt_string, orig, orig, (ir.pt_string, dest, src, [ir.Copy(dest, src)])
+    return ir.pt_string, (orig, orig, (ir.pt_string, dest, src, [ir.Copy(dest, src)]))
 
-string_native_chpl <-- string_ior_c : cost(1)
+string_chpl_c <-- string_ior_c : cost(1)
     dest, src, orig = a0
     # Convert null pointer into empty string
     conv = []
     conv.append((ir.stmt, 'if ({n} == NULL) {n} = ""'.format(n=src)))
     conv.append(ir.Copy(dest, src))
-    return ir.pt_string, orig, orig, (ir.pt_string, dest, src, conv)
+    return ir.pt_string, (orig, orig, (ir.pt_string, dest, src, conv))
 
 # INT
 #------------------------------------------------------------------------
-int_ior_c <-- int_native_chpl : cost(0)
+int_chpl_c      <-- int_chpl_chpl :cost(0)
+int_chpl_chpl   <-- int_chpl_c    :cost(0)
+int_ior_c <-- int_chpl_c : cost(0)
     return copy_over(ir.pt_int, a0)
 
-int_native_chpl <-- int_ior_c : cost(0)
+int_chpl_c <-- int_ior_c : cost(0)
     return copy_over(ir.pt_int, a0)
 
 # LONG
 #------------------------------------------------------------------------
-long_ior_c <-- long_native_chpl : cost(0)
+long_chpl_c      <-- long_chpl_chpl :cost(0)
+long_chpl_chpl   <-- long_chpl_c    :cost(0)
+long_ior_c <-- long_chpl_c : cost(0)
     return copy_over(ir.pt_long, a0)
-long_native_chpl <-- long_ior_c : cost(0)
+long_chpl_c <-- long_ior_c : cost(0)
     return copy_over(ir.pt_long, a0)
 
 # FLOAT
 #------------------------------------------------------------------------
-float_ior_c <-- float_native_chpl : cost(0)
+float_chpl_c      <-- float_chpl_chpl :cost(0)
+float_chpl_chpl   <-- float_chpl_c    :cost(0)
+float_ior_c <-- float_chpl_c : cost(0)
     return copy_over(ir.pt_float, a0)
-float_native_chpl <-- float_ior_c : cost(0)
+float_chpl_c <-- float_ior_c : cost(0)
     return copy_over(ir.pt_float, a0)
 
 # DOUBLE
 #------------------------------------------------------------------------
-double_ior_c <-- double_native_chpl : cost(0)
+double_chpl_c      <-- double_chpl_chpl :cost(0)
+double_chpl_chpl   <-- double_chpl_c    :cost(0)
+double_ior_c <-- double_chpl_c : cost(0)
     return copy_over(ir.pt_double, a0)
-double_native_chpl <-- double_ior_c : cost(0)
+double_chpl_c <-- double_ior_c : cost(0)
     return copy_over(ir.pt_double, a0)
 
 
 # VOID return type
 #------------------------------------------------------------------------
-void_native_chpl <-- void_ior_c :cost(0)
+void_chpl_c      <-- void_chpl_chpl :cost(0)
+void_chpl_chpl   <-- void_chpl_c    :cost(0)
+void_chpl_c <-- void_ior_c :cost(0)
     return copy_over(ir.pt_void, a0)
-void_ior_c <-- void_native_chpl :cost(0)
+void_ior_c <-- void_chpl_c :cost(0)
     return copy_over(ir.pt_void, a0)
 
 # OPAQUE
 #------------------------------------------------------------------------
-opaque_native_chpl <-- pointer_type_ior_c:cost(0)
+opaque_chpl_c    <-- opaque_chpl_chpl     :cost(0)
+opaque_chpl_chpl <-- opaque_chpl_c        :cost(0)
+opaque_chpl_c    <-- pointer_type_ior_c   :cost(0)
     return copy_over(ir.void_ptr, a0)
-pointer_type_ior_c <-- opaque_native_chpl:cost(0)
+pointer_type_ior_c <-- opaque_chpl_c      :cost(0)
     return copy_over(ir.void_ptr, a0)
 
 # FIXME:
-# pointer_type_AT_C_native_chpl <-- ior.*
+# pointer_type_AT_C_chpl_chpl <-- ior.*
 #   a0 = ir.Pointer_expr(a0)
 
 # STRUCT
 #------------------------------------------------------------------------
 # FIXME: we would actually need dynamic costs for this situation
-struct_ior_c <-- struct_native_chpl : cost(9)
+struct_chpl_c      <-- struct_chpl_chpl :cost(0)
+struct_chpl_chpl   <-- struct_chpl_c    :cost(0)
+struct_ior_c <-- struct_chpl_c : cost(9)
     items = get_struct_items(full_type)
 
     #print name, typ, ir_type_to_chpl(typ)
@@ -949,7 +1024,7 @@ struct_ior_c <-- struct_native_chpl : cost(9)
     if convs: copy_other_items(convs, items, a0, '%s'%c_gen(dest))
     return a0
 
-struct_native_chpl <-- struct_ior_c : cost(9)
+struct_chpl_c <-- struct_ior_c : cost(9)
     items = get_struct_items(full_type)
     map(lambda (_, typ, name):
           codegen((strip(typ), a0+'.'+name), type_conv(typ),
@@ -959,9 +1034,15 @@ struct_native_chpl <-- struct_ior_c : cost(9)
 
 # SIDL ARRAY
 #------------------------------------------------------------------------
+# Conversion handled in Chapel
+
+array_chpl_c     <-- array_chpl_chpl :cost(0)
+array_chpl_chpl  <-- array_chpl_c    :cost(0)
+array_ior_c      <-- array_ior_chpl :cost(0)
+array_ior_chpl   <-- array_ior_c    :cost(0)
 
 # for sidl arrays we invoke a chapel code fragment from the C stub
-array_native_chpl <-- array_ior_chpl: cost(1)
+array_chpl_chpl <-- array_ior_chpl: cost(1)
     t, (dest, src, _) = a0
     scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
@@ -969,7 +1050,7 @@ array_native_chpl <-- array_ior_chpl: cost(1)
         scope.gen(ir.Copy(dest, src))
     else:
         scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
-    return t, dest, src, None
+    return array_ior_type(t), (dest, src, None)
 
 # now part of sidl.chpl:
 #    skel.gen(ir.Fn_defn(
@@ -979,7 +1060,7 @@ array_native_chpl <-- array_ior_chpl: cost(1)
 #            'argument conversion codelet'))
 
 
-array_ior_chpl <-- array_native_chpl: cost(1)
+array_ior_chpl <-- array_chpl_chpl: cost(1)
     t, (dest, src, _) = a0
     scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
@@ -987,9 +1068,9 @@ array_ior_chpl <-- array_native_chpl: cost(1)
         scope.gen(ir.Copy(dest, src))
     else:
         scope.gen(ir.Copy(dest, access(src, 'ior')))
-    return t, dest, src, None
+    return array_ior_type(t), (dest, src, None)
 
-#array_ior_c <-- array_native_chpl : cost(1)
+#array_ior_c <-- array_chpl_chpl : cost(1)
 #    scalar_type = get_array_type(full_type)
 #    conv.append((ir.stmt, '{dest} = ({typ}){n}.self'
 #                  .format(dest=dest, n=a0, typ=scalar_type)))
@@ -1006,254 +1087,24 @@ array_ior_chpl <-- array_native_chpl: cost(1)
 
 # RAW ARRAY
 #------------------------------------------------------------------------
-rarray_ior_chpl <-- array_native_chpl: cost(4)
-    dest, src, orig = a0
-    wrap_rarray(convs, src, full_type, dest)
-    return dest
+rarray_ior_c    <-- rarray_ior_chpl :cost(0)
+rarray_ior_chpl <-- rarray_ior_c    :cost(0)
+array_chpl_chpl <-- rarray_ior_chpl :cost(4)
+    t, (dest, src, orig) = a0
+    _, array_t = get_array_type(t)
+    wrap_rarray(convs, src, t, dest)
+    return array_t, (dest, src, None)
 
-array_native_chpl <-- rarray_ior_chpl: cost(4)
-    dest, src, orig = a0
+rarray_ior_chpl <-- array_chpl_chpl: cost(4)
+    t, (dest, src, orig) = a0
+    _, array_t = get_array_type(t)
     # emit code to copy back elements into non-local array
-    sarray = "_braid_wrapped_local_{arg}_sarray".format(arg=src)
-    barray = "_babel_wrapped_local_{arg}_barray".format(arg=src)
-    sarr = ir.Call("new Array", ["%s.eltType"%c_gen(src), full_type[1], ior])
-    barr = ir.Call("createBorrowedArray{dim}d".format(dim=full_typ[2]), [sarray])
-    conv.append(ir.Copy('var ' + sarray, sarr))
-    conv.append(ir.Copy('var ' + barray, barr))
-    conv.append(ir.Stmt(ir.Call('syncNonLocalArray', [barray, src])))
-    return dest
-
-
-
-
-
-
-
-
-
-
-
-
- 
-# ior.bool_AT_C <-- chpl.bool : cost(1)
-#     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-#     convs.append((ir.stmt, '{dest} = ({typ}){n}'
-#                   .format(dest=dest, n=a0, typ=c_gen(ir.pt_bool))))
- 
-# chpl.bool_AT_C <-- ior.bool : cost(1)
-#     convs.append(ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'))
-#     convs.append((ir.stmt, '{dest} = ({typ}){n}'
-#                   .format(dest=dest, n=a0, typ=c_gen(ir_type_to_chpl(ir.pt_bool)))))
-
-# # CHAR
-# #------------------------------------------------------------------------
-
-# ior.char_AT_C <-- chpl.char : cost(1)
-#     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
-#     convs.append((ir.stmt, '{dest} = (int){n}[0]'.format(dest=dest, n=a0)))
-#     skel.cstub.optional.add(char_lut)
-
-# chpl.char_AT_C <-- ior.char : cost(1)
-#     convs.append(ir.Comment('in chapel, a char is a string of length 1'))
-#     # we can't allocate a new string, this would leak memory
-#     convs.append((ir.stmt, '{dest} = (const char*)&chpl_char_lut[2*(unsigned char){n}]'
-#                   .format(dest=dest, n=a0)))
-#     skel.cstub.optional.add(char_lut)
-
-# # COMPLEX - 32/64 Bit components
-# #------------------------------------------------------------------------
-# ior.fcomplex_AT_C <-- chpl.fcomplex : cost(2)
-#     fmt = {'dest':dest, 'n':a0}
-#     convs.append((ir.stmt, '{dest}.real = {n}.re'.format(**fmt)))
-#     convs.append((ir.stmt, '{dest}.imaginary = {n}.im'.format(**fmt)))
-
-# ior.dcomplex_AT_C <-- chpl.dcomplex : cost(2)
-#     fmt = {'dest':dest,'n':a0}
-#     convs.append((ir.stmt, '{dest}.real = {n}.re'.format(**fmt)))
-#     convs.append((ir.stmt, '{dest}.imaginary = {n}.im'.format(**fmt)))
-
-# chpl.fcomplex_AT_C <-- ior.fcomplex : cost(2)
-#     fmt = {'dest':dest,'n':a0}
-#     convs.append((ir.stmt, '{dest}.re = {n}.real'.format(**fmt)))
-#     convs.append((ir.stmt, '{dest}.im = {n}.imaginary'.format(**fmt)))
-
-# chpl.dcomplex_AT_C <-- ior.dcomplex : cost(2)
-#     fmt = {'dest':dest,'n':a0}
-#     convs.append((ir.stmt, '{dest}.re = {n}.real'.format(**fmt)))
-#     convs.append((ir.stmt, '{dest}.im = {n}.imaginary'.format(**fmt)))
-
-# # ENUM
-# #------------------------------------------------------------------------
-# ior.enum_AT_C <-- chpl.enum: cost(1)
-#     # No special treatment for enums, rely on chpl runtime to set it
-#     convs.append(ir.Stmt(ir.Assignment(dest, ir.Sign_extend(64, a0))))
-
-# chpl.enum_AT_C <-- ior.enum: cost(1)
-#     convs.append(ir.Stmt(ir.Assignment(dest, a0)))
-
-# # SELF
-# #------------------------------------------------------------------------
-# # ior.baseobject_AT_C <-- upcast(chpl.baseobject): cost(1)
-# #     # We should find a cleaner way of implementing this
-# #     #if a0 == 'self' and member_chk(ir.pure, attrs):
-# #     import pdb; pdb.set_trace()
-# #     convs.append(ir.Stmt(ir.Assignment(dest, '(({0})((struct sidl_BaseInterface__object*)self)<--d_object)'.format(c_gen(typ)))))
-# #     return dest
-
-# # OBJECTS
-# #------------------------------------------------------------------------
-# ior.ext_AT_chpl <-- chpl.ext: cost(1)
-#      s_id = full_type[1][1]
-#      name = s_id[2]
-#      convs.append((ir.stmt, '%s = %s.self_%s'%(dest, a0, name)))
-
-# chpl.ext_AT_chpl <-- ior.ext: cost(1)
-#      s_id = full_type[1][1]     
-#      # drop the id's extension, which we hijacked for '__object'
-#      s_id1 = ir.Scoped_id(s_id[1], s_id[2], '')
-#      name = s_id[2]
-#      #mod_name = '.'.join(full_type[1]+[name])
-#      wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [a0, '_ex'])
-#      convs.append(ir.Stmt(ir.Assignment(dest, wrap)))
-
-# # STRING
-# #------------------------------------------------------------------------
-# ior.string_AT_C <-- chpl.string: cost(0)
-#     convs.append(ir.Stmt(ir.Assignment(dest, a0)))
-
-# chpl.string_AT_C <-- ior.string: cost(1)
-#     # Convert null pointer into empty string
-#     convs.append(ir.Stmt(ir.Assignment(dest, a0)))
-#     convs.append((ir.stmt, 'if ({n} == NULL) {n} = ""'.format(n=dest)))
-
-# # INT
-# #------------------------------------------------------------------------
-# ior.int_AT_C <-- chpl.int: cost(0)
-#     pass
-# chpl.int_AT_C <-- ior.int: cost(0)
-#     pass
-
-# # LONG
-# #------------------------------------------------------------------------
-# ior.long_AT_C <-- chpl.long: cost(0)
-#     pass
-# chpl.long_AT_C <-- ior.long: cost(0)
-#     pass
-
-# # FLOAT
-# #------------------------------------------------------------------------
-# ior.float_AT_C <-- chpl.float: cost(0)
-#     pass
-# chpl.float_AT_C <-- ior.float: cost(0)
-#     pass
-
-# # DOUBLE
-# #------------------------------------------------------------------------
-# ior.double_AT_C <-- chpl.double: cost(0)
-#     pass
-# chpl.double_AT_C <-- ior.double: cost(0)
-#     pass
-
-
-# # VOID return type
-# #------------------------------------------------------------------------
-# chpl.void_AT_C <-- ior.void:cost(0)
-#     pass
-# ior.void_AT_C <-- chpl.void:cost(0)
-#     pass
-
-# # OPAQUE
-# #------------------------------------------------------------------------
-# chpl.opaque_AT_chpl <-- chpl.pointer_type:cost(0)
-#     pass
-# chpl.pointer_type_AT_chpl <-- chpl.opaque:cost(0)
-#     pass
-
-# # FIXME:
-# # chpl.pointer_type_AT_C <-- ior.*
-# #   a0 = ir.Pointer_expr(a0)
-
-# chpl.pointer_type_AT_C <-- ior.pointer_type :cost(0)
-#     pass
-
-# ior.pointer_type_AT_C <-- chpl.pointer_type :cost(0)
-#     pass
-
-# # STRUCT
-# #------------------------------------------------------------------------
-# # FIXME: we would actually need dynamic costs for this situation
-# ior.struct_AT_C <-- chpl.struct: cost(9)
-#     items = get_struct_items(full_type)
-
-#     #print name, typ, ir_type_to_chpl(typ)
-
-#     # recursively generate conversions for all items in the struct
-#     map(lambda (_, typ, name):
-#           codegen(type_conv(typ), a0+name+elem_access(typ), strip(typ),
-#                   convs, skel, dest+'.'+name, typ), items, type_conv)
-
-#     # if we need to convert one of the items, we need to convert all of them
-#     if convs: copy_other_items(convs, items, a0, '%s'%dest)
-
-# chpl.struct_AT_C <-- ior.struct: cost(9)
-#     items = get_struct_items(full_type)
-#     map(lambda (_, typ, name):
-#           codegen((strip(typ), a0+'.'+name), type_conv(typ),
-#                   convs, skel, dest+'.'+name, typ), items, type_conv)
-#     if convs: copy_other_items(convs, items, '%s.'%a0, dest)
-
-# # SIDL ARRAY
-# #------------------------------------------------------------------------
-
-# # for sidl arrays we invoke a chapel code fragment from the C stub
-# chpl.array_AT_chpl <-- chpl.new_array: cost(1)
-#     scalar_type = get_ior_array_type(full_type)
-#     convs.append(ir.Stmt(ir.Assignment(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [a0]))))
-
-
-# chpl.new_array_AT_chpl <-- ior.array_AT_chpl: cost(1)
-#     scalar_type = get_ior_array_type(full_type)
-# # now part of sidl.chpl:
-# #    skel.gen(ir.Fn_defn(
-# #            [], ir.pt_void, '%s_to_chpl'%fu_type, 
-# #            [ir.Arg([], ir.in_, full_type, 'ior')],
-# #            [ir.Stmt((ir.new, 'sidl.Array', [scalar_type, full_type, dest]))],
-# #            'argument conversion codelet'))
-
-
-# ior.array_AT_chpl <-- chpl.array: cost(1)
-#     scalar_type = get_ior_array_type(full_type)
-#     if scalar_type == ir.void_ptr:
-#         convs.append(ir.Stmt(ir.Assignment(dest, a0)))
-#     else:
-#         convs.append(ir.Stmt(ir.Assignment(dest, a0+'.ior')))
-
-# #ior.array_AT_C <-- chpl.array: cost(1)
-# #    scalar_type = get_array_type(full_type)
-# #    convs.append((ir.stmt, '{dest} = ({typ}){n}.self'
-# #                  .format(dest=dest, n=a0, typ=scalar_type)))
-
-#     # wrap the C type in a native Chapel object
-#     #if mode == sidl.inout:
-#     #    pre_call.append(ir.Stmt(ir.Assignment(iorname, name+'.self')))
-
-                    
-#     # if name == '_retval':
-#     #     return_expr.append(conv)
-#     # else:
-#     #     post_call.append(ir.Stmt(ir.Assignment(name, conv)))
-
-# # RAW ARRAY
-# #------------------------------------------------------------------------
-# ior.rarray_AT_chpl <-- chpl.array: cost(4)
-#     wrap_rarray(convs, a0, full_type, dest)
-
-# chpl.array_AT_chpl <-- ior.rarray: cost(4)
-#     # emit code to copy back elements into non-local array
-#     sarray = "_braid_wrapped_local_{arg}_sarray".format(arg=a0)
-#     barray = "_babel_wrapped_local_{arg}_barray".format(arg=a0)
-#     sarr = ir.Call("new Array", ["%s.eltType"%a0, full_type[1], ior])
-#     barr = ir.Call("createBorrowedArray{dim}d".format(dim=full_typ[2]), [sarray])
-#     convs.append(ir.Stmt(ir.Assignment('var ' + sarray, sarr)))
-#     convs.append(ir.Stmt(ir.Assignment('var ' + barray, barr)))
-#     convs.append(ir.Stmt(ir.Call('syncNonLocalArray', [barray, a0])))
+    name = src[1] if src[0] == ir.deref else src
+    sarray = "_braid_wrapped_local_%s_sarray"%name
+    barray = "_babel_wrapped_local_%s_barray"%name
+    sarr = (ir.call, "new Array", [access(src, 'eltType'), t[1], src])
+    barr = ir.Call("createBorrowedArray{dim}d".format(dim=t[2]), [sarray])
+    scope.gen(ir.Copy('var ' + sarray, sarr))
+    scope.gen(ir.Copy('var ' + barray, barr))
+    scope.gen(ir.Stmt(ir.Call('syncNonLocalArray', [barray, dest])))
+    return array_t, (dest, src, None)
