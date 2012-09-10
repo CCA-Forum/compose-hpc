@@ -40,7 +40,7 @@ bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
 
-/* %CONTRACT INVARIANT onlyPosWeights(); */
+/* %CONTRACT INVARIANT Examples::UnlabeledKnapsack::onlyPosWeights(); */
 
 
 Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
@@ -51,9 +51,9 @@ Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
 
 
 /* %CONTRACT REQUIRE 
-    ((weights!=null) and (len>0)) implies _all(weights>0, len); 
+    ((weights!=null) and (len>0)) implies pce_all(weights>0, len); 
  */
-/* %CONTRACT ENSURE hasWeights(weights, len); */
+/* %CONTRACT ENSURE Examples::UnlabeledKnapsack::hasWeights(weights, len); */
 void
 Examples::UnlabeledKnapsack::initialize(unsigned int* weights, unsigned int len)
 {
@@ -88,7 +88,7 @@ Examples::UnlabeledKnapsack::onlyPosWeights() {
 
 
 /* %CONTRACT REQUIRE 
-  ((weights!=null) and (len>0)) implies _all(weights>0, len);
+  ((weights!=null) and (len>0)) implies pce_all(weights>0, len);
  */
 /* %CONTRACT ENSURE is pure; */
 bool
@@ -117,7 +117,7 @@ Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
  *                   returns false.
  */
 /* %CONTRACT REQUIRE 
-    ((weights!=null) and (len>0)) implies _all(weights>0, len);
+    ((weights!=null) and (len>0)) implies pce_all(weights>0, len);
  */
 /* %CONTRACT ENSURE is pure; */
 bool
@@ -150,8 +150,8 @@ onlyPos(unsigned int* weights, unsigned int len)
  *                otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    ((nW!=null) and (lenW>0)) implies _all(nW>0, lenW); 
-    ((nS!=null) and (lenS>0)) implies _all(nS>0, lenS); 
+    ((nW!=null) and (lenW>0)) implies pce_all(nW>0, lenW); 
+    ((nS!=null) and (lenS>0)) implies pce_all(nS>0, lenS); 
  */
 /* %CONTRACT ENSURE is pure; */
 bool
@@ -202,7 +202,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *                   the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    ((weights!=null) and (n>0)) implies _all(weights>0, n); 
+    ((weights!=null) and (n>0)) implies pce_all(weights>0, n); 
  */
 /* %CONTRACT ENSURE is pure; */
 bool
