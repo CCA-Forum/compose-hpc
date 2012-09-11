@@ -24,38 +24,6 @@
 
 using namespace std;
 
-string
-removeWS(string part)
-{
-  if (!part.empty())
-  {
-    int i;
-    for (i=0; i<part.length(); i++)
-    {
-      if ( (part[i] == '\t') || (part[i] == '\n') )
-      {
-        part[i] = ' ';
-      }
-    }
-  
-    size_t start = 0, end;
-    while ( (end=part.find("  ", start)) != string::npos )
-    {
-      part.replace(end, 2, 1, ' ');
-      start = end;
-    }
-
-    start=part.find_first_not_of(' ');
-    end=part.find_last_not_of(' ');
-    if ( (start != string::npos) && (end != string::npos) )
-    {
-      part=part.substr(start, end-start+1);
-    }
-  }
-
-  return part;
-} /* removeWS */
-
 
 /**
  * Print each assertion expression within the clause.
@@ -102,9 +70,10 @@ printClause(string clause)
 
 
 /**
- * Process the comment, processing encountered contract clauses.
+ * Process the comment to assess and handle any contract clause.
  *
- * @param cmt  Comment contents.
+ * @param node  Current AST node.
+ * @param cmt   Comment contents.
  */
 void
 processCommentContents(SgNode* node, const string cmt)
@@ -176,6 +145,9 @@ ContractAssertionPrinter::visit(SgNode* node)
               processCommentContents(node, str.substr(2));
             }
             break;
+/*
+ * Fortran contract comments aren't really supported.
+ *
           case PreprocessingInfo::FortranStyleComment:
           case PreprocessingInfo::F90StyleComment:
             {
@@ -183,6 +155,7 @@ ContractAssertionPrinter::visit(SgNode* node)
               processCommentContents(node, str.substr(1));
             }
             break;
+*/
         }
       }
     }

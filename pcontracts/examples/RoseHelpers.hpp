@@ -2,7 +2,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 August 3
+ * Last Modified:  2012 September 6
  *
  * @file
  * @section DESCRIPTION
@@ -18,8 +18,8 @@
 #define include_Rose_Helpers_hpp
 
 #include <iostream>
-#include "rose.h"
 #include <string.h>
+#include "rose.h"
 
 /**
  * Attach a translation comment to the node.
@@ -29,6 +29,16 @@
  */
 void 
 attachTranslationComment(SgNode* node, std::string cmt);
+
+
+/**
+ * Get the basic signature.  
+ *
+ * @param decl  The function declaration.
+ * @return      A basic signature derived from the node's unparsed output.
+ */
+std::string
+getBasicSignature(SgFunctionDeclaration* decl);
 
 
 /**
@@ -84,6 +94,14 @@ isInputFile(SgProject* project, std::string filename);
  */
 void
 printLineComment(SgNode* node, std::string cmt);
+
+/**
+ * Remove extraneous white space.
+ *
+ * @param txt  The text to be cleaned.
+ */
+std::string
+removeWS(std::string txt);
 
 
 #endif /* include_Rose_Helpers_hpp */

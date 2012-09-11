@@ -2,7 +2,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 August 3
+ * Last Modified:  2012 September 6
  *
  * @file
  * @section DESCRIPTION
@@ -75,6 +75,30 @@ getCurrentLanguageOption()
  
   return lang;
 }  /* getCurrentLanguageOption */
+
+
+string
+getBasicSignature(SgFunctionDeclaration* decl)
+{
+  string res;
+
+  if (decl != NULL)
+  {
+    string declStr = decl->unparseToString();
+    size_t bst = declStr.find_first_of("{");
+    if (bst!=string::npos)
+    {
+      res.append(declStr.substr(0, bst));
+      res.append(";");
+    }
+    else
+    {
+      cerr<<"\nERROR:  Failed to locate starting (body) brace: "<<decl<<endl;
+    }
+  }
+
+  return res;
+}  /* getBasicSignature */
 
 
 string
@@ -184,3 +208,34 @@ printLineComment(SgNode* node, string cmt)
 } /* printLineComment */
 
 
+string
+removeWS(string txt)
+{
+  if (!txt.empty())
+  {
+    int i;
+    for (i=0; i<txt.length(); i++)
+    {
+      if ( (txt[i] == '\t') || (txt[i] == '\n') )
+      {
+        txt[i] = ' ';
+      }
+    }
+
+    size_t start = 0, end;
+    while ( (end=txt.find("  ", start)) != string::npos )
+    {
+      txt.replace(end, 2, 1, ' ');
+      start = end;
+    }
+
+    start=txt.find_first_not_of(' ');
+    end=txt.find_last_not_of(' ');
+    if ( (start != string::npos) && (end != string::npos) )
+    {
+      txt=txt.substr(start, end-start+1);
+    }
+  }
+
+  return txt;
+} /* removeWS */
