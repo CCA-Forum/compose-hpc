@@ -38,7 +38,7 @@ extern "C" {
 #define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR, CVE) { \
   if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR), (FT))) { \
     if (!(EXPR)) { \
-      printf("ERROR: %s Violation: %s: %s\n", S_CONTRACT_CLAUSE[TP], \
+      printf("ERROR: %s Violation: %s: %d\n", S_CONTRACT_CLAUSE[TP], \
              (LBL), (EXPR)); \
       (CVE) = (ContractViolationEnum)(TP); \
     } \

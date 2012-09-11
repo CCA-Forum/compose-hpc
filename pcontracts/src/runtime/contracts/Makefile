@@ -1,5 +1,6 @@
 CXX=g++
-FLAGS=-g -O3
+FLAGS=-g -O3 -DCONFENF_DEBUG
+#FLAGS=-g -O3
 INCLUDES=-I.
 
 LIB_DIR=../../../lib

@@ -34,8 +34,10 @@
 
 
 #ifdef CONFENF_DEBUG
+#define DEBUG_MESSAGE(MSG) printf("DEBUG: %s\n", (MSG));
 #define DUMP_DEBUG_STATS(ENF, MSG) ContractsEnforcer_dumpStatistics(ENF, MSG);
 #else
+#define DEBUG_MESSAGE(MSG)
 #define DUMP_DEBUG_STATS(ENF, MSG)
 #endif /* DEBUG */
 
@@ -77,6 +79,7 @@ newBaseEnforcer(
                                       sizeof(ContractsEnforcerType));
   if (enforcer) 
   {
+    DEBUG_MESSAGE("newBaseEnforcer: enforcer allocated")
     memset(enforcer, 0, sizeof(ContractsEnforcerType));
     enforcer->policy.clauses = clauses;
     enforcer->policy.frequency = EnforcementFrequency_NEVER;
@@ -86,6 +89,7 @@ newBaseEnforcer(
                                               sizeof(EnforcementFileType));
       if (enforcer->stats != NULL)
       {
+        DEBUG_MESSAGE("newBaseEnforcer: stats allocated")
         enforcer->stats->fileName = strdup(statsfile);
         enforcer->stats->filePtr = fopen(statsfile, "w");
         if (enforcer->stats->filePtr != NULL) 
@@ -113,6 +117,7 @@ newBaseEnforcer(
                                               sizeof(EnforcementFileType));
       if (enforcer->trace != NULL)
       {
+        DEBUG_MESSAGE("newBaseEnforcer: trace allocated")
         enforcer->trace->fileName = strdup(tracefile);
         enforcer->trace->filePtr = fopen(tracefile, "w");
         if (enforcer->trace->filePtr != NULL) 
@@ -551,6 +556,7 @@ resetEnforcementCountdown(
 
   if (enforcer)
   {
+    DEBUG_MESSAGE("resetEnforcementCountdown(): begin")
     DUMP_DEBUG_STATS(enforcer, "resetEnforcementCountdown(): begin")
     if (enforcer->policy.frequency == EnforcementFrequency_PERIODIC) 
     {
@@ -565,6 +571,7 @@ resetEnforcementCountdown(
       enforcer->data.skip      = enforcer->policy.value - rcd;
     }
     DUMP_DEBUG_STATS(enforcer, "resetEnforcementCountdown(): end")
+    DEBUG_MESSAGE("resetEnforcementCountdown(): end")
   }
 
   return;
@@ -596,6 +603,7 @@ timeToCheckClause(
 
   if (enforcer)
   {
+    DEBUG_MESSAGE("timeToCheckClause(): begin (with enforcer)")
     switch (enforcer->policy.frequency)
     {
     case EnforcementFrequency_ALWAYS:
@@ -641,6 +649,7 @@ timeToCheckClause(
       /* Don't check by default */
       break;
     }
+    DEBUG_MESSAGE("timeToCheckClause(): end (with enforcer)")
   }
 
   return checkIt;
@@ -672,6 +681,7 @@ ContractsEnforcer_initialize(
 
   if (configfile == NULL)
   {
+    DEBUG_MESSAGE("ContractsEnforcer_initialize(): No config file given")
     pce_config_filename = configfile;
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
@@ -679,6 +689,7 @@ ContractsEnforcer_initialize(
   }
   else if (strlen(configfile) > 0)
   {
+    DEBUG_MESSAGE("ContractsEnforcer_initialize(): Config file given")
 #if TBD_PCE_CONFIGURATION
     /*
      * @todo Review potential runtime location issues with configuration file. 
@@ -727,6 +738,7 @@ ContractsEnforcer_initialize(
 void
 ContractsEnforcer_finalize(void)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_finalize(): begin")
   ContractsEnforcer_free(pce_enforcer);
 
   if (pce_config_filename != NULL) 
@@ -739,6 +751,7 @@ ContractsEnforcer_finalize(void)
   pce_config_filename = NULL;
   memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
 
+  DEBUG_MESSAGE("ContractsEnforcer_finalize(): end")
   return;
 }  /* ContractsEnforcer_finialize */
 
@@ -766,6 +779,7 @@ ContractsEnforcer_createEnforcer(
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_createEnforcer(): begin")
   ContractsEnforcerType* enforcer = NULL;
 
   switch (clauses)
@@ -831,6 +845,7 @@ ContractsEnforcer_createEnforcer(
     break;
   } /* clauses */
 
+  DEBUG_MESSAGE("ContractsEnforcer_createEnforcer(): end")
   return enforcer;
 } /* ContractsEnforcer_createEnforcer */
 
@@ -853,6 +868,7 @@ ContractsEnforcer_setEnforceAll(
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceAll(): begin")
   ContractsEnforcerType* enforcer = 
     newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
@@ -860,6 +876,7 @@ ContractsEnforcer_setEnforceAll(
   }
   DUMP_DEBUG_STATS(enforcer, "setEnforceAll(): done")
 
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceAll(): end")
   return enforcer;
 } /* ContractsEnforcer_setEnforceAll */
 
@@ -874,6 +891,7 @@ ContractsEnforcer_setEnforceAll(
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceNone(void)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceNone(): begin")
   ContractsEnforcerType* enforcer = newBaseEnforcer(EnforcementClause_NONE, 
                                                     NULL, NULL);
   if (enforcer) {
@@ -881,6 +899,7 @@ ContractsEnforcer_setEnforceNone(void)
   }
   DUMP_DEBUG_STATS(enforcer, "setEnforceNone(): done")
 
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceNone(): end")
   return enforcer;
 } /* ContractsEnforcer_setEnforceNone */
 
@@ -906,6 +925,7 @@ ContractsEnforcer_setEnforcePeriodic(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforcePeriodic(): begin")
   ContractsEnforcerType* enforcer = 
     newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
@@ -915,6 +935,7 @@ ContractsEnforcer_setEnforcePeriodic(
   }
   DUMP_DEBUG_STATS(enforcer, "setEnforcePeriodic(): done")
 
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforcePeriodic(): end")
   return enforcer;
 } /* ContractsEnforcer_setEnforcePeriodic */
 
@@ -939,6 +960,7 @@ ContractsEnforcer_setEnforceRandom(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceRandom(): begin")
   ContractsEnforcerType* enforcer = 
     newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
@@ -948,6 +970,7 @@ ContractsEnforcer_setEnforceRandom(
   }
   DUMP_DEBUG_STATS(enforcer, "setEnforceRandom(): done")
 
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceRandom(): end")
   return enforcer;
 } /* ContractsEnforcer_setEnforceRandom */
 
@@ -975,6 +998,7 @@ ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceAdaptiveFit(): begin")
   ContractsEnforcerType* enforcer = 
     newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
@@ -994,6 +1018,7 @@ ContractsEnforcer_setEnforceAdaptiveFit(
   }
   DUMP_DEBUG_STATS(enforcer, "setEnforceAdaptiveFit(): done")
 
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceAdaptiveFit(): end")
   return enforcer;
 } /* ContractsEnforcer_setEnforceAdaptiveFit */
 
@@ -1022,6 +1047,7 @@ ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceAdaptiveTiming(): begin")
   ContractsEnforcerType* enforcer = 
     newBaseEnforcer(clauses, statsfile, tracefile);
   if (enforcer) {
@@ -1041,6 +1067,7 @@ ContractsEnforcer_setEnforceAdaptiveTiming(
   }
   DUMP_DEBUG_STATS(enforcer, "setEnforceAdaptiveTiming(): done")
 
+  DEBUG_MESSAGE("ContractsEnforcer_setEnforceAdaptiveTiming(): end")
   return enforcer;
 } /* ContractsEnforcer_setEnforceAdaptiveTiming */
 
@@ -1063,6 +1090,7 @@ ContractsEnforcer_dumpStatistics(
   char*       timeStr;
   const char* cmt;
 
+  DEBUG_MESSAGE("ContractsEnforcer_dumpStatistics(): begin")
   if ( (enforcer != NULL) && (enforcer->stats != NULL) )
   {
     cmt = (msg != NULL) ? msg : "";
@@ -1119,6 +1147,7 @@ ContractsEnforcer_dumpStatistics(
 #endif
   }
 
+  DEBUG_MESSAGE("ContractsEnforcer_dumpStatistics(): end")
   return;
 } /* ContractsEnforcer_dumpStatistics */
 
@@ -1135,6 +1164,7 @@ void
 ContractsEnforcer_free(
   /* inout */ ContractsEnforcerType* enforcer)
 {
+  DEBUG_MESSAGE("ContractsEnforcer_free(): begin")
   if (enforcer) 
   {
     if (enforcer->stats != NULL)
@@ -1163,6 +1193,7 @@ ContractsEnforcer_free(
   }
   enforcer = NULL;
 
+  DEBUG_MESSAGE("ContractsEnforcer_free(): end")
   return;
 } /* ContractsEnforcer_free */
 
@@ -1191,6 +1222,7 @@ ContractsEnforcer_logTrace(
   const char* nm = (name != NULL) ? name : "TRACE";
   const char* cmt = (msg != NULL) ? msg : "";
 
+  DEBUG_MESSAGE("ContractsEnforcer_logTrace(): begin")
   if ( (enforcer != NULL) && (enforcer->trace != NULL) )
   {
     if (enforcer->trace->filePtr != NULL) 
@@ -1206,6 +1238,7 @@ ContractsEnforcer_logTrace(
     }
   }
 
+  DEBUG_MESSAGE("ContractsEnforcer_logTrace(): end")
   return;
 } /* ContractsEnforcer_logTrace */
 
@@ -1234,6 +1267,7 @@ ContractsEnforcer_enforceClause(
 {
   CONTRACTS_BOOL checkIt = CONTRACTS_FALSE;
 
+  DEBUG_MESSAGE("ContractsEnforcer_enforceClause(): begin")
   if (enforcer)
   {
     (enforcer->data.requests)++;
@@ -1276,5 +1310,6 @@ ContractsEnforcer_enforceClause(
     }
   }
 
+  DEBUG_MESSAGE("ContractsEnforcer_enforceClause(): end")
   return checkIt;
 } /* ContractsEnforcer_enforceClause */
