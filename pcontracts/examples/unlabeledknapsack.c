@@ -33,7 +33,7 @@
  * @return         Returns 1 if a solution is detected; otherwise, returns 0.
  */
 /* %CONTRACT REQUIRE weights != 0; n > 0; */
-/* %CONTRACT ENSURE _inrange(_result, 0, 1); */
+/* %CONTRACT ENSURE pce_inrange(pce_result, 0, 1); */
 int 
 knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
 {
