@@ -52,9 +52,9 @@ checkKnapsack: knapsack Knapsack
 	    ./knapsack > knapsack.out 2>&1; \
 	    diff Knapsack.out knapsack.out > knapsack.diffs 2>&1; \
 	    if [ -s knapsack.diffs ]; then \
-	      echo "ERROR: C and C++ knapsack results differ"; \
+	      echo "ERROR: Different C and C++ knapsack results"; \
 	    else \
-	      echo "SUCCESS: C and C++ knapsack are identical!"; \
+	      echo "SUCCESS: Identical C and C++ knapsack results!"; \
 	    fi; \
 	    rm -f knapsack.diffs; \
 	  fi; \
@@ -70,9 +70,9 @@ checkUK: unlabeledknapsack UnlabeledKnapsack
 	    diff UnlabeledKnapsack.out unlabeledknapsack.out > \
 	      unlabeledknapsack.diffs 2>&1; \
 	    if [ -s unlabeledknapsack.diffs ]; then \
-	      echo "ERROR: C and C++ unlabeled knapsack results differ"; \
+	      echo "ERROR: Different C and C++ unlabeled knapsack results"; \
 	    else \
-	      echo "SUCCESS: C and C++ unlabeled knapsack are identical!"; \
+	      echo "SUCCESS: Identical C and C++ unlabeled knapsack results!"; \
 	    fi; \
 	    rm -f unlabeledknapsack.diffs; \
 	  fi; \

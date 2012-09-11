@@ -1,6 +1,6 @@
 MAKE = make --no-print-directory
 CXX=g++
-FLAGS=-g -O3
+FLAGS=-g -O3 -DDEBUG
 INCLUDES=-I. -I../src/runtime/contracts
 
 LDFLAGS=$(FLAGS)
@@ -211,6 +211,7 @@ checkRoseTrans: $(EXE)
 	cp -f Makefile.trans $$OUTDIR/Makefile; \
 	echo "Copying header files to $$OUTDIR"; \
 	cp -f *ack*.h* $$OUTDIR; \
+	echo "Try 'make check' in $$OUTDIR"; \
 	echo "DONE"
 
 
