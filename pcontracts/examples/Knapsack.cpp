@@ -37,7 +37,7 @@ bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
 
-/* %CONTRACT INVARIANT all_pos_weights: Examples::Knapsack::onlyPosWeights(); */
+/* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
 
 Examples::Knapsack::Knapsack() {
@@ -47,10 +47,10 @@ Examples::Knapsack::Knapsack() {
 }
 
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=null) and (len>0)) implies pce_all(weights>0, len); 
+    pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len); 
  */
 /* %CONTRACT ENSURE 
-    has_new_weights: Examples::Knapsack::hasWeights(weights, len); 
+    has_new_weights: hasWeights(weights, len); 
  */
 void
 Examples::Knapsack::initialize(unsigned int* weights, unsigned int len)
@@ -86,7 +86,7 @@ Examples::Knapsack::onlyPosWeights() {
 }
 
 /* %CONTRACT REQUIRE 
-  pos_weights: ((weights!=null) and (len>0)) implies pce_all(weights>0, len);
+  pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len);
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -117,7 +117,7 @@ Examples::Knapsack::hasSolution(unsigned int t) {
  *                   returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=null) and (len>0)) implies pce_all(weights>0, len);
+    pos_weights: ((weights!=null) and (len>0)) implies _all(weights>0, len);
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -152,8 +152,8 @@ onlyPos(unsigned int* weights, unsigned int len)
  *                otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_w_weights: ((nW!=null) and (lenW>0)) implies pce_all(nW>0, lenW); 
-    pos_s_weights: ((nS!=null) and (lenS>0)) implies pce_all(nS>0, lenS); 
+    pos_w_weights: ((nW!=null) and (lenW>0)) implies _all(nW>0, lenW); 
+    pos_s_weights: ((nS!=null) and (lenS>0)) implies _all(nS>0, lenS); 
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
@@ -207,7 +207,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  */
 /* %CONTRACT REQUIRE 
     pos_weights: ((weights!=null) and (n>0)) 
-			implies pce_all(weights>0, n); 
+			implies _all(weights>0, n); 
  */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;

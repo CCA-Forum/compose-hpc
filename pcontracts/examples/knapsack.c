@@ -36,7 +36,7 @@
  */
 /*
  %CONTRACT ENSURE
-    valid_result: pce_inrange(pce_result, 0, 1);
+    valid_result: _inrange(_result, 0, 1);
  */
 int 
 knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
