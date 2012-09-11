@@ -1,6 +1,7 @@
 MAKE = make --no-print-directory
 CXX=g++
-FLAGS=-g -O3 -DDEBUG
+#FLAGS=-g -O3 -DDEBUG
+FLAGS=-g -O3
 INCLUDES=-I. -I../src/runtime/contracts
 
 LDFLAGS=$(FLAGS)
