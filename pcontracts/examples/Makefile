@@ -184,6 +184,7 @@ checkRoseTrans: $(EXE)
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
 	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
 	FILES=`echo $$CFILES $$CPPFILES`; \
+	ok=0; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
@@ -207,11 +208,15 @@ checkRoseTrans: $(EXE)
 	  echo; \
 	done; \
 	echo "\n...Successfully processed $$ok of $$n files.\n"; \
-	echo "Copying Makefile to $$OUTDIR"; \
-	cp -f Makefile.trans $$OUTDIR/Makefile; \
-	echo "Copying header files to $$OUTDIR"; \
-	cp -f *ack*.h* $$OUTDIR; \
-	echo "Try 'make check' in $$OUTDIR"; \
+        if [ "$$ok" = "$$n" ]; then \
+	  echo "Copying Makefile to $$OUTDIR"; \
+	  cp -f Makefile.trans $$OUTDIR/Makefile; \
+	  echo "Copying header files to $$OUTDIR"; \
+	  cp -f *ack*.h* $$OUTDIR; \
+	  echo "Try 'make check' in $$OUTDIR"; \
+	else \
+	  echo "ERROR: Must resolve issues before able to build translations.";\
+        fi; \
 	echo "DONE"
 
 
