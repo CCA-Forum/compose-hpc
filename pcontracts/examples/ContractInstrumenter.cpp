@@ -2,34 +2,39 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 11
+ * Last Modified:  2012 September 14
  *
  * @file
  * @section DESCRIPTION
  * Experimental contract enforcement instrumentation.
  *
  *
- * @todo Do NOT generate invariants in main() and/or any routine with INIT
- *  and FINAL?
+ * @todo Ensure adding postcondition (and post-invariant) checks to the AST 
+ *  in the correct order and with correct "firstTime" handling.
  *
  * @todo Do NOT generate invariant check in routine of same name.
  *  Technically, contracts of routines used in contracts of others are not
  *  supposed to be called.
  *
+ * @todo Need to handle generation of return variable, when needed.
+ *
  * @todo Need new annotation for checking/dumping contract check data.
  *  BUT will need to ensure properly configured to actually dump the data.
  *
- * @todo Much more thought needed to C++ annotations in terms of instances, etc.
- *
- * @todo Consider adding comment text for unsupported checks.
+ * @todo Much more thought needed regarding C++ annotations (e.g., instances).
  *
  * @todo Need to change to a visitor to ensure acquire invariants.
  *
  * @todo Give some thought to process for obtaining execution time 
  *  estimates for contract clauses and routine.
  *
+ * @todo Need to properly handle clauses in terms of: checks; clauseTime 
+ *  estimate "assignments" (to expressions); and limiting BEGIN and END
+ *  comments to first and last expression (IF retain macro), respectively.
+ *
  * @todo Add support for complex (as in non-standard C) expressions.
  *
+ * @todo Give some thought to improving contract violation messages.
  * 
  * @section WARNING
  * This is a VERY preliminary draft. (See todo items.)
@@ -47,15 +52,29 @@
 #include "contractOptions.h"
 
 #define FILE_INFO Sg_File_Info::generateDefaultFileInfoForTransformationNode()
+#define PPIDirectiveType PreprocessingInfo::DirectiveType
 
 using namespace std;
 
 
 /*
  *************************************************************************
- * Helper classes and types
+ * Helper Types and Classes
  *************************************************************************
  */
+
+/**
+ * Assertion expression support states.
+ */
+typedef enum AssertionSupport__enum {
+  /** ADVISORY:  Advisory only. */
+  AssertionSupport_ADVISORY,
+  /** EXECUTABLE:  Executable in C (currently as-is). */
+  AssertionSupport_EXECUTABLE,
+  /** UNSUPPORTED:  Known to include an unsupported annotation. */
+  AssertionSupport_UNSUPPORTED
+} AssertionSupportEnum;
+
 
 /**
  * Supported structured contract comment types.
@@ -79,6 +98,7 @@ typedef enum ContractComment__enum {
 /**
  * Mapping of contract comment to contract clauses.  MUST be kept in sync
  * with ContractCommentEnum and reflect corresponding ContractClauseEnum
+ * entries.
  */
 ContractClauseEnum ContractCommentClause[] = {
   /** NONE:  No corresponding contract clause. */
@@ -95,18 +115,21 @@ ContractClauseEnum ContractCommentClause[] = {
   ContractClause_NONE
 };
 
+
 /**
  * Known, non-executable assertion expression contents -- assuming lower case.
  */
-const string NonExecExpressions[] = {
+static const string NonExecExpressions[] = {
   "implies",
   "iff",
   "pce_all",
   "pce_inrange",
 };
-const int MIN_NEE_INDEX = 0;
-const int MAX_NEE_INDEX = 4;
+static const int MIN_NEE_INDEX = 0;
+static const int MAX_NEE_INDEX = 4;
 
+static const string L_UNSUPPORTED_EXPRESSION 
+    = "Unsupported keyword(s) detected in:\n\t";
 
 
 /**
@@ -115,39 +138,53 @@ const int MAX_NEE_INDEX = 4;
 class AssertionExpression 
 {
   public:
-    AssertionExpression(string l, string expr) : d_label(l), d_expr(expr) {}
+    AssertionExpression(string l, string expr, AssertionSupportEnum level,
+      bool isFirst) 
+      : d_label(l), d_expr(expr), d_level(level), d_isFirst(isFirst) {}
     string label() { return d_label; }
     string expr() { return d_expr; }
+    AssertionSupportEnum support() { return d_level; }
+    bool isFirst() { return d_isFirst; }
 
   private:
-    string d_label;
-    string d_expr;
+    string               d_label;
+    string               d_expr;
+    AssertionSupportEnum d_level;
+    bool                 d_isFirst;
 };  /* class AssertionExpression */
 
 
 /**
- * Contract clause data.
+ * Contract comment/clause data.
  */
 class ContractComment
 {
   public:
-    ContractComment(ContractCommentEnum t): 
-      d_type(t), d_needsReturn(false) {}
+    ContractComment(ContractCommentEnum t, PPIDirectiveType dt): 
+      d_type(t), d_needsReturn(false), d_dirType(dt), d_numExec(0) {}
 
     ~ContractComment() { d_aeList.clear(); }
 
     ContractCommentEnum type() { return d_type; }
     ContractClauseEnum clause() { return ContractCommentClause[d_type]; }
-    void add(AssertionExpression expr) { d_aeList.push_front(expr); }
+    void add(AssertionExpression ae) 
+    { 
+      d_aeList.push_front(ae); 
+      if (ae.support() == AssertionSupport_EXECUTABLE) d_numExec += 1;
+    }
     void setResult(bool needs) { d_needsReturn = needs; }
     list<AssertionExpression> getList() { return d_aeList; }
     void clear() { d_aeList.clear(); }
     int size() { return d_aeList.size(); }
+    PPIDirectiveType directive() { return d_dirType; }
+    int numExecutable() { return d_numExec; }
 
   private:
     ContractCommentEnum        d_type;
     list<AssertionExpression>  d_aeList;
+    PPIDirectiveType           d_dirType;
     bool                       d_needsReturn;
+    int                        d_numExec;
 };  /* class ContractComment */
 
 
@@ -157,32 +194,32 @@ class ContractComment
  *************************************************************************
  */
 int
-addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc,
-  bool firstTime);
+addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, 
+  ContractComment* cc);
 
 int
 addPostChecks(SgFunctionDefinition* def, SgBasicBlock* body, 
-  ContractComment* cc, bool firstTime);
+  ContractComment* cc);
 
 void
-addExpressions(string clause, ContractComment* cc);
+addExpressions(string clause, ContractComment* cc, bool firstExecClause);
 
 int
-addFinalize(SgFunctionDefinition* def, SgBasicBlock* body);
+addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc);
 
 int
 addIncludes(SgProject* project, bool skipTransforms);
 
 int
-addInitialize(SgBasicBlock* body);
+addInitialize(SgBasicBlock* body, ContractComment* cc);
 
 SgExprStatement*
-buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
-  string label, string expr);
+buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, 
+  AssertionExpression ae, PPIDirectiveType dt);
 
 ContractComment*
 extractContractClause(SgFunctionDeclaration* decl, 
-  AttachedPreprocessingInfoType::iterator info);
+  AttachedPreprocessingInfoType::iterator info, bool firstExecClause);
 
 int
 instrumentRoutines(SgProject* project, bool skipTransforms);
@@ -194,7 +231,8 @@ void
 printUsage();
 
 ContractComment*
-processCommentEntry(SgFunctionDeclaration* dNode, const string cmt);
+processCommentEntry(SgFunctionDeclaration* dNode, const string cmt,
+  PreprocessingInfo::DirectiveType dirType, bool firstExecClause);
 
 int
 processComments(SgFunctionDefinition* def);
@@ -219,17 +257,14 @@ static ContractComment* g_invariants;
  * Add checks for all contract clause assertion expressions to the start
  * of the routine body.  
  *
- * @param def        Function definition.
- * @param body       Pointer to the function body.  Assumed to belong to
- *                     def.
- * @param cc         The contract clause whose expressions are to be added.
- * @param firstTime  true if this is to be the first expression
- *                   for the routine; otherwise, false.
- * @return           The number of statements added to the body.
+ * @param def  Function definition.
+ * @param body Pointer to the function body.  Assumed to belong to def.
+ * @param cc   The contract clause/comment whose (executable) expressions
+ *               are to be added.
+ * @return     The number of statements added to the body.
  */
 int
-addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc,
-  bool firstTime)
+addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc)
 {
   int num = 0;
 
@@ -240,27 +275,43 @@ addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc,
        || (ccType == ContractClause_INVARIANT) )
     {
 #ifdef DEBUG
-      cout << "DEBUG: addPreChecks: Adding "<<cc->size()<<" expressions...\n";
+      cout << "DEBUG: addPreChecks: Adding "<<cc->size();
+      cout << " expressions and/or comments...\n";
 #endif /* DEBUG */
-
-      int left = cc->size();
-      int last = firstTime ? 1 : 0;
 
       list<AssertionExpression> aeList = cc->getList();
       for(list<AssertionExpression>::iterator iter = aeList.begin();
           iter != aeList.end(); iter++)
       {
         AssertionExpression ae = (*iter);
-        SgExprStatement* sttmt = buildCheck(body, ccType, (left-- == last), 
-                                   ae.label(), ae.expr());
-        if (sttmt != NULL)
+        switch (ae.support())
         {
-          body->prepend_statement(sttmt);
+          case AssertionSupport_EXECUTABLE:
+            {
+              SgExprStatement* sttmt = buildCheck(body, ccType, ae, 
+                cc->directive());
+              if (sttmt != NULL)
+              {
+                body->prepend_statement(sttmt);
 #ifdef DEBUG
-          cout << "DEBUG: ...prepended: ";
-          cout << sttmt->unparseToString() << "\n";
+                cout << "DEBUG: ...prepended: ";
+                cout << sttmt->unparseToString() << "\n";
 #endif /* DEBUG */
-          num++;
+                num++;
+              }
+            }
+            break;
+          case AssertionSupport_UNSUPPORTED:
+            {
+              SageInterface::attachComment(body,
+                "PContract: " + string(S_CONTRACT_CLAUSE[ccType])
+                  + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
+                PreprocessingInfo::before, cc->directive());
+            }
+            break;
+          default:
+            // Nothing to do here
+            break;
         }
       }
     } 
@@ -283,17 +334,14 @@ addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc,
  * Add checks for all contract clause assertion expressions to the end
  * of the routine body.  
  *
- * @param def        Function definition.
- * @param body       Pointer to the function body.  Assumed to belong to
- *                     def.
- * @param cc         The contract clause whose expressions are to be added.
- * @param firstTime  true if this is to be the first expression
- *                   for the routine; otherwise, false.
- * @return           The number of statements added to the body.
+ * @param def  Function definition.
+ * @param body Pointer to the function body.  Assumed to belong to def.
+ * @param cc   The contract comment whose expressions are to be added.
+ * @return     The number of statements added to the body.
  */
 int
 addPostChecks(SgFunctionDefinition* def, SgBasicBlock* body, 
-  ContractComment* cc, bool firstTime)
+  ContractComment* cc)
 {
   int num = 0;
 
@@ -304,28 +352,45 @@ addPostChecks(SgFunctionDefinition* def, SgBasicBlock* body,
        || (ccType == ContractClause_INVARIANT) )
     {
 #ifdef DEBUG
-      cout << "DEBUG: addPostChecks: Adding "<<cc->size()<<" expressions...\n";
+      cout << "DEBUG: addPostChecks: Adding "<<cc->size();
+      cout << " expressions and/or comments...\n";
 #endif /* DEBUG */
-
-      int left = cc->size();
-      int last = firstTime ? 1 : 0;
 
       list<AssertionExpression> aeList = cc->getList();
       for(list<AssertionExpression>::iterator iter = aeList.begin();
           iter != aeList.end(); iter++)
       {
         AssertionExpression ae = (*iter);
-        SgExprStatement* sttmt = buildCheck(body, ccType, (left-- == last), 
-                                   ae.label(), ae.expr());
-        if (sttmt != NULL)
+        switch (ae.support())
         {
-          int i = SageInterface::instrumentEndOfFunction(
-                   def->get_declaration(), sttmt);
-          num+=i;
+          case AssertionSupport_EXECUTABLE:
+            {
+              SgExprStatement* sttmt = buildCheck(body, ccType, ae, 
+                cc->directive());
+              if (sttmt != NULL)
+              {
+                int i = SageInterface::instrumentEndOfFunction(
+                         def->get_declaration(), sttmt);
+                num+=i;
 #ifdef DEBUG
-          cout << "DEBUG: ...added to end of function: ";
-          cout << sttmt->unparseToString() << "\n";
+                cout << "DEBUG: ...added to end of function: ";
+                cout << sttmt->unparseToString() << "\n";
 #endif /* DEBUG */
+              }
+            }
+            break;
+          case AssertionSupport_UNSUPPORTED:
+            {
+              // attach unsupported comment (NOTE: ROSE seems to ignore!)
+              SageInterface::attachComment(body, 
+                "PContract: " + string(S_CONTRACT_CLAUSE[ccType])
+                  + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
+                PreprocessingInfo::after, cc->directive());
+            }
+            break;
+          default:
+            // Nothing to do here
+            break;
         }
       }
     } 
@@ -347,16 +412,18 @@ addPostChecks(SgFunctionDefinition* def, SgBasicBlock* body,
 /**
  * Extract and add assertion expressions to the contract clause.
  *
- * @param clause  The contract clause text extracted from the structured 
- *                  comment.
- * @param cc      The contract clause.
+ * @param clause          The contract clause text extracted from the structured
+ *                          comment.
+ * @param cc              The resulting contract clause/comment.
+ * @param firstExecClause Expected to be the first executable clause.
  */
 void
-addExpressions(string clause, ContractComment* cc)
+addExpressions(string clause, ContractComment* cc, bool firstExecClause)
 {
   if (!clause.empty() && cc != NULL)
   {
     size_t startAE = 0, endAE;
+    bool isFirst = firstExecClause;
     while ( (endAE=clause.find(";", startAE)) != string::npos )
     {
       string statement = clause.substr(startAE, endAE-startAE);
@@ -394,18 +461,32 @@ addExpressions(string clause, ContractComment* cc)
 #endif /* DEBUG */
         }
 
-        if (isExecutable(expr)) 
+        if (expr == "is pure") 
         {
-          AssertionExpression ae (label, expr);
-          cc->add(ae);
 #ifdef DEBUG
-          cout << "DEBUG: ...is executable expression.\n";
+            cout << "DEBUG: ...is advisory expression.\n";
 #endif /* DEBUG */
-        }
+        } 
+        else if (isExecutable(expr))
+        {
+          AssertionExpression ae (label, expr, AssertionSupport_EXECUTABLE,
+            isFirst);
+          cc->add(ae);
+          isFirst = false;
+#ifdef DEBUG
+            cout << "DEBUG: ...is executable expression.\n";
+#endif /* DEBUG */
+        } 
         else
         {
-          cout << "\nWARNING: No translation support for: "<<expr<<"\n";
-        }
+          AssertionExpression ae (label, expr, AssertionSupport_UNSUPPORTED,
+            false);
+          cc->add(ae);
+#ifdef DEBUG
+            cout << "DEBUG: ...includes an unsupported keyword expression.\n";
+#endif /* DEBUG */
+        } 
+
       }
 
       startAE = endAE+1;
@@ -419,17 +500,21 @@ addExpressions(string clause, ContractComment* cc)
 /**
  * Build and add contract enforcement finalization call.
  *
- * @param def  The function definition node.
- * @param body  Pointer to the function body.
- * @return      Returns number of finalization calls added.    
+ * @param def  Function definition.
+ * @param body Function body.
+ * @param cc   (FINAL) Contract comment.
+ * @return     Returns number of finalization calls added.    
  */
 int
-addFinalize(SgFunctionDefinition* def, SgBasicBlock* body)
+addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc)
 {
   int num = 0;
 
-  if ( (def != NULL) && (body != NULL) )
+  if ( (def != NULL) && (body != NULL) && (cc != NULL) )
   {
+    PPIDirectiveType dt = cc->directive();
+    int i;
+
     /*
      * @todo TBD/FIX:  Temporarily adding statistics dump here.
      */
@@ -443,9 +528,15 @@ addFinalize(SgFunctionDefinition* def, SgBasicBlock* body)
         parmsD, body);
       if (sttmt != NULL)
       {
-        attachTranslationComment(sttmt, "Contract Enforcement Data Dump");
-        int i = SageInterface::instrumentEndOfFunction(def->get_declaration(),
-                   sttmt);
+        SageInterface::attachComment(sttmt, 
+          "PContract: Enforcement Data Dump: BEGIN", 
+          PreprocessingInfo::before, dt);
+        SageInterface::attachComment(sttmt, 
+          "PContract: Enforcement Data Dump: END", 
+          PreprocessingInfo::after, dt);
+
+        i = SageInterface::instrumentEndOfFunction(def->get_declaration(), 
+              sttmt);
         num+=i;
       }
     }
@@ -458,9 +549,14 @@ addFinalize(SgFunctionDefinition* def, SgBasicBlock* body)
         parmsF, body);
       if (sttmt != NULL)
       {
-        attachTranslationComment(sttmt, "Contract Enforcement Finalization");
-        int i = SageInterface::instrumentEndOfFunction(def->get_declaration(),
-                   sttmt);
+        SageInterface::attachComment(sttmt, 
+          "PContract: Enforcement Finalization: BEGIN",
+          PreprocessingInfo::before, dt);
+        SageInterface::attachComment(sttmt, 
+          "PContract: Enforcement Finalization: END",
+          PreprocessingInfo::after, dt);
+        i = SageInterface::instrumentEndOfFunction(def->get_declaration(),
+              sttmt);
         num+=i;
       }
     }
@@ -511,8 +607,8 @@ addIncludes(SgProject* project, bool skipTransforms)
             + optionsHdr;
 
           SageInterface::attachComment(globalScope,
-            "Added contract enforcement includes.", PreprocessingInfo::before,
-            PreprocessingInfo::C_StyleComment);
+            "PContract: Contract enforcement includes",
+            PreprocessingInfo::before, PreprocessingInfo::C_StyleComment);
     
           SageInterface::addTextForUnparser(globalScope, includes,
             AstUnparseAttribute::e_after);
@@ -534,14 +630,15 @@ addIncludes(SgProject* project, bool skipTransforms)
  * Build and add the contract enforcement initialization call.
  *
  * @param body   Pointer to the function body.
+ * @param cc     (INIT) Contract comment.
  * @return       Number of initialization calls added.
  */
 int
-addInitialize(SgBasicBlock* body)
+addInitialize(SgBasicBlock* body, ContractComment* cc)
 {
   int num = 0;
 
-  if (body != NULL)
+  if ( (body != NULL) && (cc != NULL) )
   {
     SgExprListExp* parms = new SgExprListExp(FILE_INFO);
     if (parms != NULL)
@@ -552,7 +649,12 @@ addInitialize(SgBasicBlock* body)
         parms, body);
       if (sttmt != NULL)
       {
-        attachTranslationComment(sttmt, "Contract Enforcement Initialization");
+        SageInterface::attachComment(sttmt, 
+          "PContract: Enforcement Initialization: BEGIN", 
+          PreprocessingInfo::before, cc->directive());
+        SageInterface::attachComment(sttmt, 
+          "PContract: Enforcement Initialization: END", 
+          PreprocessingInfo::after, cc->directive());
         body->prepend_statement(sttmt);
         num += 1;
       }
@@ -567,18 +669,18 @@ addInitialize(SgBasicBlock* body)
  * Build the contract clause check statement.
  *
  * @param body       Pointer to the function body.
- * @param cc         The contract clause whose expressions are to be added.
- * @param firstTime  true if this is to be the first expression
- *                   for the routine; otherwise, false.
+ * @param clauseType The type of contract clause associated with the expression.
+ * @param ae         The assertion expression.
+ * @param dt         The (comment) directive type.
  * @return           Contract clause statement node.
  */
 SgExprStatement*
-buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
-           string label, string expr)
+buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, 
+  AssertionExpression ae, PPIDirectiveType dt)
 {
   SgExprStatement* sttmt = NULL;
 
-  if ( (body != NULL) && !expr.empty() )
+  if ( (body != NULL) && (ae.support() == AssertionSupport_EXECUTABLE) )
   {
     string cmt, clauseTime;
     SgExprListExp* parms = new SgExprListExp(FILE_INFO);
@@ -594,7 +696,7 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
             parms->append_expression(SageBuilder::buildVarRefExp(
               "ContractClause_PRECONDITION"));
             clauseTime = "pce_def_times.pre";
-            cmt = "PContract Precondition";
+            cmt = "PContract: Precondition";
           }
           break;
         case ContractClause_POSTCONDITION:
@@ -602,7 +704,7 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
             parms->append_expression(SageBuilder::buildVarRefExp(
               "ContractClause_POSTCONDITION"));
             clauseTime = "pce_def_times.post";
-            cmt = "PContract Postcondition";
+            cmt = "PContract: Postcondition";
           }
           break;
         case ContractClause_INVARIANT:
@@ -610,7 +712,7 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
             parms->append_expression(SageBuilder::buildVarRefExp(
               "ContractClause_INVARIANT"));
             clauseTime = "pce_def_times.inv";
-            cmt = "PContract Invariant";
+            cmt = "PContract: Invariant";
           }
           break;
         default:
@@ -628,15 +730,18 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
       parms->append_expression(SageBuilder::buildVarRefExp(
         "pce_def_times.routine"));
       parms->append_expression(SageBuilder::buildVarRefExp(
-        (firstTime) ? "CONTRACTS_TRUE" : "CONTRACTS_FALSE"));
-      parms->append_expression(new SgStringVal(FILE_INFO, label));
-      parms->append_expression(SageBuilder::buildVarRefExp("(" + expr + ")"));
+        (ae.isFirst()) ? "CONTRACTS_TRUE" : "CONTRACTS_FALSE"));
+      parms->append_expression(new SgStringVal(FILE_INFO, ae.label()));
+      parms->append_expression(SageBuilder::buildVarRefExp("("+ae.expr()+")"));
   
       sttmt = SageBuilder::buildFunctionCallStmt("PCE_CHECK_EXPR_TERM", 
         SageBuilder::buildVoidType(), parms, body);
       if (sttmt != NULL)
       {
-        attachTranslationComment(sttmt, cmt);
+        SageInterface::attachComment(sttmt, cmt + ": BEGIN", 
+          PreprocessingInfo::before, dt);
+        SageInterface::attachComment(sttmt, cmt + ": END", 
+          PreprocessingInfo::after, dt);
       }
 #ifdef DEBUG
       else
@@ -648,15 +753,18 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
 #ifdef DEBUG
     else
     {
-      cout << "DEBUG: buildCheck: New parameters is NULL.\n";
+      cout << "DEBUG: buildCheck: New parameter list is NULL.\n";
     }
 #endif /* DEBUG */
   }
 #ifdef DEBUG
   else
   {
-    if (body == NULL) cout << "DEBUG: buildCheck: NULL body\n";
-    if (expr.empty()) cout << "DEBUG: buildCheck: Empty expression\n";
+    if (body == NULL) cout << "DEBUG: buildCheck: Given NULL body (wrong!)\n";
+    if (ae.support() != AssertionSupport_EXECUTABLE)
+    {
+      cout << "DEBUG: buildCheck: Passed non-executable expression (wrong!)\n";
+    }
   }
 #endif /* DEBUG */
               
@@ -665,32 +773,36 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType, bool firstTime,
 
 
 /**
- * Extract the contract clause, if any, from the pre-processing directive.
+ * Extract the contract clause comment, if any, from the pre-processing 
+ * directive.
  *
- * @param dType  The pre-processing directive type.
- * @param cc     The resulting contract clause, if any.
- * @return       The ContractComment type.
+ * @param decl            The function declaration.
+ * @param info            The preprocessing directive.
+ * @param firstExecClause Expected to be the first executable clause.
+ * @return                The ContractComment type.
  */
 ContractComment*
 extractContractClause(SgFunctionDeclaration* decl, 
-                      AttachedPreprocessingInfoType::iterator info)
+  AttachedPreprocessingInfoType::iterator info, bool firstExecClause)
 {
   ContractComment* cc = NULL;
 
   if ((*info) != NULL)
   {
-    switch ((*info)->getTypeOfDirective())
+    PreprocessingInfo::DirectiveType dt = (*info)->getTypeOfDirective();
+    switch (dt)
     {
       case PreprocessingInfo::C_StyleComment:
         {
           string str = (*info)->getString();
-          cc = processCommentEntry(decl, str.substr(2, str.size()-4));
+          cc = processCommentEntry(decl, str.substr(2, str.size()-4), dt,
+                 firstExecClause);
         }
         break;
       case PreprocessingInfo::CplusplusStyleComment:
         {
           string str = (*info)->getString();
-          cc = processCommentEntry(decl, str.substr(2));
+          cc = processCommentEntry(decl, str.substr(2), dt, firstExecClause);
         }
         break;
       default:
@@ -768,8 +880,7 @@ instrumentRoutines(SgProject* project, bool skipTransforms)
         }
       }
 
-      cout<<"Added "<<num<<" contract checks, initialization, and/or ";
-      cout<<"finalization statements.\n";
+      cout<<"Added "<<num<<" contract-related statements.\n";
     }
 
     /* Run consistency checks (?) */
@@ -806,22 +917,15 @@ isExecutable(string expr)
 {
   bool isOkay = true;
 
-  if (expr == "is pure") 
-  {
-    isOkay = false;
-#ifdef DEBUG
-    cout << "DEBUG: Skipping 'is pure'...\n";
-#endif /* DEBUG */
-  }
-  else
+  if (!expr.empty())
   {
     for (int i=MIN_NEE_INDEX; i<MAX_NEE_INDEX; i++)
     {
       if (expr.find(NonExecExpressions[i]) != string::npos)
       {
 #ifdef DEBUG
-        cout << "DEBUG: Determined "<<NonExecExpressions[i]<<" in "<<expr;
-        cout << ": Non-executable\n";
+        cout << "DEBUG: Detected \'" << NonExecExpressions[i];
+        cout << "\' in \'"<< expr << "\' making expression non-executable.\n";
 #endif /* DEBUG */
         isOkay = false;
         break;
@@ -855,12 +959,15 @@ printUsage()
 /**
  * Process the comment to assess and handle any contract annotation.
  *
- * @param dNode  Current AST node.
- * @param cmt    Comment contents.
- * @return       The corresponding ContractComment type.
+ * @param dNode           Current AST node.
+ * @param cmt             Comment contents.
+ * @param dirType         (Comment) directive type.
+ * @param firstExecClause Expected to be the first executable clause.
+ * @return                The corresponding ContractComment type.
  */
 ContractComment*
-processCommentEntry(SgFunctionDeclaration* dNode, const string cmt)
+processCommentEntry(SgFunctionDeclaration* dNode, const string cmt,
+  PreprocessingInfo::DirectiveType dirType, bool firstExecClause)
 {
   ContractComment* cc = NULL;
 
@@ -871,27 +978,27 @@ processCommentEntry(SgFunctionDeclaration* dNode, const string cmt)
     {
       if ((pos=cmt.find("REQUIRE"))!=string::npos)
       {
-        cc = new ContractComment(ContractComment_PRECONDITION);
-        addExpressions(cmt.substr(pos+7), cc);
+        cc = new ContractComment(ContractComment_PRECONDITION, dirType);
+        addExpressions(cmt.substr(pos+7), cc, firstExecClause);
       }
       else if ((pos=cmt.find("ENSURE"))!=string::npos)
       {
-        cc = new ContractComment(ContractComment_POSTCONDITION);
-        addExpressions(cmt.substr(pos+6), cc);
+        cc = new ContractComment(ContractComment_POSTCONDITION, dirType);
+        addExpressions(cmt.substr(pos+6), cc, firstExecClause);
 
       }
       else if ((pos=cmt.find("INVARIANT"))!=string::npos)
       {
-        cc = new ContractComment(ContractComment_INVARIANT);
-        addExpressions(cmt.substr(pos+9), cc);
+        cc = new ContractComment(ContractComment_INVARIANT, dirType);
+        addExpressions(cmt.substr(pos+9), cc, firstExecClause);
       }
       else if ((pos=cmt.find("INIT"))!=string::npos)
       {
-        cc = new ContractComment(ContractComment_INIT);
+        cc = new ContractComment(ContractComment_INIT, dirType);
       }
       else if ((pos=cmt.find("FINAL"))!=string::npos)
       {
-        cc = new ContractComment(ContractComment_FINAL);
+        cc = new ContractComment(ContractComment_FINAL, dirType);
       }
       else
       {
@@ -911,8 +1018,7 @@ processCommentEntry(SgFunctionDeclaration* dNode, const string cmt)
  * @return     The number of statements added.
  */
 int
-processComments(
-SgFunctionDefinition* def)
+processComments(SgFunctionDefinition* def)
 {
   int num = 0;
 
@@ -937,21 +1043,26 @@ SgFunctionDefinition* def)
         decl->getAttachedPreprocessingInfo();
       if (cmts != NULL)
       {
+        ContractComment* final = NULL;
+        ContractComment* init = NULL;
         ContractComment* pre = NULL;
         ContractComment* post = NULL;
-        bool hasInit = false;
-        bool hasFinal = false;
-        int numInvariants = (g_invariants != NULL) ? g_invariants->size() : 0;
-        int numChecks[] = { 0, 0, numInvariants };
+        int numChecks[] = { 0, 0, 0 };
         int numPrep[] = { 0, 0 };
+        bool firstExecClause = true;
 
         AttachedPreprocessingInfoType::iterator iter;
         for (iter = cmts->begin(); iter != cmts->end(); iter++)
         {
-          ContractComment* cc = extractContractClause(decl, iter);
-
+          ContractComment* cc = extractContractClause(decl, iter, 
+                                  firstExecClause);
           if (cc != NULL)
           {
+            if (firstExecClause && (cc->numExecutable() > 0))
+            {
+              firstExecClause = false;
+            }
+
             switch (cc->type())
             {
             case ContractComment_PRECONDITION:
@@ -983,14 +1094,12 @@ SgFunctionDefinition* def)
               break;
             case ContractComment_INIT:
               {
-                hasInit = true;
-                delete cc;
+                init = cc;
               }
               break;
             case ContractComment_FINAL:
               {
-                hasFinal = true;
-                delete cc;
+                final = cc;
               }
               break;
             case ContractComment_NONE:
@@ -1003,8 +1112,8 @@ SgFunctionDefinition* def)
           } /* end if have contract comment to process */
         } /* end for each comment */
 
-        if (  hasInit || hasFinal || (pre != NULL) || (post != NULL)
-           || (g_invariants != NULL) )
+        if (  (init != NULL) || (final != NULL) || (pre != NULL) 
+           || (post != NULL) || (g_invariants != NULL) )
         {
           SgBasicBlock* body = def->get_body();
   
@@ -1015,31 +1124,31 @@ SgFunctionDefinition* def)
              * ...Order IS important since each is prepended to the body.
              */
             bool isFirst = numChecks[2] <= 0;
+            bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL);
             if (pre != NULL) 
             { 
               if (numChecks[0] > 0) 
               {
-                num += addPreChecks(def, body, pre, isFirst);
-                isFirst = false;
+                num += addPreChecks(def, body, pre);
               }
               delete pre;
             }
 
             if ( (g_invariants != NULL) && (numChecks[2] > 0) )
             {
-              if (!isConstructor)
+              if ( ! (isConstructor || skipInvariants) ) 
               {
-              ///// @todo: TODO/FIX:  Why are invariants being skipped
-              /////    on subsequent routines?
-                num += addPreChecks(def, body, g_invariants, true);
-                isFirst = false;
+                ///// @todo: TODO/FIX:  Why are invariants being skipped
+                /////    on subsequent routines?
+                num += addPreChecks(def, body, g_invariants);
               }
             }
 
-            if (hasInit)
+            if (init != NULL)
             {
-              numPrep[0] += addInitialize(body);
+              numPrep[0] += addInitialize(body, init);
               num += numPrep[0];
+              delete init;
             }
 
             /*
@@ -1049,23 +1158,24 @@ SgFunctionDefinition* def)
             {
               if (numChecks[1] > 0)
               {
-                num += addPostChecks(def, body, post, isFirst);
-                isFirst = false;
+                num += addPostChecks(def, body, post);
               }
               delete post;
             }
 
             if ( (g_invariants != NULL) && (numChecks[2] > 0) )
             {
-              if (!isDestructor) {
-                num += addPostChecks(def, body, g_invariants, false);
+              if ( ! (isDestructor || skipInvariants) ) 
+              { 
+                num += addPostChecks(def, body, g_invariants);
               } 
             } 
 
-            if (hasFinal)
+            if (final != NULL)
             {
-              numPrep[1] += addFinalize(def, body);
+              numPrep[1] += addFinalize(def, body, final);
               num += numPrep[1];
+              delete final;
             }
           } /* end if have an annotation destination */
         } /* end if have annotations to make */
@@ -1081,7 +1191,7 @@ SgFunctionDefinition* def)
         cout<<"    Initialization = "<<numPrep[0]<<"\n";
         cout<<"    Finalization   = "<<numPrep[1]<<"\n";
         cout<<"  Total Statements = "<<num<<"\n";
-        cout<<"DEBUG:END ************************************\n";
+        cout<<"DEBUG:END ************************************\n\n";
 #endif /* DEBUG */
       } /* end if comments */
     } /* end if have declaration */
