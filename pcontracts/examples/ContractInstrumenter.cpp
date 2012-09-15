@@ -18,9 +18,6 @@
  *
  * @todo Need to handle generation of return variable, when needed.
  *
- * @todo Need new annotation for checking/dumping contract check data.
- *  BUT will need to ensure properly configured to actually dump the data.
- *
  * @todo Much more thought needed regarding C++ annotations (e.g., instances).
  *
  * @todo Need to change to a visitor to ensure acquire invariants.
@@ -35,6 +32,11 @@
  * @todo Add support for complex (as in non-standard C) expressions.
  *
  * @todo Give some thought to improving contract violation messages.
+ *
+ * @todo Need new annotation for checking/dumping contract check data.
+ *  BUT will need to ensure properly configured to actually dump the data.
+ *
+ * @todo Investigation of contract enforcement statistics dumps still needed.
  * 
  * @section WARNING
  * This is a VERY preliminary draft. (See todo items.)

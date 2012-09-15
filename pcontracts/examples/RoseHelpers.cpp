@@ -21,7 +21,7 @@ using namespace std;
 
 
 void
-attachTranslationComment(SgNode* node, string cmt)
+attachTranslationComment(SgNode* node, std::string cmt)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if ( (lNode != NULL) && !cmt.empty() )
