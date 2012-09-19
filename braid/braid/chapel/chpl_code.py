@@ -90,6 +90,7 @@ def unscope(scope, enum):
     '''
     FIXME: can we get rid of this?
     '''
+    assert(scope)
     m = re.match(r'^'+'_'.join(scope.prefix)+r'_(\w+)__enum$', enum)
     return m.group(1)
 
@@ -505,6 +506,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.call, (ir.deref, (ir.get_struct_item, S, _, (ir.struct_item, _, Name))), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
+                import pdb; pdb.set_trace()
                 _, s_id, _, _ = S
                 retval_arg = generate_method_stub(scope, node, s_id)
                 stubname = '_'.join([epv_qname(s_id),re.sub('^f_', '', Name),'stub'])
@@ -518,6 +520,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.call, (ir.get_struct_item, S, _, (ir.struct_item, _, Name)), Args):
                 # We can't do a function pointer call in Chapel
                 # Emit a C stub for that
+                import pdb; pdb.set_trace()
                 _, s_id, _, _ = S
                 retval_arg = generate_method_stub(scope, node, s_id)
                 stubname = '_'.join([epv_qname(s_id), re.sub('^f_', '', Name),'stub'])

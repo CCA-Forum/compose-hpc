@@ -123,6 +123,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             if self.server:
                 ci.impl = self.pkg_impl
+                ci.impl.prefix=symbol_table.prefix
 
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             chpl_stub.cstub.genh(ir.Import('sidl_header'))
@@ -296,6 +297,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
                     # new file for the toplevel package
                     self.pkg_chpl_stub = ChapelFile(qname, relative_indent=0)
+                    self.pkg_chpl_stub.gen(ir.Import('sidl'))
+                    self.pkg_chpl_stub.gen((ir.stmt, "extern proc generic_ptr(a:sidl__array):opaque"))
+                    self.pkg_chpl_stub.gen((ir.stmt, "extern proc ptr_generic(a:opaque):sidl__array"))
 
                     # self.pkg_enums_and_structs = []
                     self.in_package = True
@@ -780,14 +784,35 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         self.babel_method_call(body, symbol_table, m, args, ci)
 
+        def ext_to_chpl_classtype(typ):
+            """
+            deal with the dual representation of Extensibles as raw sidl
+            pointers and Chapel objects
+            """
+            if babel.is_obj_type(symbol_table, typ):
+                _, prefix, name, ext = typ
+                return ir.Typedef_type('.'.join(prefix+[name]))
+            ##if name =='_ior__retval':print typ, name
+            #if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+            #    #if name == '_ior__retval': name = '_retval'
+            #    #if name == '_retval': name = '_ior_retval'
+            #    if typ[1][1][0] == sidl.scoped_id:
+            #        _, prefix, tname, ext = typ[1][1]
+            #        if ext == '__object' and name == '_retval':
+            #            #name <> '_ex' and name[:4] <> '_ior_': 
+            #            return ir.Typedef_type('.'.join(list(prefix)+[tname])), name
+
+            return typ
+
+
         # FIXME, this is ugly!
         if Type <> sidl.void:
             if ((Type[0] == sidl.scoped_id and
                  symbol_table[Type][1][0] in self.chpl_conv_types)
                 or Type[0] in self.chpl_conv_types):
-                body.genh(ir.Stmt(ir.Var_decl(cdecl_type, '_ior__retval')))
+                body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
             else:
-                body.genh(ir.Stmt(ir.Var_decl(cdecl_type, '_ior__retval')))
+                body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
                 body.gen(ir.Copy('_retval', '_ior__retval'))
 
             body.genh(ir.Comment(str(Type)))
@@ -797,7 +822,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         # Add the exception to the chapel method signature
         chpl_stub_args = chpl_args + [
-            ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), '_chpl_ex')]
+            ir.Arg([], ir.out, (ir.typedef_type, chpl_base_interface), '_ex')]
 
         defn = (ir.fn_defn, [], chpl_type,
                 Name + Extension, chpl_stub_args,
@@ -939,7 +964,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         header = self.class_header(qname, symbol_table, ci)
         write_to(qname+'_Stub.h', header.dot_h(qname+'_Stub.h'))
-        chpl_stub.gen(ir.Import('sidl'))
         if self.server:
             chpl_stub.gen(ir.Import('%s_Impl'%'_'.join(symbol_table.prefix)))
         extrns = ChapelScope(chpl_stub, relative_indent=0)
@@ -1427,7 +1451,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         chpl_skel_args = ior_args + [
             ir.Arg([], ir.out, babel.ir_baseinterface_type(), '_ex')]
 
-        args = selfarg+map(lambda arg: ir.arg_id(arg), ior_args)+['_chpl__ex']
+        args = selfarg+map(lambda arg: ir.arg_id(arg), ior_args)+['_ex']
         self.babel_impl_call(body, symbol_table, m, args, ci)
 
         skeldefn = (ir.fn_defn, [], ior_type,
@@ -1439,6 +1463,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         def skel_args((arg, attr, mode, typ, name)):
             if typ[0] == sidl.array:
                 # lower array args
+                import pdb; pdb.set_trace()
                 return arg, attr, mode, ir.pt_void, name
             elif mode == ir.in_ and typ[0] == ir.typedef_type and (
                 # complex is always passed as a pointer since chpl 1.5
@@ -1460,9 +1485,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         #impldecl = (ir.fn_decl, [], ior_type, callee, this_arg+impl_args, DocComment)
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee],
-                    unscope_retval(ci.epv.symbol_table, ior_type),
+                    ior_type, #unscope_retval(ci.epv.symbol_table, ior_type),
                     Name,
-                    map(unscoped_args, impl_args),
+                    impl_args, #map(unscoped_args, impl_args),
                     ['SET_TO_NULL(_ex);',
                      '// DO-NOT-DELETE splicer.begin(%s)'%splicer,
                      '// DO-NOT-DELETE splicer.end(%s)'%splicer],

@@ -342,27 +342,16 @@ def c_convs(a):
     _t, _dest, _src, conv = c_xvalue
     return conv
 
-def make_carg(name, inargs, outargs):
+def make_carg(name, allargs):
     # make a linear search through inoutargs to find the matching C type
     # [inout]args = typ, dest_name, src_name, (None | (ctype, cdest_name, csrc_name, conv))
-    mode = ir.inout
-    for arg in inargs:
-        typ2, (_, name2, conv) = arg
-        if name <> name2: 
-            continue
-
-        typ = typ2
-        mode = ir.in_
-
-    for arg in outargs:
-        typ3, (name3, _, conv) = arg
-        if name <> name3: 
-            continue
-        
-        mode = ir.inout if mode == ir.in_ else ir.out
-        typ = typ3
-
-    return ir.Arg([], mode, typ, name)
+    for mode, arg in allargs:
+        typ, (name1, name2, conv) = arg
+        if name == name1 or name == name2:
+            if mode == ir.out: name = name1
+            return ir.Arg([], mode, typ, name)
+    import pdb; pdb.set_trace()
+    raise
 
 def get_c_tmp1(arg):
     typ, (_, name, conv) = arg # return src to signal 'no temp needed'
@@ -424,23 +413,6 @@ def strip_derefs(lvalue):
     t, (dest, src, data) = lvalue
     return t, (strip_deref(dest), strip_deref(src), data)
 
-def ext_to_chpl_classtype(typ, name):
-    """
-    deal with the dual representation of Extensibles as raw sidl
-    pointers and Chapel objects
-    """
-    #if name =='_ior__retval':print typ, name
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
-        if name == '_ior__retval': name = '_retval'
-        #if name == '_retval': name = '_ior_retval'
-        if typ[1][1][0] == sidl.scoped_id:
-            _, prefix, tname, ext = typ[1][1]
-            if ext == '__object' and name == '_retval':
-                #name <> '_ex' and name[:4] <> '_ior_': 
-                return ir.Typedef_type('.'.join(list(prefix)+[tname])), name
-    return typ, name
-
-
 #------------------------------------------------------------------------
 # Test harness
 #------------------------------------------------------------------------
@@ -496,16 +468,42 @@ def test_harness():
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
 stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
-    cstub, name, arg_names, inargs, call_args, ci = a0
-    inargs = ensure_list(inargs)
+    ftype, name, args, call_args, ci = a0
+
+    # merge in and outargs
     outargs = map(strip_derefs, ensure_list(a1))
+    inargs = filter(lambda a: a[0] <> outgoing_arg, args)
+    i = 0
+    allargs = []
+    for arg in args:
+        if arg[0] == outgoing_arg:
+            allargs.append((ir.out, outargs[i]))
+            i += 1
+        else:
+            if (arg[1][1] == outargs[i][1][0] or 
+                (arg[1][1][0] == ir.deref and 
+                 arg[1][1][1] == outargs[i][1][0])):
+                allargs.append((ir.inout, arg))
+                i += 1
+            else:
+                allargs.append((ir.in_, arg))
+
+    # generate the call to the C Stub
+    cstub_params = map(lambda (_,a): strip_derefs(a)[1][0], allargs)
+    arg_names    = map(lambda (_,a): strip_derefs(a)[1][1], allargs)
+
+    cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
+    if ftype <> ir.pt_void:
+        call = ir.Copy('_ior__retval', ir.Call(cstub, cstub_params))
+    else:
+        call = ir.Stmt(ir.Call(cstub, cstub_params))
 
     # now that we know all of them, declare temporary variables for
-    # the Chapel stub
-    unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
-                       map(lambda a: (a[0], a[1][1]), outargs))
+    # the CHAPEL stub
+    unique_temps = set([(a[0], a[1][0]) for a in  inargs if a[1][0] <> a[1][1]]+
+                       [(a[0], a[1][1]) for a in outargs if a[1][0] <> a[1][1]])
     for tmp in unique_temps:
-        scope.genh(ir.Stmt(ir.Var_decl(*ext_to_chpl_classtype(*tmp))))
+        scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
 
     # Stub in C:
     #
@@ -514,11 +512,19 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     if len(outargs) > 0 and outargs[-1][1][0] == '_retval':
         ftype, (_, retval, convs) = outargs[-1]
         if convs: retval = convs[2]
+
+
+        # always declare an _ior_retval because we will write to
+        # it unconditionally
+        if outargs[-1][1][0] == outargs[-1][1][1]:
+            scope.genh(ir.Stmt(ir.Var_decl(outargs[-1][0], '_ior__retval')))
+
     else:
         ftype = ir.pt_void
 
+
     cstub_type = ftype
-    cstub_args = map(lambda n: make_carg(n, inargs, outargs), arg_names)
+    cstub_args = map(lambda n: make_carg(n, allargs), arg_names)
 
     unique_temps = set(map(get_c_tmp1, inargs)+
                        map(get_c_tmp2, outargs))
@@ -532,19 +538,11 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
 
     # generate the call to the real function implementation
     call_args1 = []
-
-    # merge incoming and outgoing args again
-    i = 0
-    for arg in call_args:
-        if arg[0] == outgoing_arg:
-            call_args1.append(deref_to_addr(outargs[i], 1))
-            i += 1
+    for mode, arg in allargs:
+        if mode == ir.out:
+            call_args1.append(deref_to_addr(arg, 1))
         else: 
             call_args1.append(deref_to_addr(arg, 0))
-            if (arg[1][1] == outargs[i][1][0] or 
-                (arg[1][1][0] == ir.deref and 
-                 arg[1][1][1] == outargs[i][1][0])):
-                i += 1 # mode.inout
 
     #if name in ['passeverywherefcomplex','passoutbool','removeReady']:
     #    print outargs[0][1]
@@ -552,7 +550,6 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     #    print call_args1
     #    #import pdb; pdb.set_trace()
     call = babel.vcall(name, call_args1, ci)
-
 
     if ftype <> ir.pt_void:
         if post_call:
@@ -605,20 +602,7 @@ rvalue_ior_c <-- ior_call(any_method, rvalue_ior_c) :cost(2)
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
 
-    # generate the call to the C Stub
-    cstub_params = map(lambda a: strip_derefs(a)[1][0], args)
-    arg_names    = map(lambda a: strip_derefs(a)[1][1], args)
-
-    cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
-    if ftype <> ir.pt_void:
-        scope.gen(ir.Copy('_ior__retval', ir.Call(cstub, cstub_params)))
-    else:
-        scope.gen(ir.Stmt(ir.Call(cstub, cstub_params)))
-
-    # the outgoing pseudo-args are only there to pass the expressions in the right order
-    inargs = filter(lambda a: a[0] <> outgoing_arg, args)
-
-    return cstub, name, arg_names, inargs, la1, ci
+    return ftype, name, args, la1, ci
 
 # nonvirtual methods
 rvalue_ior_chpl <-- ior_call(nonvirtual_method, rvalue_ior_chpl) :cost(1)
@@ -653,7 +637,7 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
     unique_temps = set(map(lambda a: c_tempvar(a, 0), inargs)+
                        map(lambda a: c_tempvar(a, 1), outargs))
     for tmp in unique_temps:
-        if tmp[1] == '_chpl__ex':
+        if tmp[1] == '_ex':
             scope.cstub.genh(ir.Stmt(ir.Var_decl(ir.Pointer_type(tmp[0]),tmp[1])))
         elif tmp[1][:6] == '_chpl_':
             scope.cstub.genh(ir.Stmt(ir.Var_decl(*tmp)))
@@ -899,9 +883,9 @@ ext_ior_chpl    <-- ext_chpl_chpl:cost(1)
     h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
 
     # hardcoded: Babel exception argument, SERVER-side
-    if src == '_chpl__ex':
-        scope.cstub.gen(ir.Copy('_ex', src))
-        return h_t, (orig, orig, None)
+    if src == '_ex':
+        scope.cstub.gen(ir.Copy(dest, src))
+        return h_t, (dest, src, None)
 
     name = s_id[2]# +s_id[3] hijacked for '__object'
     scope.gen(ir.Copy(dest, '%s.self_%s'%(src, name)))
@@ -915,9 +899,9 @@ ext_chpl_chpl <-- ext_ior_chpl :cost(1)
     # hardcoded: Babel exception argument, CLIENT-side
     if src == '_ior__ex':
         scope.gen(ir.Stmt(ir.If(
-                    ir.Call("IS_NOT_NULL", ['_ex']), 
-                    [ir.Copy('_chpl_ex', ir.Call("new BaseInterface", ['_ex']))])))
-        return h_t, (orig, orig, None)
+                    ir.Call("IS_NOT_NULL", ['_ior__ex']), 
+                    [ir.Copy('_ex', ir.Call("new BaseInterface", ['_ior__ex']))])))
+        return h_t, (dest, src, None)
 
     # hardcoded: self argument, SERVER-side
     if src == 'self':
@@ -930,7 +914,7 @@ ext_chpl_chpl <-- ext_ior_chpl :cost(1)
     s_id1 = ir.Scoped_id(s_id[1], s_id[2], '')
     name = s_id[2]
     #mod_name = '.'.join(full_type[1]+[name])
-    wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [src, '_chpl_ex'])
+    wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [src, '_ex'])
     scope.gen(ir.Copy(dest, wrap))
     return h_t, (dest, src, None) #(h_t, [ir.Copy(dest, src)])
 
@@ -1161,7 +1145,7 @@ array_chpl_chpl <-- array_ior_chpl: cost(1)
     scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
-        scope.gen(ir.Copy(dest, src))
+        scope.gen(ir.Copy(dest, ir.Call("generic_ptr", [src])))
     else:
         scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
     return array_ior_type(t), (dest, src, None)
@@ -1179,7 +1163,7 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
     scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
-        scope.gen(ir.Copy(dest, src))
+        scope.gen(ir.Copy(dest, ir.Call("ptr_generic", [src])))
     else:
         scope.gen(ir.Copy(dest, access(src, 'ior')))
     return array_ior_type(t), (dest, src, None)
