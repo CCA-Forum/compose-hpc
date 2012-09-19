@@ -312,7 +312,9 @@ class ChapelFile(SourceFile):
         Invoke the Chapel code generator on \c ir and append the result to
         this CFile's header.
         """
-        self.new_header_def(str(ChapelCodeGenerator().generate(ir, ChapelFile())))
+        line = ChapelLine(self)
+        line.gen(ir)
+        self.new_header_def(str(line)+';')
 
     def write(self):
         """
@@ -493,7 +495,8 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 new_def('')
 
             elif (ir.fn_decl, Attrs, (ir.primitive_type, 'void'), Name, Args, DocComment):
-                new_def('proc %s(%s)'% (gen(Name), gen_comma_sep(Args)))
+                attrs = 'extern ' if 'extern' in Attrs else ''
+                new_def('%sproc %s(%s)'% (attrs, gen(Name), gen_comma_sep(Args)))
 
             elif (ir.fn_decl, Attrs, Type, Name, Args, DocComment):
                 new_def('proc %s(%s): %s'%
@@ -591,6 +594,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return "complex(128)"
 
             elif (ir.struct, (ir.scoped_id, Prefix, Name, Ext), Items, DocComment):
+                #if Name[:4] =='sidl':import pdb; pdb.set_trace()
                 #print 'prefix %s, name %s, ext %s' %(Prefix, Name, Ext)
                 return '.'.join(list(Prefix)+['_'.join(list(Prefix)+[Name+Ext])])
 
@@ -641,7 +645,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 return scope.new_header_def('var %s: %s = %s'%
                                             (gen(Name), gen(Type), gen(Initializer)))
 
-            elif (ir.enum, Name, Items, DocComment): return gen(Name)
+            elif (ir.enum, Name, Items, DocComment): return unscope(scope, Name)
             elif (ir.cast, Type, Expr): return '%s:%s'%(gen(Expr), gen(Type))
 
             elif (ir.type_decl, (ir.enum, Name, Items, DocComment)):
@@ -674,8 +678,12 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (ir.import_, Name): new_def('use %s;'%Name)
 
-            elif (ir.deref, Name): return Name
-
+            # ignore these two -- Chapel's mode attribute handling
+            # should automatically take care of doing (de)referencing
+            elif (ir.deref, (ir.pointer_expr, Name)): return gen(Name)
+            elif (ir.pointer_expr, (ir.deref, Name)): return gen(Name)
+            elif (ir.pointer_expr, Name): return gen(Name)
+            elif (ir.deref, Name):        return gen(Name)
 
             elif (ir.float, N):   
                 return str(N)+':real(32)'

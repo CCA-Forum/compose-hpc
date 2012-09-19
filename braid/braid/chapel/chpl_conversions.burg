@@ -320,7 +320,7 @@ def ir_to_burg(typ, language, *user_data):
 
 def array_ior_type(array):
     '''
-    in case we actually _mean_ the raw IOR struct, objuscate the type,
+    in case we actually _mean_ the raw IOR struct, obfuscate the type,
     so the code generator doesn't recognize it as an array
     '''
     (ptr, (struct, name, items, docs)) = array
@@ -398,20 +398,48 @@ def strip_deref(a):
         return a[1]
     return a
 
-def deref_to_addr(arg):
+def deref_to_addr(arg, idx):
     _, (a1, a2, conv) = arg
     if conv: 
         _, a1, a2, _ = conv # use c ior type if available
-    else:
-        a1 = a2 # use src, because there is no ior conversion
+        r = (a1, a2)[idx]
+        deref = (a1, a2)[1-idx]
 
-    if isinstance(a2, tuple) and a2[0] == ir.deref: 
-        return ir.Pointer_expr(a1)        
-    return a1
+    else:
+        # use src, because there is no ior conversion
+        r = (a1, a2)[1-idx]
+        deref = r
+
+    if isinstance(deref, tuple) and deref[0] == ir.deref: 
+        return ir.Pointer_expr(r)        
+    return r
+
+def c_tempvar(arg, idx):
+    typ, (a1, a2, conv) = arg
+    if conv: 
+        _, a1, a2, _ = conv # use c ior name if available
+    return typ, (a1, a2)[idx]
 
 def strip_derefs(lvalue):
     t, (dest, src, data) = lvalue
     return t, (strip_deref(dest), strip_deref(src), data)
+
+def ext_to_chpl_classtype(typ, name):
+    """
+    deal with the dual representation of Extensibles as raw sidl
+    pointers and Chapel objects
+    """
+    #if name =='_ior__retval':print typ, name
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+        if name == '_ior__retval': name = '_retval'
+        #if name == '_retval': name = '_ior_retval'
+        if typ[1][1][0] == sidl.scoped_id:
+            _, prefix, tname, ext = typ[1][1]
+            if ext == '__object' and name == '_retval':
+                #name <> '_ex' and name[:4] <> '_ior_': 
+                return ir.Typedef_type('.'.join(list(prefix)+[tname])), name
+    return typ, name
+
 
 #------------------------------------------------------------------------
 # Test harness
@@ -468,7 +496,7 @@ def test_harness():
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
 stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
-    cstub, name, arg_names, inargs, call = a0
+    cstub, name, arg_names, inargs, call_args, ci = a0
     inargs = ensure_list(inargs)
     outargs = map(strip_derefs, ensure_list(a1))
 
@@ -477,7 +505,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
                        map(lambda a: (a[0], a[1][1]), outargs))
     for tmp in unique_temps:
-        scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
+        scope.genh(ir.Stmt(ir.Var_decl(*ext_to_chpl_classtype(*tmp))))
 
     # Stub in C:
     #
@@ -502,6 +530,30 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     pre_call =  reduce(join, map(c_convs,  inargs), [])
     post_call = reduce(join, map(c_convs, outargs), [])
 
+    # generate the call to the real function implementation
+    call_args1 = []
+
+    # merge incoming and outgoing args again
+    i = 0
+    for arg in call_args:
+        if arg[0] == outgoing_arg:
+            call_args1.append(deref_to_addr(outargs[i], 1))
+            i += 1
+        else: 
+            call_args1.append(deref_to_addr(arg, 0))
+            if (arg[1][1] == outargs[i][1][0] or 
+                (arg[1][1][0] == ir.deref and 
+                 arg[1][1][1] == outargs[i][1][0])):
+                i += 1 # mode.inout
+
+    #if name in ['passeverywherefcomplex','passoutbool','removeReady']:
+    #    print outargs[0][1]
+    #    print outargs
+    #    print call_args1
+    #    #import pdb; pdb.set_trace()
+    call = babel.vcall(name, call_args1, ci)
+
+
     if ftype <> ir.pt_void:
         if post_call:
             pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
@@ -518,13 +570,15 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     cstub_body = [s for s in (cstub_body0) if s]
     scope.cstub.gen(ir.Fn_defn(attrs, cstub_type, cstub, cstub_args, cstub_body, 
                                'remaining Stub in C'))
+    #scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
+    scope.genh((ir.fn_decl, ['extern']+attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
     return None
 
-
+# NONVIRTUAL CLIENT
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
 stmt <-- ior_call_assign(rvalue_ior_chpl, lvalue_chpl_chpl) :cost(1)
-    cstub, name, arg_names, inargs = a0
+    inargs = a0
     inargs = ensure_list(inargs)
     outargs = map(strip_derefs, ensure_list(a1))
 
@@ -533,8 +587,8 @@ stmt <-- ior_call_assign(rvalue_ior_chpl, lvalue_chpl_chpl) :cost(1)
     unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
                        map(lambda a: (a[0], a[1][1]), outargs))
     for tmp in unique_temps:
-        scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
-
+        if tmp[1][:5] == '_ior_' or tmp[1] == '_ex': #FIXME
+            scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
     return None
 
 any_method <-- virtual_method : cost(0)
@@ -564,47 +618,103 @@ rvalue_ior_c <-- ior_call(any_method, rvalue_ior_c) :cost(2)
     # the outgoing pseudo-args are only there to pass the expressions in the right order
     inargs = filter(lambda a: a[0] <> outgoing_arg, args)
 
-    # generate the call to the real function implementation
-    call_args = map(lambda a: deref_to_addr(a), la1)
-    call = babel.vcall(name, call_args, ci)
-    return cstub, name, arg_names, inargs, call
+    return cstub, name, arg_names, inargs, la1, ci
 
 # nonvirtual methods
 rvalue_ior_chpl <-- ior_call(nonvirtual_method, rvalue_ior_chpl) :cost(1)
     ftype, name, ci = a0
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
-    call_args = map(lambda a: deref_to_addr(a), la1)
-    import pdb; pdb.set_trace()
-    print 'IMPLEMENT ME'
-
+    call_args = map(lambda a: deref_to_addr(a, 0), la1)
+    #print 'IMPLEMENT ME'
     if ftype <> ir.pt_void:
-        scope.gen(ir.Copy('_ior_retval', ir.Call(name, call_params)))
+        scope.gen(ir.Copy('_ior__retval', ir.Call(name, call_args)))
     else:
-        scope.gen(ir.Stmt(ir.Call(name, call_params)))
+        scope.gen(ir.Stmt(ir.Call(name, call_args)))
 
     # the outgoing pseudo-args are only there to pass the expressions in the right order
     inargs = filter(lambda a: a[0] <> outgoing_arg, args)
-    call_args = map(lambda a: deref_to_addr(a), la1)
-    call = ir.Call(a0, call_args)
-    return name, name, arg_names, inargs
+    #call_args = map(lambda a: deref_to_addr(a), la1)
+    #call = ir.Call(a0, call_args)
+    return inargs
 
 #
 # SERVER
 #
 
 # skeleton -> implementation calls
-stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_chpl) :cost(1)
-    inargs = a0
+stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
+    ftype, name, ci, call_args, inargs = a0
     inargs = ensure_list(inargs)
     outargs = map(strip_derefs, ensure_list(a1))
 
     # now that we know all of them, declare temporary variables for
     # the Chapel stub
-    unique_temps = set(map(lambda a: (a[0], a[1][0]), inargs)+
-                       map(lambda a: (a[0], a[1][1]), outargs))
+    unique_temps = set(map(lambda a: c_tempvar(a, 0), inargs)+
+                       map(lambda a: c_tempvar(a, 1), outargs))
     for tmp in unique_temps:
-        scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
+        if tmp[1] == '_chpl__ex':
+            scope.cstub.genh(ir.Stmt(ir.Var_decl(ir.Pointer_type(tmp[0]),tmp[1])))
+        elif tmp[1][:6] == '_chpl_':
+            scope.cstub.genh(ir.Stmt(ir.Var_decl(*tmp)))
+
+    # merge incoming and outgoing args again
+    impl_params = []
+    impl_decl_args = []
+    i = 0
+    for arg in call_args:
+        if arg[0] == outgoing_arg:
+            impl_decl_args.append(ir.Arg([], ir.out, outargs[i][0], outargs[i][1][1]))
+            impl_params.append(deref_to_addr(outargs[i], 1))
+            i += 1
+        else:
+            #impl_args.append(arg)
+            impl_params.append(deref_to_addr(arg, 0))
+            if (arg[1][1] == outargs[i][1][0] or 
+                (arg[1][1][0] == ir.deref and 
+                 arg[1][1][1] == outargs[i][1][0])):
+                i += 1 # mode.inout
+                impl_decl_args.append(ir.Arg([], ir.inout, arg[0], arg[1][0]))
+            else:
+                impl_decl_args.append(ir.Arg([], ir.in_, arg[0], arg[1][0]))
+
+    join = lambda a, b: a+b
+    pre_call =  reduce(join, map(c_convs,  inargs), [])
+    post_call = reduce(join, map(c_convs, outargs), [])
+    # generate the call to the Chapel implementation
+    #impl_params = map(lambda a: deref_to_addr(a, 0), args)
+    #arg_names   = map(lambda a: strip_derefs(a)[1][1], args)
+
+    if len(outargs) > 0 and outargs[-1][1][0] == '_retval':
+        ftype, (_, retval, convs) = outargs[-1]
+        if convs: ftype, _, retval, _ = convs
+    else:
+        ftype = ir.pt_void
+
+    impl = '%s_%s_impl'%('_'.join(ci.co.qualified_name), name)
+    call = ir.Call(impl, impl_params)
+
+    if ftype <> ir.pt_void:
+        impl_type = c_tempvar(outargs[-1], 1)[0]
+        if post_call:
+            pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
+            impl_call = ir.Copy(retval, call)
+            if not assigns_retval(post_call):
+                post_call.append(ir.Copy('_retval', retval))
+            post_call.append(ir.Stmt(ir.Return('_retval')))
+        else:
+            impl_call = ir.Stmt(ir.Return(call))
+    else:
+        impl_type = ir.void
+        impl_call = ir.Stmt(call)
+
+    map(scope.cstub.gen, pre_call)
+    scope.cstub.gen(impl_call)
+    map(scope.cstub.gen, post_call)
+
+    impldecl = (ir.fn_decl, [], impl_type, impl, impl_decl_args, 'user-defined implementation')
+    ci.chpl_skel.cstub.gen(impldecl)
+
 
     return None
 
@@ -614,23 +724,10 @@ rvalue_chpl_chpl <-- chpl_call(any_method, rvalue_chpl_chpl) :cost(1)
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
 
-    # generate the call to the C Stub
-    cstub_params = map(lambda a: strip_derefs(a)[1][0], args)
-    arg_names    = map(lambda a: strip_derefs(a)[1][1], args)
-
-    cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
-    if ftype <> ir.pt_void:
-        scope.gen(ir.Copy('_ior__retval', ir.Call(cstub, cstub_params)))
-    else:
-        scope.gen(ir.Stmt(ir.Call(cstub, cstub_params)))
-
     # the outgoing pseudo-args are only there to pass the expressions in the right order
     inargs = filter(lambda a: a[0] <> outgoing_arg, args)
 
-    # generate the call to the real function implementation
-    call_args = map(lambda a: deref_to_addr(a), la1)
-    scope.gen(ir.Stmt(ir.Call(name, call_args)))
-    return inargs
+    return ftype, name, ci, args, inargs
 
 
 #
@@ -684,12 +781,19 @@ rvalue_ior_c     <-- outgoing_arg  :cost(0)
 rvalue_chpl_chpl <-- outgoing_arg  :cost(0)
     return outgoing_arg, (a0, a0, None)
 
+rvalue_ior_chpl  <-- outgoing_arg  :cost(0)
+    return outgoing_arg, (a0, a0, None)
+
+rvalue_chpl_c    <-- outgoing_arg  :cost(0)
+    return outgoing_arg, (a0, a0, None)
+
 # this conversion is essentially a no-op; it says that values
 # converted at the chpl level are also compatible with a stub
-value_ior_c     <-- value_ior_chpl   :cost(0)
-value_ior_chpl  <-- value_ior_c      :cost(0)
-value_chpl_c    <-- value_chpl_chpl  :cost(0)
-value_chpl_chpl <-- value_chpl_c     :cost(0)
+# DO NOT UNCOMMENT THESE, cf. *assign*
+#value_ior_c     <-- value_ior_chpl   :cost(0)
+#value_ior_chpl  <-- value_ior_c      :cost(0)
+#value_chpl_c    <-- value_chpl_chpl  :cost(0)
+#value_chpl_chpl <-- value_chpl_c     :cost(0)
 
 # rvalue and lvalue only serve to make the call rules more readable
 lvalue_ior_c     <-- value_ior_c    :cost(0)
@@ -787,51 +891,46 @@ ext_ior_chpl    <-- ext_ior_c    :cost(0)
 ext_ior_c       <-- ext_ior_chpl    :cost(0)
 # 
 ext_chpl_c      <-- ext_chpl_chpl :cost(0)
-ext_chpl_chpl   <-- ext_chpl_c    :cost(0)
+#ext_chpl_chpl   <-- ext_chpl_c    :cost(0)
 
 ext_ior_chpl    <-- ext_chpl_chpl:cost(1)
-    t, (dest, src, _) = a0
-    ptr, (struct, s_id, items, doc) = t
-    h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
-    name = s_id[2]+s_id[3]
-    scope.gen(ir.Copy(dest, '%s.self_%s'%(src, name)))
-    return h_t, (dest, src, None)
-
-ext_chpl_c    <-- ext_ior_c :cost(30)
     t, (dest, src, orig) = a0
     ptr, (struct, s_id, items, doc) = t
     h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
-    # hardcoded: self argument
-    if src == 'self':
-        scope.gen(ir.Copy(dest, access(src, 'd_data')))
-        return h_t, (dest, src, None)
- 
-    # hardcoded: Babel exception argument
-    if src == '_ior__ex':
+
+    # hardcoded: Babel exception argument, SERVER-side
+    if src == '_chpl__ex':
+        scope.cstub.gen(ir.Copy('_ex', src))
         return h_t, (orig, orig, None)
-    # else call static wrap function
-    # FIXME
-    import pdb; pdb.set_trace()
+
+    name = s_id[2]# +s_id[3] hijacked for '__object'
+    scope.gen(ir.Copy(dest, '%s.self_%s'%(src, name)))
+    return h_t, (dest, src, None)
 
 ext_chpl_chpl <-- ext_ior_chpl :cost(1)
     t, (dest, src, orig) = a0
     ptr, (struct, s_id, items, doc) = t
     h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
 
-    # hardcoded: Babel exception argument
+    # hardcoded: Babel exception argument, CLIENT-side
     if src == '_ior__ex':
         scope.gen(ir.Stmt(ir.If(
                     ir.Call("IS_NOT_NULL", ['_ex']), 
                     [ir.Copy('_chpl_ex', ir.Call("new BaseInterface", ['_ex']))])))
         return h_t, (orig, orig, None)
 
-    # regular object (interface/class)
+    # hardcoded: self argument, SERVER-side
+    if src == 'self':
+        scope.cstub.gen(ir.Copy(dest, access(ir.Deref(src), 'd_data')))
+        return ir.void_ptr, (dest, src, None)
+ 
+    # regular object with unknown implementation language (interface/class)
 
     # drop the id's extension, which we hijacked for '__object'
     s_id1 = ir.Scoped_id(s_id[1], s_id[2], '')
     name = s_id[2]
     #mod_name = '.'.join(full_type[1]+[name])
-    wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [src, '_ex'])
+    wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [src, '_chpl_ex'])
     scope.gen(ir.Copy(dest, wrap))
     return h_t, (dest, src, None) #(h_t, [ir.Copy(dest, src)])
 
@@ -856,6 +955,7 @@ bool_chpl_c <-- bool_ior_c: cost(1)
 
 bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
     dest, src, orig = a0
+    import pdb; pdb.set_trace()
     t = ir.Typedef_type('chpl_bool')
     conv = ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", [src]))
     return t, (orig, orig, (ir.pt_int, dest, src, conv))
@@ -865,6 +965,9 @@ bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
 #------------------------------------------------------------------------
 char_chpl_c      <-- char_chpl_chpl :cost(0)
 char_chpl_chpl   <-- char_chpl_c    :cost(0)
+#char_ior_c       <-- char_ior_chpl  :cost(0)
+char_ior_chpl    <-- char_ior_c     :cost(0)
+
 char_ior_c <-- char_chpl_c : cost(1)
     dest, src, orig = a0
     conv = [ir.Comment('in chapel, a char is a string of length 1'),
@@ -885,8 +988,10 @@ char_chpl_c <-- char_ior_c : cost(1)
 #------------------------------------------------------------------------
 fcomplex_chpl_c      <-- fcomplex_chpl_chpl :cost(0)
 fcomplex_chpl_chpl   <-- fcomplex_chpl_c    :cost(0)
+fcomplex_ior_chpl    <-- fcomplex_ior_c     :cost(0)
 dcomplex_chpl_c      <-- dcomplex_chpl_chpl :cost(0)
 dcomplex_chpl_chpl   <-- dcomplex_chpl_c    :cost(0)
+dcomplex_ior_chpl    <-- dcomplex_ior_c     :cost(0)
 
 fcomplex_ior_c <-- fcomplex_chpl_c : cost(2)
     dest, src, orig = a0
@@ -933,6 +1038,8 @@ enum_chpl_c <-- enum_ior_c : cost(1)
 #------------------------------------------------------------------------
 string_chpl_c      <-- string_chpl_chpl :cost(0)
 string_chpl_chpl   <-- string_chpl_c    :cost(0)
+# DO NOT UNCOMMENT THE FOLLOWING LINE
+#string_ior_chpl    <-- string_ior_c     :cost(0)
 string_ior_c <-- string_chpl_c : cost(0)
     dest, src, orig = a0
     return ir.pt_string, (orig, orig, (ir.pt_string, dest, src, [ir.Copy(dest, src)]))
@@ -949,6 +1056,8 @@ string_chpl_c <-- string_ior_c : cost(1)
 #------------------------------------------------------------------------
 int_chpl_c      <-- int_chpl_chpl :cost(0)
 int_chpl_chpl   <-- int_chpl_c    :cost(0)
+int_ior_chpl    <-- int_ior_c     :cost(0)
+
 int_ior_c <-- int_chpl_c : cost(0)
     return copy_over(ir.pt_int, a0)
 
@@ -959,6 +1068,8 @@ int_chpl_c <-- int_ior_c : cost(0)
 #------------------------------------------------------------------------
 long_chpl_c      <-- long_chpl_chpl :cost(0)
 long_chpl_chpl   <-- long_chpl_c    :cost(0)
+long_ior_chpl    <-- long_ior_c     :cost(0)
+
 long_ior_c <-- long_chpl_c : cost(0)
     return copy_over(ir.pt_long, a0)
 long_chpl_c <-- long_ior_c : cost(0)
@@ -968,6 +1079,8 @@ long_chpl_c <-- long_ior_c : cost(0)
 #------------------------------------------------------------------------
 float_chpl_c      <-- float_chpl_chpl :cost(0)
 float_chpl_chpl   <-- float_chpl_c    :cost(0)
+float_ior_chpl    <-- float_ior_c     :cost(0)
+
 float_ior_c <-- float_chpl_c : cost(0)
     return copy_over(ir.pt_float, a0)
 float_chpl_c <-- float_ior_c : cost(0)
@@ -977,6 +1090,7 @@ float_chpl_c <-- float_ior_c : cost(0)
 #------------------------------------------------------------------------
 double_chpl_c      <-- double_chpl_chpl :cost(0)
 double_chpl_chpl   <-- double_chpl_c    :cost(0)
+double_ior_chpl    <-- double_ior_c     :cost(0)
 double_ior_c <-- double_chpl_c : cost(0)
     return copy_over(ir.pt_double, a0)
 double_chpl_c <-- double_ior_c : cost(0)

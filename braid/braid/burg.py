@@ -202,12 +202,23 @@ dotf = None
 
 # Right now the library is hard-coded and always the same. But in the
 # future we could customize it by using tailored fixed-size arrays
-# instead of sets to speed up the labelling process.
-
+# instead of sets to speed up the labeling process.
 
 #print 'rules = ', repr(rules)
 from parse_tree import *
 from utils import *
+
+def prettyprint(indent, a):
+    if isinstance(a, tuple):
+        r = ' '*indent+'%s('%str(a[0])
+        for a1 in a[1:]:
+            s = prettyprint(indent+4, a1)
+            if len(s) > 32: r += '\n'+' '*indent+s
+            else: r+=s
+            r += ', '
+        r += ')'
+        return r
+    else: return str(a)
 
 def is_terminal(symbol):
     # FIXME (performance) replace this hashtable lookup with a flag or a lookup-table
@@ -325,7 +336,6 @@ def label(node):
                 fixpoint = False
 
                 if dot_debug:
-                    global dotf
                     if isinstance(src, tuple):
                          for s in src[1:]:
                              print >>dotf, s, ' -> ', '_'.join(src), '[style=dashed];'
@@ -339,7 +349,7 @@ def label(node):
 
     if len(my_labels) == 0:
         print '**ERROR: no labeling found for %d-ary node'%arity
-        print '         <%s>'%repr(node)
+        print prettyprint(10, node)
         if child_labels:
             print '         Hint: this node would expect'
             for target, src, _, _ in rules:
@@ -421,14 +431,12 @@ def codegen(src, target, *user_args):
         raise Exception()
 
     if dot_debug:
-        global dotf
         dotf = open('/tmp/burg_tmp.dot', 'w')
         print >>dotf, 'digraph "G" {\n'
 
     labels = label(src)
 
     if dot_debug:
-        global dotf
         print >>dotf, '}\n'
         dotf.close()
     if debug:

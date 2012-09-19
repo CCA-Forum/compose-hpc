@@ -158,7 +158,8 @@ def vcall(name, args, ci):
         arguments = [ir.Arg([ir.pure], mode0, type0, name0)]+arguments[1:]
         cdecl = ir.Fn_decl(attrs, type_, id_, arguments, doc)
             
-    return ir.Call(ir.Deref(ir.Get_struct_item(epv_type,
+    return ir.Call(ir.Deref(ir.Get_struct_item(
+                epv_type,
                 ir.Deref(epv),
                 ir.Struct_item(ir.Pointer_type(cdecl), 'f_'+name))), args)
 
@@ -828,18 +829,6 @@ ${ext}__cast2(
 
 
 
-/*
- * TRUE if this object is remote, false if local
- */
-#pragma weak ${ext}__isLocal
-sidl_bool
-${ext}__isLocal(
-  /* in */ ${ext} self,
-  /* out */ sidl_BaseInterface *_ex)
-{
-  return !${ext}__isRemote(self, _ex);
-}
-
 // FIXME: this does not belong here. It should be in stub.h
 #pragma weak ${ext}__isRemote
 sidl_bool
@@ -852,6 +841,18 @@ ${ext}__isRemote(
     self,
     _ex);
   return _result;
+}
+
+/*
+ * TRUE if this object is remote, false if local
+ */
+#pragma weak ${ext}__isLocal
+sidl_bool
+${ext}__isLocal(
+  /* in */ ${ext} self,
+  /* out */ sidl_BaseInterface *_ex)
+{
+  return !${ext}__isRemote(self, _ex);
 }
 
 ''').substitute(ext=qual_id(scopedid), ext_dots=qual_id(scopedid, '.'))

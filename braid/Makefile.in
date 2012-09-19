@@ -32,7 +32,6 @@
 
 
 
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -53,18 +52,18 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-DIST_COMMON = README $(am__configure_deps) \
-	$(am__nobase_include_HEADERS_DIST) $(am__python_PYTHON_DIST) \
-	$(dist_man_MANS) $(nobase_python_PYTHON) $(noinst_PYTHON) \
-	$(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/braid/Makefile.include \
+DIST_COMMON = README $(am__configure_deps) $(am__python_PYTHON_DIST) \
+	$(dist_man_MANS) $(nobase_include_HEADERS) \
+	$(nobase_python_PYTHON) $(noinst_PYTHON) $(srcdir)/Doxyfile.in \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/braid/Makefile.include \
 	$(srcdir)/chapel-patches/Makefile.include \
 	$(srcdir)/chpl/Makefile.include \
 	$(srcdir)/patch-chapel-compiler.sh.in \
 	$(srcdir)/regression/interop/Makefile.include \
 	$(srcdir)/regression/interop/tests.mk \
-	$(srcdir)/upc/Makefile.include $(top_srcdir)/braid/braid.in \
-	$(top_srcdir)/braid/config.py.in $(top_srcdir)/braid/pyburg.in \
+	$(top_srcdir)/braid/braid.in $(top_srcdir)/braid/config.py.in \
+	$(top_srcdir)/braid/pyburg.in \
 	$(top_srcdir)/braid/rote2braid.in $(top_srcdir)/configure \
 	$(top_srcdir)/regression/interop/build-client.sh.in \
 	$(top_srcdir)/regression/interop/build-server.sh.in \
@@ -115,11 +114,6 @@ DIST_COMMON = README $(am__configure_deps) \
 @ENABLE_DOCUMENTATION_TRUE@	doc/html/search/*.* \
 @ENABLE_DOCUMENTATION_TRUE@        doc/users_guide.css
 
-# ------------------------------------------------------------------------
-
-# Babel functionality: UPC
-# ------------------------------------------------------------------------
-@BABEL_LANG_UPC_TRUE@am__append_22 = $(UPC_SIDLSTUB_HDRS)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
@@ -170,116 +164,10 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" \
-	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" \
-	"$(DESTDIR)$(includedir)"
-LIBRARIES = $(lib_LIBRARIES)
-ARFLAGS = cru
-AM_V_AR = $(am__v_AR_$(V))
-am__v_AR_ = $(am__v_AR_$(AM_DEFAULT_VERBOSITY))
-am__v_AR_0 = @echo "  AR    " $@;
-AM_V_at = $(am__v_at_$(V))
-am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
-am__v_at_0 = @
-libsidlstub_upc_a_AR = $(AR) $(ARFLAGS)
-libsidlstub_upc_a_LIBADD =
-am__libsidlstub_upc_a_SOURCES_DIST = upc/sidl_BaseClass_Stub.upc \
-	upc/sidl_BaseException_Stub.upc \
-	upc/sidl_BaseInterface_Stub.upc \
-	upc/sidl_CastException_Stub.upc upc/sidl_ClassInfo_Stub.upc \
-	upc/sidl_ClassInfoI_Stub.upc upc/sidl_DFinder_Stub.upc \
-	upc/sidl_DLL_Stub.upc upc/sidl_EnfPolicy_Stub.upc \
-	upc/sidl_Finder_Stub.upc upc/sidl_InvViolation_Stub.upc \
-	upc/sidl_io_Deserializer_Stub.upc \
-	upc/sidl_io_IOException_Stub.upc \
-	upc/sidl_io_Serializable_Stub.upc \
-	upc/sidl_io_Serializer_Stub.upc \
-	upc/sidl_LangSpecificException_Stub.upc \
-	upc/sidl_Loader_Stub.upc upc/sidl_MemAllocException_Stub.upc \
-	upc/sidl_NotImplementedException_Stub.upc \
-	upc/sidl_PostViolation_Stub.upc upc/sidl_PreViolation_Stub.upc \
-	upc/sidl_rmi_BindException_Stub.upc upc/sidl_rmi_Call_Stub.upc \
-	upc/sidl_rmi_ConnectException_Stub.upc \
-	upc/sidl_rmi_ConnectRegistry_Stub.upc \
-	upc/sidl_rmi_InstanceHandle_Stub.upc \
-	upc/sidl_rmi_InstanceRegistry_Stub.upc \
-	upc/sidl_rmi_Invocation_Stub.upc \
-	upc/sidl_rmi_MalformedURLException_Stub.upc \
-	upc/sidl_rmi_NetworkException_Stub.upc \
-	upc/sidl_rmi_NoRouteToHostException_Stub.upc \
-	upc/sidl_rmi_NoServerException_Stub.upc \
-	upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc \
-	upc/sidl_rmi_ProtocolException_Stub.upc \
-	upc/sidl_rmi_ProtocolFactory_Stub.upc \
-	upc/sidl_rmi_Response_Stub.upc upc/sidl_rmi_Return_Stub.upc \
-	upc/sidl_rmi_ServerInfo_Stub.upc \
-	upc/sidl_rmi_ServerRegistry_Stub.upc \
-	upc/sidl_rmi_TicketBook_Stub.upc upc/sidl_rmi_Ticket_Stub.upc \
-	upc/sidl_rmi_TimeOutException_Stub.upc \
-	upc/sidl_rmi_UnexpectedCloseException_Stub.upc \
-	upc/sidl_rmi_UnknownHostException_Stub.upc \
-	upc/sidl_RuntimeException_Stub.upc \
-	upc/sidl_SIDLException_Stub.upc
-@BABEL_LANG_UPC_TRUE@am__objects_1 = libsidlstub_upc_a-sidl_BaseClass_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_BaseException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_BaseInterface_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_CastException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_ClassInfo_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_ClassInfoI_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_DFinder_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_DLL_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_EnfPolicy_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_Finder_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_InvViolation_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_io_Deserializer_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_io_IOException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_io_Serializable_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_io_Serializer_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_LangSpecificException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_Loader_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_MemAllocException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_NotImplementedException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_PostViolation_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_PreViolation_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_BindException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_Call_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_Invocation_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_Response_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_Return_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_Ticket_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_RuntimeException_Stub.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libsidlstub_upc_a-sidl_SIDLException_Stub.$(OBJEXT)
-@BABEL_LANG_UPC_TRUE@am_libsidlstub_upc_a_OBJECTS = $(am__objects_1)
-libsidlstub_upc_a_OBJECTS = $(am_libsidlstub_upc_a_OBJECTS)
-libupc_runtime_extra_a_AR = $(AR) $(ARFLAGS)
-libupc_runtime_extra_a_LIBADD =
-am__libupc_runtime_extra_a_SOURCES_DIST = upc/upc_stub_startup_tmp.c \
-	upc/upcr_trans_extra.c upc/upc_stub.trans.c
-@BABEL_LANG_UPC_TRUE@am__objects_2 = libupc_runtime_extra_a-upc_stub_startup_tmp.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libupc_runtime_extra_a-upcr_trans_extra.$(OBJEXT) \
-@BABEL_LANG_UPC_TRUE@	libupc_runtime_extra_a-upc_stub.trans.$(OBJEXT)
-@BABEL_LANG_UPC_TRUE@am_libupc_runtime_extra_a_OBJECTS =  \
-@BABEL_LANG_UPC_TRUE@	$(am__objects_2)
-libupc_runtime_extra_a_OBJECTS = $(am_libupc_runtime_extra_a_OBJECTS)
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" \
+	"$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" \
+	"$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" \
+	"$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES) $(nobase_pyexec_LTLIBRARIES)
 braid_scanner_la_DEPENDENCIES =
 am_braid_scanner_la_OBJECTS = braid_scanner_la-scanner.lo
@@ -293,7 +181,7 @@ braid_scanner_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	-o $@
 am__dirstamp = $(am__leading_dot)dirstamp
 libsidlstub_chpl_la_LIBADD =
-am__objects_3 = libsidlstub_chpl_la-sidl_BaseClass_cStub.lo \
+am__objects_1 = libsidlstub_chpl_la-sidl_BaseClass_cStub.lo \
 	libsidlstub_chpl_la-sidl_BaseException_cStub.lo \
 	libsidlstub_chpl_la-sidl_BaseInterface_cStub.lo \
 	libsidlstub_chpl_la-sidl_CastException_cStub.lo \
@@ -339,7 +227,7 @@ am__objects_3 = libsidlstub_chpl_la-sidl_BaseClass_cStub.lo \
 	libsidlstub_chpl_la-sidl_rmi_UnknownHostException_cStub.lo \
 	libsidlstub_chpl_la-sidl_RuntimeException_cStub.lo \
 	libsidlstub_chpl_la-sidl_SIDLException_cStub.lo
-am_libsidlstub_chpl_la_OBJECTS = $(am__objects_3)
+am_libsidlstub_chpl_la_OBJECTS = $(am__objects_1)
 libsidlstub_chpl_la_OBJECTS = $(am_libsidlstub_chpl_la_OBJECTS)
 SCRIPTS = $(bin_SCRIPTS) $(noinst_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -355,6 +243,9 @@ LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 AM_V_CC = $(am__v_CC_$(V))
 am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
 am__v_CC_0 = @echo "  CC    " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 CCLD = $(CC)
 LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -370,31 +261,12 @@ AM_V_LEX = $(am__v_LEX_$(V))
 am__v_LEX_ = $(am__v_LEX_$(AM_DEFAULT_VERBOSITY))
 am__v_LEX_0 = @echo "  LEX   " $@;
 YLWRAP = $(top_srcdir)/config/ylwrap
-UPCCOMPILE = $(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS)
-LTUPCCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(UPC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_UPCFLAGS) $(UPCFLAGS)
-AM_V_UPC = $(am__v_UPC_$(V))
-am__v_UPC_ = $(am__v_UPC_$(AM_DEFAULT_VERBOSITY))
-am__v_UPC_0 = @echo "  UPC   " $@;
-UPCLD = $(UPC)
-UPCLINK = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(UPCLD) $(AM_UPCFLAGS) $(UPCFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-AM_V_UPCLD = $(am__v_UPCLD_$(V))
-am__v_UPCLD_ = $(am__v_UPCLD_$(AM_DEFAULT_VERBOSITY))
-am__v_UPCLD_0 = @echo "  UPCLD " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(libsidlstub_upc_a_SOURCES) \
-	$(libupc_runtime_extra_a_SOURCES) $(braid_scanner_la_SOURCES) \
+SOURCES = $(braid_scanner_la_SOURCES) $(libsidlstub_chpl_la_SOURCES)
+DIST_SOURCES = $(braid_scanner_la_SOURCES) \
 	$(libsidlstub_chpl_la_SOURCES)
-DIST_SOURCES = $(am__libsidlstub_upc_a_SOURCES_DIST) \
-	$(am__libupc_runtime_extra_a_SOURCES_DIST) \
-	$(braid_scanner_la_SOURCES) $(libsidlstub_chpl_la_SOURCES)
 INFO_DEPS = $(srcdir)/doc/braid.info
 TEXINFO_TEX = $(top_srcdir)/config/texinfo.tex
 am__TEXINFO_TEX_DIR = $(top_srcdir)/config
@@ -415,174 +287,6 @@ py_compile = $(top_srcdir)/config/py-compile
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(dist_man_MANS)
-am__nobase_include_HEADERS_DIST = chpl/chpl_sidl_array.h \
-	chpl/sidl.chpl chpl/sidl_BaseClass_cStub.h \
-	chpl/sidl_BaseClass_Stub.h chpl/sidl_BaseClass_IOR.h \
-	chpl/sidl_BaseException_cStub.h chpl/sidl_BaseException_Stub.h \
-	chpl/sidl_BaseException_IOR.h chpl/sidl_BaseInterface_cStub.h \
-	chpl/sidl_BaseInterface_Stub.h chpl/sidl_BaseInterface_IOR.h \
-	chpl/sidl_CastException_cStub.h chpl/sidl_CastException_Stub.h \
-	chpl/sidl_CastException_IOR.h chpl/sidl_ClassInfo_cStub.h \
-	chpl/sidl_ClassInfo_Stub.h chpl/sidl_ClassInfo_IOR.h \
-	chpl/sidl_ClassInfoI_cStub.h chpl/sidl_ClassInfoI_Stub.h \
-	chpl/sidl_ClassInfoI_IOR.h chpl/sidl_DFinder_cStub.h \
-	chpl/sidl_DFinder_Stub.h chpl/sidl_DFinder_IOR.h \
-	chpl/sidl_DLL_cStub.h chpl/sidl_DLL_Stub.h chpl/sidl_DLL_IOR.h \
-	chpl/sidl_EnfPolicy_cStub.h chpl/sidl_EnfPolicy_Stub.h \
-	chpl/sidl_EnfPolicy_IOR.h chpl/sidl_Finder_cStub.h \
-	chpl/sidl_Finder_Stub.h chpl/sidl_Finder_IOR.h \
-	chpl/sidl_InvViolation_cStub.h chpl/sidl_InvViolation_Stub.h \
-	chpl/sidl_InvViolation_IOR.h chpl/sidl_io_Deserializer_cStub.h \
-	chpl/sidl_io_Deserializer_Stub.h \
-	chpl/sidl_io_Deserializer_IOR.h \
-	chpl/sidl_io_IOException_cStub.h \
-	chpl/sidl_io_IOException_Stub.h chpl/sidl_io_IOException_IOR.h \
-	chpl/sidl_io_Serializable_cStub.h \
-	chpl/sidl_io_Serializable_Stub.h \
-	chpl/sidl_io_Serializable_IOR.h \
-	chpl/sidl_io_Serializer_cStub.h chpl/sidl_io_Serializer_Stub.h \
-	chpl/sidl_io_Serializer_IOR.h \
-	chpl/sidl_LangSpecificException_cStub.h \
-	chpl/sidl_LangSpecificException_Stub.h \
-	chpl/sidl_LangSpecificException_IOR.h chpl/sidl_Loader_cStub.h \
-	chpl/sidl_Loader_Stub.h chpl/sidl_Loader_IOR.h \
-	chpl/sidl_MemAllocException_cStub.h \
-	chpl/sidl_MemAllocException_Stub.h \
-	chpl/sidl_MemAllocException_IOR.h \
-	chpl/sidl_NotImplementedException_cStub.h \
-	chpl/sidl_NotImplementedException_Stub.h \
-	chpl/sidl_NotImplementedException_IOR.h \
-	chpl/sidl_PostViolation_cStub.h chpl/sidl_PostViolation_Stub.h \
-	chpl/sidl_PostViolation_IOR.h chpl/sidl_PreViolation_cStub.h \
-	chpl/sidl_PreViolation_Stub.h chpl/sidl_PreViolation_IOR.h \
-	chpl/sidl_rmi_BindException_cStub.h \
-	chpl/sidl_rmi_BindException_Stub.h \
-	chpl/sidl_rmi_BindException_IOR.h chpl/sidl_rmi_Call_cStub.h \
-	chpl/sidl_rmi_Call_Stub.h chpl/sidl_rmi_Call_IOR.h \
-	chpl/sidl_rmi_ConnectException_cStub.h \
-	chpl/sidl_rmi_ConnectException_Stub.h \
-	chpl/sidl_rmi_ConnectException_IOR.h \
-	chpl/sidl_rmi_ConnectRegistry_cStub.h \
-	chpl/sidl_rmi_ConnectRegistry_Stub.h \
-	chpl/sidl_rmi_ConnectRegistry_IOR.h \
-	chpl/sidl_rmi_InstanceHandle_cStub.h \
-	chpl/sidl_rmi_InstanceHandle_Stub.h \
-	chpl/sidl_rmi_InstanceHandle_IOR.h \
-	chpl/sidl_rmi_InstanceRegistry_cStub.h \
-	chpl/sidl_rmi_InstanceRegistry_Stub.h \
-	chpl/sidl_rmi_InstanceRegistry_IOR.h \
-	chpl/sidl_rmi_Invocation_cStub.h \
-	chpl/sidl_rmi_Invocation_Stub.h chpl/sidl_rmi_Invocation_IOR.h \
-	chpl/sidl_rmi_MalformedURLException_cStub.h \
-	chpl/sidl_rmi_MalformedURLException_Stub.h \
-	chpl/sidl_rmi_MalformedURLException_IOR.h \
-	chpl/sidl_rmi_NetworkException_cStub.h \
-	chpl/sidl_rmi_NetworkException_Stub.h \
-	chpl/sidl_rmi_NetworkException_IOR.h \
-	chpl/sidl_rmi_NoRouteToHostException_cStub.h \
-	chpl/sidl_rmi_NoRouteToHostException_Stub.h \
-	chpl/sidl_rmi_NoRouteToHostException_IOR.h \
-	chpl/sidl_rmi_NoServerException_cStub.h \
-	chpl/sidl_rmi_NoServerException_Stub.h \
-	chpl/sidl_rmi_NoServerException_IOR.h \
-	chpl/sidl_rmi_ObjectDoesNotExistException_cStub.h \
-	chpl/sidl_rmi_ObjectDoesNotExistException_Stub.h \
-	chpl/sidl_rmi_ObjectDoesNotExistException_IOR.h \
-	chpl/sidl_rmi_ProtocolException_cStub.h \
-	chpl/sidl_rmi_ProtocolException_Stub.h \
-	chpl/sidl_rmi_ProtocolException_IOR.h \
-	chpl/sidl_rmi_ProtocolFactory_cStub.h \
-	chpl/sidl_rmi_ProtocolFactory_Stub.h \
-	chpl/sidl_rmi_ProtocolFactory_IOR.h \
-	chpl/sidl_rmi_Response_cStub.h chpl/sidl_rmi_Response_Stub.h \
-	chpl/sidl_rmi_Response_IOR.h chpl/sidl_rmi_Return_cStub.h \
-	chpl/sidl_rmi_Return_Stub.h chpl/sidl_rmi_Return_IOR.h \
-	chpl/sidl_rmi_ServerInfo_cStub.h \
-	chpl/sidl_rmi_ServerInfo_Stub.h chpl/sidl_rmi_ServerInfo_IOR.h \
-	chpl/sidl_rmi_ServerRegistry_cStub.h \
-	chpl/sidl_rmi_ServerRegistry_Stub.h \
-	chpl/sidl_rmi_ServerRegistry_IOR.h \
-	chpl/sidl_rmi_TicketBook_cStub.h \
-	chpl/sidl_rmi_TicketBook_Stub.h chpl/sidl_rmi_TicketBook_IOR.h \
-	chpl/sidl_rmi_Ticket_cStub.h chpl/sidl_rmi_Ticket_Stub.h \
-	chpl/sidl_rmi_Ticket_IOR.h \
-	chpl/sidl_rmi_TimeOutException_cStub.h \
-	chpl/sidl_rmi_TimeOutException_Stub.h \
-	chpl/sidl_rmi_TimeOutException_IOR.h \
-	chpl/sidl_rmi_UnexpectedCloseException_cStub.h \
-	chpl/sidl_rmi_UnexpectedCloseException_Stub.h \
-	chpl/sidl_rmi_UnexpectedCloseException_IOR.h \
-	chpl/sidl_rmi_UnknownHostException_cStub.h \
-	chpl/sidl_rmi_UnknownHostException_Stub.h \
-	chpl/sidl_rmi_UnknownHostException_IOR.h \
-	chpl/sidl_RuntimeException_cStub.h \
-	chpl/sidl_RuntimeException_Stub.h \
-	chpl/sidl_RuntimeException_IOR.h \
-	chpl/sidl_SIDLException_cStub.h chpl/sidl_SIDLException_Stub.h \
-	chpl/sidl_SIDLException_IOR.h upc/sidl_BaseClass_Stub.h \
-	upc/sidl_BaseClass_IOR.h upc/sidl_BaseException_Stub.h \
-	upc/sidl_BaseException_IOR.h upc/sidl_BaseInterface_Stub.h \
-	upc/sidl_BaseInterface_IOR.h upc/sidl_CastException_Stub.h \
-	upc/sidl_CastException_IOR.h upc/sidl_ClassInfo_Stub.h \
-	upc/sidl_ClassInfo_IOR.h upc/sidl_ClassInfoI_Stub.h \
-	upc/sidl_ClassInfoI_IOR.h upc/sidl_DFinder_Stub.h \
-	upc/sidl_DFinder_IOR.h upc/sidl_DLL_Stub.h upc/sidl_DLL_IOR.h \
-	upc/sidl_EnfPolicy_Stub.h upc/sidl_EnfPolicy_IOR.h \
-	upc/sidl_Finder_Stub.h upc/sidl_Finder_IOR.h \
-	upc/sidl_InvViolation_Stub.h upc/sidl_InvViolation_IOR.h \
-	upc/sidl_io_Deserializer_Stub.h upc/sidl_io_Deserializer_IOR.h \
-	upc/sidl_io_IOException_Stub.h upc/sidl_io_IOException_IOR.h \
-	upc/sidl_io_Serializable_Stub.h upc/sidl_io_Serializable_IOR.h \
-	upc/sidl_io_Serializer_Stub.h upc/sidl_io_Serializer_IOR.h \
-	upc/sidl_LangSpecificException_Stub.h \
-	upc/sidl_LangSpecificException_IOR.h upc/sidl_Loader_Stub.h \
-	upc/sidl_Loader_IOR.h upc/sidl_MemAllocException_Stub.h \
-	upc/sidl_MemAllocException_IOR.h \
-	upc/sidl_NotImplementedException_Stub.h \
-	upc/sidl_NotImplementedException_IOR.h \
-	upc/sidl_PostViolation_Stub.h upc/sidl_PostViolation_IOR.h \
-	upc/sidl_PreViolation_Stub.h upc/sidl_PreViolation_IOR.h \
-	upc/sidl_rmi_BindException_Stub.h \
-	upc/sidl_rmi_BindException_IOR.h upc/sidl_rmi_Call_Stub.h \
-	upc/sidl_rmi_Call_IOR.h upc/sidl_rmi_ConnectException_Stub.h \
-	upc/sidl_rmi_ConnectException_IOR.h \
-	upc/sidl_rmi_ConnectRegistry_Stub.h \
-	upc/sidl_rmi_ConnectRegistry_IOR.h \
-	upc/sidl_rmi_InstanceHandle_Stub.h \
-	upc/sidl_rmi_InstanceHandle_IOR.h \
-	upc/sidl_rmi_InstanceRegistry_Stub.h \
-	upc/sidl_rmi_InstanceRegistry_IOR.h \
-	upc/sidl_rmi_Invocation_Stub.h upc/sidl_rmi_Invocation_IOR.h \
-	upc/sidl_rmi_MalformedURLException_Stub.h \
-	upc/sidl_rmi_MalformedURLException_IOR.h \
-	upc/sidl_rmi_NetworkException_Stub.h \
-	upc/sidl_rmi_NetworkException_IOR.h \
-	upc/sidl_rmi_NoRouteToHostException_Stub.h \
-	upc/sidl_rmi_NoRouteToHostException_IOR.h \
-	upc/sidl_rmi_NoServerException_Stub.h \
-	upc/sidl_rmi_NoServerException_IOR.h \
-	upc/sidl_rmi_ObjectDoesNotExistException_Stub.h \
-	upc/sidl_rmi_ObjectDoesNotExistException_IOR.h \
-	upc/sidl_rmi_ProtocolException_Stub.h \
-	upc/sidl_rmi_ProtocolException_IOR.h \
-	upc/sidl_rmi_ProtocolFactory_Stub.h \
-	upc/sidl_rmi_ProtocolFactory_IOR.h \
-	upc/sidl_rmi_Response_Stub.h upc/sidl_rmi_Response_IOR.h \
-	upc/sidl_rmi_Return_Stub.h upc/sidl_rmi_Return_IOR.h \
-	upc/sidl_rmi_ServerInfo_Stub.h upc/sidl_rmi_ServerInfo_IOR.h \
-	upc/sidl_rmi_ServerRegistry_Stub.h \
-	upc/sidl_rmi_ServerRegistry_IOR.h \
-	upc/sidl_rmi_TicketBook_Stub.h upc/sidl_rmi_TicketBook_IOR.h \
-	upc/sidl_rmi_Ticket_Stub.h upc/sidl_rmi_Ticket_IOR.h \
-	upc/sidl_rmi_TimeOutException_Stub.h \
-	upc/sidl_rmi_TimeOutException_IOR.h \
-	upc/sidl_rmi_UnexpectedCloseException_Stub.h \
-	upc/sidl_rmi_UnexpectedCloseException_IOR.h \
-	upc/sidl_rmi_UnknownHostException_Stub.h \
-	upc/sidl_rmi_UnknownHostException_IOR.h \
-	upc/sidl_RuntimeException_Stub.h \
-	upc/sidl_RuntimeException_IOR.h upc/sidl_SIDLException_Stub.h \
-	upc/sidl_SIDLException_IOR.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -854,7 +558,7 @@ noinst_PYTHON =
 
 # Runtime support files
 nobase_include_HEADERS = chpl/chpl_sidl_array.h chpl/sidl.chpl \
-	$(CHPL_SIDLSTUB_HDRS) $(am__append_22)
+	$(CHPL_SIDLSTUB_HDRS)
 BUILT_SOURCES = $(BUILT_PYTHON_SOURCES) chpl/sidl.chpl \
 	$(SIDLSTUB_SRCS)
 nobase_pyexec_LTLIBRARIES = braid/scanner.la
@@ -2059,170 +1763,14 @@ lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(CHPL_SIDLSTUB_SRCS)
 libsidlstub_chpl_la_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
 AM_CFLAGS = -Werror
-
-# AUTOMATICALLY GENERATED by gen-runtime-deps.sh
-@BABEL_LANG_UPC_TRUE@UPC_SIDLSTUB_SRCS = \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseClass_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseInterface_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_CastException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_ClassInfo_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_ClassInfoI_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_DFinder_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_DLL_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_EnfPolicy_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_Finder_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_InvViolation_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Deserializer_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_IOException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Serializable_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Serializer_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_LangSpecificException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_Loader_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_MemAllocException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_NotImplementedException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_PostViolation_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_PreViolation_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_BindException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Call_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ConnectException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ConnectRegistry_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_InstanceHandle_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_InstanceRegistry_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Invocation_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_MalformedURLException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NetworkException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NoRouteToHostException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NoServerException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ProtocolException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ProtocolFactory_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Response_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Return_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ServerInfo_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ServerRegistry_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_TicketBook_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Ticket_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_TimeOutException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_UnexpectedCloseException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_UnknownHostException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_RuntimeException_Stub.upc \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_SIDLException_Stub.upc
-
-@BABEL_LANG_UPC_TRUE@UPC_SIDLSTUB_HDRS = \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseClass_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseClass_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseInterface_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_BaseInterface_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_CastException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_CastException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_ClassInfo_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_ClassInfo_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_ClassInfoI_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_ClassInfoI_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_DFinder_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_DFinder_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_DLL_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_DLL_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_EnfPolicy_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_EnfPolicy_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_Finder_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_Finder_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_InvViolation_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_InvViolation_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Deserializer_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Deserializer_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_IOException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_IOException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Serializable_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Serializable_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Serializer_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_io_Serializer_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_LangSpecificException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_LangSpecificException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_Loader_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_Loader_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_MemAllocException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_MemAllocException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_NotImplementedException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_NotImplementedException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_PostViolation_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_PostViolation_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_PreViolation_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_PreViolation_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_BindException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_BindException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Call_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Call_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ConnectException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ConnectException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ConnectRegistry_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ConnectRegistry_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_InstanceHandle_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_InstanceHandle_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_InstanceRegistry_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_InstanceRegistry_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Invocation_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Invocation_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_MalformedURLException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_MalformedURLException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NetworkException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NetworkException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NoRouteToHostException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NoRouteToHostException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NoServerException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_NoServerException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ObjectDoesNotExistException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ObjectDoesNotExistException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ProtocolException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ProtocolException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ProtocolFactory_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ProtocolFactory_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Response_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Response_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Return_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Return_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ServerInfo_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ServerInfo_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ServerRegistry_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_ServerRegistry_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_TicketBook_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_TicketBook_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Ticket_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_Ticket_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_TimeOutException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_TimeOutException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_UnexpectedCloseException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_UnexpectedCloseException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_UnknownHostException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_rmi_UnknownHostException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_RuntimeException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_RuntimeException_IOR.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_SIDLException_Stub.h \
-@BABEL_LANG_UPC_TRUE@  upc/sidl_SIDLException_IOR.h#
-
-@BABEL_LANG_UPC_TRUE@UPC_RUNTIME_EXTRA = upc/upc_stub_startup_tmp.c upc/upcr_trans_extra.c upc/upc_stub.trans.c
-# FIXME: Berkeley upcc can't deal with -fPIC
-@BABEL_LANG_UPC_TRUE@UPC_INCLUDES = \
-@BABEL_LANG_UPC_TRUE@  -I$(builddir)/upc -I$(srcdir)/upc \
-@BABEL_LANG_UPC_TRUE@  -I$(BABEL_INCLUDEDIR) -I$(UPC_ROOT)/runtime/include
-
-@BABEL_LANG_UPC_TRUE@lib_LIBRARIES = libupc_runtime_extra.a libsidlstub_upc.a 
-@BABEL_LANG_UPC_TRUE@libsidlstub_upc_a_SOURCES = $(UPC_SIDLSTUB_SRCS)
-@BABEL_LANG_UPC_TRUE@libsidlstub_upc_a_CPPFLAGS = $(UPC_INCLUDES)
-@BABEL_LANG_UPC_TRUE@libupc_runtime_extra_a_SOURCES = $(UPC_RUNTIME_EXTRA)
-@BABEL_LANG_UPC_TRUE@libupc_runtime_extra_a_CFLAGS = $(UPC_CFLAGS) $(UPCC_POSTTRANS_CPPFLAGS)
-@BABEL_LANG_UPC_TRUE@libupc_runtime_extra_a_CPPFLAGS = $(UPC_INCLUDES) $(UPC_CPPFLAGS)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sh .sh$(EXEEXT) .sidl .sidl$(EXEEXT) .upc
+.SUFFIXES: .c .dvi .html .l .lo .log .o .obj .ps .py .py$(EXEEXT) .sh .sh$(EXEEXT) .sidl .sidl$(EXEEXT)
 am--refresh:
 	@:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/regression/interop/tests.mk $(srcdir)/chapel-patches/Makefile.include $(srcdir)/chpl/Makefile.include $(srcdir)/upc/Makefile.include $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/braid/Makefile.include $(srcdir)/regression/interop/Makefile.include $(srcdir)/regression/interop/tests.mk $(srcdir)/chapel-patches/Makefile.include $(srcdir)/chpl/Makefile.include $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -2274,46 +1822,6 @@ regression/interop/build-tracker.sh: $(top_builddir)/config.status $(top_srcdir)
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 regression/interop/driver.sh: $(top_builddir)/config.status $(top_srcdir)/regression/interop/driver.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-install-libLIBRARIES: $(lib_LIBRARIES)
-	@$(NORMAL_INSTALL)
-	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
-	list2=; for p in $$list; do \
-	  if test -f $$p; then \
-	    list2="$$list2 $$p"; \
-	  else :; fi; \
-	done; \
-	test -z "$$list2" || { \
-	  echo " $(INSTALL_DATA) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(INSTALL_DATA) $$list2 "$(DESTDIR)$(libdir)" || exit $$?; }
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
-	for p in $$list; do \
-	  if test -f $$p; then \
-	    $(am__strip_dir) \
-	    echo " ( cd '$(DESTDIR)$(libdir)' && $(RANLIB) $$f )"; \
-	    ( cd "$(DESTDIR)$(libdir)" && $(RANLIB) $$f ) || exit $$?; \
-	  else :; fi; \
-	done
-
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libdir)' && rm -f "$$files" )"; \
-	cd "$(DESTDIR)$(libdir)" && rm -f $$files
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libsidlstub_upc.a: $(libsidlstub_upc_a_OBJECTS) $(libsidlstub_upc_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libsidlstub_upc.a
-	$(AM_V_AR)$(libsidlstub_upc_a_AR) libsidlstub_upc.a $(libsidlstub_upc_a_OBJECTS) $(libsidlstub_upc_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libsidlstub_upc.a
-libupc_runtime_extra.a: $(libupc_runtime_extra_a_OBJECTS) $(libupc_runtime_extra_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libupc_runtime_extra.a
-	$(AM_V_AR)$(libupc_runtime_extra_a_AR) libupc_runtime_extra.a $(libupc_runtime_extra_a_OBJECTS) $(libupc_runtime_extra_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libupc_runtime_extra.a
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
@@ -2492,55 +2000,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_chpl_la-sidl_rmi_TimeOutException_cStub.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_chpl_la-sidl_rmi_UnexpectedCloseException_cStub.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_chpl_la-sidl_rmi_UnknownHostException_cStub.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -2565,54 +2024,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
-
-libupc_runtime_extra_a-upc_stub_startup_tmp.o: upc/upc_stub_startup_tmp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -MT libupc_runtime_extra_a-upc_stub_startup_tmp.o -MD -MP -MF $(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Tpo -c -o libupc_runtime_extra_a-upc_stub_startup_tmp.o `test -f 'upc/upc_stub_startup_tmp.c' || echo '$(srcdir)/'`upc/upc_stub_startup_tmp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Tpo $(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='upc/upc_stub_startup_tmp.c' object='libupc_runtime_extra_a-upc_stub_startup_tmp.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -c -o libupc_runtime_extra_a-upc_stub_startup_tmp.o `test -f 'upc/upc_stub_startup_tmp.c' || echo '$(srcdir)/'`upc/upc_stub_startup_tmp.c
-
-libupc_runtime_extra_a-upc_stub_startup_tmp.obj: upc/upc_stub_startup_tmp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -MT libupc_runtime_extra_a-upc_stub_startup_tmp.obj -MD -MP -MF $(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Tpo -c -o libupc_runtime_extra_a-upc_stub_startup_tmp.obj `if test -f 'upc/upc_stub_startup_tmp.c'; then $(CYGPATH_W) 'upc/upc_stub_startup_tmp.c'; else $(CYGPATH_W) '$(srcdir)/upc/upc_stub_startup_tmp.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Tpo $(DEPDIR)/libupc_runtime_extra_a-upc_stub_startup_tmp.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='upc/upc_stub_startup_tmp.c' object='libupc_runtime_extra_a-upc_stub_startup_tmp.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -c -o libupc_runtime_extra_a-upc_stub_startup_tmp.obj `if test -f 'upc/upc_stub_startup_tmp.c'; then $(CYGPATH_W) 'upc/upc_stub_startup_tmp.c'; else $(CYGPATH_W) '$(srcdir)/upc/upc_stub_startup_tmp.c'; fi`
-
-libupc_runtime_extra_a-upcr_trans_extra.o: upc/upcr_trans_extra.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -MT libupc_runtime_extra_a-upcr_trans_extra.o -MD -MP -MF $(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Tpo -c -o libupc_runtime_extra_a-upcr_trans_extra.o `test -f 'upc/upcr_trans_extra.c' || echo '$(srcdir)/'`upc/upcr_trans_extra.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Tpo $(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='upc/upcr_trans_extra.c' object='libupc_runtime_extra_a-upcr_trans_extra.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -c -o libupc_runtime_extra_a-upcr_trans_extra.o `test -f 'upc/upcr_trans_extra.c' || echo '$(srcdir)/'`upc/upcr_trans_extra.c
-
-libupc_runtime_extra_a-upcr_trans_extra.obj: upc/upcr_trans_extra.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -MT libupc_runtime_extra_a-upcr_trans_extra.obj -MD -MP -MF $(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Tpo -c -o libupc_runtime_extra_a-upcr_trans_extra.obj `if test -f 'upc/upcr_trans_extra.c'; then $(CYGPATH_W) 'upc/upcr_trans_extra.c'; else $(CYGPATH_W) '$(srcdir)/upc/upcr_trans_extra.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Tpo $(DEPDIR)/libupc_runtime_extra_a-upcr_trans_extra.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='upc/upcr_trans_extra.c' object='libupc_runtime_extra_a-upcr_trans_extra.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -c -o libupc_runtime_extra_a-upcr_trans_extra.obj `if test -f 'upc/upcr_trans_extra.c'; then $(CYGPATH_W) 'upc/upcr_trans_extra.c'; else $(CYGPATH_W) '$(srcdir)/upc/upcr_trans_extra.c'; fi`
-
-libupc_runtime_extra_a-upc_stub.trans.o: upc/upc_stub.trans.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -MT libupc_runtime_extra_a-upc_stub.trans.o -MD -MP -MF $(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Tpo -c -o libupc_runtime_extra_a-upc_stub.trans.o `test -f 'upc/upc_stub.trans.c' || echo '$(srcdir)/'`upc/upc_stub.trans.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Tpo $(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='upc/upc_stub.trans.c' object='libupc_runtime_extra_a-upc_stub.trans.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -c -o libupc_runtime_extra_a-upc_stub.trans.o `test -f 'upc/upc_stub.trans.c' || echo '$(srcdir)/'`upc/upc_stub.trans.c
-
-libupc_runtime_extra_a-upc_stub.trans.obj: upc/upc_stub.trans.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -MT libupc_runtime_extra_a-upc_stub.trans.obj -MD -MP -MF $(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Tpo -c -o libupc_runtime_extra_a-upc_stub.trans.obj `if test -f 'upc/upc_stub.trans.c'; then $(CYGPATH_W) 'upc/upc_stub.trans.c'; else $(CYGPATH_W) '$(srcdir)/upc/upc_stub.trans.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Tpo $(DEPDIR)/libupc_runtime_extra_a-upc_stub.trans.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='upc/upc_stub.trans.c' object='libupc_runtime_extra_a-upc_stub.trans.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libupc_runtime_extra_a_CPPFLAGS) $(CPPFLAGS) $(libupc_runtime_extra_a_CFLAGS) $(CFLAGS) -c -o libupc_runtime_extra_a-upc_stub.trans.obj `if test -f 'upc/upc_stub.trans.c'; then $(CYGPATH_W) 'upc/upc_stub.trans.c'; else $(CYGPATH_W) '$(srcdir)/upc/upc_stub.trans.c'; fi`
 
 braid_scanner_la-scanner.lo: scanner.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(braid_scanner_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT braid_scanner_la-scanner.lo -MD -MP -MF $(DEPDIR)/braid_scanner_la-scanner.Tpo -c -o braid_scanner_la-scanner.lo `test -f 'scanner.c' || echo '$(srcdir)/'`scanner.c
@@ -2997,766 +2408,6 @@ scanner.c: braid/scanner.l
 	$(AM_V_LEX) \
 	$(am__skiplex) \
 	$(SHELL) $(YLWRAP) `test -f 'braid/scanner.l' || echo '$(srcdir)/'`braid/scanner.l $(LEX_OUTPUT_ROOT).c scanner.c -- $(LEX) $(LFLAGS) $(AM_LFLAGS)
-
-.upc.o:
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPCCOMPILE) -c -o $@ $<
-
-.upc.obj:
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPCCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.upc.lo:
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(LTUPCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(LTUPCCOMPILE) -c -o $@ $<
-
-libsidlstub_upc_a-sidl_BaseClass_Stub.o: upc/sidl_BaseClass_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_BaseClass_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Tpo -c -o libsidlstub_upc_a-sidl_BaseClass_Stub.o `test -f 'upc/sidl_BaseClass_Stub.upc' || echo '$(srcdir)/'`upc/sidl_BaseClass_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_BaseClass_Stub.upc' object='libsidlstub_upc_a-sidl_BaseClass_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_BaseClass_Stub.o `test -f 'upc/sidl_BaseClass_Stub.upc' || echo '$(srcdir)/'`upc/sidl_BaseClass_Stub.upc
-
-libsidlstub_upc_a-sidl_BaseClass_Stub.obj: upc/sidl_BaseClass_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_BaseClass_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Tpo -c -o libsidlstub_upc_a-sidl_BaseClass_Stub.obj `if test -f 'upc/sidl_BaseClass_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_BaseClass_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_BaseClass_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_BaseClass_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_BaseClass_Stub.upc' object='libsidlstub_upc_a-sidl_BaseClass_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_BaseClass_Stub.obj `if test -f 'upc/sidl_BaseClass_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_BaseClass_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_BaseClass_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_BaseException_Stub.o: upc/sidl_BaseException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_BaseException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_BaseException_Stub.o `test -f 'upc/sidl_BaseException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_BaseException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_BaseException_Stub.upc' object='libsidlstub_upc_a-sidl_BaseException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_BaseException_Stub.o `test -f 'upc/sidl_BaseException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_BaseException_Stub.upc
-
-libsidlstub_upc_a-sidl_BaseException_Stub.obj: upc/sidl_BaseException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_BaseException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_BaseException_Stub.obj `if test -f 'upc/sidl_BaseException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_BaseException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_BaseException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_BaseException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_BaseException_Stub.upc' object='libsidlstub_upc_a-sidl_BaseException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_BaseException_Stub.obj `if test -f 'upc/sidl_BaseException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_BaseException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_BaseException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_BaseInterface_Stub.o: upc/sidl_BaseInterface_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_BaseInterface_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Tpo -c -o libsidlstub_upc_a-sidl_BaseInterface_Stub.o `test -f 'upc/sidl_BaseInterface_Stub.upc' || echo '$(srcdir)/'`upc/sidl_BaseInterface_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_BaseInterface_Stub.upc' object='libsidlstub_upc_a-sidl_BaseInterface_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_BaseInterface_Stub.o `test -f 'upc/sidl_BaseInterface_Stub.upc' || echo '$(srcdir)/'`upc/sidl_BaseInterface_Stub.upc
-
-libsidlstub_upc_a-sidl_BaseInterface_Stub.obj: upc/sidl_BaseInterface_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_BaseInterface_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Tpo -c -o libsidlstub_upc_a-sidl_BaseInterface_Stub.obj `if test -f 'upc/sidl_BaseInterface_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_BaseInterface_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_BaseInterface_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_BaseInterface_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_BaseInterface_Stub.upc' object='libsidlstub_upc_a-sidl_BaseInterface_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_BaseInterface_Stub.obj `if test -f 'upc/sidl_BaseInterface_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_BaseInterface_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_BaseInterface_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_CastException_Stub.o: upc/sidl_CastException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_CastException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_CastException_Stub.o `test -f 'upc/sidl_CastException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_CastException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_CastException_Stub.upc' object='libsidlstub_upc_a-sidl_CastException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_CastException_Stub.o `test -f 'upc/sidl_CastException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_CastException_Stub.upc
-
-libsidlstub_upc_a-sidl_CastException_Stub.obj: upc/sidl_CastException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_CastException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_CastException_Stub.obj `if test -f 'upc/sidl_CastException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_CastException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_CastException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_CastException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_CastException_Stub.upc' object='libsidlstub_upc_a-sidl_CastException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_CastException_Stub.obj `if test -f 'upc/sidl_CastException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_CastException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_CastException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_ClassInfo_Stub.o: upc/sidl_ClassInfo_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_ClassInfo_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Tpo -c -o libsidlstub_upc_a-sidl_ClassInfo_Stub.o `test -f 'upc/sidl_ClassInfo_Stub.upc' || echo '$(srcdir)/'`upc/sidl_ClassInfo_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_ClassInfo_Stub.upc' object='libsidlstub_upc_a-sidl_ClassInfo_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_ClassInfo_Stub.o `test -f 'upc/sidl_ClassInfo_Stub.upc' || echo '$(srcdir)/'`upc/sidl_ClassInfo_Stub.upc
-
-libsidlstub_upc_a-sidl_ClassInfo_Stub.obj: upc/sidl_ClassInfo_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_ClassInfo_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Tpo -c -o libsidlstub_upc_a-sidl_ClassInfo_Stub.obj `if test -f 'upc/sidl_ClassInfo_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_ClassInfo_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_ClassInfo_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfo_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_ClassInfo_Stub.upc' object='libsidlstub_upc_a-sidl_ClassInfo_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_ClassInfo_Stub.obj `if test -f 'upc/sidl_ClassInfo_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_ClassInfo_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_ClassInfo_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_ClassInfoI_Stub.o: upc/sidl_ClassInfoI_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_ClassInfoI_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Tpo -c -o libsidlstub_upc_a-sidl_ClassInfoI_Stub.o `test -f 'upc/sidl_ClassInfoI_Stub.upc' || echo '$(srcdir)/'`upc/sidl_ClassInfoI_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_ClassInfoI_Stub.upc' object='libsidlstub_upc_a-sidl_ClassInfoI_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_ClassInfoI_Stub.o `test -f 'upc/sidl_ClassInfoI_Stub.upc' || echo '$(srcdir)/'`upc/sidl_ClassInfoI_Stub.upc
-
-libsidlstub_upc_a-sidl_ClassInfoI_Stub.obj: upc/sidl_ClassInfoI_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_ClassInfoI_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Tpo -c -o libsidlstub_upc_a-sidl_ClassInfoI_Stub.obj `if test -f 'upc/sidl_ClassInfoI_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_ClassInfoI_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_ClassInfoI_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_ClassInfoI_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_ClassInfoI_Stub.upc' object='libsidlstub_upc_a-sidl_ClassInfoI_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_ClassInfoI_Stub.obj `if test -f 'upc/sidl_ClassInfoI_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_ClassInfoI_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_ClassInfoI_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_DFinder_Stub.o: upc/sidl_DFinder_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_DFinder_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Tpo -c -o libsidlstub_upc_a-sidl_DFinder_Stub.o `test -f 'upc/sidl_DFinder_Stub.upc' || echo '$(srcdir)/'`upc/sidl_DFinder_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_DFinder_Stub.upc' object='libsidlstub_upc_a-sidl_DFinder_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_DFinder_Stub.o `test -f 'upc/sidl_DFinder_Stub.upc' || echo '$(srcdir)/'`upc/sidl_DFinder_Stub.upc
-
-libsidlstub_upc_a-sidl_DFinder_Stub.obj: upc/sidl_DFinder_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_DFinder_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Tpo -c -o libsidlstub_upc_a-sidl_DFinder_Stub.obj `if test -f 'upc/sidl_DFinder_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_DFinder_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_DFinder_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_DFinder_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_DFinder_Stub.upc' object='libsidlstub_upc_a-sidl_DFinder_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_DFinder_Stub.obj `if test -f 'upc/sidl_DFinder_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_DFinder_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_DFinder_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_DLL_Stub.o: upc/sidl_DLL_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_DLL_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Tpo -c -o libsidlstub_upc_a-sidl_DLL_Stub.o `test -f 'upc/sidl_DLL_Stub.upc' || echo '$(srcdir)/'`upc/sidl_DLL_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_DLL_Stub.upc' object='libsidlstub_upc_a-sidl_DLL_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_DLL_Stub.o `test -f 'upc/sidl_DLL_Stub.upc' || echo '$(srcdir)/'`upc/sidl_DLL_Stub.upc
-
-libsidlstub_upc_a-sidl_DLL_Stub.obj: upc/sidl_DLL_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_DLL_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Tpo -c -o libsidlstub_upc_a-sidl_DLL_Stub.obj `if test -f 'upc/sidl_DLL_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_DLL_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_DLL_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_DLL_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_DLL_Stub.upc' object='libsidlstub_upc_a-sidl_DLL_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_DLL_Stub.obj `if test -f 'upc/sidl_DLL_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_DLL_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_DLL_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_EnfPolicy_Stub.o: upc/sidl_EnfPolicy_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_EnfPolicy_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Tpo -c -o libsidlstub_upc_a-sidl_EnfPolicy_Stub.o `test -f 'upc/sidl_EnfPolicy_Stub.upc' || echo '$(srcdir)/'`upc/sidl_EnfPolicy_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_EnfPolicy_Stub.upc' object='libsidlstub_upc_a-sidl_EnfPolicy_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_EnfPolicy_Stub.o `test -f 'upc/sidl_EnfPolicy_Stub.upc' || echo '$(srcdir)/'`upc/sidl_EnfPolicy_Stub.upc
-
-libsidlstub_upc_a-sidl_EnfPolicy_Stub.obj: upc/sidl_EnfPolicy_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_EnfPolicy_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Tpo -c -o libsidlstub_upc_a-sidl_EnfPolicy_Stub.obj `if test -f 'upc/sidl_EnfPolicy_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_EnfPolicy_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_EnfPolicy_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_EnfPolicy_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_EnfPolicy_Stub.upc' object='libsidlstub_upc_a-sidl_EnfPolicy_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_EnfPolicy_Stub.obj `if test -f 'upc/sidl_EnfPolicy_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_EnfPolicy_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_EnfPolicy_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_Finder_Stub.o: upc/sidl_Finder_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_Finder_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Tpo -c -o libsidlstub_upc_a-sidl_Finder_Stub.o `test -f 'upc/sidl_Finder_Stub.upc' || echo '$(srcdir)/'`upc/sidl_Finder_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_Finder_Stub.upc' object='libsidlstub_upc_a-sidl_Finder_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_Finder_Stub.o `test -f 'upc/sidl_Finder_Stub.upc' || echo '$(srcdir)/'`upc/sidl_Finder_Stub.upc
-
-libsidlstub_upc_a-sidl_Finder_Stub.obj: upc/sidl_Finder_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_Finder_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Tpo -c -o libsidlstub_upc_a-sidl_Finder_Stub.obj `if test -f 'upc/sidl_Finder_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_Finder_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_Finder_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_Finder_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_Finder_Stub.upc' object='libsidlstub_upc_a-sidl_Finder_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_Finder_Stub.obj `if test -f 'upc/sidl_Finder_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_Finder_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_Finder_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_InvViolation_Stub.o: upc/sidl_InvViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_InvViolation_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_InvViolation_Stub.o `test -f 'upc/sidl_InvViolation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_InvViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_InvViolation_Stub.upc' object='libsidlstub_upc_a-sidl_InvViolation_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_InvViolation_Stub.o `test -f 'upc/sidl_InvViolation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_InvViolation_Stub.upc
-
-libsidlstub_upc_a-sidl_InvViolation_Stub.obj: upc/sidl_InvViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_InvViolation_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_InvViolation_Stub.obj `if test -f 'upc/sidl_InvViolation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_InvViolation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_InvViolation_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_InvViolation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_InvViolation_Stub.upc' object='libsidlstub_upc_a-sidl_InvViolation_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_InvViolation_Stub.obj `if test -f 'upc/sidl_InvViolation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_InvViolation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_InvViolation_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_io_Deserializer_Stub.o: upc/sidl_io_Deserializer_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_Deserializer_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_Deserializer_Stub.o `test -f 'upc/sidl_io_Deserializer_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_Deserializer_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_Deserializer_Stub.upc' object='libsidlstub_upc_a-sidl_io_Deserializer_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_Deserializer_Stub.o `test -f 'upc/sidl_io_Deserializer_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_Deserializer_Stub.upc
-
-libsidlstub_upc_a-sidl_io_Deserializer_Stub.obj: upc/sidl_io_Deserializer_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_Deserializer_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_Deserializer_Stub.obj `if test -f 'upc/sidl_io_Deserializer_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_Deserializer_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_Deserializer_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_Deserializer_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_Deserializer_Stub.upc' object='libsidlstub_upc_a-sidl_io_Deserializer_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_Deserializer_Stub.obj `if test -f 'upc/sidl_io_Deserializer_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_Deserializer_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_Deserializer_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_io_IOException_Stub.o: upc/sidl_io_IOException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_IOException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_IOException_Stub.o `test -f 'upc/sidl_io_IOException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_IOException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_IOException_Stub.upc' object='libsidlstub_upc_a-sidl_io_IOException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_IOException_Stub.o `test -f 'upc/sidl_io_IOException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_IOException_Stub.upc
-
-libsidlstub_upc_a-sidl_io_IOException_Stub.obj: upc/sidl_io_IOException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_IOException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_IOException_Stub.obj `if test -f 'upc/sidl_io_IOException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_IOException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_IOException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_IOException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_IOException_Stub.upc' object='libsidlstub_upc_a-sidl_io_IOException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_IOException_Stub.obj `if test -f 'upc/sidl_io_IOException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_IOException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_IOException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_io_Serializable_Stub.o: upc/sidl_io_Serializable_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_Serializable_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_Serializable_Stub.o `test -f 'upc/sidl_io_Serializable_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_Serializable_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_Serializable_Stub.upc' object='libsidlstub_upc_a-sidl_io_Serializable_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_Serializable_Stub.o `test -f 'upc/sidl_io_Serializable_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_Serializable_Stub.upc
-
-libsidlstub_upc_a-sidl_io_Serializable_Stub.obj: upc/sidl_io_Serializable_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_Serializable_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_Serializable_Stub.obj `if test -f 'upc/sidl_io_Serializable_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_Serializable_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_Serializable_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializable_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_Serializable_Stub.upc' object='libsidlstub_upc_a-sidl_io_Serializable_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_Serializable_Stub.obj `if test -f 'upc/sidl_io_Serializable_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_Serializable_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_Serializable_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_io_Serializer_Stub.o: upc/sidl_io_Serializer_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_Serializer_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_Serializer_Stub.o `test -f 'upc/sidl_io_Serializer_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_Serializer_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_Serializer_Stub.upc' object='libsidlstub_upc_a-sidl_io_Serializer_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_Serializer_Stub.o `test -f 'upc/sidl_io_Serializer_Stub.upc' || echo '$(srcdir)/'`upc/sidl_io_Serializer_Stub.upc
-
-libsidlstub_upc_a-sidl_io_Serializer_Stub.obj: upc/sidl_io_Serializer_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_io_Serializer_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Tpo -c -o libsidlstub_upc_a-sidl_io_Serializer_Stub.obj `if test -f 'upc/sidl_io_Serializer_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_Serializer_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_Serializer_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_io_Serializer_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_io_Serializer_Stub.upc' object='libsidlstub_upc_a-sidl_io_Serializer_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_io_Serializer_Stub.obj `if test -f 'upc/sidl_io_Serializer_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_io_Serializer_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_io_Serializer_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_LangSpecificException_Stub.o: upc/sidl_LangSpecificException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_LangSpecificException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_LangSpecificException_Stub.o `test -f 'upc/sidl_LangSpecificException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_LangSpecificException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_LangSpecificException_Stub.upc' object='libsidlstub_upc_a-sidl_LangSpecificException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_LangSpecificException_Stub.o `test -f 'upc/sidl_LangSpecificException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_LangSpecificException_Stub.upc
-
-libsidlstub_upc_a-sidl_LangSpecificException_Stub.obj: upc/sidl_LangSpecificException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_LangSpecificException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_LangSpecificException_Stub.obj `if test -f 'upc/sidl_LangSpecificException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_LangSpecificException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_LangSpecificException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_LangSpecificException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_LangSpecificException_Stub.upc' object='libsidlstub_upc_a-sidl_LangSpecificException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_LangSpecificException_Stub.obj `if test -f 'upc/sidl_LangSpecificException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_LangSpecificException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_LangSpecificException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_Loader_Stub.o: upc/sidl_Loader_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_Loader_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Tpo -c -o libsidlstub_upc_a-sidl_Loader_Stub.o `test -f 'upc/sidl_Loader_Stub.upc' || echo '$(srcdir)/'`upc/sidl_Loader_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_Loader_Stub.upc' object='libsidlstub_upc_a-sidl_Loader_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_Loader_Stub.o `test -f 'upc/sidl_Loader_Stub.upc' || echo '$(srcdir)/'`upc/sidl_Loader_Stub.upc
-
-libsidlstub_upc_a-sidl_Loader_Stub.obj: upc/sidl_Loader_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_Loader_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Tpo -c -o libsidlstub_upc_a-sidl_Loader_Stub.obj `if test -f 'upc/sidl_Loader_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_Loader_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_Loader_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_Loader_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_Loader_Stub.upc' object='libsidlstub_upc_a-sidl_Loader_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_Loader_Stub.obj `if test -f 'upc/sidl_Loader_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_Loader_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_Loader_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_MemAllocException_Stub.o: upc/sidl_MemAllocException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_MemAllocException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_MemAllocException_Stub.o `test -f 'upc/sidl_MemAllocException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_MemAllocException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_MemAllocException_Stub.upc' object='libsidlstub_upc_a-sidl_MemAllocException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_MemAllocException_Stub.o `test -f 'upc/sidl_MemAllocException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_MemAllocException_Stub.upc
-
-libsidlstub_upc_a-sidl_MemAllocException_Stub.obj: upc/sidl_MemAllocException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_MemAllocException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_MemAllocException_Stub.obj `if test -f 'upc/sidl_MemAllocException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_MemAllocException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_MemAllocException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_MemAllocException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_MemAllocException_Stub.upc' object='libsidlstub_upc_a-sidl_MemAllocException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_MemAllocException_Stub.obj `if test -f 'upc/sidl_MemAllocException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_MemAllocException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_MemAllocException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_NotImplementedException_Stub.o: upc/sidl_NotImplementedException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_NotImplementedException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_NotImplementedException_Stub.o `test -f 'upc/sidl_NotImplementedException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_NotImplementedException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_NotImplementedException_Stub.upc' object='libsidlstub_upc_a-sidl_NotImplementedException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_NotImplementedException_Stub.o `test -f 'upc/sidl_NotImplementedException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_NotImplementedException_Stub.upc
-
-libsidlstub_upc_a-sidl_NotImplementedException_Stub.obj: upc/sidl_NotImplementedException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_NotImplementedException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_NotImplementedException_Stub.obj `if test -f 'upc/sidl_NotImplementedException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_NotImplementedException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_NotImplementedException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_NotImplementedException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_NotImplementedException_Stub.upc' object='libsidlstub_upc_a-sidl_NotImplementedException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_NotImplementedException_Stub.obj `if test -f 'upc/sidl_NotImplementedException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_NotImplementedException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_NotImplementedException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_PostViolation_Stub.o: upc/sidl_PostViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_PostViolation_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_PostViolation_Stub.o `test -f 'upc/sidl_PostViolation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_PostViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_PostViolation_Stub.upc' object='libsidlstub_upc_a-sidl_PostViolation_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_PostViolation_Stub.o `test -f 'upc/sidl_PostViolation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_PostViolation_Stub.upc
-
-libsidlstub_upc_a-sidl_PostViolation_Stub.obj: upc/sidl_PostViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_PostViolation_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_PostViolation_Stub.obj `if test -f 'upc/sidl_PostViolation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_PostViolation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_PostViolation_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_PostViolation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_PostViolation_Stub.upc' object='libsidlstub_upc_a-sidl_PostViolation_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_PostViolation_Stub.obj `if test -f 'upc/sidl_PostViolation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_PostViolation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_PostViolation_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_PreViolation_Stub.o: upc/sidl_PreViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_PreViolation_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_PreViolation_Stub.o `test -f 'upc/sidl_PreViolation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_PreViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_PreViolation_Stub.upc' object='libsidlstub_upc_a-sidl_PreViolation_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_PreViolation_Stub.o `test -f 'upc/sidl_PreViolation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_PreViolation_Stub.upc
-
-libsidlstub_upc_a-sidl_PreViolation_Stub.obj: upc/sidl_PreViolation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_PreViolation_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_PreViolation_Stub.obj `if test -f 'upc/sidl_PreViolation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_PreViolation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_PreViolation_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_PreViolation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_PreViolation_Stub.upc' object='libsidlstub_upc_a-sidl_PreViolation_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_PreViolation_Stub.obj `if test -f 'upc/sidl_PreViolation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_PreViolation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_PreViolation_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_BindException_Stub.o: upc/sidl_rmi_BindException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_BindException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_BindException_Stub.o `test -f 'upc/sidl_rmi_BindException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_BindException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_BindException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_BindException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_BindException_Stub.o `test -f 'upc/sidl_rmi_BindException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_BindException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_BindException_Stub.obj: upc/sidl_rmi_BindException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_BindException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_BindException_Stub.obj `if test -f 'upc/sidl_rmi_BindException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_BindException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_BindException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_BindException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_BindException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_BindException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_BindException_Stub.obj `if test -f 'upc/sidl_rmi_BindException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_BindException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_BindException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_Call_Stub.o: upc/sidl_rmi_Call_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Call_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Call_Stub.o `test -f 'upc/sidl_rmi_Call_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Call_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Call_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Call_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Call_Stub.o `test -f 'upc/sidl_rmi_Call_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Call_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_Call_Stub.obj: upc/sidl_rmi_Call_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Call_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Call_Stub.obj `if test -f 'upc/sidl_rmi_Call_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Call_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Call_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Call_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Call_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Call_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Call_Stub.obj `if test -f 'upc/sidl_rmi_Call_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Call_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Call_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.o: upc/sidl_rmi_ConnectException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.o `test -f 'upc/sidl_rmi_ConnectException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ConnectException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ConnectException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.o `test -f 'upc/sidl_rmi_ConnectException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ConnectException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.obj: upc/sidl_rmi_ConnectException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.obj `if test -f 'upc/sidl_rmi_ConnectException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ConnectException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ConnectException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ConnectException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ConnectException_Stub.obj `if test -f 'upc/sidl_rmi_ConnectException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ConnectException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ConnectException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.o: upc/sidl_rmi_ConnectRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.o `test -f 'upc/sidl_rmi_ConnectRegistry_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ConnectRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ConnectRegistry_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.o `test -f 'upc/sidl_rmi_ConnectRegistry_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ConnectRegistry_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.obj: upc/sidl_rmi_ConnectRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.obj `if test -f 'upc/sidl_rmi_ConnectRegistry_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ConnectRegistry_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ConnectRegistry_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ConnectRegistry_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ConnectRegistry_Stub.obj `if test -f 'upc/sidl_rmi_ConnectRegistry_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ConnectRegistry_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ConnectRegistry_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.o: upc/sidl_rmi_InstanceHandle_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.o `test -f 'upc/sidl_rmi_InstanceHandle_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_InstanceHandle_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_InstanceHandle_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.o `test -f 'upc/sidl_rmi_InstanceHandle_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_InstanceHandle_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.obj: upc/sidl_rmi_InstanceHandle_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.obj `if test -f 'upc/sidl_rmi_InstanceHandle_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_InstanceHandle_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_InstanceHandle_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_InstanceHandle_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_InstanceHandle_Stub.obj `if test -f 'upc/sidl_rmi_InstanceHandle_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_InstanceHandle_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_InstanceHandle_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.o: upc/sidl_rmi_InstanceRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.o `test -f 'upc/sidl_rmi_InstanceRegistry_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_InstanceRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_InstanceRegistry_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.o `test -f 'upc/sidl_rmi_InstanceRegistry_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_InstanceRegistry_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.obj: upc/sidl_rmi_InstanceRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.obj `if test -f 'upc/sidl_rmi_InstanceRegistry_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_InstanceRegistry_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_InstanceRegistry_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_InstanceRegistry_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_InstanceRegistry_Stub.obj `if test -f 'upc/sidl_rmi_InstanceRegistry_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_InstanceRegistry_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_InstanceRegistry_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_Invocation_Stub.o: upc/sidl_rmi_Invocation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Invocation_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Invocation_Stub.o `test -f 'upc/sidl_rmi_Invocation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Invocation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Invocation_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Invocation_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Invocation_Stub.o `test -f 'upc/sidl_rmi_Invocation_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Invocation_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_Invocation_Stub.obj: upc/sidl_rmi_Invocation_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Invocation_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Invocation_Stub.obj `if test -f 'upc/sidl_rmi_Invocation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Invocation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Invocation_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Invocation_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Invocation_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Invocation_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Invocation_Stub.obj `if test -f 'upc/sidl_rmi_Invocation_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Invocation_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Invocation_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.o: upc/sidl_rmi_MalformedURLException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.o `test -f 'upc/sidl_rmi_MalformedURLException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_MalformedURLException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_MalformedURLException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.o `test -f 'upc/sidl_rmi_MalformedURLException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_MalformedURLException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.obj: upc/sidl_rmi_MalformedURLException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.obj `if test -f 'upc/sidl_rmi_MalformedURLException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_MalformedURLException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_MalformedURLException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_MalformedURLException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_MalformedURLException_Stub.obj `if test -f 'upc/sidl_rmi_MalformedURLException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_MalformedURLException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_MalformedURLException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.o: upc/sidl_rmi_NetworkException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.o `test -f 'upc/sidl_rmi_NetworkException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_NetworkException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_NetworkException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.o `test -f 'upc/sidl_rmi_NetworkException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_NetworkException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.obj: upc/sidl_rmi_NetworkException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.obj `if test -f 'upc/sidl_rmi_NetworkException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_NetworkException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_NetworkException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_NetworkException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_NetworkException_Stub.obj `if test -f 'upc/sidl_rmi_NetworkException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_NetworkException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_NetworkException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.o: upc/sidl_rmi_NoRouteToHostException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.o `test -f 'upc/sidl_rmi_NoRouteToHostException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_NoRouteToHostException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_NoRouteToHostException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.o `test -f 'upc/sidl_rmi_NoRouteToHostException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_NoRouteToHostException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.obj: upc/sidl_rmi_NoRouteToHostException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.obj `if test -f 'upc/sidl_rmi_NoRouteToHostException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_NoRouteToHostException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_NoRouteToHostException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_NoRouteToHostException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_NoRouteToHostException_Stub.obj `if test -f 'upc/sidl_rmi_NoRouteToHostException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_NoRouteToHostException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_NoRouteToHostException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.o: upc/sidl_rmi_NoServerException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.o `test -f 'upc/sidl_rmi_NoServerException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_NoServerException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_NoServerException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.o `test -f 'upc/sidl_rmi_NoServerException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_NoServerException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.obj: upc/sidl_rmi_NoServerException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.obj `if test -f 'upc/sidl_rmi_NoServerException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_NoServerException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_NoServerException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_NoServerException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_NoServerException_Stub.obj `if test -f 'upc/sidl_rmi_NoServerException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_NoServerException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_NoServerException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.o: upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.o `test -f 'upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.o `test -f 'upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.obj: upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.obj `if test -f 'upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ObjectDoesNotExistException_Stub.obj `if test -f 'upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ObjectDoesNotExistException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.o: upc/sidl_rmi_ProtocolException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.o `test -f 'upc/sidl_rmi_ProtocolException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ProtocolException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ProtocolException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.o `test -f 'upc/sidl_rmi_ProtocolException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ProtocolException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.obj: upc/sidl_rmi_ProtocolException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.obj `if test -f 'upc/sidl_rmi_ProtocolException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ProtocolException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ProtocolException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ProtocolException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ProtocolException_Stub.obj `if test -f 'upc/sidl_rmi_ProtocolException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ProtocolException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ProtocolException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.o: upc/sidl_rmi_ProtocolFactory_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.o `test -f 'upc/sidl_rmi_ProtocolFactory_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ProtocolFactory_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ProtocolFactory_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.o `test -f 'upc/sidl_rmi_ProtocolFactory_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ProtocolFactory_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.obj: upc/sidl_rmi_ProtocolFactory_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.obj `if test -f 'upc/sidl_rmi_ProtocolFactory_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ProtocolFactory_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ProtocolFactory_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ProtocolFactory_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ProtocolFactory_Stub.obj `if test -f 'upc/sidl_rmi_ProtocolFactory_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ProtocolFactory_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ProtocolFactory_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_Response_Stub.o: upc/sidl_rmi_Response_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Response_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Response_Stub.o `test -f 'upc/sidl_rmi_Response_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Response_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Response_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Response_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Response_Stub.o `test -f 'upc/sidl_rmi_Response_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Response_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_Response_Stub.obj: upc/sidl_rmi_Response_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Response_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Response_Stub.obj `if test -f 'upc/sidl_rmi_Response_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Response_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Response_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Response_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Response_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Response_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Response_Stub.obj `if test -f 'upc/sidl_rmi_Response_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Response_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Response_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_Return_Stub.o: upc/sidl_rmi_Return_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Return_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Return_Stub.o `test -f 'upc/sidl_rmi_Return_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Return_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Return_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Return_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Return_Stub.o `test -f 'upc/sidl_rmi_Return_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Return_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_Return_Stub.obj: upc/sidl_rmi_Return_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Return_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Return_Stub.obj `if test -f 'upc/sidl_rmi_Return_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Return_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Return_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Return_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Return_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Return_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Return_Stub.obj `if test -f 'upc/sidl_rmi_Return_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Return_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Return_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.o: upc/sidl_rmi_ServerInfo_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.o `test -f 'upc/sidl_rmi_ServerInfo_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ServerInfo_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ServerInfo_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.o `test -f 'upc/sidl_rmi_ServerInfo_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ServerInfo_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.obj: upc/sidl_rmi_ServerInfo_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.obj `if test -f 'upc/sidl_rmi_ServerInfo_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ServerInfo_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ServerInfo_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ServerInfo_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ServerInfo_Stub.obj `if test -f 'upc/sidl_rmi_ServerInfo_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ServerInfo_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ServerInfo_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.o: upc/sidl_rmi_ServerRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.o `test -f 'upc/sidl_rmi_ServerRegistry_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ServerRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ServerRegistry_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.o `test -f 'upc/sidl_rmi_ServerRegistry_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_ServerRegistry_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.obj: upc/sidl_rmi_ServerRegistry_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.obj `if test -f 'upc/sidl_rmi_ServerRegistry_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ServerRegistry_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ServerRegistry_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_ServerRegistry_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_ServerRegistry_Stub.obj `if test -f 'upc/sidl_rmi_ServerRegistry_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_ServerRegistry_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_ServerRegistry_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.o: upc/sidl_rmi_TicketBook_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.o `test -f 'upc/sidl_rmi_TicketBook_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_TicketBook_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_TicketBook_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.o `test -f 'upc/sidl_rmi_TicketBook_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_TicketBook_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.obj: upc/sidl_rmi_TicketBook_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.obj `if test -f 'upc/sidl_rmi_TicketBook_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_TicketBook_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_TicketBook_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_TicketBook_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_TicketBook_Stub.obj `if test -f 'upc/sidl_rmi_TicketBook_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_TicketBook_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_TicketBook_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_Ticket_Stub.o: upc/sidl_rmi_Ticket_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Ticket_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Ticket_Stub.o `test -f 'upc/sidl_rmi_Ticket_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Ticket_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Ticket_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Ticket_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Ticket_Stub.o `test -f 'upc/sidl_rmi_Ticket_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_Ticket_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_Ticket_Stub.obj: upc/sidl_rmi_Ticket_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_Ticket_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_Ticket_Stub.obj `if test -f 'upc/sidl_rmi_Ticket_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Ticket_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Ticket_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_Ticket_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_Ticket_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_Ticket_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_Ticket_Stub.obj `if test -f 'upc/sidl_rmi_Ticket_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_Ticket_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_Ticket_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.o: upc/sidl_rmi_TimeOutException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.o `test -f 'upc/sidl_rmi_TimeOutException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_TimeOutException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_TimeOutException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.o `test -f 'upc/sidl_rmi_TimeOutException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_TimeOutException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.obj: upc/sidl_rmi_TimeOutException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.obj `if test -f 'upc/sidl_rmi_TimeOutException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_TimeOutException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_TimeOutException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_TimeOutException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_TimeOutException_Stub.obj `if test -f 'upc/sidl_rmi_TimeOutException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_TimeOutException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_TimeOutException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.o: upc/sidl_rmi_UnexpectedCloseException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.o `test -f 'upc/sidl_rmi_UnexpectedCloseException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_UnexpectedCloseException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_UnexpectedCloseException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.o `test -f 'upc/sidl_rmi_UnexpectedCloseException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_UnexpectedCloseException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.obj: upc/sidl_rmi_UnexpectedCloseException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.obj `if test -f 'upc/sidl_rmi_UnexpectedCloseException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_UnexpectedCloseException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_UnexpectedCloseException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_UnexpectedCloseException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_UnexpectedCloseException_Stub.obj `if test -f 'upc/sidl_rmi_UnexpectedCloseException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_UnexpectedCloseException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_UnexpectedCloseException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.o: upc/sidl_rmi_UnknownHostException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.o `test -f 'upc/sidl_rmi_UnknownHostException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_UnknownHostException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_UnknownHostException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.o `test -f 'upc/sidl_rmi_UnknownHostException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_rmi_UnknownHostException_Stub.upc
-
-libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.obj: upc/sidl_rmi_UnknownHostException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.obj `if test -f 'upc/sidl_rmi_UnknownHostException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_UnknownHostException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_UnknownHostException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_rmi_UnknownHostException_Stub.upc' object='libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_rmi_UnknownHostException_Stub.obj `if test -f 'upc/sidl_rmi_UnknownHostException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_rmi_UnknownHostException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_rmi_UnknownHostException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_RuntimeException_Stub.o: upc/sidl_RuntimeException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_RuntimeException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_RuntimeException_Stub.o `test -f 'upc/sidl_RuntimeException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_RuntimeException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_RuntimeException_Stub.upc' object='libsidlstub_upc_a-sidl_RuntimeException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_RuntimeException_Stub.o `test -f 'upc/sidl_RuntimeException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_RuntimeException_Stub.upc
-
-libsidlstub_upc_a-sidl_RuntimeException_Stub.obj: upc/sidl_RuntimeException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_RuntimeException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_RuntimeException_Stub.obj `if test -f 'upc/sidl_RuntimeException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_RuntimeException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_RuntimeException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_RuntimeException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_RuntimeException_Stub.upc' object='libsidlstub_upc_a-sidl_RuntimeException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_RuntimeException_Stub.obj `if test -f 'upc/sidl_RuntimeException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_RuntimeException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_RuntimeException_Stub.upc'; fi`
-
-libsidlstub_upc_a-sidl_SIDLException_Stub.o: upc/sidl_SIDLException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_SIDLException_Stub.o -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_SIDLException_Stub.o `test -f 'upc/sidl_SIDLException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_SIDLException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_SIDLException_Stub.upc' object='libsidlstub_upc_a-sidl_SIDLException_Stub.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_SIDLException_Stub.o `test -f 'upc/sidl_SIDLException_Stub.upc' || echo '$(srcdir)/'`upc/sidl_SIDLException_Stub.upc
-
-libsidlstub_upc_a-sidl_SIDLException_Stub.obj: upc/sidl_SIDLException_Stub.upc
-@am__fastdepUPC_TRUE@	$(AM_V_UPC)$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -MT libsidlstub_upc_a-sidl_SIDLException_Stub.obj -MD -MP -MF $(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Tpo -c -o libsidlstub_upc_a-sidl_SIDLException_Stub.obj `if test -f 'upc/sidl_SIDLException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_SIDLException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_SIDLException_Stub.upc'; fi`
-@am__fastdepUPC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Tpo $(DEPDIR)/libsidlstub_upc_a-sidl_SIDLException_Stub.Po
-@am__fastdepUPC_FALSE@	$(AM_V_UPC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	source='upc/sidl_SIDLException_Stub.upc' object='libsidlstub_upc_a-sidl_SIDLException_Stub.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepUPC_FALSE@	DEPDIR=$(DEPDIR) $(UPCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepUPC_FALSE@	$(UPC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsidlstub_upc_a_CPPFLAGS) $(CPPFLAGS) $(AM_UPCFLAGS) $(UPCFLAGS) -c -o libsidlstub_upc_a-sidl_SIDLException_Stub.obj `if test -f 'upc/sidl_SIDLException_Stub.upc'; then $(CYGPATH_W) 'upc/sidl_SIDLException_Stub.upc'; else $(CYGPATH_W) '$(srcdir)/upc/sidl_SIDLException_Stub.upc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -4435,10 +3086,10 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(INFO_DEPS) $(LIBRARIES) $(LTLIBRARIES) $(SCRIPTS) \
-		$(MANS) $(HEADERS)
+all-am: Makefile $(INFO_DEPS) $(LTLIBRARIES) $(SCRIPTS) $(MANS) \
+		$(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(infodir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(pythondir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -4478,9 +3129,9 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
-clean-am: clean-aminfo clean-generic clean-libLIBRARIES \
-	clean-libLTLIBRARIES clean-libtool clean-local \
-	clean-nobase_pyexecLTLIBRARIES mostlyclean-am
+clean-am: clean-aminfo clean-generic clean-libLTLIBRARIES \
+	clean-libtool clean-local clean-nobase_pyexecLTLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -4519,8 +3170,8 @@ install-dvi-am: $(DVIS)
 	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dvidir)'"; \
 	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dvidir)" || exit $$?; \
 	done
-install-exec-am: install-binSCRIPTS install-libLIBRARIES \
-	install-libLTLIBRARIES install-nobase_pyexecLTLIBRARIES
+install-exec-am: install-binSCRIPTS install-libLTLIBRARIES \
+	install-nobase_pyexecLTLIBRARIES
 
 install-html: install-html-am
 
@@ -4630,8 +3281,7 @@ ps: ps-am
 ps-am: $(PSS)
 
 uninstall-am: uninstall-binSCRIPTS uninstall-dvi-am uninstall-html-am \
-	uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libLTLIBRARIES uninstall-man \
+	uninstall-info-am uninstall-libLTLIBRARIES uninstall-man \
 	uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
@@ -4643,7 +3293,7 @@ uninstall-man: uninstall-man1
 	recheck recheck-html
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-TESTS check-am \
-	check-html clean clean-aminfo clean-generic clean-libLIBRARIES \
+	check-html clean clean-aminfo clean-generic \
 	clean-libLTLIBRARIES clean-libtool clean-local \
 	clean-nobase_pyexecLTLIBRARIES ctags dist dist-all dist-bzip2 \
 	dist-gzip dist-info dist-lzma dist-shar dist-tarZ dist-xz \
@@ -4653,20 +3303,19 @@ uninstall-man: uninstall-man1
 	html-am info info-am install install-am install-binSCRIPTS \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libLIBRARIES \
-	install-libLTLIBRARIES install-man install-man1 \
-	install-nobase_includeHEADERS install-nobase_pyexecLTLIBRARIES \
-	install-nobase_pythonPYTHON install-pdf install-pdf-am \
-	install-ps install-ps-am install-pythonPYTHON install-strip \
-	installcheck installcheck-am installcheck-binSCRIPTS \
-	installdirs maintainer-clean maintainer-clean-aminfo \
+	install-info install-info-am install-libLTLIBRARIES \
+	install-man install-man1 install-nobase_includeHEADERS \
+	install-nobase_pyexecLTLIBRARIES install-nobase_pythonPYTHON \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-pythonPYTHON install-strip installcheck \
+	installcheck-am installcheck-binSCRIPTS installdirs \
+	maintainer-clean maintainer-clean-aminfo \
 	maintainer-clean-generic mostlyclean mostlyclean-aminfo \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am recheck recheck-html tags uninstall \
 	uninstall-am uninstall-binSCRIPTS uninstall-dvi-am \
-	uninstall-html-am uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libLTLIBRARIES uninstall-man uninstall-man1 \
-	uninstall-nobase_includeHEADERS \
+	uninstall-html-am uninstall-info-am uninstall-libLTLIBRARIES \
+	uninstall-man uninstall-man1 uninstall-nobase_includeHEADERS \
 	uninstall-nobase_pyexecLTLIBRARIES \
 	uninstall-nobase_pythonPYTHON uninstall-pdf-am uninstall-ps-am \
 	uninstall-pythonPYTHON
@@ -7012,24 +5661,39 @@ chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/BorrowedArray.chpl >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/DistributedArray.chpl >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/ArraySupport.chpl >>$@
-	@echo "  CHECK  $@" && $(CHPL) --no-codegen $@
+#	@echo "  CHECK  $@" && $(CHPL) --no-codegen $@
 
 # Rules to build the Chapel stubs for the SIDL runtime
 $(CHPL_SIDLSTUB_SRCS): chpl/sidl.chpl
+# ------------------------------------------------------------------------
 
-# We list only one of the files as target, otherwise make -j will run
-# havoc and try to make all of them in parallel
-@BABEL_LANG_UPC_TRUE@upc/sidl_BaseClass_Stub.upc: $(nobase_python_PYTHON)
-@BABEL_LANG_UPC_TRUE@	@$(MKDIR_P) upc
-@BABEL_LANG_UPC_TRUE@	$(AM_V_GEN)
-@BABEL_LANG_UPC_TRUE@	@echo "generating UPC bindings for the SIDL runtime"
-@BABEL_LANG_UPC_TRUE@	@cd upc && $(BRAID) -c upc $(SIDL_PATH)/sidl.sidl
-
-# Rules to build the UPC stubs for the SIDL runtime
-@BABEL_LANG_UPC_TRUE@$(UPC_SIDLSTUB_SRCS): upc/sidl_BaseClass_Stub.upc
-
-@BABEL_LANG_UPC_TRUE@$(UPC_RUNTIME_EXTRA): # generated by configure
-@BABEL_LANG_UPC_TRUE@	./config.status --recheck
+# Babel functionality: UPC
+# ------------------------------------------------------------------------
+# 
+#include upc/Makefile.include
+#nobase_include_HEADERS += $(UPC_SIDLSTUB_HDRS)
+# 
+#upc/sidl_BaseClass_Stub.upc: $(nobase_python_PYTHON)
+# 	@$(MKDIR_P) upc
+# 	$(AM_V_GEN)
+# 	@echo "generating UPC bindings for the SIDL runtime"
+# 	@cd upc && $(BRAID) -c upc $(SIDL_PATH)/sidl.sidl
+# 
+#$(UPC_SIDLSTUB_SRCS): upc/sidl_BaseClass_Stub.upc
+#UPC_INCLUDES = \
+#  -I$(builddir)/upc -I$(srcdir)/upc \
+#  -I$(BABEL_INCLUDEDIR) -I$(UPC_ROOT)/runtime/include
+# 
+#lib_LIBRARIES = libupc_runtime_extra.a libsidlstub_upc.a 
+#libsidlstub_upc_a_SOURCES       = $(UPC_SIDLSTUB_SRCS)
+#libsidlstub_upc_a_CPPFLAGS      = $(UPC_INCLUDES)
+#libupc_runtime_extra_a_SOURCES  = $(UPC_RUNTIME_EXTRA)
+#libupc_runtime_extra_a_CFLAGS   = $(UPC_CFLAGS) $(UPCC_POSTTRANS_CPPFLAGS)
+#libupc_runtime_extra_a_CPPFLAGS = $(UPC_INCLUDES) $(UPC_CPPFLAGS)
+# 
+#$(UPC_RUNTIME_EXTRA): # generated by configure
+# 	./config.status --recheck
+# 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
