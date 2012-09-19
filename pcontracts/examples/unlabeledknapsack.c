@@ -33,7 +33,7 @@
  * @return         Returns 1 if a solution is detected; otherwise, returns 0.
  */
 /* %CONTRACT REQUIRE weights != 0; n > 0; */
-/* %CONTRACT ENSURE _inrange(_result, 0, 1); */
+/* %CONTRACT ENSURE pce_inrange(pce_result, 0, 1); */
 int 
 knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
 {
@@ -83,6 +83,8 @@ runIt(unsigned int* weights, unsigned int t, unsigned int num)
  * solve.  If no target value is provided, then multiple solutions will be
  * generated for targets in a predetermined range.
  */
+/* %CONTRACT INIT */
+/* %CONTRACT FINAL */
 int 
 main(int argc, char **argv) {
   int t;
@@ -99,7 +101,7 @@ main(int argc, char **argv) {
       t = 0;
     }
   } else {
-    printf("USAGE: %s [<target-value]\n");
+    printf("USAGE: %s [<target-value]\n", argv[0]);
     exit(1);
   }
 

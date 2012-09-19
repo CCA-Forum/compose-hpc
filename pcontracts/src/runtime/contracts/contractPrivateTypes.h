@@ -1,5 +1,8 @@
 /**
- * File:  contractPrivateTypes.h
+ * File:           contractPrivateTypes.h
+ * Author:         T. Dahlgren
+ * Created:        2012 April 23
+ * Last Modified:  2012 August 17
  * 
  * @file
  * @section DESCRIPTION

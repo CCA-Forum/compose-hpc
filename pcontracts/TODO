@@ -1,12 +1,15 @@
-Tasks
-
 *** Preliminaries:
+
+EXAMPLES
+- Create an instrumenter example using actual contract clause annotations.
+  -- Initial version expected to only translate basic assertion expressions
+     (ie, those containing C operators).
 
 - Stand-alone enforcement library 
   TBD:  Should Babel/SIDL tracing equivalent be supported?
 
-- Determine desired runtime contract checking instrumentation
 
+LIBPAUL
 - Continue preliminary identification of relevant libpaul features
   -- Resume work on:
      o CommentVisitor
@@ -16,41 +19,17 @@ Tasks
        handler function.
      o PaulContractsDecorator
 
-- Potentially relevant ROSE tutorial codes:
-  (Refer to docs and code in tutorial source subdirectory.)
-  -- instrumentEndOfFunction.C  (pattern for adding invariant checks at end?)
-  -- tauInstrumenter.C  (source review does not clarify instrumentation site(s))
-  -- synthesizedAttributeTraversal.C  (pattern for traversing child attrs)
-  -- attributeCopyExamples.C  (pattern for inheriting attributes--invariants?)
-  -- inherited*AttributeTraversal.C  (pattern for inheriting attrs--invariants?)
-
-
-*** Refinement:
-
-- Discuss options and trade-offs with D.Q./ROSE team
-  -- AST Annotations
-    (e.g., function node vs. basic block node vs. pre-/post-pend to bb vs. ?)
-  -- contract validations
-  -- Enforcement code generation
-
-- Implement new annotations
-                      PreconditionsClause
-                    /
-  ContractClause <|-- PostconditionsClause
-                    \
-                      InvariantsClause
-
-- Implement new parsers:
-                           PreconditionsParser
-                         /
-  ContractClauseParser <|-- PostconditionsParser
-                         \
-                           InvariantsParser
-
 - Extend libpaul/PaulDecorate (or revision) with support for new parsers
   and new annotation node support
   -- Depends on tag-parser generalizations and support for multiple 
      annotation attributes per node as proposed at the coding camp
 
 
-Last Updated:  06 July 2012
+
+*** Refinement:
+- Support advanced (non-standard C) contract expressions
+     (ie, those containing non-C operators supported by Babel)
+
+
+
+Last Updated:  2012 August 17

@@ -2,7 +2,7 @@
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 July 20
+ * Last Modified: 2012 August 17
  *
  * @file
  * @section DESCRIPTION
@@ -13,8 +13,6 @@
  * @section LICENSE
  * TBD
  *
- * @todo  Make sure the output matches what is expected from the input.
- *
  * @todo Clean up this example so this class can be re-used "properly"
  * in ContractAssertionPrinter.cpp.
  */
@@ -24,34 +22,10 @@
 #include "rose.h"
 #include "Cxx_Grammar.h"
 #include "ContractPrinter.hpp"
+#include "RoseHelpers.hpp"
+
 
 using namespace std;
-
-
-bool
-isComment(PreprocessingInfo::DirectiveType dType)
-{
-  return (  (dType == PreprocessingInfo::C_StyleComment)
-         || (dType == PreprocessingInfo::CplusplusStyleComment)  );
-} /* isComment */
-
-
-void
-printLineComment(SgNode* node, const char* cmt)
-{
-  SgLocatedNode* lNode = isSgLocatedNode(node);
-  if (lNode != NULL)
-  {
-    Sg_File_Info* info = lNode->get_file_info();
-    if (info != NULL)
-    {
-      cout<<"\n"<<cmt<<"\n   @line "<<info->get_raw_line();
-      cout<<" of "<<info->get_raw_filename()<<endl;
-    }
-  }
-
-  return;
-} /* printLineComment */
 
 
 void
@@ -67,7 +41,7 @@ ContractPrinter::visit(SgNode* node)
       for (iter = cmts->begin(); iter != cmts->end(); iter++)
       {
         size_t cInd;
-        if (isComment(((*iter)->getTypeOfDirective())))
+        if (isCComment(((*iter)->getTypeOfDirective())))
         {
           string str = (*iter)->getString();
           if (str.find("CONTRACT")!=string::npos)
@@ -87,9 +61,20 @@ ContractPrinter::visit(SgNode* node)
               printLineComment(node, "Invariant clause:");
               cout<<(*iter)->getString()<<endl;
             }
+            else if (str.find("INIT")!=string::npos)
+            {
+              printLineComment(node, "Initialization:");
+              cout<<(*iter)->getString()<<endl;
+            }
+            else if (str.find("FINAL")!=string::npos)
+            {
+              printLineComment(node, "Finalization:");
+              cout<<(*iter)->getString()<<endl;
+            }
             else
             {
-              printLineComment(node, "WARNING: Unidentified contract clause:");
+              printLineComment(node, 
+                "WARNING: Unidentified contract annotation:");
               cout<<(*iter)->getString()<<endl;
             }
           }
