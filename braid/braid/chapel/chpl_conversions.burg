@@ -1145,10 +1145,12 @@ array_chpl_chpl <-- array_ior_chpl: cost(1)
     scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
-        scope.gen(ir.Copy(dest, ir.Call("generic_ptr", [src])))
+        #scope.gen(ir.Copy(dest, ir.Call("generic_ptr", [src])))
+        scope.gen(ir.Copy(dest, src))
     else:
         scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
-    return array_ior_type(t), (dest, src, None)
+    #return array_ior_type(t), (dest, src, None)
+    return t, (dest, src, None)
 
 # now part of sidl.chpl:
 #    skel.gen(ir.Fn_defn(
@@ -1163,10 +1165,12 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
     scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
-        scope.gen(ir.Copy(dest, ir.Call("ptr_generic", [src])))
+        #scope.gen(ir.Copy(dest, ir.Call("ptr_generic", [src])))
+        scope.gen(ir.Copy(dest, src))
     else:
         scope.gen(ir.Copy(dest, access(src, 'ior')))
-    return array_ior_type(t), (dest, src, None)
+    return t, (dest, src, None)
+    #return array_ior_type(t), (dest, src, None)
 
 #array_ior_c <-- array_chpl_chpl : cost(1)
 #    scalar_type = get_array_type(full_type)
