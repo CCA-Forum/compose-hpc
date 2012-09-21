@@ -114,6 +114,10 @@ def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
               it returns \c None.
     """
 
+    
+    import pdb; pdb.set_trace()
+
+
     def extern_decl_convs((arg, attrs, mode, typ, name)):
         # make generic sidl__arrays into opaques for the extern decl
         if typ == ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], '')):

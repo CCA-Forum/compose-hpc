@@ -159,23 +159,28 @@ def get_ior_array_type(sidl_array):
     return m.group(1) if m else ir.void_ptr
 
 
-def wrap_rarray(convs, a0, fulltype, dest):
-    data  = '_braid_%s_data'  %a0
-    dom   = '_braid_%s_dom'   %a0
-    local = '_braid_%s_local' %a0
+def wrap_rarray(scope, a0, fulltype, dest):
+    a0 = a0[1]
+    data  = '%s_data'  %a0
+    dom   = '%s_dom'   %a0
+    local = '%s_local' %a0
+    rank  = '%s_rank'  %a0
+    lus   = '%s_lus'   %a0  
+    lower = '%s_lower' %a0
+    upper = '%s_upper' %a0
+    stride ='%s_stride'%a0
+
     scalar_type = fulltype[1][1]
     iortype = ir.Typedef_type('sidl_%s__array'%scalar_type)
 
     # sanity check on input array: ensure domain is rectangular
-    convs.append(ir.Stmt(ir.Call('performSanityCheck', [dom, '"%s"'%a0])))
+    scope.gen(ir.Stmt(ir.Call('performSanityCheck', [dom, '"%s"'%a0])))
 
     # ensure we are working with a 'local' array
     # FIXME Hack to define a variable without explicitly specifying type
     # should we change the IR to support this?
-    convs.append(ir.Stmt(ir.Assignment('var ' + data,
-                                      ir.Call("getOpaqueData", [ir.Call(a0, [dom+'.low'])]))))
-    convs.append(ir.Stmt(ir.Assignment('var ' + local,
-                                      ir.Call("ensureLocalArray", [a0, data]))))
+    scope.gen(ir.Copy('var ' + data,  ir.Call("getOpaqueData", [ir.Call(a0, [dom+'.low'])])))
+    scope.gen(ir.Copy('var ' + local, ir.Call("ensureLocalArray", [a0, data])))
 
                     
     # Babel is strange when it comes to Rarrays. The convention is to
@@ -191,28 +196,21 @@ def wrap_rarray(convs, a0, fulltype, dest):
     # TODO: Change the IOR in Babel to use the r-array calling
     # convention.  This will complicate the Python/Fortran/Java
     # backends but simplify the C/C++ ones.
-    sidl_wrapping = (ir.stmt, """
-var {a}rank = _braid_dom_{arg}.rank: int(32);
+    scope.gen(ir.Copy('var '+lus,    ir.Call('computeLowerUpperAndStride',[local])))
+    scope.gen(ir.Copy('var '+rank,   ir.Cast(ir.pt_int, access(dom,'rank'))))
+    scope.gen(ir.Copy('var '+lower,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%a0, [0]))))
+    scope.gen(ir.Copy('var '+upper,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%a0, [1]))))
+    scope.gen(ir.Copy('var '+stride, ir.Cast(ir.pt_int, ir.Call('%s_lus'%a0, [2]))))
+    scope.gen(ir.Copy(dest,
+                      ir.Call('%s_borrow'%iortype[1],
+                              [ir.Call(scalar_type+'_ptr', 
+                                       [ir.Call(local, [access(access(local, 'domain'),'low')])]),
+                               rank,
+                               ir.Call(lower, [1]),
+                               ir.Call(upper, [1]),
+                               ir.Call(stride, [1])])))
+    return
 
-var {a}lus = computeLowerUpperAndStride(_braid_local_{arg});
-var {a}lower = {a}lus(0): int(32);
-var {a}upper = {a}lus(1): int(32);
-var {a}stride = {a}lus(2): int(32);
-
-{dest} = {iortype}_borrow(
-    {stype}_ptr(_braid_local_{arg}(_braid_local_{arg}.domain.low)),
-    //_braid_local_{arg}(_braid_local_{arg}.domain.low),
-    {a}rank,
-    {a}lower[1],
-    {a}upper[1],
-    {a}stride[1])""".format(a='_braid_%s_'%a0,
-                            arg=a0,
-                            dest=dest,
-                            iortype=iortype[1],
-                            stype=scalar_type))
-    
-    convs.append(sidl_wrapping)
-    # post_call.append((ir.stmt, '//sidl__array_deleteRef((struct sidl__array*)a_tmp)'))
 
 
 char_lut = '''
@@ -342,16 +340,16 @@ def c_convs(a):
     _t, _dest, _src, conv = c_xvalue
     return conv
 
-def make_carg(name, allargs):
-    # make a linear search through inoutargs to find the matching C type
+def make_carg((mode, (typ, (name1, name2, conv)))):
     # [inout]args = typ, dest_name, src_name, (None | (ctype, cdest_name, csrc_name, conv))
-    for mode, arg in allargs:
-        typ, (name1, name2, conv) = arg
-        if name == name1 or name == name2:
-            if mode == ir.out: name = name1
-            return ir.Arg([], mode, typ, name)
-    import pdb; pdb.set_trace()
-    raise
+    return ir.Arg([], mode, typ, name1 if mode == ir.out else name2)
+
+def make_stubcall_arg((typ, (name1, name2, _))):
+    if typ == outgoing_arg:
+        return name2
+    if name1 <> name2:
+        return name1
+    return name2
 
 def get_c_tmp1(arg):
     typ, (_, name, conv) = arg # return src to signal 'no temp needed'
@@ -468,7 +466,7 @@ def test_harness():
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
 stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
-    ftype, name, args, call_args, ci = a0
+    ftype, cstub, name, args, call_args, ci = a0
 
     # merge in and outargs
     outargs = map(strip_derefs, ensure_list(a1))
@@ -488,22 +486,17 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
             else:
                 allargs.append((ir.in_, arg))
 
-    # generate the call to the C Stub
-    cstub_params = map(lambda (_,a): strip_derefs(a)[1][0], allargs)
-    arg_names    = map(lambda (_,a): strip_derefs(a)[1][1], allargs)
-
-    cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
-    if ftype <> ir.pt_void:
-        call = ir.Copy('_ior__retval', ir.Call(cstub, cstub_params))
-    else:
-        call = ir.Stmt(ir.Call(cstub, cstub_params))
-
     # now that we know all of them, declare temporary variables for
     # the CHAPEL stub
-    unique_temps = set([(a[0], a[1][0]) for a in  inargs if a[1][0] <> a[1][1]]+
-                       [(a[0], a[1][1]) for a in outargs if a[1][0] <> a[1][1]])
-    for tmp in unique_temps:
-        scope.genh(ir.Stmt(ir.Var_decl(*tmp)))
+    for mode, (typ, arg) in allargs:
+        if arg[0] <> arg[1] or mode == ir.out:
+            if mode == ir.out:
+                # outgoing args are always passed via a temporary
+                # because we don't know their type when the stub call
+                # is emitted
+                scope.genh(ir.Stmt(ir.Var_decl(typ, '_ior_'+arg[0])))
+            else:
+                scope.genh(ir.Stmt(ir.Var_decl(typ, arg[0])))
 
     # Stub in C:
     #
@@ -516,15 +509,14 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
 
         # always declare an _ior_retval because we will write to
         # it unconditionally
-        if outargs[-1][1][0] == outargs[-1][1][1]:
-            scope.genh(ir.Stmt(ir.Var_decl(outargs[-1][0], '_ior__retval')))
+        scope.genh(ir.Stmt(ir.Var_decl(outargs[-1][0], '_ior__retval')))
 
     else:
         ftype = ir.pt_void
 
 
     cstub_type = ftype
-    cstub_args = map(lambda n: make_carg(n, allargs), arg_names)
+    cstub_args = map(make_carg, allargs)
 
     unique_temps = set(map(get_c_tmp1, inargs)+
                        map(get_c_tmp2, outargs))
@@ -602,7 +594,17 @@ rvalue_ior_c <-- ior_call(any_method, rvalue_ior_c) :cost(2)
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
 
-    return ftype, name, args, la1, ci
+    # generate the call to the C Stub
+    cstub_params = map(make_stubcall_arg, args)
+    cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
+    if ftype <> ir.pt_void:
+        call = ir.Copy('_ior__retval', ir.Call(cstub, cstub_params))
+    else:
+        call = ir.Stmt(ir.Call(cstub, cstub_params))
+
+    scope.gen(call)
+
+    return ftype, cstub, name, args, la1, ci
 
 # nonvirtual methods
 rvalue_ior_chpl <-- ior_call(nonvirtual_method, rvalue_ior_chpl) :cost(1)
@@ -760,16 +762,16 @@ rvalue_chpl_chpl        <-- cons(rvalue_chpl_chpl, rvalue_chpl_chpl) : cost(0)
 # this is a pseudo-arg to have all arguments (including the outgoing
 # ones) appear in the right order in the call rule
 rvalue_ior_c     <-- outgoing_arg  :cost(0)
-    return outgoing_arg, (a0, a0, None)
+    return outgoing_arg, a0
 
 rvalue_chpl_chpl <-- outgoing_arg  :cost(0)
-    return outgoing_arg, (a0, a0, None)
+    return outgoing_arg, a0
 
 rvalue_ior_chpl  <-- outgoing_arg  :cost(0)
-    return outgoing_arg, (a0, a0, None)
+    return outgoing_arg, a0
 
 rvalue_chpl_c    <-- outgoing_arg  :cost(0)
-    return outgoing_arg, (a0, a0, None)
+    return outgoing_arg, a0
 
 # this conversion is essentially a no-op; it says that values
 # converted at the chpl level are also compatible with a stub
@@ -1194,7 +1196,7 @@ rarray_ior_chpl <-- rarray_ior_c    :cost(0)
 array_chpl_chpl <-- rarray_ior_chpl :cost(4)
     t, (dest, src, orig) = a0
     _, array_t = get_array_type(t)
-    wrap_rarray(convs, src, t, dest)
+    wrap_rarray(scope, dest, t, dest)
     return array_t, (dest, src, None)
 
 rarray_ior_chpl <-- array_chpl_chpl: cost(4)

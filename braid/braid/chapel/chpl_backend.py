@@ -421,7 +421,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             if mode <> sidl.out:
                 param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
                 return conv.ir_to_burg(typ, 'chpl', tmp(name), param, param)
-            else: return conv.outgoing_arg, param_exp
+            else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.in_:
@@ -467,7 +467,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             if mode <> sidl.out:
                 param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
                 return conv.ir_to_burg(typ, 'ior', tmp(name), param, param)
-            else: return conv.outgoing_arg, param_exp
+            else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.in_:
