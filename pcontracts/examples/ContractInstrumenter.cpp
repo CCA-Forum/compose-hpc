@@ -2,19 +2,22 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 14
+ * Last Modified:  2012 September 28
  *
  * @file
  * @section DESCRIPTION
  * Experimental contract enforcement instrumentation.
  *
  *
+ * @todo Addressed unresolved (member function) calls associated with 
+ *  invariants generation.
+ *
  * @todo Ensure adding postcondition (and post-invariant) checks to the AST 
  *  in the correct order and with correct "firstTime" handling.
  *
  * @todo Do NOT generate invariant check in routine of same name.
  *  Technically, contracts of routines used in contracts of others are not
- *  supposed to be called.
+ *  supposed to be called.  
  *
  * @todo Need to handle generation of return variable, when needed.
  *
@@ -29,6 +32,8 @@
  *  estimate "assignments" (to expressions); and limiting BEGIN and END
  *  comments to first and last expression (IF retain macro), respectively.
  *
+ * @todo Add support for equivalent of SIDL built-in assertion routines.
+ *
  * @todo Add support for complex (as in non-standard C) expressions.
  *
  * @todo Give some thought to improving contract violation messages.
@@ -36,7 +41,7 @@
  * @todo Need new annotation for checking/dumping contract check data.
  *  BUT will need to ensure properly configured to actually dump the data.
  *
- * @todo Investigation of contract enforcement statistics dumps still needed.
+ * @todo Contract enforcement statistics dump testing still needed.
  * 
  * @section WARNING
  * This is a VERY preliminary draft. (See todo items.)
@@ -163,7 +168,8 @@ class ContractComment
 {
   public:
     ContractComment(ContractCommentEnum t, PPIDirectiveType dt): 
-      d_type(t), d_needsReturn(false), d_dirType(dt), d_numExec(0) {}
+      d_type(t), d_needsReturn(false), d_isInit(false), d_dirType(dt), 
+      d_numExec(0) {}
 
     ~ContractComment() { d_aeList.clear(); }
 
@@ -174,7 +180,10 @@ class ContractComment
       d_aeList.push_front(ae); 
       if (ae.support() == AssertionSupport_EXECUTABLE) d_numExec += 1;
     }
+    void setInit(bool init) { d_isInit = init; }
+    bool isInit() { return d_isInit; }
     void setResult(bool needs) { d_needsReturn = needs; }
+    bool needsResult() { return d_needsReturn; }
     list<AssertionExpression> getList() { return d_aeList; }
     void clear() { d_aeList.clear(); }
     int size() { return d_aeList.size(); }
@@ -186,6 +195,7 @@ class ContractComment
     list<AssertionExpression>  d_aeList;
     PPIDirectiveType           d_dirType;
     bool                       d_needsReturn;
+    bool                       d_isInit;
     int                        d_numExec;
 };  /* class ContractComment */
 
@@ -233,7 +243,7 @@ void
 printUsage();
 
 ContractComment*
-processCommentEntry(SgFunctionDeclaration* dNode, const string cmt,
+processCommentEntry(SgFunctionDeclaration* dNode, string cmt,
   PreprocessingInfo::DirectiveType dirType, bool firstExecClause);
 
 int
@@ -467,6 +477,13 @@ addExpressions(string clause, ContractComment* cc, bool firstExecClause)
         {
 #ifdef DEBUG
             cout << "DEBUG: ...is advisory expression.\n";
+#endif /* DEBUG */
+        }
+        else if (expr == "is initialization") 
+        {
+          cc->setInit(true);
+#ifdef DEBUG
+            cout << "DEBUG: ...is initialization routine.\n";
 #endif /* DEBUG */
         } 
         else if (isExecutable(expr))
@@ -968,7 +985,7 @@ printUsage()
  * @return                The corresponding ContractComment type.
  */
 ContractComment*
-processCommentEntry(SgFunctionDeclaration* dNode, const string cmt,
+processCommentEntry(SgFunctionDeclaration* dNode, string cmt,
   PreprocessingInfo::DirectiveType dirType, bool firstExecClause)
 {
   ContractComment* cc = NULL;
@@ -1031,6 +1048,7 @@ processComments(SgFunctionDefinition* def)
     {
       bool isConstructor = false;
       bool isDestructor = false;
+      bool isInitRoutine = false;
       SgMemberFunctionDeclaration* mfDecl = isSgMemberFunctionDeclaration(decl);
       if (mfDecl != NULL)
       {
@@ -1070,6 +1088,7 @@ processComments(SgFunctionDefinition* def)
             case ContractComment_PRECONDITION:
               {
                 pre = cc;
+                if (cc->isInit()) isInitRoutine = true;
                 numChecks[0] += pre->size();
               }
               break;
@@ -1084,7 +1103,6 @@ processComments(SgFunctionDefinition* def)
                 if (g_invariants == NULL)
                 {
                   g_invariants = cc;
-                  numChecks[2] += g_invariants->size();
                 }
                 else
                 {
@@ -1121,6 +1139,10 @@ processComments(SgFunctionDefinition* def)
   
           if (body != NULL)
           {
+            if (g_invariants != NULL)
+            {
+              numChecks[2] = g_invariants->size();
+            }
             /*
              * First add initial routine instrumentation.
              * ...Order IS important since each is prepended to the body.
@@ -1138,10 +1160,8 @@ processComments(SgFunctionDefinition* def)
 
             if ( (g_invariants != NULL) && (numChecks[2] > 0) )
             {
-              if ( ! (isConstructor || skipInvariants) ) 
+              if ( ! (isConstructor || isInitRoutine || skipInvariants) ) 
               {
-                ///// @todo: TODO/FIX:  Why are invariants being skipped
-                /////    on subsequent routines?
                 num += addPreChecks(def, body, g_invariants);
               }
             }
@@ -1167,7 +1187,7 @@ processComments(SgFunctionDefinition* def)
 
             if ( (g_invariants != NULL) && (numChecks[2] > 0) )
             {
-              if ( ! (isDestructor || skipInvariants) ) 
+              if ( ! (isDestructor || isConstructor || skipInvariants) ) 
               { 
                 num += addPostChecks(def, body, g_invariants);
               } 

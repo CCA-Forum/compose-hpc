@@ -1,4 +1,6 @@
 PROTOTYPE
+- Resolve post-first routine invariant generation.
+
 - Expand supported enforcement options
   -- Initial version expected to only translate basic assertion expressions
      (ie, those containing C operators).

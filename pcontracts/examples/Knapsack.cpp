@@ -48,6 +48,7 @@ Examples::Knapsack::Knapsack() {
 
 /* %CONTRACT REQUIRE 
     pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
+    initialization: is initialization;
  */
 /* %CONTRACT ENSURE 
     has_new_weights: hasWeights(weights, len); 

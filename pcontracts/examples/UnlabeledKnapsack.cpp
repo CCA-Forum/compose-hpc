@@ -51,6 +51,7 @@ Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
 
 
 /* %CONTRACT REQUIRE 
+    is initialization;
     ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
  */
 /* %CONTRACT ENSURE hasWeights(weights, len); */
