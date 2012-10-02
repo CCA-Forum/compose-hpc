@@ -154,13 +154,25 @@ def get_array_type(full_type):
    return name, iortype 
 
 def get_ior_array_type(sidl_array):
+    chpl_type = {
+        'bool':     ir.Typedef_type('chpl_bool'),
+        'string':   ir.const_str,
+        'int':      ir.pt_int, #ir.Typedef_type('int32_t'),
+        'long':     ir.pt_long, #ir.Typedef_type('int64_t'),
+        'char':     ir.const_str,
+        'fcomplex': ir.Typedef_type('_complex64'), 
+        'dcomplex': ir.Typedef_type('_complex128'),
+        'float':    ir.pt_float,
+        'double':   ir.pt_double,
+        'opaque':   ir.Pointer_type(ir.pt_void),
+        'BaseInterface': ir.Pointer_type(ir.pt_void),
+        }
     struct_name = sidl_array[1][1]
     m = babel.sidl_array_regex.match(struct_name)
-    return m.group(1) if m else ir.void_ptr
+    return (chpl_type[m.group(1)], m.group(1)) if m else ir.void_ptr, ir.void_ptr
 
 
 def wrap_rarray(scope, a0, fulltype, dest):
-    a0 = a0[1]
     data  = '%s_data'  %a0
     dom   = '%s_dom'   %a0
     local = '%s_local' %a0
@@ -181,7 +193,6 @@ def wrap_rarray(scope, a0, fulltype, dest):
     # should we change the IR to support this?
     scope.gen(ir.Copy('var ' + data,  ir.Call("getOpaqueData", [ir.Call(a0, [dom+'.low'])])))
     scope.gen(ir.Copy('var ' + local, ir.Call("ensureLocalArray", [a0, data])))
-
                     
     # Babel is strange when it comes to Rarrays. The convention is to
     # wrap Rarrays inside of a SIDL-Array in the Stub and to unpack it
@@ -259,7 +270,7 @@ def ir_to_burg(typ, language, *user_data):
         ir.enum:        enum_chpl_chpl,
         'ext':          ext_chpl_chpl,
         'array':        array_chpl_chpl,
-        ir.rarray:      array_chpl_chpl
+        ir.rarray:      rarray_chpl_chpl
         }
 
     ior_type_map={
@@ -490,6 +501,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     # the CHAPEL stub
     for mode, (typ, arg) in allargs:
         if arg[0] <> arg[1] or mode == ir.out:
+            #print typ
             if mode == ir.out:
                 # outgoing args are always passed via a temporary
                 # because we don't know their type when the stub call
@@ -856,6 +868,11 @@ value_ior_c    <-- array_ior_c    :cost(0)
 value_chpl_chpl<-- array_chpl_chpl:cost(0) 
 value_ior_chpl <-- array_ior_chpl :cost(0) 
 
+value_chpl_c   <-- rarray_chpl_c   :cost(0) 
+value_ior_c    <-- rarray_ior_c    :cost(0) 
+value_chpl_chpl<-- rarray_chpl_chpl:cost(0) 
+value_ior_chpl <-- rarray_ior_chpl :cost(0) 
+
 value_chpl_c    <-- ext_chpl_c    :cost(0) 
 value_ior_c     <-- ext_ior_c     :cost(0)
 value_chpl_chpl <-- ext_chpl_chpl :cost(0) 
@@ -1144,13 +1161,16 @@ array_ior_chpl   <-- array_ior_c    :cost(0)
 # for sidl arrays we invoke a chapel code fragment from the C stub
 array_chpl_chpl <-- array_ior_chpl: cost(1)
     t, (dest, src, _) = a0
-    scalar_type = get_ior_array_type(t)
+    chpl_scalar_type, scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
         #scope.gen(ir.Copy(dest, ir.Call("generic_ptr", [src])))
         scope.gen(ir.Copy(dest, src))
     else:
-        scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
+        #scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
+        scope.gen(ir.Copy(dest, (ir.new, 'sidl.Array',
+                                 [chpl_scalar_type, t[1][1], src])))
+
     #return array_ior_type(t), (dest, src, None)
     return t, (dest, src, None)
 
@@ -1164,7 +1184,7 @@ array_chpl_chpl <-- array_ior_chpl: cost(1)
 
 array_ior_chpl <-- array_chpl_chpl: cost(1)
     t, (dest, src, _) = a0
-    scalar_type = get_ior_array_type(t)
+    _, scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
         #scope.gen(ir.Copy(dest, ir.Call("ptr_generic", [src])))
@@ -1191,15 +1211,10 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
 
 # RAW ARRAY
 #------------------------------------------------------------------------
-rarray_ior_c    <-- rarray_ior_chpl :cost(0)
-rarray_ior_chpl <-- rarray_ior_c    :cost(0)
-array_chpl_chpl <-- rarray_ior_chpl :cost(4)
-    t, (dest, src, orig) = a0
-    _, array_t = get_array_type(t)
-    wrap_rarray(scope, dest, t, dest)
-    return array_t, (dest, src, None)
-
-rarray_ior_chpl <-- array_chpl_chpl: cost(4)
+rarray_ior_chpl  <-- rarray_ior_c    :cost(0)
+rarray_ior_c     <-- rarray_ior_chpl :cost(0)
+rarray_chpl_c    <-- rarray_chpl_chpl:cost(0)
+rarray_chpl_chpl <-- rarray_ior_chpl :cost(4)
     t, (dest, src, orig) = a0
     _, array_t = get_array_type(t)
     # emit code to copy back elements into non-local array
@@ -1211,4 +1226,12 @@ rarray_ior_chpl <-- array_chpl_chpl: cost(4)
     scope.gen(ir.Copy('var ' + sarray, sarr))
     scope.gen(ir.Copy('var ' + barray, barr))
     scope.gen(ir.Stmt(ir.Call('syncNonLocalArray', [barray, dest])))
+#    print array_t
+#    import pdb; pdb.set_trace()
+    return array_t, (dest, src, None)
+
+rarray_ior_chpl <-- rarray_chpl_chpl: cost(4)
+    t, (dest, src, orig) = a0
+    _, array_t = get_array_type(t)
+    wrap_rarray(scope, strip_deref(src), t, dest)
     return array_t, (dest, src, None)

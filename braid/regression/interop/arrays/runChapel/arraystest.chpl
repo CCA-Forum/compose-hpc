@@ -146,7 +146,7 @@ tracker.setExpectations(-1, sidl_ex);
 }
 
 {
-  tracker.writeComment("Start: Check sidl.borrow_int_Array", sidl_ex);
+  tracker.writeComment("Start: Check sidl.borrow_int_array", sidl_ex);
 
   magicNumber = clearstack(magicNumber);
   var borrowed: sidl.Array(int(32), sidl_int__array);
@@ -158,7 +158,7 @@ tracker.setExpectations(-1, sidl_ex);
      97:int(32), 101:int(32), 103:int(32), 107:int(32), 109:int(32), 113:int(32), 
      127:int(32), 131:int(32));
 
-  borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
+  borrowed = sidl.borrow_int_array(elements, int_ptr(elements[0]));
   init_part(); run_part("borrowed_int: not-nil", borrowed.is_not_null());
 
   var resCheckInt1 = ArrayTest.ArrayOps_static.checkInt(borrowed, sidl_ex);
@@ -170,11 +170,11 @@ tracker.setExpectations(-1, sidl_ex);
 
   magicNumber = clearstack(magicNumber);
 
-  tracker.writeComment("End: Check sidl.borrow_int_Array", sidl_ex);
+  tracker.writeComment("End: Check sidl.borrow_int_array", sidl_ex);
 }
 
 {
-  tracker.writeComment("Start: Check sidl.borrow_int_Array:slice", sidl_ex);
+  tracker.writeComment("Start: Check sidl.borrow_int_array:slice", sidl_ex);
 
   magicNumber = clearstack(magicNumber);
   var borrowed: sidl.Array(int(32), sidl_int__array);
@@ -187,7 +187,7 @@ tracker.setExpectations(-1, sidl_ex);
      109:int(32), 113:int(32), 127:int(32), 131:int(32),  -1:int(32));
   var elements = elementsExtra[0..31];
 
-  borrowed = sidl.borrow_int_Array(elements, int_ptr(elements[0]));
+  borrowed = sidl.borrow_int_array(elements, int_ptr(elements[0]));
   init_part(); run_part("borrowed_int:slice: not-nil", borrowed.is_not_null());
 
   var resCheckInt1 = ArrayTest.ArrayOps_static.checkInt(borrowed, sidl_ex);
@@ -199,7 +199,7 @@ tracker.setExpectations(-1, sidl_ex);
 
   magicNumber = clearstack(magicNumber);
 
-  tracker.writeComment("End: Check sidl.borrow_int_Array:slice", sidl_ex);
+  tracker.writeComment("End: Check sidl.borrow_int_array:slice", sidl_ex);
 }
 
 {

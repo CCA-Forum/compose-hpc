@@ -238,7 +238,7 @@ SIDL_ARRAY(int,      int(32))
 SIDL_ARRAY(long,     int(64))
 SIDL_ARRAY(opaque,   opaque)
 SIDL_ARRAY(string,   string)
-SIDL_ARRAY(BaseInterface, int(32))
+SIDL_ARRAY(BaseInterface, opaque)
 
 
   class Array {

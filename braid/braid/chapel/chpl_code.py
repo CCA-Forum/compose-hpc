@@ -545,7 +545,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.arg, Attrs, Mode, (ir.rarray, Scalar_type, Dimension, Extents), Name):
                 (arg_mode, arg_name) = (gen(Mode), gen(Name))
                 # rarray type will include a new domain variable definition
-                arg_type = '[?_braid_dom_%s] %s'%(Name, gen(Scalar_type))
+                arg_type = '[?%s_dom] %s'%(Name, gen(Scalar_type))
                 return '%s %s: %s'%(arg_mode, arg_name, arg_type)
 
             elif (ir.arg, Attrs, ir.inout, Type, '_ex'):
