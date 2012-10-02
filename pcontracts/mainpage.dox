@@ -5,7 +5,33 @@
 
 \section IntroductionTag Introduction
 
-This package contains .. \b ToDo [FILL THIS IN]
+This package contains prototype work for the automated transformation of
+interface contract annotations in source code to enforcement instrumentation.
+Annotations expressed as specially formatted comments are automatically
+translated into statements for checking, or enforcing, the associated 
+assertions at pre-determined locations within routines.  A variety of
+enforcement strategies, or policies, are available from partial -- including
+performance-based -- to full contract enforcement.
+
+Executable interface contracts are generally useful in terms of documenting
+expectations and features of software.  They also provide a mechanism for
+Exascale, for helping verify the behavior of transformed code and sanity
+checks for silent errors to improve code resilience.
+
+Interface contracts are specified in the source code through PAUL compliant
+annotations.  The following keywords are currently supported:
+
+- \b CONTRACT \b INIT		# Initiate contract enforcement
+- \b CONTRACT \b FINAL          # Terminate contract enforcement
+- \b CONTRACT \b REQUIRE        # Routine/method Preconditions
+- \b CONTRACT \b ENSURE         # Routine/method Postconditions
+- \b CONTRACT \b INVARIANT      # (Class) Invariants
+
+Preconditions are obligations on the caller; postconditions are guarantees
+of the implementation; and invariants are assertions expected to hold, in
+general, prior to and after the execution of routines.
+
+[\b TODO: Introduce enforcement runtime library and options.]
 
 Simple makefiles are currently used to build the tools; run examples; and
 run regression tests.  Specific environment requirements are associated 
@@ -13,7 +39,7 @@ with the build process.  Basic instructions for available makefile targets
 are given below and (will be) included in the README file.
 
 \b WARNING:  This is a \b work \b in \b progess so, at present, only the 
-contents of the examples and docs directories build.
+contents of the examples, runtime, and docs directories build.
 
 
 \section EnvironmentTag Environment

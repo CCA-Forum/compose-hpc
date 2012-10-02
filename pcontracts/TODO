@@ -1,22 +1,17 @@
-*** Preliminaries:
+PROTOTYPE
+- Resolve post-first routine invariant generation.
 
-EXAMPLES
-- Create an instrumenter example using actual contract clause annotations.
+- Expand supported enforcement options
   -- Initial version expected to only translate basic assertion expressions
      (ie, those containing C operators).
+  -- Add SIDL built-in equivalents to the stand-alone library
 
-- Stand-alone enforcement library 
-  TBD:  Should Babel/SIDL tracing equivalent be supported?
+TBD:  Should Babel/SIDL tracing equivalent be supported?
 
 
 LIBPAUL
 - Continue preliminary identification of relevant libpaul features
   -- Resume work on:
-     o CommentVisitor
-       A preferred version would be for CommentVisitor (or PaulConfReader?) 
-       to support the addition of <parser-name, comment handler function>
-       pairings.  Then handle_comment() could retrieve and call the comment
-       handler function.
      o PaulContractsDecorator
 
 - Extend libpaul/PaulDecorate (or revision) with support for new parsers
@@ -32,4 +27,4 @@ LIBPAUL
 
 
 
-Last Updated:  2012 August 17
+Last Updated:  2012 September 28
