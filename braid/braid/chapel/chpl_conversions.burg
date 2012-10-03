@@ -393,17 +393,22 @@ def ensure_list(a):
     if not isinstance(a, list): return [a]
     return a
 
-def assigns_retval(stmts):
+def assigns_temporary(stmts, name):
     '''
-    figure out if stmts assign _retval
+    figure out if stmts assign name
     '''
     for stmt in stmts:
         if stmt[1][0] == ir.assignment:
-            if stmt[1][1] == '_retval':
+            if stmt[1][1] == name:
                 return True
-            if stmt[1][1][0] == ir.get_struct_item and stmt[1][1][2] == '_retval':
+            if stmt[1][1][0] == ir.get_struct_item and stmt[1][1][2] == name:
                 return True
     return False
+
+def outarg_needs_copy(typ):
+    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+        return False
+    return True
 
 def strip_deref(a):
     if isinstance(a, tuple) and a[0] == ir.deref: 
@@ -520,7 +525,11 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
                 # outgoing args are always passed via a temporary
                 # because we don't know their type when the stub call
                 # is emitted
-                scope.genh(ir.Stmt(ir.Var_decl(typ, '_ior_'+arg[0])))
+                temp = '_ior_'+arg[0]
+                scope.genh(ir.Stmt(ir.Var_decl(typ, temp)))
+                if outarg_needs_copy(typ):
+                    scope.gen(ir.Copy(arg[0], temp))
+
             else:
                 scope.genh(ir.Stmt(ir.Var_decl(typ, arg[0])))
 
@@ -573,7 +582,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
         if post_call:
             pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
             ior_call = [ir.Copy(retval, call)]
-            if not assigns_retval(post_call):
+            if not assigns_temporary(post_call, '_retval'):
                 post_call.append(ir.Copy('_retval', retval))
             post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
@@ -585,7 +594,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     cstub_body = [s for s in (cstub_body0) if s]
     scope.cstub.gen(ir.Fn_defn(attrs, cstub_type, cstub, cstub_args, cstub_body, 
                                'remaining Stub in C'))
-    #scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
+    scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
     scope.genh((ir.fn_decl, ['extern']+attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
     return None
 
@@ -711,7 +720,7 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
         if post_call:
             pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
             impl_call = ir.Copy(retval, call)
-            if not assigns_retval(post_call):
+            if not assigns_temporary(post_call, '_retval'):
                 post_call.append(ir.Copy('_retval', retval))
             post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
