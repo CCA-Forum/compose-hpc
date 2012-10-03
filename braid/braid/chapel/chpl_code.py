@@ -63,13 +63,6 @@ def incoming((arg, attrs, mode, typ, name)):
 def outgoing((arg, attrs, mode, typ, name)):
     return mode <> sidl.in_
 
-def ir_arg_to_chpl((arg, attrs, mode, typ, name)):
-    chpl_type = conv.ir_type_to_chpl(typ)
-#    if mode == ir.in_ and typ[0] == ir.pointer_type and typ[1][0] == ir.struct and typ <> chpl_type:
-#        # IN structs are passed by value in Chapel
-#        return arg, attrs, mode, chpl_type[1], name
-    return arg, attrs, mode, chpl_type, name
-
 def deref(mode, typ, name):
     if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
         return name+'->'
@@ -80,7 +73,7 @@ def deref(mode, typ, name):
     elif mode == sidl.in_:
         return name 
     else: return '(*%s)'%name
-
+ 
 def deref_retval(typ, name):
     if typ[0] == ir.struct:
         return '(*%s)'%name
@@ -97,146 +90,6 @@ def unscope(scope, enum):
 def unscope_retval(scope, r):
     if r[0] == ir.enum: return r[0], unscope(scope, r[1]), r[2], r[3]
     return r
-
-def need_return_arg(typ):
-    """
-    \return True iff the type \c typ cannot be passed as a return
-    value in Chapel.
-    """
-    return typ[0] == ir.struct
-
-def generate_method_stub(scope, (_call, VCallExpr, CallArgs), scoped_id):
-    """
-    Generate the stub for a specific method in C (cStub).
-
-    \return   if the methods needs an extra inout argument for the
-              return value, this function returns its type, otherwise
-              it returns \c None.
-    """
-
-    
-    import pdb; pdb.set_trace()
-
-
-    def extern_decl_convs((arg, attrs, mode, typ, name)):
-        # make generic sidl__arrays into opaques for the extern decl
-        if typ == ir.Pointer_type(ir.Struct('sidl__array /* IOR */', [], '')):
-            return (arg, attrs, mode, ir.Pointer_type(ir.pt_void), name)
-
-        # make sure objects are passed by value
-        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and name == 'self':
-            return (arg, attrs, ir.in_, typ, name)
-        elif typ[0] == ir.pointer_type and typ[1][0] == ir.struct and mode == ir.in_:
-            return (arg, attrs, ir.inout, typ, name)
-
-        elif typ[0] == ir.enum:
-            return (arg, attrs, mode, 
-                    (ir.enum, unscope(scope, typ[1]), typ[2], typ[3]), name)
-
-        else:
-            return (arg, attrs, mode, typ, name)
-
-    if VCallExpr[0] == ir.deref:
-        _, (_, _ , _, (_, (_, impl_decl), _)) = VCallExpr
-    else:
-        _, _ , _, (_, (_, impl_decl), _) = VCallExpr
-
-    (_, Attrs, Type, Name, Args, DocComment) = impl_decl
-    sname = '_'.join([epv_qname(scoped_id), Name, 'stub'])
-
-    # convert arguments to/from IOR using proxy variables
-    pre_call = []
-    post_call = []
-    retval_arg = []
-    opt = scope.cstub.optional
-    strip = conv.strip
-
-    def to_chpl(typ): return 'chpl', strip(typ)
-
-    # IN
-    map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((to_chpl(typ), deref(mode, typ, name)), strip(typ),
-                       pre_call, scope, '_ior_'+name, typ, to_chpl),
-        filter(incoming, Args))
-
-    # OUT
-    map(lambda (arg, attr, mode, typ, name):
-          conv.codegen((strip(typ), '_ior_'+name), to_chpl(typ),
-                       post_call, scope, '(*%s)'%name, typ, to_chpl),
-        filter(outgoing, Args))
-
-    cstub_decl_args = map(ir_arg_to_chpl, Args)
-
-    # RETURN value type conversion -- treated like an out argument
-    rarg = ir.Arg([], ir.out, Type, '_retval')
-    conv.codegen((strip(Type), '_ior__retval'), to_chpl(Type),
-                 post_call, scope, deref_retval(Type, '_retval'), Type, to_chpl)
-    crarg = ir_arg_to_chpl(rarg)
-
-    _,_,_,chpltype,_ = crarg
-    retval_type = chpltype
-    if need_return_arg(Type):
-        # pass the return value as an extra out argument
-        chpltype = ir.pt_void
-        cstub_decl_args.append(crarg)
-
-    # Proxy declarations / revised names of call arguments
-    call_args = []
-    decls = []
-    for (_,attrs,mode,chpl_t,name), (_,_,_,c_t,_) in (
-        zip(cstub_decl_args+[crarg], Args+[rarg])):
-        if chpl_t <> c_t:
-            need_deref = False
-            if c_t[0] == ir.pointer_type and c_t[1][0] == ir.struct:
-                c_t = c_t[1]
-                need_deref = True
-
-            # FIXME see comment in chpl_to_ior
-            name = '_ior_'+name
-            decls.append(ir.Stmt(ir.Var_decl(c_t, name)))
-            if mode <> sidl.in_ or need_deref:
-                name = ir.Pointer_expr(name)
-
-        if name == 'self' and member_chk(ir.pure, attrs): # part of the hack for self dereferencing
-            upcast = ('({0}*)(((struct sidl_BaseInterface__object*)self)->d_object)'
-                      .format(c_gen(c_t[1])))
-            call_args.append(upcast)
-        else:
-            call_args.append(name)
-
-    # get rid of retval in call args
-    retval_name = call_args[-1] if isinstance(call_args[-1], str) else call_args[-1][1]
-    call_args = call_args[:-1]
-
-    cstub_decl = ir.Fn_decl([], chpltype, sname, cstub_decl_args, DocComment)
-
-    if Type == ir.pt_void:
-        body = [ir.Stmt((ir.call, VCallExpr, call_args))]
-    else:
-        if chpltype <> ir.pt_void:
-            pre_call.append(ir.Stmt(ir.Var_decl(retval_type, '_retval')))
-
-        body = [ir.Stmt(ir.Assignment(retval_name, (ir.call, VCallExpr, call_args)))]
-
-        if chpltype <> ir.pt_void:
-            post_call.append(ir.Stmt(ir.Return('_retval')))
-
-    # Generate the C code into the scope's associated cStub
-    if sname not in stubs_generated:
-        stubs_generated.add(sname)
-        c_gen([cstub_decl,
-           ir.Fn_defn([], chpltype, sname, cstub_decl_args,
-                      decls+pre_call+body+post_call, DocComment)], scope.cstub)
-
-    # Chapel extern declaration
-    chplstub_decl = ir.Fn_decl([], unscope_retval(scope, chpltype), sname, 
-                               map(extern_decl_convs, cstub_decl_args), 
-                               DocComment)
-
-    scope.new_header_def('extern '+chpl_gen(chplstub_decl))
-
-    return drop(retval_arg)
-
 
 
 class ChapelFile(SourceFile):

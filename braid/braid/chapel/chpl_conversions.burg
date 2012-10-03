@@ -571,11 +571,6 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
         else: 
             call_args1.append(deref_to_addr(arg, 0))
 
-    #if name in ['passeverywherefcomplex','passoutbool','removeReady']:
-    #    print outargs[0][1]
-    #    print outargs
-    #    print call_args1
-    #    #import pdb; pdb.set_trace()
     call = babel.vcall(name, call_args1, ci)
 
     if ftype <> ir.pt_void:
@@ -583,6 +578,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
             pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
             ior_call = [ir.Copy(retval, call)]
             if not assigns_temporary(post_call, '_retval'):
+                pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_ior__retval')))
                 post_call.append(ir.Copy('_retval', retval))
             post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
@@ -598,7 +594,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     scope.genh((ir.fn_decl, ['extern']+attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
     return None
 
-# NONVIRTUAL CLIENT
+# NONVIRTUAL CLIENT (tehnically: Stub-less)
 # lhs and rhs are swapped, so the actions are executed
 # in the correct order
 stmt <-- ior_call_assign(rvalue_ior_chpl, lvalue_chpl_chpl) :cost(1)
