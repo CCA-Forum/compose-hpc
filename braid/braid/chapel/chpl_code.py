@@ -504,8 +504,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                 new_def('%sproc %s(%s)'% (attrs, gen(Name), gen_comma_sep(Args)))
 
             elif (ir.fn_decl, Attrs, Type, Name, Args, DocComment):
-                new_def('proc %s(%s): %s'%
-                        (gen(Name), gen_comma_sep(Args), gen(Type)))
+                attrs = 'extern ' if 'extern' in Attrs else ''
+                new_def('%sproc %s(%s): %s'%
+                        (attrs, gen(Name), gen_comma_sep(Args), gen(Type)))
 
             elif (ir.call, (ir.deref, (ir.get_struct_item, S, _, (ir.struct_item, _, Name))), Args):
                 # We can't do a function pointer call in Chapel
@@ -559,11 +560,11 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
                                        '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])]))
 
             elif (sidl.array, [], [], []):
-                print '** WARNING: deprecated rule use a sidl__array struct instead'
+                print '** WARNING: deprecated rule, use a sidl__array struct instead'
                 return 'sidl.Array(opaque, sidl__array) /* DEPRECATED */'
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
-                print '** WARNING: deprecated rule use a sidl_*__array struct instead'
+                print '** WARNING: deprecated rule, use a sidl_*__array struct instead'
                 if Scalar_type[0] == ir.scoped_id:
                     ctype = 'BaseInterface'
                 else:

@@ -143,15 +143,29 @@ def elem_access(typ):
     else: return ''
 
 def get_array_type(full_type):
-   if full_type[1] == []:
-       t = ''
-   elif full_type[1][0] == ir.scoped_id:
-       t = '_BaseInterface'
-   else:
-       t = '_'+full_type[1][1]
-   name = 'sidl%s__array'%t
-   iortype = ir.Pointer_type(ir.Struct(name, (), ''))
-   return name, iortype 
+    if full_type[1] == []:
+        t = ''
+    elif full_type[1][0] == ir.scoped_id:
+        t = '_BaseInterface'
+    else:
+        t = '_'+full_type[1][1]
+    name = 'sidl%s__array'%t
+    iortype = ir.Pointer_type(ir.Struct(name, (), ''))
+    return name, iortype 
+
+def get_raw_ior_array_type(full_type):
+    if full_type[1] == []:
+        t = ''
+    elif full_type[1][0] == ir.scoped_id:
+        t = '_BaseInterface'
+    else:
+        t = '_'+full_type[1][1]
+    # This comment is there so the Chapel code generator
+    # won't recognize the type as an array. Here is the
+    # only place where we actually want a C struct type.
+    name = 'sidl%s__array /* IOR */'%t
+    iortype = ir.Pointer_type(ir.Struct(name, (), ''))
+    return name, iortype 
 
 def get_ior_array_type(sidl_array):
     chpl_type = {
@@ -1214,14 +1228,22 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
 rarray_ior_chpl  <-- rarray_ior_c    :cost(0)
 rarray_ior_c     <-- rarray_ior_chpl :cost(0)
 rarray_chpl_c    <-- rarray_chpl_chpl:cost(0)
+
+rarray_ior_chpl <-- rarray_chpl_chpl: cost(4)
+    t, (dest, src, orig) = a0
+    _, array_t = get_raw_ior_array_type(t)
+    wrap_rarray(scope, strip_deref(src), t, dest)
+    return array_t, (dest, src, None)
+
 rarray_chpl_chpl <-- rarray_ior_chpl :cost(4)
     t, (dest, src, orig) = a0
-    _, array_t = get_array_type(t)
+    _, array_t = get_raw_ior_array_type(t)
+
     # emit code to copy back elements into non-local array
     name = src[1] if src[0] == ir.deref else src
     sarray = "_braid_wrapped_local_%s_sarray"%name
     barray = "_babel_wrapped_local_%s_barray"%name
-    sarr = (ir.call, "new Array", [access(src, 'eltType'), t[1], src])
+    sarr = (ir.call, "new Array", [access(dest, 'eltType'), array_t, src])
     barr = ir.Call("createBorrowedArray{dim}d".format(dim=t[2]), [sarray])
     scope.gen(ir.Copy('var ' + sarray, sarr))
     scope.gen(ir.Copy('var ' + barray, barr))
@@ -1230,8 +1252,3 @@ rarray_chpl_chpl <-- rarray_ior_chpl :cost(4)
 #    import pdb; pdb.set_trace()
     return array_t, (dest, src, None)
 
-rarray_ior_chpl <-- rarray_chpl_chpl: cost(4)
-    t, (dest, src, orig) = a0
-    _, array_t = get_array_type(t)
-    wrap_rarray(scope, strip_deref(src), t, dest)
-    return array_t, (dest, src, None)
