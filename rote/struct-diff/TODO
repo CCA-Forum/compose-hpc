@@ -1,0 +1,13 @@
+Todo list:
+----------
+
+1. Script to take a diff-like format, and produce the corresponding pre/post source files for generating the tree diff.
+
+2. Generalization via matching of subtrees and replacement with stratego variable terms.
+
+3. Annotation guidance?  Look at how annotations from PAUL show up in the aterms.
+
+4. Still seeing single quotes in the terms, and the trailing period.  Need to put filtering in the src2term/term2src scripts.
+
+5. How to handle Left/Right holes.  Current code only addresses MisMatch nodes in the weavetree.
+
