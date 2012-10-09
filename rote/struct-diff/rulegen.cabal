@@ -1,0 +1,25 @@
+Name: rulegen
+Version: 0.1.0
+Cabal-Version: >= 1.6
+License: BSD3
+License-File: LICENSE
+Copyright: (c) 2012 Matthew Sottile
+Author: Matthew Sottile
+Maintainer: Matthew Sottile <matt@galois.com>
+Stability: alpha
+Build-Type: Simple
+
+Executable rulegen
+  GHC-Options: -Wall
+  GHC-Prof-Options: -Wall -auto-all -caf-all
+
+  Build-Depends: base >=4&&<5, mtl, containers, array, aterm <= 0.1.0.1
+  Main-Is: RuleGen/rulegen.hs
+  Other-Modules: RuleGen.AtermUtilities,
+                 RuleGen.GraphvizUtil,
+                 RuleGen.Trees,
+                 RuleGen.Stratego,
+                 RuleGen.Weaver,
+                 RuleGen.Contextualizer,
+                 RuleGen.Pruner,
+                 RuleGen.Yang
