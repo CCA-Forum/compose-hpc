@@ -2,7 +2,7 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 October 9
+ * Last Modified:  2012 October 10
  *
  * @file
  * @section DESCRIPTION
@@ -1046,12 +1046,14 @@ processComments(SgFunctionDefinition* def)
       bool isConstructor = false;
       bool isDestructor = false;
       bool isInitRoutine = false;
+      bool isMemberFunc = false;
       SgMemberFunctionDeclaration* mfDecl = isSgMemberFunctionDeclaration(decl);
       if (mfDecl != NULL)
       {
         SgSpecialFunctionModifier sfMod = mfDecl->get_specialFunctionModifier();
         isConstructor = sfMod.isConstructor();
         isDestructor = sfMod.isDestructor();
+        isMemberFunc = true;
       }
 
       SgName nm = decl->get_name();
@@ -1155,7 +1157,7 @@ processComments(SgFunctionDefinition* def)
               delete pre;
             }
 
-            if ( (g_invariants != NULL) && (numChecks[2] > 0) )
+            if ( (g_invariants!=NULL) && (numChecks[2]>0) && isMemberFunc )
             {
               if ( ! (isConstructor || isInitRoutine || skipInvariants) ) 
               {
@@ -1182,7 +1184,7 @@ processComments(SgFunctionDefinition* def)
               delete post;
             }
 
-            if ( (g_invariants != NULL) && (numChecks[2] > 0) )
+            if ( (g_invariants!=NULL) && (numChecks[2]>0) && isMemberFunc )
             {
               if ( ! (isDestructor || isConstructor || skipInvariants) ) 
               { 
