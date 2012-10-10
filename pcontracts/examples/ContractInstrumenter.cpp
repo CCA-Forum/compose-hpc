@@ -2,7 +2,7 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 28
+ * Last Modified:  2012 October 9
  *
  * @file
  * @section DESCRIPTION
@@ -543,8 +543,7 @@ addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc)
       parmsD->append_expression(SageBuilder::buildVarRefExp("pce_enforcer"));
       parmsD->append_expression(new SgStringVal(FILE_INFO, "End processing"));
       SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-        "ContractsEnforcer_dumpStatistics", SageBuilder::buildVoidType(), 
-        parmsD, body);
+        "PCE_DUMP_STATS", SageBuilder::buildVoidType(), parmsD, body);
       if (sttmt != NULL)
       {
         SageInterface::attachComment(sttmt, 
@@ -564,8 +563,7 @@ addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, ContractComment* cc)
     if (parmsF != NULL)
     {
       SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-        "ContractsEnforcer_finalize", SageBuilder::buildVoidType(), 
-        parmsF, body);
+        "PCE_FINALIZE", SageBuilder::buildVoidType(), parmsF, body);
       if (sttmt != NULL)
       {
         SageInterface::attachComment(sttmt, 
@@ -664,8 +662,7 @@ addInitialize(SgBasicBlock* body, ContractComment* cc)
     {
       parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
       SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-        "ContractsEnforcer_initialize", SageBuilder::buildVoidType(), 
-        parms, body);
+        "PCE_INITIALIZE", SageBuilder::buildVoidType(), parms, body);
       if (sttmt != NULL)
       {
         SageInterface::attachComment(sttmt, 

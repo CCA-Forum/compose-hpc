@@ -1,5 +1,5 @@
 PROTOTYPE
-- Convert generated enforcement calls to macros with optional lib calls
+- Address problem with class invariants added to non-class methods.
 
 - Support INIT and FINAL as in-lined annotations (ie, NOT [just] function)
   where generate in-place.

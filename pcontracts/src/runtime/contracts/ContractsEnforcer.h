@@ -2,7 +2,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2012 August 17
+ * Last Modified:  2012 October 9
  *
  * @file
  * @section DESCRIPTION
@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 
+#ifdef PAUL_CONTRACTS
 /**
  * Macro to check an assertion expression.
  */
@@ -53,6 +54,19 @@ extern "C" {
   PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (FT), (LBL), (EXPR), _pce_vio) \
   if (_pce_vio != ContractViolation_NONE) { exit(1); } \
 }
+
+#define PCE_DUMP_STATS(ENF,CMT) ContractsEnforcer_dumpStatistics(ENF, CMT);
+#define PCE_FINALIZE() ContractsEnforcer_finalize();
+#define PCE_INITIALIZE(FN) ContractsEnforcer_initialize(FN);
+
+#else /* !def PAUL_CONTRACTS */
+
+#define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR, CVE) 
+#define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, FT, LBL, EXPR)
+#define PCE_DUMP_STATS(ENF,CMT) 
+#define PCE_FINALIZE() 
+#define PCE_INITIALIZE(FN)
+#endif /* PAUL_CONTRACTS */
 
 
 /*

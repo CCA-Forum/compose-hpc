@@ -1,5 +1,7 @@
+#
+# Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
 CXX = g++
-FLAGS = -g -O3
+FLAGS = -g -O3 $(PCEFLAGS)
 
 EXAMPLES_DIR=../../..
 RUNTIME_DIR=$(EXAMPLES_DIR)/../src/runtime/contracts
