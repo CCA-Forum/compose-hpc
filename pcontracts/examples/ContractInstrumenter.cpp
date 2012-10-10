@@ -1147,7 +1147,9 @@ processComments(SgFunctionDefinition* def)
              * ...Order IS important since each is prepended to the body.
              */
             bool isFirst = numChecks[2] <= 0;
-            bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL);
+            bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
+              || (g_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
+              || !isMemberFunc;
             if (pre != NULL) 
             { 
               if (numChecks[0] > 0) 
@@ -1157,12 +1159,9 @@ processComments(SgFunctionDefinition* def)
               delete pre;
             }
 
-            if ( (g_invariants!=NULL) && (numChecks[2]>0) && isMemberFunc )
+            if (! (skipInvariants || isInitRoutine) )
             {
-              if ( ! (isConstructor || isInitRoutine || skipInvariants) ) 
-              {
-                num += addPreChecks(def, body, g_invariants);
-              }
+              num += addPreChecks(def, body, g_invariants);
             }
 
             if (init != NULL)
@@ -1184,12 +1183,9 @@ processComments(SgFunctionDefinition* def)
               delete post;
             }
 
-            if ( (g_invariants!=NULL) && (numChecks[2]>0) && isMemberFunc )
+            if (! (skipInvariants || isDestructor) )
             {
-              if ( ! (isDestructor || isConstructor || skipInvariants) ) 
-              { 
-                num += addPostChecks(def, body, g_invariants);
-              } 
+              num += addPostChecks(def, body, g_invariants);
             } 
 
             if (final != NULL)
