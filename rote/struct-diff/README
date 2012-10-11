@@ -18,7 +18,7 @@ Next, build the rule generator:
 
 Finally, if you want the haddock documentation:
 
-% cabal haddock
+% cabal haddock --executables
 
 
 Problems?  Contact matt@galois.com.
