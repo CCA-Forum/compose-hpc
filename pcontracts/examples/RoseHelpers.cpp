@@ -2,7 +2,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 6
+ * Last Modified:  2012 October 11
  *
  * @file
  * @section DESCRIPTION
@@ -216,7 +216,7 @@ removeWS(string txt)
     int i;
     for (i=0; i<txt.length(); i++)
     {
-      if ( (txt[i] == '\t') || (txt[i] == '\n') )
+      if ( (txt[i] == '\t') || (txt[i] == '\n') || (txt[i] == '\r') )
       {
         txt[i] = ' ';
       }
