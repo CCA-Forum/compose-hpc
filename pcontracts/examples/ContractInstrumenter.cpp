@@ -2,22 +2,14 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 October 9
+ * Last Modified:  2012 October 10
  *
  * @file
  * @section DESCRIPTION
  * Experimental contract enforcement instrumentation.
  *
  *
- * @todo Addressed unresolved (member function) calls associated with 
- *  invariants generation.
- *
- * @todo Ensure adding postcondition (and post-invariant) checks to the AST 
- *  in the correct order and with correct "firstTime" handling.
- *
- * @todo Do NOT generate invariant check in routine of same name.
- *  Technically, contracts of routines used in contracts of others are not
- *  supposed to be called.  
+ * @todo Correct "firstTime" handling.
  *
  * @todo Need to handle generation of return variable, when needed.
  *
@@ -232,6 +224,9 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType,
 ContractComment*
 extractContractClause(SgFunctionDeclaration* decl, 
   AttachedPreprocessingInfoType::iterator info, bool firstExecClause);
+
+bool
+inInvariants(string nm);
 
 int
 instrumentRoutines(SgProject* project, bool skipTransforms);
@@ -838,6 +833,40 @@ extractContractClause(SgFunctionDeclaration* decl,
 
 
 /**
+ * Determine if what is assumed to be the method name is in the 
+ * invariants.
+ *
+ * @param nm  Method name.
+ * @return True if nm is in at least one invariant expression; false otherwise.
+ */
+bool
+inInvariants(string nm)
+{
+  bool isIn = false;
+  
+  if ( !nm.empty() && (g_invariants != NULL) )
+  {
+    list<AssertionExpression> aeList = g_invariants->getList();
+    for(list<AssertionExpression>::iterator iter = aeList.begin();
+        iter != aeList.end() && !isIn; iter++)
+    {
+      AssertionExpression ae = (*iter);
+      if (ae.support() == AssertionSupport_EXECUTABLE)
+      {
+        string expr = ae.expr();
+        if ( !expr.empty() && expr.find(nm) != string::npos )
+        {
+          isIn = true;
+        }
+      }
+    }
+  }
+
+  return isIn;
+}  /* inInvariants */
+
+
+/**
  * Add (test) contract assertion checks to each routine.
  *
  * @param project         The Sage project representing the initial AST of the
@@ -1046,12 +1075,14 @@ processComments(SgFunctionDefinition* def)
       bool isConstructor = false;
       bool isDestructor = false;
       bool isInitRoutine = false;
+      bool isMemberFunc = false;
       SgMemberFunctionDeclaration* mfDecl = isSgMemberFunctionDeclaration(decl);
       if (mfDecl != NULL)
       {
         SgSpecialFunctionModifier sfMod = mfDecl->get_specialFunctionModifier();
         isConstructor = sfMod.isConstructor();
         isDestructor = sfMod.isDestructor();
+        isMemberFunc = true;
       }
 
       SgName nm = decl->get_name();
@@ -1145,7 +1176,9 @@ processComments(SgFunctionDefinition* def)
              * ...Order IS important since each is prepended to the body.
              */
             bool isFirst = numChecks[2] <= 0;
-            bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL);
+            bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
+              || (g_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
+              || (!isMemberFunc) || inInvariants(nm);
             if (pre != NULL) 
             { 
               if (numChecks[0] > 0) 
@@ -1155,12 +1188,9 @@ processComments(SgFunctionDefinition* def)
               delete pre;
             }
 
-            if ( (g_invariants != NULL) && (numChecks[2] > 0) )
+            if (! (skipInvariants || isInitRoutine) )
             {
-              if ( ! (isConstructor || isInitRoutine || skipInvariants) ) 
-              {
-                num += addPreChecks(def, body, g_invariants);
-              }
+              num += addPreChecks(def, body, g_invariants);
             }
 
             if (init != NULL)
@@ -1182,12 +1212,9 @@ processComments(SgFunctionDefinition* def)
               delete post;
             }
 
-            if ( (g_invariants != NULL) && (numChecks[2] > 0) )
+            if (! (skipInvariants || isDestructor) )
             {
-              if ( ! (isDestructor || isConstructor || skipInvariants) ) 
-              { 
-                num += addPostChecks(def, body, g_invariants);
-              } 
+              num += addPostChecks(def, body, g_invariants);
             } 
 
             if (final != NULL)
