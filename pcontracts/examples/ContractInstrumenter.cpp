@@ -9,15 +9,7 @@
  * Experimental contract enforcement instrumentation.
  *
  *
- * @todo Addressed unresolved (member function) calls associated with 
- *  invariants generation.
- *
- * @todo Ensure adding postcondition (and post-invariant) checks to the AST 
- *  in the correct order and with correct "firstTime" handling.
- *
- * @todo Do NOT generate invariant check in routine of same name.
- *  Technically, contracts of routines used in contracts of others are not
- *  supposed to be called.  
+ * @todo Correct "firstTime" handling.
  *
  * @todo Need to handle generation of return variable, when needed.
  *
@@ -232,6 +224,9 @@ buildCheck(SgBasicBlock* body, ContractClauseEnum clauseType,
 ContractComment*
 extractContractClause(SgFunctionDeclaration* decl, 
   AttachedPreprocessingInfoType::iterator info, bool firstExecClause);
+
+bool
+inInvariants(string nm);
 
 int
 instrumentRoutines(SgProject* project, bool skipTransforms);
@@ -838,6 +833,40 @@ extractContractClause(SgFunctionDeclaration* decl,
 
 
 /**
+ * Determine if what is assumed to be the method name is in the 
+ * invariants.
+ *
+ * @param nm  Method name.
+ * @return True if nm is in at least one invariant expression; false otherwise.
+ */
+bool
+inInvariants(string nm)
+{
+  bool isIn = false;
+  
+  if ( !nm.empty() && (g_invariants != NULL) )
+  {
+    list<AssertionExpression> aeList = g_invariants->getList();
+    for(list<AssertionExpression>::iterator iter = aeList.begin();
+        iter != aeList.end() && !isIn; iter++)
+    {
+      AssertionExpression ae = (*iter);
+      if (ae.support() == AssertionSupport_EXECUTABLE)
+      {
+        string expr = ae.expr();
+        if ( !expr.empty() && expr.find(nm) != string::npos )
+        {
+          isIn = true;
+        }
+      }
+    }
+  }
+
+  return isIn;
+}  /* inInvariants */
+
+
+/**
  * Add (test) contract assertion checks to each routine.
  *
  * @param project         The Sage project representing the initial AST of the
@@ -1149,7 +1178,7 @@ processComments(SgFunctionDefinition* def)
             bool isFirst = numChecks[2] <= 0;
             bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
               || (g_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
-              || !isMemberFunc;
+              || (!isMemberFunc) || inInvariants(nm);
             if (pre != NULL) 
             { 
               if (numChecks[0] > 0) 
