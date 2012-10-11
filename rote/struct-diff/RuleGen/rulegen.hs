@@ -151,7 +151,9 @@ main = do
       tree2' = despecifyFile tree2
 
   -- run Yang's algorithm
-      (y1,y2) = treediff tree1' tree2' labelcompare
+      (y1',y2) = treediff tree1' tree2' labelcompare
+
+      y1 = replaceEditTreeNode "gen_info()" (ENode "_" []) (Node "_" []) y1'
 
   -- check if we want graphviz files dumped of the two diff trees
   case sgraphviz of
@@ -201,18 +203,18 @@ main = do
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
-  let mismatch_forest = forestify woven'
+  let nonmatching_forest = nonMatchForest woven'
 
   -- debug : print stuff out
   if (debugflag) then do putStrLn $ show woven'
-                         _ <- mapM (\i -> putStrLn $ show i) mismatch_forest
+                         _ <- mapM (\i -> putStrLn $ show i) nonmatching_forest
                          return ()
                  else return ()
 
   -- get the rules
   let mismatch_rules = map fromJust $ 
                        filter isJust $ 
-                       map toRule mismatch_forest
+                       map toRule nonmatching_forest
 
       rules = mismatch_rules ++ hole_rules
 
