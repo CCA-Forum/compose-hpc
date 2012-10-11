@@ -186,11 +186,11 @@ void MainCCSDTransform(ofstream &strFptr,SgNode *root,string version,string modu
 		*strategoStream << "  \n";
 
 		*strategoStream << "        funCall : expr_statement(assign_op(var_ref_exp(var_ref_exp_annotation(a1,\""<< lhs <<"\",a3,a4,a5),k), \n";
-		*strategoStream << "                  function_call_exp(function_ref_exp(function_ref_exp_annotation(\""<< fname <<"\",function_type(\"type_int\",\"default\",e),_,ee),a),\n";
-		*strategoStream << "                  expr_list_exp([var_ref_exp(var_ref_exp_annotation(\"type_int\",\""<< arg1 <<"\",\"default\",\"null\",bb),b),_],d1,e1),c,d),g,h),i,j)\n";
+		*strategoStream << "                  function_call_exp(function_ref_exp(function_ref_exp_annotation(\""<< fname <<"\",function_type(\"type_int\",noe,e),_,ee),a),\n";
+		*strategoStream << "                  expr_list_exp([var_ref_exp(var_ref_exp_annotation(\"type_int\",\""<< arg1 <<"\",nos,nll,bb),b),_],d1,e1),c,d),g,h),i,j)\n";
 		*strategoStream << "                  -> expr_statement(function_call_exp(function_ref_exp(function_ref_exp_annotation(\"nxt_ctx_next\",\n";
-		*strategoStream << "                  function_type(\"type_void\",\"ellipses\",e),\"subroutine_subprogram_kind\",ee),a),expr_list_exp([var_ref_exp(var_ref_exp_annotation(\n";
-		*strategoStream << "                  \"type_int\",\"ctx,icounter,next\",\"default\",\"null\",bb),b)],d1,e1),c,d),i,j) \n";
+		*strategoStream << "                  function_type(\"type_void\",noe,e),\"e_subroutine_subprogram_kind\",ee),a),expr_list_exp([var_ref_exp(var_ref_exp_annotation(\n";
+		*strategoStream << "                  \"type_int\",\"ctx,icounter,next\",nos,nll,bb),b)],d1,e1),c,d),i,j) \n";
 
 		*strategoStream << "  \n";
 		*strategoStream << "        funCall1 : expr_statement(assign_op(var_ref_exp(var_ref_exp_annotation(a1,\""<< lhs <<"\",a3,a4,a5),k),function_call_exp\n";
