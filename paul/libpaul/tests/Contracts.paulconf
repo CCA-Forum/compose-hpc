@@ -1,0 +1,6 @@
+; 
+; Name:  Contracts.paulconf
+;
+; Paul Tag-to-parser name mapping for interface contract specifications.
+;
+CONTRACT	contract-clause

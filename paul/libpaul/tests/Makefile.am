@@ -47,6 +47,7 @@ test_KVAnnotation: test_KVAnnotation.o
 	${CXX} ${CFLAGS} -c $<
 
 clean:
+	rm -f *.ti
 	rm -f *.o
 	rm -f *~
 	rm -f ${bin_programs}

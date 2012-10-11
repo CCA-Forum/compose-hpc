@@ -26,7 +26,8 @@ libpaul_a_SOURCES = \
         KVAnnotationValue.cpp ssexpr.cpp SXAnnotationValue.cpp Dynamic.cpp \
         PlainAnnotationValue.cpp PaulDecorate.cpp PaulConfReader.cpp \
         Annotation.h KVAnnotationValue.h ssexpr.h SXAnnotationValue.h \
-	PaulConfReader.h PaulDecorate.h Dynamic.h PlainAnnotationValue.h
+	PaulConfReader.h PaulDecorate.h Dynamic.h PlainAnnotationValue.h \
+	RoseUtilities.hpp RoseUtilities.cpp Utilities.h Utilities.cpp
 EXTRA_DIST=scanner.l parser.y lempar.c lemon.c
 LIBPAUL=$(lib_LIBRARIES)
 SOURCES=$(libpaul_a_SOURCES)
