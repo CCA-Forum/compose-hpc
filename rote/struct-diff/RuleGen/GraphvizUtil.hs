@@ -1,14 +1,14 @@
-{-
-
-This file contains code related to Graphviz visualization of
-the trees that we work with.  At some point, this may be
-replaced with a proper Graphviz library binding but for now,
-this is sufficient since we aren't making any extensive use
-of graphviz's features other than coloring edges and vertices.
-
-matt@galois.com // july 2012
-
+{-|
+  This file contains code related to Graphviz visualization of
+  the trees that we work with.  At some point, this may be
+  replaced with a proper Graphviz library binding but for now,
+  this is sufficient since we aren't making any extensive use
+  of graphviz's features other than coloring edges and vertices.
 -}
+
+--
+--  matt@galois.com // july 2012
+--
 module RuleGen.GraphvizUtil (
 	dumpGraphvizToFile,
 	etreeToGraphviz,
@@ -36,22 +36,37 @@ genID = do
   put (i+1)
   return i
 
---
--- wrapper around the monadic tree printers
---
-treeToGraphviz :: LabeledTree -> [String]
+{-|
+  Take a LabeledTree and return a list of lines for the
+  corresponding graphviz DOT file.
+-}
+treeToGraphviz :: LabeledTree -- ^ Tree to print
+               -> [String]    -- ^ DOT-file lines
 treeToGraphviz t = snd $ evalState (tToGV t) 0
 
-etreeToGraphviz :: EditTree -> [String]
+{-|
+  Take a EditTree and return a list of lines for the
+  corresponding graphviz DOT file.
+-}
+etreeToGraphviz :: EditTree -- ^ Tree to print
+                -> [String] -- ^ DOT-file lines
 etreeToGraphviz t = snd $ evalState (etToGV t) 0
 
-wtreeToGraphviz :: WeaveTree -> [String]
+{-|
+  Take a WeaveTree and return a list of lines for the
+  corresponding graphviz DOT file.
+-}
+wtreeToGraphviz :: WeaveTree -- ^ Tree to print
+                -> [String]  -- ^ DOT-file lines
 wtreeToGraphviz t = snd $ evalState (wToGV t) 0
 
---
--- IO
---
-dumpGraphvizToFile :: String -> [String] -> IO ()
+{-|
+  IO function to write a sequence of DOT file lines to
+  a file.
+-}
+dumpGraphvizToFile :: String    -- ^ Filename for DOT file
+                   -> [String]  -- ^ DOT-file lines
+                   -> IO ()
 dumpGraphvizToFile fname ls = do
   h <- openFile fname WriteMode
   hPutStrLn h "digraph G {"
@@ -143,7 +158,7 @@ tToGV (Node label kids) = do
   myID <- genID
   let self = makeNode myID [cRed] label
   processedKids <- mapM tToGV kids
-  let (kidIDs, kidStrings) = unzip processedKids -- this is beginning to sound perverse
+  let (kidIDs, kidStrings) = unzip processedKids 
       kidEdges = map (makeEdge myID) kidIDs
   return (myID, self:(kidEdges++(concat kidStrings)))
 

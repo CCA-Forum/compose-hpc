@@ -40,6 +40,7 @@ import Data.Maybe
 import RuleGen.GraphvizUtil
 import System.Environment (getArgs)
 import System.Console.GetOpt
+import System.Exit 
 import Data.Tree
 
 despecifyFile :: LabeledTree -> LabeledTree
@@ -52,12 +53,14 @@ data Flag = Source String
           | GVTarget String
           | GVWeave String
           | Output String
+          | GVizOnly
           | Debug
   deriving (Show, Eq)
 
 options :: [OptDescr Flag]
 options = [
   Option ['d'] ["debug"]           (NoArg Debug)             "Enable debugging output",
+  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit immediately",
   Option ['s'] ["source"]          (ReqArg Source "FILE")    "Source file",
   Option ['t'] ["target"]          (ReqArg Target "FILE")    "Target file",
   Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")  "Graphviz output for source diff",
@@ -103,6 +106,11 @@ isDebuggingOn []        = False
 isDebuggingOn (Debug:_) = True
 isDebuggingOn (_:rest)  = isDebuggingOn rest
 
+isGVizOnlyOn :: [Flag] -> Bool
+isGVizOnlyOn []           = False
+isGVizOnlyOn (GVizOnly:_) = True
+isGVizOnlyOn (_:rest)     = isGVizOnlyOn rest
+
 equivalentSet :: [String]
 equivalentSet = ["for_statement", "while_stmt"]
 
@@ -131,6 +139,7 @@ main = do
       tgraphviz  = getGVTarget flags 
       wgraphviz  = getGVWeave flags
       debugflag  = isDebuggingOn flags
+      gvizflag   = isGVizOnlyOn flags
 
   -- read in trees from term files
   tree1 <- readToTree sourcefile
@@ -138,10 +147,8 @@ main = do
 
   -- clean up trees to remove fileinfo nodes that will induce many false
   -- positive diffs
-  let tree1'' = despecifyFile tree1
-      tree2'' = despecifyFile tree2
-
-      (tree1', tree2') = variableReplacer tree1'' tree2''
+  let tree1' = despecifyFile tree1
+      tree2' = despecifyFile tree2
 
   -- run Yang's algorithm
       (y1,y2) = treediff tree1' tree2' labelcompare
@@ -164,6 +171,13 @@ main = do
     Just fname -> do let g = wtreeToGraphviz woven'
                      dumpGraphvizToFile fname g
     Nothing    -> return ()
+
+  -- check if user only wants the graphviz dumps - exit here if so.
+  -- TODO: this still requires the stratego output file to be specified
+  --       since it is a required argument.  figure out how to suppress
+  --       that if this flag was enabled.
+  if gvizflag then do exitSuccess
+              else return ()
 
   --
   -- contextualize : this seeks holes, and produces pairs of pre-transform/
