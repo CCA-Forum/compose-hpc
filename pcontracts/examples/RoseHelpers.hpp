@@ -2,22 +2,21 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 6
+ * Last Modified:  2012 October 11
  *
  * @file
  * @section DESCRIPTION
  * Helper or utility routines related to ROSE features.
  *
+ * @todo TBD: Should this be encapsulated in a class?
+ *
  * @section LICENSE
  * TBD
- *
- * @todo TBD: Should this be encapsulated in a class?
  */
 
 #ifndef include_Rose_Helpers_hpp
 #define include_Rose_Helpers_hpp
 
-#include <iostream>
 #include <string.h>
 #include "rose.h"
 
@@ -96,12 +95,14 @@ void
 printLineComment(SgNode* node, std::string cmt);
 
 /**
- * Remove extraneous white space.
+ * Strip and compress white space.  Strip leading and trailing white space
+ * and replace and compress embedded white space to at most one blank between
+ * non-white space contents.
  *
  * @param txt  The text to be cleaned.
  */
 std::string
-removeWS(std::string txt);
+compress(std::string txt);
 
 
 #endif /* include_Rose_Helpers_hpp */

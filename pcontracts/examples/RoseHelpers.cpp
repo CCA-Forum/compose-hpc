@@ -12,6 +12,7 @@
  * TBD
  */
 
+#include <cctype>
 #include <iostream>
 #include <string>
 #include "rose.h"
@@ -209,14 +210,14 @@ printLineComment(SgNode* node, string cmt)
 
 
 string
-removeWS(string txt)
+compress(string txt)
 {
   if (!txt.empty())
   {
     int i;
     for (i=0; i<txt.length(); i++)
     {
-      if ( (txt[i] == '\t') || (txt[i] == '\n') || (txt[i] == '\r') )
+      if (isspace(txt[i]))
       {
         txt[i] = ' ';
       }
@@ -238,4 +239,4 @@ removeWS(string txt)
   }
 
   return txt;
-} /* removeWS */
+} /* compress */

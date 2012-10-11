@@ -2,7 +2,7 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 October 10
+ * Last Modified:  2012 October 11
  *
  * @file
  * @section DESCRIPTION
@@ -446,7 +446,7 @@ addExpressions(string clause, ContractComment* cc, bool firstExecClause)
         if ( (endL=statement.find(":")) != string::npos )
         {
           if (statement[endL+1] != ':') {
-            label = removeWS(statement.substr(0, endL));
+            label = compress(statement.substr(0, endL));
             startE = endL+1;
 #ifdef DEBUG
             cout << label + ": ";
@@ -454,7 +454,7 @@ addExpressions(string clause, ContractComment* cc, bool firstExecClause)
           }
         }
 
-        expr = removeWS(statement.substr(startE));
+        expr = compress(statement.substr(startE));
 
 #ifdef DEBUG
         cout << expr << "\n";
