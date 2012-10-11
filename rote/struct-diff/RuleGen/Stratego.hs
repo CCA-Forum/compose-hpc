@@ -1,3 +1,7 @@
+{-|
+  Code to render rewrite rules in the form of StTrees into
+  Stratego/XT compatible rule statements.
+-}
 module RuleGen.Stratego where
 
 import Data.Tree
@@ -48,37 +52,12 @@ renderLabel (StLit lit) = return lit
 renderLabel (StLocalVar loc) = genID loc
 renderLabel (StGlobalVar _) = undefined
 
---stratego :: [(StTree,StTree)] -> String
---stratego ts = header ++ (strategoRules' ts) ++ footer
---  where f = \(i,(t1,t2)) -> ("R" ++ (show i), " : " ++ t1 ++ " -> " ++ t2 ++ "\n")
---        (labels,rules) = unzip $ map f (zip ([1..] :: [Integer]) ts)
---        rulesStr = foldl1 (++) $ zipWith (\l r -> "  " ++ l ++ r) labels rules
---        labelsStr = intercalate ";" $ map (\l -> "oncetd(" ++ l ++ ")") labels
---        header = "module basic\n" ++
---          "imports libstrategolib\n" ++
---          "signature\n" ++
---          "  sorts E F A\n" ++
---          "constructors\n" ++
---          "  gen_info               : F\n" ++
---          "  file_info              : S * N * N -> F\n" ++
---          "  add_op                 : E * E * A * F -> E\n" ++
---          "  multiply_op            : E * E * A * F -> E\n" ++
---          "  int_val                : A * F -> E\n" ++ 
---          "  value_annotation       : N * F -> E\n" ++
---          "  preprocessing_info     : S -> A\n" ++ 
---          "  var_ref_exp            : A * F -> E\n" ++ 
---          "  var_ref_exp_annotation : T * A * A * A * A -> A\n" ++
---          "  binary_op_annotation   : T * A -> A\n" ++
---          "  type_int               : T\n" ++
---          "  default                : A\n" ++
---          "  null                   : A\n" ++
---          "rules\n" ++
---          "  G : gen_info() -> file_info(\"compilerGenerated\",0,0)\n"
---        footer = "strategies\n" ++
---          "  main = io-wrap(rewr;gen)\n" ++
---          "  rewr = " ++ labelsStr ++ "\n" ++
---          "  gen = innermost(G)\n"
-
+{-|
+  Code to take a list of pairs (pre/post) representing rules,
+  and emit the corresponding stratego rewrite script as a
+  single string.  This will be replaced at some point with code
+  to take rules in StTree form, not linearized strings.
+-}
 strategoRules :: [(String,String)] -> String
 strategoRules ts = header ++ rulesStr ++ footer
   where f = \(i,(t1,t2)) -> ("R" ++ (show i), " : " ++ t1 ++ " -> " ++ t2 ++ "\n")
