@@ -55,6 +55,7 @@ getCurrentLanguageOption();
  * time this example was written.
  *
  * @param lang  The output language.
+ * @return      The name of the language option.
  */
 std::string
 getLanguageOptionName(SgFile::outputLanguageOption_enum lang);
@@ -64,7 +65,7 @@ getLanguageOptionName(SgFile::outputLanguageOption_enum lang);
  * Determines if the specified directive type is a C/C++ comment.
  *
  * @param dType  The type of preprocessing directive.
- * @return       true if the directive is a C/C++ comment; otherwise, false.
+ * @return       True if the directive is a C/C++ comment; otherwise, false.
  */
 bool
 isCComment(PreprocessingInfo::DirectiveType dType);
@@ -78,7 +79,7 @@ isCComment(PreprocessingInfo::DirectiveType dType);
  *
  * @param project   Sage project/AST.
  * @param filename  Name of the file to be checked.
- * @return          true if filename is in the list; otherwise, false.
+ * @return          True if filename is in the list; otherwise, false.
  */
 bool
 isInputFile(SgProject* project, std::string filename);
@@ -100,6 +101,7 @@ printLineComment(SgNode* node, std::string cmt);
  * non-white space contents.
  *
  * @param txt  The text to be cleaned.
+ * @return     The cleaned up version of the text.
  */
 std::string
 compress(std::string txt);
