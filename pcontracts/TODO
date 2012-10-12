@@ -12,9 +12,13 @@ Refinements:
 
 
 LIBPAUL
-- Refactor ContractInstrumenter example to fit within PaulDecorator
-  -- Contract parser implementation
-  -- Contract annotation
+Goal:  libpaul provides parsing, type map, and annotation NOT 
+visit/interpreation.  So keep contracts in pcontracts but link to libpaul.
+
+- Develop contract annotation based on ContractInstrumenter work
+- Add unit test for contract annotation
+- Add test case creating and printing contract annotation
+
 
 
 Last Updated:  2012 October 11
