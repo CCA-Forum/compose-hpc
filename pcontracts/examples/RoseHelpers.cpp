@@ -2,7 +2,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 6
+ * Last Modified:  2012 October 11
  *
  * @file
  * @section DESCRIPTION
@@ -12,6 +12,7 @@
  * TBD
  */
 
+#include <cctype>
 #include <iostream>
 #include <string>
 #include "rose.h"
@@ -209,14 +210,14 @@ printLineComment(SgNode* node, string cmt)
 
 
 string
-removeWS(string txt)
+compress(string txt)
 {
   if (!txt.empty())
   {
     int i;
     for (i=0; i<txt.length(); i++)
     {
-      if ( (txt[i] == '\t') || (txt[i] == '\n') )
+      if (isspace(txt[i]))
       {
         txt[i] = ' ';
       }
@@ -238,4 +239,4 @@ removeWS(string txt)
   }
 
   return txt;
-} /* removeWS */
+} /* compress */

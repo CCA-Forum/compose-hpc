@@ -2,22 +2,21 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 September 6
+ * Last Modified:  2012 October 11
  *
  * @file
  * @section DESCRIPTION
  * Helper or utility routines related to ROSE features.
  *
+ * @todo TBD: Should this be encapsulated in a class?
+ *
  * @section LICENSE
  * TBD
- *
- * @todo TBD: Should this be encapsulated in a class?
  */
 
 #ifndef include_Rose_Helpers_hpp
 #define include_Rose_Helpers_hpp
 
-#include <iostream>
 #include <string.h>
 #include "rose.h"
 
@@ -56,6 +55,7 @@ getCurrentLanguageOption();
  * time this example was written.
  *
  * @param lang  The output language.
+ * @return      The name of the language option.
  */
 std::string
 getLanguageOptionName(SgFile::outputLanguageOption_enum lang);
@@ -65,7 +65,7 @@ getLanguageOptionName(SgFile::outputLanguageOption_enum lang);
  * Determines if the specified directive type is a C/C++ comment.
  *
  * @param dType  The type of preprocessing directive.
- * @return       true if the directive is a C/C++ comment; otherwise, false.
+ * @return       True if the directive is a C/C++ comment; otherwise, false.
  */
 bool
 isCComment(PreprocessingInfo::DirectiveType dType);
@@ -79,7 +79,7 @@ isCComment(PreprocessingInfo::DirectiveType dType);
  *
  * @param project   Sage project/AST.
  * @param filename  Name of the file to be checked.
- * @return          true if filename is in the list; otherwise, false.
+ * @return          True if filename is in the list; otherwise, false.
  */
 bool
 isInputFile(SgProject* project, std::string filename);
@@ -96,12 +96,15 @@ void
 printLineComment(SgNode* node, std::string cmt);
 
 /**
- * Remove extraneous white space.
+ * Strip and compress white space.  Strip leading and trailing white space
+ * and replace and compress embedded white space to at most one blank between
+ * non-white space contents.
  *
  * @param txt  The text to be cleaned.
+ * @return     The cleaned up version of the text.
  */
 std::string
-removeWS(std::string txt);
+compress(std::string txt);
 
 
 #endif /* include_Rose_Helpers_hpp */
