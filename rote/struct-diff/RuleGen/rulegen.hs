@@ -35,6 +35,7 @@ import RuleGen.Stratego
 import RuleGen.Yang
 import RuleGen.Trees
 import RuleGen.Pruner
+import RuleGen.Filter
 import RuleGen.Contextualizer
 import Data.Maybe
 import RuleGen.GraphvizUtil
@@ -43,10 +44,9 @@ import System.Console.GetOpt
 import System.Exit 
 import Data.Tree
 
-despecifyFile :: LabeledTree -> LabeledTree
-despecifyFile t = replaceSubtrees "file_info" replacementNode t
-  where replacementNode = Node "gen_info()" []
-
+-- ==============================================
+-- command line argument handling
+-- ==============================================
 data Flag = Source String
           | Target String
           | GVSource String
@@ -111,15 +111,9 @@ isGVizOnlyOn []           = False
 isGVizOnlyOn (GVizOnly:_) = True
 isGVizOnlyOn (_:rest)     = isGVizOnlyOn rest
 
-equivalentSet :: [String]
-equivalentSet = ["for_statement", "while_stmt"]
-
-labelcompare :: String -> String -> Bool
-labelcompare a b 
-  | a == b    = True
-  | otherwise = if (a `elem` equivalentSet && b `elem` equivalentSet) then True
-                                                                      else False
-
+-- ==============================================
+-- main program
+-- ==============================================
 main :: IO ()
 main = do
   -- command line argument handling
@@ -149,6 +143,8 @@ main = do
   -- positive diffs
   let tree1' = despecifyFile tree1
       tree2' = despecifyFile tree2
+
+      labelcompare = (==)
 
   -- run Yang's algorithm
       (y1',y2) = treediff tree1' tree2' labelcompare
@@ -223,3 +219,15 @@ main = do
 
 --  putStrLn (strategoRules rules)
   return ()
+
+
+{- DEAD CODE
+equivalentSet :: [String]
+equivalentSet = ["for_statement", "while_stmt"]
+
+labelcompare :: String -> String -> Bool
+labelcompare a b 
+  | a == b    = True
+  | otherwise = if (a `elem` equivalentSet && b `elem` equivalentSet) then True
+                                                                      else False
+-}
