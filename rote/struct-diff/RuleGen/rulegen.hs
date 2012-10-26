@@ -17,16 +17,9 @@ Should represent the distributive law for any variables x, a, y, and z.  Without
 generalization, the rule will ONLY apply the distributive law for the term
 "x = a*(y+z)", where the variables are named.  
 
-This program is based on the following papers:
-
- - blah
- - blah
-
 Contact : matt sottile (matt@galois.com)
           geoff hulette (ghulette@gmail.com)
-
-July 2012
-
+          
 -}
 
 import RuleGen.AtermUtilities
@@ -60,7 +53,7 @@ data Flag = Source String
 options :: [OptDescr Flag]
 options = [
   Option ['d'] ["debug"]           (NoArg Debug)             "Enable debugging output",
-  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit immediately",
+  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit",
   Option ['s'] ["source"]          (ReqArg Source "FILE")    "Source file",
   Option ['t'] ["target"]          (ReqArg Target "FILE")    "Target file",
   Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")  "Graphviz output for source diff",
@@ -219,15 +212,3 @@ main = do
 
 --  putStrLn (strategoRules rules)
   return ()
-
-
-{- DEAD CODE
-equivalentSet :: [String]
-equivalentSet = ["for_statement", "while_stmt"]
-
-labelcompare :: String -> String -> Bool
-labelcompare a b 
-  | a == b    = True
-  | otherwise = if (a `elem` equivalentSet && b `elem` equivalentSet) then True
-                                                                      else False
--}
