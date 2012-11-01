@@ -2,7 +2,7 @@
  * File:           ContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 October 11
+ * Last Modified:  2012 November 1
  *
  * @file
  * @section DESCRIPTION
@@ -116,19 +116,60 @@ ContractClauseEnum ContractCommentClause[] = {
 
 
 /**
- * Known, non-executable assertion expression contents -- assuming lower case.
+ * Non-executable assertion expression reserved words (provided for SIDL 
+ * specifications).
+ *
+ * @todo Once expressions are parsed, this should be changed to a
+ *    typdef map<string, string> dictType;
+ *    typdef pair<string, string> dictEntryType;
+ * then populate with:
+ *   dictType ReservedWordDict;
+ *   dictEntryType ReservedEntry;
+ *   For each entry:
+ *     ReservedWordDict.insert(ReservedEntry(<key>, <value>));
+ * and access:
+ *   string value = ReservedWordDict[<key>];
+ *   if (value != "") {  // TBD: Distinguish keys with no values from non-keys
+ *     // Use it
+ *   }
  */
-static const string NonExecExpressions[] = {
-  "implies",
-  "iff",
-  "pce_all",
-  "pce_inrange",
+static const string ReservedWordPairs[][2] = {
+  { "all", "PCE_ALL" },
+  { "and", "&&" },
+  { "any", "PCE_ANY" },
+  { "count", "PCE_COUNT" },
+  { "dimen", "PCE_DIMEN" },
+  { "false", "0" },
+  { "iff", "" },
+  { "implies", "" },
+  { "irange", "PCE_IRANGE" },
+  { "is", "" },
+  { "lower", "PCE_LOWER" },
+  { "max", "PCE_MAX" },
+  { "min", "PCE_MIN" },
+  { "mod", "" },
+  { "nearEqual", "PCE_NEAR_EQUAL" },
+  { "nonDecr", "PCE_NON_DECR" },
+  { "none", "PCE_NONE" },
+  { "nonIncr", "PCE_NON_INCR" },
+  { "not", "!" },
+  { "or", "||" },
+  { "pure", "" },
+  { "range", "PCE_RANGE" },
+  { "rem", "" },
+  { "result", "pce_result" },
+  { "size", "PCE_SIZE" },
+  { "stride", "PCE_STRIDE" },
+  { "sum", "PCE_SUM" },
+  { "true", "1" },
+  { "upper", "PCE_UPPER" },
+  { "xor", "" },
 };
 static const int MIN_NEE_INDEX = 0;
-static const int MAX_NEE_INDEX = 4;
+static const int MAX_NEE_INDEX = 29;
 
 static const string L_UNSUPPORTED_EXPRESSION 
-    = "Unsupported keyword(s) detected in:\n\t";
+    = "Unsupported reserved word(s) detected in:\n\t";
 
 
 /**
@@ -966,10 +1007,10 @@ isExecutable(string expr)
   {
     for (int i=MIN_NEE_INDEX; i<MAX_NEE_INDEX; i++)
     {
-      if (expr.find(NonExecExpressions[i]) != string::npos)
+      if (expr.find(ReservedWordPairs[i][0]) != string::npos)
       {
 #ifdef DEBUG
-        cout << "DEBUG: Detected \'" << NonExecExpressions[i];
+        cout << "DEBUG: Detected \'" << ReservedWordPairs[i][0];
         cout << "\' in \'"<< expr << "\' making expression non-executable.\n";
 #endif /* DEBUG */
         isOkay = false;
