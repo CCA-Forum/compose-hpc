@@ -29,14 +29,19 @@ LKCPP_EXE=Knapsack
 UKCPP_EXE=UnlabeledKnapsack
 CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
-CI_EXE=ContractInstrumenter
+RCI_EXE=RoutineContractInstrumenter
+VCI_EXE=VisitContractInstrumenter
 
 BASE_ROSE_SOURCES = \
 	RoseHelpers.cpp
 BASE_ROSE_OBJECTS=$(BASE_ROSE_SOURCES:.cpp=.o)
+BASE_CLAUSE_SOURCES = \
+	$(BASE_ROSE_SOURCES) \
+	ContractsProcessor.cpp
+BASE_CLAUSE_OBJECTS=$(BASE_CLAUSE_SOURCES:.cpp=.o)
 
 KS_BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE)
-ROSE_BINARIES= $(CPRINTER_EXE) $(CAPRINTER_EXE) $(CI_EXE)
+ROSE_BINARIES= $(CPRINTER_EXE) $(CAPRINTER_EXE) $(RCI_EXE) $(VCI_EXE)
 
 BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 
@@ -79,9 +84,13 @@ $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
 	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
 	  $(CPRINTER_EXE)-mainLess.o $(BASE_ROSE_OBJECTS)
 
-$(CI_EXE): $(CI_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
-	$(CXX) -c $(ROSE_CXXFLAGS) -o $(CI_EXE).o $(CI_EXE).cpp
-	$(CXX) -o $(CI_EXE) $(ROSE_LDFLAGS) $(CI_EXE).o $(BASE_ROSE_OBJECTS)
+$(RCI_EXE): $(RCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
+	$(CXX) -c $(ROSE_CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp
+	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(BASE_CLAUSE_OBJECTS)
+
+$(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
+	$(CXX) -c $(ROSE_CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp
+	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(BASE_CLAUSE_OBJECTS)
 
 
 checkKnapsackDiffs: 
@@ -172,10 +181,15 @@ checkRosePrinter: $(EXE)
 	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
 
 
-checkRoseTranslators: checkCI
+#checkRoseTranslators: checkRCI checkVCI
 
-checkCI: $(CI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(CI_EXE) SDIR="ci"
+checkRoseTranslators: checkRCI 
+
+checkRCI: $(RCI_EXE)
+	@$(MAKE) checkRoseTrans EXE=$(RCI_EXE) SDIR="rci"
+
+checkVCI: $(VCI_EXE)
+	@$(MAKE) checkRoseTrans EXE=$(VCI_EXE) SDIR="vci"
 
 checkRoseTrans: $(EXE)
 	@echo; echo "Running $(EXE)..."; \

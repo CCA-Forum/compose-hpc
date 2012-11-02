@@ -17,16 +17,9 @@ Should represent the distributive law for any variables x, a, y, and z.  Without
 generalization, the rule will ONLY apply the distributive law for the term
 "x = a*(y+z)", where the variables are named.  
 
-This program is based on the following papers:
-
- - blah
- - blah
-
 Contact : matt sottile (matt@galois.com)
           geoff hulette (ghulette@gmail.com)
-
-July 2012
-
+          
 -}
 
 import RuleGen.AtermUtilities
@@ -35,6 +28,7 @@ import RuleGen.Stratego
 import RuleGen.Yang
 import RuleGen.Trees
 import RuleGen.Pruner
+import RuleGen.Filter
 import RuleGen.Contextualizer
 import Data.Maybe
 import RuleGen.GraphvizUtil
@@ -43,10 +37,9 @@ import System.Console.GetOpt
 import System.Exit 
 import Data.Tree
 
-despecifyFile :: LabeledTree -> LabeledTree
-despecifyFile t = replaceSubtrees "file_info" replacementNode t
-  where replacementNode = Node "gen_info()" []
-
+-- ==============================================
+-- command line argument handling
+-- ==============================================
 data Flag = Source String
           | Target String
           | GVSource String
@@ -60,7 +53,7 @@ data Flag = Source String
 options :: [OptDescr Flag]
 options = [
   Option ['d'] ["debug"]           (NoArg Debug)             "Enable debugging output",
-  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit immediately",
+  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit",
   Option ['s'] ["source"]          (ReqArg Source "FILE")    "Source file",
   Option ['t'] ["target"]          (ReqArg Target "FILE")    "Target file",
   Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")  "Graphviz output for source diff",
@@ -111,15 +104,9 @@ isGVizOnlyOn []           = False
 isGVizOnlyOn (GVizOnly:_) = True
 isGVizOnlyOn (_:rest)     = isGVizOnlyOn rest
 
-equivalentSet :: [String]
-equivalentSet = ["for_statement", "while_stmt"]
-
-labelcompare :: String -> String -> Bool
-labelcompare a b 
-  | a == b    = True
-  | otherwise = if (a `elem` equivalentSet && b `elem` equivalentSet) then True
-                                                                      else False
-
+-- ==============================================
+-- main program
+-- ==============================================
 main :: IO ()
 main = do
   -- command line argument handling
@@ -150,8 +137,12 @@ main = do
   let tree1' = despecifyFile tree1
       tree2' = despecifyFile tree2
 
+      labelcompare = (==)
+
   -- run Yang's algorithm
-      (y1,y2) = treediff tree1' tree2' labelcompare
+      (y1',y2) = treediff tree1' tree2' labelcompare
+
+      y1 = replaceEditTreeNode "gen_info()" (ENode "_" []) (Node "_" []) y1'
 
   -- check if we want graphviz files dumped of the two diff trees
   case sgraphviz of
@@ -201,18 +192,18 @@ main = do
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
-  let mismatch_forest = forestify woven'
+  let nonmatching_forest = nonMatchForest woven'
 
   -- debug : print stuff out
   if (debugflag) then do putStrLn $ show woven'
-                         _ <- mapM (\i -> putStrLn $ show i) mismatch_forest
+                         _ <- mapM (\i -> putStrLn $ show i) nonmatching_forest
                          return ()
                  else return ()
 
   -- get the rules
   let mismatch_rules = map fromJust $ 
                        filter isJust $ 
-                       map toRule mismatch_forest
+                       map toRule nonmatching_forest
 
       rules = mismatch_rules ++ hole_rules
 

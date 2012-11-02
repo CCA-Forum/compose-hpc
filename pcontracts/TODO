@@ -17,6 +17,7 @@ interpretation.  So keep contracts in pcontracts but link to libpaul.
 
 - Develop contract annotation based on ContractInstrumenter work
 - Add unit test for contract annotation
+- Add test case creating and printing contract annotation
 
 
 Last Updated:  2012 November 1
