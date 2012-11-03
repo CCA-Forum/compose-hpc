@@ -19,7 +19,7 @@ module RuleGen.Weaver (
 import RuleGen.Yang
 import RuleGen.Trees
 
-data WeaveTree = WNode String [WeavePoint]
+data WeaveTree = WNode Label [WeavePoint]
                | WLeaf LabeledTree
   deriving (Show, Eq)
 

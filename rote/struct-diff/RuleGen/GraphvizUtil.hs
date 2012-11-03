@@ -143,7 +143,7 @@ wToGV (WLeaf t) = do
   return (myID, self:kidEdge:kidStrings)
 wToGV (WNode lbl wps) = do
   myID <- genID
-  let self = makeNode myID [cGreen] ("WNode:"++lbl)
+  let self = makeNode myID [cGreen] ("WNode:"++(show lbl))
   processed <- mapM wpToGV wps
   let (kIDs, kSs) = unzip processed
       kidEdges = map (makeEdge myID) kIDs
@@ -156,7 +156,7 @@ wToGV (WNode lbl wps) = do
 tToGV :: LabeledTree -> IDGen (Int, [String])
 tToGV (Node label kids) = do
   myID <- genID
-  let self = makeNode myID [cRed] label
+  let self = makeNode myID [cRed] (show label)
   processedKids <- mapM tToGV kids
   let (kidIDs, kidStrings) = unzip processedKids 
       kidEdges = map (makeEdge myID) kidIDs
@@ -168,7 +168,7 @@ etToGV (ENil)    = error "etToGV encountered ENil"
 etToGV (ELeaf t) = tToGV t
 etToGV (ENode label kids) = do
   myID <- genID
-  let self = makeNode myID [cBlue] label
+  let self = makeNode myID [cBlue] (show label)
       (kidOps, kidTrees) = unzip kids
   processedKids <- mapM etToGV kidTrees
   let kidOperations = map (\i -> case i of
