@@ -24,6 +24,9 @@ import Control.Monad.State
 import RuleGen.Weaver
 import Data.List
 
+cleanlabel :: String -> String
+cleanlabel lbl = filter (\c -> c /= '\\' && c /= '\'' && c /= '\"') lbl
+
 -- use a proper state monad for generating unique identifiers
 -- for graphviz nodes -- passing around the int and making sense
 -- of it was a pain
@@ -91,7 +94,7 @@ makeEdge i j = makeAttrEdge i j Nothing
 makeNode :: Int -> [String] -> String -> String
 makeNode i attrs lbl =
   "NODE"++(show i)++" ["++a++"];"
-  where a = intercalate "," (("label=\""++lbl++"\""):attrs)
+  where a = intercalate "," (("label=\""++(cleanlabel lbl)++"\""):attrs)
 
 cGreen :: String
 cGreen = "color=green"

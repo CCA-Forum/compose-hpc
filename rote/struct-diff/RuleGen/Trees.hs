@@ -21,13 +21,18 @@ module RuleGen.Trees (
   makeLabeledForest,
   removeSubtrees,
   replaceSubtrees,
-  treeToRule
+  treeToRule,
+  dumpTree
 ) where
 
 import Data.Tree
 import Data.Maybe
 import Data.List
 
+dumpTree :: Show a => Tree a -> String
+dumpTree t = drawTree $ convert t
+  where convert (Node n kids) = Node (show n) (map convert kids)
+  
 {-|
   A tree where the node data is a string label.
 -}
