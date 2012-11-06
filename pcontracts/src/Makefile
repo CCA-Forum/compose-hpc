@@ -1,4 +1,3 @@
-#SUBDIRS = annots runtime
 SUBDIRS = runtime
 
 all:

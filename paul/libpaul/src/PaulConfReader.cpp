@@ -1,7 +1,9 @@
+#include <cctype>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include "PaulConfReader.h"
+#include "Utilities.h"
 
 using namespace std;
 
@@ -12,42 +14,6 @@ void log(string s) {
   if (verbose) {
     cerr << s << endl;
   }
-}
-
-bool isEOL(char c) {
-  if (c == '\r' || c == '\n') return true;
-  return false;
-}
-
-bool isWhitespace(char c) {
-  if (c == ' ' || c == '\t' || c == '\f' || c == '\v') return true;
-  return false;
-}
-
-string strip_lead_trail_whitespace(string s) {
-  string snew = s;
-  size_t found;
-  string whitespaces (" \t\f\v");
-
-  // find leading
-  found = snew.find_first_not_of(whitespaces);  
-  if (found != string::npos) {
-    snew = snew.substr(found,string::npos);
-  } else {
-    snew.clear();
-    return snew;
-  }
-
-  // find trailing
-  found = snew.find_last_not_of(whitespaces);
-  if (found != string::npos) {
-    snew.erase(found+1);
-  } else {
-    snew.clear(); // all whitespace
-  }
-
-  // return cleaned string
-  return snew;
 }
 
 paul_tag_map read_paul_conf(string fname) {
@@ -73,10 +39,10 @@ paul_tag_map read_paul_conf(string fname) {
     // note that all leading and trailing whitespace is removed from
     // both tag and value before finishing.
     for (int i = 0; line[i] != '\0' && i < max_line_length; i++) {
-      if (isEOL(line[i]) && onTag) {
+      if (is_eol(line[i]) && onTag) {
         break;
       }
-      if (isWhitespace(line[i]) && onTag) {
+      if (isspace(line[i]) && onTag) {
         onTag = false;
         continue;
       }

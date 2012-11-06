@@ -2,7 +2,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 August 17
+ * Last Modified: 2012 October 11
  *
  * @file
  * @section DESCRIPTION
@@ -52,12 +52,12 @@ printClause(string clause)
         size_t startE = 0, endL;
         if ( (endL=statement.find(":")) != string::npos )
         {
-          label = removeWS(statement.substr(0, endL));
+          label = compress(statement.substr(0, endL));
           startE = endL+1;
           cout<<"   "<<labels[0]<<": "<<label<<endl;
         }
     
-        expr = removeWS(statement.substr(startE));
+        expr = compress(statement.substr(startE));
         cout<<"   "<<labels[1]<<": "<<expr<<endl;
       }
 

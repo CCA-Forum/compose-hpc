@@ -1,30 +1,24 @@
 PROTOTYPE
-- Resolve post-first routine invariant generation.
+- Convert to ROSE visitor to:
+  -- Ensure pick up invariant annotations
+  -- Support INIT and FINAL within bodies as alternative to being associated
+     with function.
+   
+Refinements:
+- Support advanced (non-standard C) contract expressions
+     (ie, those containing non-C operators supported in SIDL built-ins)
 
-- Expand supported enforcement options
-  -- Initial version expected to only translate basic assertion expressions
-     (ie, those containing C operators).
-  -- Add SIDL built-in equivalents to the stand-alone library
-
-TBD:  Should Babel/SIDL tracing equivalent be supported?
+- TBD: Should Babel/SIDL tracing equivalent be supported?
 
 
 LIBPAUL
-- Continue preliminary identification of relevant libpaul features
-  -- Resume work on:
-     o PaulContractsDecorator
+Goal:  libpaul provides parsing, type map, and annotation NOT 
+visit/interpreation.  So keep contracts in pcontracts but link to libpaul.
 
-- Extend libpaul/PaulDecorate (or revision) with support for new parsers
-  and new annotation node support
-  -- Depends on tag-parser generalizations and support for multiple 
-     annotation attributes per node as proposed at the coding camp
+- Develop contract annotation based on ContractInstrumenter work
+- Add unit test for contract annotation
+- Add test case creating and printing contract annotation
 
 
 
-*** Refinement:
-- Support advanced (non-standard C) contract expressions
-     (ie, those containing non-C operators supported by Babel)
-
-
-
-Last Updated:  2012 September 28
+Last Updated:  2012 October 11

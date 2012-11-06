@@ -18,7 +18,8 @@ test_SXAnnotation_SOURCES = test_SXAnnotation.cpp
 SOURCES=example_traversal.cpp test_KVAnnotation.cpp test_SXAnnotation.cpp \
 	test_PaulDecorate.cpp
 OBJECTS = $(patsubst %.cpp,%.o,${SOURCES})
-EXTRA_DIST=example.paulconf inputs
+EXES = $(patsubst %.cpp,%,${SOURCES})
+EXTRA_DIST=Contracts.paulconf example.paulconf inputs
 
 LIBS=-lrose
 LIBS+=-lpaul 
@@ -46,7 +47,23 @@ test_KVAnnotation: test_KVAnnotation.o
 %.o: %.cpp
 	${CXX} ${CFLAGS} -c $<
 
+tests: ${EXES}
+	@echo; echo; echo "Running tests on all inputs:"; \
+	INPUTS=`ls ./inputs`; \
+	for exe in ${EXES}; do \
+	  for file in $$INPUTS; do \
+	    echo; echo "Running ./$$exe on ./inputs/$$file"; \
+	    ./$$exe ./inputs/$$file; \
+	    echo; \
+	  done; \
+	done; \
+	echo "DONE"
+
 clean:
+	rm -f *.ti rose_* a.out
 	rm -f *.o
 	rm -f *~
 	rm -f ${bin_programs}
+
+clean-all: clean
+	rm -f ${EXES}

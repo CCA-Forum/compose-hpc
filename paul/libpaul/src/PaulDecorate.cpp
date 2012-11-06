@@ -5,6 +5,7 @@
 #include "PlainAnnotationValue.h"
 #include "PaulDecorate.h"
 #include "PaulConfReader.h"
+#include "Utilities.h"
 
 #define C_COMMENT         (1)
 #define CPP_COMMENT       (2)
@@ -29,19 +30,6 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-
-string remove_leading_whitespace(const string s) {
-  unsigned int i = 0;
-  while (i < s.length() && (s[i] == ' ' || s[i] == '\t')) {
-    i++;
-  }
-
-  if (i == s.length()) {
-    return "";
-  }
-
-  return s.substr(i);
-}
 
 string remove_cpp_comment_marks(const string s) {
   return remove_leading_whitespace(s.substr(2));
@@ -68,94 +56,109 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
     string ann_text = annotation_text(s);
 
     // split into the TAG and Value
-    // FIXME: Make much more robust!
-    //  - assumes tag exists
-    //  - assumes no preceding whitespace on tag
-    //  - assumes single space separator between tag & value
+    if (!ann_text.empty()) {
+      // FIXME: Make much more robust!
+      //  - assumes tag exists
+      //  - assumes no preceding whitespace on tag
+      //  - assumes single space separator between tag & value
 
-    string::size_type i = ann_text.find(" ");
-    string tag = ann_text.substr(0,i);
-    string value_text = ann_text.substr(i+1);
+      string::size_type i = ann_text.find(" ");
+      string tag = ann_text.substr(0,i);
+      string value_text = ann_text.substr(i+1);
 
-    // create the annotation value
+      // create the annotation value
 
-    paul_tag_map::iterator ptm_it;
+      paul_tag_map::iterator ptm_it;
 
-    ptm_it = tagmap.find(tag);
+      ptm_it = tagmap.find(tag);
 
-    // first, lookup annotation
-    Annotation *pAnn = (Annotation *)node->getAttribute(tag);
+      // first, lookup annotation
+      Annotation *pAnn = (Annotation *)node->getAttribute(tag);
     
-    if (ptm_it != tagmap.end()) {
-      if ((*ptm_it).second == "key-value") {
-	//
-	// key-value pair annotation
-	//
-        KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
+      if (ptm_it != tagmap.end()) {
+        if ((*ptm_it).second == "key-value") {
+	  //
+	  // key-value pair annotation
+	  //
+          KVAnnotationValue *pValue = new KVAnnotationValue (value_text);
 
-	if (pAnn == NULL) {
-	  // create the annotation
-	  pAnn = new Annotation(value_text, node, tag, pValue);
+	  if (pAnn == NULL) {
+	    // create the annotation
+	    pAnn = new Annotation(value_text, node, tag, pValue);
 
-	  // add the annotation to the node:
-	  node->addNewAttribute (tag, pAnn);
-	} else {
-	  // need to merge with original annotation
-	  KVAnnotationValue *original = (KVAnnotationValue *)pAnn->getValue();
+	    // add the annotation to the node:
+	    node->addNewAttribute (tag, pAnn);
+	  } else {
+	    // need to merge with original annotation
+	    KVAnnotationValue *original = (KVAnnotationValue *)pAnn->getValue();
 
-	  // do the merge
-	  original->merge(pValue);
-	}
+	    // do the merge
+	    original->merge(pValue);
+	  }
 
-      } else if ((*ptm_it).second == "s-expression") {
-	//
-	// s-expression annotation
-	//
-        SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
+        } else if ((*ptm_it).second == "s-expression") {
+	  //
+	  // s-expression annotation
+	  //
+          SXAnnotationValue *pValue = new SXAnnotationValue (value_text);
 
-	if (pAnn == NULL) {
-	  // create the annotation
-	  pAnn = new Annotation(value_text, node, tag, pValue);
+	  if (pAnn == NULL) {
+	    // create the annotation
+	    pAnn = new Annotation(value_text, node, tag, pValue);
 
-	  // add the annotation to the node:
-	  node->addNewAttribute (tag, pAnn);
-	} else {
-	  // need to merge with original annotation
-	  SXAnnotationValue *original = (SXAnnotationValue *)pAnn->getValue();
+	    // add the annotation to the node:
+	    node->addNewAttribute (tag, pAnn);
+	  } else {
+	    // need to merge with original annotation
+	    SXAnnotationValue *original = (SXAnnotationValue *)pAnn->getValue();
 
-	  // do the merge
-	  original->merge(pValue);
-	}
+	    // do the merge
+	    original->merge(pValue);
+	  }
 
-      } else if ((*ptm_it).second == "plain") {
-	//
-	// plain annotation
-	//
-	PlainAnnotationValue *pValue = new PlainAnnotationValue(value_text);
+        } else if ((*ptm_it).second == "contract-clause") {
+	  //
+	  // [interface] contract annotation
+	  //
+	  // 1) Instantiate Annotation value
+	  // 2) Instantiate Annotation
+	  // 3) Add the annotation to the node or merge with existing annotation
+	  //
+          cerr << "Contract clause parser annotations not yet supported\n";
 
-	if (pAnn == NULL) {
-	  // create the annotation
-	  pAnn = new Annotation(value_text, node, tag, pValue);
+        } else if ((*ptm_it).second == "plain") {
+	  //
+	  // plain annotation
+	  //
+	  PlainAnnotationValue *pValue = new PlainAnnotationValue(value_text);
 
-	  // add the annotation to the node:
-	  node->addNewAttribute (tag, pAnn);
-	} else {
-	  // need to merge with original annotation
-	  PlainAnnotationValue *original = 
-	    (PlainAnnotationValue *)pAnn->getValue();
+	  if (pAnn == NULL) {
+	    // create the annotation
+	    pAnn = new Annotation(value_text, node, tag, pValue);
 
-	  // do the merge
-	  original->merge(pValue);
-	}
+	    // add the annotation to the node:
+	    node->addNewAttribute (tag, pAnn);
+	  } else {
+	    // need to merge with original annotation
+	    PlainAnnotationValue *original = 
+	      (PlainAnnotationValue *)pAnn->getValue();
+
+	    // do the merge
+	    original->merge(pValue);
+	  }
 
       } else {
-        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING) :: Tag=" <<
-	  tag << ", Parser=" << (*ptm_it).second << endl;
+        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING) :: Tag="
+	    << tag << ", Parser=" << (*ptm_it).second << endl;
       }
     } else {
       // tag wasn't found
-      cerr << "Tag (" << tag << 
-	") encountered not present in configuration file." << endl;
+      cerr << "Tag (" << tag
+	  << ") encountered not present in configuration file." << endl;
+    }
+    } else {
+      // empty annotation
+      cerr << "Empty annotation encountered." << endl;
     }
   }
 }

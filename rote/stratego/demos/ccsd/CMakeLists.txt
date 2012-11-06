@@ -32,7 +32,7 @@ set(Includes
     ${PROJECT_SOURCE_DIR}/src/
     ${ROSE}/include
     ${BOOST}/include
-    ${PAUL}/src/
+    ${PAUL}/include/
     )
 
 # Set Header Include paths.
@@ -48,7 +48,7 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 add_library(CCSDLIB STATIC ${CCSDL})
 
 # Set library paths.
-link_directories(${ROSE}/lib ${PAUL}/src ${PROJECT_BINARY_DIR}/lib)
+link_directories(${ROSE}/lib ${PAUL}/lib ${PROJECT_BINARY_DIR}/lib)
 # Build the CCSD Executable.
 add_executable(CCSD ${PROJECT_SOURCE_DIR}/src/ccsd.cpp)
 # Set libraries to be linked.

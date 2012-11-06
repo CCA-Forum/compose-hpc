@@ -17,16 +17,9 @@ Should represent the distributive law for any variables x, a, y, and z.  Without
 generalization, the rule will ONLY apply the distributive law for the term
 "x = a*(y+z)", where the variables are named.  
 
-This program is based on the following papers:
-
- - blah
- - blah
-
 Contact : matt sottile (matt@galois.com)
           geoff hulette (ghulette@gmail.com)
-
-July 2012
-
+          
 -}
 
 import RuleGen.AtermUtilities
@@ -34,30 +27,33 @@ import RuleGen.Weaver
 import RuleGen.Stratego
 import RuleGen.Yang
 import RuleGen.Trees
-import RuleGen.Pruner
+--import RuleGen.Pruner
+import RuleGen.Filter
 import RuleGen.Contextualizer
 import Data.Maybe
 import RuleGen.GraphvizUtil
 import System.Environment (getArgs)
 import System.Console.GetOpt
+import System.Exit 
 import Data.Tree
 
-despecifyFile :: LabeledTree -> LabeledTree
-despecifyFile t = replaceSubtrees "file_info" replacementNode t
-  where replacementNode = Node "gen_info()" []
-
+-- ==============================================
+-- command line argument handling
+-- ==============================================
 data Flag = Source String
           | Target String
           | GVSource String
           | GVTarget String
           | GVWeave String
           | Output String
+          | GVizOnly
           | Debug
   deriving (Show, Eq)
 
 options :: [OptDescr Flag]
 options = [
   Option ['d'] ["debug"]           (NoArg Debug)             "Enable debugging output",
+  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit",
   Option ['s'] ["source"]          (ReqArg Source "FILE")    "Source file",
   Option ['t'] ["target"]          (ReqArg Target "FILE")    "Target file",
   Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")  "Graphviz output for source diff",
@@ -103,15 +99,14 @@ isDebuggingOn []        = False
 isDebuggingOn (Debug:_) = True
 isDebuggingOn (_:rest)  = isDebuggingOn rest
 
-equivalentSet :: [String]
-equivalentSet = ["for_statement", "while_stmt"]
+isGVizOnlyOn :: [Flag] -> Bool
+isGVizOnlyOn []           = False
+isGVizOnlyOn (GVizOnly:_) = True
+isGVizOnlyOn (_:rest)     = isGVizOnlyOn rest
 
-labelcompare :: String -> String -> Bool
-labelcompare a b 
-  | a == b    = True
-  | otherwise = if (a `elem` equivalentSet && b `elem` equivalentSet) then True
-                                                                      else False
-
+-- ==============================================
+-- main program
+-- ==============================================
 main :: IO ()
 main = do
   -- command line argument handling
@@ -131,6 +126,7 @@ main = do
       tgraphviz  = getGVTarget flags 
       wgraphviz  = getGVWeave flags
       debugflag  = isDebuggingOn flags
+      gvizflag   = isGVizOnlyOn flags
 
   -- read in trees from term files
   tree1 <- readToTree sourcefile
@@ -138,13 +134,16 @@ main = do
 
   -- clean up trees to remove fileinfo nodes that will induce many false
   -- positive diffs
-  let tree1'' = despecifyFile tree1
-      tree2'' = despecifyFile tree2
+  let tree1' = despecifyFile tree1
+      tree2' = despecifyFile tree2
 
-      (tree1', tree2') = variableReplacer tree1'' tree2''
+      labelcompare = (==)
 
   -- run Yang's algorithm
-      (y1,y2) = treediff tree1' tree2' labelcompare
+      (y1',y2) = treediff tree1' tree2' labelcompare
+
+      blank = LBLString "_"
+      y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
 
   -- check if we want graphviz files dumped of the two diff trees
   case sgraphviz of
@@ -165,6 +164,13 @@ main = do
                      dumpGraphvizToFile fname g
     Nothing    -> return ()
 
+  -- check if user only wants the graphviz dumps - exit here if so.
+  -- TODO: this still requires the stratego output file to be specified
+  --       since it is a required argument.  figure out how to suppress
+  --       that if this flag was enabled.
+  if gvizflag then do exitSuccess
+              else return ()
+
   --
   -- contextualize : this seeks holes, and produces pairs of pre-transform/
   -- post-transform trees representing the insertion or deletion of code.
@@ -179,31 +185,33 @@ main = do
       (pre,post) = unzip holes
 
   if (debugflag) then do putStrLn "---PRE---"
-                         _ <- mapM putStrLn (map drawTree pre)
+                         _ <- mapM putStrLn (map dumpTree pre)
                          putStrLn "---POST---"
-                         _ <- mapM putStrLn (map drawTree post)
+                         _ <- mapM putStrLn (map dumpTree post)
                          return ()
                  else return ()
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
-  let mismatch_forest = forestify woven'
+  let nonmatching_forest = nonMatchForest woven'
 
   -- debug : print stuff out
   if (debugflag) then do putStrLn $ show woven'
-                         _ <- mapM (\i -> putStrLn $ show i) mismatch_forest
+                         _ <- mapM (\i -> putStrLn $ show i) nonmatching_forest
                          return ()
                  else return ()
 
   -- get the rules
   let mismatch_rules = map fromJust $ 
                        filter isJust $ 
-                       map toRule mismatch_forest
+                       map toRule nonmatching_forest
 
       rules = mismatch_rules ++ hole_rules
 
   -- emit the stratego file
-  writeFile outputfile (strategoRules rules)
+  case rules of
+    [] -> do putStrLn "No difference identified."
+    _ -> do writeFile outputfile (strategoRules rules)
 
 --  putStrLn (strategoRules rules)
   return ()

@@ -8,7 +8,8 @@ module RuleGen.Yang (
   treedist,
   EditTree(..),
   EOp(..),
-  LabelComparator
+  LabelComparator,
+  replaceEditTreeNode
 ) where
 
 import Data.Array
@@ -21,10 +22,18 @@ import Prelude hiding (Left)
 -- edit node is used to represent the original tree node with its  
 -- children enumerated with a corresponding keep/delete operation
 -- determining if they stay or go in the matching
-data EditTree = ENode String [(EOp,EditTree)]
+data EditTree = ENode Label [(EOp,EditTree)]
               | ELeaf LabeledTree  -- can get subtree out of the original Tree
               | ENil               -- used for the zero row/column of matrix
   deriving (Show, Eq)
+
+replaceEditTreeNode :: Label -> EditTree -> LabeledTree -> EditTree -> EditTree
+replaceEditTreeNode lbl replET replLT t =
+  case t of
+    ENil                     -> ENil
+    ELeaf e                  -> ELeaf (replaceSubtrees lbl replLT e)
+    ENode s kids | s == lbl  -> replET
+                 | otherwise -> ENode s (map (\(o,k) -> (o,replaceEditTreeNode lbl replET replLT k)) kids)
 
 cleaner :: EditTree -> EditTree
 cleaner (ELeaf t)        = (ELeaf t)
@@ -49,7 +58,7 @@ data Direction = Left | Up | Diag
   deriving (Show, Eq)
 
 -- type for a label comparison function
-type LabelComparator = String -> String -> Bool
+type LabelComparator = Label -> Label -> Bool
 
 treediff :: LabeledTree -> LabeledTree -> LabelComparator -> (EditTree,EditTree)
 treediff t1 t2 labelcompare = (cleaner y1, cleaner y2)

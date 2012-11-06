@@ -214,7 +214,7 @@ checkRoseTrans: $(EXE)
 	  cp -f Makefile.trans $$OUTDIR/Makefile; \
 	  echo "Copying header files to $$OUTDIR"; \
 	  cp -f *ack*.h* $$OUTDIR; \
-	  echo "Try 'make check' in $$OUTDIR"; \
+	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
 	else \
 	  echo "ERROR: Must resolve issues before able to build translations.";\
         fi; \

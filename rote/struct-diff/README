@@ -1,0 +1,24 @@
+To build:
+
+First, make sure you have a recent version of the Haskell platform.  This
+code was developed on the 2012.2.0.0 release, based on GHC 7.4.1.
+
+Next, make sure the aterm package is installed from hackage (this requires
+a network connection).
+
+% cabal install aterm
+
+Then, configure the rule generator:
+
+% cabal configure
+
+Next, build the rule generator:
+
+% cabal build
+
+Finally, if you want the haddock documentation:
+
+% cabal haddock --executables
+
+
+Problems?  Contact matt@galois.com.
