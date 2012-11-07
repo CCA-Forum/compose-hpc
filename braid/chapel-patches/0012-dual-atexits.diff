@@ -1,63 +1,23 @@
-Index: runtime/src/chplinit.c
-===================================================================
---- runtime/src/chplinit.c	(revision 0)
-+++ runtime/src/chplinit.c	(revision 0)
-@@ -177,14 +177,23 @@
- }
+diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
+index 60a3e74..f832692 100644
+--- a/runtime/include/chplrt.h
++++ b/runtime/include/chplrt.h
+@@ -32,11 +32,17 @@ extern int chpl_threads_initialized;
+ #define CHPL_ASSIGN_SVEC(x, y)                     \
+   memcpy(&x, &y, sizeof(x))
  
- /**
-- * chpl_init_library() installs this as an atexit() handler.
-+ * chpl_init_library() installs this as an atexit() handler for locale 0.
-  */
--static void chpl_library_shutdown(void) {
--  chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
-+static void chpl_library_shutdown_locale_0(void) {
-+  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
-   chpl_gen_shutdown(&chpl_wide_endCount_global);
-   chpl_exit_all(0);
- }
- 
-+/**
-+ * chpl_init_library() installs this as an atexit() handler for
-+ * non-zero locales.
-+ */
-+static void chpl_library_shutdown_locale_n(void) {
-+  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
-+  chpl_exit_all(0);
-+}
++#define _CHECK_NIL(x, lineno, filename)                                 \
++  do {                                                                  \
++    if (x == nil)                                                       \
++      chpl_error("attempt to dereference nil", lineno, filename);	\
++  } while (0)
 +
- static bool chpl_init_library_called = false;
+ #define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
+   do {									\
+     if (data == nil)							\
+       chpl_error("data vector is nil", lineno, filename);		\
+-  (x)->fieldname = (type*) data;					\
++    x = (type*) data;							\
+   } while (0)
  
- /**
-@@ -205,18 +214,20 @@
-   if (!chpl_init_library_called) {
-     chpl_init_library_called = true;
- 
--    chpl_init(argc, argv);      // establishes "barrier before main"
-+    // establishes "barrier before main"
-+    chpl_init(argc, argv);
- 
--    if (chpl_localeID != 0) {   // only locale #0 returns control to the
--                                // external call site
--      chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
--      chpl_exit_all(0);         // all other locales can be stopped, we are done
--    } else {
--      atexit(&chpl_library_shutdown);
-+    if (chpl_localeID == 0) {
-+      // register master exit handler
-+      atexit(&chpl_library_shutdown_locale_0);
-+      // initialize Chapel runtime
-       chpl_task_callMain(chpl_library_init);
-+
-+    } else {
-+      // register other exit handlers
-+      atexit(&chpl_library_shutdown_locale_n);
-     }
-   }
- 
-   return chpl_localeID;
--}
--
-+}
-\ No newline at end of file
-
+ #define _ARRAY_GET(x, i) (&((x)[i]))

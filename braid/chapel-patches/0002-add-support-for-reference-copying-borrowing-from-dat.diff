@@ -3,68 +3,1020 @@ From: Shams Imam <imam1@llnl.gov>
 Date: Thu, 9 Jun 2011 16:32:45 -0700
 Subject: [PATCH 2/5] -- add support for reference copying/borrowing from data classes
 
----
- chapel-1.3.0/chapel/compiler/AST/expr.cpp        |    5 +++++
- chapel-1.3.0/chapel/compiler/AST/primitive.cpp   |    1 +
- chapel-1.3.0/chapel/compiler/include/primitive.h |    1 +
- chapel-1.3.0/chapel/runtime/include/chplrt.h     |    5 +++++
- 4 files changed, 12 insertions(+), 0 deletions(-)
-
-diff --git a/chapel-1.3.0/chapel/compiler/AST/expr.cpp b/chapel-1.3.0/chapel/compiler/AST/expr.cpp
-index 5ef1e99..d89328c 100644
---- a/chapel-1.3.0/chapel/compiler/AST/expr.cpp
-+++ b/chapel-1.3.0/chapel/compiler/AST/expr.cpp
-@@ -767,6 +767,11 @@ void CallExpr::codegen(FILE* outfile) {
-             get(3), get(4), get(5));
-       }
-       break;
-+    case PRIM_REF_BORROW:
-+      gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A)", get(1),
-+          getDataClassType(get(1)->typeInfo()->symbol),
-+          get(2), get(3), get(4));
-+      break;  
+diff --git a/compiler/AST/expr.cpp b/compiler/AST/expr.cpp
+index 8f67c8b..df66163 100644
+--- a/compiler/AST/expr.cpp
++++ b/compiler/AST/expr.cpp
+@@ -2684,9 +2684,24 @@ GenRet CallExpr::codegen() {
+     }
+     case PRIM_REF_BORROW:
+     {
+-      gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A)", get(1),
+-          getDataClassType(get(1)->typeInfo()->symbol),
+-          get(2), get(3), get(4));
++      // // Ensure we have a string constant as the second argument   
++      // SymExpr* fieldNameSym = toSymExpr(get(2));
++      // if (fieldNameSym == NULL) {
++      //   USR_FATAL(fieldNameSym, "Expected string expr as second argument to ref_borrow");
++      // }
++      // VarSymbol* fieldNameVarSym = toVarSymbol(fieldNameSym->var);
++      // if (fieldNameVarSym == NULL || fieldNameVarSym->immediate == NULL ||
++      //     fieldNameVarSym->immediate->const_kind != CONST_KIND_STRING) {
++      //   USR_FATAL(fieldNameVarSym, "Expected string constant as second argument to ref_borrow");
++      // }
++      // // Now a little hack to ensure we do not output quotes for the field
++      // VarSymbol* fieldNameVarSymCopy = fieldNameVarSym->copy();
++      // fieldNameVarSymCopy->cname = fieldNameVarSym->immediate->v_string;
++      // fieldNameVarSymCopy->immediate == NULL;
++      codegenCall("_REF_BORROW", get(1),
++		  getDataClassType(get(1)->typeInfo()->symbol),
++		  //fieldNameVarSymCopy, 
++		  get(2), get(3), get(4));
+       break;  
+     }
      case PRIM_GPU_ALLOC:
-       if (get(1)->typeInfo()->symbol->hasFlag(FLAG_WIDE_CLASS)) {
-         gen(outfile, "_GPU_ALLOC(%A, %A, %A)", get(1),
-diff --git a/chapel-1.3.0/chapel/compiler/AST/primitive.cpp b/chapel-1.3.0/chapel/compiler/AST/primitive.cpp
-index bf3b66a..d518e05 100644
---- a/chapel-1.3.0/chapel/compiler/AST/primitive.cpp
-+++ b/chapel-1.3.0/chapel/compiler/AST/primitive.cpp
-@@ -437,6 +437,7 @@ initPrimitive() {
-   prim_def(PRIM_CAPTURE_FN, "capture fn", returnInfoVoid);
-   prim_def(PRIM_CREATE_FN_TYPE, "create fn type", returnInfoVoid);
+diff --git a/compiler/AST/symbol.cpp b/compiler/AST/symbol.cpp
+index 3c7c236..d83fb58 100644
+--- a/compiler/AST/symbol.cpp
++++ b/compiler/AST/symbol.cpp
+@@ -26,6 +26,8 @@
+ // The function that represents the compiler-generated entry point
+ //
+ FnSymbol *chpl_gen_main = NULL;
++FnSymbol *chpl_gen_init = NULL;
++FnSymbol *chpl_gen_shutdown = NULL;
  
-+  prim_def(PRIM_REF_BORROW, "ref_borrow", returnInfoVoid, true, true);
-   prim_def(PRIM_ARRAY_ALLOC, "array_alloc", returnInfoVoid, true, true);
-   prim_def(PRIM_ARRAY_FREE, "array_free", returnInfoVoid, true, true);
-   prim_def(PRIM_ARRAY_FREE_ELTS, "array_free_elts", returnInfoVoid, true);
-diff --git a/chapel-1.3.0/chapel/compiler/include/primitive.h b/chapel-1.3.0/chapel/compiler/include/primitive.h
-index f9e799e..810724b 100644
---- a/chapel-1.3.0/chapel/compiler/include/primitive.h
-+++ b/chapel-1.3.0/chapel/compiler/include/primitive.h
-@@ -125,6 +125,7 @@ enum PrimitiveTag {
-   PRIM_ARRAY_FREE,
-   PRIM_ARRAY_FREE_ELTS,
-   PRIM_ARRAY_ALLOC,
-+  PRIM_REF_BORROW,
+ ModuleSymbol* rootModule = NULL;
+ ModuleSymbol* theProgram = NULL;
+diff --git a/compiler/include/symbol.h b/compiler/include/symbol.h
+index aa459ae..103d6c2 100644
+--- a/compiler/include/symbol.h
++++ b/compiler/include/symbol.h
+@@ -16,6 +16,8 @@
+ // The function that represents the compiler-generated entry point
+ //
+ extern FnSymbol* chpl_gen_main;
++extern FnSymbol* chpl_gen_init;
++extern FnSymbol* chpl_gen_shutdown;
  
-   PRIM_GPU_GET_ARRAY,
-   PRIM_GPU_GET_VALUE,
-diff --git a/chapel-1.3.0/chapel/runtime/include/chplrt.h b/chapel-1.3.0/chapel/runtime/include/chplrt.h
-index 2391c7e..68f5242 100644
---- a/chapel-1.3.0/chapel/runtime/include/chplrt.h
-+++ b/chapel-1.3.0/chapel/runtime/include/chplrt.h
-@@ -35,6 +35,13 @@
-       chpl_error("attempt to dereference nil", lineno, filename);      \
-   } while (0)
+ class SymExpr;
+ class DefExpr;
+diff --git a/compiler/passes/buildDefaultFunctions.cpp b/compiler/passes/buildDefaultFunctions.cpp
+index 720cc13..bcc9896 100644
+--- a/compiler/passes/buildDefaultFunctions.cpp
++++ b/compiler/passes/buildDefaultFunctions.cpp
+@@ -298,6 +298,44 @@ static void build_chpl_entry_points(void) {
+   chpl_user_main->cname = "chpl_user_main";
  
-+#define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
-+  do {									\
-+    if (data == nil)							\
-+      chpl_error("data vector is nil", lineno, filename);		\
-+  (x)->fieldname = (type*) data;					\
+   //
++  // global init function
++  //
++  chpl_gen_init = new FnSymbol("chpl_gen_init");
++  chpl_gen_init->cname = "chpl_gen_init";
++  chpl_gen_init->retType = dtVoid;
++  chpl_gen_init->addFlag(FLAG_EXPORT); 
++  chpl_gen_init->addFlag(FLAG_TEMP);
++  mainModule->block->insertAtTail(new DefExpr(chpl_gen_init));
++  normalize(chpl_gen_init);
++
++  // We have to initialize the main module explicitly.
++  // It will initialize all the modules it uses, recursively.
++  chpl_gen_init->insertAtHead(new CallExpr(mainModule->initFn));
++
++  VarSymbol* endCount = newTemp("_endCount");
++  chpl_gen_init->insertAtHead(new CallExpr("chpl_startTrackingMemory"));
++  chpl_gen_init->insertAtHead(new CallExpr(PRIM_SET_END_COUNT, endCount));
++  chpl_gen_init->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr("_endCountAlloc")));
++  chpl_gen_init->insertAtHead(new DefExpr(endCount));
++
++  //
++  // global shutdown function
++  //
++  chpl_gen_shutdown = new FnSymbol("chpl_gen_shutdown");
++  chpl_gen_shutdown->cname = "chpl_gen_shutdown";
++  chpl_gen_shutdown->retType = dtVoid;
++  chpl_gen_shutdown->addFlag(FLAG_EXPORT);
++  chpl_gen_shutdown->addFlag(FLAG_TEMP);
++  mainModule->block->insertAtTail(new DefExpr(chpl_gen_shutdown));
++  normalize(chpl_gen_shutdown);
++
++  endCount = newTemp("_endCount");
++  chpl_gen_shutdown->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr(PRIM_GET_END_COUNT)));
++  chpl_gen_shutdown->insertAtHead(new DefExpr(endCount));
++  chpl_gen_shutdown->insertBeforeReturn(new CallExpr("_waitEndCount"));
++  chpl_gen_shutdown->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
++
++  //
+   // chpl_gen_main is the entry point for the compiler-generated cdoe.
+   // It accounts for the initialization and memory tracking of the
+   // code
+@@ -309,9 +347,10 @@ static void build_chpl_entry_points(void) {
+   chpl_gen_main->addFlag(FLAG_TEMP);
+   mainModule->block->insertAtTail(new DefExpr(chpl_gen_main));
+   normalize(chpl_gen_main);
++  chpl_gen_main->insertAtHead(new CallExpr("chpl_gen_shutdown"));
+ 
+   if (!fLibraryCompile) {
+-    SET_LINENO(chpl_gen_main);
++    SET_LINENO(chpl_gen_init);
+     chpl_gen_main->insertAtHead(new CallExpr("main"));
+   }
+ 
+@@ -328,6 +367,7 @@ static void build_chpl_entry_points(void) {
+     chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount"));
+     //chpl_gen_main->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
+   }
++  chpl_gen_main->insertAtHead(new CallExpr("chpl_gen_init"));
+ }
+ 
+ static void build_record_equality_function(ClassType* ct) {
+diff --git a/compiler/passes/codegen.cpp b/compiler/passes/codegen.cpp
+index 7d33bd5..e5d2791 100644
+--- a/compiler/passes/codegen.cpp
++++ b/compiler/passes/codegen.cpp
+@@ -107,7 +107,14 @@ static void legalizeName(Symbol* sym) {
+   }
+ 
+   // Add chpl_ to operator names.
+-  if ((sym->cname[0] == '_' && (sym->cname[1] == '_' || (sym->cname[1] >= 'A' && sym->cname[1] <= 'Z')))) {
++  // hilde sez:  This is very kludgy.  What do we really mean?
++  if ((!strncmp("chpl_", sym->cname, 5) && 
++       (strcmp("chpl_gen_main", sym->cname) &&
++	strcmp("chpl_gen_init", sym->cname) &&
++	strcmp("chpl_gen_shutdown", sym->cname) &&
++	strcmp("chpl_user_main", sym->cname)) 
++       && sym->cname[5] != '_') ||
++      (sym->cname[0] == '_' && (sym->cname[1] == '_' || (sym->cname[1] >= 'A' && sym->cname[1] <= 'Z')))) {
+     sym->cname = astr("chpl__", sym->cname);
+   }
+ }
+diff --git a/compiler/passes/insertLineNumbers.cpp b/compiler/passes/insertLineNumbers.cpp
+index a150913..4cff09f 100644
+--- a/compiler/passes/insertLineNumbers.cpp
++++ b/compiler/passes/insertLineNumbers.cpp
+@@ -87,6 +87,8 @@ insertLineNumber(CallExpr* call) {
+   } else if (!strcmp(fn->name, "chpl__heapAllocateGlobals") ||
+              !strcmp(fn->name, "chpl__initModuleGuards") ||
+              !strcmp(fn->name, "chpl_gen_main") ||
++             !strcmp(fn->name, "chpl_gen_init") ||
++             !strcmp(fn->name, "chpl_gen_shutdown") ||
+              ((mod->modTag == MOD_USER || mod->modTag == MOD_MAIN) && 
+               !fn->hasFlag(FLAG_TEMP) && !fn->hasFlag(FLAG_INLINE)) ||
+              (developer && strcmp(fn->name, "halt"))) {
+diff --git a/compiler/passes/parallel.cpp b/compiler/passes/parallel.cpp
+index 9f4a750..a9bc8c8 100644
+--- a/compiler/passes/parallel.cpp
++++ b/compiler/passes/parallel.cpp
+@@ -193,18 +193,44 @@ static void create_block_fn_wrapper(CallExpr* fcall, ClassType* ctype, VarSymbol
+   normalize(wrap_fn);
+ }
+ 
+-
+ static void
+ insertEndCount(FnSymbol* fn,
+                Type* endCountType,
+                Vec<FnSymbol*>& queue,
+                Map<FnSymbol*,Symbol*>& endCountMap) {
+   if (fn == chpl_gen_main) {
++    // Create a handle for the global end count
++    VarSymbol* var = newTemp("_endCount_global", endCountType);
++    VarSymbol* ref = newTemp("_endCount_ref", endCountType->getRefType());
++    fn->insertAtHead(new CallExpr(PRIM_MOVE, ref, new CallExpr(PRIM_ADDR_OF, var)));
++    fn->insertAtHead(new DefExpr(var));
++    fn->insertAtHead(new DefExpr(ref));
++    endCountMap.put(fn, ref);
++    queue.add(fn);
++
++  } else if (fn == chpl_gen_init) {
++    // expects a reference to the global end count
++    ArgSymbol* arg = new ArgSymbol(INTENT_OUT, "_endCount", endCountType->getRefType());
++    fn->insertFormalAtTail(arg);
++    VarSymbol* var = newTemp("_endCount", endCountType);
++    fn->insertAtHead(new DefExpr(var));
++    fn->insertBeforeReturn(new CallExpr(PRIM_MOVE, arg, var));
++    endCountMap.put(fn, var);
++    queue.add(fn);
++
++  } else if (fn == chpl_gen_shutdown) {
++    // expects a reference to the global end count
++    ArgSymbol* arg = new ArgSymbol(INTENT_BLANK, "_endCount", endCountType->getRefType());
++    fn->insertFormalAtTail(arg);
+     VarSymbol* var = newTemp("_endCount", endCountType);
++    fn->insertBeforeReturn(new CallExpr(PRIM_MOVE, arg, var));
++    fn->insertAtHead(new CallExpr(PRIM_MOVE, var, new CallExpr(PRIM_DEREF, arg)));
+     fn->insertAtHead(new DefExpr(var));
+     endCountMap.put(fn, var);
+     queue.add(fn);
++
+   } else {
++    // all other functions
+     ArgSymbol* arg = new ArgSymbol(INTENT_BLANK, "_endCount", endCountType);
+     fn->insertFormalAtTail(arg);
+     VarSymbol* var = newTemp("_endCount", endCountType);
+@@ -838,7 +864,11 @@ parallel(void) {
+       FnSymbol* pfn = call->getFunction();
+       if (!endCountMap.get(pfn))
+         insertEndCount(pfn, endCountType, queue, endCountMap);
+-      call->insertAtTail(endCountMap.get(pfn));
++
++      if (fn == chpl_gen_main)
++	call->insertAtTail(new CallExpr(PRIM_DEREF, endCountMap.get(pfn)));
++      else
++	call->insertAtTail(endCountMap.get(pfn));
+     }
+   }
+ 
+diff --git a/compiler/resolution/callDestructors.cpp b/compiler/resolution/callDestructors.cpp
+index a8be176..a22a713 100644
+--- a/compiler/resolution/callDestructors.cpp
++++ b/compiler/resolution/callDestructors.cpp
+@@ -341,6 +341,8 @@ static void insertGlobalAutoDestroyCalls() {
+   if( ! fNoInternalModules ) {
+     chpl_gen_main->defPoint->insertBefore(new DefExpr(fn));
+     chpl_gen_main->insertBeforeReturnAfterLabel(new CallExpr(fn));
++    chpl_gen_shutdown->defPoint->insertBefore(new DefExpr(fn));
++    chpl_gen_shutdown->insertBeforeReturnAfterLabel(new CallExpr(fn));
+   }
+   forv_Vec(DefExpr, def, gDefExprs) {
+     if (isModuleSymbol(def->parentSymbol))
+diff --git a/compiler/resolution/functionResolution.cpp b/compiler/resolution/functionResolution.cpp
+index 5c4dc62..2364089 100644
+--- a/compiler/resolution/functionResolution.cpp
++++ b/compiler/resolution/functionResolution.cpp
+@@ -255,7 +255,7 @@ resolveUninsertedCall(Type* type, CallExpr* call) {
+     else
+       type->symbol->defPoint->insertBefore(call);
+   } else
+-    chpl_gen_main->insertAtHead(call);
++    chpl_gen_init->insertAtHead(call);
+   resolveCall(call);
+   call->remove();
+   return call->isResolved();
+@@ -289,7 +289,7 @@ static void makeRefType(Type* type) {
+ static void
+ resolveAutoCopy(Type* type) {
+   Symbol* tmp = newTemp(type);
+-  chpl_gen_main->insertAtHead(new DefExpr(tmp));
++  chpl_gen_init->insertAtHead(new DefExpr(tmp));
+   CallExpr* call = new CallExpr("chpl__autoCopy", tmp);
+   FnSymbol* fn = resolveUninsertedCall(type, call);
+   resolveFns(fn);
+@@ -301,7 +301,7 @@ resolveAutoCopy(Type* type) {
+ static void
+ resolveAutoDestroy(Type* type) {
+   Symbol* tmp = newTemp(type);
+-  chpl_gen_main->insertAtHead(new DefExpr(tmp));
++  chpl_gen_shutdown->insertAtHead(new DefExpr(tmp));
+   CallExpr* call = new CallExpr("chpl__autoDestroy", tmp);
+   FnSymbol* fn = resolveUninsertedCall(type, call);
+   resolveFns(fn);
+@@ -5030,6 +5030,8 @@ resolve() {
+   resolveUses(mainModule);
+ 
+   resolveFns(chpl_gen_main);
++  resolveFns(chpl_gen_init);
++  resolveFns(chpl_gen_shutdown);
+   USR_STOP();
+ 
+   resolveExports();
+diff --git a/examples/borrowed/borrowed_array.chpl b/examples/borrowed/borrowed_array.chpl
+new file mode 100644
+index 0000000..738dbc1
+--- /dev/null
++++ b/examples/borrowed/borrowed_array.chpl
+@@ -0,0 +1,351 @@
++use DSIUtil;
++use DefaultRectangular;
++
++// dynamic data block class
++pragma "data class"
++class _borrowedData {
++  type eltType;
++  proc ~_borrowedData() {
++    // Nothing to free!
++  }
++  pragma "inline" proc init(opaqueData: opaque) {
++    // Just copy over the reference to the data
++    __primitive("ref_borrow", this, "_data", opaqueData);
++  }
++  pragma "inline" proc this(i: integral) var {
++    // rely on chapel compiler to generate lvalue
++    return __primitive("array_get", this, i);
++  }
++}
++
++_extern proc allocateData(typeSize: int(32), numElements: int(32)): opaque;
++
++_extern proc deallocateData(bData: opaque);
++
++///////////////////////////////////////////////////////////////////////////
++
++class BorrowedDist: BaseDist {
++  proc dsiNewRectangularDom(param rank: int, type idxType, param stridable: bool)
++    return new BorrowedRectangularDom(rank, idxType, stridable, this);
++}
++
++///////////////////////////////////////////////////////////////////////////
++
++class BorrowedRectangularDom: BaseRectangularDom {
++  param rank : int;
++  type idxType;
++  param stridable: bool;
++  
++  var dist: BorrowedDist;
++  // var ranges: rank*range(idxType,BoundedRangeType.bounded,stridable);
++  var rectDom: DefaultRectangularDom(rank, idxType, stridable);
++
++  proc linksDistribution() param return false;
++  proc dsiLinksDistribution()     return false;
++
++  proc BorrowedRectangularDom(param rank, type idxType, param stridable, dist) {
++    this.dist = dist;
++    this.rectDom = new DefaultRectangularDom(rank, idxType, stridable, defaultDist._value);
++  }
++
++  proc initIndices(theLimits ...?k) {
++    var myRanges : k * range(idxType, BoundedRangeType.bounded, stridable);
++    for param i in 1..k do {
++      myRanges(i) = 0..theLimits(i);
++    }
++    dsiSetIndices(myRanges);
++  }
++
++  proc dsiClear() { this.rectDom.dsiClear(); }
++  
++  // function and iterator versions, also for setIndices
++  proc dsiGetIndices() { return this.rectDom.dsiGetIndices(); }
++
++  proc dsiSetIndices(x) { this.rectDom.dsiSetIndices(x); }
++
++  iter these_help(param d: int) {
++    for i in this.rectDom.these_help(d) do
++      yield i;
++  }
++
++  iter these_help(param d: int, block) {
++    for i in this.rectDom.these_help(d, block) do
++      yield i;
++  }
++
++  iter these() {
++    for i in this.rectDom.these() do
++      yield i;
++  }
++
++  iter these(param tag: iterator) where tag == iterator.leader {
++    for i in this.rectDom.these(tag) do
++      yield i;
++  }
++
++  iter these(param tag: iterator, follower) where tag == iterator.follower {
++    for i in this.rectDom.these(tag, follower) do
++      yield i;
++  }
++
++  proc dsiMember(ind: rank*idxType) { return this.rectDom.dsiMember(ind); }
++
++  proc dsiIndexOrder(ind: rank*idxType) { return this.rectDom.dsiIndexOrder(ind); }
++
++  proc dsiDims() { return this.rectDom.dsiDims(); }
++
++  proc dsiDim(d : int) { return this.rectDom.dsiDim(d); }
++
++  // optional, is this necesary? probably not now that
++  // homogeneous tuples are implemented as C vectors.
++  proc dsiDim(param d : int) { return this.rectDom.dsiDim(d); }
++
++  proc dsiNumIndices { return this.rectDom.dsiNumIndices(); }
++
++  proc dsiLow { return this.rectDom.dsiLow; }
++
++  proc dsiHigh { return this.rectDom.dsiHigh; }
++
++  proc dsiAlignedLow { return this.rectDom.dsiAlignedLow; }
++
++  proc dsiAlignedHigh { return this.rectDom.dsiAlignedHigh; }
++
++  proc dsiStride { return this.rectDom.dsiStride; }
++
++  proc dsiAlignment { return this.rectDom.dsiAlignment; }
++
++  proc dsiFirst { return this.rectDom.dsiFirst; }
++
++  proc dsiLast { return this.rectDom.dsiLast; }
++
++  proc dsiBuildArray(type eltType) {
++    return new BorrowedRectangularArr(eltType=eltType, rank=rank, idxType=idxType,
++                                    stridable=stridable, dom=this);
++  }
++
++  proc dsiBuildRectangularDom(param rank: int, type idxType, param stridable: bool,
++        ranges: rank*range(idxType, BoundedRangeType.bounded, stridable)) {
++    return this.rectDom.dsiBuildRectangularDom(rank, idxType, stridable, ranges);
++  }
++}
++
++///////////////////////////////////////////////////////////////////////////
++
++class BorrowedRectangularArr: BaseArr {
++
++  type eltType;
++  param rank : int;
++  type idxType;
++  param stridable: bool;
++
++  var dom : BorrowedRectangularDom(rank=rank, idxType=idxType, stridable=stridable);
++  var off: rank*idxType;
++  var blk: rank*idxType;
++  var str: rank*chpl__signedType(idxType);
++  var origin: idxType;
++  var factoredOffs: idxType;
++  var bData : _borrowedData(eltType);
++  var noinit: bool = false;
++
++  proc canCopyFromDevice param return true;
++
++  // end class definition here, then defined secondary methods below
++
++  // can the compiler create this automatically?
++  proc dsiGetBaseDom() { return dom; }
++
++  proc dsiDestroyData() {
++    // Nothing to do
++  }
++
++  iter these() var {
++    if rank == 1 {
++      // This is specialized to avoid overheads of calling dsiAccess()
++      if !dom.stridable {
++        // This is specialized because the strided version disables the
++        // "single loop iterator" optimization
++        var first = getDataIndex(dom.dsiLow);
++        var second = getDataIndex(dom.dsiLow+dom.ranges(1).stride:idxType);
++        var step = (second-first):chpl__signedType(idxType);
++        var last = first + (dom.dsiNumIndices-1) * step:idxType;
++        for i in first..last by step do
++          yield bData(i);
++      } else {
++        const stride = dom.ranges(1).stride: idxType,
++              start  = dom.ranges(1).first,
++              first  = getDataIndex(start),
++              second = getDataIndex(start + stride),
++              step   = (second-first):chpl__signedType(idxType),
++              last   = first + (dom.ranges(1).length-1) * step:idxType;
++        if step > 0 then
++          for i in first..last by step do
++            yield bData(i);
++        else
++          for i in last..first by step do
++            yield bData(i);
++      }
++    } else {
++      for i in dom do
++        yield dsiAccess(i);
++    }
++  }
++
++  iter these(param tag: iterator) where tag == iterator.leader {
++    for follower in dom.these(tag) do
++      yield follower;
++  }
++
++  iter these(param tag: iterator, follower) var where tag == iterator.follower {
++    if debugDefaultDist then
++      writeln("*** In array follower code:"); // [\n", this, "]");
++    for i in dom.these(tag=iterator.follower, follower) {
++      __primitive("noalias pragma");
++      yield dsiAccess(i);
++    }
++  }
++
++  proc computeFactoredOffs() {
++    factoredOffs = 0:idxType;
++    for param i in 1..rank do {
++      factoredOffs = factoredOffs + blk(i) * off(i);
++    }
++  }
++  
++  // change name to setup and call after constructor call sites
++  // we want to get rid of all initialize functions everywhere
++  proc initialize() {
++    if noinit == true then return;
++    for param dim in 1..rank {
++      off(dim) = dom.dsiDim(dim).alignedLow;
++      str(dim) = dom.dsiDim(dim).stride;
++    }
++    blk(rank) = 1:idxType;
++    for param dim in 1..rank-1 by -1 do
++      blk(dim) = blk(dim+1) * dom.dsiDim(dim+1).length;
++    computeFactoredOffs();
++    var size = blk(1) * dom.dsiDim(1).length;
++    // Do not initialize data here, user will explicitly init the data
++  }
++
++  proc initializeData(opData: opaque) { 
++    this.bData = new _borrowedData(eltType);
++    this.bData.init(opData); 
++  }
++
++
++  pragma "inline"
++  proc getDataIndex(ind: idxType ...1) where rank == 1 {
++    return getDataIndex(ind);
++  }
++
++  pragma "inline"
++  proc getDataIndex(ind: rank* idxType) {
++    var sum = origin;
++    if stridable {
++      for param i in 1..rank do
++        sum += (ind(i) - off(i)) * blk(i) / abs(str(i)):idxType;
++    } else {
++      for param i in 1..rank do
++        sum += ind(i) * blk(i);
++      sum -= factoredOffs;
++    }
++    return sum;
++  }
++
++  proc this(ind: idxType ...1) var where rank == 1 {
++    return dsiAccess(ind);
++  }
++
++  // only need second version because wrapper record can pass a 1-tuple
++  pragma "inline"
++  proc dsiAccess(ind: idxType ...1) var where rank == 1 {
++    return dsiAccess(ind);
++  }
++
++  pragma "inline"
++  proc dsiAccess(ind : rank*idxType) var {
++    if boundsChecking then
++      if !dom.dsiMember(ind) then
++        halt("array index out of bounds: ", ind);
++    var dataInd = getDataIndex(ind);
++    //assert(dataInd >= 0);
++    //assert(numelm >= 0); // ensure it has been initialized
++    //assert(dataInd: uint(64) < numelm: uint(64));
++    return bData(dataInd);
++  }
++
++  proc dsiReindex(d: DefaultRectangularDom) {
++    halt("dsiReindex() not supported for BorrowedRectangularArray");
++  }
++
++  proc dsiSlice(d: DefaultRectangularDom) {
++    halt("dsiSlice() not supported for BorrowedRectangularArray");
++  }
++
++  proc dsiRankChange(d, param newRank: int, param newStridable: bool, args) {
++    halt("dsiRankChange() not supported for BorrowedRectangularArray");
++  }
++
++  proc dsiReallocate(d: domain) {
++    halt("dsiReallocate() not supported for BorrowedRectangularArray");
++  }
++
++  proc dsiLocalSlice(ranges) {
++    halt("all dsiLocalSlice calls on DefaultRectangulars should be handled in ChapelArray.chpl");
++  }
++}
++
++proc BorrowedRectangularDom.dsiSerialWrite(f: Writer) {
++  f.write("[", dsiDim(1));
++  for i in 2..rank do
++    f.write(", ", dsiDim(i));
++  f.write("]");
++}
++
++///////////////////////////////////////////////////////////////////////////
++
++writeln("borrowed_array.chpl: Starting...");
++
++type arrayIndexType = int(32);
++type arrayElmntType = real(64);
++
++var bDistr = new BorrowedDist();
++write("bDistr = "); writeln(bDistr);
++
++var bDom = bDistr.dsiNewRectangularDom(1, arrayIndexType, false);
++writeln("created borrowed domain.");
++
++var arraySize = 10;
++bDom.initIndices(arraySize);
++writeln("initialized domain indices: ");
++
++var bArr = bDom.dsiBuildArray(arrayElmntType); // Array does not have data yet
++writeln("created borrowed array.");
++
++var bData: opaque;
++local { bData = allocateData(numBits(bArr.eltType), arraySize); }
++
++bArr.initializeData(bData);
++writeln("initialized borrowed data in borrowed array.");
++
++writeln("Initially:");
++[i in 0.. #arraySize] { 
++  writeln("bArr(", i, ") = ", bArr.dsiAccess(i));
++}
++
++[i in 0.. #arraySize] { 
++  bArr(i) = (2 * i) + 1;
++}
++writeln("After modifying:");
++[i in 0.. #arraySize] { 
++  writeln("bArr(", i, ") = ", bArr.dsiAccess(i));
++}
++
++var bDataCopy = bData; // assignment of void* in chapel
++local { deallocateData(bDataCopy); }
++
++writeln("borrowed_array.chpl: Done.");
++
++
++
++
+diff --git a/examples/borrowed/borrowed_data.h b/examples/borrowed/borrowed_data.h
+new file mode 100644
+index 0000000..6c7b967
+--- /dev/null
++++ b/examples/borrowed/borrowed_data.h
+@@ -0,0 +1,23 @@
++#ifndef __BORROWED_DATA_H__
++#define __BORROWED_DATA_H__
++
++#include<stdio.h>
++#include<stdlib.h> 
++
++typedef struct __BorrowedData {
++  int* _data;
++} _BorrowedData, *BorrowedData;
++
++void* allocateData(int typeSize, int numElements) {
++  printf("allocateData(%d, %d): ", typeSize, numElements);
++  void* bData = calloc(numElements, typeSize);
++  printf("at address %p \n", bData);
++  return bData;
++}
++
++void deallocateData(void* bData) {
++  printf("deallocateData(%p)\n", bData);
++  free(bData);
++}
++
++#endif
+diff --git a/runtime/include/chplinit.h b/runtime/include/chplinit.h
+new file mode 100644
+index 0000000..9dd535b
+--- /dev/null
++++ b/runtime/include/chplinit.h
+@@ -0,0 +1,7 @@
++#ifndef _CHPL_INIT_H_
++#define _CHPL_INIT_H_
++
++void chpl_init(int argc, char* argv[]);
++int chpl_init_library(int argc, char* argv[]);
++
++#endif
+diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
+index 60a3e74..f832692 100644
+--- a/runtime/include/chplrt.h
++++ b/runtime/include/chplrt.h
+@@ -32,11 +32,17 @@ extern int chpl_threads_initialized;
+ #define CHPL_ASSIGN_SVEC(x, y)                     \
+   memcpy(&x, &y, sizeof(x))
+ 
++#define _CHECK_NIL(x, lineno, filename)                                 \
++  do {                                                                  \
++    if (x == nil)                                                       \
++      chpl_error("attempt to dereference nil", lineno, filename);	\
 +  } while (0)
 +
+ #define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
+   do {									\
+     if (data == nil)							\
+       chpl_error("data vector is nil", lineno, filename);		\
+-  (x)->fieldname = (type*) data;					\
++    x = (type*) data;							\
+   } while (0)
+ 
  #define _ARRAY_GET(x, i) (&((x)[i]))
- #define _ARRAY_GET_VALUE(x, i) ((x)[i])
- #define _ARRAY_SET(x, i, v) ((x)[i] = v)
+diff --git a/runtime/src/Makefile.share b/runtime/src/Makefile.share
+index bbb628c..640dbc9 100644
+--- a/runtime/src/Makefile.share
++++ b/runtime/src/Makefile.share
+@@ -10,6 +10,7 @@ COMMON_NOGEN_SRCS = \
+ 	bulkget.c \
+ 	chpl-comm.c \
+ 	chplcopygc.c \
++	chplinit.c \
+ 	chplexit.c \
+ 	chplio.c \
+ 	chplgmp.c \
+diff --git a/runtime/src/chplinit.c b/runtime/src/chplinit.c
+new file mode 100644
+index 0000000..1b8d0ce
+--- /dev/null
++++ b/runtime/src/chplinit.c
+@@ -0,0 +1,233 @@
++#include "arg.h"
++#include "chpl_rt_utils_static.h"
++#include "chplcast.h"
++#include "chplcgfns.h"
++#include "chpl-comm.h"
++#include "chplexit.h"
++#include "chplio.h"
++#include "chpl-mem.h"
++#include "chplmemtrack.h"
++#include "chplrt.h"
++#include "chpl-tasks.h"
++#include "config.h"
++#include "error.h"
++#include <stdint.h>
++#include <string.h>
++#include <locale.h>
++#include "sys.h"
++
++static const char myFilename[] = 
++#ifdef CHPL_DEVELOPER
++  __FILE__;
++#else
++  "<internal>";
++#endif
++
++
++char* chpl_executionCommand;
++
++int handleNonstandardArg(int* argc, char* argv[], int argNum, 
++                         int32_t lineno, chpl_string filename) {
++  char* message = chpl_glom_strings(3, "Unexpected flag:  \"", argv[argNum], 
++                                    "\"");
++  chpl_error(message, lineno, filename);
++  return 0;
++}
++
++
++void printAdditionalHelp(void) {
++}
++
++
++static void recordExecutionCommand(int argc, char *argv[]) {
++  int i, length = 0;
++  for (i = 0; i < argc; i++) {
++    length += strlen(argv[i]) + 1;
++  }
++  chpl_executionCommand = (char*)chpl_mem_allocMany(length+1, sizeof(char), CHPL_RT_EXECUTION_COMMAND, 0, 0);
++  sprintf(chpl_executionCommand, "%s", argv[0]);
++  for (i = 1; i < argc; i++) {
++    strcat(chpl_executionCommand, " ");
++    strcat(chpl_executionCommand, argv[i]);
++  }
++}
++
++/**
++ * Initialize the Chapel runtime
++ */
++void chpl_init(int argc, char* argv[]) {
++  int32_t execNumLocales;
++  int runInGDB;
++  int numPollingTasks;
++
++  // Check that we can get the page size.
++  assert( sys_page_size() > 0 );
++
++  // Declare that we are 'locale aware' so that
++  // UTF-8 functions (e.g. wcrtomb) work as
++  // indicated by the locale environment variables.
++  setlocale(LC_CTYPE,"");
++
++  chpl_error_init();  // This does local-only initialization
++  chpl_comm_init(&argc, &argv);
++  chpl_mem_init();
++  chpl_comm_post_mem_init();
++
++  chpl_comm_barrier("about to leave comm init code");
++  chpl__heapAllocateGlobals(); // allocate global vars on heap for multilocale
++  CreateConfigVarTable();      // get ready to start tracking config vars
++
++  parseArgs(&argc, argv);
++  runInGDB = _runInGDB();
++  if (runInGDB) {
++    int status;
++    if (chpl_comm_run_in_gdb(argc, argv, runInGDB, &status)) {
++      chpl_exit_all(status);
++    }
++  }
++  execNumLocales = getArgNumLocales();
++  //
++  // If the user did not specify a number of locales let the
++  // comm layer decide how many to use (or flag an error)
++  //
++  if (execNumLocales == 0) {
++    execNumLocales = chpl_comm_default_num_locales();
++  }
++  //
++  // Before proceeding, allow the comm layer to verify that the
++  // number of locales is reasonable
++  //
++  chpl_comm_verify_num_locales(execNumLocales);
++
++  //
++  // This just sets all of the initialization predicates to false.
++  // Must occur before any other call to a chpl__init_<foo> function.
++  //
++  chpl__init_preInit(0, myFilename);
++ 
++  //
++  // initialize the task management layer
++  //
++  //
++  // This is an early call to initialize the ChapelThreads module so
++  // that its config consts (numThreadsPerLocale and callStackSize)
++  // can be used to initialize the tasking layer.  
++  //
++  chpl__init_ChapelThreads(0, myFilename);
++  // (Can we grab those constants directly, and stay out of the module code?)
++  //
++  numPollingTasks = chpl_comm_numPollingTasks();
++  if (numPollingTasks != 0 && numPollingTasks != 1) {
++    chpl_internal_error("chpl_comm_numPollingTasks() returned illegal value");
++  }
++  chpl_task_init(numThreadsPerLocale, chpl__maxThreadsPerLocale, 
++                 numPollingTasks, callStackSize); 
++
++  //
++  // Some comm layer initialization may have to be done after the
++  // tasking layer is initialized.
++  //
++  chpl_comm_post_task_init();
++  chpl_comm_rollcall();
++
++  recordExecutionCommand(argc, argv);
++
++  chpl_comm_barrier("barrier before main");
++  // The call to chpl_comm_barrier makes sure that all locales are listening
++  // before an attempt is made to run tasks "on" them.
++
++}
++
++/**
++ * Global variable to hold the global endCount for Chapel libraries.
++ * It is used by chpl_library_[init|shutdown] and needs to be passed to
++ * every user function that uses parallel constructs (I think).
++ */
++struct wide_endCount_t { int locale; void* addr; };
++struct wide_endCount_t chpl_endCount_global = {0,NULL};
++struct wide_endCount_t chpl_wide_endCount_global = {0,&chpl_endCount_global};
++extern void chpl_gen_init(void*);
++extern void chpl_gen_shutdown(void*);
++
++/**
++ * This acts as a replacement to be used in chpl_task_callMain() for
++ * Chapel libraries. It is automatically called by
++ * chpl_init_library().
++ */
++static void chpl_library_init(void) {
++  // OK, we can create tasks now.
++  chpl_task_setSerial(false);
++
++  // Initialize the internal modules.
++  chpl__init_ChapelStandard(0, myFilename);
++  // Note that in general, module code can contain "on" clauses
++  // and should therefore not be called before the call to
++  // chpl_comm_startPollingTask().
++
++  //
++  // Permit the tasking layer to do anything it would like to now that
++  // the standard modules are initialized.
++  //
++  CHPL_TASK_STD_MODULES_INITIALIZED();
++
++  // This code is generated into chpl_gen_main for non-libraries
++  chpl_wide_endCount_global.locale = chpl_localeID;
++  chpl_endCount_global.locale = chpl_localeID;
++  chpl_gen_init(&chpl_wide_endCount_global);
++}
++
++/**
++ * chpl_init_library() installs this as an atexit() handler for locale 0.
++ */
++static void chpl_library_shutdown_locale_0(void) {
++  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
++  chpl_gen_shutdown(&chpl_wide_endCount_global);
++  chpl_exit_all(0);
++}
++
++/**
++ * chpl_init_library() installs this as an atexit() handler for
++ * non-zero locales.
++ */
++static void chpl_library_shutdown_locale_n(void) {
++  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
++  chpl_exit_all(0);
++}
++
++static bool chpl_init_library_called = false;
++
++/**
++ * Initialize the Chapel runtime
++ *
++ * This function is intended to be called by a non-Chapel main()
++ * function before invoking a Chapel library function.
++ *
++ * The proper life cycle for using a chpl --library is:
++ *
++ *     chpl_init(argc, argv);
++ *     chpl__init_MODULE_NAME(__LINE__, __FILE__);
++ *     ...
++ *     finalize_chpl( );
++ */
++int chpl_init_library(int argc, char* argv[]) {
++
++  if (!chpl_init_library_called) {
++    chpl_init_library_called = true;
++
++    // establishes "barrier before main"
++    chpl_init(argc, argv);
++
++    if (chpl_localeID == 0) {
++      // register master exit handler
++      atexit(&chpl_library_shutdown_locale_0);
++      // initialize Chapel runtime
++      chpl_task_callMain(chpl_library_init);
++
++    } else {
++      // register other exit handlers
++      atexit(&chpl_library_shutdown_locale_n);
++    }
++  }
++
++  return chpl_localeID;
++}
+\ No newline at end of file
+diff --git a/runtime/src/main.c b/runtime/src/main.c
+index 1a1ea79..19027ee 100644
+--- a/runtime/src/main.c
++++ b/runtime/src/main.c
+@@ -3,10 +3,8 @@
+ #include "chplcast.h"
+ #include "chplcgfns.h"
+ #include "chpl-comm.h"
++#include "chplinit.h"
+ #include "chplexit.h"
+-#include "chplio.h"
+-#include "chpl-mem.h"
+-#include "chplmemtrack.h"
+ #include "chplrt.h"
+ #include "chpl-tasks.h"
+ #include "config.h"
+@@ -26,36 +24,6 @@ static const char myFilename[] =
+   "<internal>";
+ #endif
+ 
+-
+-char* chpl_executionCommand;
+-
+-int handleNonstandardArg(int* argc, char* argv[], int argNum, 
+-                         int32_t lineno, chpl_string filename) {
+-  char* message = chpl_glom_strings(3, "Unexpected flag:  \"", argv[argNum], 
+-                                    "\"");
+-  chpl_error(message, lineno, filename);
+-  return 0;
+-}
+-
+-
+-void printAdditionalHelp(void) {
+-}
+-
+-
+-static void recordExecutionCommand(int argc, char *argv[]) {
+-  int i, length = 0;
+-  for (i = 0; i < argc; i++) {
+-    length += strlen(argv[i]) + 1;
+-  }
+-  chpl_executionCommand = (char*)chpl_mem_allocMany(length+1, sizeof(char), CHPL_RT_EXECUTION_COMMAND, 0, 0);
+-  sprintf(chpl_executionCommand, "%s", argv[0]);
+-  for (i = 1; i < argc; i++) {
+-    strcat(chpl_executionCommand, " ");
+-    strcat(chpl_executionCommand, argv[i]);
+-  }
+-}
+-
+-
+ static void chpl_main(void) {
+   // OK, we can create tasks now.
+   chpl_task_setSerial(false);
+@@ -163,11 +131,10 @@ int main(int argc, char* argv[]) {
+   // The call to chpl_comm_barrier makes sure that all locales are listening
+   // before an attempt is made to run tasks "on" them.
+ 
+-  if (chpl_localeID == 0) {      // have locale #0 run the user's main function
+-
++  if (chpl_localeID == 0) { // have locale #0 run the user's main function
+     chpl_task_callMain(chpl_main);
+   }
+ 
+   chpl_exit_all(0);         // have everyone exit
+-  return 0;                  // should never get here
++  return 0;                 // should never get here
+ }
