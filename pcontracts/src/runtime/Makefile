@@ -1,26 +1,27 @@
-# ToDo:  Add remaining directories once they are integrated into the build
-SUBDIRS = contracts
+CXX=g++
+FLAGS=-g -O3 -DCONFENF_DEBUG
+#FLAGS=-g -O3
+INCLUDES=-I.
 
-all:
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Calling '$(MAKE) all' in $$subdir"; \
-	  (cd $$subdir && $(MAKE) all) \
-	done;
+LIB_DIR=../../lib
+LIB=$(LIB_DIR)/libPaulContracts001a.a
 
-check: 
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Calling '$(MAKE) check' in $$subdir"; \
-	  (cd $$subdir && $(MAKE) check) \
-	done;
+LDFLAGS=$(FLAGS)
+CXXFLAGS=$(INCLUDES) $(FLAGS) -Wno-deprecated
 
-clean: 
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Calling '$(MAKE) clean' in $$subdir"; \
-	  (cd $$subdir && $(MAKE) clean) \
-	done;
+C_FILES=ContractsEnforcer.c
 
-clean-all: 
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Calling '$(MAKE) clean-all' in $$subdir"; \
-	  (cd $$subdir && $(MAKE) clean-all) \
-	done;
+C_OBJECTS=$(C_FILES:.c=.o)
+
+all: $(C_OBJECTS)
+	@test -d $(LIB_DIR) || mkdir $(LIB_DIR); \
+	ar cr $(LIB) $(C_OBJECTS)
+
+.c.o:
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
+
+clean:
+	@rm -f *.o 
+
+clean-all: clean
+	@rm -f $(LIB)

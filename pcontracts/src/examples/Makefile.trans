@@ -1,17 +1,19 @@
+ROOT_DIR=../../..
+EX_DIR=${ROOT_DIR}/src/examples
+RT_DIR=$(ROOT_DIR)/src/runtime
+
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
 CXX = g++
 FLAGS = -g -O3 $(PCEFLAGS)
 
-EXAMPLES_DIR=../../..
-RUNTIME_DIR=$(EXAMPLES_DIR)/../src/runtime/contracts
-INCLUDES = -I. -I$(RUNTIME_DIR)
+INCLUDES = -I. -I$(RT_DIR)
 
 LIBS=
-#LIBS=-L$(EXAMPLES_DIR)/../lib -lPaulContracts001a
+#LIBS=-L$(EX_DIR)/../../lib -lPaulContracts001a
 
 # TBD/ToDo:  Need to resolve library linking issue
-CE_OBJ=$(RUNTIME_DIR)/ContractsEnforcer.o
+CE_OBJ=$(RT_DIR)/ContractsEnforcer.o
 
 #LDFLAGS = $(FLAGS) $(INCLUDES) $(LIBS)
 LDFLAGS = $(FLAGS) $(LIBS)

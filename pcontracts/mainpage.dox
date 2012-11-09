@@ -81,10 +81,10 @@ command line:
 
 Results of running the examples can be found in files with \b .out extensions
 and the comparisons in files with \b .diffs extensions.  These files, which
-are located in the \b examples subdirectory when created, will automatically 
+are located in the \b results subdirectory when created, will automatically 
 be removed when the directory is cleaned.
 
-Results of running regression tests are summarized in a file with \b .out
+Results of running regression tests are summarized in files with \b .out
 extension while stats and trace files have \b .csv extensions.
 
 

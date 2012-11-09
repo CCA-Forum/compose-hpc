@@ -1,8 +1,13 @@
+RT_DIR=../runtime
+RES_DIR=../../results
+BASE_RES_DIR=$(RES_DIR)/base
+ROSE_RES_DIR=$(RES_DIR)/rose
+
 MAKE = make --no-print-directory
 CXX=g++
 #FLAGS=-g -O3 -DDEBUG
 FLAGS=-g -O3
-INCLUDES=-I. -I../src/runtime/contracts
+INCLUDES=-I. -I${RT_DIR}
 
 LDFLAGS=$(FLAGS)
 CXXFLAGS=$(INCLUDES) $(FLAGS) -Wno-deprecated
@@ -19,9 +24,6 @@ ROSE_OPTS =
 ROSE_LDFLAGS = $(ROSE_LIB) $(BOOST_LIB) $(FLAGS)
 ROSE_CXXFLAGS = $(ROSE_INCLUDES) $(ROSE_FLAGS) -Wno-deprecated
 
-ODIR=./results
-EX_ODIR=$(ODIR)/examples
-ROSE_ODIR=$(ODIR)/rose
 
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
@@ -95,16 +97,16 @@ $(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
 
 checkKnapsackDiffs: 
 	@echo "...Comparing runs of $$EXE1 and $$EXE2 with target $$KT..."; \
-	mkdir -p $(EX_ODIR); \
+	mkdir -p $(BASE_RES_DIR); \
 	if [ "$$EXE1" != "" ]; then \
 	  if [ "$$EXE2" != "" ]; then \
 	    if [ "$$PRE" != "" ]; then \
 	      if [ "$$COMP" != "" ]; then \
-	        OFN1=$(EX_ODIR)/$$EXE1-$$KT.out; \
+	        OFN1=$(BASE_RES_DIR)/$$EXE1-$$KT.out; \
 	        ./$$EXE1 $$KT > $$OFN1; \
-	        OFN2=$(EX_ODIR)/$$EXE2-$$KT.out; \
+	        OFN2=$(BASE_RES_DIR)/$$EXE2-$$KT.out; \
 	        ./$$EXE2 $$KT > $$OFN2; \
-	        DIFFS=$(EX_ODIR)/$$PRE-$$KT.diffs; \
+	        DIFFS=$(BASE_RES_DIR)/$$PRE-$$KT.diffs; \
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
                 if [ -s $$DIFFS ]; then \
 	          echo "......*** $$PRE $$COMP are different ***"; \
@@ -158,7 +160,7 @@ checkCPrinter: $(CPRINTER_EXE)
 
 checkRosePrinter: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
-	OUTDIR=$(ROSE_ODIR)/$$SDIR; \
+	OUTDIR=$(ROSE_RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
@@ -193,7 +195,7 @@ checkVCI: $(VCI_EXE)
 
 checkRoseTrans: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
-	OUTDIR=$(ROSE_ODIR)/$$SDIR; \
+	OUTDIR=$(ROSE_RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
@@ -239,4 +241,4 @@ clean:
 	@rm -f *.o *.out *.diffs *.ti rose_*
 
 clean-all: clean
-	@rm -rf $(BINARIES) *.dot *.pdf $(ODIR)/*
+	@rm -rf $(BINARIES) *.dot *.pdf $(RES_DIR)/*

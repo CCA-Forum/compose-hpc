@@ -1,4 +1,4 @@
-SUBDIRS = runtime
+SUBDIRS = runtime examples tests
 
 all:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \

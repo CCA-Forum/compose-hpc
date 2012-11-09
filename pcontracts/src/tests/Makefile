@@ -1,12 +1,15 @@
+RT_DIR=../runtime
+LIB_DIR=../../lib
+
 CXX=g++
 FLAGS=-g -O3
-INCLUDES=-I. -I../src/runtime/contracts
+INCLUDES=-I. -I${RT_DIR}
 
 # TBD/ToDo:  Need to resolve library linking issue
-CE_OBJ=../src/runtime/contracts/ContractsEnforcer.o
+CE_OBJ=${RT_DIR}/ContractsEnforcer.o
 
 DIR=`pwd`
-LDFLAGS=$(FLAGS) -L../lib -lPaulContracts001a 
+LDFLAGS=$(FLAGS) -L${LIB_DIR} -lPaulContracts001a 
 CXXFLAGS=$(INCLUDES) $(FLAGS) -Wno-deprecated
 
 TCE_EXE=testContractsEnforcer

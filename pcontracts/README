@@ -7,15 +7,23 @@ CONTENTS
 
   Introduction
   Subdirectories
+  Build
+  Documentation
 
 
 
 INTRODUCTION
 ============
 
-  This is the root directory for the PAUL Interface Contracts work.  It is 
-currently maintained separate from the PAUL/libpaul work to allow for the
-two to evolve separately.
+  PAUL interface contracts software is used to automatically translate
+specially formatted structured comments, representing interface contracts,
+into executable assertions whose checking can be driven by a variety of
+enforcement options.  
+ 
+  The software used to interpret PAUL contracts is maintained separately
+from the PAUL library since the former is a specific class of PAUL structured
+comments while the latter provides the foundational parsing, type mapping,
+and annotation features.
 
 
 
@@ -24,18 +32,62 @@ SUBDIRECTORIES
 
   The subdirectories contained within the Paul Contracts root are:
 
-    ./conf                    # Configuration file(s)
-    ./examples                # Example programs 
-                              # ...With contract annotations
-                              # ...Related ROSE codes
-    ./include                 # Include files
-    ./src                     # Source files
-    ./src/annots              # ...Annotation sources
-    ./src/runtime             # ...Runtime library(ies)
-    ./src/runtime/contracts   # ......Stand-alone contract enforcement
-    ./tests                   # Test programs
-    ./tests/inputs            # ...input data (TBD)
+    ./conf              # Configuration file(s) (TBD)
+    ./include           # Include files (TBD)
+    ./src               # Source files
+    ./src/examples      # ...Example programs 
+                        # ......With contract annotations
+                        # ......Related ROSE codes
+    ./src/runtime       # ...Runtime library(ies)
+    ./src/runtime       # ......Stand-alone contract enforcement
+    ./src/tests         # ...Test programs
+
+while the following subdirectories are created after a build and/or check:
+
+    ./lib               # The runtime library
+    ./results           # Sources and output from example 
+
+
+
+BUILD
+=====
+
+  The translation software can be built through a simple makefile invocation
+at the command line:
+
+  $ make
+
+  Basic tests can be executed, with rudimentary results comparisons, through
+the check rule:
+
+  $ make check
+
+where results of a variety of translation examples can be found in files
+with .out extensions and, when provided, comparisons between translations
+in files with .diffs extensions.  
+
+  Basic file cleanup -- of object and output files --  is performed using the
+clean rule:
+
+  $ make clean
+
+while all files, including documentation, are removed with the clean-all rule:
+
+  $ make clean-all
+
+
+
+DOCUMENTATION
+=============
+
+  PAUL contracts documentation is generated using Doxygen and GraphViz using
+the docs rule:
+
+  $ make docs
+
+where you can navigate to and open the index.html file with a web browser to
+see information about the classes and files in this package.
   
 
 
-Last Updated:  2012 July 20
+Last Updated:  2012 November 9
