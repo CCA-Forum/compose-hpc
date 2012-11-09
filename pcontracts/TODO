@@ -3,6 +3,7 @@ PROTOTYPE
   -- Ensure pick up invariant annotations
   -- Support INIT and FINAL within bodies as alternative to being associated
      with function.
+- Move runtime headers to include directory and adjust build accordingly.
    
 Refinements:
 - Support advanced (non-standard C) contract expressions
