@@ -10,6 +10,7 @@
 -- matt@galois.com // July 2012
 --
 module RuleGen.Trees (
+  Label(..),
   LabeledTree,
   SizedTree,
   LabeledForest,
@@ -20,22 +21,32 @@ module RuleGen.Trees (
   makeLabeledForest,
   removeSubtrees,
   replaceSubtrees,
-  treeToRule
+  treeToRule,
+  dumpTree
 ) where
 
 import Data.Tree
 import Data.Maybe
 import Data.List
 
+dumpTree :: Show a => Tree a -> String
+dumpTree t = drawTree $ convert t
+  where convert (Node n kids) = Node (show n) (map convert kids)
+  
 {-|
   A tree where the node data is a string label.
 -}
-type LabeledTree = Tree String
+data Label = LBLString String
+           | LBLList
+           | LBLInt Integer
+  deriving (Show,Eq)
+
+type LabeledTree = Tree Label
 
 {-|
   A forest of trees where the node data is a string label.
 -}
-type LabeledForest = Forest String
+type LabeledForest = Forest Label
 
 {-|
   A tree where the node data is a label and a size representing the number
@@ -114,5 +125,16 @@ replaceSubtrees s repl (Node label kids)
 -}
 treeToRule :: LabeledTree -- ^ Labeled tree to turn into a rule.
            -> String      -- ^ Rule in string form.
-treeToRule (Node lbl [])   = lbl
-treeToRule (Node lbl kids) = lbl++"("++(intercalate "," $ map treeToRule kids)++")"
+treeToRule (Node lbl kids) = 
+  let lbl_str = case lbl of
+                  LBLInt i    -> show i
+                  LBLString s -> s 
+                  _           -> ""
+      kidstrings = intercalate "," $ map treeToRule kids
+  in case kids of
+       [] -> case lbl of
+               LBLList -> "[]"
+               _       -> lbl_str
+       _ -> case lbl of
+              LBLList -> "["++kidstrings++"]"
+              _       -> lbl_str++"("++kidstrings++")"

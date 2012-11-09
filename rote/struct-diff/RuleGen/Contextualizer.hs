@@ -19,7 +19,7 @@ import RuleGen.Weaver
 -- TODO: replace with proper variable and symbol generator
 --
 strategoVar :: LabeledTree
-strategoVar = Node "STRATEGOVAR" []
+strategoVar = Node (LBLString "STRATEGOVAR") []
 
 --
 -- find if a list of weave points contains holes.  if it does,

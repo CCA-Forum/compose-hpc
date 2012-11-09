@@ -119,12 +119,12 @@ AS_IF([test -n "$CHPL" -a -x "$CHPL"],
     [CHPL_VERSION=`$CHPL --version |grep Version |$AWK '{print \$3}'`
      AC_MSG_RESULT([using $CHPL (version $CHPL_VERSION)])
 
-     AX_COMPARE_VERSION([$CHPL_VERSION], ge, [1.5.0], 
+     AX_COMPARE_VERSION([$CHPL_VERSION], ge, [1.6.0], 
          [AC_SUBST([CHPL], ["$CHPL"])
  	  CHPL_ROOT=`dirname \`dirname \\\`dirname $CHPL\\\`\``
           AC_SUBST([CHPL_ROOT], [$CHPL_ROOT])
           AC_SUBST([CHPL_VERSION], ["$CHPL_VERSION"])],
-	 [AC_MSG_NOTICE([Chapel version < 1.5 is too old])
+	 [AC_MSG_NOTICE([Chapel version < 1.6 is too old])
           AC_SUBST([CHPL], [])]
      )
      AS_IF([test -n "$CHPL_COMM" ],

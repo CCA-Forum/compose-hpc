@@ -38,7 +38,7 @@ atermToTree :: ShATerm      -- ^ Aterm structure
 atermToTree a t =
   let 
       x = case a of
-            (ShAAppl lbl ss _) -> Node lbl (map (\i -> atermToTree (getShATerm i t) t) ss)
-            (ShAList ss _) -> Node "LIST" (map (\i -> atermToTree (getShATerm i t) t) ss)
-            (ShAInt i _) -> Node (show i) []
+            (ShAAppl lbl ss _) -> Node (LBLString lbl) (map (\i -> atermToTree (getShATerm i t) t) ss)
+            (ShAList ss _) -> Node LBLList (map (\i -> atermToTree (getShATerm i t) t) ss)
+            (ShAInt i _) -> Node (LBLInt i) []
   in x

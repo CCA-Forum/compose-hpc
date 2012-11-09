@@ -9,5 +9,5 @@ import RuleGen.Trees
 import Data.Tree
 
 despecifyFile :: LabeledTree -> LabeledTree
-despecifyFile t = replaceSubtrees "file_info" replacementNode t
-  where replacementNode = Node "gen_info()" []
+despecifyFile t = replaceSubtrees (LBLString "file_info") replacementNode t
+  where replacementNode = Node (LBLString "gen_info()") []

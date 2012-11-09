@@ -22,13 +22,13 @@ import Data.Tree
 -- resides in the tree.  DANGER!
 dangerousVariableNameGetter :: LabeledTree -> String
 dangerousVariableNameGetter t =
-	let (Node _ ((Node _ (_:(Node s _):_)):_)) = t
+	let (Node _ ((Node _ (_:(Node (LBLString s) _):_)):_)) = t
 	in s
 
 makeReplacements :: LabeledForest -> [(LabeledTree,LabeledTree)]
 makeReplacements [] = []
 makeReplacements (t:ts) = 
-  let repl = Node ("STRATEGO_"++(dangerousVariableNameGetter t)) []
+  let repl = Node (LBLString ("STRATEGO_"++(dangerousVariableNameGetter t))) []
   in (t,repl):(makeReplacements ts)
 
 {-|
@@ -45,7 +45,7 @@ variableReplacer :: LabeledTree -- ^ Source tree
                  -> (LabeledTree, LabeledTree) -- ^ Modified source and target
 variableReplacer src targ =
   let 
-    s_vrefs = getLabeledSubtrees "var_ref_exp" src
+    s_vrefs = getLabeledSubtrees (LBLString "var_ref_exp") src
     repls = makeReplacements s_vrefs
 
     replacer t [] = t
@@ -66,7 +66,7 @@ variableReplacer src targ =
   forest can be safely considered to represent distinct, non-overlapping
   subtrees of the original tree.
 -}
-getLabeledSubtrees :: String        -- ^ Label to search for
+getLabeledSubtrees :: Label        -- ^ Label to search for
                    -> LabeledTree   -- ^ Tree to search
                    -> LabeledForest -- ^ Set of subtrees of the large tree with roots matching the provided label
 getLabeledSubtrees label wholetree =

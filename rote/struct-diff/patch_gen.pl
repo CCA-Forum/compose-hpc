@@ -4,8 +4,6 @@
 # rule generator in a compact form.
 #
 
-print $#ARGV."\n";
-
 if ($#ARGV != 2) {
 	print "USAGE: patch_gen.pl changespec prefile postfile\n";
 	exit(1);

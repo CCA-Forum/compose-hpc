@@ -7,6 +7,7 @@ module RuleGen.Stratego where
 import Data.Tree
 import Data.List (intercalate)
 import Control.Monad.State
+import Debug.Trace
 
 data StLabel = StLit String
              | StLocalVar String
@@ -59,6 +60,7 @@ renderLabel (StGlobalVar _) = undefined
   to take rules in StTree form, not linearized strings.
 -}
 strategoRules :: [(String,String)] -> String
+strategoRules [] = error "Rule generation called with empty rule set."
 strategoRules ts = header ++ rulesStr ++ footer
   where f = \(i,(t1,t2)) -> ("R" ++ (show i), " : " ++ t1 ++ " -> " ++ t2 ++ "\n")
         (labels,rules) = unzip $ map f (zip ([1..] :: [Integer]) ts)

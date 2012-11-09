@@ -27,7 +27,7 @@ import RuleGen.Weaver
 import RuleGen.Stratego
 import RuleGen.Yang
 import RuleGen.Trees
-import RuleGen.Pruner
+--import RuleGen.Pruner
 import RuleGen.Filter
 import RuleGen.Contextualizer
 import Data.Maybe
@@ -142,7 +142,8 @@ main = do
   -- run Yang's algorithm
       (y1',y2) = treediff tree1' tree2' labelcompare
 
-      y1 = replaceEditTreeNode "gen_info()" (ENode "_" []) (Node "_" []) y1'
+      blank = LBLString "_"
+      y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
 
   -- check if we want graphviz files dumped of the two diff trees
   case sgraphviz of
@@ -184,9 +185,9 @@ main = do
       (pre,post) = unzip holes
 
   if (debugflag) then do putStrLn "---PRE---"
-                         _ <- mapM putStrLn (map drawTree pre)
+                         _ <- mapM putStrLn (map dumpTree pre)
                          putStrLn "---POST---"
-                         _ <- mapM putStrLn (map drawTree post)
+                         _ <- mapM putStrLn (map dumpTree post)
                          return ()
                  else return ()
 
@@ -208,7 +209,9 @@ main = do
       rules = mismatch_rules ++ hole_rules
 
   -- emit the stratego file
-  writeFile outputfile (strategoRules rules)
+  case rules of
+    [] -> do putStrLn "No difference identified."
+    _ -> do writeFile outputfile (strategoRules rules)
 
 --  putStrLn (strategoRules rules)
   return ()
