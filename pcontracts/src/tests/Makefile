@@ -1,6 +1,8 @@
 RT_DIR=../runtime
 LIB_DIR=../../lib
 
+CHECK_STATUS=../../.checkStatus
+
 CXX=g++
 FLAGS=-g -O3
 INCLUDES=-I. -I${RT_DIR}
@@ -36,6 +38,7 @@ checkTCE: $(TCE_EXE)
 	SUCCESS=`grep "TEST SUITE PASSED" run$(TCE_EXE).out`; \
 	if [ -z "$$SUCCESS" ]; then \
 	  echo "...FAILED"; \
+	  echo 1 > ${CHECK_STATUS}; \
 	else \
 	  echo "...PASSED"; \
 	fi;

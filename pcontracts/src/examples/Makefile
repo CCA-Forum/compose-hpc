@@ -1,7 +1,8 @@
 RT_DIR=../runtime
 RES_DIR=../../results
 BASE_RES_DIR=$(RES_DIR)/base
-ROSE_RES_DIR=$(RES_DIR)/rose
+
+CHECK_STATUS=../../.checkStatus
 
 MAKE = make --no-print-directory
 CXX=g++
@@ -32,7 +33,7 @@ UKCPP_EXE=UnlabeledKnapsack
 CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
 RCI_EXE=RoutineContractInstrumenter
-VCI_EXE=VisitContractInstrumenter
+#VCI_EXE=VisitContractInstrumenter
 
 BASE_ROSE_SOURCES = \
 	RoseHelpers.cpp
@@ -110,6 +111,7 @@ checkKnapsackDiffs:
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
                 if [ -s $$DIFFS ]; then \
 	          echo "......*** $$PRE $$COMP are different ***"; \
+	          echo 0 > ${CHECK_STATUS}; \
 	        else \
 	          echo "......$$PRE $$COMP are identical"; \
 	          if [ -f $$DIFFS ]; then \
@@ -119,15 +121,19 @@ checkKnapsackDiffs:
 	        fi; \
 	      else \
 	        echo "......ERROR:  Missing COMP definition"; \
+	        echo 0 > ${CHECK_STATUS}; \
 	      fi; \
 	    else \
 	      echo "......ERROR:  Missing PRE definition"; \
+	      echo 0 > ${CHECK_STATUS}; \
 	    fi; \
 	  else \
 	    echo "......ERROR:  Missing EXE2 definition"; \
+	    echo 0 > ${CHECK_STATUS}; \
 	  fi; \
 	else \
 	  echo "......ERROR:  Missing EXE1 definition"; \
+	  echo 0 > ${CHECK_STATUS}; \
 	fi;
 
 checkKnapsacks: $(KS_BINARIES)
@@ -153,14 +159,14 @@ checkRose: checkRosePrinters checkRoseTranslators
 checkRosePrinters: checkCAPrinter checkCPrinter
 
 checkCAPrinter: $(CAPRINTER_EXE)
-	@$(MAKE) checkRosePrinter EXE=$(CAPRINTER_EXE) SDIR="cap"
+	@$(MAKE) checkRosePrinter EXE=$(CAPRINTER_EXE) SDIR="CAPrinter"
 
 checkCPrinter: $(CPRINTER_EXE)
-	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) SDIR="cp"
+	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) SDIR="CPrinter"
 
 checkRosePrinter: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
-	OUTDIR=$(ROSE_RES_DIR)/$$SDIR; \
+	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
@@ -178,6 +184,7 @@ checkRosePrinter: $(EXE)
 	    echo "......Results in $$OFN"; \
 	  else \
 	    echo "......FAILED on $$file"; echo; \
+	    echo 0 > ${CHECK_STATUS}; \
 	  fi; \
 	done; \
 	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
@@ -188,14 +195,14 @@ checkRosePrinter: $(EXE)
 checkRoseTranslators: checkRCI 
 
 checkRCI: $(RCI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(RCI_EXE) SDIR="rci"
+	@$(MAKE) checkRoseTrans EXE=$(RCI_EXE) SDIR="RoutineInstrumenter"
 
 checkVCI: $(VCI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(VCI_EXE) SDIR="vci"
+	@$(MAKE) checkRoseTrans EXE=$(VCI_EXE) SDIR="VisitInstrumenter"
 
 checkRoseTrans: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
-	OUTDIR=$(ROSE_RES_DIR)/$$SDIR; \
+	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
 	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
@@ -217,6 +224,7 @@ checkRoseTrans: $(EXE)
 	    echo "......Unparse results in $$DESTFN"; \
 	  else \
 	    echo "......No output generated.  FAILED on $$file"; \
+	    echo 0 > ${CHECK_STATUS}; \
 	  fi; \
 	  if [ ! -s $$ERRFN ]; then \
 	    echo "......Removing empty error file."; \
@@ -233,6 +241,7 @@ checkRoseTrans: $(EXE)
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
 	else \
 	  echo "ERROR: Must resolve issues before able to build translations.";\
+	  echo 0 > ${CHECK_STATUS}; \
         fi; \
 	echo "DONE"
 

@@ -20,6 +20,8 @@ all: $(C_OBJECTS)
 .c.o:
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
+check:
+
 clean:
 	@rm -f *.o 
 
