@@ -1,5 +1,10 @@
 PROTOTYPE
+
 - Convert to ROSE visitor to:
+  -- Add atTraversal[Start|End] methods to VisitContractsInstrumenter.*pp
+  -- Finish refactoring ContractsProcessor, which may need a subclass
+     containing the instrumentFunctions(?) routine for the routine 
+     instrumenter.
   -- Ensure pick up invariant annotations
   -- Support INIT and FINAL within bodies as alternative to being associated
      with function.
