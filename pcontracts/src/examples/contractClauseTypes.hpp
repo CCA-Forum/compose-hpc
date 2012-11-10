@@ -2,11 +2,11 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2012 November 1
+ * Last Modified:  2012 November 9
  *
  * @file
  * @section DESCRIPTION
- * Basic contract clause-related type definitions and enumerations.
+ * Extra contract clause enumerations and types.
  *
  * @section SOURCE
  * This code was originally part of the initial ContractInstrumenter.cpp,
@@ -23,59 +23,6 @@
 #include "contractOptions.h"
 
 using namespace std;
-
-
-/**
- * Assertion expression support states.
- */
-typedef enum AssertionSupport__enum {
-  /** ADVISORY:  Advisory only. */
-  AssertionSupport_ADVISORY,
-  /** EXECUTABLE:  Executable in C (currently as-is). */
-  AssertionSupport_EXECUTABLE,
-  /** UNSUPPORTED:  Known to include an unsupported annotation. */
-  AssertionSupport_UNSUPPORTED
-} AssertionSupportEnum;
-
-
-/**
- * Supported structured contract comment types.
- */
-typedef enum ContractComment__enum {
-  /** NONE:  No contract comment present. */
-  ContractComment_NONE,
-  /** INVARIANT:  An invariant clause comment. */
-  ContractComment_INVARIANT,
-  /** PRECONDITION:  A precondition clause comment. */
-  ContractComment_PRECONDITION,
-  /** POSTCONDITION:  A postcondition clause comment. */
-  ContractComment_POSTCONDITION,
-  /** INIT:  An initialization clause comment. */
-  ContractComment_INIT,
-  /** FINAL:  A finalization clause comment. */
-  ContractComment_FINAL
-} ContractCommentEnum;
-
-
-/**
- * Mapping of contract comment to contract clauses.  MUST be kept in sync
- * with ContractCommentEnum and reflect corresponding ContractClauseEnum
- * entries.
- */
-static const ContractClauseEnum ContractCommentClause[] = {
-  /** NONE:  No corresponding contract clause. */
-  ContractClause_NONE,
-  /** INVARIANT:  Invariant contract clause. */
-  ContractClause_INVARIANT,
-  /** PRECONDITION:  Precondition contract clause. */
-  ContractClause_PRECONDITION,
-  /** POSTCONDITION:  Postcondition contract clause. */
-  ContractClause_POSTCONDITION,
-  /** INIT:  No corresponding contract clause. */
-  ContractClause_NONE,
-  /** FINAL:  No corresponding contract clause. */
-  ContractClause_NONE
-};
 
 
 /**

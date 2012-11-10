@@ -1,8 +1,8 @@
 /**
- * File:           ContractProcessor.cpp
+ * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2012 November 1
+ * Last Modified:  2012 November 9
  *
  * @file
  * @section DESCRIPTION
@@ -23,7 +23,7 @@
 #include "Cxx_Grammar.h"
 #include "RoseHelpers.hpp"
 #include "contractOptions.h"
-//#include "contractClauseTypes.hpp"
+#include "contractClauseTypes.hpp"
 #include "ContractsProcessor.hpp"
 
 using namespace std;

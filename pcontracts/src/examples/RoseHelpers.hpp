@@ -2,7 +2,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 October 11
+ * Last Modified:  2012 November 9
  *
  * @file
  * @section DESCRIPTION
@@ -19,6 +19,9 @@
 
 #include <string.h>
 #include "rose.h"
+
+#define FILE_INFO Sg_File_Info::generateDefaultFileInfoForTransformationNode()
+
 
 /**
  * Attach a translation comment to the node.
