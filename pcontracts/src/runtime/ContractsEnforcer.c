@@ -2,7 +2,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2012 August 17
+ * Last Modified:  2012 November 9
  *
  * @file
  * @section DESCRIPTION
@@ -34,7 +34,7 @@
 
 
 #ifdef CONFENF_DEBUG
-#define DEBUG_MESSAGE(MSG) printf("DEBUG: %s\n", (MSG));
+#define DEBUG_MESSAGE(MSG) printf("\nDEBUG: %s\n", (MSG));
 #define DUMP_DEBUG_STATS(ENF, MSG) ContractsEnforcer_dumpStatistics(ENF, MSG);
 #else
 #define DEBUG_MESSAGE(MSG)

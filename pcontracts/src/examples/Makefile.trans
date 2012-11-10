@@ -1,4 +1,4 @@
-ROOT_DIR=../../..
+ROOT_DIR=../..
 EX_DIR=${ROOT_DIR}/src/examples
 RT_DIR=$(ROOT_DIR)/src/runtime
 
@@ -52,8 +52,10 @@ checkKnapsack: knapsack Knapsack
 	@echo "Checking C and C++ knapsack programs..."; \
 	if [ -s Knapsack ]; then \
 	  if [ -s knapsack ]; then \
-	    ./Knapsack > Knapsack.out 2>&1; \
-	    ./knapsack > knapsack.out 2>&1; \
+	    ./Knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
+	        > Knapsack.out 2>&1; \
+	    ./knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
+	        > knapsack.out 2>&1; \
 	    diff Knapsack.out knapsack.out > knapsack.diffs 2>&1; \
 	    if [ -s knapsack.diffs ]; then \
 	      echo "ERROR: Different C and C++ knapsack results"; \
@@ -69,8 +71,10 @@ checkUK: unlabeledknapsack UnlabeledKnapsack
 	@echo "Checking C and C++ knapsack programs..."; \
 	if [ -s UnlabeledKnapsack ]; then \
 	  if [ -s unlabeledknapsack ]; then \
-	    ./UnlabeledKnapsack > UnlabeledKnapsack.out 2>&1; \
-	    ./unlabeledknapsack > unlabeledknapsack.out 2>&1; \
+	    ./UnlabeledKnapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > UnlabeledKnapsack.out 2>&1; \
+	    ./unlabeledknapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > unlabeledknapsack.out 2>&1; \
 	    diff UnlabeledKnapsack.out unlabeledknapsack.out > \
 	      unlabeledknapsack.diffs 2>&1; \
 	    if [ -s unlabeledknapsack.diffs ]; then \
