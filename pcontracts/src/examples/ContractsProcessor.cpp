@@ -2,18 +2,30 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2012 November 9
+ * Last Modified:  2012 November 12
+ *
  *
  * @file
  * @section DESCRIPTION
  * Basic contract clause utilities and supporting classes.
  *
+ *
  * @section SOURCE
  * This code was originally part of the initial ContractInstrumenter.cpp,
  * which was renamed to RoutineContractInstrumenter.cpp.
+ *
  * 
- * @section LICENSE
- * TBD
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 
 #include <iostream>

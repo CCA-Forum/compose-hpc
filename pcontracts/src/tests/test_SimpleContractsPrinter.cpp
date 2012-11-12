@@ -1,7 +1,27 @@
 /*
- * File:         test_SimpleContractsPrinter.cpp
- * Description:  Test driver for the SimpleContractsPrinter class.
- * Source:       Based on paul's example_traversal.cpp
+ * File:  test_SimpleContractsPrinter.cpp
+ *
+ *
+ * @file
+ * @section DESCRIPTION
+ * Test driver for the SimpleContractsPrinter class.
+ *
+ *
+ * @section SOURCE
+ * Based on paul's example_traversal.cpp.
+ *
+ *
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 #include "PaulContractsCommon.h"
 #include "PaulContractsDecorator.hpp"

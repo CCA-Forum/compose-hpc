@@ -2,32 +2,38 @@
  * File:           contractMacros.h
  * Author:         T. Dahlgren
  * Created:        2012 June 8
- * Last Modified:  2012 August 17
- * Description:    convenient C macros for managing contract enforcement
- * Source:         Based heavily on Babel's sidlAsserts.h.
+ * Last Modified:  2012 November 12
+ *
+ *
+ * @section DESCRIPTION
+ * Convenience C macros for managing contract enforcement.
  *
  * @todo Is this file even relevant in this context?
  *
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
  *
- ****************************************************************************
- * WARNINGS:
- * 1) CONTRACT_FULL_ASTATS
- *    This macro is used here to determine whether a full set of statistics
- *    are going to be employed or only the bare minimum.  It is assumed that
- *    this macro is kept in sync with the contents of S_FULL_STATS_MACRO in 
- *    IOR.java.
- ****************************************************************************
+ * @section SOURCE
+ * This file is based heavily on Babel's sidlAsserts.h.
  *
+ *
+ * @section REQUIREMENTS
  * The following include files are needed:
- *    math.h                   For the ceiling function used by the 
- *                               random and timing-based policies.
- *    stdlib.h                 For random number generation (including 
- *                               RAND_MAX).
- *    time.h                   For processing associated with the 
- *                               timing-based policy.
+ *    math.h      For the ceiling function used by the 
+ *                  random and timing-based policies.
+ *    stdlib.h    For random number generation (including RAND_MAX).
+ *    time.h      For processing associated with the timing-based policy.
+ *
+ *
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 
 #ifndef contractMacros_h

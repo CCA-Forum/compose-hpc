@@ -2,7 +2,8 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 November 1
+ * Last Modified:  2012 November 12
+ *
  *
  * @file
  * @section DESCRIPTION
@@ -14,11 +15,22 @@
  * expression indicates it is (likely to be) a basic C expression or more
  * advanced expressions using special operators, keywords, or functions.
  *
+ *
  * @section WARNING
  * This is a VERY preliminary draft. (See todo items.)
+ *
  * 
- * @section LICENSE
- * TBD
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 
 #include <iostream>

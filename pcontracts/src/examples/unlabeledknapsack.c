@@ -1,6 +1,7 @@
 /**
  * File:  unlabeledknapsack.c
  *
+ *
  * @file
  * @section DESCRIPTION
  * A program for printing a solution to the knapsack problem for any
@@ -13,8 +14,18 @@
  * A recursive algorithm is implemented based on that defined in "Data
  * Structures and Algorithms" by Aho, Hopcroft, and Ulman (c) 1983.
  *
- * @section LICENSE
- * TBD
+ *
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 
 #include <stdio.h>

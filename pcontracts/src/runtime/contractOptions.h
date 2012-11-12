@@ -2,19 +2,29 @@
  * File:           contractOptions.h
  * Author:         T. Dahlgren
  * Created:        2012 April 12
- * Last Modified:  2012 August 17
+ * Last Modified:  2012 November 12
+ *
  * 
  * @file
  * @section DESCRIPTION
- * Interface contract enforcement options.  The options are borrowed heavily 
- * from Babel's SIDL.
+ * Interface contract enforcement options.  
  *
- * @section LICENSE
- * TBD
  *
+ * @section SOURCE
+ * The options are borrowed heavily from Babel's SIDL.
+ *
+ *
+ * @section COPYRIGHT
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
  * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
  * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 
 #ifndef contractOptions_h

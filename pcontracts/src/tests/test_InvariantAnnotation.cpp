@@ -1,7 +1,27 @@
 /*
  * File:         test_InvariantAnnotation.cpp
- * Description:  Test driver to check a basic invariant annotation.
- * Source:       Based on libpaul's test_SXAnnotation.cpp
+ *
+ *
+ * @file
+ * @section DESCRIPTION
+ * Test driver to check a basic invariant annotation.
+ *
+ *
+ * @section SOURCE
+ * Based on libpaul's test_SXAnnotation.cpp.
+ *
+ *
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 #include <iostream>
 //#include <stdio.h>

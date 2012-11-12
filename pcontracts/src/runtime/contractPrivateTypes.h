@@ -2,18 +2,25 @@
  * File:           contractPrivateTypes.h
  * Author:         T. Dahlgren
  * Created:        2012 April 23
- * Last Modified:  2012 August 17
+ * Last Modified:  2012 November 12
+ * 
  * 
  * @file
  * @section DESCRIPTION
  * "Private" types associated with interface contract enforcement. 
  *
- * @section LICENSE
- * TBD
- *
+ * 
+ * @section COPYRIGHT
  * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
  * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
  * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 
 #ifndef contractPrivateTypes_h

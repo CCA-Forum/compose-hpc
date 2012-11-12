@@ -1,8 +1,28 @@
 /*
- * File:         SimpleContractsPrinter.cpp
- * Description:  Simple contracts visitor class that looks for and prints
- *               CONTRACT annotations.
- * Source:       Based on paul's example_traversal.cpp
+ * File:  SimpleContractsPrinter.cpp
+ *
+ *
+ * @file
+ * @section DESCRIPTION
+ * Simple contracts visitor class that looks for and prints CONTRACT 
+ * annotations.
+ *
+ *
+ * @section SOURCE
+ * Based on PAUL's example_traversal.cpp.
+ *
+ *
+ * @section COPYRIGHT
+ * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+ * 
+ * LLNL-CODE-473891.
+ * All rights reserved.
+ * 
+ * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+ * for details.  Please read the COPYRIGHT file for Our Notice and for the 
+ * BSD License.
  */
 //#include "PaulDecorate.h"
 //#include "KVAnnotationValue.h"

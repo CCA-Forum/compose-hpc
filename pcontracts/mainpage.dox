@@ -109,4 +109,18 @@ the following at the command line:
 Now you can navigate to and open the index.html file from a web
 browser to see information about the classes and files in this package.
 
+
+\section CopyrightTag Copyright 
+
+Copyright (c) 2012, Lawrence Livermore National Security, LLC.
+Produced at the Lawrence Livermore National Laboratory
+Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
+
+LLNL-CODE-473891.
+All rights reserved.
+
+This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
+for details.  Please read the COPYRIGHT file for Our Notice and for the 
+BSD License.
+
 */
