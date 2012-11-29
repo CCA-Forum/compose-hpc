@@ -2,14 +2,39 @@
 """
 BXL -- a minimalistic AWK work-a-like for context-free grammars.
 
-Local variables in actions:
+BXL programs read like yacc grammars, however, the actions on the
+right-hand side are actually an enhanced form of python expressions.
 
-In a functional language we would introduce local variables like this:
-   let n = y in x
-In an action this can be expression using the pythonic equivalent
-   (lambda n: x)(y) 
+EXAMPLE:
 
-TODOs:
+The syntax for a BXL file is as follows:
+    /* This is a very basic arithmetic expression evaluator */
+
+    /* Comments are written as in the C language */
+    /* every rule has the form 
+       name = def1 { action1 } | def2 { action2 } | ... ; 
+       Don't forget the semicolon at the end!
+     */
+    artithmetic_expression = add_expr ; /* default action just copies */
+    add_expr = mult_expr              /* actions are expressions */
+             | mult_expr "+" add_expr { $1 + $3 }
+             | mult_expr "-" add_expr { $1 - $3 }
+             ;
+    mult_expr = lit_expr
+              | lit_expr "*" mult_expr { $1 * $3 }
+              | lit_expr "/" mult_expr { $1 / $3 }
+              ;
+    lit_expr = numeral { int($1) } | '(' arithmetic_expression ')' { $2 } ;
+    numeral = /-?[0-9]+/ ; /* regular expressions are written like /this/ */
+
+TIPS: using local variables in actions
+   
+  In a functional language we would introduce local variables like this:
+     let n = y in x
+  In an action this can be expression using the pythonic equivalent
+     (lambda n: x)(y) 
+
+BUGS:
    * fix the ebnf grammar (see comments there)
 
 """
@@ -223,6 +248,7 @@ if __name__ == '__main__':
     # Command line argument handling
     cmdline = argparse.ArgumentParser(
         description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='Please report bugs to <adrian@llnl.gov>.')
 
     cmdline.add_argument('-f','--file', metavar='<script.bxl>', 

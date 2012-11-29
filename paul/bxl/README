@@ -43,11 +43,11 @@ want to support at least context-free grammars.
 
 After a day's work, I can now proudly present the BXL language (maybe
 I will find a better name for it later) which extends the AWK model to
-context-free languages. For demonstration purposes I implemented the
-SIDL contract annotation language.
+context-free languages. For demonstration purposes I use it to
+implement parser for the SIDL contract annotation language.
 
 BXL programs read like yacc grammars, however, the actions on the
-right-hand side are actually an enhanced form of python expressions
+right-hand side are actually an enhanced form of python expressions.
 For instance, to parse contract clauses and output them as aterms we
 have the rule "clause":
 
@@ -78,3 +78,8 @@ README
 contract2aterm.bxl
 aterm2contract.bxl
 demo.sh
+
+More info
+---------
+
+written by Adrian Prantl <adrian@llnl.gov>
