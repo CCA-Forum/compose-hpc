@@ -1,26 +1,17 @@
 /**
+ * \internal
  * File:           contractPrivateTypes.h
  * Author:         T. Dahlgren
  * Created:        2012 April 23
- * Last Modified:  2012 November 12
- * 
+ * Last Modified:  2012 November 28
+ * \endinternal
  * 
  * @file
- * @section DESCRIPTION
+ * @brief 
  * "Private" types associated with interface contract enforcement. 
  *
- * 
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude contractsSource.html
+ * @htmlinclude copyright.html
  */
 
 #ifndef contractPrivateTypes_h
@@ -40,9 +31,12 @@ extern "C" {
  * Interface contract enforcement policy data.
  */
 typedef struct EnforcementPolicy__struct {
-  EnforcementClauseEnum       clauses;   /** Types of clauses to be checked. */
-  EnforcementFrequencyEnum    frequency; /** Frequency of clause checking. */
-  unsigned int                value;     /** Policy-based checking value. */
+  /** Types of clauses to be checked. */
+  EnforcementClauseEnum       clauses;   
+  /** Frequency of clause checking. */
+  EnforcementFrequencyEnum    frequency; 
+  /** Policy-based checking value. */
+  unsigned int                value;     
 } EnforcementPolicyType;
 
 
@@ -51,10 +45,14 @@ typedef struct EnforcementPolicy__struct {
  * data is ONLY applicable to adaptive enforcement policy(ies).
  */
 typedef struct TimeEstimates__struct {
-  uint64_t pre;     /** Milliseconds spent checking precondition clause. */
-  uint64_t post;    /** Milliseconds spent checking postcondition clause. */
-  uint64_t inv;     /** Milliseconds spent checking invariant clause. */
-  uint64_t routine; /** Milliseconds spent in the routine implementation. */
+  /** Milliseconds spent checking precondition clause. */
+  uint64_t pre;     
+  /** Milliseconds spent checking postcondition clause. */
+  uint64_t post;    
+  /** Milliseconds spent checking invariant clause. */
+  uint64_t inv;     
+  /** Milliseconds spent in the routine implementation. */
+  uint64_t routine; 
 } TimeEstimatesType;
 
 
@@ -62,13 +60,20 @@ typedef struct TimeEstimates__struct {
  * Interface contract enforcement (management) state.  
  */
 typedef struct EnforcementState__struct {
-  uint64_t           requests;   /** Number of enforcement requests. */
-  uint64_t           allowed;    /** Number of allowed enforcement requests. */
-  uint64_t           checksTime; /** Total checks time (derivable). */
-  unsigned int       countdown;  /** Countdown used for basic sampling. */
-  unsigned int       skip;       /** Skip, if any, in a random window. */
-  struct timeval     start;      /** TBD?  Starting timestamp. */
-  TimeEstimatesType  total;      /** Timing accumulators. */
+  /** Number of enforcement requests. */
+  uint64_t           requests;   
+  /** Number of allowed enforcement requests. */
+  uint64_t           allowed;    
+  /** Total checks time (derivable). */
+  uint64_t           checksTime; 
+  /** Countdown used for basic sampling. */
+  unsigned int       countdown;  
+  /** Skip, if any, in a random window. */
+  unsigned int       skip;       
+  /** TBD?  Starting timestamp. */
+  struct timeval     start;      
+  /** Timing accumulators. */
+  TimeEstimatesType  total;      
 } EnforcementStateType;
 
 
@@ -76,8 +81,10 @@ typedef struct EnforcementState__struct {
  * Basic interface contract enforcement file data.  
  */
 typedef struct EnforcementFile__struct {
-  char*    fileName;  /** Name of the file. */
-  FILE*    filePtr;   /** Pointer to the file. */
+  /** Name of the file. */
+  char*    fileName;  
+  /** Pointer to the file. */
+  FILE*    filePtr;   
 } EnforcementFileType;
 
 

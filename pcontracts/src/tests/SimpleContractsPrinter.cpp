@@ -1,28 +1,13 @@
-/*
+/**
+ * \internal
  * File:  SimpleContractsPrinter.cpp
- *
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
- * Simple contracts visitor class that looks for and prints CONTRACT 
- * annotations.
+ * @brief
+ * Simple contracts visitor class for printing PAUL CONTRACT annotations.
  *
- *
- * @section SOURCE
- * Based on PAUL's example_traversal.cpp.
- *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 //#include "PaulDecorate.h"
 //#include "KVAnnotationValue.h"
@@ -33,9 +18,12 @@
 /**
  * Visit the node to determine if there are any contract annotations.
  * If so, then print them out.
+ *
+ * @param[in]  node  Current ASST node.
  */
 void 
-SimpleContractsPrinter::visit(SgNode *node) 
+SimpleContractsPrinter::visit(
+  /* in */  SgNode *node) 
 {
   Annotation *annot = (Annotation *)node->getAttribute(L_CONTRACTS_TAG);
 
@@ -52,4 +40,4 @@ SimpleContractsPrinter::visit(SgNode *node)
     //val->print();
     std::cout << "\n";
   }
-} /* SimpleContractsPrinter::visit */
+} /* visit */

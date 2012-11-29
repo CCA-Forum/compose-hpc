@@ -1,32 +1,23 @@
 /**
- * File:          UnlabeledKnapsack.hpp
- *
+ * \internal
+ * File:  UnlabeledKnapsack.hpp
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
+ * Class, with unlabeled contracts, for printing a solution to the knapsack
+ * problem.
+ *
+ * @details
  * Class used for printing a solution to the knapsack problem for any
  * given target based on a known set of possible weights, where the 
  * size of the list is restricted.
  *
- * The contract annotations in this version of the program do NOT
- * contain the optional label.
+ * Contract annotations in this version of the program do NOT contain optional
+ * labels.
  *
- * The implementation uses a recursive algorithm based on that defined 
- * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
- * 1983.
- *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude knapsackSource.html
+ * @htmlinclude copyright.html
  */
 
 #ifndef included_Unlabeled_Knapsack_hpp
@@ -67,8 +58,8 @@ class UnlabeledKnapsack
     /**
      * Initialize the knapsack with the specified available weights.
      *
-     * @param weights  The weights of available items.
-     * @param len      The length, or number, of weights in the list.
+     * @param[in] weights  The weights of available items.
+     * @param[in] len      The length, or number, of weights in the list.
      */
     void
     initialize(unsigned int* weights, unsigned int len);
@@ -85,11 +76,11 @@ class UnlabeledKnapsack
      * Determine whether the specified weights match those currently
      * available for the knapsack.
      *
-     * @param weights  The weights of available items.
-     * @param len      The length, or number, of weights in the list.
-     * @return         Returns true if the specified weights match
-     *                   those currently available; otherwise, returns
-     *                   false.
+     * @param[in] weights  The weights of available items.
+     * @param[in] len      The length, or number, of weights in the list.
+     * @return             Returns true if the specified weights match
+     *                       those currently available; otherwise, returns
+     *                       false.
      */
     bool
     hasWeights(unsigned int* weights, unsigned int len);
@@ -98,9 +89,9 @@ class UnlabeledKnapsack
      * Determine whether a solution exists such that a subset of weights
      * totals exactly the specified target weight.
      *
-     * @param  t  The target weight of items to be carried in the knapsack.
-     * @return    Returns true if there is a solution for the specified 
-     *              target; otherwise, returns false.
+     * @param[in]  t  The target weight of items to be carried in the knapsack.
+     * @return        Returns true if there is a solution for the specified 
+     *                  target; otherwise, returns false.
      */
     bool
     hasSolution(unsigned int t);

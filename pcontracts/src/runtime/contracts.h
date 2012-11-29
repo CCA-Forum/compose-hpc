@@ -1,26 +1,17 @@
 /**
+ * \internal
  * File:           contracts.h
  * Author:         T. Dahlgren
  * Created:        2012 April 12
- * Last Modified:  2012 November 12
- * 
+ * Last Modified:  2012 November 28
+ * \endinternal
  * 
  * @file
- * @section DESCRIPTION
- * Interface contract enforcement basis, which includes core macros and types.
- * 
+ * @brief
+ * Core data types and macros for interface contract enforcement.
  *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude contractsSource.html
+ * @htmlinclude copyright.html
  */
 
 #ifndef contracts_h
@@ -89,15 +80,15 @@ extern "C" {
  *   ContractClause__enum values.
  */
 typedef enum ContractViolation__enum {
-  /** No violation occurred. */
+  /** NONE:  No violation occurred. */
   ContractViolation_NONE           = 0,
-  /** An invariant clause was violated. */
+  /** INVARIANT:  An invariant clause was violated. */
   ContractViolation_INVARIANT      = 1,
-  /** A precondition clause was violated. */
+  /** PRECONDITION:  A precondition clause was violated. */
   ContractViolation_PRECONDITION   = 2,
-  /** A postcondition clause was violated. */
+  /** POSTCONDITION:  A postcondition clause was violated. */
   ContractViolation_POSTCONDITION  = 4,
-  /** Future Work Placeholder */
+  /** CUSTOM:  Future Work Placeholder */
   ContractViolation_CUSTOM         = 8
 } ContractViolationEnum;
 

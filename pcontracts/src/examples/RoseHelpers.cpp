@@ -1,26 +1,16 @@
 /**
+ * \internal
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 November 12
- *
+ * Last Modified:  2012 November 28
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
  * Helper or utility routines related to ROSE features.
  *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #include <cctype>
@@ -33,7 +23,9 @@ using namespace std;
 
 
 void
-attachTranslationComment(SgNode* node, std::string cmt)
+attachTranslationComment(
+  /* inout */ SgNode*     node, 
+  /* in */    std::string cmt)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if ( (lNode != NULL) && !cmt.empty() )
@@ -90,7 +82,8 @@ getCurrentLanguageOption()
 
 
 string
-getBasicSignature(SgFunctionDeclaration* decl)
+getBasicSignature(
+  /* in */ SgFunctionDeclaration* decl)
 {
   string res;
 
@@ -115,7 +108,7 @@ getBasicSignature(SgFunctionDeclaration* decl)
 
 string
 getLanguageOptionName(
-SgFile::outputLanguageOption_enum lang)
+  /* in */ SgFile::outputLanguageOption_enum lang)
 {
   string res;
 
@@ -178,7 +171,8 @@ SgFile::outputLanguageOption_enum lang)
 
 
 bool
-isCComment(PreprocessingInfo::DirectiveType dType)
+isCComment(
+  /* in */ PreprocessingInfo::DirectiveType dType)
 {
   return (  (dType == PreprocessingInfo::C_StyleComment)
          || (dType == PreprocessingInfo::CplusplusStyleComment)  );
@@ -186,7 +180,9 @@ isCComment(PreprocessingInfo::DirectiveType dType)
 
 
 bool
-isInputFile(SgProject* project, string filename)
+isInputFile(
+  /* in */ SgProject* project, 
+  /* in */ string     filename)
 {
   bool isIF = false;
 
@@ -203,7 +199,9 @@ isInputFile(SgProject* project, string filename)
 
 
 void
-printLineComment(SgNode* node, string cmt)
+printLineComment(
+  /* in */ SgNode* node, 
+  /* in */ string  cmt)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if (lNode != NULL)
@@ -221,7 +219,8 @@ printLineComment(SgNode* node, string cmt)
 
 
 string
-compress(string txt)
+compress(
+  /* in */ string txt)
 {
   if (!txt.empty())
   {

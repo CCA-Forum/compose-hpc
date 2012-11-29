@@ -1,31 +1,23 @@
 /**
+ * \internal
  * File:  unlabeledknapsack.c
- *
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
+ * C program, with unlabeld contracts, for printing a solution to the knapsack
+ * problem.
+ *
+ * @details
  * A program for printing a solution to the knapsack problem for any
  * given target based on a known set of possible weights, where the 
  * size of the list is restricted.
  *
- * The contract annotations in this version of the program do NOT
- * contain the optional label.
+ * Contract annotations in this version of the program do NOT contain optional 
+ * labels.
  *
- * A recursive algorithm is implemented based on that defined in "Data
- * Structures and Algorithms" by Aho, Hopcroft, and Ulman (c) 1983.
- *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude knapsackSource.html
+ * @htmlinclude copyright.html
  */
 
 #include <stdio.h>
@@ -33,20 +25,27 @@
 
 
 /**
+ * \privatesection
+ *
  * Determine if there is a solution to the unlabeledknapsack problem based on
  * the list of weights for avaialbe items, target weight, and current 
  * position.
  *
- * @param weights  The weights of available items.
- * @param t        The target weight.
- * @param i        The current weight entry.
- * @param n        The number of items (or weights) in the list.
- * @return         Returns 1 if a solution is detected; otherwise, returns 0.
+ * @param[in] weights  The weights of available items.
+ * @param[in] t        The target weight.
+ * @param[in] i        The current weight entry.
+ * @param[in] n        The number of items (or weights) in the list.
+ * @return             Returns 1 if a solution is detected; otherwise, returns 
+ *                       0.
  */
 /* %CONTRACT REQUIRE weights != 0; n > 0; */
 /* %CONTRACT ENSURE pce_inrange(pce_result, 0, 1); */
 int 
-knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
+knapsack(
+  /* in */ unsigned int* weights, 
+  /* in */ unsigned int  t, 
+  /* in */ unsigned int  i, 
+  /* in */ unsigned int  n)
 {
   int has = 0;
 
@@ -66,16 +65,21 @@ knapsack(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n)
 
 
 /**
+ * \publicsection
+ *
  * Perform a single solve, relying on the Knapsack class to output the
  * result from a successful run.
  *
- * @param weights  The weights of available items.
- * @param t        The target weight.
- * @param num      The number of items (or weights) in the unlabeledknapsack.
+ * @param[in] weights The weights of available items.
+ * @param[in] t       The target weight.
+ * @param[in] num     The number of items (or weights) in the unlabeledknapsack.
  */
 /* %CONTRACT REQUIRE weights != 0; num > 0; */
 void
-runIt(unsigned int* weights, unsigned int t, unsigned int num)
+runIt(
+  /* in */ unsigned int* weights, 
+  /* in */ unsigned int  t, 
+  /* in */ unsigned int  num)
 {
   printf("Solution for target=%d?: ", t);
   if (!knapsack(weights, t, 0, num)) {
