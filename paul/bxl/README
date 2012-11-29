@@ -1,0 +1,80 @@
+-*- rst -*-
+
+The Problem
+-----------
+
+Libpaul wants to support multiple annotation types that are
+differentiated via a tag. We want users to invent their own annotation
+languages and keep libpaul extensible. However, we do not necessarily
+want the annotation parsers to be compiled into libpaul, because this
+will lead to fragmentation and can be quite a tedious process should
+libpaul become a part of ROSE.
+
+One Solution
+------------
+
+I'm proposing a very simple plug-in system that can be used to invoke
+an external parser depending on the annotation tag. My solution is
+aiming to increase user productivity, and not aiming at execution
+speed.
+
+To keep things simple, we do not want to link against shared
+libraries. The envisioned interface consists of a pipe to an
+annotation parser that returns a string of the annotation in aterm
+format. The user only needs to provide an executable that eg. matches
+the name of the annotation tag and libpaul will invoke that
+executable, pipe the annotation to it and the executable returns the
+annotation formatted as aterm.
+
+The user needs to provide an executable that parses their custom
+annotations and returns the annotation as an aterm. Optionally, the
+user might also provide a second program that parses aterms and
+converts them back into a formatted annotation.
+
+The fun part
+------------
+
+What's the most user-friendly way to write new parsers? At the
+face-to-face, we discussed the possibility of using a scripting
+language to achieve that. After doing some research about this I
+realized that it would be best to have a pattern-action system similar
+to the AWK language. Alas, AWK can only do regular expressions, we
+want to support at least context-free grammars.
+
+After a day's work, I can now proudly present the BXL language (maybe
+I will find a better name for it later) which extends the AWK model to
+context-free languages. For demonstration purposes I implemented the
+SIDL contract annotation language.
+
+BXL programs read like yacc grammars, however, the actions on the
+right-hand side are actually an enhanced form of python expressions
+For instance, to parse contract clauses and output them as aterms we
+have the rule "clause":
+
+>>>  clause = name ':' assertExpr ';' { "clause($1, $3)" } ;
+>>>  name = /[_a-zA-Z][_a-zA-Z0-9]*/ ;
+
+which triggers the action < "clause($1, $3)" >. This action expression
+returns a string that embeds the results of the actions triggered by
+the first (name=$1) and third (assertExpr=$3); the $n variables are
+inspired by yacc.
+When we execute the parser, the clause
+>>> bar: foo != 0;
+will be transformed in to the aterm
+>>> clause(bar, neq(foo, 0))
+.
+
+BXL is implemented in ~250 lines of Python and takes advantage Pythons
+highly dynamic/reflective nature. First it loads the user's BXL script,
+constructs a new parser+actions based on the user-provided grammar on the fly
+and then directly executes the user's parser.
+I'm already thinking about implementing BXL2 in BXL :-)
+
+Files
+-----
+
+http://compose-hpc.git.sourceforge.net/git/gitweb.cgi?p=compose-hpc/compose-hpc;a=tree;f=paul/demo
+README
+contract2aterm.bxl
+aterm2contract.bxl
+demo.sh
