@@ -7,7 +7,8 @@ all:
 
 docs: clean-docs
 	@ln -s ${ROSE_HOME} rose; \
-	doxygen
+	doxygen; \
+	cp COPYRIGHT docs/html
 
 check: all
 	@echo 1 > .checkStatus; \

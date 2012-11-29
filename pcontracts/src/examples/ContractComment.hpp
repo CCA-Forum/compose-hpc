@@ -1,33 +1,16 @@
 /**
+ * \internal
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2012 November 12
- *
+ * Last Modified:  2012 November 28
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
- * Basic contract comment/clause data.
+ * @brief
+ * Basic structures for managing contract comment/clause data.
  *
- *
- * @section SOURCE
- * This code was originally part of the initial ContractInstrumenter.cpp,
- * then ContractsProcessor.hpp.  It was separated, along with 
- * AssertionExpression, and the supporting enumeration and type added (from 
- * contractClauseTypes.hpp) to improve modularity.
- *
- * 
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #ifndef include_Contract_Comment_hpp
@@ -112,21 +95,35 @@ class ContractComment
     /** Return the contract comment clause type. */
     ContractClauseEnum clause() { return ContractCommentClause[d_type]; }
 
-    /** Add the assertion expression to the contract clause. */
+    /** 
+     * Add the assertion expression to the contract clause. 
+     *
+     * @param[in] ae  Current assertion expression
+     */
     void add(AssertionExpression ae) 
     { 
       d_aeList.push_front(ae); 
       if (ae.support() == AssertionSupport_EXECUTABLE) d_numExec += 1;
     }
 
-    /** Cache whether the clause is associated with initialization routine. */
+    /** 
+     * Set initialization routine association cache. 
+     *
+     * @param[in] init  Pass true if the INIT annotation is detected for the
+     *                    routine; otherwise, pass false.
+     */
     void setInit(bool init) { d_isInit = init; }
 
     /** Return whether the clause is associated with initialization routine. */
     bool isInit() { return d_isInit; }
-    /** Return whether this comment is initialized. */
 
-    /** Cache the need for generating the result variable. */
+    /** 
+     * Set return result assertion cache. 
+     *
+     * @param[in] needs  Pass true if the return variable is detected in one
+     *                     or more of the assertion expressions; otherwise,
+     *                     pass false.
+     */
     void setResult(bool needs) { d_needsResult = needs; }
 
     /** Return whether a result variable needs to be generated. */
@@ -157,13 +154,13 @@ class ContractComment
     /** The type of preprocessing directive associated with the AST node. */
     PPIDirectiveType           d_dirType;
 
-    /** Cache of whether the function result appears in the clause. */
+    /** Cache whether the function result appears in the clause. */
     bool                       d_needsResult;
 
     /** Cache whether the clause is associated with initialization routine. */
     bool                       d_isInit;
 
-    /** Cache of the number of executable expressions in the clause. */
+    /** Cache the number of executable expressions in the clause. */
     int                        d_numExec;
 };  /* class ContractComment */
 

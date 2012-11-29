@@ -1,28 +1,21 @@
 /**
+ * \internal
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 November 12
- *
+ * Last Modified: 2012 November 28
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief 
+ * Class for printing contract clause assertions detected in ROSE AST comments.
+ *
+ * @details
  * Simple class implementation for illustrating the use of basic ROSE features 
- * for printing contract clause assertions.  It is NOT intended for contract
- * enforcement use.
+ * and a rudimentary contract clause parser for extracting and printing 
+ * contract clause assertions.  
  *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #include <iostream>
@@ -39,11 +32,12 @@ using namespace std;
 /**
  * Print each assertion expression within the clause.
  *
- * @param clause  The contract clause text extracted from the structured 
- *                  comment.
+ * @param[in] clause  The contract clause text extracted from the structured 
+ *                      comment.
  */
 void
-printClause(string clause)
+printClause(
+ /* in */ string clause)
 {
   string labels[] = { 
    "label/error comment ", 
@@ -83,11 +77,13 @@ printClause(string clause)
 /**
  * Process the comment to assess and handle any contract clause.
  *
- * @param node  Current AST node.
- * @param cmt   Comment contents.
+ * @param[in] node  Current AST node.
+ * @param[in] cmt   Comment contents.
  */
 void
-processCommentContents(SgNode* node, const string cmt)
+processCommentContents(
+  /* in */ SgNode* node, 
+  /* in */ const string cmt)
 {
   if ( (node != NULL) && !cmt.empty() )
   {
@@ -130,8 +126,15 @@ processCommentContents(SgNode* node, const string cmt)
 } /* processCommentContents */
 
 
+/**
+ * Process the current AST node passed by the front end, identifying
+ * and printing individual contract clause assertions.
+ *
+ * @param[in] node  Current AST node.
+ */
 void
-ContractAssertionPrinter::visit(SgNode* node)
+ContractAssertionPrinter::visit(
+  /* in */ SgNode* node)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if (lNode != NULL)
@@ -207,4 +210,3 @@ main(int argc, char* argv[])
 
   return status;
 } /* main */
-

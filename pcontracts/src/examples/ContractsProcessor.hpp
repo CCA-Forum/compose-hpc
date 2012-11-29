@@ -1,31 +1,16 @@
 /**
+ * \internal
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2012 November 12
- *
+ * Last Modified:  2012 November 28
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
  * Basic contract clause processing utilities.
  *
- *
- * @section SOURCE
- * This code was originally part of the initial ContractInstrumenter.cpp,
- * which was renamed to RoutineContractInstrumenter.cpp.
- *
- * 
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #ifndef include_Contracts_Processor_hpp
@@ -47,8 +32,7 @@ class ContractsProcessor
     ContractsProcessor() : d_invariants(NULL) {}
     ~ContractsProcessor() { if (d_invariants != NULL) delete d_invariants; }
 
-   int addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body, 
-     ContractComment* cc);
+   int addPreChecks(SgBasicBlock* body, ContractComment* cc);
 
     int addPostChecks(SgFunctionDefinition* def, SgBasicBlock* body, 
       ContractComment* cc);

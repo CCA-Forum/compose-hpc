@@ -1,31 +1,16 @@
 /**
+ * \internal
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2012 November 12
- *
+ * Last Modified:  2012 November 28
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
- * Basic contract clause utilities and supporting classes.
+ * @brief
+ * Basic contract clause processing utilities.
  *
- *
- * @section SOURCE
- * This code was originally part of the initial ContractInstrumenter.cpp,
- * which was renamed to RoutineContractInstrumenter.cpp.
- *
- * 
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #include <iostream>
@@ -45,19 +30,20 @@ using namespace std;
  * Add checks for all contract clause assertion expressions to the start
  * of the routine body.  
  *
- * @param def  Function definition.
- * @param body Pointer to the function body.  Assumed to belong to def.
- * @param cc   The contract clause/comment whose (executable) expressions
- *               are to be added.
- * @return     The number of statements added to the body.
+ * @param body    [inout] Pointer to the function body, which is assumed to 
+ *                  belong to an SgFunctionDefinition node.
+ * @param[in] cc  The contract clause/comment whose (executable) expressions
+ *                  are to be added.
+ * @return        The number of statements added to the body.
  */
 int
-ContractsProcessor::addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body,
-  ContractComment* cc)
+ContractsProcessor::addPreChecks(
+  /* inout */ SgBasicBlock*    body,
+  /* in */    ContractComment* cc)
 {
   int num = 0;
 
-  if ( (def != NULL) && (body != NULL) && (cc != NULL) && (cc->size() > 0) )
+  if ( (body != NULL) && (cc != NULL) && (cc->size() > 0) )
   {
     ContractClauseEnum ccType = cc->clause();
     if (  (ccType == ContractClause_PRECONDITION)
@@ -123,14 +109,17 @@ ContractsProcessor::addPreChecks(SgFunctionDefinition* def, SgBasicBlock* body,
  * Add checks for all contract clause assertion expressions to the end
  * of the routine body.  
  *
- * @param def  Function definition.
- * @param body Pointer to the function body.  Assumed to belong to def.
- * @param cc   The contract comment whose expressions are to be added.
- * @return     The number of statements added to the body.
+ * @param     def  [inout] Function definition.
+ * @param     body [inout] Pointer to the function body, which is assumed
+ *                   to belong to the function definition, def.
+ * @param[in] cc   The contract comment whose expressions are to be added.
+ * @return         The number of statements added to the body.
  */
 int
-ContractsProcessor::addPostChecks(SgFunctionDefinition* def, 
-  SgBasicBlock* body, ContractComment* cc)
+ContractsProcessor::addPostChecks(
+  /* inout */ SgFunctionDefinition* def, 
+  /* inout */ SgBasicBlock*         body, 
+  /* in */    ContractComment*      cc)
 {
   int num = 0;
 
@@ -201,14 +190,16 @@ ContractsProcessor::addPostChecks(SgFunctionDefinition* def,
 /**
  * Extract and add assertion expressions to the contract clause.
  *
- * @param clause          The contract clause text extracted from the structured
- *                          comment.
- * @param cc              The resulting contract clause/comment.
- * @param firstExecClause Expected to be the first executable clause.
+ * @param[in] clause          The contract clause text extracted from the 
+ *                              structured comment.
+ * @param     cc              [inout] The resulting contract clause/comment.
+ * @param[in] firstExecClause Expected to be the first executable clause.
  */
 void
-ContractsProcessor::addExpressions(string clause, ContractComment* cc, 
-  bool firstExecClause)
+ContractsProcessor::addExpressions(
+  /* in */    string           clause, 
+  /* inout */ ContractComment* cc, 
+  /* in */    bool             firstExecClause)
 {
   if (!clause.empty() && cc != NULL)
   {
@@ -463,15 +454,19 @@ ContractsProcessor::addInitialize(SgBasicBlock* body, ContractComment* cc)
 /**
  * Build the contract clause check statement.
  *
- * @param body       Pointer to the function body.
- * @param clauseType The type of contract clause associated with the expression.
- * @param ae         The assertion expression.
- * @param dt         The (comment) directive type.
- * @return           Contract clause statement node.
+ * @param     body       [inout] Pointer to the function body.
+ * @param[in] clauseType The type of contract clause associated with the 
+ *                         expression.
+ * @param[in] ae         The assertion expression.
+ * @param[in] dt         The (comment) directive type.
+ * @return               Contract clause statement node.
  */
 SgExprStatement*
-ContractsProcessor::buildCheck(SgBasicBlock* body, 
-  ContractClauseEnum clauseType, AssertionExpression ae, PPIDirectiveType dt)
+ContractsProcessor::buildCheck(
+  /* inout */ SgBasicBlock*       body, 
+  /* in */    ContractClauseEnum  clauseType, 
+  /* in */    AssertionExpression ae, 
+  /* in */    PPIDirectiveType    dt)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -571,14 +566,16 @@ ContractsProcessor::buildCheck(SgBasicBlock* body,
  * Extract the contract clause comment, if any, from the pre-processing 
  * directive.
  *
- * @param decl            The function declaration.
- * @param info            The preprocessing directive.
- * @param firstExecClause Expected to be the first executable clause.
- * @return                The ContractComment type.
+ * @param[in] decl            The function declaration.
+ * @param[in] info            The preprocessing directive.
+ * @param[in] firstExecClause Expected to be the first executable clause.
+ * @return                    The ContractComment type.
  */
 ContractComment*
-ContractsProcessor::extractContractClause(SgFunctionDeclaration* decl, 
-  AttachedPreprocessingInfoType::iterator info, bool firstExecClause)
+ContractsProcessor::extractContractClause(
+  /* in */ SgFunctionDeclaration*                  decl, 
+  /* in */ AttachedPreprocessingInfoType::iterator info, 
+  /* in */ bool                                    firstExecClause)
 {
   ContractComment* cc = NULL;
 
@@ -620,11 +617,13 @@ ContractsProcessor::extractContractClause(SgFunctionDeclaration* decl,
  * Determine if what is assumed to be the method name is in the 
  * invariants.
  *
- * @param nm  Method name.
- * @return True if nm is in at least one invariant expression; false otherwise.
+ * @param[in] nm  Method name.
+ * @return        True if nm is in at least one invariant expression; false 
+ *                  otherwise.
  */
 bool
-ContractsProcessor::inInvariants(string nm)
+ContractsProcessor::inInvariants(
+  /* in */ string nm)
 {
   bool isIn = false;
   
@@ -653,15 +652,17 @@ ContractsProcessor::inInvariants(string nm)
 /**
  * Add (test) contract assertion checks to each routine.
  *
- * @param project         The Sage project representing the initial AST of the
- *                          file(s).
- * @param skipTransforms  True if the transformations are to be skipped;
- *                          otherwise, false.
- * @return                The processing status: 0 for success, non-0 for 
- *                          failure.
+ * @param project             [inout] The Sage project representing the initial
+ *                              AST of the file(s).
+ * @param[in] skipTransforms  True if the transformations are to be skipped;
+ *                              otherwise, false.
+ * @return                    The processing status: 0 for success, non-0 for 
+ *                              failure.
  */
 int
-ContractsProcessor::instrumentRoutines(SgProject* project, bool skipTransforms)
+ContractsProcessor::instrumentRoutines(
+  /* inout */ SgProject* project, 
+  /* in */    bool       skipTransforms)
 {
   int status = 0;
 
@@ -737,12 +738,13 @@ ContractsProcessor::instrumentRoutines(SgProject* project, bool skipTransforms)
  * are no syntactic or semantic checks other than to eliminate expressions
  * known not to translate.
  *
- * @param expr  The string representing the assertion expression.
- * @return      True if the expression appears to be executable; False 
- *                otherwise.
+ * @param[in] expr  The string representing the assertion expression.
+ * @return          True if the expression appears to be executable; False 
+ *                    otherwise.
  */
 bool
-ContractsProcessor::isExecutable(string expr)
+ContractsProcessor::isExecutable(
+  /* in */string expr)
 {
   bool isOkay = true;
 
@@ -769,15 +771,18 @@ ContractsProcessor::isExecutable(string expr)
 /**
  * Process the comment to assess and handle any contract annotation.
  *
- * @param dNode           Current AST node.
- * @param cmt             Comment contents.
- * @param dirType         (Comment) directive type.
- * @param firstExecClause Expected to be the first executable clause.
+ * @param     dNode           [inout] Current AST node.
+ * @param[in] cmt             Comment contents.
+ * @param[in] dirType         (Comment) directive type.
+ * @param[in] firstExecClause Expected to be the first executable clause.
  * @return                The corresponding ContractComment type.
  */
 ContractComment*
-ContractsProcessor::processCommentEntry(SgFunctionDeclaration* dNode, 
-  string cmt, PreprocessingInfo::DirectiveType dirType, bool firstExecClause)
+ContractsProcessor::processCommentEntry(
+  /* inout */ SgFunctionDeclaration*           dNode, 
+  /* in */    string                           cmt, 
+  /* in */    PreprocessingInfo::DirectiveType dirType, 
+  /* in */    bool                             firstExecClause)
 {
   ContractComment* cc = NULL;
 
@@ -824,11 +829,12 @@ ContractsProcessor::processCommentEntry(SgFunctionDeclaration* dNode,
 /**
  * Process comments associated with the function definition.
  *
- * @param def  The function definition node.
+ * @param def  [inout] The function definition node.
  * @return     The number of statements added.
  */
 int
-ContractsProcessor::processComments(SgFunctionDefinition* def)
+ContractsProcessor::processComments(
+  /* inout */ SgFunctionDefinition* def)
 {
   int num = 0;
 
@@ -948,14 +954,14 @@ ContractsProcessor::processComments(SgFunctionDefinition* def)
             { 
               if (numChecks[0] > 0) 
               {
-                num += addPreChecks(def, body, pre);
+                num += addPreChecks(body, pre);
               }
               delete pre;
             }
 
             if (! (skipInvariants || isInitRoutine) )
             {
-              num += addPreChecks(def, body, d_invariants);
+              num += addPreChecks(body, d_invariants);
             }
 
             if (init != NULL)

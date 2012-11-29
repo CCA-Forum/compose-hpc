@@ -1,39 +1,26 @@
-/*
+/**
+ * \internal
  * File:           contractMacros.h
  * Author:         T. Dahlgren
  * Created:        2012 June 8
- * Last Modified:  2012 November 12
+ * Last Modified:  2012 November 28
  *
- *
- * @section DESCRIPTION
- * Convenience C macros for managing contract enforcement.
- *
- * @todo Is this file even relevant in this context?
- *
- *
- * @section SOURCE
- * This file is based heavily on Babel's sidlAsserts.h.
- *
- *
- * @section REQUIREMENTS
+ * Requirements:
  * The following include files are needed:
  *    math.h      For the ceiling function used by the 
  *                  random and timing-based policies.
  *    stdlib.h    For random number generation (including RAND_MAX).
  *    time.h      For processing associated with the timing-based policy.
+ * \endinternal
  *
+ * @file
+ * @brief 
+ * Convenience C macros for managing contract enforcement.
  *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @todo Is this file even relevant in this context?
+ *
+ * @htmlinclude contractsSource.html
+ * @htmlinclude copyright.html
  */
 
 #ifndef contractMacros_h

@@ -1,29 +1,22 @@
 /**
+ * \internal
  * File:  Knapsack.cpp
- *
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
+ * Class implementation, with labeled contracts, for printing a solution to
+ * the knapsack problem.
+ *
+ * @details
  * Class used for printing a solution to the knapsack problem for any 
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
  *
- * The implementation uses a recursive algorithm based on that defined 
- * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
- * 1983.
+ * Contract annotations in this version of the program contain optional labels.
  *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude knapsackSource.html
+ * @htmlinclude copyright.html
  */
 
 #include <iostream>
@@ -65,7 +58,9 @@ Examples::Knapsack::Knapsack() {
     has_new_weights: hasWeights(weights, len); 
  */
 void
-Examples::Knapsack::initialize(unsigned int* weights, unsigned int len)
+Examples::Knapsack::initialize(
+  /* in */ unsigned int* weights,
+  /* in */ unsigned int   len)
 {
   unsigned int i;
 
@@ -104,7 +99,10 @@ Examples::Knapsack::onlyPosWeights() {
     side_effect_free: is pure;
  */
 bool
-Examples::Knapsack::hasWeights(unsigned int* weights, unsigned int len) {
+Examples::Knapsack::hasWeights(
+  /* in */ unsigned int* weights, 
+  /* in */ unsigned int  len) 
+{
   return sameWeights(d_weights, d_nextIndex, weights, len);
 }
 
@@ -122,11 +120,11 @@ Examples::Knapsack::hasSolution(unsigned int t) {
  * Determine whether the weights of all of the available items are
  * positive.
  *
- * @param weights  The weights of the items that could be added to the 
- *                   knapsack.
- * @param len      The length, or number, of weights in the list.
- * @return         Returns true if they are all non-zero; otherwise,
- *                   returns false.
+ * @param[in] weights  The weights of the items that could be added to the 
+ *                       knapsack.
+ * @param[in] len      The length, or number, of weights in the list.
+ * @return             Returns true if they are all non-zero; otherwise,
+ *                       returns false.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
@@ -135,7 +133,9 @@ Examples::Knapsack::hasSolution(unsigned int t) {
     side_effect_free: is pure;
  */
 bool
-onlyPos(unsigned int* weights, unsigned int len) 
+onlyPos(
+  /* in */ unsigned int* weights,
+  /* in */ unsigned int  len) 
 {
   unsigned int i;
   bool         isPos = false;
@@ -156,12 +156,14 @@ onlyPos(unsigned int* weights, unsigned int len)
  * Determine whether the weights in the two lists match, where order
  * does not matter.
  *
- * @param nW    The weights of the items that could be added to the knapsack.
- * @param lenW  The length, or number, of weights in nW.
- * @param nS    The weights of the items that could be added to the knapsack.
- * @param lenS  The length, or number, of weights in nS.
- * @return      Returns true if the values in the two lists match; 
- *                otherwise, returns false.
+ * @param[in] nW    The weights of the items that could be added to the 
+ *                    knapsack.
+ * @param[in] lenW  The length, or number, of weights in nW.
+ * @param[in] nS    The weights of the items that could be added to the 
+ *                    knapsack.
+ * @param[in] lenS  The length, or number, of weights in nS.
+ * @return          Returns true if the values in the two lists match; 
+ *                    otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
     pos_w_weights: ((nW!=NULL) and (lenW>0)) implies pce_all(nW>0, lenW); 
@@ -171,8 +173,11 @@ onlyPos(unsigned int* weights, unsigned int len)
     side_effect_free: is pure;
  */
 bool
-sameWeights(unsigned int* nW, unsigned int lenW, 
-            unsigned int* nS, unsigned int lenS)
+sameWeights(
+  /* in */ unsigned int* nW, 
+  /* in */ unsigned int  lenW, 
+  /* in */ unsigned int* nS, 
+  /* in */ unsigned int  lenS)
 {
   bool     same = false;
   unsigned int* p;
@@ -208,14 +213,14 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  * based on the algorithm defined in "Data Structures and Algorithms" by 
  * Aho, Hopcroft, and Ullman (c) 1983.
  *
- * @param weights  The weights of the items that could be added to the 
- *                   knapsack.
- * @param t        The desired, or target, weight of items to carry in
- *                   the knapsack.
- * @param i        The current entry in the list.
- * @param n        The number of weights in the list.
- * @return         Returns true if the solution has been found based on
- *                   the specified entry; otherwise, returns false.
+ * @param[in] weights  The weights of the items that could be added to the 
+ *                       knapsack.
+ * @param[in] t        The desired, or target, weight of items to carry in
+ *                       the knapsack.
+ * @param[in] i        The current entry in the list.
+ * @param[in] n        The number of weights in the list.
+ * @return             Returns true if the solution has been found based on
+ *                       the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
     pos_weights: ((weights!=NULL) and (n>0)) 
@@ -225,7 +230,12 @@ sameWeights(unsigned int* nW, unsigned int lenW,
     side_effect_free: is pure;
  */
 bool
-solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
+solve(
+  /* in */ unsigned int* weights, 
+  /* in */ unsigned int  t, 
+  /* in */ unsigned int  i, 
+  /* in */ unsigned int  n) 
+{
   bool has = false;
 
   if (t==0) {
@@ -247,14 +257,16 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
  * Perform a single solve, relying on the Knapsack class to output the
  * result from a successful run.
  *
- * @param ksack  The knapsack instance.
- * @param t      The target weight.
+ * @param[in] ksack  The knapsack instance.
+ * @param[in] t      The target weight.
  */
 /* %CONTRACT REQUIRE 
     has_sack: ksack != NULL;
  */
 void
-runIt(Examples::Knapsack* ksack, unsigned int t)
+runIt(
+  /* in */ Examples::Knapsack* ksack, 
+  /* in */ unsigned int        t)
 {
   cout << "Solution for target=" << t <<"?: ";
   if ( (ksack != NULL) && !ksack->hasSolution(t) ) {

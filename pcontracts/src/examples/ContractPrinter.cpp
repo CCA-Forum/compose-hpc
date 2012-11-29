@@ -1,31 +1,24 @@
 /**
+ * \internal
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 November 12
- *
+ * Last Modified: 2012 November 28
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief 
+ * Class for printing contract clause comments via ROSE AST.
+ *
+ * @details
  * Simple class implementation for illustrating the use of basic ROSE features 
- * for printing contract clause comments.  It is NOT intended for contract
- * enforcement use.
+ * for identifying and printing contract clause comments.  
  *
- * @todo Clean up this example so this class can be re-used "properly"
- * in ContractAssertionPrinter.cpp.
+ * @todo (Low Priority) Clean up this example so this class can be re-used 
+ * "properly" in ContractAssertionPrinter.cpp (i.e., without resorting to the 
+ * #define around main()).
  *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #include <iostream>
@@ -40,7 +33,8 @@ using namespace std;
 
 
 void
-ContractPrinter::visit(SgNode* node)
+ContractPrinter::visit(
+  /* in */ SgNode* node)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if (lNode != NULL)

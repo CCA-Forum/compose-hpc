@@ -1,23 +1,13 @@
 /**
+ * \internal
  * File:  testContractsEnforcer.c
- *
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
  * Test suite for ContractsEnforcer.
  *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,10 +38,10 @@ static const char* S_FILE_TYPE[2] = {
 /**
  * Creates a filename tailored to the provided options.
  *
- * @param clauses    Clause(s) to be checked.
- * @param frequency  Frequency of checking.
- * @param fileType   Type of file being created.
- * @param ext        Desired file extension [Default=csv].
+ * @param[in] clauses    Clause(s) to be checked.
+ * @param[in] frequency  Frequency of checking.
+ * @param[in] fileType   Type of file being created.
+ * @param[in] ext        Desired file extension [Default=csv].
  * @return           The resulting filename.
  */ 
 char*
@@ -83,10 +73,10 @@ getFilename(
 /**
  * Mimics contract enforcement calls for a single routine.
  *
- * @param enforcer The responsible contracts enforcer.
- * @param clauses  Clause(s) to be checked.
- * @param times    Times associated with the clause and routine.
- * @return         Number of enforced clauses.
+ * @param     enforcer [inout] The responsible contracts enforcer.
+ * @param[in] clauses  Clause(s) to be checked.
+ * @param[in] times    Times associated with the clause and routine.
+ * @return             Number of enforced clauses.
  */ 
 unsigned int
 checkRoutineClauses(
@@ -141,8 +131,8 @@ checkRoutineClauses(
  * defining separate meaningful methods, simply run through enforcement
  * clause options.
  *
- * @param enforcer  The responsible contracts enforcer.
- * @param iters     Number of iterations through the clause(s).
+ * @param enforcer  [inout] The responsible contracts enforcer.
+ * @param[in] iters Number of iterations through the clause(s).
  * @return          Number of enforced clauses.
  */ 
 unsigned int

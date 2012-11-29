@@ -1,32 +1,23 @@
 /**
+ * \internal
  * File:  UnlabeledKnapsack.cpp
- *
+ * \endinternal
  *
  * @file
- * @section DESCRIPTION
+ * @brief
+ * Class implementation, with unlabeled contracts, for printing a solution to 
+ * the knapsack problem.
+ *
+ * @details
  * Class used for printing a solution to the knapsack problem for any 
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
  *
- * The contract annotations in this version of the program do NOT
- * contain the optional label.
+ * Contract annotations in this version of the program do NOT contain optional
+ * labels.
  *
- * The implementation uses a recursive algorithm based on that defined 
- * in "Data Structures and Algorithms" by Aho, Hopcroft, and Ullman (c)
- * 1983.
- *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude knapsackSource.html
+ * @htmlinclude copyright.html
  */
 
 #include <iostream>

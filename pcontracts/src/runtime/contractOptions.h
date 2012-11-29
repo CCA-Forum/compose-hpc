@@ -1,30 +1,17 @@
 /**
+ * \internal
  * File:           contractOptions.h
  * Author:         T. Dahlgren
  * Created:        2012 April 12
- * Last Modified:  2012 November 12
+ * Last Modified:  2012 November 28
+ * \endinternal
  *
- * 
  * @file
- * @section DESCRIPTION
- * Interface contract enforcement options.  
+ * @brief  
+ * Basic interface contract enforcement options.
  *
- *
- * @section SOURCE
- * The options are borrowed heavily from Babel's SIDL.
- *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude contractsSource.html
+ * @htmlinclude copyright.html
  */
 
 #ifndef contractOptions_h
@@ -43,7 +30,7 @@ extern "C" {
 /**
  * Contract clause types. 
  *
- * WARNING:  ContractClauseEnum, S_CONTRACT_CLAUSE, and EnforcementClauseEnum
+ * \warning ContractClauseEnum, S_CONTRACT_CLAUSE, and EnforcementClauseEnum
  *   MUST be kept in sync.  That is, any changes to one must correspond to 
  *   changes in the others.
  */
@@ -61,7 +48,7 @@ typedef enum ContractClause__enum {
 /**
  * Names corresponding to (and indexable by) ContractClauseEnum.
  *
- * WARNING:  ContractClauseEnum, S_CONTRACT_CLAUSE, and EnforcementClauseEnum
+ * \warning ContractClauseEnum, S_CONTRACT_CLAUSE, and EnforcementClauseEnum
  *   MUST be kept in sync.  That is, any changes to one must correspond to 
  *   changes in the others.
  */
@@ -89,29 +76,29 @@ static const unsigned int S_CONTRACT_CLAUSE_MAX_IND = 4;
 /**
  * Enforcement clause options.
  *
- * WARNING:  ContractClauseEnum, S_CONTRACT_CLAUSE, and EnforcementClauseEnum
+ * \warning ContractClauseEnum, S_CONTRACT_CLAUSE, and EnforcementClauseEnum
  *   MUST be kept in sync.  That is, any changes to one must correspond to 
  *   changes in the others.
  */
 typedef enum EnforcementClause__enum {
-  /** No contract clauses. */
+  /** Do not check any contract clauses. */
   EnforcementClause_NONE           = ContractClause_NONE, /* 0 */
-  /** Invariant clauses ONLY. */
+  /** Check invariant clauses ONLY. */
   EnforcementClause_INVARIANTS     = ContractClause_INVARIANT, /* 1 */
-  /** Precondition clauses ONLY. */
+  /** Check precondition clauses ONLY. */
   EnforcementClause_PRECONDITIONS  = ContractClause_PRECONDITION, /* 2 */
-  /** Invariant and Precondition clauses ONLY. */
+  /** Check invariant and precondition clauses ONLY. */
   EnforcementClause_INVPRE         = ContractClause_INVARIANT 
                                    | ContractClause_PRECONDITION, /* 3 */
-  /** Postcondition clauses ONLY. */
+  /** Check postcondition clauses ONLY. */
   EnforcementClause_POSTCONDITIONS = ContractClause_POSTCONDITION, /* 4 */
-  /** Invariant and Postcondition clauses ONLY. */
+  /** Check invariant and postcondition clauses ONLY. */
   EnforcementClause_INVPOST        = ContractClause_INVARIANT 
                                    | ContractClause_POSTCONDITION, /* 5 */
-  /** Precondition and Postcondition clauses ONLY. */
+  /** Check precondition and postcondition clauses ONLY. */
   EnforcementClause_PREPOST        = ContractClause_PRECONDITION
                                    | ContractClause_POSTCONDITION, /* 6 */
-  /** All contract clauses. */
+  /** Check all contract clauses. */
   EnforcementClause_ALL            = ContractClause_INVARIANT
                                    | ContractClause_PRECONDITION
                                    | ContractClause_POSTCONDITION /* 7 */
@@ -133,10 +120,9 @@ static const EnforcementClauseEnum S_ENFORCEMENT_CLAUSE_MAX
 /**
  * Names corresponding to (and indexable by) EnforcementClauseEnum.
  *
- * NOTE:  While the names shown below could be derived from the
- *   actual clauses at runtime, it was decided to maintain them
- *   here for consistency with the other enforcement-related
- *   enumerations.
+ * \note While these names could be derived from the actual clauses
+ *  at runtime, it was decided to maintain them here for consistency 
+ *  with other enforcement-related enumerations.
  */
 static const char* S_ENFORCEMENT_CLAUSE[8] = {
   "None",
@@ -152,10 +138,9 @@ static const char* S_ENFORCEMENT_CLAUSE[8] = {
 /**
  * Abbreviated names corresponding to (and indexable by) EnforcementClauseEnum.
  *
- * NOTE:  While the names shown below could be derived from the
- *   actual clauses at runtime, it was decided to maintain them
- *   here for consistency with the other enforcement-related
- *   enumerations.
+ * \note While these names could be derived from the actual clauses
+ *  at runtime, it was decided to maintain them here for consistency 
+ *  with other enforcement-related enumerations.
  */
 static const char* S_ENFORCEMENT_CLAUSE_ABBREV[8] = {
   "None",
@@ -181,11 +166,10 @@ static const unsigned int S_ENFORCEMENT_CLAUSE_MIN_IND = 0;
 static const unsigned int S_ENFORCEMENT_CLAUSE_MAX_IND = 7;
 
 
-
 /** 
  * Contract clause enforcement frequency options.
  *
- * WARNING:  EnforcementFrequencyEnum and S_ENFORCEMENT_FREQUENCY 
+ * \warning EnforcementFrequencyEnum and S_ENFORCEMENT_FREQUENCY 
  *   MUST be kept in sync.  That is, any changes to one must 
  *   correspond to changes in the other.
  */
@@ -204,6 +188,7 @@ typedef enum EnforcementFrequency__enum {
   EnforcementFrequency_RANDOM          = 5
 } EnforcementFrequencyEnum;
 
+
 /**
  * The minimum Enforcement Frequency enumeration value.  Provided for
  * traversal purposes.
@@ -221,7 +206,7 @@ static const EnforcementFrequencyEnum S_ENFORCEMENT_FREQUENCY_MAX
 /**
  * Names corresponding to (and indexable by) EnforcementFrequencyEnum.
  *
- * WARNING:  EnforcementFrequencyEnum and S_ENFORCEMENT_FREQUENCY 
+ * \warning EnforcementFrequencyEnum and S_ENFORCEMENT_FREQUENCY 
  *   MUST be kept in sync.  That is, any changes to one must 
  *   correspond to changes in the other.
  */

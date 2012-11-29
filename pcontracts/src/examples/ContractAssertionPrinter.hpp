@@ -1,27 +1,21 @@
 /**
+ * \internal
  * File:          ContractAssertionPrinter.hpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 November 12
+ * Last Modified: 2012 November 28
+ * \endinternal
  *
+ * @file
+ * @brief 
+ * Class for printing contract clause assertions detected in ROSE AST comments.
  *
- * @section DESCRIPTION
- * Simple class used for illustrating the use of basic ROSE features for 
- * printing contract clause assertions.  It is NOT intended for contract
- * enforcement use.
+ * @details
+ * Simple class implementation for illustrating the use of basic ROSE features 
+ * and a rudimentary contract clause parser for extracting and printing 
+ * contract clause assertions.  
  *
- *
- * @section COPYRIGHT
- * Copyright (c) 2012, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Tamara Dahlgren <dahlgren1@llnl.gov>.
- * 
- * LLNL-CODE-473891.
- * All rights reserved.
- * 
- * This software is part of COMPOSE-HPC. See http://compose-hpc.sourceforge.net/
- * for details.  Please read the COPYRIGHT file for Our Notice and for the 
- * BSD License.
+ * @htmlinclude copyright.html
  */
 
 #ifndef include_Contract_Assertion_Printer_hpp
@@ -43,7 +37,7 @@ class ContractAssertionPrinter : public ContractPrinter
      * Process the current AST node passed by the front end, identifying
      * and printing individual contract clause assertions.
      *
-     * @param node  Current AST node.
+     * @param[in] node  Current AST node.
      */
     void virtual visit(SgNode* node);
 
