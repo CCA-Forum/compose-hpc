@@ -20,24 +20,12 @@ import System.IO
 import RuleGen.Trees
 import Data.Tree
 import RuleGen.Yang
-import Control.Monad.State
 import RuleGen.Weaver
+import RuleGen.IDGen
 import Data.List
 
 cleanlabel :: String -> String
 cleanlabel lbl = filter (\c -> c /= '\\' && c /= '\'' && c /= '\"') lbl
-
--- use a proper state monad for generating unique identifiers
--- for graphviz nodes -- passing around the int and making sense
--- of it was a pain
-type IDGen = State Int
-
--- helper to generate IDs
-genID :: IDGen Int
-genID = do
-  i <- get
-  put (i+1)
-  return i
 
 {-|
   Take a LabeledTree and return a list of lines for the
@@ -45,7 +33,7 @@ genID = do
 -}
 treeToGraphviz :: LabeledTree -- ^ Tree to print
                -> [String]    -- ^ DOT-file lines
-treeToGraphviz t = snd $ evalState (tToGV t) 0
+treeToGraphviz t = evalIDGen t tToGV
 
 {-|
   Take a EditTree and return a list of lines for the
@@ -53,7 +41,7 @@ treeToGraphviz t = snd $ evalState (tToGV t) 0
 -}
 etreeToGraphviz :: EditTree -- ^ Tree to print
                 -> [String] -- ^ DOT-file lines
-etreeToGraphviz t = snd $ evalState (etToGV t) 0
+etreeToGraphviz t = evalIDGen t etToGV 
 
 {-|
   Take a WeaveTree and return a list of lines for the
@@ -61,7 +49,7 @@ etreeToGraphviz t = snd $ evalState (etToGV t) 0
 -}
 wtreeToGraphviz :: WeaveTree -- ^ Tree to print
                 -> [String]  -- ^ DOT-file lines
-wtreeToGraphviz t = snd $ evalState (wToGV t) 0
+wtreeToGraphviz t = evalIDGen t wToGV
 
 {-|
   IO function to write a sequence of DOT file lines to
