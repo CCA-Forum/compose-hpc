@@ -17,7 +17,10 @@ import RuleGen.Weaver
 import RuleGen.IDGen
 
 --
--- TODO: replace with proper variable and symbol generator
+-- generate unique labeled tree elements.  each element represents
+-- a leaf node in the tree -- a string-labeled node with an empty
+-- set of children.  the name of the node is "RG_" followed by a
+-- unique integer drawn from the pool managed by the IDGen monad.
 --
 strategoVar :: IDGen LabeledTree
 strategoVar = do
@@ -64,10 +67,9 @@ contextualize (WLeaf _)        = error "Can't contextualize a leaf"
 
 -- the action is in the WNodes...
 contextualize (WNode str kids) = do
-  let
-    -- if any of the kids of this node are a hole, then we build
-    -- context from this node as parent.
-    holes = holeFinder kids
+  -- if any of the kids of this node are a hole, then we build
+  -- context from this node as parent.
+  let holes = holeFinder kids
 
   case holes of
     -- no kids are holes, so descend into subtrees that match
