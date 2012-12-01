@@ -1,6 +1,6 @@
-commit e1e5f348671bab4060acad3a7ef3b11c60c33de3
+commit 131a7ce37eaeac1fc6964d2af424856d5f5bc676
 Author: Adrian Prantl <adrian@llnl.gov>
-Date:   Fri Nov 30 15:57:31 2012 -0800
+Date:   Fri Nov 30 16:33:01 2012 -0800
 
     synch with upstream
 
@@ -36,6 +36,19 @@ index a22a713..b683f05 100644
      chpl_gen_shutdown->insertBeforeReturnAfterLabel(new CallExpr(fn));
    }
    forv_Vec(DefExpr, def, gDefExprs) {
+diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
+index f832692..24cfaed 100644
+--- a/runtime/include/chplrt.h
++++ b/runtime/include/chplrt.h
+@@ -38,7 +38,7 @@ extern int chpl_threads_initialized;
+       chpl_error("attempt to dereference nil", lineno, filename);	\
+   } while (0)
+ 
+-#define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
++#define _REF_BORROW(x, type, data, lineno, filename)			\
+   do {									\
+     if (data == nil)							\
+       chpl_error("data vector is nil", lineno, filename);		\
 diff --git a/runtime/src/chplinit.c b/runtime/src/chplinit.c
 index 1b8d0ce..af74c45 100644
 --- a/runtime/src/chplinit.c
