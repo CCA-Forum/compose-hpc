@@ -33,7 +33,7 @@ cleanlabel lbl = filter (\c -> c /= '\\' && c /= '\'' && c /= '\"') lbl
 -}
 treeToGraphviz :: LabeledTree -- ^ Tree to print
                -> [String]    -- ^ DOT-file lines
-treeToGraphviz t = evalIDGen t tToGV
+treeToGraphviz t = snd $ evalIDGen t tToGV
 
 {-|
   Take a EditTree and return a list of lines for the
@@ -41,7 +41,7 @@ treeToGraphviz t = evalIDGen t tToGV
 -}
 etreeToGraphviz :: EditTree -- ^ Tree to print
                 -> [String] -- ^ DOT-file lines
-etreeToGraphviz t = evalIDGen t etToGV 
+etreeToGraphviz t = snd $ evalIDGen t etToGV 
 
 {-|
   Take a WeaveTree and return a list of lines for the
@@ -49,7 +49,7 @@ etreeToGraphviz t = evalIDGen t etToGV
 -}
 wtreeToGraphviz :: WeaveTree -- ^ Tree to print
                 -> [String]  -- ^ DOT-file lines
-wtreeToGraphviz t = evalIDGen t wToGV
+wtreeToGraphviz t = snd $ evalIDGen t wToGV
 
 {-|
   IO function to write a sequence of DOT file lines to

@@ -25,6 +25,7 @@ Contact : matt sottile (matt@galois.com)
 import RuleGen.AtermUtilities
 import RuleGen.Weaver
 import RuleGen.Stratego
+import RuleGen.IDGen
 import RuleGen.Yang
 import RuleGen.Trees
 --import RuleGen.Pruner
@@ -65,6 +66,7 @@ main = do
   let tree1' = despecifyFile tree1
       tree2' = despecifyFile tree2
 
+  -- label comparator that is used by the tree diff algorithm
       labelcompare = (==)
 
   -- run Yang's algorithm
@@ -109,7 +111,7 @@ main = do
   --       want both available, with some control possible as to which is
   --       chosen and when.
   --  
-  let holes = contextualize woven'
+  let holes = evalIDGen woven' contextualize
       (pre,post) = unzip holes
 
   if (debugflag) then do putStrLn "---PRE---"

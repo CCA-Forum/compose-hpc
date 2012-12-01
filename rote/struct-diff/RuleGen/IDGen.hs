@@ -25,6 +25,6 @@ genName n = do
   i <- genID
   return $ n ++ (show i)
 
-evalIDGen :: a -> (a -> IDGen (Int,b)) -> b
-evalIDGen x f = snd $ evalState (f x) 0
+evalIDGen :: a -> (a -> IDGen b) -> b
+evalIDGen x f = evalState (f x) 0
 
