@@ -17,6 +17,7 @@ module RuleGen.Weaver (
 ) where
 
 import RuleGen.Yang
+import Debug.Trace
 import RuleGen.Trees
 
 data WeaveTree = WNode Label [WeavePoint]
@@ -83,8 +84,9 @@ nonMatchForest (WNode _ kids) = concat $ map handle kids
 -- nodes, so it is an error to call them.
 --
 leafify :: EditTree -> WeaveTree
-leafify (ELeaf t) = WLeaf t
-leafify x         = error $ "Erroneous leafify call :: "++(show x)
+leafify (ELeaf t)     = WLeaf t
+leafify e@(ENode _ _) = WLeaf $ etreeToLTree e
+leafify ENil          = error $ "Erroneous leafify call :: ENil"
 
 {-|
   Given two edit trees as produced by Yang's diff algorithm, try to weave them
@@ -114,12 +116,12 @@ zippy []              []                = []
 -- this as a RightHole with the subtree that was deleted from the LHS
 -- hanging off of the hole.
 --
-zippy ((Delete,t):xs) []                = (RightHole $ leafify t)   :(zippy xs [])
+zippy ((Delete,t):xs) []                = trace "D/nil" $ (RightHole $ leafify t)   :(zippy xs [])
 --
 -- symmetric with previous case : this represents missing nodes on the
 -- the LHS, and a correspond left hole.
 --
-zippy [] ((Delete,t):ys)                = (LeftHole $ leafify t)    :(zippy [] ys)
+zippy [] ((Delete,t):ys)                = trace "nil/D" $ (LeftHole $ leafify t)    :(zippy [] ys)
 --
 -- if both sides say keep, we have a match.  recurse down into the matching
 -- trees
@@ -129,17 +131,17 @@ zippy ((Keep,xt):xs) ((Keep,yt):ys)     = (Match (weave xt yt))     :(zippy xs y
 -- both sides disagree, so we delete.  this represents a mismatch, which
 -- we hang the two mismatching trees off of.
 --
-zippy ((Delete,xt):xs) ((Delete,yt):ys) = (Mismatch (leafify xt) (leafify yt)):
+zippy ((Delete,xt):xs) ((Delete,yt):ys) = trace "D/D" $ (Mismatch (leafify xt) (leafify yt)):
                                           (zippy xs ys)
 --
 -- deletion on one side, but no delete on the other side (previous case didn't
 -- match), so we assume a right hole
 --
-zippy ((Delete,xt):xs) ys               = (RightHole $ leafify xt)  :(zippy xs ys)
+zippy ((Delete,xt):xs) ys               = trace "D/ys" $ (RightHole $ leafify xt)  :(zippy xs ys)
 --
 -- symmetric with previous case.
 --
-zippy xs ((Delete,yt):ys)               = (LeftHole $ leafify yt)   :(zippy xs ys)
+zippy xs ((Delete,yt):ys)               = trace "xs/D" $ (LeftHole $ leafify yt)   :(zippy xs ys)
 --
 -- by construction of the dynamic programming table in the Yang algorithm,
 -- when one tree runs out of nodes, the rest are deleted.  it is impossible

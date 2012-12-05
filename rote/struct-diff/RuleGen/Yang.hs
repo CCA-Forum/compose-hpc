@@ -9,6 +9,7 @@ module RuleGen.Yang (
   EditTree(..),
   EOp(..),
   LabelComparator,
+  etreeToLTree,
   replaceEditTreeNode
 ) where
 
@@ -26,6 +27,11 @@ data EditTree = ENode Label [(EOp,EditTree)]
               | ELeaf LabeledTree  -- can get subtree out of the original Tree
               | ENil               -- used for the zero row/column of matrix
   deriving (Show, Eq)
+
+etreeToLTree :: EditTree -> LabeledTree
+etreeToLTree (ELeaf l)        = l
+etreeToLTree (ENode lbl kids) = Node lbl $ map (\(_,e) -> etreeToLTree e) kids
+etreeToLTree ENil             = error "Fatal: ENil encountered in the wild"
 
 replaceEditTreeNode :: Label -> EditTree -> LabeledTree -> EditTree -> EditTree
 replaceEditTreeNode lbl replET replLT t =
