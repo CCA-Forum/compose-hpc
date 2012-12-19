@@ -32,11 +32,11 @@ import RuleGen.Trees
 import RuleGen.Filter
 import RuleGen.Contextualizer
 import RuleGen.CmdlineArgs
-import Data.Maybe
 import RuleGen.GraphvizUtil
 import System.Exit 
 import Data.Tree
-
+import Control.Monad (when)
+import Data.Maybe (mapMaybe)
 
 
 -- ==============================================
@@ -66,10 +66,10 @@ main = do
   let tree1' = despecifyFile tree1
       tree2' = despecifyFile tree2
 
-  -- label comparator that is used by the tree diff algorithm
+      -- label comparator that is used by the tree diff algorithm
       labelcompare = (==)
 
-  -- run Yang's algorithm
+      -- run Yang's algorithm
       (y1',y2) = treediff tree1' tree2' labelcompare
 
       blank = LBLString "_"
@@ -98,8 +98,7 @@ main = do
   -- TODO: this still requires the stratego output file to be specified
   --       since it is a required argument.  figure out how to suppress
   --       that if this flag was enabled.
-  if gvizflag then do exitSuccess
-              else return ()
+  when gvizflag exitSuccess
 
   --
   -- contextualize : this seeks holes, and produces pairs of pre-transform/
@@ -114,34 +113,29 @@ main = do
   let holes = evalIDGen woven' contextualize
       (pre,post) = unzip holes
 
-  if (debugflag) then do putStrLn "---PRE---"
-                         _ <- mapM putStrLn (map dumpTree pre)
-                         putStrLn "---POST---"
-                         _ <- mapM putStrLn (map dumpTree post)
-                         return ()
-                 else return ()
+  when debugflag $ do
+    putStrLn "---PRE---"
+    mapM_ putStrLn (map dumpTree pre)
+    putStrLn "---POST---"
+    mapM_ putStrLn (map dumpTree post)
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
   let nonmatching_forest = nonMatchForest woven'
 
   -- debug : print stuff out
-  if (debugflag) then do putStrLn $ show woven'
-                         _ <- mapM (\i -> putStrLn $ show i) nonmatching_forest
-                         return ()
-                 else return ()
+  when debugflag $ do
+    print woven'
+    mapM_ print nonmatching_forest
 
   -- get the rules
-  let mismatch_rules = map fromJust $ 
-                       filter isJust $ 
-                       map toRule nonmatching_forest
-
+  let mismatch_rules = mapMaybe toRule nonmatching_forest
       rules = mismatch_rules ++ hole_rules
 
   -- emit the stratego file
-  case rules of
-    [] -> do putStrLn "No difference identified."
-    _ -> do writeFile outputfile (strategoRules rules)
+  if null rules
+    then putStrLn "No difference identified."
+    else writeFile outputfile (strategoRules rules)
 
---  putStrLn (strategoRules rules)
+-- putStrLn (strategoRules rules)
   return ()

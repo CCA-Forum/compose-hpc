@@ -12,7 +12,7 @@ module RuleGen.Contextualizer (
 
 import RuleGen.Trees
 import Data.Tree
-import Data.Maybe
+import Data.Maybe (mapMaybe)
 import RuleGen.Weaver
 import RuleGen.IDGen
 
@@ -51,9 +51,6 @@ checkMatch :: WeavePoint -> Maybe WeaveTree
 checkMatch (Match m) = Just m
 checkMatch _         = Nothing
 
-unmaybeList :: [Maybe a] -> [a]
-unmaybeList l = map fromJust $ filter isJust l
-
 kidVars :: WeavePoint -> IDGen (WeavePoint, Maybe LabeledTree)
 kidVars k@(LeftHole _)  = return (k,Nothing)
 kidVars k@(RightHole _) = return (k,Nothing)
@@ -73,15 +70,15 @@ contextualize (WNode str kids) = do
 
   case holes of
     -- no kids are holes, so descend into subtrees that match
-    [] -> do rv <- mapM contextualize $ unmaybeList (map checkMatch kids)
+    [] -> do rv <- mapM contextualize $ mapMaybe checkMatch kids
              return $ concat rv
 
     -- we have one or more kid-holes.  what to do?
     --  1. all non-hole kids, they become stratego variables
     --  2. all hole kids are emitted as their raw trees
     _  -> do kids' <- mapM kidVars kids
-             let lhs = Node str (unmaybeList $ map (ctxtize False) kids')
-                 rhs = Node str (unmaybeList $ map (ctxtize True) kids')
+             let lhs = Node str (mapMaybe (ctxtize False) kids')
+                 rhs = Node str (mapMaybe (ctxtize True) kids')
              return [(lhs,rhs)]
 
     	
