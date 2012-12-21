@@ -72,8 +72,18 @@ main = do
       -- run Yang's algorithm
       (y1',y2) = treediff tree1' tree2' labelcompare
 
-      blank = LBLString "_"
-      y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
+      --
+      -- TODO: the following commented out replacement of gen_info() subtrees in
+      -- the y1 tree is necessary to allow us to pattern match on actual files
+      -- with file_info() subtrees, but it screws up the generalization performed
+      -- later on.  Perhaps we should do a replaceWeaveTreeNode to perform this cleanup of
+      -- gen_info() subtrees after we know we won't manipulate the trees any more.  for now,
+      -- don't modify y1 so just let y1 = y1'.
+      --
+
+      --blank = LBLString "_"
+      --y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
+      y1 = y1'
 
   -- check if we want graphviz files dumped of the two diff trees
   case sgraphviz of
@@ -121,7 +131,8 @@ main = do
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
-  let nonmatching_forest = nonMatchForest woven'
+  let nonmatching_forestPre = nonMatchForest woven'
+      nonmatching_forest = map generalizeWeave nonmatching_forestPre
 
   -- debug : print stuff out
   when debugflag $ do
@@ -129,7 +140,14 @@ main = do
     mapM_ print nonmatching_forest
 
   -- get the rules
-  let mismatch_rules = mapMaybe toRule nonmatching_forest
+  let blank = LBLString "_"
+      nonmatching_forest' = map (\p -> replaceWeavePoint (LBLString "gen_info()") 
+                                                         (WNode blank [])
+                                                         (Node blank []) 
+                                                         (True,False) 
+                                                         p) 
+                                nonmatching_forest
+      mismatch_rules = mapMaybe toRule nonmatching_forest'
       rules = mismatch_rules ++ hole_rules
 
   -- emit the stratego file

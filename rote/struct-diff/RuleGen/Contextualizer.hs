@@ -21,6 +21,7 @@ import RuleGen.IDGen
 -- a leaf node in the tree -- a string-labeled node with an empty
 -- set of children.  the name of the node is "RG_" followed by a
 -- unique integer drawn from the pool managed by the IDGen monad.
+--  (RG = RuleGen)
 --
 strategoVar :: IDGen LabeledTree
 strategoVar = do
@@ -80,5 +81,3 @@ contextualize (WNode str kids) = do
              let lhs = Node str (mapMaybe (ctxtize False) kids')
                  rhs = Node str (mapMaybe (ctxtize True) kids')
              return [(lhs,rhs)]
-
-    	

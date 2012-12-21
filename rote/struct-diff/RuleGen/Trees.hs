@@ -39,7 +39,12 @@ dumpTree t = drawTree $ convert t
 data Label = LBLString String
            | LBLList
            | LBLInt Integer
-  deriving (Show,Eq)
+  deriving (Eq, Ord)
+
+instance Show Label where
+  show (LBLString s) = s
+  show (LBLList)     = "LIST"
+  show (LBLInt i)    = show i
 
 type LabeledTree = Tree Label
 

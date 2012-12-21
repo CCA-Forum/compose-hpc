@@ -13,12 +13,18 @@ module RuleGen.Weaver (
 	WeavePoint(..),
 	weave,
 	nonMatchForest,
+  replaceWeaveTreeNode,
+  replaceWeavePoint,
 	toRule
 ) where
 
 import RuleGen.Yang
-import Debug.Trace
+-- import Debug.Trace
 import RuleGen.Trees
+
+-- pass-through to turn off tracing
+trace :: String -> a -> a
+trace _ x = x
 
 data WeaveTree = WNode Label [WeavePoint]
                | WLeaf LabeledTree
@@ -50,6 +56,41 @@ instance (Show WeavePoint) where
 	                      "\n\n  RIGHT="++(pp b)++"\n\n"
 	show (LeftHole m)   = "LH: "++(show m)++"\n\n"
 	show (RightHole m)  = "RH: "++(show m)++"\n\n"
+
+-- given a label, we seek any subtree rooted with that label and replace it with
+-- the provided edit or weave tree node (depending on where in the weave tree)
+-- the match occurs.  We need to provide an additional argument used to control
+-- how mismatch nodes are traversed.  In some cases, we want to perform replacement
+-- only on the left-hand children of a mismatch, so we would call this with (True,False).
+-- replacement on both sides would require (True,True).  The final parameter is
+-- the weavetree being traversed.
+replaceWeaveTreeNode :: Label -> WeaveTree -> LabeledTree -> (Bool, Bool) -> WeaveTree -> WeaveTree
+replaceWeaveTreeNode lbl replWT replLT flags t =
+  case t of
+    WLeaf e                  -> WLeaf (replaceSubtrees lbl replLT e)
+    WNode s kids | s == lbl  -> replWT
+                 | otherwise -> WNode s (map (\k -> replaceWeavePoint lbl 
+                                                                      replWT 
+                                                                      replLT 
+                                                                      flags 
+                                                                      k) 
+                                             kids)
+
+-- same purpose as replaceWeaveTree, but operates on WeavePoints.  The two functions are mutually
+-- recursive since WeaveTree Nodes have WeavePoints as children, which in turn have WeaveTree node
+-- children.
+replaceWeavePoint :: Label -> WeaveTree -> LabeledTree -> (Bool, Bool) -> WeavePoint -> WeavePoint
+replaceWeavePoint lbl replWT replLT flags@(lflag,rflag) p =
+  let replacer = replaceWeaveTreeNode lbl replWT replLT flags
+  in
+    case p of
+      Match m      -> Match (replacer m)
+      Mismatch a b -> 
+          let ra = if lflag then replacer a else a
+              rb = if rflag then replacer b else b
+          in Mismatch ra rb
+      LeftHole m   -> LeftHole (replacer m)
+      RightHole m  -> RightHole (replacer m)
 
 --
 -- pretty printer for weave trees that only works for leaves to turn them into
