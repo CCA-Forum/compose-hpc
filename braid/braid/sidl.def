@@ -176,17 +176,11 @@
 %        return interface_methods(ext)
 %    return []
 %
-%def hashable((scoped_id, modules, name, ext)):
-%    """
-%    Make a hashable copy of a scoped_id by turning the list of modules into a tuple.
-%    """
-%    return scoped_id, tuple(modules), name, ext
-%
-%
 %def hashable_type_id(t):
 %    """
 %    \return the (hashable) scoped Id of a class, interface, package, etc.
 %    """
+%    from utils import hashable
 %    tid = t[1]
 %    if isinstance(tid, tuple) and tid[0] == scoped_id:
 %        return hashable(t[1])

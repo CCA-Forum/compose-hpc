@@ -85,7 +85,7 @@ def unscope(scope, enum):
     '''
     assert(scope)
     m = re.match(r'^'+'_'.join(scope.prefix)+r'_(\w+)__enum$', enum)
-    return m.group(1)
+    return m.group(1) if m else enum
 
 def unscope_retval(scope, r):
     if r[0] == ir.enum: return r[0], unscope(scope, r[1]), r[2], r[3]
@@ -251,20 +251,17 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'int':       "int(32)",
         'long':      "int(64)",
         'opaque':    "int(64)",
-        'string':    "string"
+        'string':    "string",
+        'BaseInterface': "opaque"
         }
 
     def is_sidl_array(self, struct_name):
         '''
-        return the scalar type of a sidl__array struct or \c None if it isn't one
+        return the scalar type of a non-generic sidl__array struct or \c None if it isn't one
         '''
         m = babel.sidl_array_regex.match(struct_name)
-        if m:
-            t = m.group(1)
-            try:
-                return self.type_map[t]
-            except:
-                return 'opaque'
+        if m and m.group(2):
+            return self.type_map[m.group(2)]
         return None
 
     @generator

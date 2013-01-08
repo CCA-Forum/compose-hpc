@@ -22,7 +22,7 @@
 import sidl
 from sidl_symbols import visit_hierarchy, scan_methods
 from patmat import member_chk
-from utils import accepts, returns
+from utils import accepts, returns, hashable
 
 @accepts(object, tuple)
 def make_extendable(symbol_table, sidl_ext):
@@ -151,7 +151,7 @@ class Extendable(object):
             parents = sidl.interface_extends(self.data)
         else:
             parents = sidl.class_implements(self.data)
-        return set([sidl.hashable(impl) for _, impl in parents])
+        return set([hashable(impl) for _, impl in parents])
 
     def get_unique_interfaces(self):
         """

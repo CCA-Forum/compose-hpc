@@ -394,20 +394,20 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         def incoming(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.out:
                 param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
-                return conv.ir_to_burg(typ, 'chpl', tmp(name), param, param)
+                return conv.ir_to_burg(typ, 'chpl', symbol_table, tmp(name), param, param)
             else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.in_:
                 param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
-                return conv.ir_to_burg(typ, 'ior', param, tmp(name), param)
+                return conv.ir_to_burg(typ, 'ior', symbol_table, param, tmp(name), param)
             else: return []
 
         def cons_with(f, l):
             l1 = [i for i in map(f, l) if i]
             if   len(l1) > 1: return reduce(lambda a, b: (conv.cons, a, b), l1)
             elif len(l1) > 0: return l1[0]
-            else: return conv.none,
+            else: import pdb; pdb.set_trace(); return conv.none,
 
         # Type conversion
         cdecl_type = ir.fn_decl_type(cdecl)
@@ -428,6 +428,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         outs = cons_with(outgoing, zip(args+retval, arguments+rname))
         assert(len(arguments) == len(args))
         burg_call = (conv.ior_call_assign, (conv.ior_call, method, ins), outs)
+        #print burg_call
         conv.codegen(burg_call, conv.stmt, chpl_scope, chpl_scope.cstub)
 
 
@@ -440,20 +441,20 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         def incoming(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.out:
                 param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
-                return conv.ir_to_burg(typ, 'ior', tmp(name), param, param)
+                return conv.ir_to_burg(typ, 'ior', symbol_table, tmp(name), param, param)
             else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.in_:
                 param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
-                return conv.ir_to_burg(typ, 'chpl', param, tmp(name), param)
+                return conv.ir_to_burg(typ, 'chpl', symbol_table, param, tmp(name), param)
             else: return []
 
         def cons_with(f, l):
             l1 = [i for i in map(f, l) if i]
             if   len(l1) > 1: return reduce(lambda a, b: (conv.cons, a, b), l1)
             elif len(l1) > 0: return l1[0]
-            else: return conv.none,
+            else: import pdb; pdb.set_trace(); return conv.none,
 
         # Type conversion
         cdecl_type = ir.fn_decl_type(cdecl)

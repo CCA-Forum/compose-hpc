@@ -37,7 +37,7 @@ from parse_tree import parse_tree
 
 def error(msg):
     global filename
-    print '%s:%d error: %s'%(filename, line_number, msg)
+    print '%s:%d: error: %s'%(filename, line_number, msg)
     exit(1)
 
 if __name__ == '__main__':
@@ -281,7 +281,6 @@ def label(node):
         print 'label(%s):'%str(node)
         print "my_labels: ", my_labels
 
-    #visited = set()
     fixpoint = False
     while not fixpoint:
         fixpoint = True
@@ -294,44 +293,38 @@ def label(node):
 
             #print 'src =', src, '?'
      
-            # is the arity compatible?
-            if arity and not (isinstance(src, tuple)
-                              and len(src)-1 == arity # have the same arity
-                              and (src[0] == node[0]  # compound
-                                or src == node)):     # aggregate
-                # sadly there's an ambiguity between compound types
-                # and n-ary nonterminals
-                continue # not compatible
+            # is the rule n-ary and is the arity compatible?
+            if isinstance(src, tuple):
+                if src == node: import pdb; pdb.set_trace()
 
-            #if node[0] == cons: import pdb; pdb.set_trace()
+                if not (len(src)-1 == arity       # have the same arity
+                        and (src[0] == node[0])): # and functor
+                    continue # not compatible
 
+                if not child_labels: import pdb; pdb.set_trace()
 
-            #if len(node[1])>1 and node[1][0] == 'enum': import pdb; pdb.set_trace()
+                # can we reach the rule's argument src sinks from our node?
+                basecost = 0
+                fail = False
+                for i in range(arity):
+                    #print 'child_labels[%d]='%i,child_labels[i]
+                    #print src[i+1]
+                    try:    _, basecost_i = child_labels[i][0][src[i+1]]
+                    except KeyError: fail = True; continue # rule does not match
+                    basecost = basecost+basecost_i
+                if fail: continue
 
-            if arity == 0:
+            else:
                 # can we reach the rule's src sink from our node?
                 try:    _, basecost = my_labels[src]
                 except KeyError: continue # rule does not match
 
-            else:
-                # can we reach the rule's argument src sinks from our node?
-                fail = False
-                basecost = 0
-                for i in range(arity):
-                    #print 'childlables[%d]='%i,child_labels[i]
-                    #print src[i+1]
-                    try:    _, basecost_i = child_labels[i][0][src[i+1]]
-                    except KeyError: fail = True; break # rule does not match
-                    basecost = basecost+basecost_i
-                #if fail: print 'FAIL', node[0], target, src
-                if fail: continue
-
             cost = cost + basecost
             # decide whether it pays off to add this rule
             #print cost, '<', current_cost(target), '?'
-            if cost < current_cost(target):# and target not in visited:
+            if cost < current_cost(target):
+                assert(isinstance(src, str) or len(src) == 1+len(child_labels))
                 #print '    my_labels[',target,'] = ', r[1]
-                #visited.add(src)
                 my_labels[target] = (r, cost)
                 fixpoint = False
 
@@ -383,21 +376,22 @@ def reducetree(labels, target, debug_src, *user_args):
         if debug: raise Exception() 
         else:     exit(1)
 
-    arity = len(labels)
     my_labels = labels[0]
 
     #print "%s(%d) --> %s"%(debug_src,arity,target)
 
-    if not target in my_labels.keys(): 
+    if not target in my_labels: 
+        import pdb; pdb.set_trace()
         error()
 
     r, cost = my_labels[target]
     # del my_labels[target]
 
     user_data, target1, _, action = r
+    arity = len(target1) if isinstance(target1, tuple) else 1
     #print "%s(%d) --> %s"%(target,arity,target1)
-
     #print '>>',my_labels[target]
+    assert(arity == 1 or arity == len(labels))
 
     if arity > 1:
       # for each children
@@ -409,8 +403,8 @@ def reducetree(labels, target, debug_src, *user_args):
       if target1 == '<terminal>':
           args = [user_data]
       else:
-          args = [reducetree(my_labels if isinstance(my_labels, list) else [my_labels], 
-                            target1, debug_src, *user_args)]
+          args = [reducetree(my_labels if isinstance(my_labels, list) else [my_labels]+labels[1:], 
+                             target1, debug_src, *user_args)]
 
     #print '!', action.__name__, args
     if debug:
@@ -425,6 +419,18 @@ def reducetree(labels, target, debug_src, *user_args):
     else:
         return action(*tuple(list(user_args)+args))
 
+def debug_viz(dotf, labels, p=0, c=[0]):
+    arity = len(labels)
+    n = c[0]+1
+    print >>dotf, "%d -> %d;" %(p, n)
+    c[0] = n
+    if arity > 1:
+        map(lambda l: debug_viz(dotf, l, n, c), labels[1:])
+    else:
+        if isinstance(labels[0], list):
+            debug_viz(dotf, labels[0], n, c)
+        else:
+            print >>dotf, 'node %d [label="%s"];' %(n,','.join(labels[0].iterkeys()))
 
 def codegen(src, target, *user_args):
     if len(user_args) <> action_arity:
@@ -436,6 +442,7 @@ def codegen(src, target, *user_args):
 
     labels = label(src)
 
+    #debug_viz(dotf, labels)
     if dot_debug:
         print >>dotf, '}\n'
         dotf.close()

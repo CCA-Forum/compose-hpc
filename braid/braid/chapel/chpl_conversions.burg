@@ -17,15 +17,36 @@
 #          ret  b   f  cons
 #                      /  \
 #                     a    b
+# </pre>
 #
 # rules can be
-# chpl <-- cons(chpl, chpl)
+# <pre>
+#   chpl <-- cons(chpl, chpl)
+# </pre>
 #
-# </pre> 
+# Structs are modelled as follows
+# <pre>
+# struct simple { b:bool, c:char, d:double };
+# void f(in a:struct simple, in i:int)
+#
+#     call
+#     /  \
+#    f   cons
+#        /  \
+#    struct  i
+#    /   \
+#   a    item
+#        /  \
+#       b   item
+#           /  \
+#          c    d
+# </pre>
+#
+# todo: write about the xeroxing mechanism..
 #
 # \authors <pre>
 #
-# Copyright (c) 2011, 2012 Lawrence Livermore National Security, LLC.
+# Copyright (c) 2011-2013 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
 #
@@ -44,6 +65,7 @@
 import babel, ior, ir, sidl
 import chapel.chpl as chpl
 from codegen import CCodeGenerator, CFile
+from utils import hashable
 
 def c_gen(ir, scope=None):
     if scope == None:
@@ -121,17 +143,6 @@ def strip(typ):
         return typ[0]
     return typ
 
-def copy_other_items(convs, items, a0, dest):
-    """
-    copy all struct items that need not to be converted
-    """
-    for _, typ, name in items:
-        if typ[0] == ir.struct:
-            copy_other_items(convs, ir.struct_struct_items(typ), a0+name+'.', dest+'.'+name)
-
-        if ir_type_to_chpl(typ) == typ: # boy, is this inefficient!!
-            convs.append(ir.Stmt(ir.Assignment(dest+'.'+name, a0+name)))
-
 def get_struct_items(full_type):
     t = full_type[1] if full_type[0] == ir.pointer_type else full_type
     return ir.struct_struct_items(t) 
@@ -183,24 +194,31 @@ def get_ior_array_type(sidl_array):
         }
     struct_name = sidl_array[1][1]
     m = babel.sidl_array_regex.match(struct_name)
-    return (chpl_type[m.group(1)], m.group(1)) if m else ir.void_ptr, ir.void_ptr
+    if m and m.group(2):
+        return chpl_type[m.group(2)], m.group(2)
+    else:
+        return ir.void_ptr, ir.void_ptr
 
 
 def wrap_rarray(scope, a0, fulltype, dest):
-    data  = '%s_data'  %a0
-    dom   = '%s_dom'   %a0
-    local = '%s_local' %a0
-    rank  = '%s_rank'  %a0
-    lus   = '%s_lus'   %a0  
-    lower = '%s_lower' %a0
-    upper = '%s_upper' %a0
-    stride ='%s_stride'%a0
+    # trick the code generator or it would think this is part of a
+    # virtual function call
+    a0 = c_gen(a0)
+    prefix = a0.replace('.', '_')
+    data  = '%s_data'  %prefix
+    dom   = '%s_dom'   %prefix
+    local = '%s_local' %prefix
+    rank  = '%s_rank'  %prefix
+    lus   = '%s_lus'   %prefix  
+    lower = '%s_lower' %prefix
+    upper = '%s_upper' %prefix
+    stride ='%s_stride'%prefix
 
     scalar_type = fulltype[1][1]
     iortype = ir.Typedef_type('sidl_%s__array'%scalar_type)
 
     # sanity check on input array: ensure domain is rectangular
-    scope.gen(ir.Stmt(ir.Call('performSanityCheck', [dom, '"%s"'%a0])))
+    scope.gen(ir.Stmt(ir.Call('performSanityCheck', [dom, '"%s"'%prefix])))
 
     # ensure we are working with a 'local' array
     # FIXME Hack to define a variable without explicitly specifying type
@@ -223,9 +241,9 @@ def wrap_rarray(scope, a0, fulltype, dest):
     # backends but simplify the C/C++ ones.
     scope.gen(ir.Copy('var '+lus,    ir.Call('computeLowerUpperAndStride',[local])))
     scope.gen(ir.Copy('var '+rank,   ir.Cast(ir.pt_int, access(dom,'rank'))))
-    scope.gen(ir.Copy('var '+lower,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%a0, [0]))))
-    scope.gen(ir.Copy('var '+upper,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%a0, [1]))))
-    scope.gen(ir.Copy('var '+stride, ir.Cast(ir.pt_int, ir.Call('%s_lus'%a0, [2]))))
+    scope.gen(ir.Copy('var '+lower,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [0]))))
+    scope.gen(ir.Copy('var '+upper,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [1]))))
+    scope.gen(ir.Copy('var '+stride, ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [2]))))
     scope.gen(ir.Copy(dest,
                       ir.Call('%s_borrow'%iortype[1],
                               [ir.Call(scalar_type+'_ptr', 
@@ -262,7 +280,36 @@ def Cons(a, b):
     elif not isinstance(b, list): b = [b]
     return a+b
 
-def ir_to_burg(typ, language, *user_data):
+def chain_items(prefix, items, language, symbol_table, dest, src, orig):
+    '''
+    recursively chain a list of struct items to a tree of items
+    '''
+
+    def chain1(items, language, symbol_table, pre0, pre1):
+        if len(items) == 0:
+            import pdb; pdb.set_trace()
+            return None
+
+        _, typ, name = items[-1]
+        item = ir_to_burg(typ, language, symbol_table, access(pre0,name), access(pre1,name), name)
+
+        if len(items) == 1:
+            return item
+
+        return 'item', item, chain1(items[:-1], language, symbol_table, pre0, pre1)
+    
+    # FIXME, this is ugly
+    if dest == orig: 
+        pre0 = prefix
+        pre1 = src[:-len(orig)] + prefix
+    else:
+        pre0 = dest[:-len(orig)] + prefix
+        pre1 = prefix
+
+    # reverse items so they are converted first to last eventually
+    return chain1(items, language, symbol_table, pre0, pre1)
+
+def ir_to_burg(typ, language, symbol_table, *user_data):
     '''
     convert an IR datatype into its native chapel equivalent and
     return the corresponding BURG expression. Invoking codegen() on
@@ -323,21 +370,30 @@ def ir_to_burg(typ, language, *user_data):
             return type_map[ir.opaque], user_data
 
         elif typ[1][0] == ir.struct:
-            if typ[1][1][0] == ir.scoped_id:
+            if babel.is_obj_type(symbol_table, typ[1][1]):
                 return type_map['ext'], typ, user_data
-            else:
-                ptr, (struct, name, items, docstr) = typ
-                hashable_typ = (ptr, (struct, name, tuple(items), docstr))
-                return type_map['array'], hashable_typ, user_data
+            elif babel.sidl_array_regex.match(typ[1][1]):
+                return type_map['array'], hashable(typ), user_data
+            else: # babel.is_struct_type(symbol_table, typ[1][1]):
+                return ir_to_burg(typ[1], language, symbol_table, *user_data)
         else: raise Exception()
+
+    elif typ[0] == ir.struct:
+        struct, name, items, docstr = typ
+        tmp1, tmp2, param = user_data
+        def ignore_deref(t):
+            return t[1] if t[0] == ir.deref else t
+
+        user_data = ignore_deref(tmp1), ignore_deref(tmp2), param
+        prefix    = user_data[0]
+        item_tree = chain_items(prefix, items, language, symbol_table, *user_data)
+        return ('struct', ('typ', hashable(typ), user_data), item_tree)
 
     elif typ[0] == ir.rarray:
         return type_map[ir.rarray], typ, user_data
 
     elif typ[0] == ir.enum:
-        enum, name, items, docstr = typ
-        hashable_typ = enum, name, tuple(items), docstr
-        return type_map[ir.enum], hashable_typ, user_data
+        return type_map[ir.enum], hashable(typ), user_data
 
     raise Exception()
 
@@ -355,10 +411,30 @@ def copy_over(typ, a0):
     merely copy over src into dest without any conversion
     '''
     dest, src, orig = a0
-    return typ, (orig, orig, None)
+    # was (orig, orig, None) but that doesn't do the right thing for
+    # struct items, which sometimes need to be copied regardless,
+    # because other struct items warrant a conversion
+    return typ, (dest, src, None)
+
+def xerox_struct((typ, (dest, src, orig)), items):
+    '''
+    Helper for structs, create a dummy conversion action such that a
+    temporary struct is allocated. The actual conversions and copy
+    operations are generated through the "item" children of the
+    struct.
+    '''
+    def item_convs(item):
+        if isinstance(items, list):
+            r = []
+            for item in items:
+                r.extend(item[1][2][3])
+            return r
+        return items[1][2][3]
+
+    return typ, (dest, src, (typ, dest, src, [ir.Comment('xerox')]+item_convs(items)))
 
 def c_convs(a):
-    'extract the postponed c conversions from an Xvalue_ior_c, if any'
+    'extract the postponed c conversions from an [l,r]value_ior_c, if any'
     _, (_, _, c_xvalue) = a 
     if c_xvalue == None: 
         return []
@@ -398,10 +474,17 @@ def assigns_temporary(stmts, name):
     figure out if stmts assign name
     '''
     for stmt in stmts:
-        if stmt[1][0] == ir.assignment:
-            if stmt[1][1] == name:
-                return True
-            if stmt[1][1][0] == ir.get_struct_item and stmt[1][1][2] == name:
+        if stmt[0] == ir.stmt and stmt[1][0] == ir.assignment:
+            _, lhs, rhs = stmt[1]
+            
+            def appears(lhs, name):
+                if lhs == name:
+                    return True
+                if lhs[0] == ir.get_struct_item:
+                    return appears(lhs[2], name)
+                return False
+
+            if appears(lhs, name):
                 return True
     return False
 
@@ -498,6 +581,10 @@ def test_harness():
 stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     ftype, cstub, name, args, call_args, ci = a0
 
+    #print args
+    #print call_args
+    #print
+
     # merge in and outargs
     outargs = map(strip_derefs, ensure_list(a1))
     inargs = filter(lambda a: a[0] <> outgoing_arg, args)
@@ -541,7 +628,6 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
         ftype, (_, retval, convs) = outargs[-1]
         if convs: retval = convs[2]
 
-
         # always declare an _ior_retval because we will write to
         # it unconditionally
         scope.genh(ir.Stmt(ir.Var_decl(outargs[-1][0], '_ior__retval')))
@@ -578,7 +664,8 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
             pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
             ior_call = [ir.Copy(retval, call)]
             if not assigns_temporary(post_call, '_retval'):
-                pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_ior__retval')))
+                import pdb; pdb.set_trace()
+                pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_ior__retval /*xxx*/')))
                 post_call.append(ir.Copy('_retval', retval))
             post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
@@ -752,6 +839,7 @@ rvalue_chpl_chpl <-- chpl_call(any_method, rvalue_chpl_chpl) :cost(1)
 #
 
 stmt <-- call(method, rvalue_native_fortran) :cost(1)
+    # not yet implemented!
     gen_tmp_vardecls(scope, list(a1))
     scope.gen(ir.Call('%s_fuse'%a0, a1))
 
@@ -759,33 +847,21 @@ stmt <-- call(method, rvalue_native_fortran) :cost(1)
 # MISCELLANEOUS
 #
 
-lvalue_ior_c            <-- none :cost(0)
-lvalue_ior_c            <-- cons(lvalue_ior_c,     none)             : cost(0)
 lvalue_ior_c            <-- cons(lvalue_ior_c,     lvalue_ior_c)     : cost(0)
     return Cons(a0, a1)                                              
                                                                      
-lvalue_ior_chpl         <-- none :cost(0)                            
-lvalue_ior_chpl         <-- cons(lvalue_ior_chpl,  none)             : cost(0)
 lvalue_ior_chpl         <-- cons(lvalue_ior_chpl,  lvalue_ior_chpl)  : cost(0)
     return Cons(a0, a1)
 
-lvalue_chpl_c           <-- none :cost(0)
-lvalue_chpl_c           <-- cons(lvalue_chpl_c,    none)             : cost(0)
 lvalue_chpl_c           <-- cons(lvalue_chpl_c,    lvalue_chpl_c)    : cost(0)
     return Cons(a0, a1)
 
-rvalue_ior_c            <-- none :cost(0)
-rvalue_ior_c            <-- cons(rvalue_ior_c,     none)             : cost(0)
 rvalue_ior_c            <-- cons(rvalue_ior_c,     rvalue_ior_c)     : cost(0)
     return Cons(a0, a1)                                              
                                                                      
-rvalue_ior_chpl         <-- none :cost(0)                            
-rvalue_ior_chpl         <-- cons(rvalue_ior_chpl,  none)             : cost(0)
 rvalue_ior_chpl         <-- cons(rvalue_ior_chpl,  rvalue_ior_chpl)  : cost(0)
     return Cons(a0, a1)
 
-rvalue_chpl_chpl        <-- none :cost(0)
-rvalue_chpl_chpl        <-- cons(rvalue_chpl_chpl, none)             : cost(0)
 rvalue_chpl_chpl        <-- cons(rvalue_chpl_chpl, rvalue_chpl_chpl) : cost(0)
     return Cons(a0, a1)
 
@@ -807,12 +883,16 @@ rvalue_chpl_c    <-- outgoing_arg  :cost(0)
 # this conversion is essentially a no-op; it says that values
 # converted at the chpl level are also compatible with a stub
 # DO NOT UNCOMMENT THESE, cf. *assign*
+# (leave them commented here, so nobody gets the idea to write rules like this)
 #value_ior_c     <-- value_ior_chpl   :cost(0)
 #value_ior_chpl  <-- value_ior_c      :cost(0)
 #value_chpl_c    <-- value_chpl_chpl  :cost(0)
 #value_chpl_chpl <-- value_chpl_c     :cost(0)
+# END DO NOT UNCOMMENT
 
-# rvalue and lvalue only serve to make the call rules more readable
+# Why is there a distinction between rvalue and lvalue?  
+# No technical reason. They only serve to make the call rules more
+# readable.
 lvalue_ior_c     <-- value_ior_c    :cost(0)
 rvalue_ior_c     <-- value_ior_c    :cost(0)
 lvalue_ior_chpl  <-- value_ior_chpl :cost(0)
@@ -867,30 +947,132 @@ value_ior_c     <-- dcomplex_ior_c    :cost(0)
 value_chpl_chpl <-- dcomplex_chpl_chpl:cost(0) 
 value_ior_chpl  <-- dcomplex_ior_chpl :cost(0) 
 
-value_chpl_c   <-- opaque_chpl_c      :cost(0) 
-value_ior_c    <-- pointer_type_ior_c :cost(0) 
-value_chpl_chpl<-- opaque_chpl_chpl   :cost(0) 
-value_ior_chpl <-- pointer_type_ior_chpl :cost(0) 
+value_chpl_c    <-- opaque_chpl_c      :cost(0) 
+value_ior_c     <-- pointer_type_ior_c :cost(0) 
+value_chpl_chpl <-- opaque_chpl_chpl   :cost(0) 
+value_ior_chpl  <-- pointer_type_ior_chpl :cost(0) 
+                 
+value_chpl_c    <-- enum_chpl_c     :cost(0) 
+value_ior_c     <-- enum_ior_c      :cost(0) 
+value_chpl_chpl <-- enum_chpl_chpl  :cost(0) 
+value_ior_chpl  <-- enum_ior_chpl   :cost(0) 
 
-value_chpl_c   <-- enum_chpl_c :cost(0) 
-value_ior_c    <-- enum_ior_c    :cost(0) 
-value_chpl_chpl<-- enum_chpl_chpl :cost(0) 
-value_ior_chpl <-- enum_ior_chpl :cost(0) 
+# STRUCTS
+# -------
 
-value_chpl_c   <-- struct_chpl_c :cost(0) 
-value_ior_c    <-- struct_ior_c    :cost(0) 
-value_chpl_chpl<-- struct_chpl_chpl :cost(0) 
-value_ior_chpl <-- struct_ior_chpl :cost(0) 
+# structs have either all-xeroxed or all-original items
+value_chpl_c    <-- struct(typ, dvalue_chpl_c)    :cost(0)
+    print 'dstruct_chpl_c: ', a0
+    return copy_over(*a0)
+value_ior_c     <-- struct(typ, dvalue_ior_c)     :cost(0) 
+    print 'dstruct_ior_c: ', a0
+    return copy_over(*a0)
+value_chpl_chpl <-- struct(typ, dvalue_chpl_chpl) :cost(0) 
+    print 'dstruct_chpl_chpl: ', a0
+    return copy_over(*a0)
+value_ior_chpl  <-- struct(typ, dvalue_ior_chpl)  :cost(0) 
+    print 'dstruct_ior_chpl: ', a0
+    return copy_over(*a0)
+# the cost for this is so high, that even a struct with the max number
+# of items (~ 127, a limitation of certain Java implementations on the
+# maximum number of arguments a function can take) will not
+# accidentally be converted from an xstruct to dstruct. Remember, the
+# idea is that once any item in the struct is an x-item, all items
+# must be copied.
+value_chpl_c    <-- struct(typ, xvalue_chpl_c)    :cost(128) 
+    print 'xerox_struct_chpl_c: ', a0
+    return xerox_struct(a0, a1)
+value_ior_c     <-- struct(typ, xvalue_ior_c)     :cost(128) 
+    print 'xerox_struct_ior_c: ', a0
+    return xerox_struct(a0, a1)
+value_chpl_chpl <-- struct(typ, xvalue_chpl_chpl) :cost(128) 
+    print 'xerox_struct_chpl_chpl: ', a0
+    return xerox_struct(a0, a1)
+value_ior_chpl  <-- struct(typ, xvalue_ior_chpl)  :cost(128) 
+    print 'xerox_struct_ior_chpl: ', a0
+    return xerox_struct(a0, a1)
 
-value_chpl_c   <-- array_chpl_c   :cost(0) 
-value_ior_c    <-- array_ior_c    :cost(0) 
-value_chpl_chpl<-- array_chpl_chpl:cost(0) 
-value_ior_chpl <-- array_ior_chpl :cost(0) 
+# xvalue is a xerox'd value (tmp copy of all items)
+xvalue_ior_c    <-- item(xvalue_ior_c, xvalue_ior_c)     : cost(0)
+    print 'xvalue_ior_c: ', a0
+    return Cons(a0, a1)                                              
 
-value_chpl_c   <-- rarray_chpl_c   :cost(0) 
-value_ior_c    <-- rarray_ior_c    :cost(0) 
-value_chpl_chpl<-- rarray_chpl_chpl:cost(0) 
-value_ior_chpl <-- rarray_ior_chpl :cost(0) 
+xvalue_chpl_c   <-- item(xvalue_chpl_c, xvalue_chpl_c)   : cost(0)
+    print 'xvalue: ', a0
+    return Cons(a0, a1)                                              
+
+xvalue_ior_chpl <-- item(xvalue_ior_chpl, xvalue_ior_chpl)  : cost(0)
+    print 'xvalue_ior_chpl: ', a0
+    return Cons(a0, a1)                                              
+
+xvalue_chpl_chpl<-- item(xvalue_chpl_chpl, xvalue_chpl_chpl) : cost(0)
+    print 'xvalue_chpl_chpl: ', a0
+    return Cons(a0, a1)                                              
+
+
+# xerox a value
+xvalue_ior_c    <-- value_ior_c : cost(1)
+    (t, (chpl_dest, chpl_src, convs)) = a0
+    if convs:
+        c_t, c_dest, c_src, c_convs = convs
+        return (t, (chpl_dest, chpl_src, (c_t, c_dest, c_src, #[ir.Copy(c_dest, c_src)]+
+                        c_convs)))
+    else:
+        return (t, (chpl_dest, chpl_src, (t, chpl_dest, chpl_src, [ir.Copy(chpl_dest, chpl_src)])))
+
+xvalue_chpl_c   <-- value_chpl_c : cost(1)
+    (t, (chpl_dest, chpl_src, convs)) = a0
+    if convs:
+        c_t, c_dest, c_src, c_convs = convs
+        return (t, (chpl_dest, chpl_src, (c_t, c_dest, c_src, #[ir.Copy(c_dest, c_src)]+
+                            c_convs)))
+    else:
+        return (t, (chpl_dest, chpl_src, (t, chpl_dest, chpl_src, [ir.Copy(chpl_dest, chpl_src)])))
+
+xvalue_chpl_chpl<-- value_chpl_chpl : cost(1)
+    (t, (dest, src, convs)) = a0 
+    scope.gen(ir.Copy(dest, src))
+    return a0
+
+xvalue_ior_chpl <-- value_ior_chpl : cost(1)
+    (t, (dest, src, convs)) = a0 
+    scope.gen(ir.Copy(dest, src))
+    return a0
+
+# direct unmodified value
+dvalue_ior_c    <-- value_ior_c                                : cost(0)
+dvalue_ior_c    <-- item(dvalue_ior_c,  dvalue_ior_c)          : cost(0)
+    print 'dvalue_ior_c: ', a0
+    return Cons(a0, a1)                                        
+dvalue_chpl_c   <-- item(dvalue_chpl_c, dvalue_chpl_c)         : cost(0)
+    print 'dvalue: ', a0
+    return Cons(a0, a1)                                            
+dvalue_ior_chpl   <-- item(dvalue_ior_chpl,  dvalue_ior_chpl)  : cost(0)
+    print 'dvalue_ior_chpl: ', a0
+    return Cons(a0, a1)                                              
+dvalue_chpl_chpl  <-- item(dvalue_chpl_chpl, dvalue_chpl_chpl) : cost(0)
+    print 'dvalue_chpl_chpl: ', a0
+    return Cons(a0, a1)                                              
+
+#value_chpl_c    <-- struct_chpl_c(dvalue_chpl_c)       :cost(0) 
+#value_ior_c     <-- struct_ior_c(dvalue_ior_c)         :cost(0) 
+#value_chpl_chpl <-- struct_chpl_chpl(dvalue_chpl_chpl) :cost(0) 
+#value_ior_chpl  <-- struct_ior_chpl(dvalue_ior_chpl)   :cost(0) 
+# 
+#value_chpl_c    <-- struct_chpl_c(xvalue_chpl_c)       :cost(0) 
+#value_ior_c     <-- struct_ior_c(xvalue_ior_c)         :cost(0) 
+#value_chpl_chpl <-- struct_chpl_chpl(xvalue_chpl_chpl) :cost(0) 
+#value_ior_chpl  <-- struct_ior_chpl(xvalue_ior_chpl)   :cost(0) 
+                 
+value_chpl_c    <-- array_chpl_c   :cost(0) 
+value_ior_c     <-- array_ior_c    :cost(0) 
+value_chpl_chpl <-- array_chpl_chpl:cost(0) 
+value_ior_chpl  <-- array_ior_chpl :cost(0) 
+                 
+value_chpl_c    <-- rarray_chpl_c   :cost(0) 
+value_ior_c     <-- rarray_ior_c    :cost(0) 
+value_chpl_chpl <-- rarray_chpl_chpl:cost(0) 
+value_ior_chpl  <-- rarray_ior_chpl :cost(0) 
 
 value_chpl_c    <-- ext_chpl_c    :cost(0) 
 value_ior_c     <-- ext_ior_c     :cost(0)
@@ -918,7 +1100,7 @@ ext_chpl_c      <-- ext_chpl_chpl :cost(0)
 ext_ior_chpl    <-- ext_chpl_chpl:cost(1)
     t, (dest, src, orig) = a0
     ptr, (struct, s_id, items, doc) = t
-    h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
+    h_t = ptr, (struct, hashable(s_id), (), doc)
 
     # hardcoded: Babel exception argument, SERVER-side
     if src == '_ex':
@@ -932,7 +1114,7 @@ ext_ior_chpl    <-- ext_chpl_chpl:cost(1)
 ext_chpl_chpl <-- ext_ior_chpl :cost(1)
     t, (dest, src, orig) = a0
     ptr, (struct, s_id, items, doc) = t
-    h_t = ptr, (struct, sidl.hashable(s_id), (), doc)
+    h_t = ptr, (struct, hashable(s_id), (), doc)
 
     # hardcoded: Babel exception argument, CLIENT-side
     if src == '_ior__ex':
@@ -1070,7 +1252,7 @@ string_chpl_c <-- string_ior_c : cost(1)
     dest, src, orig = a0
     # Convert null pointer into empty string
     conv = []
-    conv.append((ir.stmt, 'if ({n} == NULL) {n} = ""'.format(n=src)))
+    conv.append(ir.Stmt(ir.If(src, [ir.Copy(src, '""')])))
     conv.append(ir.Copy(dest, src))
     return ir.pt_string, (orig, orig, (ir.pt_string, dest, src, conv))
 
@@ -1133,40 +1315,15 @@ void_ior_c <-- void_chpl_c :cost(0)
 opaque_chpl_c    <-- opaque_chpl_chpl     :cost(0)
 opaque_chpl_chpl <-- opaque_chpl_c        :cost(0)
 opaque_chpl_c    <-- pointer_type_ior_c   :cost(0)
+    #print 'opaque <-- pointer: ', a0
     return copy_over(ir.void_ptr, a0)
 pointer_type_ior_c <-- opaque_chpl_c      :cost(0)
+    #print 'opaque --> pointer: ', a0
     return copy_over(ir.void_ptr, a0)
 
 # FIXME:
 # pointer_type_AT_C_chpl_chpl <-- ior.*
 #   a0 = ir.Pointer_expr(a0)
-
-# STRUCT
-#------------------------------------------------------------------------
-# FIXME: we would actually need dynamic costs for this situation
-struct_chpl_c      <-- struct_chpl_chpl :cost(0)
-struct_chpl_chpl   <-- struct_chpl_c    :cost(0)
-struct_ior_c <-- struct_chpl_c : cost(9)
-    items = get_struct_items(full_type)
-
-    #print name, typ, ir_type_to_chpl(typ)
-
-    # recursively generate conversions for all items in the struct
-    map(lambda (_, typ, name):
-          codegen(type_conv(typ), a0+name+elem_access(typ), strip(typ),
-                  convs, skel, dest+'.'+name, typ), items, type_conv)
-
-    # if we need to convert one of the items, we need to convert all of them
-    if convs: copy_other_items(convs, items, a0, '%s'%c_gen(dest))
-    return a0
-
-struct_chpl_c <-- struct_ior_c : cost(9)
-    items = get_struct_items(full_type)
-    map(lambda (_, typ, name):
-          codegen((strip(typ), a0+'.'+name), type_conv(typ),
-                  convs, skel, dest+'.'+name, typ), items, type_conv)
-    if convs: copy_other_items(convs, items, '%s.'%a0, dest)
-    return a0
 
 # SIDL ARRAY
 #------------------------------------------------------------------------
@@ -1185,13 +1342,14 @@ array_chpl_chpl <-- array_ior_chpl: cost(1)
         # generic array
         #scope.gen(ir.Copy(dest, ir.Call("generic_ptr", [src])))
         scope.gen(ir.Copy(dest, src))
-    else:
-        #scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
-        scope.gen(ir.Copy(dest, (ir.new, 'sidl.Array',
-                                 [chpl_scalar_type, t[1][1], src])))
+        return t, (dest, src, None)
 
-    #return array_ior_type(t), (dest, src, None)
-    return t, (dest, src, None)
+    #scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
+    scope.gen(ir.Copy(dest, (ir.new, 'sidl.Array',
+                             [chpl_scalar_type, t[1][1], src])))
+
+    return array_ior_type(t), (dest, src, None)
+    #return t, (dest, src, None)
 
 # now part of sidl.chpl:
 #    skel.gen(ir.Fn_defn(
@@ -1208,10 +1366,11 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
         # generic array
         #scope.gen(ir.Copy(dest, ir.Call("ptr_generic", [src])))
         scope.gen(ir.Copy(dest, src))
-    else:
-        scope.gen(ir.Copy(dest, access(src, 'ior')))
-    return t, (dest, src, None)
-    #return array_ior_type(t), (dest, src, None)
+        return t, (dest, src, None)
+
+    scope.gen(ir.Copy(dest, access(src, 'ior')))
+    #return t, (dest, src, None)
+    return array_ior_type(t), (dest, src, None)
 
 #array_ior_c <-- array_chpl_chpl : cost(1)
 #    scalar_type = get_array_type(full_type)
@@ -1245,7 +1404,7 @@ rarray_chpl_chpl <-- rarray_ior_chpl :cost(4)
     _, array_t = get_raw_ior_array_type(t)
 
     # emit code to copy back elements into non-local array
-    name = src[1] if src[0] == ir.deref else src
+    name = c_gen(src[1] if src[0] == ir.deref else src).replace('.', '_')
     sarray = "_braid_wrapped_local_%s_sarray"%name
     barray = "_babel_wrapped_local_%s_barray"%name
     sarr = (ir.call, "new Array", [access(dest, 'eltType'), array_t, src])
