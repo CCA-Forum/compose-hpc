@@ -39,9 +39,9 @@ expr = 'implies' '(' expr ',' expr ')'    { 12, '%s -> %s'    %par2(12, $3, $5) 
      | 'div'     '(' expr ',' expr ')'    { 4,  '%s / %s'     %par2( 4, $3, $5) }
      | 'mod'     '(' expr ',' expr ')'    { 4,  '%s % %s'     %par2( 4, $3, $5) }
      | 'pow'     '(' expr ',' expr ')'    { 3,  '%s ** %s'    %par2( 3, $3, $5) }
-     | 'is'      '(' expr ')'             { 2,  'is '+par(2, $3) }
-     | 'log_not' '(' expr ')'             { 2,  '!'+par(2, $3) }
-     | 'bit_not' '(' expr ')'             { 2,  '~'+par(2, $3) }
+     | 'is'      '(' expr ')'             { 2,  'is '+par1(2, $3) }
+     | 'log_not' '(' expr ')'             { 2,  '!'+par1(2, $3) }
+     | 'bit_not' '(' expr ')'             { 2,  '~'+par1(2, $3) }
      | 'call'    '(' expr ',' list ')'    { 1,  '$3(%s)' %','.join(map(snd, $5)) }
      | literal                            { 0, $1 }
 ;
