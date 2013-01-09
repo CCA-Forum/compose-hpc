@@ -25,84 +25,19 @@ Contact : matt sottile (matt@galois.com)
 import RuleGen.AtermUtilities
 import RuleGen.Weaver
 import RuleGen.Stratego
+import RuleGen.IDGen
 import RuleGen.Yang
 import RuleGen.Trees
 --import RuleGen.Pruner
 import RuleGen.Filter
 import RuleGen.Contextualizer
-import Data.Maybe
+import RuleGen.CmdlineArgs
 import RuleGen.GraphvizUtil
-import System.Environment (getArgs)
-import System.Console.GetOpt
 import System.Exit 
 import Data.Tree
+import Control.Monad (when)
+import Data.Maybe (mapMaybe)
 
--- ==============================================
--- command line argument handling
--- ==============================================
-data Flag = Source String
-          | Target String
-          | GVSource String
-          | GVTarget String
-          | GVWeave String
-          | Output String
-          | GVizOnly
-          | Debug
-  deriving (Show, Eq)
-
-options :: [OptDescr Flag]
-options = [
-  Option ['d'] ["debug"]           (NoArg Debug)             "Enable debugging output",
-  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit",
-  Option ['s'] ["source"]          (ReqArg Source "FILE")    "Source file",
-  Option ['t'] ["target"]          (ReqArg Target "FILE")    "Target file",
-  Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")  "Graphviz output for source diff",
-  Option ['T'] ["target-graphviz"] (ReqArg GVTarget "FILE")  "Graphviz output for target diff",
-  Option ['W'] ["woven-graphviz"]  (ReqArg GVWeave "FILE")   "Graphviz output for woven edit trees",
-  Option ['o'] ["output"]          (ReqArg Output "FILE")    "Stratego rule file output"]
-
-header :: String
-header = "Usage: rulegen [OPTION...]"
-
-getOutput :: [Flag] -> String
-getOutput [] = error $ "stratego rule file required\n" ++ usageInfo header options
-getOutput ((Output fname):_) = fname
-getOutput (_:rest) = getOutput rest
-
-getSource :: [Flag] -> String
-getSource [] = error $ "source file required\n" ++ usageInfo header options
-getSource ((Source fname):_) = fname
-getSource (_:rest) = getSource rest
-
-getTarget :: [Flag] -> String
-getTarget [] = error $ "target file required\n" ++ usageInfo header options
-getTarget ((Target fname):_) = fname
-getTarget (_:rest) = getTarget rest
-
-getGVSource :: [Flag] -> Maybe String
-getGVSource []                   = Nothing
-getGVSource ((GVSource fname):_) = Just fname
-getGVSource (_:rest)             = getGVSource rest
-
-getGVWeave :: [Flag] -> Maybe String
-getGVWeave []                   = Nothing
-getGVWeave ((GVWeave fname):_)  = Just fname
-getGVWeave (_:rest)             = getGVWeave rest
-
-getGVTarget :: [Flag] -> Maybe String
-getGVTarget []                   = Nothing
-getGVTarget ((GVTarget fname):_) = Just fname
-getGVTarget (_:rest)             = getGVTarget rest
-
-isDebuggingOn :: [Flag] -> Bool
-isDebuggingOn []        = False
-isDebuggingOn (Debug:_) = True
-isDebuggingOn (_:rest)  = isDebuggingOn rest
-
-isGVizOnlyOn :: [Flag] -> Bool
-isGVizOnlyOn []           = False
-isGVizOnlyOn (GVizOnly:_) = True
-isGVizOnlyOn (_:rest)     = isGVizOnlyOn rest
 
 -- ==============================================
 -- main program
@@ -110,13 +45,7 @@ isGVizOnlyOn (_:rest)     = isGVizOnlyOn rest
 main :: IO ()
 main = do
   -- command line argument handling
-  args <- getArgs
-  let parsedArgs = getOpt RequireOrder options args
-      (flags, _, _) = parsedArgs
-  case parsedArgs of
-    (_ , [],      [])   -> return ()
-    (_ , nonOpts, [])   -> error $ "unrecognized arguments: " ++ unwords nonOpts
-    (_ , _ ,      msgs) -> error $ concat msgs ++ usageInfo header options
+  flags <- handleCommandLine
 
   -- get info from options
   let outputfile = getOutput flags
@@ -137,13 +66,24 @@ main = do
   let tree1' = despecifyFile tree1
       tree2' = despecifyFile tree2
 
+      -- label comparator that is used by the tree diff algorithm
       labelcompare = (==)
 
-  -- run Yang's algorithm
+      -- run Yang's algorithm
       (y1',y2) = treediff tree1' tree2' labelcompare
 
-      blank = LBLString "_"
-      y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
+      --
+      -- TODO: the following commented out replacement of gen_info() subtrees in
+      -- the y1 tree is necessary to allow us to pattern match on actual files
+      -- with file_info() subtrees, but it screws up the generalization performed
+      -- later on.  Perhaps we should do a replaceWeaveTreeNode to perform this cleanup of
+      -- gen_info() subtrees after we know we won't manipulate the trees any more.  for now,
+      -- don't modify y1 so just let y1 = y1'.
+      --
+
+      --blank = LBLString "_"
+      --y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
+      y1 = y1'
 
   -- check if we want graphviz files dumped of the two diff trees
   case sgraphviz of
@@ -168,8 +108,7 @@ main = do
   -- TODO: this still requires the stratego output file to be specified
   --       since it is a required argument.  figure out how to suppress
   --       that if this flag was enabled.
-  if gvizflag then do exitSuccess
-              else return ()
+  when gvizflag exitSuccess
 
   --
   -- contextualize : this seeks holes, and produces pairs of pre-transform/
@@ -181,37 +120,40 @@ main = do
   --       want both available, with some control possible as to which is
   --       chosen and when.
   --  
-  let holes = contextualize woven'
+  let holes = evalIDGen woven' contextualize
       (pre,post) = unzip holes
 
-  if (debugflag) then do putStrLn "---PRE---"
-                         _ <- mapM putStrLn (map dumpTree pre)
-                         putStrLn "---POST---"
-                         _ <- mapM putStrLn (map dumpTree post)
-                         return ()
-                 else return ()
+  when debugflag $ do
+    putStrLn "---PRE---"
+    mapM_ putStrLn (map dumpTree pre)
+    putStrLn "---POST---"
+    mapM_ putStrLn (map dumpTree post)
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
-  let nonmatching_forest = nonMatchForest woven'
+  let nonmatching_forestPre = nonMatchForest woven'
+      nonmatching_forest = map generalizeWeave nonmatching_forestPre
 
   -- debug : print stuff out
-  if (debugflag) then do putStrLn $ show woven'
-                         _ <- mapM (\i -> putStrLn $ show i) nonmatching_forest
-                         return ()
-                 else return ()
+  when debugflag $ do
+    print woven'
+    mapM_ print nonmatching_forest
 
   -- get the rules
-  let mismatch_rules = map fromJust $ 
-                       filter isJust $ 
-                       map toRule nonmatching_forest
-
+  let blank = LBLString "_"
+      nonmatching_forest' = map (\p -> replaceWeavePoint (LBLString "gen_info()") 
+                                                         (WNode blank [])
+                                                         (Node blank []) 
+                                                         (True,False) 
+                                                         p) 
+                                nonmatching_forest
+      mismatch_rules = mapMaybe toRule nonmatching_forest'
       rules = mismatch_rules ++ hole_rules
 
   -- emit the stratego file
-  case rules of
-    [] -> do putStrLn "No difference identified."
-    _ -> do writeFile outputfile (strategoRules rules)
+  if null rules
+    then putStrLn "No difference identified."
+    else writeFile outputfile (strategoRules rules)
 
---  putStrLn (strategoRules rules)
+-- putStrLn (strategoRules rules)
   return ()

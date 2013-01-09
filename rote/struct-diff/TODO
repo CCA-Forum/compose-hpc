@@ -5,5 +5,10 @@ Todo list:
 
 2. Generalization via matching of subtrees and replacement with stratego variable terms.
 
-3. Annotation guidance?  Look at how annotations from PAUL show up in the aterms.
+3. Annotation guidance?  Look at how annotations from PAUL show up in the aterms.  Pragmas?
 
+4. Build up list of test cases, with pre/post source, terms, and expected results.
+
+5. Build script to use the Java Stratego/XT.
+
+6. Metavariable generation

@@ -7,7 +7,7 @@ module RuleGen.Stratego where
 import Data.Tree
 import Data.List (intercalate)
 import Control.Monad.State
-import Debug.Trace
+--import Debug.Trace
 
 data StLabel = StLit String
              | StLocalVar String

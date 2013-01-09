@@ -13,11 +13,18 @@ module RuleGen.Weaver (
 	WeavePoint(..),
 	weave,
 	nonMatchForest,
+  replaceWeaveTreeNode,
+  replaceWeavePoint,
 	toRule
 ) where
 
 import RuleGen.Yang
+-- import Debug.Trace
 import RuleGen.Trees
+
+-- pass-through to turn off tracing
+trace :: String -> a -> a
+trace _ x = x
 
 data WeaveTree = WNode Label [WeavePoint]
                | WLeaf LabeledTree
@@ -49,6 +56,41 @@ instance (Show WeavePoint) where
 	                      "\n\n  RIGHT="++(pp b)++"\n\n"
 	show (LeftHole m)   = "LH: "++(show m)++"\n\n"
 	show (RightHole m)  = "RH: "++(show m)++"\n\n"
+
+-- given a label, we seek any subtree rooted with that label and replace it with
+-- the provided edit or weave tree node (depending on where in the weave tree)
+-- the match occurs.  We need to provide an additional argument used to control
+-- how mismatch nodes are traversed.  In some cases, we want to perform replacement
+-- only on the left-hand children of a mismatch, so we would call this with (True,False).
+-- replacement on both sides would require (True,True).  The final parameter is
+-- the weavetree being traversed.
+replaceWeaveTreeNode :: Label -> WeaveTree -> LabeledTree -> (Bool, Bool) -> WeaveTree -> WeaveTree
+replaceWeaveTreeNode lbl replWT replLT flags t =
+  case t of
+    WLeaf e                  -> WLeaf (replaceSubtrees lbl replLT e)
+    WNode s kids | s == lbl  -> replWT
+                 | otherwise -> WNode s (map (\k -> replaceWeavePoint lbl 
+                                                                      replWT 
+                                                                      replLT 
+                                                                      flags 
+                                                                      k) 
+                                             kids)
+
+-- same purpose as replaceWeaveTree, but operates on WeavePoints.  The two functions are mutually
+-- recursive since WeaveTree Nodes have WeavePoints as children, which in turn have WeaveTree node
+-- children.
+replaceWeavePoint :: Label -> WeaveTree -> LabeledTree -> (Bool, Bool) -> WeavePoint -> WeavePoint
+replaceWeavePoint lbl replWT replLT flags@(lflag,rflag) p =
+  let replacer = replaceWeaveTreeNode lbl replWT replLT flags
+  in
+    case p of
+      Match m      -> Match (replacer m)
+      Mismatch a b -> 
+          let ra = if lflag then replacer a else a
+              rb = if rflag then replacer b else b
+          in Mismatch ra rb
+      LeftHole m   -> LeftHole (replacer m)
+      RightHole m  -> RightHole (replacer m)
 
 --
 -- pretty printer for weave trees that only works for leaves to turn them into
@@ -83,8 +125,9 @@ nonMatchForest (WNode _ kids) = concat $ map handle kids
 -- nodes, so it is an error to call them.
 --
 leafify :: EditTree -> WeaveTree
-leafify (ELeaf t) = WLeaf t
-leafify x         = error $ "Erroneous leafify call :: "++(show x)
+leafify (ELeaf t)     = WLeaf t
+leafify e@(ENode _ _) = WLeaf $ etreeToLTree e
+leafify ENil          = error $ "Erroneous leafify call :: ENil"
 
 {-|
   Given two edit trees as produced by Yang's diff algorithm, try to weave them
@@ -114,12 +157,12 @@ zippy []              []                = []
 -- this as a RightHole with the subtree that was deleted from the LHS
 -- hanging off of the hole.
 --
-zippy ((Delete,t):xs) []                = (RightHole $ leafify t)   :(zippy xs [])
+zippy ((Delete,t):xs) []                = trace "D/nil" $ (RightHole $ leafify t)   :(zippy xs [])
 --
 -- symmetric with previous case : this represents missing nodes on the
 -- the LHS, and a correspond left hole.
 --
-zippy [] ((Delete,t):ys)                = (LeftHole $ leafify t)    :(zippy [] ys)
+zippy [] ((Delete,t):ys)                = trace "nil/D" $ (LeftHole $ leafify t)    :(zippy [] ys)
 --
 -- if both sides say keep, we have a match.  recurse down into the matching
 -- trees
@@ -129,17 +172,17 @@ zippy ((Keep,xt):xs) ((Keep,yt):ys)     = (Match (weave xt yt))     :(zippy xs y
 -- both sides disagree, so we delete.  this represents a mismatch, which
 -- we hang the two mismatching trees off of.
 --
-zippy ((Delete,xt):xs) ((Delete,yt):ys) = (Mismatch (leafify xt) (leafify yt)):
+zippy ((Delete,xt):xs) ((Delete,yt):ys) = trace "D/D" $ (Mismatch (leafify xt) (leafify yt)):
                                           (zippy xs ys)
 --
 -- deletion on one side, but no delete on the other side (previous case didn't
 -- match), so we assume a right hole
 --
-zippy ((Delete,xt):xs) ys               = (RightHole $ leafify xt)  :(zippy xs ys)
+zippy ((Delete,xt):xs) ys               = trace "D/ys" $ (RightHole $ leafify xt)  :(zippy xs ys)
 --
 -- symmetric with previous case.
 --
-zippy xs ((Delete,yt):ys)               = (LeftHole $ leafify yt)   :(zippy xs ys)
+zippy xs ((Delete,yt):ys)               = trace "xs/D" $ (LeftHole $ leafify yt)   :(zippy xs ys)
 --
 -- by construction of the dynamic programming table in the Yang algorithm,
 -- when one tree runs out of nodes, the rest are deleted.  it is impossible

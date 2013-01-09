@@ -12,14 +12,21 @@ module RuleGen.Contextualizer (
 
 import RuleGen.Trees
 import Data.Tree
-import Data.Maybe
+import Data.Maybe (mapMaybe)
 import RuleGen.Weaver
+import RuleGen.IDGen
 
 --
--- TODO: replace with proper variable and symbol generator
+-- generate unique labeled tree elements.  each element represents
+-- a leaf node in the tree -- a string-labeled node with an empty
+-- set of children.  the name of the node is "RG_" followed by a
+-- unique integer drawn from the pool managed by the IDGen monad.
+--  (RG = RuleGen)
 --
-strategoVar :: LabeledTree
-strategoVar = Node (LBLString "STRATEGOVAR") []
+strategoVar :: IDGen LabeledTree
+strategoVar = do
+  ident <- genName "RG_"
+  return $ Node (LBLString ident) []
 
 --
 -- find if a list of weave points contains holes.  if it does,
@@ -32,40 +39,45 @@ holeFinder ((Mismatch _ _):rest)  = holeFinder rest
 holeFinder (l@(LeftHole _):rest)  = l:(holeFinder rest)
 holeFinder (r@(RightHole _):rest) = r:(holeFinder rest)
 
-ctxtize :: Bool -> WeavePoint -> Maybe LabeledTree
-ctxtize True  (LeftHole (WLeaf t))  = Just t
-ctxtize False (LeftHole (WLeaf _))  = Nothing
-ctxtize _     (LeftHole _)          = error "Malformed lefthole"
-ctxtize True  (RightHole (WLeaf _)) = Nothing
-ctxtize False (RightHole (WLeaf t)) = Just t
-ctxtize _     (RightHole _)         = error "Malformed righthole"
-ctxtize _     _                     = Just strategoVar
+ctxtize :: Bool -> (WeavePoint, Maybe LabeledTree) -> Maybe LabeledTree
+ctxtize True  ((LeftHole (WLeaf t)), _)  = Just t
+ctxtize False ((LeftHole (WLeaf _)), _)  = Nothing
+ctxtize _     ((LeftHole _), _)          = error "Malformed lefthole"
+ctxtize True  ((RightHole (WLeaf _)), _) = Nothing
+ctxtize False ((RightHole (WLeaf t)), _) = Just t
+ctxtize _     ((RightHole _), _)         = error "Malformed righthole"
+ctxtize _     (_, lt)                    = lt
 
 checkMatch :: WeavePoint -> Maybe WeaveTree
 checkMatch (Match m) = Just m
 checkMatch _         = Nothing
 
-unmaybeList :: [Maybe a] -> [a]
-unmaybeList l = map fromJust $ filter isJust l
+kidVars :: WeavePoint -> IDGen (WeavePoint, Maybe LabeledTree)
+kidVars k@(LeftHole _)  = return (k,Nothing)
+kidVars k@(RightHole _) = return (k,Nothing)
+kidVars k               = 
+  do l <- strategoVar 
+     return (k,Just l)
 
-contextualize :: WeaveTree -> [(LabeledTree, LabeledTree)]
+contextualize :: WeaveTree -> IDGen [(LabeledTree, LabeledTree)]
 -- nothing interesting happens for WLeaf nodes - shouldn't be here
 contextualize (WLeaf _)        = error "Can't contextualize a leaf"
+
 -- the action is in the WNodes...
-contextualize (WNode str kids) =
-  let
-    -- if any of the kids of this node are a hole, then we build
-    -- context from this node as parent.
-    holes = holeFinder kids
+contextualize (WNode str kids) = do
+  -- if any of the kids of this node are a hole, then we build
+  -- context from this node as parent.
+  let holes = holeFinder kids
 
-  in case holes of
-     	 -- no kids are holes, so descend into subtrees that match
-    	 [] ->  concat $ map contextualize $ unmaybeList (map checkMatch kids)
+  case holes of
+    -- no kids are holes, so descend into subtrees that match
+    [] -> do rv <- mapM contextualize $ mapMaybe checkMatch kids
+             return $ concat rv
 
-       -- we have one or more kid-holes.  what to do?
-       --  1. all non-hole kids, they become stratego variables
-       --  2. all hole kids are emitted as their raw trees
-    	 _  -> [(Node str (unmaybeList $ map (ctxtize False) kids),
-               Node str (unmaybeList $ map (ctxtize True) kids))]
-
-    	
+    -- we have one or more kid-holes.  what to do?
+    --  1. all non-hole kids, they become stratego variables
+    --  2. all hole kids are emitted as their raw trees
+    _  -> do kids' <- mapM kidVars kids
+             let lhs = Node str (mapMaybe (ctxtize False) kids')
+                 rhs = Node str (mapMaybe (ctxtize True) kids')
+             return [(lhs,rhs)]
