@@ -285,29 +285,46 @@ def chain_items(prefix, items, language, symbol_table, dest, src, orig):
     recursively chain a list of struct items to a tree of items
     '''
 
-    def chain1(items, language, symbol_table, pre0, pre1):
+    def chain1(items, language, symbol_table, pre0, pre1, orig):
         if len(items) == 0:
             import pdb; pdb.set_trace()
             return None
 
         _, typ, name = items[-1]
-        item = ir_to_burg(typ, language, symbol_table, access(pre0,name), access(pre1,name), name)
+        item = ir_to_burg(typ, language, symbol_table, 
+                          access(pre0,name), 
+                          access(pre1,name), 
+                          access(orig,name))
 
         if len(items) == 1:
             return item
 
-        return 'item', item, chain1(items[:-1], language, symbol_table, pre0, pre1)
+        return 'item', item, chain1(items[:-1], language, symbol_table, pre0, pre1, orig)
     
+    def tmpname(prefix):
+        if prefix[0] == ir.get_struct_item:
+            get, s, name, item = prefix
+            assert(not strip_deref(name).startswith('_ior'))
+            return get, s, '_ior_'+strip_deref(name), item
+        return '_ior_' + prefix
+
+    def same_access(a, b):
+        if a[0] == ir.deref: return ir.deref, b
+        return b
+
     # FIXME, this is ugly
-    if dest == orig: 
-        pre0 = prefix
-        pre1 = src[:-len(orig)] + prefix
+    if c_gen(src).startswith('_ior_'): 
+        pre0 = same_access(orig, prefix)
+        pre1 = tmpname(prefix)
     else:
-        pre0 = dest[:-len(orig)] + prefix
-        pre1 = prefix
+        pre0 = tmpname(prefix)
+        pre1 = same_access(orig, prefix)
+
+    assert(pre0 <> pre1)
+    print pre0, pre1, orig
 
     # reverse items so they are converted first to last eventually
-    return chain1(items, language, symbol_table, pre0, pre1)
+    return chain1(items, language, symbol_table, pre0, pre1, orig)
 
 def ir_to_burg(typ, language, symbol_table, *user_data):
     '''
@@ -381,12 +398,11 @@ def ir_to_burg(typ, language, symbol_table, *user_data):
     elif typ[0] == ir.struct:
         struct, name, items, docstr = typ
         tmp1, tmp2, param = user_data
-        def ignore_deref(t):
-            return t[1] if t[0] == ir.deref else t
-
-        user_data = ignore_deref(tmp1), ignore_deref(tmp2), param
-        prefix    = user_data[0]
-        item_tree = chain_items(prefix, items, language, symbol_table, *user_data)
+        user_data1 = strip_deref(tmp1), strip_deref(tmp2), param
+        prefix     = strip_deref(user_data1[2])
+        #print 'prefix=',prefix
+        #print user_data[0], user_data[1], user_data[2]
+        item_tree  = chain_items(prefix, items, language, symbol_table, *user_data1)
         return ('struct', ('typ', hashable(typ), user_data), item_tree)
 
     elif typ[0] == ir.rarray:
@@ -416,22 +432,27 @@ def copy_over(typ, a0):
     # because other struct items warrant a conversion
     return typ, (dest, src, None)
 
-def xerox_struct((typ, (dest, src, orig)), items):
+def xerox_struct((typ, (dest, src, orig)), xitems):
     '''
     Helper for structs, create a dummy conversion action such that a
     temporary struct is allocated. The actual conversions and copy
     operations are generated through the "item" children of the
     struct.
     '''
-    def item_convs(item):
-        if isinstance(items, list):
-            r = []
-            for item in items:
-                r.extend(item[1][2][3])
-            return r
-        return items[1][2][3]
+    def item_convs(items):
+        if not isinstance(items, list): return item_convs([items])
+        r = []
+        for item in items:
+            ptr, (dest, src, cconvs) = item
+            if cconvs:
+                r.extend(cconvs[3])
+            else:
+                r.append(ir.Copy(dest, src))
+        return r
 
-    return typ, (dest, src, (typ, dest, src, [ir.Comment('xerox')]+item_convs(items)))
+    struct, name, items, docs = typ
+    chpl_typ = struct, name[:-6], items, docs
+    return chpl_typ, (dest, src, (typ, dest, src, [ir.Comment('xerox')]+item_convs(xitems)))
 
 def c_convs(a):
     'extract the postponed c conversions from an [l,r]value_ior_c, if any'
@@ -498,7 +519,7 @@ def strip_deref(a):
         return a[1]
     return a
 
-def deref_to_addr(arg, idx):
+def deref_to_addr(arg, mode, idx):
     _, (a1, a2, conv) = arg
     if conv: 
         _, a1, a2, _ = conv # use c ior type if available
@@ -511,7 +532,8 @@ def deref_to_addr(arg, idx):
         deref = r
 
     if isinstance(deref, tuple) and deref[0] == ir.deref: 
-        return ir.Pointer_expr(r)        
+        return ir.Pointer_expr(r) #if arg[0][0] <> ir.struct and mode <> ir.in_ else r
+    if arg[0][0] == ir.struct and mode == ir.in_: return ir.Pointer_expr(r)
     return r
 
 def c_tempvar(arg, idx):
@@ -636,13 +658,12 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
         ftype = ir.pt_void
 
 
-    cstub_type = ftype
-    cstub_args = map(make_carg, allargs)
-
+    cstub_type   = ftype
+    cstub_args   = map(make_carg, allargs)
     unique_temps = set(map(get_c_tmp1, inargs)+
                        map(get_c_tmp2, outargs))
-    cstub_decls = [ir.Stmt(ir.Var_decl(*tmp)) for tmp in unique_temps 
-                   if tmp[1][:5] == '_ior_'] # FIXME
+    cstub_decls  = [ir.Stmt(ir.Var_decl(*tmp)) for tmp in unique_temps 
+                    if tmp[1][:5] == '_ior_'] # FIXME
 
     attrs = []
     join = lambda a, b: a+b
@@ -653,9 +674,9 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     call_args1 = []
     for mode, arg in allargs:
         if mode == ir.out:
-            call_args1.append(deref_to_addr(arg, 1))
+            call_args1.append(deref_to_addr(arg, mode, 1))
         else: 
-            call_args1.append(deref_to_addr(arg, 0))
+            call_args1.append(deref_to_addr(arg, mode, 0))
 
     call = babel.vcall(name, call_args1, ci)
 
@@ -664,8 +685,7 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
             pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_retval')))
             ior_call = [ir.Copy(retval, call)]
             if not assigns_temporary(post_call, '_retval'):
-                import pdb; pdb.set_trace()
-                pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_ior__retval /*xxx*/')))
+                #pre_call.append(ir.Stmt(ir.Var_decl(ftype, '_ior__retval')))
                 post_call.append(ir.Copy('_retval', retval))
             post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
@@ -675,14 +695,13 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
 
     cstub_body0 = cstub_decls+pre_call+ior_call+post_call
     cstub_body = [s for s in (cstub_body0) if s]
-    scope.cstub.gen(ir.Fn_defn(attrs, cstub_type, cstub, cstub_args, cstub_body, 
-                               'remaining Stub in C'))
+    scope.cstub.gen(ir.Fn_defn(attrs, cstub_type, cstub, cstub_args, cstub_body,'remaining Stub in C'))
     scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
     scope.genh((ir.fn_decl, ['extern']+attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
     return None
 
-# NONVIRTUAL CLIENT (tehnically: Stub-less)
-# lhs and rhs are swapped, so the actions are executed
+# NONVIRTUAL CLIENT (technically: Stub-less clients)
+# lhs and rhs are swapped, so the actions are triggered
 # in the correct order
 stmt <-- ior_call_assign(rvalue_ior_chpl, lvalue_chpl_chpl) :cost(1)
     inargs = a0
@@ -729,7 +748,7 @@ rvalue_ior_chpl <-- ior_call(nonvirtual_method, rvalue_ior_chpl) :cost(1)
     ftype, name, ci = a0
     la1 = ensure_list(a1)
     args = map(strip_derefs, la1)
-    call_args = map(lambda a: deref_to_addr(a, 0), la1)
+    call_args = map(lambda a: deref_to_addr(a, ir.inout, 0), la1)
     #print 'IMPLEMENT ME'
     if ftype <> ir.pt_void:
         scope.gen(ir.Copy('_ior__retval', ir.Call(name, call_args)))
@@ -769,18 +788,20 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
     for arg in call_args:
         if arg[0] == outgoing_arg:
             impl_decl_args.append(ir.Arg([], ir.out, outargs[i][0], outargs[i][1][1]))
-            impl_params.append(deref_to_addr(outargs[i], 1))
+            impl_params.append(deref_to_addr(outargs[i], ir.out, 1))
             i += 1
         else:
             #impl_args.append(arg)
-            impl_params.append(deref_to_addr(arg, 0))
             if (arg[1][1] == outargs[i][1][0] or 
                 (arg[1][1][0] == ir.deref and 
                  arg[1][1][1] == outargs[i][1][0])):
-                i += 1 # mode.inout
-                impl_decl_args.append(ir.Arg([], ir.inout, arg[0], arg[1][0]))
+                i += 1
+                mode = ir.inout
             else:
-                impl_decl_args.append(ir.Arg([], ir.in_, arg[0], arg[1][0]))
+                mode = ir.in_
+            impl_decl_args.append(ir.Arg([], mode, arg[0], arg[1][0]))
+            impl_params.append(deref_to_addr(arg, mode, 0))
+            
 
     join = lambda a, b: a+b
     pre_call =  reduce(join, map(c_convs,  inargs), [])
@@ -962,16 +983,16 @@ value_ior_chpl  <-- enum_ior_chpl   :cost(0)
 
 # structs have either all-xeroxed or all-original items
 value_chpl_c    <-- struct(typ, dvalue_chpl_c)    :cost(0)
-    print 'dstruct_chpl_c: ', a0
+    #print 'dstruct_chpl_c: ', a0
     return copy_over(*a0)
 value_ior_c     <-- struct(typ, dvalue_ior_c)     :cost(0) 
-    print 'dstruct_ior_c: ', a0
+    #print 'dstruct_ior_c: ', a0
     return copy_over(*a0)
 value_chpl_chpl <-- struct(typ, dvalue_chpl_chpl) :cost(0) 
-    print 'dstruct_chpl_chpl: ', a0
+    #print 'dstruct_chpl_chpl: ', a0
     return copy_over(*a0)
 value_ior_chpl  <-- struct(typ, dvalue_ior_chpl)  :cost(0) 
-    print 'dstruct_ior_chpl: ', a0
+    #print 'dstruct_ior_chpl: ', a0
     return copy_over(*a0)
 # the cost for this is so high, that even a struct with the max number
 # of items (~ 127, a limitation of certain Java implementations on the
@@ -980,33 +1001,33 @@ value_ior_chpl  <-- struct(typ, dvalue_ior_chpl)  :cost(0)
 # idea is that once any item in the struct is an x-item, all items
 # must be copied.
 value_chpl_c    <-- struct(typ, xvalue_chpl_c)    :cost(128) 
-    print 'xerox_struct_chpl_c: ', a0
+    #print 'xerox_struct_chpl_c: ', a0
     return xerox_struct(a0, a1)
 value_ior_c     <-- struct(typ, xvalue_ior_c)     :cost(128) 
-    print 'xerox_struct_ior_c: ', a0
+    #print 'xerox_struct_ior_c: ', a0
     return xerox_struct(a0, a1)
 value_chpl_chpl <-- struct(typ, xvalue_chpl_chpl) :cost(128) 
-    print 'xerox_struct_chpl_chpl: ', a0
+    #print 'xerox_struct_chpl_chpl: ', a0
     return xerox_struct(a0, a1)
 value_ior_chpl  <-- struct(typ, xvalue_ior_chpl)  :cost(128) 
-    print 'xerox_struct_ior_chpl: ', a0
+    #print 'xerox_struct_ior_chpl: ', a0
     return xerox_struct(a0, a1)
 
 # xvalue is a xerox'd value (tmp copy of all items)
 xvalue_ior_c    <-- item(xvalue_ior_c, xvalue_ior_c)     : cost(0)
-    print 'xvalue_ior_c: ', a0
+    #print 'xvalue_ior_c: ', a0
     return Cons(a0, a1)                                              
 
 xvalue_chpl_c   <-- item(xvalue_chpl_c, xvalue_chpl_c)   : cost(0)
-    print 'xvalue: ', a0
+    #print 'xvalue: ', a0
     return Cons(a0, a1)                                              
 
 xvalue_ior_chpl <-- item(xvalue_ior_chpl, xvalue_ior_chpl)  : cost(0)
-    print 'xvalue_ior_chpl: ', a0
+    #print 'xvalue_ior_chpl: ', a0
     return Cons(a0, a1)                                              
 
 xvalue_chpl_chpl<-- item(xvalue_chpl_chpl, xvalue_chpl_chpl) : cost(0)
-    print 'xvalue_chpl_chpl: ', a0
+    #print 'xvalue_chpl_chpl: ', a0
     return Cons(a0, a1)                                              
 
 
@@ -1040,18 +1061,17 @@ xvalue_ior_chpl <-- value_ior_chpl : cost(1)
     return a0
 
 # direct unmodified value
-dvalue_ior_c    <-- value_ior_c                                : cost(0)
 dvalue_ior_c    <-- item(dvalue_ior_c,  dvalue_ior_c)          : cost(0)
-    print 'dvalue_ior_c: ', a0
+    #print 'dvalue_ior_c: ', a0
     return Cons(a0, a1)                                        
 dvalue_chpl_c   <-- item(dvalue_chpl_c, dvalue_chpl_c)         : cost(0)
-    print 'dvalue: ', a0
+    #print 'dvalue: ', a0
     return Cons(a0, a1)                                            
 dvalue_ior_chpl   <-- item(dvalue_ior_chpl,  dvalue_ior_chpl)  : cost(0)
-    print 'dvalue_ior_chpl: ', a0
+    #print 'dvalue_ior_chpl: ', a0
     return Cons(a0, a1)                                              
 dvalue_chpl_chpl  <-- item(dvalue_chpl_chpl, dvalue_chpl_chpl) : cost(0)
-    print 'dvalue_chpl_chpl: ', a0
+    #print 'dvalue_chpl_chpl: ', a0
     return Cons(a0, a1)                                              
 
 #value_chpl_c    <-- struct_chpl_c(dvalue_chpl_c)       :cost(0) 
@@ -1142,6 +1162,7 @@ ext_chpl_chpl <-- ext_ior_chpl :cost(1)
 #------------------------------------------------------------------------
 bool_chpl_c      <-- bool_chpl_chpl :cost(0)
 bool_chpl_chpl   <-- bool_chpl_c    :cost(0)
+xvalue_ior_c     <-- bool_ior_c     :cost(0)
 
 bool_ior_c      <-- bool_chpl_c: cost(1)
     dest, src, orig = a0
@@ -1161,8 +1182,9 @@ bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
     dest, src, orig = a0
     import pdb; pdb.set_trace()
     t = ir.Typedef_type('chpl_bool')
-    conv = ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", [src]))
+    conv = [ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", [src]))]
     return t, (orig, orig, (ir.pt_int, dest, src, conv))
+
 
 
 # CHAR
@@ -1171,6 +1193,7 @@ char_chpl_c      <-- char_chpl_chpl :cost(0)
 char_chpl_chpl   <-- char_chpl_c    :cost(0)
 #char_ior_c       <-- char_ior_chpl  :cost(0)
 char_ior_chpl    <-- char_ior_c     :cost(0)
+xvalue_ior_c     <-- char_ior_c     :cost(0)
 
 char_ior_c <-- char_chpl_c : cost(1)
     dest, src, orig = a0
@@ -1193,9 +1216,11 @@ char_chpl_c <-- char_ior_c : cost(1)
 fcomplex_chpl_c      <-- fcomplex_chpl_chpl :cost(0)
 fcomplex_chpl_chpl   <-- fcomplex_chpl_c    :cost(0)
 fcomplex_ior_chpl    <-- fcomplex_ior_c     :cost(0)
+xvalue_ior_c         <-- fcomplex_ior_c     :cost(0)
 dcomplex_chpl_c      <-- dcomplex_chpl_chpl :cost(0)
 dcomplex_chpl_chpl   <-- dcomplex_chpl_c    :cost(0)
 dcomplex_ior_chpl    <-- dcomplex_ior_c     :cost(0)
+xvalue_ior_c         <-- dcomplex_ior_c     :cost(0)
 
 fcomplex_ior_c <-- fcomplex_chpl_c : cost(2)
     dest, src, orig = a0
@@ -1229,6 +1254,7 @@ dcomplex_chpl_c <-- dcomplex_ior_c : cost(2)
 #------------------------------------------------------------------------
 enum_chpl_c      <-- enum_chpl_chpl :cost(0)
 enum_chpl_chpl   <-- enum_chpl_c    :cost(0)
+xvalue_ior_c     <-- enum_ior_c     :cost(0)
 enum_ior_c <-- enum_chpl_c : cost(1)
     t, (dest, src, orig) = a0
     # No special treatment for enums, rely on chpl runtime to set it
@@ -1242,6 +1268,7 @@ enum_chpl_c <-- enum_ior_c : cost(1)
 #------------------------------------------------------------------------
 string_chpl_c      <-- string_chpl_chpl :cost(0)
 string_chpl_chpl   <-- string_chpl_c    :cost(0)
+xvalue_ior_c       <-- string_ior_c     :cost(0)
 # DO NOT UNCOMMENT THE FOLLOWING LINE
 #string_ior_chpl    <-- string_ior_c     :cost(0)
 string_ior_c <-- string_chpl_c : cost(0)
@@ -1331,8 +1358,9 @@ pointer_type_ior_c <-- opaque_chpl_c      :cost(0)
 
 array_chpl_c     <-- array_chpl_chpl :cost(0)
 array_chpl_chpl  <-- array_chpl_c    :cost(0)
-array_ior_c      <-- array_ior_chpl :cost(0)
-array_ior_chpl   <-- array_ior_c    :cost(0)
+array_ior_c      <-- array_ior_chpl  :cost(0)
+array_ior_chpl   <-- array_ior_c     :cost(0)
+xvalue_ior_c     <-- array_ior_c     :cost(0)
 
 # for sidl arrays we invoke a chapel code fragment from the C stub
 array_chpl_chpl <-- array_ior_chpl: cost(1)
@@ -1392,6 +1420,28 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
 rarray_ior_chpl  <-- rarray_ior_c    :cost(0)
 rarray_ior_c     <-- rarray_ior_chpl :cost(0)
 rarray_chpl_c    <-- rarray_chpl_chpl:cost(0)
+array_ior_c      <-- rarray_ior_c    :cost(5) # higher than below, should only be used in structs
+    t, (dest, src, orig) = a0
+    import pdb; pdb.set_trace()
+    basetype, dim, exts = t
+    conv = [
+        ir.Var_decl(ir.pt_int, 'lower[1]'),
+        ir.Var_decl(ir.pt_int, 'upper[1]'),
+        ir.Var_decl(ir.pt_int, 'stride[1]'),
+        ir.Copy('lower[0]', 0),
+        ir.Copy('upper[0]', exts),
+        ir.Copy('stride[0]', 1),
+        ir.Copy(ir.Call('sidl_%s__array_borrow'%basetype,
+                        [src, dim, 'lower', 'upper', 'stride']), 
+                dest)
+        ]
+    return array_t, (dest, src, conv)
+
+### not reached from item!
+rarray_ior_c    <-- array_ior_c    :cost(5) # higher than below, should only be used in structs
+    t, (dest, src, orig) = a0
+    import pdb; pdb.set_trace()
+
 
 rarray_ior_chpl <-- rarray_chpl_chpl: cost(4)
     t, (dest, src, orig) = a0
