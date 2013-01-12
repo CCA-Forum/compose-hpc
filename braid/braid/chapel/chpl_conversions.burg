@@ -62,7 +62,7 @@
 
 
 #------------------------------------------------------------------------
-import babel, ior, ir, sidl
+import babel, ior, ir, sidl, re
 import chapel.chpl as chpl
 from codegen import CCodeGenerator, CFile
 from utils import hashable
@@ -72,7 +72,7 @@ def c_gen(ir, scope=None):
         scope = CFile()
     return CCodeGenerator().generate(ir, scope)
 
-def ir_type_to_chpl(typ):
+def ir_type_to_chpl(typ, in_struct=False):
     """
     Convert only the datatype \c typ into its chapel equivalent
     TODO: could we also generate this from the spec below?
@@ -104,7 +104,7 @@ def ir_type_to_chpl(typ):
             # part of the hack for self dereferencing
             return typ[1]
         if typ[0] == ir.pointer_type:
-            return ir.Pointer_type(ir_type_to_chpl(typ[1]))
+            return ir.Pointer_type(ir_type_to_chpl(typ[1], in_struct))
 
         if typ[0] == ir.struct:
             _, name, items, comment = typ
@@ -118,13 +118,13 @@ def ir_type_to_chpl(typ):
             return ir.Struct(name, items1, comment)
 
         if typ[0] == ir.struct_item:
-            return ir.Struct_item(ir_type_to_chpl(typ[1]),typ[2])
+            return ir.Struct_item(ir_type_to_chpl(typ[1], True), typ[2])
 
         if typ[0] == sidl.array:
             return get_array_type(typ)[1]
 
-        if typ[0] == sidl.rarray:
-            return get_array_type(typ)[1]
+        if typ[0] == ir.rarray:
+            return typ if not in_struct else get_array_type(typ)[1]
 
         return typ
 
@@ -153,30 +153,29 @@ def elem_access(typ):
         return '.'
     else: return ''
 
+def array_ior_type(array):
+    '''
+    in case we actually _mean_ the raw IOR struct, obfuscate the type,
+    so the code generator doesn't recognize it as an array
+    '''
+    (ptr, (struct, name, items, docs)) = array
+    return (ptr, (struct, '/* ARRAY IOR */'+name, items, docs))
+
+
 def get_array_type(full_type):
     if full_type[1] == []:
         t = ''
     elif full_type[1][0] == ir.scoped_id:
         t = '_BaseInterface'
     else:
-        t = '_'+full_type[1][1]
+         t = '_'+full_type[1][1]
     name = 'sidl%s__array'%t
     iortype = ir.Pointer_type(ir.Struct(name, (), ''))
     return name, iortype 
 
 def get_raw_ior_array_type(full_type):
-    if full_type[1] == []:
-        t = ''
-    elif full_type[1][0] == ir.scoped_id:
-        t = '_BaseInterface'
-    else:
-        t = '_'+full_type[1][1]
-    # This comment is there so the Chapel code generator
-    # won't recognize the type as an array. Here is the
-    # only place where we actually want a C struct type.
-    name = 'sidl%s__array /* IOR */'%t
-    iortype = ir.Pointer_type(ir.Struct(name, (), ''))
-    return name, iortype 
+    name, typ = get_array_type(full_type)
+    return name, array_ior_type(typ)
 
 def get_ior_array_type(sidl_array):
     chpl_type = {
@@ -263,6 +262,13 @@ static const unsigned char chpl_char_lut[512] = {
 };
 '''
 
+def orig(ud):
+    '''
+    return the original (non-temp) name from a pair dest,src.
+    '''
+    # FIXME
+    return ud[1] if len(c_gen(ud[0])) > len(c_gen(ud[1])) else ud[0]
+
 def access(struct, item):
     '''
     shortcut for struct.item
@@ -280,26 +286,27 @@ def Cons(a, b):
     elif not isinstance(b, list): b = [b]
     return a+b
 
-def chain_items(prefix, items, language, symbol_table, dest, src, orig):
+def chain_items(prefix, items, language, symbol_table, dest, src, conv):
     '''
     recursively chain a list of struct items to a tree of items
     '''
 
-    def chain1(items, language, symbol_table, pre0, pre1, orig):
+    def chain1(items, language, symbol_table, pre0, pre1, conv):
         if len(items) == 0:
             import pdb; pdb.set_trace()
             return None
 
         _, typ, name = items[-1]
-        item = ir_to_burg(typ, language, symbol_table, 
+        item = ir_to_burg(typ, language, symbol_table,
+                          True, #in_struct
                           access(pre0,name), 
                           access(pre1,name), 
-                          access(orig,name))
+                          [])
 
         if len(items) == 1:
             return item
 
-        return 'item', item, chain1(items[:-1], language, symbol_table, pre0, pre1, orig)
+        return 'item', item, chain1(items[:-1], language, symbol_table, pre0, pre1, conv)
     
     def tmpname(prefix):
         if prefix[0] == ir.get_struct_item:
@@ -314,19 +321,18 @@ def chain_items(prefix, items, language, symbol_table, dest, src, orig):
 
     # FIXME, this is ugly
     if c_gen(src).startswith('_ior_'): 
-        pre0 = same_access(orig, prefix)
+        pre0 = same_access(dest, prefix)
         pre1 = tmpname(prefix)
     else:
         pre0 = tmpname(prefix)
-        pre1 = same_access(orig, prefix)
+        pre1 = same_access(src, prefix)
 
     assert(pre0 <> pre1)
-    print pre0, pre1, orig
 
     # reverse items so they are converted first to last eventually
-    return chain1(items, language, symbol_table, pre0, pre1, orig)
+    return chain1(items, language, symbol_table, pre0, pre1, conv)
 
-def ir_to_burg(typ, language, symbol_table, *user_data):
+def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
     '''
     convert an IR datatype into its native chapel equivalent and
     return the corresponding BURG expression. Invoking codegen() on
@@ -369,10 +375,46 @@ def ir_to_burg(typ, language, symbol_table, *user_data):
         ir.rarray:      rarray_ior_c
         }
 
+    struct_chpl_type_map={
+        ir.pt_bool:     bool_chpl_chpl,
+        ir.pt_char:     char_chpl_chpl,
+        ir.pt_dcomplex: dcomplex_chpl_chpl,
+        ir.pt_double:   double_chpl_chpl,
+        ir.pt_float:    float_chpl_chpl,
+        ir.pt_fcomplex: fcomplex_chpl_chpl,
+        ir.pt_int:      int_chpl_chpl,
+        ir.pt_long:     long_chpl_chpl,
+        ir.pt_string:   string_chpl_chpl,
+        ir.void_ptr:    opaque_chpl_chpl,
+
+        ir.enum:        enum_chpl_chpl,
+        'ext':          ext_chpl_chpl,
+        'array':        array_chpl_chpl,
+        ir.rarray:      rarray_item_chpl_chpl
+        }
+
+    struct_ior_type_map={
+        ir.pt_bool:     bool_ior_c,
+        ir.pt_char:     char_ior_c,
+        ir.pt_dcomplex: dcomplex_ior_c,
+        ir.pt_double:   double_ior_c,
+        ir.pt_float:    float_ior_c,
+        ir.pt_fcomplex: fcomplex_ior_c,
+        ir.pt_int:      int_ior_c,
+        ir.pt_long:     long_ior_c,
+        ir.pt_string:   string_ior_c,
+        ir.void_ptr:    pointer_type_ior_c,
+
+        ir.enum:        enum_ior_c,
+        'ext':          ext_ior_c,
+        'array':        array_ior_c,
+        ir.rarray:      rarray_item_ior_c
+        }
+
     if language == 'ior':
-        type_map = ior_type_map
+        type_map = struct_ior_type_map if in_struct else ior_type_map
     else:
-        type_map = chpl_type_map
+        type_map = struct_chpl_type_map if in_struct else chpl_type_map
 
     try:
         return type_map[typ], user_data
@@ -392,17 +434,15 @@ def ir_to_burg(typ, language, symbol_table, *user_data):
             elif babel.sidl_array_regex.match(typ[1][1]):
                 return type_map['array'], hashable(typ), user_data
             else: # babel.is_struct_type(symbol_table, typ[1][1]):
-                return ir_to_burg(typ[1], language, symbol_table, *user_data)
+                return ir_to_burg(typ[1], language, symbol_table, True, *user_data)
         else: raise Exception()
 
     elif typ[0] == ir.struct:
         struct, name, items, docstr = typ
-        tmp1, tmp2, param = user_data
-        user_data1 = strip_deref(tmp1), strip_deref(tmp2), param
-        prefix     = strip_deref(user_data1[2])
+        prefix     = strip_deref(orig(user_data))
         #print 'prefix=',prefix
         #print user_data[0], user_data[1], user_data[2]
-        item_tree  = chain_items(prefix, items, language, symbol_table, *user_data1)
+        item_tree  = chain_items(prefix, items, language, symbol_table, *user_data)
         return ('struct', ('typ', hashable(typ), user_data), item_tree)
 
     elif typ[0] == ir.rarray:
@@ -413,24 +453,15 @@ def ir_to_burg(typ, language, symbol_table, *user_data):
 
     raise Exception()
 
-def array_ior_type(array):
-    '''
-    in case we actually _mean_ the raw IOR struct, obfuscate the type,
-    so the code generator doesn't recognize it as an array
-    '''
-    (ptr, (struct, name, items, docs)) = array
-    return (ptr, (struct, '/* IOR */'+name, items, docs))
-
-
 def copy_over(typ, a0):
     '''
     merely copy over src into dest without any conversion
     '''
-    dest, src, orig = a0
+    dest, src, conv = a0
     # was (orig, orig, None) but that doesn't do the right thing for
     # struct items, which sometimes need to be copied regardless,
     # because other struct items warrant a conversion
-    return typ, (dest, src, None)
+    return typ, (dest, src, conv)
 
 def xerox_struct((typ, (dest, src, orig)), xitems):
     '''
@@ -457,7 +488,7 @@ def xerox_struct((typ, (dest, src, orig)), xitems):
 def c_convs(a):
     'extract the postponed c conversions from an [l,r]value_ior_c, if any'
     _, (_, _, c_xvalue) = a 
-    if c_xvalue == None: 
+    if not c_xvalue: 
         return []
     _t, _dest, _src, conv = c_xvalue
     return conv
@@ -1032,7 +1063,7 @@ xvalue_chpl_chpl<-- item(xvalue_chpl_chpl, xvalue_chpl_chpl) : cost(0)
 
 
 # xerox a value
-xvalue_ior_c    <-- value_ior_c : cost(1)
+xvalue_ior_c    <-- value_ior_c : cost(10)
     (t, (chpl_dest, chpl_src, convs)) = a0
     if convs:
         c_t, c_dest, c_src, c_convs = convs
@@ -1041,7 +1072,7 @@ xvalue_ior_c    <-- value_ior_c : cost(1)
     else:
         return (t, (chpl_dest, chpl_src, (t, chpl_dest, chpl_src, [ir.Copy(chpl_dest, chpl_src)])))
 
-xvalue_chpl_c   <-- value_chpl_c : cost(1)
+xvalue_chpl_c   <-- value_chpl_c : cost(10)
     (t, (chpl_dest, chpl_src, convs)) = a0
     if convs:
         c_t, c_dest, c_src, c_convs = convs
@@ -1050,12 +1081,12 @@ xvalue_chpl_c   <-- value_chpl_c : cost(1)
     else:
         return (t, (chpl_dest, chpl_src, (t, chpl_dest, chpl_src, [ir.Copy(chpl_dest, chpl_src)])))
 
-xvalue_chpl_chpl<-- value_chpl_chpl : cost(1)
+xvalue_chpl_chpl<-- value_chpl_chpl : cost(10)
     (t, (dest, src, convs)) = a0 
     scope.gen(ir.Copy(dest, src))
     return a0
 
-xvalue_ior_chpl <-- value_ior_chpl : cost(1)
+xvalue_ior_chpl <-- value_ior_chpl : cost(10)
     (t, (dest, src, convs)) = a0 
     scope.gen(ir.Copy(dest, src))
     return a0
@@ -1113,26 +1144,25 @@ value_ior_chpl  <-- ext_ior_chpl  :cost(0)
 # conversion is handled in Chapel, ior-chpl -> ior-c is identity
 ext_ior_chpl    <-- ext_ior_c    :cost(0)
 ext_ior_c       <-- ext_ior_chpl    :cost(0)
-# 
 ext_chpl_c      <-- ext_chpl_chpl :cost(0)
 #ext_chpl_chpl   <-- ext_chpl_c    :cost(0)
 
 ext_ior_chpl    <-- ext_chpl_chpl:cost(1)
-    t, (dest, src, orig) = a0
+    t, (dest, src, conv) = a0
     ptr, (struct, s_id, items, doc) = t
     h_t = ptr, (struct, hashable(s_id), (), doc)
 
     # hardcoded: Babel exception argument, SERVER-side
     if src == '_ex':
         scope.cstub.gen(ir.Copy(dest, src))
-        return h_t, (dest, src, None)
+        return h_t, (dest, src, conv)
 
     name = s_id[2]# +s_id[3] hijacked for '__object'
-    scope.gen(ir.Copy(dest, '%s.self_%s'%(src, name)))
-    return h_t, (dest, src, None)
+    scope.gen(ir.Copy(dest, access(src, 'self_'+name)))
+    return h_t, (dest, src, conv)
 
 ext_chpl_chpl <-- ext_ior_chpl :cost(1)
-    t, (dest, src, orig) = a0
+    t, (dest, src, conv) = a0
     ptr, (struct, s_id, items, doc) = t
     h_t = ptr, (struct, hashable(s_id), (), doc)
 
@@ -1141,12 +1171,12 @@ ext_chpl_chpl <-- ext_ior_chpl :cost(1)
         scope.gen(ir.Stmt(ir.If(
                     ir.Call("IS_NOT_NULL", ['_ior__ex']), 
                     [ir.Copy('_ex', ir.Call("new BaseInterface", ['_ior__ex']))])))
-        return h_t, (dest, src, None)
+        return h_t, (dest, src, conv)
 
     # hardcoded: self argument, SERVER-side
     if src == 'self':
         scope.cstub.gen(ir.Copy(dest, access(ir.Deref(src), 'd_data')))
-        return ir.void_ptr, (dest, src, None)
+        return ir.void_ptr, (dest, src, conv)
  
     # regular object with unknown implementation language (interface/class)
 
@@ -1156,7 +1186,7 @@ ext_chpl_chpl <-- ext_ior_chpl :cost(1)
     #mod_name = '.'.join(full_type[1]+[name])
     wrap = ir.Call('%s_static.wrap_%s' %(babel.qual_id(s_id1, '.'), name), [src, '_ex'])
     scope.gen(ir.Copy(dest, wrap))
-    return h_t, (dest, src, None) #(h_t, [ir.Copy(dest, src)])
+    return h_t, (dest, src, conv)
 
 # BOOL
 #------------------------------------------------------------------------
@@ -1165,25 +1195,25 @@ bool_chpl_chpl   <-- bool_chpl_c    :cost(0)
 xvalue_ior_c     <-- bool_ior_c     :cost(0)
 
 bool_ior_c      <-- bool_chpl_c: cost(1)
-    dest, src, orig = a0
+    dest, src, conv = a0
     t = ir.Typedef_type('chpl_bool')
-    conv = [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
-            ir.Copy(dest,'(%s)%s'%(c_gen(ir.pt_int),c_gen(src)))]
-    return t, (orig, orig, (ir.pt_int, dest, src, conv))
+    conv += [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
+             ir.Copy(dest,'(%s)%s'%(c_gen(ir.pt_int),c_gen(src)))]
+    return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 bool_chpl_c <-- bool_ior_c: cost(1)
-    dest, src, orig = a0
+    dest, src, conv = a0
     t = ir.Typedef_type('chpl_bool')
-    conv = [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
-            ir.Copy(dest,'(%s)%s'%(c_gen(t),c_gen(src)))]
-    return t, (orig, orig, (ir.pt_int, dest, src, conv))
+    conv += [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
+             ir.Copy(dest,'(%s)%s'%(c_gen(t),c_gen(src)))]
+    return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
-    dest, src, orig = a0
+    dest, src, conv = a0
     import pdb; pdb.set_trace()
     t = ir.Typedef_type('chpl_bool')
-    conv = [ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", [src]))]
-    return t, (orig, orig, (ir.pt_int, dest, src, conv))
+    conv += [ir.Copy(dest, ir.Call("convert_bool_chpl_to_ior", [src]))]
+    return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 
 
@@ -1196,20 +1226,19 @@ char_ior_chpl    <-- char_ior_c     :cost(0)
 xvalue_ior_c     <-- char_ior_c     :cost(0)
 
 char_ior_c <-- char_chpl_c : cost(1)
-    dest, src, orig = a0
-    conv = [ir.Comment('in chapel, a char is a string of length 1'),
-            ir.Copy(dest, ir.Deref(src))] # deref takes 1st char of string
+    dest, src, conv = a0
+    conv += [ir.Comment('in chapel, a char is a string of length 1'),
+             ir.Copy(dest, ir.Deref(src))] # deref takes 1st char of string
     c_scope.optional.add(char_lut)
-    return ir.pt_string, (orig, orig, (ir.pt_char, dest, src, conv))
+    return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
 
 char_chpl_c <-- char_ior_c : cost(1)
-    dest, src, orig = a0
-    conv = []
+    dest, src, conv = a0
     conv.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     conv.append(ir.Copy(dest, '(const char*)&chpl_char_lut[2*(unsigned char)%s]'%c_gen(src)))
     c_scope.optional.add(char_lut)
-    return ir.pt_string, (orig, orig, (ir.pt_char, dest, src, conv))
+    return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
 
 # COMPLEX - 32/64 Bit components
 #------------------------------------------------------------------------
@@ -1223,32 +1252,28 @@ dcomplex_ior_chpl    <-- dcomplex_ior_c     :cost(0)
 xvalue_ior_c         <-- dcomplex_ior_c     :cost(0)
 
 fcomplex_ior_c <-- fcomplex_chpl_c : cost(2)
-    dest, src, orig = a0
-    conv = []
+    dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 'real'),access(src, 're')))
     conv.append(ir.Copy(access(dest, 'imaginary'),access(src, 'im')))
-    return ir.Typedef_type('_complex64'), (orig, orig, (ir.pt_fcomplex, dest, src, conv))
+    return ir.Typedef_type('_complex64'), (dest, src, (ir.pt_fcomplex, dest, src, conv))
 
 dcomplex_ior_c <-- dcomplex_chpl_c : cost(2)
-    dest, src, orig = a0
-    conv = []
+    dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 'real'),access(src, 're')))
     conv.append(ir.Copy(access(dest, 'imaginary'),access(src, 'im')))
-    return ir.Typedef_type('_complex128'), (orig, orig, (ir.pt_dcomplex, dest, src, conv))
+    return ir.Typedef_type('_complex128'), (dest, src, (ir.pt_dcomplex, dest, src, conv))
 
 fcomplex_chpl_c <-- fcomplex_ior_c : cost(2)
-    dest, src, orig = a0
-    conv = []
+    dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 're'),access(src, 'real')))
     conv.append(ir.Copy(access(dest, 'im'),access(src, 'imaginary')))
-    return ir.Typedef_type('_complex64'), (orig, orig, (ir.pt_fcomplex, dest, src, conv))
+    return ir.Typedef_type('_complex64'), (dest, src, (ir.pt_fcomplex, dest, src, conv))
 
 dcomplex_chpl_c <-- dcomplex_ior_c : cost(2)
-    dest, src, orig = a0
-    conv = []
+    dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 're'),access(src, 'real')))
     conv.append(ir.Copy(access(dest, 'im'),access(src, 'imaginary')))
-    return ir.Typedef_type('_complex128'), (orig, orig, (ir.pt_dcomplex, dest, src, conv))
+    return ir.Typedef_type('_complex128'), (dest, src, (ir.pt_dcomplex, dest, src, conv))
 
 # ENUM
 #------------------------------------------------------------------------
@@ -1258,11 +1283,11 @@ xvalue_ior_c     <-- enum_ior_c     :cost(0)
 enum_ior_c <-- enum_chpl_c : cost(1)
     t, (dest, src, orig) = a0
     # No special treatment for enums, rely on chpl runtime to set it
-    return t, (orig, orig, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
+    return t, (dest, src, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
 
 enum_chpl_c <-- enum_ior_c : cost(1)
     t, (dest, src, orig) = a0
-    return t, (orig, orig, (t, dest, src, [ir.Copy(dest, src)]))
+    return t, (dest, src, (t, dest, src, [ir.Copy(dest, src)]))
 
 # STRING
 #------------------------------------------------------------------------
@@ -1272,16 +1297,15 @@ xvalue_ior_c       <-- string_ior_c     :cost(0)
 # DO NOT UNCOMMENT THE FOLLOWING LINE
 #string_ior_chpl    <-- string_ior_c     :cost(0)
 string_ior_c <-- string_chpl_c : cost(0)
-    dest, src, orig = a0
-    return ir.pt_string, (orig, orig, (ir.pt_string, dest, src, [ir.Copy(dest, src)]))
+    dest, src, conv = a0
+    return ir.pt_string, (dest, src, (ir.pt_string, dest, src, [ir.Copy(dest, src)]))
 
 string_chpl_c <-- string_ior_c : cost(1)
-    dest, src, orig = a0
+    dest, src, conv = a0
     # Convert null pointer into empty string
-    conv = []
     conv.append(ir.Stmt(ir.If(src, [ir.Copy(src, '""')])))
     conv.append(ir.Copy(dest, src))
-    return ir.pt_string, (orig, orig, (ir.pt_string, dest, src, conv))
+    return ir.pt_string, (dest, src, (ir.pt_string, dest, src, conv))
 
 # INT
 #------------------------------------------------------------------------
@@ -1364,19 +1388,20 @@ xvalue_ior_c     <-- array_ior_c     :cost(0)
 
 # for sidl arrays we invoke a chapel code fragment from the C stub
 array_chpl_chpl <-- array_ior_chpl: cost(1)
-    t, (dest, src, _) = a0
+    t, (dest, src, convs) = a0
+    #print a0
     chpl_scalar_type, scalar_type = get_ior_array_type(t)
     if scalar_type == ir.void_ptr:
         # generic array
         #scope.gen(ir.Copy(dest, ir.Call("generic_ptr", [src])))
         scope.gen(ir.Copy(dest, src))
-        return t, (dest, src, None)
+        return t, (dest, src, convs)
 
     #scope.gen(ir.Copy(dest, ir.Call('sidl.wrap_%s_array'%scalar_type, [src])))
     scope.gen(ir.Copy(dest, (ir.new, 'sidl.Array',
                              [chpl_scalar_type, t[1][1], src])))
 
-    return array_ior_type(t), (dest, src, None)
+    return array_ior_type(t), (dest, src, convs)
     #return t, (dest, src, None)
 
 # now part of sidl.chpl:
@@ -1420,37 +1445,65 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
 rarray_ior_chpl  <-- rarray_ior_c    :cost(0)
 rarray_ior_c     <-- rarray_ior_chpl :cost(0)
 rarray_chpl_c    <-- rarray_chpl_chpl:cost(0)
-array_ior_c      <-- rarray_ior_c    :cost(5) # higher than below, should only be used in structs
-    t, (dest, src, orig) = a0
-    import pdb; pdb.set_trace()
-    basetype, dim, exts = t
-    conv = [
-        ir.Var_decl(ir.pt_int, 'lower[1]'),
-        ir.Var_decl(ir.pt_int, 'upper[1]'),
-        ir.Var_decl(ir.pt_int, 'stride[1]'),
-        ir.Copy('lower[0]', 0),
-        ir.Copy('upper[0]', exts),
-        ir.Copy('stride[0]', 1),
-        ir.Copy(ir.Call('sidl_%s__array_borrow'%basetype,
-                        [src, dim, 'lower', 'upper', 'stride']), 
-                dest)
-        ]
-    return array_t, (dest, src, conv)
 
-### not reached from item!
-rarray_ior_c    <-- array_ior_c    :cost(5) # higher than below, should only be used in structs
-    t, (dest, src, orig) = a0
-    import pdb; pdb.set_trace()
+rarray_item_chpl_c  <-- rarray_item_chpl_chpl:cost(1)
+    t, (dest, src, conv) = a0
+    _, scalar_type = get_ior_array_type(t)
+    scope.gen(ir.Copy(dest, access(src, 'ior')))
+    return t, (dest, src, conv)
+
+array_ior_c         <-- rarray_item_ior_c    :cost(1)
+    t, (dest, src, _) = a0
+    rarray, basetype, dim, exts = t
+    pre = re.sub(r'[^a-zA-Z0-9]+', '_', c_gen(dest))+'_'
+    
+    conv = ([
+        ir.Stmt(ir.Var_decl(ir.pt_int, pre+'lower[1]')),
+        ir.Stmt(ir.Var_decl(ir.pt_int, pre+'upper[1]')),
+        ir.Stmt(ir.Var_decl(ir.pt_int, pre+'stride[1]')),
+        ir.Copy(pre+'lower[0]', 0)]+
+        [ir.Copy(pre+'upper[%d]'%i, ir.simpleint_expr(c_gen(src[2])+'.', exts[i])) 
+         for i in range(len(exts))]+
+        [ir.Copy(pre+'stride[0]', 1),
+        ir.Copy(dest, ir.Call('sidl_%s__array_borrow'%c_gen(basetype),
+                              [src, dim, pre+'lower', pre+'upper', pre+'stride']))
+        ])
+    c_scope.optional.add(str(c_gen(ir.Import('sidlArray'))))
+    at = get_raw_ior_array_type(t)[1]
+    return at, (dest, src, (at, dest, src, conv))
+
+xvalue_ior_c <-- rarray_item_chpl_c    :cost(1)
+    t, (dest, src, conv) = a0
+    rarray, basetype, dim, exts = t
+    cbasetype = c_gen(basetype)
+    p_src = ir.Call('sidlArrayAddr1', [src, 0])
+    if sidl.fixed_rarray(exts):
+        conv.append(ir.Comment('copy array data unless the sidl array '+
+                               'happens to be borrowed from the original'))
+        # build an expression for the size of the array
+        basesize = ir.Call('sizeof', [cbasetype])
+        n = reduce(lambda a, b: ir.Infix_expr(ir.times, a, b), exts, basesize)
+        conv.append(ir.Stmt(ir.If(ir.Infix_expr(ir.ne, dest, p_src),
+                                  [ir.Stmt(ir.Call('memcpy', [dest, p_src, n]))])))
+        c_scope.optional.add(str(c_gen(ir.Import('string'))))
+
+    else:
+        conv.append(ir.Copy(dest, p_src))
+    conv.append(ir.Stmt(ir.Call('sidl_%s__array_delete_ref'%cbasetype, [src])))
+    c_scope.optional.add(str(c_gen(ir.Import('sidlArray'))))
+    c_scope.optional.add(str(c_gen(ir.Import('sidl_%s_IOR'%cbasetype))))
+    at = get_raw_ior_array_type(t)[1]
+    return at, (dest, src, (at, dest, src, conv))
 
 
-rarray_ior_chpl <-- rarray_chpl_chpl: cost(4)
-    t, (dest, src, orig) = a0
+rarray_ior_chpl <-- rarray_chpl_chpl: cost(1)
+    t, (dest, src, conv) = a0
     _, array_t = get_raw_ior_array_type(t)
     wrap_rarray(scope, strip_deref(src), t, dest)
-    return array_t, (dest, src, None)
+    return array_t, (dest, src, conv)
 
-rarray_chpl_chpl <-- rarray_ior_chpl :cost(4)
-    t, (dest, src, orig) = a0
+rarray_chpl_chpl <-- rarray_ior_chpl :cost(1)
+    t, (dest, src, conv) = a0
     _, array_t = get_raw_ior_array_type(t)
 
     # emit code to copy back elements into non-local array
@@ -1464,5 +1517,5 @@ rarray_chpl_chpl <-- rarray_ior_chpl :cost(4)
     scope.gen(ir.Stmt(ir.Call('syncNonLocalArray', [barray, dest])))
 #    print array_t
 #    import pdb; pdb.set_trace()
-    return array_t, (dest, src, None)
+    return array_t, (dest, src, conv)
 

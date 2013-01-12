@@ -394,13 +394,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         def incoming(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.out:
                 param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
-                return conv.ir_to_burg(typ, 'chpl', symbol_table, tmp(name), param, param)
+                return conv.ir_to_burg(typ, 'chpl', symbol_table, False, tmp(name), param, [])
             else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.in_:
                 param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
-                return conv.ir_to_burg(typ, 'ior', symbol_table, param, tmp(name), param)
+                return conv.ir_to_burg(typ, 'ior', symbol_table, False, param, tmp(name), [])
             else: return []
 
         def cons_with(f, l):
@@ -441,13 +441,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         def incoming(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.out:
                 param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
-                return conv.ir_to_burg(typ, 'ior', symbol_table, tmp(name), param, param)
+                return conv.ir_to_burg(typ, 'ior', symbol_table, False, tmp(name), param, [])
             else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
             if mode <> sidl.in_:
                 param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
-                return conv.ir_to_burg(typ, 'chpl', symbol_table, param, tmp(name), param)
+                return conv.ir_to_burg(typ, 'chpl', symbol_table, False, param, tmp(name), [])
             else: return []
 
         def cons_with(f, l):
@@ -534,6 +534,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                                         struct_suffix='')
         chpl_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False,
                                    qualify_names=False, qualify_enums=True)
+        chpl_type = conv.ir_type_to_chpl(chpl_type)
 
         abstract = member_chk(sidl.abstract, Attrs)
         #final = member_chk(sidl.final, Attrs)

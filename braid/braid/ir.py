@@ -4727,3 +4727,17 @@ def Copy(A, B):
     same as Stmt(Assignment(A, B))
     """
     return Stmt(Assignment(A, B))
+def simpleint_expr(prefix, e):
+    """
+    convert a SimpleIntExpr into a regular Expr, prepend prefix to all variable refs.
+    """
+    if isinstance(e, tuple):
+        if e[0] == var_ref: return prefix+e[1]
+        if e[0] == simple_int_infix_expr:
+            return infix_expr, simpleint_expr(e[1]), simpleint_expr(e[2]) 
+        if e[0] == simple_int_prefix_expr:
+            return prefix_expr, simpleint_expr(e[1])
+        if e[0] == simple_int_fn_eval:
+            return call, e[1], map(simpleint_expr, e[2])
+        else: import pdb; pdb.set_trace()
+    return e
