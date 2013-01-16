@@ -11,7 +11,7 @@ AC_DEFUN([LLNL_LIBXML_CONFIG],
 	[AS_HELP_STRING(--with-libxml2@<:@=DIR@:>@,use libxml2 in prefix @<:@DIR@:>@ (default yes))],,[withval=yes])
 
 dnl unlike in Babel, the default is yes (use libxml2)
-if test "$withval" != "yes"; then
+if test "$withval" != "no"; then
     dnl find xml2-config program
     XML2_CONFIG="no"
     if test "$withval" != "yes" && test "$withval" != "maybe" ; then

@@ -27,22 +27,6 @@ dnl LLNL_AUTO_DISABLE
 LLNL_ENABLE_REGRESSION
 LLNL_ENABLE_DOCUMENTATION
 
-############################################################
-#
-# Python Support.
-#
-AC_ARG_ENABLE([doc_only], 
-   AS_HELP_STRING([--enable-doc-only], 
-   [use this if you *only* want to run `make doc' and don't have a recent enough python installation]),
-   [AM_PATH_PYTHON([2.4],, [:])], 
-   [AM_PATH_PYTHON([2.6])])
-AC_SUBST([CONFIGURED_PYTHONPATH], ["$PYTHONPATH"])
-AS_IF([test x"$PYTHON_VERSION" == x2.6])
-AM_CONDITIONAL([PYTHON_VERSION_2_6], [test x"$PYTHON_VERSION" == x2.6])
-CCA_DIAGNOSE_BEGIN([PYTHON])
-LLNL_LIBXML_CONFIG
-LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
-CCA_DIAGNOSE_END([PYTHON])
 
 ############################################################
 #
@@ -62,6 +46,22 @@ AC_MSG_CHECKING([for perl])
 AX_WITH_PROG(PERL, perl) # used as sed replacement in the testsuite
 AS_IF([test -n "$PERL" -a -x "$PERL"], [], AC_MSG_ERROR([perl is missing]))
 
+############################################################
+#
+# Python Support.
+#
+AC_ARG_ENABLE([doc_only], 
+   AS_HELP_STRING([--enable-doc-only], 
+   [use this if you *only* want to run `make doc' and don't have a recent enough python installation]),
+   [AM_PATH_PYTHON([2.4],, [:])], 
+   [AM_PATH_PYTHON([2.6])])
+AC_SUBST([CONFIGURED_PYTHONPATH], ["$PYTHONPATH"])
+AS_IF([test x"$PYTHON_VERSION" == x2.6])
+AM_CONDITIONAL([PYTHON_VERSION_2_6], [test x"$PYTHON_VERSION" == x2.6])
+CCA_DIAGNOSE_BEGIN([PYTHON])
+LLNL_LIBXML_CONFIG
+LLNL_CONFIRM_BABEL_PYTHON_SUPPORT
+CCA_DIAGNOSE_END([PYTHON])
 
 # DOXYGEN
 AX_WITH_PROG(DOXYGEN, doxygen)
