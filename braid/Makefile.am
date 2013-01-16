@@ -120,6 +120,7 @@ $(srcdir)/doc/braid.1: doc/man_header.txt doc/users_guide.css $(top_builddir)/br
 
 # Babel functionality: Chapel
 # ------------------------------------------------------------------------
+if BABEL_LANG_CHPL
 BRAID=env PYTHONPATH=../braid:$(abs_srcdir)/braid:../braid/.libs:$(abs_srcdir)/contrib/argparse-1.1:$(abs_srcdir)/contrib/ply:$(abs_builddir)/braid/chapel:$(abs_srcdir)/braid/upc:$(PYTHONPATH) $(PYTHON) $(abs_srcdir)/braid/braid.py
 
 include chpl/Makefile.include
@@ -162,6 +163,7 @@ lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(CHPL_SIDLSTUB_SRCS)
 libsidlstub_chpl_la_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
 AM_CFLAGS = -Werror
+endif
 # ------------------------------------------------------------------------
 
 
