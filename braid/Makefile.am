@@ -127,6 +127,7 @@ include chpl/Makefile.include
 # Runtime support files
 nobase_include_HEADERS += \
   chpl/chpl_sidl_array.h \
+  chpl/codelets.h \
   chpl/sidl.chpl \
   $(CHPL_SIDLSTUB_HDRS)
 

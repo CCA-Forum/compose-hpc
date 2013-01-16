@@ -148,7 +148,7 @@ AM_CONDITIONAL([BABEL_LANG_CHPL], [test -n "$CHPL"])
 #
 # UPC
 #
-AM_PROG_UPC
+AM_PROG_UPC_NOERROR
 AS_IF([test -n "$UPC"], 
       [UPC_ROOT=`dirname \`dirname \\\`which $UPC\\\`\``
        AC_SUBST([UPC_ROOT], [$UPC_ROOT])
