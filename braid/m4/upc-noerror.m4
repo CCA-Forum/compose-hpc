@@ -13,9 +13,9 @@ AC_REQUIRE([AC_PROG_CC])dnl
 AC_ARG_VAR([UPC], [Unified Parallel C compiler command])dnl
 AC_ARG_VAR([UPCFLAGS], [Unified Parallel C compiler flags])dnl
 AC_CHECK_TOOLS([UPC], [m4_default([$1], [upcc upc])], [:])
-if test "$UPC" = :; then
+if test "$UPC" = ":"; then
   dnl Adrian: changed ERROR -> NOTICE
-  AC_MSG_NOTICE([no Unified Parallel C compiler was found], [77])
+  AC_MSG_NOTICE([no Unified Parallel C compiler was found])
 fi
-_AM_IF_OPTION([no-dependencies],, [_AM_DEPENDENCIES([UPC])])dnl
+ _AM_IF_OPTION([no-dependencies],, [_AM_DEPENDENCIES([UPC])])dnl
 ])

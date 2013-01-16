@@ -149,7 +149,7 @@ AM_CONDITIONAL([BABEL_LANG_CHPL], [test -n "$CHPL"])
 # UPC
 #
 AM_PROG_UPC_NOERROR
-AS_IF([test -n "$UPC"], 
+AS_IF([test "$UPC" != ":"], 
       [UPC_ROOT=`dirname \`dirname \\\`which $UPC\\\`\``
        AC_SUBST([UPC_ROOT], [$UPC_ROOT])
        AS_IF([$UPC --version |head -n 1 |grep -q Berkeley],
@@ -266,7 +266,7 @@ AS_IF([test -z "${CHPL_ROOT}"],
       AC_MSG_RESULT([    Chapel ........... NO]),
       [AC_MSG_RESULT([    Chapel .......... YES (${CHPL_VERSION} in ${CHPL_ROOT})])
        AC_MSG_RESULT([  **You may need to patch you Chapel compiler now by running ./patch-chapel-compiler.sh])])
-AS_IF([test -z "${UPC}"], 
+AS_IF([test "${UPC}" = ":" -o -z "${UPC}"], 
       AC_MSG_RESULT([    UPC .............. NO]),
       [AC_MSG_RESULT([    UPC ............. YES (${UPC_VERSION} in ${UPC_ROOT})])])
 AC_MSG_RESULT([==============================================================])
