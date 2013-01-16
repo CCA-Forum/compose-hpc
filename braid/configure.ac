@@ -34,6 +34,8 @@ LLNL_ENABLE_DOCUMENTATION
 #
 AC_PROG_CC
 AC_PROG_LEX
+dnl necessary for Fedora, which splits flex into multiple packages
+AC_SEARCH_LIBS([yywrap], [fl], [], [AC_MSG_ERROR([could not find the flex library libfl])])
 AC_PROG_INSTALL
 AC_PROG_CPP
 AC_PROG_AWK
@@ -44,7 +46,7 @@ AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_MSG_CHECKING([for perl])
 AX_WITH_PROG(PERL, perl) # used as sed replacement in the testsuite
-AS_IF([test -n "$PERL" -a -x "$PERL"], [], AC_MSG_ERROR([perl is missing]))
+AS_IF([test -n "$PERL" -a -x "$PERL"], [], [AC_MSG_ERROR([perl is missing])])
 
 ############################################################
 #
