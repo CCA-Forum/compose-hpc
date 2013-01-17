@@ -22,7 +22,7 @@
 #
 # </pre>
 #
-from utils import accepts, returns
+from utils import accepts, returns, hashable
 from patmat import *
 import sidl, types, sys
 
@@ -339,16 +339,11 @@ def scan_methods(symbol_table, is_abstract,
         Return the long name of a method (sans class/packages)
         for sorting purposes.
         """
-        def hashable(x):
-            if isinstance(x, list): return tuple(x)
-            return x
-
         def arg_hash((arg, attr, mode, typ, name)):
             if typ[0] == sidl.scoped_id:
-                return mode, sidl.hashable(typ)
+                return mode, hashable(typ)
             if typ[0] == sidl.array:
-                return (mode, typ[0], hashable(sidl.hashable_type_id(typ)), 
-                        hashable(typ[2]), hashable(typ[3]))
+                return hashable((mode, typ[0], sidl.hashable_type_id(typ), typ[2], typ[3]))
             return mode, typ
 
         return method[2], tuple([arg_hash(a) for a in sidl.method_args(method)])

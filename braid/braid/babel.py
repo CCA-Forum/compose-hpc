@@ -25,7 +25,7 @@ from patmat import *
 from sidl_symbols import SymbolTable
 from string import Template
 
-sidl_array_regex = re.compile('^sidl_(\w+)__array$')
+sidl_array_regex = re.compile('^sidl_((\w+)_)?_array$')
 
 def strip_common(prefix, a):
     """
@@ -285,7 +285,7 @@ def lower_ir(symbol_table, sidl_term, header=None,
             if Type[0] == sidl.scoped_id:
                 t = symbol_table[Type][1]
                 if t[0] == sidl.class_ or t[0] == sidl.interface:
-                    t = ir.Pointer_type(ir_object_type(t[1][1],t[1][2]))
+                    t = ir_object_type(t[1][1],t[1][2])
                 elif t[0] == sidl.struct or t[0] == sidl.enum:
                     return (ir.struct_item, low(t), Name)
                 return (ir.struct_item, t, Name)

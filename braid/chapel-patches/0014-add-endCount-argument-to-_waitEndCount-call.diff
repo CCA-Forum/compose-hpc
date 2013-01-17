@@ -1,0 +1,26 @@
+commit d51a654fac295f832ccb60139f4ad35efbcc826a
+Author: Adrian Prantl <adrian@llnl.gov>
+Date:   Wed Nov 7 11:03:42 2012 -0800
+
+    add endCount argument to _waitEndCount call
+
+diff --git a/compiler/passes/buildDefaultFunctions.cpp b/compiler/passes/buildDefaultFunctions.cpp
+index bcc9896..7f1f9d9 100644
+--- a/compiler/passes/buildDefaultFunctions.cpp
++++ b/compiler/passes/buildDefaultFunctions.cpp
+@@ -358,13 +358,13 @@ static void build_chpl_entry_points(void) {
+     // We have to initialize the main module explicitly.
+     // It will initialize all the modules it uses, recursively.
+     chpl_gen_main->insertAtHead(new CallExpr(mainModule->initFn));
+-
++     
+     VarSymbol* endCount = newTemp("_endCount");
+     chpl_gen_main->insertAtHead(new CallExpr("chpl_startTrackingMemory"));
+     chpl_gen_main->insertAtHead(new CallExpr(PRIM_SET_END_COUNT, endCount));
+     chpl_gen_main->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr("_endCountAlloc")));
+     chpl_gen_main->insertAtHead(new DefExpr(endCount));
+-    chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount"));
++    chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount", endCount));
+     //chpl_gen_main->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
+   }
+   chpl_gen_main->insertAtHead(new CallExpr("chpl_gen_init"));

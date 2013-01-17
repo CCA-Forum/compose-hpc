@@ -32,6 +32,7 @@ BABEL_TESTNAMES77 = \
 
 EXTRA_DIST += $(BABEL_TESTS)
 
+TEST_EXTENSIONS += .sh
 if ENABLE_INTEROP_REGRESSION
 
 # This target will be made prior to the tests. We use it to compile
@@ -43,7 +44,6 @@ check_DATA = $(TESTDIR)/output/libC/libimpl.la
 # list of tests by hand
 include regression/interop/tests.mk
 TESTS += $(INTEROP_TESTS)
-TEST_EXTENSIONS += .sh
 SH_LOG_COMPILER = sh regression/interop/driver.sh 
 
 if BABEL_LANG_C # for symmetry -- can't do much without C ..?

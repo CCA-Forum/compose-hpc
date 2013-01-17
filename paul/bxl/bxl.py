@@ -27,14 +27,16 @@ The syntax for a BXL file is as follows:
     lit_expr = numeral { int($1) } | '(' arithmetic_expression ')' { $2 } ;
     numeral = /-?[0-9]+/ ; /* regular expressions are written like /this/ */
 
-TIPS: using local variables in actions
+TIPS: 
+  Using local variables in actions:
    
-  In a functional language we would introduce local variables like this:
-     let n = y in x
-  In an action this can be expression using the pythonic equivalent
-     (lambda n: x)(y) 
+  Actions are expressions, so they normally cannot have local variables.
+  In functional languages we can introduce local variables like this:
+     let var = foo in bar
+  in an action this can be expressed using the pythonic equivalent
+     (lambda var: bar)(foo) 
 
-BUGS:
+KNOWN BUGS:
    * fix the ebnf grammar (see comments there)
 """
 

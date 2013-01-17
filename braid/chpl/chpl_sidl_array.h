@@ -58,8 +58,8 @@ CHAPEL_CLASS_TYPEDEF(sidl_BaseInterface__array)
 #define opaque_ptr(A) A   
 #define string_ptr(A) A   
 #define ior_ptr(A) A
-//#define generic_ptr(A) (void*)A
-//#define ptr_generic(A) (struct sidl__array*)A
+#define generic_ptr(A) (void*)A
+#define ptr_generic(A) (struct sidl__array*)A
 #define chpl_sidl__array_smartCopy(A) sidl__array_smartCopy((struct sidl__array *)(A))
 #define chpl_sidl__array_deleteRef(A) sidl__array_deleteRef((struct sidl__array *)(A))
 #define chpl_sidl__array_isColumnOrder(A) sidl__array_isColumnOrder((const struct sidl__array *)(A))

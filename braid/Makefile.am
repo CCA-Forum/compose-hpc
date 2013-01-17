@@ -120,6 +120,7 @@ $(srcdir)/doc/braid.1: doc/man_header.txt doc/users_guide.css $(top_builddir)/br
 
 # Babel functionality: Chapel
 # ------------------------------------------------------------------------
+if BABEL_LANG_CHPL
 BRAID=env PYTHONPATH=../braid:$(abs_srcdir)/braid:../braid/.libs:$(abs_srcdir)/contrib/argparse-1.1:$(abs_srcdir)/contrib/ply:$(abs_builddir)/braid/chapel:$(abs_srcdir)/braid/upc:$(PYTHONPATH) $(PYTHON) $(abs_srcdir)/braid/braid.py
 
 include chpl/Makefile.include
@@ -127,6 +128,7 @@ include chpl/Makefile.include
 # Runtime support files
 nobase_include_HEADERS += \
   chpl/chpl_sidl_array.h \
+  chpl/codelets.h \
   chpl/sidl.chpl \
   $(CHPL_SIDLSTUB_HDRS)
 
@@ -153,7 +155,7 @@ chpl/sidl.chpl: $(CHPL_RUNTIME_FILES) $(nobase_python_PYTHON)
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/BorrowedArray.chpl >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/DistributedArray.chpl >>$@
 	@$(CPP) $(AM_CPPFLAGS) -I$(srcdir)/chpl -x c -P -C $(srcdir)/chpl/ArraySupport.chpl >>$@
-	@echo "  CHECK  $@" && $(CHPL) --no-codegen $@
+	@echo "  CHECK  $@" && $(CHPL) --devel --no-codegen $@
 
 # Rules to build the Chapel stubs for the SIDL runtime
 $(CHPL_SIDLSTUB_SRCS): chpl/sidl.chpl
@@ -161,6 +163,7 @@ lib_LTLIBRARIES = libsidlstub_chpl.la
 libsidlstub_chpl_la_SOURCES = $(CHPL_SIDLSTUB_SRCS)
 libsidlstub_chpl_la_CPPFLAGS = -I$(builddir)/chpl -I$(srcdir)/chpl -I$(BABEL_INCLUDEDIR) -I$(CHPL_ROOT)/runtime/include
 AM_CFLAGS = -Werror
+endif
 # ------------------------------------------------------------------------
 
 

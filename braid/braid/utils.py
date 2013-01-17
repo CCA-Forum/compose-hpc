@@ -39,6 +39,14 @@ def unzip3(lst):
 def flatten2d(lst):
     return list(itertools.chain.from_iterable(lst))
 
+def hashable(a):
+    """
+    recursively convert all lists in the tuple a to tuples
+    """
+    if isinstance(a, tuple) or isinstance(a, list):
+        return tuple(map(hashable, a))
+    return a
+
 def accepts(*types):
     """
     Enforce function argument types. 

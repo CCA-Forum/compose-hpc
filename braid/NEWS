@@ -1,7 +1,9 @@
 -*- org -*-
 * BRAID 0.2.6
 ** UPC backend
-
+** Full struct support
+** new tree pattern matcher
+* SIDL object arrays
 * BRAID 0.2.5
 ** Synched with Chapel 1.5
 ** Implemented contract checking

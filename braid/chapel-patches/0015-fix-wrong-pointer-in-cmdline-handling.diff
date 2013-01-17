@@ -1,0 +1,19 @@
+commit 59b633ce2b5b4579259962c799e152304ebed809
+Author: Adrian Prantl <adrian@llnl.gov>
+Date:   Fri Nov 30 11:12:43 2012 -0800
+
+    fix wrong pointer in cmdline handling
+
+diff --git a/compiler/main/arg.cpp b/compiler/main/arg.cpp
+index ab0b09c..6c09b1c 100644
+--- a/compiler/main/arg.cpp
++++ b/compiler/main/arg.cpp
+@@ -102,7 +102,7 @@ process_arg(ArgumentState *arg_state, int i, char ***argv, char* currentFlag) {
+           break;
+         case 'P': strncpy((char *)desc[i].location,arg, FILENAME_MAX);
+           break;
+-        case 'S': strncpy((char *)desc[i].location,arg, atoi(desc[i].type+1));
++        case 'S': *(char**)desc[i].location = strndup(arg, atoi(desc[i].type+1));
+           break;
+         default:
+           fprintf(stdout, "%s:bad argument description\n", 

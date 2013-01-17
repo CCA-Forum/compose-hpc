@@ -3658,15 +3658,11 @@ def ext_methods(ext):
     elif ext[0] == interface:
         return interface_methods(ext)
     return []
-def hashable((scoped_id, modules, name, ext)):
-    """
-    Make a hashable copy of a scoped_id by turning the list of modules into a tuple.
-    """
-    return scoped_id, tuple(modules), name, ext
 def hashable_type_id(t):
     """
     \return the (hashable) scoped Id of a class, interface, package, etc.
     """
+    from utils import hashable
     tid = t[1]
     if isinstance(tid, tuple) and tid[0] == scoped_id:
         return hashable(t[1])
@@ -3711,3 +3707,19 @@ def long_method_name(m):
     """
     n = method_method_name(m)
     return n[1]+n[2]
+def fixed_rarray(e):
+    """
+    determine whether a SimpleIntExpr contains a Var_ref.
+    """
+    import operator
+    if isinstance(e, tuple):
+        if e[0] == var_ref: return False
+        if e[0] == simple_int_infix_expr:
+            return fixed_rarray(e[1]) and fixed_rarray(e[2]) 
+        if e[0] == simple_int_prefix_expr:
+            return fixed_rarray(e[1])
+        if e[0] == simple_int_fn_eval:
+            return reduce(operator.and_, map(fixed_rarray, e[2]))
+        else:
+            return reduce(operator.and_, map(fixed_rarray, e))
+    return True
