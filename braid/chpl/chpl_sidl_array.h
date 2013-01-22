@@ -12,8 +12,10 @@
 #include <sidl_long_IOR.h>        
 #include <sidl_opaque_IOR.h>      
 #include <sidl_string_IOR.h>      
+#include <sidl_BaseClass_IOR.h>
 #include <sidl_BaseInterface_IOR.h>
-#include <stdlib.h> 
+#include <sidl_interface_IOR.h>
+#include <stdlib.h>
 
 struct sidl_string__array {
   struct sidl__array   d_metadata;
@@ -40,11 +42,11 @@ CHAPEL_CLASS_TYPEDEF(sidl_int__array)
 CHAPEL_CLASS_TYPEDEF(sidl_long__array)        
 CHAPEL_CLASS_TYPEDEF(sidl_opaque__array)      
 CHAPEL_CLASS_TYPEDEF(sidl_string__array)      
-CHAPEL_CLASS_TYPEDEF(sidl_BaseInterface__array)
+CHAPEL_CLASS_TYPEDEF(sidl_interface__array)
 
 // Macro definitions for Chapel-generated C code
 #define sidlArrayElem1Set(array, ind1, val) \
-  sidlArrayElem1(array,ind1) = val
+  sidlArrayElem1(*(array),ind1) = val
 
 // Identity function. We use it to cast [anything] -> opaque
 #define bool_ptr(A) A     

@@ -37,6 +37,7 @@ def generate_ior(ci, with_ior_c, _braid_config):
     """
     prefix = '_'.join(ci.epv.symbol_table.prefix)
     iorname = '_'.join([prefix, ci.epv.name])
+    ci.ior.genh(ir.Import('stdint'))
     for _, ext in ci.co.extends + ci.co.implements:
         ci.ior.genh(ir.Import(qual_id(ext)+'_IOR'))
 
@@ -61,7 +62,7 @@ def generate_ior(ci, with_ior_c, _braid_config):
             return ctype
 
         def add_forward_defn(name):
-            ci.ior.genh('struct ' + name + '__array;')
+            #ci.ior.genh('struct ' + name + '__array;')
             ci.ior.genh('struct ' + name + '__object;')
 
         add_forward_defn(iorname)
@@ -92,9 +93,10 @@ def generate_ior(ci, with_ior_c, _braid_config):
         for loop_ref in refs:
             add_forward_defn(loop_ref)
 
+        ci.ior.genh('struct sidl_interface__array;')
+
     # FIXME Need to insert forward references to external structs (i.e. classes) used as return type/parameters        
 
-    ci.ior.genh(ir.Import('stdint'))
     gen_forward_references()
     if ci.methodcstats: 
         ci.ior.gen(ir.Type_decl(ci.methodcstats))

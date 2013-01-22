@@ -12,7 +12,7 @@ var failed: bool = false;
 var part_no: int(32) = 0;
 var sidl_ex: BaseInterface = nil;
 var tracker: synch.RegOut = synch.RegOut_static.getInstance(sidl_ex);
-extern proc IS_NULL(in aRef): bool;
+extern proc is_null(in aRef): bool;
 
 proc init_part() {
   part_no += 1;
@@ -135,7 +135,7 @@ checkSimple(s1: s.s_Simple) : bool
            (abs(s1.d_float - 3.1:real(32)) < eps) &&
            (s1.d_int == 3) &&
            (s1.d_long == 3) &&
-           (IS_NULL(s1.d_opaque)) &&
+           (is_null(s1.d_opaque)) &&
            (s1.d_enum == s.Color.blue)));
 }
 
@@ -154,7 +154,7 @@ checkSimpleInv(s1: s.s_Simple) : bool
            (abs(s1.d_float + 3.1:real(32)) < eps) &&
            (s1.d_int == -3) &&
            (s1.d_long == -3) &&
-           (IS_NULL(s1.d_opaque)) &&
+           (is_null(s1.d_opaque)) &&
            (s1.d_enum == s.Color.red)));
 }
 

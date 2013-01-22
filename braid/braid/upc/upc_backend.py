@@ -685,7 +685,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         splicer = '.'.join(ci.epv.symbol_table.prefix+[ci.epv.name, Name])
         impldefn = (ir.fn_defn, ['export '+callee], 
                     chpltype, Name, impl_args,
-                    ['SET_TO_NULL(_ex);',
+                    ['set_to_null(_ex);',
                      '// DO-NOT-DELETE splicer.begin(%s)'%splicer,
                      '// DO-NOT-DELETE splicer.end(%s)'%splicer],
                     DocComment)

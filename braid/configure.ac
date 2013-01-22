@@ -224,7 +224,7 @@ Note: You won't need to have this installed
         ])
     ])
 
-AC_SUBST([BUILD_MACHINE], ["`hostname`"])
+AC_SUBST([BUILD_MACHINE],  ["`hostname`"])
 AC_SUBST([CONFIGURE_DATE], ["`date`"])
 
 AM_CONDITIONAL(ENABLE_INTEROP_REGRESSION, 

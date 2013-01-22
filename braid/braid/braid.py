@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- python -*-
+# -*- Python -*-
 ## @package braid
 #
 # Command line handling for the BRAID tool
