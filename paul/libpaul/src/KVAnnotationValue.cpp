@@ -1,7 +1,9 @@
 #include "KVAnnotationValue.h"
 #include <assert.h>
 #include "parser.h"
+extern "C" {
 #include "scanner.h"
+}
 
 Dynamic *KVAnnotationValue::lookup(string key) {
   KeyValueMap::iterator it;

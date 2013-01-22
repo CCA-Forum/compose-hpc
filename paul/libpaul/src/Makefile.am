@@ -9,63 +9,47 @@ boost_install = @BOOSTDIR@
 ##
 ##
 # set up compiler and linker flags
-CFLAGS += -Wall
+AM_CPPFLAGS = -Wall -Wno-deprecated
 
-CFLAGS += -I$(ROSEDIR)/include
-LDFLAGS += -L$(ROSEDIR)/lib
+AM_CPPFLAGS += -I$(ROSEDIR)/include
+AM_LDFLAGS = -L$(ROSEDIR)/lib
 
-CFLAGS += -I$(BOOSTDIR)/include
-LDFLAGS += -L$(BOOSTDIR)/lib
+AM_CPPFLAGS += -I$(BOOSTDIR)/include
+AM_LDFLAGS += -L$(BOOSTDIR)/lib
 
 ##
 ##
 ##
 # 
-lib_LIBRARIES = libpaul.a
-libpaul_a_SOURCES = \
+lib_LTLIBRARIES = libpaul.la
+libpaul_la_SOURCES = \
+	$(BUILT_SOURCES) scanner.l \
         KVAnnotationValue.cpp ssexpr.cpp SXAnnotationValue.cpp Dynamic.cpp \
         PlainAnnotationValue.cpp PaulDecorate.cpp PaulConfReader.cpp \
         Annotation.h KVAnnotationValue.h ssexpr.h SXAnnotationValue.h \
 	PaulConfReader.h PaulDecorate.h Dynamic.h PlainAnnotationValue.h \
 	RoseUtilities.hpp RoseUtilities.cpp Utilities.h Utilities.cpp
-EXTRA_DIST=scanner.l parser.y lempar.c lemon.c
-LIBPAUL=$(lib_LIBRARIES)
-SOURCES=$(libpaul_a_SOURCES)
-OBJECTS=$(patsubst %.cpp,%.o,${SOURCES})
 
-LIBS=-lrose
-LIBS+=-lfl          # Flex!
-
-CXX=g++
-
-all: $(LIBPAUL)
-
-$(LIBPAUL): scanner.o parser.o ${OBJECTS}
-	ar cru libpaul.a *.o
+EXTRA_DIST=lempar.c parser.y parser.c parser.h
+BUILT_SOURCES=lemon-parser.cpp parser.h scanner.h
+noinst_PROGRAMS=lemon
+lemon_SOURCES = lemon.c
+CLEANFILES = $(BUILT_SOURCES) parser.c
+libpaul_la_LIBADD= -lrose -lfl          # Flex!
 
 %.o: %.cpp ${HFILES}
 	${CXX} ${CFLAGS} -c $<
 
 # Build parser & scanner
-
-scanner.o: scanner.c scanner.h parser.h
-	${CXX} -c $(CFLAGS) scanner.c -o $@
-
 scanner.c scanner.h: scanner.l
-	flex $<
+	$(LEX) $<
 
-parser.c parser.h : parser.y lemon
-	./lemon -q $<
+parser.c parser.h : parser.y lemon # copying is needed for vpath builds, lemon is not flexible enough
+	$(AM_V_GEN) if test ! -f parser.y; then \
+          cp $< $(srcdir)/lempar.c .; \
+	  ./lemon -q parser.y; \
+	  rm -f lempar.c parser.y; \
+        else ./lemon -q $<; fi
 
-parser.o: parser.c parser.h
-	${CXX} -c $(CFLAGS) parser.c -o $@
-
-lemon: lemon.c
-	${CC} lemon.c -o lemon
-
-clean:
-	rm -f *.o
-	rm -f *~
-	rm -f lemon
-	rm -f parser.c parser.h scanner.c scanner.h
-	rm -f libpaul.a
+lemon-parser.cpp: # this way it also works with make -j
+	$(AM_V_GEN) echo '#include "parser.c"' >$@
