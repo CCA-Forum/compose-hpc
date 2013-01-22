@@ -1,3 +1,4 @@
+#!/usr/bin/env bxl-f
 /* yacc-style parser for paul assertions */
 
 contract = type clause { 'contract($1, $2)' }

@@ -1,3 +1,4 @@
+#!/usr/bin/env bxl-f
 /* yacc-style parser for paul assertions terms */
 
 /* some global definitions.

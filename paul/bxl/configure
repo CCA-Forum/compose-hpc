@@ -2634,7 +2634,7 @@ else
   as_fn_error $? "Could not find the Python module \"pyparsing\"" "$LINENO" 5
 fi
 
-ac_config_files="$ac_config_files Makefile bxl"
+ac_config_files="$ac_config_files Makefile bxl bxl-f"
 
 
 cat >confcache <<\_ACEOF
@@ -3353,6 +3353,7 @@ do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "bxl") CONFIG_FILES="$CONFIG_FILES bxl" ;;
+    "bxl-f") CONFIG_FILES="$CONFIG_FILES bxl-f" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
