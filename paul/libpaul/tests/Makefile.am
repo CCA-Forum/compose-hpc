@@ -1,7 +1,5 @@
 # things autoconf will fill in
 AM_CPPFLAGS = -Wall -Wno-deprecated -I$(top_srcdir)/src -I$(top_builddir)/src
-rose_install  = @ROSEDIR@
-boost_install = @BOOSTDIR@
 
 # set up compiler and linker flags
 AM_CPPFLAGS+= -I$(ROSEDIR)/include
@@ -38,9 +36,6 @@ check-local: ${EXES}
 	done; \
 	echo "DONE"
 
-clean:
+clean-local:
 	rm -f *.ti rose_* a.out
 	rm -f *~
-
-clean-all: clean
-	rm -f ${EXES}

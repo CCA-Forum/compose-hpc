@@ -1,13 +1,6 @@
 ##
 ##
 ##
-# things autoconf will fill in
-rose_install  = @ROSEDIR@
-boost_install = @BOOSTDIR@
-
-##
-##
-##
 # set up compiler and linker flags
 AM_CPPFLAGS = -Wall -Wno-deprecated
 
@@ -36,9 +29,6 @@ noinst_PROGRAMS=lemon
 lemon_SOURCES = lemon.c
 CLEANFILES = $(BUILT_SOURCES) parser.c
 libpaul_la_LIBADD= -lrose -lfl          # Flex!
-
-%.o: %.cpp ${HFILES}
-	${CXX} ${CFLAGS} -c $<
 
 # Build parser & scanner
 scanner.c scanner.h: scanner.l
