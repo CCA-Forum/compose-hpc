@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.63)
 AC_INIT(libpaul, 0.2, matt@galois.com)
-AM_INIT_AUTOMAKE(foreign)
+AM_INIT_AUTOMAKE([foreign 1.11 dist-bzip2])
 dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
 AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode

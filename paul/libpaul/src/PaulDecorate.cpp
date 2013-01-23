@@ -7,6 +7,11 @@
 #include "PaulConfReader.h"
 #include "Utilities.h"
 
+#include <sys/wait.h>
+#include <unistd.h>
+#include <cstring>
+#include <sstream>
+
 #define C_COMMENT         (1)
 #define CPP_COMMENT       (2)
 #define FTN_COMMENT       (3)
@@ -49,6 +54,80 @@ bool is_annotation(const string s) {
 
 string annotation_text(const string s) {
   return s.substr(1);
+}
+
+/// execute the command \c filter, write input to its stdin and return
+/// the output of the command
+/// TODO: execute each command only once and leave the pipes open
+string exec_cmd(const string& filter, const string& input) {
+  stringstream output;
+  int d_read = 0;
+  int d_write = 1;
+  int p_in[2];
+  int p_out[2];
+  pipe(p_in);
+  pipe(p_out);
+
+  pid_t pid = fork();
+  if (pid == 0) {
+    // child process
+    // point the child process' stdio the pipes
+    dup2(p_in[d_read], 0); // stdin = 0
+    dup2(p_out[d_write], 1); // stdout = 1
+    close(p_in[d_write]);
+    close(p_out[d_read]);
+    char *arg0 = strdup(filter.c_str());
+    char *argv[] = { arg0, NULL };
+    execv(arg0, argv);
+    cerr << "Could not execute \"" << filter << "\"\n";
+    _exit(EXIT_FAILURE);
+  } else {
+    // parent process
+    assert(pid > 0);
+    close(p_in[d_read]);
+    close(p_out[d_write]);
+
+    // send the input to the filter command
+    ssize_t size = input.size();
+    while (size > 0) {
+      ssize_t len = write(p_in[d_write], input.c_str(), size);
+      if (len < 0)  {
+	cerr<<"**WARNING: Could not write to child process"<<endl;
+	break;
+      }
+      size -= len;
+    }
+    assert(size==0);
+    close(p_in[d_write]);
+
+    // grab the output of the command
+    ssize_t len;
+    do {
+      char buf[1024];
+      len = read(p_out[d_read], buf, 1024);
+      if (len < 0) {
+	cerr<<"**WARNING: Could not read from child process"<<endl;
+	break;
+      }
+      //cerr<< "read "<<len<<" bytes"<<endl;
+      output << string(buf, len);
+    } while (len > 0);
+    close(p_out[d_read]);
+
+    // wait for the child process to terminate
+    int status;
+    if (waitpid(pid, &status, 0) == -1) {
+      perror("waitpid");
+      exit(EXIT_FAILURE);
+    }
+    if (WEXITSTATUS(status) != 0) {
+      cerr<<"**WARNING: Command "<<filter
+	  <<" returned with exit status "<<WEXITSTATUS(status)<<endl;
+    }
+
+  }
+  //cerr <<output.str()<<endl;
+  return output.str();
 }
 
 void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
@@ -147,15 +226,41 @@ void handle_comment(const string s, SgLocatedNode *node, paul_tag_map tagmap) {
 	    original->merge(pValue);
 	  }
 
+	} else if ((*ptm_it).second[0] == '|') {
+	  //
+	  // PIPE'ed annotation: after the '|' comes the name of a
+	  // filter (program) that translates the annotation into
+	  // s-expressions.
+	  //
+	  string filter = (*ptm_it).second.substr(1);
+          cerr << "Establishing pipe to "<< filter <<"\n";
+
+	  string sexpr = exec_cmd(filter, value_text);
+
+	  SXAnnotationValue *pValue = new SXAnnotationValue (sexpr);
+
+	  if (pAnn == NULL) {
+	    // create the annotation
+	    pAnn = new Annotation(value_text, node, tag, pValue);
+
+	    // add the annotation to the node:
+	    node->addNewAttribute (tag, pAnn);
+	  } else {
+	    // need to merge with original annotation
+	    SXAnnotationValue *original = (SXAnnotationValue *)pAnn->getValue();
+
+	    // do the merge
+	    original->merge(pValue);
+	  }
+	} else {
+	  cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING) :: Tag="
+	       << tag << ", Parser=" << (*ptm_it).second << endl;
+	}
       } else {
-        cerr << "UNSUPPORTED ANNOTATION FORMAT (NON-FATAL, IGNORING) :: Tag="
-	    << tag << ", Parser=" << (*ptm_it).second << endl;
+	// tag wasn't found
+	cerr << "Tag (" << tag
+	     << ") encountered not present in configuration file." << endl;
       }
-    } else {
-      // tag wasn't found
-      cerr << "Tag (" << tag
-	  << ") encountered not present in configuration file." << endl;
-    }
     } else {
       // empty annotation
       cerr << "Empty annotation encountered." << endl;

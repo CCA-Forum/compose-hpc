@@ -4,8 +4,11 @@
 contract = type clause { '(contract $1 $2)' }
          ;
 
-type = 'REQUIRE' { 'REQUIRE' } 
-     | 'ENSURE'  { 'ENSURE' }
+type = 'REQUIRE'   { 'require' } 
+     | 'ENSURE'    { 'ensure' }
+     | 'INIT'      { 'init' }
+     | 'INVARIANT' { 'invariant' }
+     | 'FINAL'     { 'final' }
      ;
 clause = name ':' assertExpr ';' { '(clause $1 $3)' }
        ;
