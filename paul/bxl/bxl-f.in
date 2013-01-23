@@ -1,0 +1,13 @@
+#!/bin/sh
+# this script is similar to bxl, but with an implicit -f argument. 
+# We can use it for the shebang line as in
+#!/usr/bin/env bxl-f
+# which allows only 1 argument.
+# Does anyone have a cleaner solution for this?
+prefix=@prefix@
+if test $# -eq 1; then
+    if test "x$1" = x--help -o "x$1" = x--version; then
+	exec @PYTHON@ @pythondir@/bxl.pyo "$@"
+    fi
+fi
+exec @PYTHON@ @pythondir@/bxl.pyo -f "$@"
