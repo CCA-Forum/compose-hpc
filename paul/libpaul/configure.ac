@@ -90,6 +90,22 @@ AC_CHECK_FILE([${ROSE_LIB_DIR}/librose.so],
      exit -1 ],
     [-Wl,--rpath -Wl,${BOOST_LIB_DIR} -L${ROSE_LIB_DIR}])
 
+# BXL
+#-----------------------------------
+AS_IF([test -z "`which bxl-f`"],
+      [AC_MSG_WARN([
+ * * *
+If you want to support user-customizeable annotations, we suggest to
+also install the bxl language to a location in your PATH. To install
+bxl in "$prefix/bin/bxl", run
+   cd ../bxl && ./configure --prefix=$prefix && make install && cd -
+ * * *
+])
+      BXL="not found!"],
+      [BXL=`which bxl`])
+
+
+
 AC_OUTPUT
 
 # SUMMARY
@@ -98,4 +114,5 @@ echo
 echo "------------------------------------------------------------------------"
 echo "  [libpaul] configuration summary:"
 echo "    ROSE .................." $ROSEDIR
+echo "    BXL ..................." $BXL
 echo "------------------------------------------------------------------------"
