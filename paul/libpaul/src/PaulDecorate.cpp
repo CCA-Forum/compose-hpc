@@ -126,7 +126,7 @@ string exec_cmd(const string& filter, const string& input) {
     }
 
   }
-  cerr <<"read annotation "<<output.str()<<endl;
+  cerr <<"annotation = \""<<output.str()<<"\""<<endl;
   return output.str();
 }
 
