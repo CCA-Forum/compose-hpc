@@ -16,7 +16,7 @@ syntax such as a LISP-like symbolic expression, such as:
 
 /* %ANNOTATION
   ( this is a (complex and (structured annotation) (that is parsed))
-    into a tree like structure )
+    into a tree-like structure )
 */
 
 ROSE already provides the ability to associate attributes with AST nodes,
