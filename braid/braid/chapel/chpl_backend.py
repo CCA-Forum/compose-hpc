@@ -34,7 +34,7 @@
 # </pre>
 #
 
-import ior, ior_template, ir, os.path, sidl, sidlobjects, splicer
+import ior, ior_template, ir, os.path, re, sidl, sidlobjects, splicer
 from utils import write_to, unzip
 from patmat import *
 from codegen import CFile, CCompoundStmt, c_gen
@@ -55,6 +55,19 @@ extern_def_is_not_null = 'extern proc is_not_null(in aRef): bool;'
 extern_def_set_to_null = 'extern proc set_to_null(inout aRef);'
 chpl_base_interface = 'sidl.BaseInterface'
 qual_id = babel.qual_id
+retval_assignment = re.compile('^_retval\..+ =')
+
+def c_struct(symbol_table, s):
+    """
+    lower scoped ids in item types
+    FIXME: get rid of this function
+    """
+    def l((item, typ, name)):
+        if typ[0] == ir.pointer_type and typ[1][0] == ir.scoped_id:
+            return item, babel.lower_ir(symbol_table, typ[1]), name
+        return item, typ, name
+    struct, name, items, doc = s
+    return struct, name, map(l, items), doc
 
 def forward_decl(ir_struct):
     """
@@ -234,7 +247,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 struct_chpl_ior  = babel.lower_ir(symbol_table, node,
                                                   qualify_names=False, qualify_enums=False,
                                                   lower_scoped_ids=False, struct_suffix='')
-                if 's_Hard' in str(Name): import pdb; pdb.set_trace() # needs to create real Object
                 struct_chpl_chpl = conv.ir_type_to_chpl(struct_chpl_ior)
                 struct_c_chpl    = babel.lower_ir(symbol_table, node, 
                                                   qualify_enums=False, raw_ior_arrays=True,
@@ -243,7 +255,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 self.pkg_chpl_stub.gen(ir.Type_decl(struct_chpl_chpl))
 
                 struct_c_c       = babel.lower_ir(symbol_table, node, header=pkg_h)
-                struct_chpl_c    = conv.ir_type_to_chpl(struct_c_c)
+                struct_chpl_c    = c_struct(symbol_table, conv.ir_type_to_chpl(struct_c_c))
 
                 pkg_h.gen(ir.Type_decl(struct_c_c))
                 pkg_h.new_header_def('#ifndef CHPL_GEN_CODE')
@@ -253,7 +265,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                         'keyword for them.'))
                 pkg_h.gen(ir.Type_decl(struct_chpl_c))
                 pkg_h.new_header_def('#else // CHPL_GEN_CODE')
-                pkg_h.new_header_def(forward_decl(struct_chpl_c))
+                #pkg_h.new_header_def(forward_decl(struct_chpl_c))
+                pkg_h.new_header_def('#define %s __%s'%(struct_chpl_c[1], struct_chpl_c[1]))
                 pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
 
                 # record it for later, when the package is being finished
@@ -611,11 +624,16 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
             else:
                 body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
-                body.gen(ir.Copy('_retval', '_ior__retval'))
+                # this needs to go ...
+                assigns_retval = False
+                for stmt in body._defs:
+                    if re.match(retval_assignment, stmt):
+                        assigns_retval = True
+                        break
+                if not assigns_retval:
+                    body.gen(ir.Copy('_retval', '_ior__retval'))
 
             body.genh(ir.Comment(str(Type)))
-
-
             body.gen(ir.Stmt(ir.Return('_retval')))
 
         # Add the exception to the chapel method signature

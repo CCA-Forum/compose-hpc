@@ -58,24 +58,29 @@ string annotation_text(const string s) {
 
 /// execute the command \c filter, write input to its stdin and return
 /// the output of the command
-/// TODO: execute each command only once and leave the pipes open
+/// FIXME (performance): get rid of the start-up delay by executing
+/// each command only once and then leave the pipes open.
 string exec_cmd(const string& filter, const string& input) {
   stringstream output;
   int d_read = 0;
   int d_write = 1;
   int p_in[2];
   int p_out[2];
-  pipe(p_in);
-  pipe(p_out);
+
+#define SYSCALL(syscall, args...) \
+  do { if (syscall(args) == -1) perror(#syscall); } while (0)
+
+  SYSCALL(pipe, p_in);
+  SYSCALL(pipe, p_out);
 
   pid_t pid = fork();
   if (pid == 0) {
     // child process
     // point the child process' stdio the pipes
-    dup2(p_in[d_read], 0); // stdin = 0
-    dup2(p_out[d_write], 1); // stdout = 1
-    close(p_in[d_write]);
-    close(p_out[d_read]);
+    SYSCALL(dup2, p_in[d_read], 0); // stdin = 0
+    SYSCALL(dup2, p_out[d_write], 1); // stdout = 1
+    SYSCALL(close, p_in[d_write]);
+    SYSCALL(close, p_out[d_read]);
     char *arg0 = strdup(filter.c_str());
     char *argv[] = { arg0, NULL };
     execv(arg0, argv);
@@ -84,21 +89,22 @@ string exec_cmd(const string& filter, const string& input) {
   } else {
     // parent process
     assert(pid > 0);
-    close(p_in[d_read]);
-    close(p_out[d_write]);
+    SYSCALL(close, p_in[d_read]);
+    SYSCALL(close, p_out[d_write]);
 
     // send the input to the filter command
     ssize_t size = input.size();
     while (size > 0) {
       ssize_t len = write(p_in[d_write], input.c_str(), size);
       if (len < 0)  {
+	perror("write");
 	cerr<<"**WARNING: Could not write to child process"<<endl;
 	break;
       }
       size -= len;
     }
     assert(size==0);
-    close(p_in[d_write]);
+    SYSCALL(close, p_in[d_write]);
 
     // grab the output of the command
     ssize_t len;
@@ -106,27 +112,25 @@ string exec_cmd(const string& filter, const string& input) {
       char buf[1024];
       len = read(p_out[d_read], buf, 1024);
       if (len < 0) {
+	perror("read");
 	cerr<<"**WARNING: Could not read from child process"<<endl;
 	break;
       }
       //cerr<< "read "<<len<<" bytes"<<endl;
       output << string(buf, len);
     } while (len > 0);
-    close(p_out[d_read]);
+    SYSCALL(close, p_out[d_read]);
 
     // wait for the child process to terminate
     int status;
-    if (waitpid(pid, &status, 0) == -1) {
-      perror("waitpid");
-      exit(EXIT_FAILURE);
-    }
+    SYSCALL(waitpid, pid, &status, 0);
     if (WEXITSTATUS(status) != 0) {
       cerr<<"**WARNING: Command "<<filter
 	  <<" returned with exit status "<<WEXITSTATUS(status)<<endl;
     }
 
   }
-  //cerr <<output.str()<<endl;
+  cerr <<"annotation = \""<<output.str()<<"\""<<endl;
   return output.str();
 }
 

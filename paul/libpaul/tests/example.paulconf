@@ -5,4 +5,9 @@ TEST3 key-value
 TAG_KV key-value
 TAG_SX        s-expression
 TAG_ER unknownparser              
+; If the annotation type starts with a pipe character "|"
+; the annotation will be piped to a filter program that 
+; is supposed to convert that annoation language 
+; into s-expressions.
+; In this example we are using ./contract2sexp.bxl as a filter:
 CONTRACT |contract2sexp.bxl

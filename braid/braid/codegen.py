@@ -1304,7 +1304,7 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             # FIXME should we use scoped_id instead of typedecl?
             elif (ir.type_decl, (ir.struct, Name, StructItems, DocComment)):
-                return new_header_scope('struct %s'%gen(Name), StructItems)
+                return new_header_scope('struct %s'%gen(Name), StructItems) #, ' %s;\n'%gen(Name)
 
             elif (ir.struct_item, (ir.pointer_type, (ir.fn_decl, Attrs, Type, Name, Args, DocComment)), Name):
                 # yes, both Names should be identical
