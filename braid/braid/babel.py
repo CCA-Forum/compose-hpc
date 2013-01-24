@@ -289,6 +289,7 @@ def lower_ir(symbol_table, sidl_term, header=None,
             if Type[0] == sidl.scoped_id:
                 t = symbol_table[Type][1]
                 if t[0] == sidl.class_ or t[0] == sidl.interface:
+                    if header: header.genh(ir.Import(qual_id(t[1])+'_IOR'))
                     t = ir_object_type(t[1][1],t[1][2])
                 elif t[0] == sidl.struct or t[0] == sidl.enum:
                     return (ir.struct_item, low(t), Name)
@@ -319,10 +320,10 @@ def lower_ir(symbol_table, sidl_term, header=None,
             if Scalar_type[0] == ir.scoped_id:
                 # All object arrays are called sidl_interface__array
                 t = 'interface'
+                if header: header.genh(ir.Import('sidl_BaseInterface_IOR'))
             else:
                 t = Scalar_type[1]
-            if header:
-                header.genh(ir.Import('sidl_'+t+'_IOR'))
+            if header: header.genh(ir.Import('sidl_'+t+'_IOR'))
             return ir.Pointer_type(ir.Struct('%ssidl_%s__array'%(array_prefix,t), [], ''))
 
         elif (sidl.class_, ScopedId, _, _, _, _, _):
