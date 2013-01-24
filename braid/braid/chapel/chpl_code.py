@@ -252,7 +252,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
         'long':      "int(64)",
         'opaque':    "int(64)",
         'string':    "string",
-        'BaseInterface': "opaque"
+        'interface': "opaque"
         }
 
     def is_sidl_array(self, struct_name):

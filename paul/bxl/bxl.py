@@ -47,7 +47,7 @@ __version__ = '1.0'
 __license__ = '''BSD
 Copyright (c) 2012 Lawrence Livermore National Security, LLC.
 Produced at the Lawrence Livermore National Laboratory.
-Written by the Adrian Prantl <adrian@llnl.gov>.
+Written by Adrian Prantl <adrian@llnl.gov>.
  
 LLNL-CODE-473891.
 All rights reserved.
@@ -132,7 +132,7 @@ def action_%s(string, loc, __toks):
     return fn
 
 def default_action(string, loc, toks):
-    #print 'default', toks
+    #print 'default_action(%r, %r, %r)'%(string, loc, toks)
     return toks
 
 #------------------------------------------------------------------------
@@ -151,11 +151,12 @@ def cons(a, b):
     #return '**TYPE ERROR: cons(%r, %r)'%(a,b)
 
 def tok_subst(toks, val):
-    '''internally used to substitue '__toks[n-1]' in the returned string 
+    '''internally used to substitute '__toks[n-1]' in the returned string 
      with the value of $n'''
     if isinstance(val, str):
         # TODO: do this in a single pass
         for i in range(len(toks)):
+            if verbose: print 'substituting toks(%d) -> %s'%(i,str(toks[i]))
             val = val.replace('__toks[%d-1]'%(i+1), str(toks[i]))
     if verbose: print 'action returns', val
     return val
@@ -244,12 +245,12 @@ def do_definitions_list(string, loc, toks):
 def do_definition(string, loc, toks):
     toks = toks.asList()
     if len(toks) > 1:
+        #should happen more often!!!!!!
         toks[0].setParseAction(make_action(toks[1]))
-        return [toks[0]]
     else:
         # default action
         toks[0].setParseAction(default_action)
-        return [ toks[0] ]
+    return [ toks[0] ]
 
 def do_begin_rule(string, loc, toks):
     # special AWK-style BEGIN action is always executed right away
@@ -301,6 +302,12 @@ def diagnose(line, col, row):
     print line
     print ' '*(col-2)+'-^-'
 
+def skip_shebang(f):
+    first_line = f.readline()
+    rest = f.read()
+    if first_line[:2] == '#!':
+        return rest
+    return first_line+rest
 
 #------------------------------------------------------------------------
 # main
@@ -316,6 +323,7 @@ if __name__ == '__main__':
                          type=argparse.FileType('r'), help='BXL script')
     cmdline.add_argument('-v','--verbose', action='store_true', help='verbose mode')
     cmdline.add_argument('--version', action='store_true', help='display version number')
+    cmdline.add_argument('--license', action='store_true', help='show licensing information')
     cmdline.add_argument('infile', nargs='?', type=argparse.FileType('r'),
                          default=sys.stdin, help='input file')
     cmdline.add_argument('outfile', nargs='?', type=argparse.FileType('w'),
@@ -323,11 +331,9 @@ if __name__ == '__main__':
 
     args = cmdline.parse_args()
 
-    if args.version:
-        print "BXL", __version__
-        exit(0)
-
-    if not args.file:  print 'no input specified!'; exit(1)
+    if args.version:  print "BXL", __version__;    exit(0)
+    if args.license:  print        __license__;    exit(0)
+    if not args.file: print 'no input specified! (use --help for more info)'; exit(1)
 
     for name in all_names:
         expr = vars()[name]
@@ -340,7 +346,7 @@ if __name__ == '__main__':
     # load program
     try:
         if args.verbose: print "reading file", args.file.name
-        g = parse(args.file.read())
+        g = parse(skip_shebang(args.file))
     except ParseBaseException as e:
         print '** Error in %s:%d:%d'%(args.file.name, e.lineno, e.col)
         diagnose(e.line, e.col, e.lineno)

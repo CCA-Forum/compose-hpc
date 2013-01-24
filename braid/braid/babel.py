@@ -209,7 +209,9 @@ def lower_ir(symbol_table, sidl_term, header=None,
              enum_suffix='__enum',
              lower_scoped_ids=True,
              qualify_names=True,
-             qualify_enums=True):
+             qualify_enums=True,
+             raw_ior_arrays=False,
+             wrap_rarrays=False):
     """
     FIXME!! can we merge this with convert_arg??
     lower SIDL types into IR
@@ -230,9 +232,11 @@ def lower_ir(symbol_table, sidl_term, header=None,
         return lower_ir(symbol_table, sidl_term, header,
                         struct_suffix, enum_suffix,
                         lower_scoped_ids,
-                        qualify_names, qualify_enums)
+                        qualify_names, qualify_enums,
+                        raw_ior_arrays, wrap_rarrays)
 
     # print 'low(',sidl_term, ')'
+    array_prefix = '/* IOR */ ' if raw_ior_arrays else ''
 
     with match(sidl_term):
         if (sidl.arg, Attrs, Mode, (sidl.scoped_id, _, _, _), Name):
@@ -299,7 +303,11 @@ def lower_ir(symbol_table, sidl_term, header=None,
         #     return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
 
         elif (sidl.rarray, Scalar_type, Dimension, Extents):
-            return ir.Rarray(low(Scalar_type), Dimension, Extents)
+            if wrap_rarrays:
+                return ir.Pointer_type(ir.Struct('%ssidl_%s__array'
+                                                 %(array_prefix,Scalar_type[1]), [], ''))
+            else:
+                return ir.Rarray(low(Scalar_type), Dimension, Extents)
 
         elif (sidl.array, [], [], []):
             #if not lower_scoped_ids: return sidl_term
@@ -309,15 +317,13 @@ def lower_ir(symbol_table, sidl_term, header=None,
         elif (sidl.array, Scalar_type, Dimension, Orientation):
             #if not lower_scoped_ids: return sidl_term
             if Scalar_type[0] == ir.scoped_id:
-                # FIXME: this is oversimplified, it should actually be
-                # the real class name, but we don't yet generate array
-                # declarations for all classes
-                t = 'BaseInterface'
+                # All object arrays are called sidl_interface__array
+                t = 'interface'
             else:
                 t = Scalar_type[1]
             if header:
                 header.genh(ir.Import('sidl_'+t+'_IOR'))
-            return ir.Pointer_type(ir.Struct('sidl_%s__array'%t, [], ''))
+            return ir.Pointer_type(ir.Struct('%ssidl_%s__array'%(array_prefix,t), [], ''))
 
         elif (sidl.class_, ScopedId, _, _, _, _, _):
             if not lower_scoped_ids: return ScopedId

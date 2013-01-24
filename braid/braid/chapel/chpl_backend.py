@@ -13,7 +13,7 @@
 #
 # \authors <pre>
 #
-# Copyright (c) 2010, 2011, 2012 Lawrence Livermore National Security, LLC.
+# Copyright (c) 2010-2013 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
 # Written by Adrian Prantl <adrian@llnl.gov>.
 #
@@ -51,8 +51,8 @@ chpl_data_var_template = '_babel_data_{arg_name}'
 chpl_dom_var_template = '_babel_dom_{arg_name}'
 chpl_local_var_template = '_babel_local_{arg_name}'
 chpl_param_ex_name = '_ex'
-extern_def_is_not_null = 'extern proc IS_NOT_NULL(in aRef): bool;'
-extern_def_set_to_null = 'extern proc SET_TO_NULL(inout aRef);'
+extern_def_is_not_null = 'extern proc is_not_null(in aRef): bool;'
+extern_def_set_to_null = 'extern proc set_to_null(inout aRef);'
 chpl_base_interface = 'sidl.BaseInterface'
 qual_id = babel.qual_id
 
@@ -127,7 +127,6 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             chpl_stub.cstub.genh(ir.Import(qname+'_IOR'))
             chpl_stub.cstub.genh(ir.Import('sidl_header'))
-            chpl_stub.cstub.genh(ir.Import('chpl_sidl_array'))
             chpl_stub.cstub.genh(ir.Import('chpltypes'))
             chpl_stub.cstub.new_def(babel.externals(cls.get_scoped_id()))
             if self.server:
@@ -208,8 +207,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
             # IOR
             ci.ior.genh(ir.Import(pkg_name))
-            ci.ior.genh(ir.Import('sidl'))
-            ci.ior.genh(ir.Import('chpl_sidl_array'))
+            if pkg_name <> 'sidl': 
+                ci.ior.genh(ir.Import('sidl'))
             ci.ior.genh(ir.Import('chpltypes'))
             ior_template.generate_ior(ci, with_ior_c=self.server, _braid_config=self.config )
             ci.ior.write()
@@ -235,9 +234,12 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 struct_chpl_ior  = babel.lower_ir(symbol_table, node,
                                                   qualify_names=False, qualify_enums=False,
                                                   lower_scoped_ids=False, struct_suffix='')
+                if 's_Hard' in str(Name): import pdb; pdb.set_trace() # needs to create real Object
                 struct_chpl_chpl = conv.ir_type_to_chpl(struct_chpl_ior)
-                struct_c_chpl    = babel.lower_ir(symbol_table, node, qualify_enums=False)
-                # self.pkg_chpl_stub.gen(ir.Type_decl(struct_c_chpl))
+                struct_c_chpl    = babel.lower_ir(symbol_table, node, 
+                                                  qualify_enums=False, raw_ior_arrays=True,
+                                                  wrap_rarrays=True)
+                self.pkg_chpl_stub.gen(ir.Type_decl(struct_c_chpl))
                 self.pkg_chpl_stub.gen(ir.Type_decl(struct_chpl_chpl))
 
                 struct_c_c       = babel.lower_ir(symbol_table, node, header=pkg_h)
@@ -355,9 +357,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             '#define included_sidl_BaseInterface_Stub_h',
             'typedef struct sidl_BaseInterface__object _sidl_BaseInterface__object;',
             'typedef _sidl_BaseInterface__object* sidl_BaseInterface__object;',
-            '#define IS_NULL(aPtr)     ((aPtr) == 0)',
-            '#define IS_NOT_NULL(aPtr) ((aPtr) != 0)',
-            '#define SET_TO_NULL(aPtr) ((*aPtr) = 0)',
+            '#include <codelets.h>',
             '#endif'
             ]
 
@@ -571,7 +571,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         stub_ex = '_ex'
         body.new_def(extern_def_is_not_null)
         body.new_def(extern_def_set_to_null)
-        body.gen(ir.Stmt(ir.Call("SET_TO_NULL", [stub_ex])))
+        body.gen(ir.Stmt(ir.Call("set_to_null", [stub_ex])))
 
         # return value type conversion -- treat it as an out argument
         #srarg = (sidl.arg, [], sidl.out, Type, '_retval')
@@ -711,10 +711,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             '  ' + extern_def_is_not_null,
             '  ' + extern_def_set_to_null,
             '  var ex: sidl_BaseInterface__object;',
-            '  SET_TO_NULL(ex);'
+            '  set_to_null(ex);'
         ]
         common_tail = [
-            '  if (IS_NOT_NULL(ex)) {',
+            '  if (is_not_null(ex)) {',
             '     {arg_name} = new {base_ex}(ex);'.format(arg_name=chpl_param_ex_name, base_ex=chpl_base_interface) ,
             '  }'
         ]
@@ -1090,7 +1090,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                     ior_type, #unscope_retval(ci.epv.symbol_table, ior_type),
                     Name,
                     impl_args, #map(unscoped_args, impl_args),
-                    ['SET_TO_NULL(_ex);',
+                    ['set_to_null(_ex);',
                      '// DO-NOT-DELETE splicer.begin(%s)'%splicer,
                      '// DO-NOT-DELETE splicer.end(%s)'%splicer],
                     DocComment)

@@ -51,7 +51,3 @@ void append_char(char *d, char c) {
 }
 
 %%
-
-int yywrap() {
-  return 1;
-}

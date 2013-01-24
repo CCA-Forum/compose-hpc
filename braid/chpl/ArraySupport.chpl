@@ -1,6 +1,10 @@
 // -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 // TODO Remove all debug prints when done
 
+use Types;
+// FIXME: this needs to be detected by configure
+proc numBits(type t) param where t == opaque return 64;
+
 extern proc getOpaqueData(inout inData): opaque;
 
 proc performSanityCheck(aDom: domain, varName: string) {
@@ -116,7 +120,7 @@ proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
   var result: [0..2][1..arrayRank] int(64);
   var arrayOrderMode = getArrayOrderMode(srcArray);
 
-  for i in [1..arrayRank] {
+  for i in {1..arrayRank} {
     var r = srcDom.dim(i);
     result[0][i] = r.low;
     result[1][i] = r.high;

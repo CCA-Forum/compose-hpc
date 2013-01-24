@@ -1,0 +1,81 @@
+#!/usr/bin/env bxl-f
+/* yacc-style parser for paul assertions */
+
+contract = type clause { '(contract $1 $2)' }
+         ;
+
+type = 'REQUIRE'   { 'require' } 
+     | 'ENSURE'    { 'ensure' }
+     | 'INIT'      { 'init' }
+     | 'INVARIANT' { 'invariant' }
+     | 'FINAL'     { 'final' }
+     ;
+clause = name ':' assertExpr ';' { '(clause $1 $3)' }
+       ;
+name = /[_a-zA-Z][_a-zA-Z0-9]*/ ;
+assertExpr = orExpr
+           | orExpr 'implies' orExpr { '(implies $1 $3)' }
+           | orExpr 'iff'     orExpr { '(iff $1 $3)' }
+           ;
+orExpr = andExpr
+       | andExpr "or"  orExpr {  '(log_or $1 $3)' } 
+       | andExpr "xor" orExpr { '(log_xor $1 $3)' } 
+       ;
+andExpr = bitwiseExpr 
+        | bitwiseExpr "and" andExpr { '(log_and $1 $3)' } 
+	;
+bitwiseExpr = equalityExpr
+            | equalityExpr "&" bitwiseExpr { '(bit_and $1 $3)' } 
+            | equalityExpr "|" bitwiseExpr { '(bit_or $1 $3)' } 
+            | equalityExpr "^" bitwiseExpr { '(bit_xor $1 $3)' } 
+            ;
+equalityExpr = relationalExpr
+	     | relationalExpr "==" equalityExpr {  '(eq $1 $3)' } 
+             | relationalExpr "!=" equalityExpr { '(neq $1 $3)' } 
+	     ;
+relationalExpr = shiftExpr
+	       | shiftExpr "<" relationalExpr  { '(lt $1 $3)' } 	
+               | shiftExpr ">" relationalExpr  { '(gt $1 $3)' } 	
+	       | shiftExpr "<=" relationalExpr { '(le $1 $3)' } 	
+	       | shiftExpr ">=" relationalExpr { '(ge $1 $3)' } 	
+	       ;
+shiftExpr = addExpr
+	  | addExpr "<<" shiftExpr { '(shl $1 $3)' } 
+	  | addExpr ">>" shiftExpr { '(shr $1 $3)' } 
+	  ;
+addExpr = multExpr
+        | multExpr "+" addExpr { '(plus $1 $3)' } 
+	| multExpr "-" addExpr { '(minus $1 $3)' } 
+;
+multExpr = powerExpr 
+         | powerExpr "*" multExpr   { '(times $1 $3)' } 
+	 | powerExpr "/" multExpr   { '(div $1 $3)' } 
+	 | powerExpr "%" multExpr   { '(mod $1 $3)' } 
+	 | powerExpr "rem" multExpr { '(mod $1 $3)' } 
+ 	 ;
+powerExpr = unaryExpr 
+	  | unaryExpr "**" powerExpr { '(pow $1 $3)' } 
+	  ;
+unaryExpr = funcEval       
+          | 'is' funcEval { '(is $2)' }
+          | '!' funcEval  { '(log_not $2)' }
+          | '~' funcEval  { '(bit_not $2)' }
+	  ;
+funcEval = name '(' funcArgs ')' { '(call $1 ($3))' }
+         | name '(' ')'          { '(call $1 ())' }
+         | name                  
+         | literal
+         | '(' orExpr ')'        { '$2' }
+	 ;
+funcArgs = orExpr                { cons($1, []) }
+         | orExpr ',' funcArgs   { cons($1, $3) }
+	 ;
+
+literal = decimal_literal | hex_literal | octal_literal 
+        | simple_floating_point_literal ;
+
+decimal_literal               = /[1-9][0-9]*/ ;
+hex_literal                   = /0[xX][0-9a-fA-F]+/ ;
+octal_literal                 = /0[0-7]*/ ;
+simple_floating_point_literal = /[0-9]+\.[0-9]+/ ;
+exponent                      = /[eE][\+-]?[0-9]+/ ;

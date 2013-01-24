@@ -1,8 +1,8 @@
 // -*- chpl -*- This fragment will be included in sidl.chpl during compile time.
 
-  extern proc IS_NOT_NULL(in aRef: opaque): bool;
-  extern proc IS_NULL(in aRef: opaque): bool;
-
+  extern proc is_not_null(in aRef): bool;
+  extern proc is_null(in aRef): bool;
+  extern proc generic_ptr(in a):opaque;
 
   enum sidl_array_ordering {
     sidl_general_order=0, /* this must be zero (i.e. a false value) */
@@ -24,8 +24,7 @@
     sidl_long_array      = 8,
     sidl_opaque_array    = 9,
     sidl_string_array    = 10,
-    //sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
-    sidl_BaseInterface_array = 11 /* an array of sidl.BaseInterface's */
+    sidl_interface_array = 11 /* an array of sidl.BaseInterface's */
   };
 
   /**
@@ -78,7 +77,7 @@
    *
    * \authors <pre>
    *
-   * Copyright (c) 2011, Lawrence Livermore National Security, LLC.
+   * Copyright (c) 2011-2013, Lawrence Livermore National Security, LLC.
    * Produced at the Lawrence Livermore National Laboratory
    * Written by Adrian Prantl <adrian@llnl.gov>.
    *
@@ -98,21 +97,23 @@
    * The client may access this with the functions below or using
    * the macros in the header file sidlArray.h.
    */
-# define SIDL_ARRAY(C_TYPE, CHAPEL_TYPE)                                                \
-  extern class sidl_##C_TYPE##__array {                                                 \
-     var d_metadata: sidl__array;                                                       \
-     var d_firstElement: opaque;                                                        \
-   };                                                                                   \
+# define SIDL_ARRAY(C_TYPE, CHAPEL_TYPE)				                \
+  extern class sidl_##C_TYPE##__array {					                \
+    var d_metadata: sidl__array;					                \
+    var d_firstElement: opaque;						                \
+  };									                \
+  									                \
+  /* TODO: this is still just an idead, but it would be nice if these                   \
+     functions would be called automatically in get() and set() */                      \
+  proc toIOR(in chpl: CHAPEL_TYPE) {        				                \
+    extern proc chpl_##C_TYPE##_to_ior_##CTYPE(in chpl:CHAPEL_TYPE);                    \
+    return chpl_##C_TYPE##_to_ior_##CTYPE(chpl);			                \
+  }									                \
+  proc fromIOR(in ior): CHAPEL_TYPE {					                \
+    extern proc ior_##C_TYPE##_to_chpl_##CTYPE(in ior): CHAPEL_TYPE;    		\
+    return ior_##C_TYPE##_to_chpl_##CTYPE(ior);				                \
+  }									                \
                                                                                         \
-  /**											\
-   * Wrap an existing Chapel array inside of a new SIDL array. The initial		\
-   * content it determined by the data being borrowed. 	         			\
-   *											\
-   * A word of WARNING: An array borrowed from Chapel will only work			\
-   * until the function calling sidl_*_array_borrow() returns. If you			\
-   * want to retain the array beyond that point you will need to run			\
-   * smartCopy().									\
-   */											\
   extern proc C_TYPE##_ptr(inout firstElement: CHAPEL_TYPE): opaque;			\
   extern proc sidl_##C_TYPE##__array_init(                                              \
                    inout firstElement: CHAPEL_TYPE,                                     \
@@ -128,7 +129,15 @@
                    inout upper: int(32),						\
                    inout stride: int(32)): sidl_##C_TYPE##__array;			\
                                                                                         \
-  /** borrow a Chapel-created array and wrap it inside of SIDL array metadata */        \
+  /**											\
+   * Wrap an existing Chapel array inside of a new SIDL array. The initial		\
+   * content it determined by the data being borrowed. 	         			\
+   *											\
+   * A word of WARNING: An array borrowed from Chapel will only work			\
+   * until the function calling sidl_*_array_borrow() returns. If you			\
+   * want to retain the array beyond that point you will need to run			\
+   * smartCopy().									\
+   */											\
   proc borrow_##C_TYPE##_array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank: int(32);					\
     var lus = computeLowerUpperAndStride(a);				\
@@ -147,7 +156,9 @@
     return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
   }									\
 									\
-  /** wrap a SIDL array inside a Chapel object */			\
+  /**									\
+   * wrap a raw SIDL IOR array inside of a new Chapel object            \
+   */									\
   export wrap_##C_TYPE##_array						\
   proc wrap_##C_TYPE##_array(in ior: sidl_##C_TYPE##__array) {		\
     return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);		\
@@ -221,8 +232,7 @@
 	return nil;							\
       }									\
       var ior = sidl_##C_TYPE##__array_cast(generic_array);		\
-      extern proc IS_NOT_NULL(in aRef): bool;				\
-      if IS_NOT_NULL(ior) then						\
+      if is_not_null(ior) then						\
 	return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
       else return nil;							\
     }	      							        \
@@ -238,7 +248,7 @@ SIDL_ARRAY(int,      int(32))
 SIDL_ARRAY(long,     int(64))
 SIDL_ARRAY(opaque,   opaque)
 SIDL_ARRAY(string,   string)
-SIDL_ARRAY(BaseInterface, opaque)
+SIDL_ARRAY(interface, opaque)
 
 
   class Array {
@@ -266,8 +276,15 @@ SIDL_ARRAY(BaseInterface, opaque)
     /**
      * Return true iff the wrapped SIDL array is not NULL.
      */
-    proc is_not_null(): bool {
-      return IS_NOT_NULL(this.generic);
+    proc is_not_nil(): bool {
+      return is_not_null(this.generic);
+    }
+
+    /**
+     * Return true iff the wrapped SIDL array is NULL.
+     */
+    proc is_nil(): bool {
+      return is_null(this.generic);
     }
 
     /**
@@ -368,12 +385,17 @@ SIDL_ARRAY(BaseInterface, opaque)
      */
     //#define sidlArrayElem1(array, ind1) \
     //  (*(sidlArrayAddr1(array,ind1)))
-    extern proc sidlArrayElem1(inout array: sidl__array, 
+    extern proc sidlArrayElem1(inout array: IORtype, 
 			       in ind: int(32)): ScalarType;
 
-    proc get(in ind: int(32)): ScalarType { return sidlArrayElem1(ior.d_metadata, ind); }
-    /* proc set(in ind: int(32), val: ScalarType) { 
-       ??? sidlArrayElem1(ior.d_metadata, ind) = val; } */
+    proc get(in ind: int(32)): ScalarType { 
+      return /*fromIOR*/(sidlArrayElem1(ior, ind)); 
+    }
+
+    proc set(in ind: int(32), val: ScalarType) { 
+       extern proc sidlArrayElem1Set(inout array: IORtype, in ind: int(32), val:ScalarType);
+       sidlArrayElem1Set(ior, ind, /*toIOR*/(val)); 
+    }
 
     /**
      * Return the address of an element in a two dimensional array.

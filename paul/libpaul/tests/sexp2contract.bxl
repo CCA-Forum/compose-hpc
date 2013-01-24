@@ -1,0 +1,69 @@
+#!/usr/bin/env bxl-f
+/* yacc-style parser for paul assertions terms */
+
+/* some global definitions.
+   parX parenthesizes an argument if it has a lower precedence */
+BEGIN {
+def par(n, (m, s)): return s if m<n else '(%s)'%s
+def par1(n, a):     return  par(n, a)
+def par2(n, a, b):  return (par(n, a), par(n, b))
+def snd((a,b)):     return b
+} ;
+
+contract= '(' 'contract' type clause ')' { '$3 $4' } ;
+
+type = 'require'   { 'REQUIRE' } 
+     | 'ensure'    { 'ENSURE' }
+     | 'init'      { 'INIT' }
+     | 'invariant' { 'INVARIANT' }
+     | 'final'     { 'FINAL' }
+     ;
+clause = '(' 'clause' label expr ')' { '$3: '+snd($4) } ;
+
+/* every action returns a tuple of (precedence, unparsed_string) */
+expr = '(' 'implies' expr expr ')'    { 12, '%s implies %s' %par2(12, $3, $4) }
+     | '(' 'iff'     expr expr ')'    { 12, '%s iff %s'     %par2(12, $3, $4) }
+     | '(' 'log_or'  expr expr ')'    { 11, '%s or %s'      %par2(11, $3, $4) }
+     | '(' 'log_xor' expr expr ')'    { 11, '%s xor %s'     %par2(11, $3, $4) }
+     | '(' 'log_and' expr expr ')'    { 10, '%s and %s'     %par2(10, $3, $4) }
+     | '(' 'bit_and' expr expr ')'    { 9,  '%s & %s'       %par2( 9, $3, $4) }
+     | '(' 'bit_or'  expr expr ')'    { 9,  '%s | %s'       %par2( 9, $3, $4) }
+     | '(' 'bit_xor' expr expr ')'    { 9,  '%s ^ %s'       %par2( 9, $3, $4) }
+     | '(' 'eq'      expr expr ')'    { 8,  '%s == %s'      %par2( 8, $3, $4) }
+     | '(' 'neq'     expr expr ')'    { 8,  '%s != %s'      %par2( 8, $3, $4) }
+     | '(' 'lt'      expr expr ')'    { 7,  '%s < %s'       %par2( 7, $3, $4) }
+     | '(' 'gt'      expr expr ')'    { 7,  '%s > %s'       %par2( 7, $3, $4) }
+     | '(' 'le'      expr expr ')'    { 7,  '%s <= %s'      %par2( 7, $3, $4) }
+     | '(' 'ge'      expr expr ')'    { 7,  '%s >= %s'      %par2( 7, $3, $4) }
+     | '(' 'shr'     expr expr ')'    { 6,  '%s >> %s'      %par2( 6, $3, $4) }
+     | '(' 'shl'     expr expr ')'    { 6,  '%s << %s'      %par2( 6, $3, $4) }
+     | '(' 'plus'    expr expr ')'    { 5,  '%s + %s'       %par2( 5, $3, $4) }
+     | '(' 'minus'   expr expr ')'    { 5,  '%s - %s'       %par2( 5, $3, $4) }
+     | '(' 'times'   expr expr ')'    { 4,  '%s * %s'       %par2( 4, $3, $4) }
+     | '(' 'div'     expr expr ')'    { 4,  '%s / %s'       %par2( 4, $3, $4) }
+     | '(' 'mod'     expr expr ')'    { 4,  '%s % %s'       %par2( 4, $3, $4) }
+     | '(' 'pow'     expr expr ')'    { 3,  '%s ** %s'      %par2( 3, $3, $4) }
+     | '(' 'is'      expr ')'         { 2,  'is '+par1(2, $3) }
+     | '(' 'log_not' expr ')'         { 2,  '!'+par1(2, $3) }
+     | '(' 'bit_not' expr ')'         { 2,  '~'+par1(2, $3) }
+     | '(' 'call'    label list ')'   { 1,  $3+'(%s)'%','.join(map(snd, $4)) }
+     | literal                        { 0,  $1 }
+;
+
+list = '(' exprs ')' { [[$2]] }
+     ;
+
+exprs = expr        { [$1] }
+      | expr exprs  { [$1]+$2 }
+      ;      
+
+literal = decimal_literal | hex_literal | octal_literal 
+        | simple_floating_point_literal | label ;
+
+decimal_literal               = /[1-9][0-9]*/ ;
+hex_literal                   = /0[xX][0-9a-fA-F]+/ ;
+octal_literal                 = /0[0-7]*/ ;
+simple_floating_point_literal = /[0-9]+\.[0-9]+/ ;
+exponent                      = /[eE][\+-]?[0-9]+/ ;
+
+label = /[_a-zA-Z][_a-zA-Z0-9]*/ ;

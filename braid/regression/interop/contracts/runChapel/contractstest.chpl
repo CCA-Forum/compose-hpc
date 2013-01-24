@@ -81,7 +81,7 @@ proc run_parta(result:opaque, tol, exp_result:opaque, expect_equal:bool,
   var r: ResultType;
   if expectation == vect.ExpectExcept.NoneExp then {
     if (sidl_ex == nil && 
-	((IS_NULL(result) && IS_NULL(exp_result)) ||
+	((is_null(result) && is_null(exp_result)) ||
 	 (expect_equal  &&  vect.Utils_static.vuAreEqual(result, exp_result, tol, ex)) ||
 	 (!expect_equal && !vect.Utils_static.vuAreEqual(result, exp_result, tol, ex)))) then {
       r = ResultType.PASS;

@@ -3,15 +3,19 @@
 
 AC_PREREQ(2.63)
 AC_INIT(libpaul, 0.2, matt@galois.com)
-AM_INIT_AUTOMAKE(foreign)
+AM_INIT_AUTOMAKE([foreign 1.11 dist-bzip2])
+dnl do `make V=1' or `./configure --disable-silent-rules' for a verbose build
+AM_SILENT_RULES([yes])
+dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
+AM_MAINTAINER_MODE
 AC_OUTPUT([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SRCDIR([src/Dynamic.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
-AC_PROG_YACC
-AS_IF([test "x`which $YACC`" = x],[AC_MSG_FAILURE([Please install bison])])
+#AC_PROG_YACC
+#AS_IF([test "x`which $YACC`" = x],[AC_MSG_FAILURE([Please install bison])])
 AC_PROG_CXX
 AS_IF([test "x`which $CXX`" = x],[AC_MSG_FAILURE([Please install g++])])
 AC_PROG_CC
