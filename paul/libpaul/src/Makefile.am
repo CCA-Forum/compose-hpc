@@ -5,7 +5,7 @@
 AM_CPPFLAGS = -Wall -Wno-deprecated
 
 AM_CPPFLAGS += -I$(ROSEDIR)/include
-AM_LDFLAGS = -L$(ROSEDIR)/lib
+#AM_LDFLAGS = -L$(ROSEDIR)/lib
 
 AM_CPPFLAGS += -I$(BOOSTDIR)/include
 AM_LDFLAGS += -L$(BOOSTDIR)/lib
@@ -28,7 +28,7 @@ BUILT_SOURCES=lemon-parser.cpp parser.h scanner.h
 noinst_PROGRAMS=lemon
 lemon_SOURCES = lemon.c
 CLEANFILES = $(BUILT_SOURCES) parser.c
-libpaul_la_LIBADD= -lrose -lfl          # Flex!
+libpaul_la_LIBADD= $(ROSEDIR)/lib/librose.la -lfl          # Flex!
 
 # Build parser & scanner
 scanner.c scanner.h: scanner.l
