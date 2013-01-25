@@ -24,6 +24,13 @@ AC_PROG_LEX
 AS_IF([test "x`which $LEX`" = x],[AC_MSG_FAILURE([Please install flex])])
 AC_PROG_LIBTOOL
 
+# Some versions of Debian ship with a libtool that defaults to not
+# linking dependencies specified by .la libraries. It seems that
+# patching libtool is the only viable remedy for this.
+AC_PROG_SED
+sed -i "s/\(.*link_all_deplibs\s*,\s*\$1\s*)\)\s*=\s*no/\1=unknown/g" m4/libtool.m4
+AC_MSG_RESULT([patched libtool to force it to link against all deplibs])
+
 # ROSE PATH
 AS_IF([test "x`which roseCompiler`" = x],
       [ROSEDIR="/opt/rose"],
