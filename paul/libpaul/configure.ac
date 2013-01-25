@@ -9,7 +9,7 @@ AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
 AM_MAINTAINER_MODE
 AC_OUTPUT([Makefile src/Makefile tests/Makefile])
-AC_CONFIG_SRCDIR([src/Dynamic.h])
+AC_CONFIG_SRCDIR([src/paul/Dynamic.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 

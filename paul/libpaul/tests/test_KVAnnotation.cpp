@@ -3,7 +3,7 @@
 
 #include "rose.h"
 
-#include "KVAnnotationValue.h"
+#include <paul/KVAnnotationValue.h>
 
 int main( int argc, char * argv[] )
 {

@@ -2,7 +2,7 @@
 ##
 ##
 # set up compiler and linker flags
-AM_CPPFLAGS = -Wall -Wno-deprecated
+AM_CPPFLAGS = -Wall -Wno-deprecated -I$(srcdir)/paul
 
 AM_CPPFLAGS += -I$(ROSEDIR)/include
 AM_LDFLAGS   = -L$(ROSEDIR)/lib
@@ -22,6 +22,12 @@ libpaul_la_SOURCES = \
         Annotation.h KVAnnotationValue.h ssexpr.h SXAnnotationValue.h \
 	PaulConfReader.h PaulDecorate.h Dynamic.h PlainAnnotationValue.h \
 	RoseUtilities.hpp RoseUtilities.cpp Utilities.h Utilities.cpp
+
+# these headers will get installed:
+nobase_include_HEADERS = \
+	paul/Annotation.h paul/Dynamic.h paul/KVAnnotationValue.h \
+        paul/PaulConfReader.h paul/PaulDecorate.h paul/PlainAnnotationValue.h \
+	paul/ssexpr.h paul/SXAnnotationValue.h paul/Utilities.h
 
 EXTRA_DIST=lempar.c parser.y parser.c parser.h
 BUILT_SOURCES=lemon-parser.cpp parser.h scanner.h
