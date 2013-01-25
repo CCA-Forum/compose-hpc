@@ -5,10 +5,10 @@
 AM_CPPFLAGS = -Wall -Wno-deprecated
 
 AM_CPPFLAGS += -I$(ROSEDIR)/include
-#AM_LDFLAGS = -L$(ROSEDIR)/lib
+AM_LDFLAGS   = -L$(ROSEDIR)/lib
 
 AM_CPPFLAGS += -I$(BOOSTDIR)/include
-AM_LDFLAGS += -L$(BOOSTDIR)/lib
+AM_LDFLAGS  += -L$(BOOSTDIR)/lib
 
 ##
 ##
