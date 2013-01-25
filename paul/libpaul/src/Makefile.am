@@ -19,15 +19,14 @@ libpaul_la_SOURCES = \
 	$(BUILT_SOURCES) scanner.l \
         KVAnnotationValue.cpp ssexpr.cpp SXAnnotationValue.cpp Dynamic.cpp \
         PlainAnnotationValue.cpp PaulDecorate.cpp PaulConfReader.cpp \
-        Annotation.h KVAnnotationValue.h ssexpr.h SXAnnotationValue.h \
-	PaulConfReader.h PaulDecorate.h Dynamic.h PlainAnnotationValue.h \
-	RoseUtilities.hpp RoseUtilities.cpp Utilities.h Utilities.cpp
+	RoseUtilities.cpp Utilities.cpp \
+	$(nobase_include_HEADERS)
 
 # these headers will get installed:
 nobase_include_HEADERS = \
 	paul/Annotation.h paul/Dynamic.h paul/KVAnnotationValue.h \
         paul/PaulConfReader.h paul/PaulDecorate.h paul/PlainAnnotationValue.h \
-	paul/ssexpr.h paul/SXAnnotationValue.h paul/Utilities.h
+	paul/ssexpr.h paul/SXAnnotationValue.h paul/Utilities.h paul/RoseUtilities.hpp 
 
 EXTRA_DIST=lempar.c parser.y parser.c parser.h
 BUILT_SOURCES=lemon-parser.cpp parser.h scanner.h
