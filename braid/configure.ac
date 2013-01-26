@@ -144,6 +144,13 @@ Please see the file $CHPL_ROOT/doc/README.multilocale for more details.
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
      AC_SUBST([CHPL], [])])
 
+AC_ARG_ENABLE([chpl], 
+  AS_HELP_STRING([--disable-chpl], [disable CHAPEL backend (default: enabled)]),
+  [:], [enable_chpl=yes])
+AS_IF([test "x$enable_chpl" = xyes], [:],
+  [CHPL="";CHPL_ROOT="";CHPL_VERSION="";
+   AC_MSG_NOTICE([Chapel backend disabled per user request!])
+  ])
 AM_CONDITIONAL([BABEL_LANG_CHPL], [test -n "$CHPL"])
 
 ############################################################
@@ -196,6 +203,13 @@ Please see the README for a list of supported versions.])
       [AC_MSG_NOTICE([Did not find UPC compiler in PATH!])
        AC_SUBST([UPC], [])
       ])
+AC_ARG_ENABLE([upc], 
+  AS_HELP_STRING([--disable-upc], [disable UPC backend (default: enabled)]),
+  [:], [enable_upc=yes])
+AS_IF([test "x$enable_upc" = xyes], [:],
+  [UPC="";UPC_ROOT="";UPC_VERSION="";
+   AC_MSG_NOTICE([UPC backend disabled per user request!])
+  ])
 AM_CONDITIONAL([BABEL_LANG_UPC], [test -n "$UPC"])
 
 ############################################################
