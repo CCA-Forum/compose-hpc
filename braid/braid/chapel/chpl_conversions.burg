@@ -93,25 +93,25 @@ def ir_type_to_chpl(typ, in_struct=False):
     try:
         return mapping[typ]
     except:
-        if typ[0] == ir.enum: 
+        if ir.is_enum(typ): 
             # the types need to be dissimilar, even if they have the same name
             enum, name, items, comment = typ
             return enum, name, items, 'chpl '+comment
-        if typ[0] == ir.typedef_type and typ[1] == 'sidl_bool': 
+        if ir.is_typedef_type(typ) and typ[1] == 'sidl_bool': 
             import pdb; pdb.set_trace()
             return ir.Typedef_type('chpl_bool')
         if typ[0] == 'upcast':
             # part of the hack for self dereferencing
             return typ[1]
-        if typ[0] == ir.pointer_type:
+        if ir.is_pointer_type(typ):
             return (ir.pointer_type, ir_type_to_chpl(typ[1], in_struct))
 
-        if typ[0] == ir.struct:
+        if ir.is_struct(typ):
             _, name, items, comment = typ
             items1 = map(ir_type_to_chpl, items)
             # this is an interface or object embedded inside a struct,
             # strip the IOR extension
-            if name[0] == ir.scoped_id:
+            if ir.is_scoped_id(name):
                 scoped_id, prefix, sname, ext = name
                 assert(ext == '__object')
                 return name
@@ -123,39 +123,39 @@ def ir_type_to_chpl(typ, in_struct=False):
 
             return ir.Struct(name, items1, comment)
 
-        if typ[0] == ir.struct_item:
+        if ir.is_struct_item(typ):
             return ir.Struct_item(ir_type_to_chpl(typ[1], True), typ[2])
 
         if typ[0] == sidl.array:
             return get_array_type(typ)[1]
 
-        if typ[0] == ir.rarray:
+        if ir.is_rarray(typ):
             return typ if not in_struct else get_array_type(typ)[1]
 
         return typ
 
 
 def strip(typ):
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+    if ir.is_pointer_type(typ) and typ[1][0] == ir.struct:
         return ir.struct
     # strip unnecessary details from aggregate types
     if (typ[0] == sidl.class_ or 
         typ[0] == sidl.interface):
         return ior.ext
-    if (typ[0] == ir.enum or
-        typ[0] == ir.rarray or
-        typ[0] == ir.pointer_type or
-        typ[0] == ir.struct):
+    if (ir.is_enum(typ) or
+        ir.is_rarray(typ) or
+        ir.is_pointer_type(typ) or
+        ir.is_struct(typ)):
         return typ[0]
     return typ
 
 def get_struct_items(full_type):
-    t = full_type[1] if full_type[0] == ir.pointer_type else full_type
+    t = full_type[1] if ir.is_pointer_type(full_type) else full_type
     return ir.struct_struct_items(t) 
 
 
 def elem_access(typ):
-    if typ[0] == ir.struct:
+    if ir.is_struct(typ):
         return '.'
     else: return ''
 
@@ -317,18 +317,21 @@ def chain_items(prefix, items, language, symbol_table, dest, src, conv):
         return 'item', item, chain1(items[:-1], language, symbol_table, pre0, pre1, conv)
     
     def tmpname(prefix):
-        if prefix[0] == ir.get_struct_item:
+        if ir.is_get_struct_item(prefix):
             get, s, name, item = prefix
             assert(not strip_deref(name).startswith('_ior'))
             return get, s, '_ior_'+strip_deref(name), item
         return '_ior_' + prefix
 
     def same_access(a, b):
-        if a[0] == ir.deref: return ir.deref, b
+        if ir.is_deref(a): return ir.deref, b
         return b
 
     # FIXME, this is ugly
-    if c_gen(src).startswith('_ior_'): 
+    if dest == '_retval':
+        pre0 = ir.deref, dest
+        pre1 = src
+    elif c_gen(src).startswith('_ior_'): 
         pre0 = same_access(dest, prefix)
         pre1 = tmpname(prefix)
     else:
@@ -336,6 +339,7 @@ def chain_items(prefix, items, language, symbol_table, dest, src, conv):
         pre1 = same_access(src, prefix)
 
     assert(pre0 <> pre1)
+    #print pre0, pre1, src
 
     # reverse items so they are converted first to last eventually
     return chain1(items, language, symbol_table, pre0, pre1, conv)
@@ -432,7 +436,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
     if typ[0] in [sidl.class_, sidl.interface]:
         return type_map['ext'], typ, user_data
 
-    elif typ[0] == ir.pointer_type:
+    elif ir.is_pointer_type(typ):
         if typ == ir.void_ptr:
             return type_map[ir.opaque], user_data
 
@@ -445,7 +449,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
                 return ir_to_burg(typ[1], language, symbol_table, True, *user_data)
         else: raise Exception()
 
-    elif typ[0] == ir.struct:
+    elif ir.is_struct(typ):
         struct, name, items, docstr = typ
         prefix     = strip_deref(orig(user_data))
         #print 'prefix=',prefix
@@ -453,19 +457,19 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
         item_tree  = chain_items(prefix, items, language, symbol_table, *user_data)
         return ('struct', ('typ', hashable(typ), user_data), item_tree)
 
-    elif typ[0] == ir.rarray:
+    elif ir.is_rarray(typ):
         return type_map[ir.rarray], typ, user_data
 
-    elif typ[0] == ir.enum:
+    elif ir.is_enum(typ):
         return type_map[ir.enum], hashable(typ), user_data
 
     raise Exception()
 
-def macrocast(scope, t, e):
-    f = 'c_cast_'+t[1]
-    scope.genh((ir.fn_decl, ['extern'], t, f, [ir.Arg([], ir.in_, ir.void_ptr, 'e')], 'C IR cast'))
-    scope.cstub.new_header_def('#define %s(e) (%s)(e)'%(f,c_gen(t)))
-    return ir.Call(f, [e])
+# def macrocast(scope, t, e):
+#     f = 'c_cast_'+t[1]
+#     scope.genh((ir.fn_decl, ['extern'], t, f, [ir.Arg([], ir.in_, ir.void_ptr, 'e')], 'C IR cast'))
+#     scope.cstub.new_header_def('#define %s(e) (%s)(e)'%(f,c_gen(t)))
+#     return ir.Call(f, [e])
 
 def copy_over(typ, a0):
     '''
@@ -515,17 +519,61 @@ def chpl_struct(typ):
     # FIXME.. this is ugly
     # this is a fixup to make cstubs accept the chapel versions of structs
     # this should be rather encoded in the return type of the struct conversion actions
-    if typ[0] == ir.struct and typ[1][-6:] == '__data': typ = ir.struct, typ[1][:-6], typ[2], typ[3]
+    if ir.is_struct(typ) and typ[1][-6:] == '__data': typ = ir.struct, typ[1][:-6], typ[2], typ[3]
     return typ
 
 def ior_struct(typ):
     # inverse of chpl_struct, same comments apply
-    if typ[0] == ir.struct: typ = ir.struct, typ[1]+'__data', typ[2], typ[3]
+    if ir.is_struct(typ): typ = ir.struct, typ[1]+'__data', typ[2], typ[3]
     return typ
 
-def chpl_struct_arg((arg, attr, mode, typ, name)):
-    return arg, attr, mode, chpl_struct(typ), name
+def pass_structs_as_pointers(pre, post, args):
+    # We have to pass structs as pointers when chpl stub calls cstub (only there!)
+    # Due to the ordering of include files in the chpl-generated code, we do not
+    # know the size of the structs when the cstub declarations are compiled.
+    #
+    # TODO: better encode this in the grammar so we can get rid of this ugly fixup
+    def ensure_deref(name, stmt):
+        def rec(e):
+            if ir.is_stmt(e) or ir.is_deref(e):
+                return e[0], rec(e[1])
+            elif ir.is_assignment(e):
+                return e[0], rec(e[1]), rec(e[2])
+            elif ir.is_infix_expr(e):
+                return e[0], e[1], rec(e[2]), rec(e[3])
+            if ir.is_get_struct_item(e):
+                get, t, n, i = e
+                if n == name: 
+                    print get, t, ir.Deref(n), i 
+                    return get, t, ir.Deref(n), i 
+                return get, t, rec(n), i
+            elif ir.is_cast(e) or ir.is_sign_extend(e):
+                return e[0], e[1], rec(e[2])
+            elif ir.is_call(e):
+                return e[0], e[1], map(rec, e[2])
+            elif ir.is_if(e):
+                return e[0], rec(e[1]), map(rec, e[2])
+            return e
 
+        return rec(stmt)
+
+    args1 = []
+    for arg, attr, mode, typ, name in args:
+        #if name=='s1': import pdb; pdb.set_trace()
+        if ir.is_struct(typ) and typ[1][-6:] == '__data':
+            typ = ir.struct, typ[1][:-6], typ[2], typ[3]
+            if mode == ir.in_: mode = ir.inout
+            for i in range(len(pre)): pre[i] = ensure_deref(name, pre[i])
+            for i in range(len(post)): post[i] = ensure_deref(name, post[i])
+        args1.append((arg, attr, mode, typ, name))
+    #if args1 <> args: print args1; print args; print
+    return args1
+
+def pass_struct_by_reference((arg, attr, mode, typ, name)):
+    if ir.is_struct(typ) and typ[1][-6:] == '__data':
+        if mode == ir.in_: mode = ir.inout
+    return arg, attr, mode, typ, name
+        
 def make_stubcall_arg((typ, (name1, name2, _))):
     if typ == outgoing_arg:
         return name2
@@ -555,14 +603,16 @@ def assigns_temporary(stmts, name):
     figure out if stmts assign name
     '''
     for stmt in stmts:
-        if stmt[0] == ir.stmt and stmt[1][0] == ir.assignment:
+        if ir.is_stmt(stmt) and ir.is_assignment(stmt[1]):
             _, lhs, rhs = stmt[1]
             
             def appears(lhs, name):
                 if lhs == name:
                     return True
-                if lhs[0] == ir.get_struct_item:
+                if ir.is_get_struct_item(lhs):
                     return appears(lhs[2], name)
+                if ir.is_deref(lhs):
+                    return appears(lhs[1], name)
                 return False
 
             if appears(lhs, name):
@@ -570,12 +620,12 @@ def assigns_temporary(stmts, name):
     return False
 
 #def outarg_needs_copy(typ):
-#    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+#    if ir.is_pointer_type(typ) and typ[1][0] == ir.struct:
 #        return False
 #    return True
 
 def strip_deref(a):
-    if isinstance(a, tuple) and a[0] == ir.deref: 
+    if isinstance(a, tuple) and ir.is_deref(a): 
         return a[1]
     return a
 
@@ -591,7 +641,7 @@ def deref_to_addr(arg, mode, idx):
         r = (a1, a2)[1-idx]
         deref = r
 
-    if isinstance(deref, tuple) and deref[0] == ir.deref: 
+    if isinstance(deref, tuple) and ir.is_deref(deref): 
         return ir.Pointer_expr(r) #if arg[0][0] <> ir.struct and mode <> ir.in_ else r
     if arg[0][0] == ir.struct and mode == ir.in_: return ir.Pointer_expr(r)
     return r
@@ -717,10 +767,16 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     else:
         ftype = ir.pt_void
 
+    # Because of how Chapel generates C code we cannot return structs.
+    # Convert them to an additional out argument here.
+    cstub_allargs = allargs
+    if ir.is_struct(ftype):
+        cstub_allargs = allargs+[(ir.out, (ftype, ('_retval', '_ior__retval', [])))]
+        cstub_type = ir.pt_void
+    else:
+        cstub_type = chpl_struct(ftype)
 
-    cstub_type   = chpl_struct(ftype)
-    cstub_args1  = map(make_carg, allargs)
-    cstub_args   = map(chpl_struct_arg, cstub_args1)
+    cstub_args1  = map(make_carg, cstub_allargs)
     unique_temps = set(map(get_c_tmp1, inargs)+
                        map(get_c_tmp2, outargs))
     cstub_decls  = [ir.Stmt(ir.Var_decl(*tmp)) for tmp in unique_temps 
@@ -731,26 +787,31 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     pre_call =  reduce(join, map(c_convs,  inargs), [])
     post_call = reduce(join, map(c_convs, outargs), [])
 
+    cstub_args2  = map(pass_struct_by_reference, cstub_args1)
+    cstub_args   = pass_structs_as_pointers(pre_call, post_call, cstub_args1)
+
     # generate the call to the real function implementation
-    call_args1 = []
+    vcall_args = []
     for mode, arg in allargs:
         if mode == ir.out:
-            call_args1.append(deref_to_addr(arg, mode, 1))
+            vcall_args.append(deref_to_addr(arg, mode, 1))
         else: 
-            call_args1.append(deref_to_addr(arg, mode, 0))
+            vcall_args.append(deref_to_addr(arg, mode, 0))
 
-    call = babel.vcall(name, call_args1, ci)
+    call = babel.vcall(name, vcall_args, ci)
 
     if ftype <> ir.pt_void:
         if post_call:
-            pre_call.append(ir.Stmt(ir.Var_decl(cstub_type, '_retval')))
             ior_call = [ir.Copy(retval, call)]
             if not assigns_temporary(post_call, '_retval'):
                 # FIXME: this fixup should not be necessary
                 ior_retval_decl = ir.Stmt(ir.Var_decl(ftype, retval))
                 if ior_retval_decl not in pre_call: pre_call.append(ior_retval_decl)
                 post_call.append(ir.Copy('_retval', retval))
-            post_call.append(ir.Stmt(ir.Return('_retval')))
+
+            if cstub_type <> ir.pt_void:
+                pre_call .append(ir.Stmt(ir.Var_decl(cstub_type, '_retval')))
+                post_call.append(ir.Stmt(ir.Return('_retval')))
         else:
             ior_call = [ir.Stmt(ir.Return(call))]
     else:
@@ -759,20 +820,8 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     cstub_body0 = cstub_decls+pre_call+ior_call+post_call
     cstub_body = [s for s in (cstub_body0) if s]
     scope.cstub.gen(ir.Fn_defn(attrs, cstub_type, cstub, cstub_args, cstub_body,'remaining Stub in C'))
-    if ftype[0] == ir.struct:
-        scope.cstub.genh(ir.Comment(
-            'The cast is necessary because strictly speaking there should be '+
-            'a third datatype used at the interface between chapel stub and C '+
-            'stub. The cast is a noop unless ftype is a struct.'))
-        scope.cstub.new_header_def('#ifdef CHPL_GEN_CODE')
-
-        scope.cstub.genh(ir.Fn_decl(attrs, ir.Typedef_type(ftype[1]), cstub, cstub_args, 'remaining Stub in C'))
-        scope.cstub.new_header_def('#else')
-        scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
-        scope.cstub.new_header_def('#endif')
-    else:
-        scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
-    scope.genh((ir.fn_decl, ['extern']+attrs, ir.void_ptr if ftype[0] == ir.struct else ftype, cstub, cstub_args1, 'remaining Stub in C'))
+    scope.cstub.genh(ir.Fn_decl(attrs, cstub_type, cstub, cstub_args, 'remaining Stub in C'))
+    scope.genh((ir.fn_decl, ['extern']+attrs, cstub_type, cstub, cstub_args2, 'remaining Stub in C'))
     return None
 
 # NONVIRTUAL CLIENT (technically: Stub-less clients)
@@ -810,8 +859,8 @@ rvalue_ior_c <-- ior_call(any_method, rvalue_ior_c) :cost(2)
     cstub_params = map(make_stubcall_arg, args)
     cstub = '%s_%s_cStub'%('_'.join(ci.co.qualified_name), name)
     if ftype <> ir.pt_void:
-        if ftype[0] == ir.struct:
-            call = ir.Copy('_ior__retval', macrocast(scope, ftype, ir.Call(cstub, cstub_params)))
+        if ir.is_struct(ftype):
+            call = ir.Stmt(ir.Call(cstub, cstub_params+['_ior__retval']))
         else:
             call = ir.Copy('_ior__retval', ir.Call(cstub, cstub_params))
     else:
@@ -1245,14 +1294,14 @@ bool_ior_c      <-- bool_chpl_c: cost(1)
     dest, src, conv = a0
     t = ir.Typedef_type('chpl_bool')
     conv += [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
-             ir.Copy(dest,'(%s)%s'%(c_gen(ir.pt_int),c_gen(src)))]
+             ir.Copy(dest,ir.Cast(ir.pt_int, src))]
     return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 bool_chpl_c <-- bool_ior_c: cost(1)
     dest, src, conv = a0
     t = ir.Typedef_type('chpl_bool')
     conv += [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
-             ir.Copy(dest,'(%s)%s'%(c_gen(t),c_gen(src)))]
+             ir.Copy(dest,ir.Cast(t, src))]
     return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
@@ -1539,7 +1588,7 @@ xvalue_ior_c <-- rarray_item_chpl_c    :cost(1)
 
     else:
         conv.append(ir.Copy(dest, p_src))
-    conv.append(ir.Stmt(ir.Call('sidl_%s__array_delete_ref'%cbasetype, [src])))
+    conv.append(ir.Stmt(ir.Call('sidl_%s__array_deleteRef'%cbasetype, [src])))
     c_scope.optional.add(str(c_gen(ir.Import('sidlArray'))))
     c_scope.optional.add(str(c_gen(ir.Import('sidl_%s_IOR'%cbasetype))))
     at = get_raw_ior_array_type(t)[1]
@@ -1557,7 +1606,7 @@ rarray_chpl_chpl <-- rarray_ior_chpl :cost(1)
     _, array_t = get_raw_ior_array_type(t)
 
     # emit code to copy back elements into non-local array
-    name = c_gen(src[1] if src[0] == ir.deref else src).replace('.', '_')
+    name = c_gen(src[1] if ir.is_deref(src) else src).replace('.', '_')
     sarray = "_braid_wrapped_local_%s_sarray"%name
     barray = "_babel_wrapped_local_%s_barray"%name
     sarr = (ir.call, "new Array", [access(dest, 'eltType'), array_t, src])

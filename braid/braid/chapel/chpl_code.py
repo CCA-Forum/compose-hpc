@@ -64,9 +64,9 @@ def outgoing((arg, attrs, mode, typ, name)):
     return mode <> sidl.in_
 
 def deref(mode, typ, name):
-    if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+    if ir.is_pointer_type(typ) and ir.is_struct(typ[1]):
         return name+'->'
-    elif typ[0] == ir.pointer_type and typ[1][0] == ir.pointer_type and typ[1][0][0] == ir.struct:
+    elif ir.is_pointer_type(typ) and ir.is_pointer_type(typ[1]) and ir.is_struct(typ[1][0]):
         return name+'->'  # _ex
     elif typ[0] ==  ir.struct:
         return name+'->'
@@ -75,7 +75,7 @@ def deref(mode, typ, name):
     else: return '(*%s)'%name
  
 def deref_retval(typ, name):
-    if typ[0] == ir.struct:
+    if ir.is_struct(typ):
         return '(*%s)'%name
     else: return name
 
@@ -88,7 +88,7 @@ def unscope(scope, enum):
     return m.group(1) if m else enum
 
 def unscope_retval(scope, r):
-    if r[0] == ir.enum: return r[0], unscope(scope, r[1]), r[2], r[3]
+    if ir.is_enum(r): return r[0], unscope(scope, r[1]), r[2], r[3]
     return r
 
 
@@ -415,7 +415,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
 
             elif (sidl.array, Scalar_type, Dimension, Orientation):
                 print '** WARNING: deprecated rule, use a sidl_*__array struct instead'
-                if Scalar_type[0] == ir.scoped_id:
+                if ir.is_scoped_id(Scalar_type):
                     ctype = 'BaseInterface'
                 else:
                     ctype = Scalar_type[1]

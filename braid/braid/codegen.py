@@ -1293,6 +1293,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.var_decl, Type, Name):
                 return declare_var(gen(Type), gen(Name))
 
+            elif (ir.cast, Type, Expr):
+                return '(%s)(%s)'% (gen(Type), gen(Expr))
+
             elif (ir.call, (ir.deref, Name), Args):
                 return '(*%s)(%s)' % (gen(Name), gen_comma_sep(Args))
 
