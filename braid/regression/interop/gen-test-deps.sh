@@ -75,10 +75,23 @@ for sidl in `ls $babel_tests/*/*.sidl`; do
 	done
     fi
 done
-printf "INTEROP_TESTS = "
+echo "INTEROP_TESTS = "
 for client in $clients; do
-    echo " \\"
-    printf "  $client"
+    case $client in
+	*Chapel*) echo "if BABEL_LANG_CHPL" ;;
+    esac
+    case $client in
+	*UPC*)    echo "if BABEL_LANG_UPC" ;;
+    esac
+
+    echo "INTEROP_TESTS += $client"
+
+    case $client in
+	*Chapel*) echo "endif" ;;
+    esac
+    case $client in
+	*UPC*)    echo "endif" ;;
+    esac
 done
 echo
 echo "# Total: " `echo $clients | wc -w`

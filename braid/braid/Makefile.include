@@ -109,9 +109,9 @@ TESTS += $(PYTHON_SOURCES) $(SIDL_TESTS)
 endif
 
 TEST_EXTENSIONS += .py .sidl
-PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON)
+PY_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(builddir)/braid/chapel:$(PYTHONPATH) $(PYTHON)
 AM_PY_LOG_FLAGS = -m doctest
-SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
+SIDL_LOG_COMPILER = env PYTHONPATH=$(builddir)/braid:$(builddir)/braid/chapel:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/braid.py
 AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
 
 $(builddir)/%.unit: $(srcdir)/%.py scanner.la

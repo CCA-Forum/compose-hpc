@@ -52,7 +52,7 @@ for p in `ls -1 $lsflags $base/@top_srcdir@/chapel-patches/ |grep '\.patch\$'`; 
     echo "[" `basename $p` "]"
     patch="$base/@top_srcdir@/chapel-patches/$p"
     if head -n1 $patch | grep -q '^From '; then
-	level=-p3
+	level=-p1
     else
 	level=-p0
     fi
