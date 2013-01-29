@@ -1,26 +1,12 @@
-diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
-index 60a3e74..f832692 100644
---- a/runtime/include/chplrt.h
-+++ b/runtime/include/chplrt.h
-@@ -32,11 +32,17 @@ extern int chpl_threads_initialized;
- #define CHPL_ASSIGN_SVEC(x, y)                     \
-   memcpy(&x, &y, sizeof(x))
- 
-+#define _CHECK_NIL(x, lineno, filename)                                 \
-+  do {                                                                  \
-+    if (x == nil)                                                       \
-+      chpl_error("attempt to dereference nil", lineno, filename);	\
-+  } while (0)
-+
- #define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
-   do {									\
-     if (data == nil)							\
-       chpl_error("data vector is nil", lineno, filename);		\
--  (x)->fieldname = (type*) data;					\
-+    x = (type*) data;							\
-   } while (0)
- 
- #define _ARRAY_GET(x, i) (&((x)[i]))
+From 36e9c6ef68807ff10c3ddc866e082c97314474e3 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Wed, 25 Jul 2012 11:38:12 -0700
+Subject: [PATCH 07/11] implement dual atext() handlers for locale 0 and others
+
+---
+ runtime/src/chplinit.c |   35 +++++++++++++++++++++++------------
+ 1 files changed, 23 insertions(+), 12 deletions(-)
+
 diff --git a/runtime/src/chplinit.c b/runtime/src/chplinit.c
 index ee66c18..1b8d0ce 100644
 --- a/runtime/src/chplinit.c
@@ -83,3 +69,6 @@ index ee66c18..1b8d0ce 100644
 -
 +}
 \ No newline at end of file
+-- 
+1.7.0.4
+

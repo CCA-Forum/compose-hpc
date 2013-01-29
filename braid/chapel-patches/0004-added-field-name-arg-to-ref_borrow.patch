@@ -1,0 +1,25 @@
+From 782b33ce09cec27362030c0f3bd11b28fab37bd5 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Mon, 9 Jul 2012 10:09:51 -0700
+Subject: [PATCH 04/11]  added field name arg to ref_borrow
+
+---
+ examples/borrowed/borrowed_array.chpl |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/examples/borrowed/borrowed_array.chpl b/examples/borrowed/borrowed_array.chpl
+index 7acd01e..738dbc1 100644
+--- a/examples/borrowed/borrowed_array.chpl
++++ b/examples/borrowed/borrowed_array.chpl
+@@ -10,7 +10,7 @@ class _borrowedData {
+   }
+   pragma "inline" proc init(opaqueData: opaque) {
+     // Just copy over the reference to the data
+-    __primitive("ref_borrow", this, opaqueData);
++    __primitive("ref_borrow", this, "_data", opaqueData);
+   }
+   pragma "inline" proc this(i: integral) var {
+     // rely on chapel compiler to generate lvalue
+-- 
+1.7.0.4
+

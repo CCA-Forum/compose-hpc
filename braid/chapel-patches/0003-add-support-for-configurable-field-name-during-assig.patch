@@ -1,0 +1,44 @@
+From e6d34f4cf48eb4b49816abb07a790a41290048dd Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Mon, 9 Jul 2012 10:09:08 -0700
+Subject: [PATCH 03/11] add support for configurable field name during assignment
+
+---
+ compiler/AST/expr.cpp |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/compiler/AST/expr.cpp b/compiler/AST/expr.cpp
+index 8af359c..2188ec6 100644
+--- a/compiler/AST/expr.cpp
++++ b/compiler/AST/expr.cpp
+@@ -2685,9 +2685,24 @@ GenRet CallExpr::codegen() {
+     }
+     case PRIM_REF_BORROW:
+     {
+-      gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A)", get(1),
+-          getDataClassType(get(1)->typeInfo()->symbol),
+-          get(2), get(3), get(4));
++      // // Ensure we have a string constant as the second argument   
++      // SymExpr* fieldNameSym = toSymExpr(get(2));
++      // if (fieldNameSym == NULL) {
++      //   USR_FATAL(fieldNameSym, "Expected string expr as second argument to ref_borrow");
++      // }
++      // VarSymbol* fieldNameVarSym = toVarSymbol(fieldNameSym->var);
++      // if (fieldNameVarSym == NULL || fieldNameVarSym->immediate == NULL ||
++      //     fieldNameVarSym->immediate->const_kind != CONST_KIND_STRING) {
++      //   USR_FATAL(fieldNameVarSym, "Expected string constant as second argument to ref_borrow");
++      // }
++      // // Now a little hack to ensure we do not output quotes for the field
++      // VarSymbol* fieldNameVarSymCopy = fieldNameVarSym->copy();
++      // fieldNameVarSymCopy->cname = fieldNameVarSym->immediate->v_string;
++      // fieldNameVarSymCopy->immediate == NULL;
++      codegenCall("_REF_BORROW", get(1),
++		  getDataClassType(get(1)->typeInfo()->symbol),
++		  //fieldNameVarSymCopy, 
++		  get(2), get(3), get(4));
+       break;  
+     }
+     case PRIM_GPU_ALLOC:
+-- 
+1.7.0.4
+
