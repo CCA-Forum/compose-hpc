@@ -471,7 +471,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
 #     scope.cstub.new_header_def('#define %s(e) (%s)(e)'%(f,c_gen(t)))
 #     return ir.Call(f, [e])
 
-def copy_over(typ, a0):
+def copy_over(scope, typ, a0):
     '''
     merely copy over src into dest without any conversion
     '''
@@ -479,7 +479,9 @@ def copy_over(typ, a0):
     # was (orig, orig, None) but that doesn't do the right thing for
     # struct items, which sometimes need to be copied regardless,
     # because other struct items warrant a conversion
+    scope.gen(ir.Copy(dest, src))
     return typ, (dest, src, conv)
+    #return typ, (dest, src, (typ, dest, src, [ir.Comment('copy over'), ir.Copy(dest, src)]))
 
 def xerox_struct((typ, (dest, src, orig)), xitems):
     '''
@@ -1111,16 +1113,16 @@ value_ior_chpl  <-- enum_ior_chpl   :cost(0)
 # structs have either all-xeroxed or all-original items
 value_chpl_c    <-- struct(typ, dvalue_chpl_c)    :cost(0)
     #print 'dstruct_chpl_c: ', a0
-    return copy_over(*a0)
+    return copy_over(scope, *a0)
 value_ior_c     <-- struct(typ, dvalue_ior_c)     :cost(0) 
     #print 'dstruct_ior_c: ', a0
-    return copy_over(*a0)
+    return copy_over(scope, *a0)
 value_chpl_chpl <-- struct(typ, dvalue_chpl_chpl) :cost(0) 
     #print 'dstruct_chpl_chpl: ', a0
-    return copy_over(*a0)
+    return copy_over(scope, *a0)
 value_ior_chpl  <-- struct(typ, dvalue_ior_chpl)  :cost(0) 
     #print 'dstruct_ior_chpl: ', a0
-    return copy_over(*a0)
+    return copy_over(scope, *a0)
 # the cost for this is so high, that even a struct with the max number
 # of items (~ 127, a limitation of certain Java implementations on the
 # maximum number of arguments a function can take) will not
@@ -1295,6 +1297,7 @@ bool_ior_c      <-- bool_chpl_c: cost(1)
     t = ir.Typedef_type('chpl_bool')
     conv += [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
              ir.Copy(dest,ir.Cast(ir.pt_int, src))]
+    scope.gen(ir.Copy(dest, src))
     return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 bool_chpl_c <-- bool_ior_c: cost(1)
@@ -1302,6 +1305,7 @@ bool_chpl_c <-- bool_ior_c: cost(1)
     t = ir.Typedef_type('chpl_bool')
     conv += [ir.Comment('sidl_bool is an int, but chapel bool is a char/_Bool'),
              ir.Copy(dest,ir.Cast(t, src))]
+    scope.gen(ir.Copy(dest, src))
     return t, (dest, src, (ir.pt_int, dest, src, conv))
 
 bool_ior_chpl   <-- bool_chpl_chpl: cost(3)
@@ -1326,6 +1330,7 @@ char_ior_c <-- char_chpl_c : cost(1)
     conv += [ir.Comment('in chapel, a char is a string of length 1'),
              ir.Copy(dest, ir.Deref(src))] # deref takes 1st char of string
     c_scope.optional.add(char_lut)
+    scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
 
 char_chpl_c <-- char_ior_c : cost(1)
@@ -1334,6 +1339,7 @@ char_chpl_c <-- char_ior_c : cost(1)
     # we can't allocate a new string, this would leak memory
     conv.append(ir.Copy(dest, '(const char*)&chpl_char_lut[2*(unsigned char)%s]'%c_gen(src)))
     c_scope.optional.add(char_lut)
+    scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
 
 # COMPLEX - 32/64 Bit components
@@ -1351,24 +1357,28 @@ fcomplex_ior_c <-- fcomplex_chpl_c : cost(2)
     dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 'real'),access(src, 're')))
     conv.append(ir.Copy(access(dest, 'imaginary'),access(src, 'im')))
+    scope.gen(ir.Copy(dest, src))
     return ir.Typedef_type('_complex64'), (dest, src, (ir.pt_fcomplex, dest, src, conv))
 
 dcomplex_ior_c <-- dcomplex_chpl_c : cost(2)
     dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 'real'),access(src, 're')))
     conv.append(ir.Copy(access(dest, 'imaginary'),access(src, 'im')))
+    scope.gen(ir.Copy(dest, src))
     return ir.Typedef_type('_complex128'), (dest, src, (ir.pt_dcomplex, dest, src, conv))
 
 fcomplex_chpl_c <-- fcomplex_ior_c : cost(2)
     dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 're'),access(src, 'real')))
     conv.append(ir.Copy(access(dest, 'im'),access(src, 'imaginary')))
+    scope.gen(ir.Copy(dest, src))
     return ir.Typedef_type('_complex64'), (dest, src, (ir.pt_fcomplex, dest, src, conv))
 
 dcomplex_chpl_c <-- dcomplex_ior_c : cost(2)
     dest, src, conv = a0
     conv.append(ir.Copy(access(dest, 're'),access(src, 'real')))
     conv.append(ir.Copy(access(dest, 'im'),access(src, 'imaginary')))
+    scope.gen(ir.Copy(dest, src))
     return ir.Typedef_type('_complex128'), (dest, src, (ir.pt_dcomplex, dest, src, conv))
 
 # ENUM
@@ -1379,10 +1389,12 @@ xvalue_ior_c     <-- enum_ior_c     :cost(0)
 enum_ior_c <-- enum_chpl_c : cost(1)
     t, (dest, src, orig) = a0
     # No special treatment for enums, rely on chpl runtime to set it
+    scope.gen(ir.Copy(dest, src))
     return t, (dest, src, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
 
 enum_chpl_c <-- enum_ior_c : cost(1)
     t, (dest, src, orig) = a0
+    scope.gen(ir.Copy(dest, src))
     return t, (dest, src, (t, dest, src, [ir.Copy(dest, src)]))
 
 # STRING
@@ -1394,6 +1406,7 @@ xvalue_ior_c       <-- string_ior_c     :cost(0)
 #string_ior_chpl    <-- string_ior_c     :cost(0)
 string_ior_c <-- string_chpl_c : cost(0)
     dest, src, conv = a0
+    scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_string, dest, src, [ir.Copy(dest, src)]))
 
 string_chpl_c <-- string_ior_c : cost(1)
@@ -1401,6 +1414,7 @@ string_chpl_c <-- string_ior_c : cost(1)
     # Convert null pointer into empty string
     conv.append(ir.Stmt(ir.If(src, [ir.Copy(src, '""')])))
     conv.append(ir.Copy(dest, src))
+    scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_string, dest, src, conv))
 
 # INT
@@ -1410,10 +1424,10 @@ int_chpl_chpl   <-- int_chpl_c    :cost(0)
 int_ior_chpl    <-- int_ior_c     :cost(0)
 
 int_ior_c <-- int_chpl_c : cost(0)
-    return copy_over(ir.pt_int, a0)
+    return copy_over(scope, ir.pt_int, a0)
 
 int_chpl_c <-- int_ior_c : cost(0)
-    return copy_over(ir.pt_int, a0)
+    return copy_over(scope, ir.pt_int, a0)
 
 # LONG
 #------------------------------------------------------------------------
@@ -1422,9 +1436,9 @@ long_chpl_chpl   <-- long_chpl_c    :cost(0)
 long_ior_chpl    <-- long_ior_c     :cost(0)
 
 long_ior_c <-- long_chpl_c : cost(0)
-    return copy_over(ir.pt_long, a0)
+    return copy_over(scope, ir.pt_long, a0)
 long_chpl_c <-- long_ior_c : cost(0)
-    return copy_over(ir.pt_long, a0)
+    return copy_over(scope, ir.pt_long, a0)
 
 # FLOAT
 #------------------------------------------------------------------------
@@ -1433,9 +1447,9 @@ float_chpl_chpl   <-- float_chpl_c    :cost(0)
 float_ior_chpl    <-- float_ior_c     :cost(0)
 
 float_ior_c <-- float_chpl_c : cost(0)
-    return copy_over(ir.pt_float, a0)
+    return copy_over(scope, ir.pt_float, a0)
 float_chpl_c <-- float_ior_c : cost(0)
-    return copy_over(ir.pt_float, a0)
+    return copy_over(scope, ir.pt_float, a0)
 
 # DOUBLE
 #------------------------------------------------------------------------
@@ -1443,9 +1457,9 @@ double_chpl_c      <-- double_chpl_chpl :cost(0)
 double_chpl_chpl   <-- double_chpl_c    :cost(0)
 double_ior_chpl    <-- double_ior_c     :cost(0)
 double_ior_c <-- double_chpl_c : cost(0)
-    return copy_over(ir.pt_double, a0)
+    return copy_over(scope, ir.pt_double, a0)
 double_chpl_c <-- double_ior_c : cost(0)
-    return copy_over(ir.pt_double, a0)
+    return copy_over(scope, ir.pt_double, a0)
 
 
 # VOID return type
@@ -1453,9 +1467,9 @@ double_chpl_c <-- double_ior_c : cost(0)
 void_chpl_c      <-- void_chpl_chpl :cost(0)
 void_chpl_chpl   <-- void_chpl_c    :cost(0)
 void_chpl_c <-- void_ior_c :cost(0)
-    return copy_over(ir.pt_void, a0)
+    return copy_over(scope, ir.pt_void, a0)
 void_ior_c <-- void_chpl_c :cost(0)
-    return copy_over(ir.pt_void, a0)
+    return copy_over(scope, ir.pt_void, a0)
 
 # OPAQUE
 #------------------------------------------------------------------------
@@ -1463,10 +1477,10 @@ opaque_chpl_c    <-- opaque_chpl_chpl     :cost(0)
 opaque_chpl_chpl <-- opaque_chpl_c        :cost(0)
 opaque_chpl_c    <-- pointer_type_ior_c   :cost(0)
     #print 'opaque <-- pointer: ', a0
-    return copy_over(ir.void_ptr, a0)
+    return copy_over(scope, ir.void_ptr, a0)
 pointer_type_ior_c <-- opaque_chpl_c      :cost(0)
     #print 'opaque --> pointer: ', a0
-    return copy_over(ir.void_ptr, a0)
+    return copy_over(scope, ir.void_ptr, a0)
 
 # FIXME:
 # pointer_type_AT_C_chpl_chpl <-- ior.*

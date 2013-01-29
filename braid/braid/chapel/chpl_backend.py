@@ -627,14 +627,14 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 #if ir.is_struct(chpl_type):
                 #    body.genh(ir.Var_decl(chpl_type, '_ior__retval'))
                 body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
-                # this needs to go ...
-                assigns_retval = False
-                for stmt in body._defs:
-                    if re.match(retval_assignment, stmt):
-                        assigns_retval = True
-                        break
-                if not assigns_retval:
-                    body.gen(ir.Copy('_retval', '_ior__retval'))
+                ## this needs to go ...
+                #assigns_retval = False
+                #for stmt in body._defs:
+                #    if re.match(retval_assignment, stmt):
+                #        assigns_retval = True
+                #        break
+                #if not assigns_retval:
+                #    body.gen(ir.Copy('_retval', '_ior__retval'))
 
             body.genh(ir.Comment(str(Type)))
             body.gen(ir.Stmt(ir.Return('_retval')))
