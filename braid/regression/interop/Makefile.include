@@ -179,5 +179,7 @@ run-gantlet-gui: $(check_DATA)
 
 
 # ----------------------------------------------------------------------
-
+else
+clean-regression:
+	echo "Nothing to clean"
 endif

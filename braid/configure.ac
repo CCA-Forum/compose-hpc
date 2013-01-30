@@ -210,7 +210,7 @@ AS_IF([test "x$enable_upc" = xyes], [:],
   [UPC="";UPC_ROOT="";UPC_VERSION="";
    AC_MSG_NOTICE([UPC backend disabled per user request!])
   ])
-AM_CONDITIONAL([BABEL_LANG_UPC], [test -n "$UPC"])
+AM_CONDITIONAL([BABEL_LANG_UPC], [test "${UPC}" != ":" -a -n "${UPC}"])
 
 ############################################################
 #
@@ -265,13 +265,13 @@ AC_CONFIG_FILES([Makefile
   regression/interop/build-server.sh
   regression/interop/build-tracker.sh
   regression/interop/driver.sh
-], [chmod +x patch-chapel-compiler.sh])
+], [chmod -f +x patch-chapel-compiler.sh])
 
 AC_OUTPUT
 
 AC_MSG_RESULT([==============================================================])
 AC_MSG_RESULT([BRAID Configuration Summary                                   ])
-AC_MSG_RESULT([==============================================================])
+AC_MSG_RESULT([===========================================o===================])
 AS_IF([test -z "${SWIPL}"], 
       AC_MSG_RESULT([    SWI-Prolog ....... NO]),
       AC_MSG_RESULT([    SWI-Prolog ...... YES (${SWIPL_VERSION} in ${SWIPL})]))

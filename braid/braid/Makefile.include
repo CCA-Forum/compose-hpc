@@ -120,8 +120,8 @@ $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 $(builddir)/braid/parsetab.pyc: $(abs_srcdir)/braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
 	@echo "  GEN  [sidl parser tables]"
 	@rm -f $@
-	cd braid && env PYTHONPATH=.:$(PYTHONPATH):$(BACKPORTS) $(PYTHON) $<
-	@cd braid && env PYTHONPATH=.:$(PYTHONPATH):$(BACKPORTS) $(PYTHON) $<
+	cd braid && env PYTHONPATH=.:$(abs_builddir)/braid:$(PYTHONPATH):$(BACKPORTS) $(PYTHON) $<
+	@cd braid && env PYTHONPATH=.:$(abs_builddir)/braid:$(PYTHONPATH):$(BACKPORTS) $(PYTHON) $<
 
 braid/legal.py: $(top_srcdir)/COPYRIGHT
 	$(AM_V_GEN)

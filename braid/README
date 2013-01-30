@@ -172,6 +172,8 @@ Developer-only dependencies
 - Doxygen:       Version 1.6 or higher (disable with ./configure --disable-documentation)
 - graphviz:      (for Doxygen)
 - GNU flex
+- rst2man:       Contained in python-docutils (Debian, Ubuntu, openSUSE and Fedora)
+
 
 User's Guide
 ------------
