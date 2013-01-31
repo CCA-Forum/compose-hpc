@@ -110,12 +110,65 @@ export Args_Basic_passoutchar_impl proc passoutchar(out c: string): bool {
 
 export Args_Basic_passinoutchar_impl proc passinoutchar(inout c: string): bool {
     /* DO-NOT-DELETE splicer.begin(Args.Basic.passinoutchar) */
-    if ( c >= 'a' && c <= 'z' ) { 
-      //c += 'A' - 'a';
-    } else if ( c >= 'A' && c <= 'Z' ) { 
-      //c += 'a' - 'A';
-    }
-    return true;  
+    //if ( c >= 'a' && c <= 'z' ) { 
+    //  //c += 'A' - 'a';
+    //} else if ( c >= 'A' && c <= 'Z' ) { 
+    //  //c += 'a' - 'A';
+    //}
+  // There ought to be a more idiomatic way !!!
+       if ( c == 'a' ) then c = 'A';
+  else if ( c == 'b' ) then c = 'B';
+  else if ( c == 'c' ) then c = 'C';
+  else if ( c == 'd' ) then c = 'D';
+  else if ( c == 'e' ) then c = 'E';
+  else if ( c == 'f' ) then c = 'F';
+  else if ( c == 'g' ) then c = 'G';
+  else if ( c == 'h' ) then c = 'H';
+  else if ( c == 'i' ) then c = 'I';
+  else if ( c == 'j' ) then c = 'J';
+  else if ( c == 'k' ) then c = 'K';
+  else if ( c == 'l' ) then c = 'L';
+  else if ( c == 'm' ) then c = 'M';
+  else if ( c == 'n' ) then c = 'N';
+  else if ( c == 'o' ) then c = 'O';
+  else if ( c == 'p' ) then c = 'P';
+  else if ( c == 'q' ) then c = 'Q';
+  else if ( c == 'r' ) then c = 'R';
+  else if ( c == 's' ) then c = 'S';
+  else if ( c == 't' ) then c = 'T';
+  else if ( c == 'u' ) then c = 'U';
+  else if ( c == 'v' ) then c = 'V';
+  else if ( c == 'w' ) then c = 'W';
+  else if ( c == 'x' ) then c = 'X';
+  else if ( c == 'y' ) then c = 'Y';
+  else if ( c == 'z' ) then c = 'Z';
+       if ( c == 'A' ) then c = 'a';
+  else if ( c == 'B' ) then c = 'b';
+  else if ( c == 'C' ) then c = 'c';
+  else if ( c == 'D' ) then c = 'd';
+  else if ( c == 'E' ) then c = 'e';
+  else if ( c == 'F' ) then c = 'f';
+  else if ( c == 'G' ) then c = 'g';
+  else if ( c == 'H' ) then c = 'h';
+  else if ( c == 'I' ) then c = 'i';
+  else if ( c == 'J' ) then c = 'j';
+  else if ( c == 'K' ) then c = 'k';
+  else if ( c == 'L' ) then c = 'l';
+  else if ( c == 'M' ) then c = 'm';
+  else if ( c == 'N' ) then c = 'n';
+  else if ( c == 'O' ) then c = 'o';
+  else if ( c == 'P' ) then c = 'p';
+  else if ( c == 'Q' ) then c = 'q';
+  else if ( c == 'R' ) then c = 'r';
+  else if ( c == 'S' ) then c = 's';
+  else if ( c == 'T' ) then c = 't';
+  else if ( c == 'U' ) then c = 'u';
+  else if ( c == 'V' ) then c = 'v';
+  else if ( c == 'W' ) then c = 'w';
+  else if ( c == 'X' ) then c = 'x';
+  else if ( c == 'Y' ) then c = 'y';
+  else if ( c == 'Z' ) then c = 'z';
+    return true; 
     /* DO-NOT-DELETE splicer.end(Args.Basic.passinoutchar) */
 }
 
@@ -123,11 +176,59 @@ export Args_Basic_passinoutchar_impl proc passinoutchar(inout c: string): bool {
 export Args_Basic_passeverywherechar_impl proc passeverywherechar(in c1: string, out c2: string, inout c3: string): string {
     /* DO-NOT-DELETE splicer.begin(Args.Basic.passeverywherechar) */
     c2 = '3';
-    if ( c3 >= 'a' && c3 <= 'z' ) { 
-      //c3 += 'A' - 'a';
-    } else if ( c3 >= 'A' && c3 <= 'Z' ) { 
-      //c3 += 'a' - 'A';
-    }
+  // There ought to be a more idiomatic way !!!
+       if ( c3 == 'a' ) then c3 = 'A';
+  else if ( c3 == 'b' ) then c3 = 'B';
+  else if ( c3 == 'c' ) then c3 = 'C';
+  else if ( c3 == 'd' ) then c3 = 'D';
+  else if ( c3 == 'e' ) then c3 = 'E';
+  else if ( c3 == 'f' ) then c3 = 'F';
+  else if ( c3 == 'g' ) then c3 = 'G';
+  else if ( c3 == 'h' ) then c3 = 'H';
+  else if ( c3 == 'i' ) then c3 = 'I';
+  else if ( c3 == 'j' ) then c3 = 'J';
+  else if ( c3 == 'k' ) then c3 = 'K';
+  else if ( c3 == 'l' ) then c3 = 'L';
+  else if ( c3 == 'm' ) then c3 = 'M';
+  else if ( c3 == 'n' ) then c3 = 'N';
+  else if ( c3 == 'o' ) then c3 = 'O';
+  else if ( c3 == 'p' ) then c3 = 'P';
+  else if ( c3 == 'q' ) then c3 = 'Q';
+  else if ( c3 == 'r' ) then c3 = 'R';
+  else if ( c3 == 's' ) then c3 = 'S';
+  else if ( c3 == 't' ) then c3 = 'T';
+  else if ( c3 == 'u' ) then c3 = 'U';
+  else if ( c3 == 'v' ) then c3 = 'V';
+  else if ( c3 == 'w' ) then c3 = 'W';
+  else if ( c3 == 'x' ) then c3 = 'X';
+  else if ( c3 == 'y' ) then c3 = 'Y';
+  else if ( c3 == 'z' ) then c3 = 'Z';
+       if ( c3 == 'A' ) then c3 = 'a';
+  else if ( c3 == 'B' ) then c3 = 'b';
+  else if ( c3 == 'C' ) then c3 = 'c';
+  else if ( c3 == 'D' ) then c3 = 'd';
+  else if ( c3 == 'E' ) then c3 = 'e';
+  else if ( c3 == 'F' ) then c3 = 'f';
+  else if ( c3 == 'G' ) then c3 = 'g';
+  else if ( c3 == 'H' ) then c3 = 'h';
+  else if ( c3 == 'I' ) then c3 = 'i';
+  else if ( c3 == 'J' ) then c3 = 'j';
+  else if ( c3 == 'K' ) then c3 = 'k';
+  else if ( c3 == 'L' ) then c3 = 'l';
+  else if ( c3 == 'M' ) then c3 = 'm';
+  else if ( c3 == 'N' ) then c3 = 'n';
+  else if ( c3 == 'O' ) then c3 = 'o';
+  else if ( c3 == 'P' ) then c3 = 'p';
+  else if ( c3 == 'Q' ) then c3 = 'q';
+  else if ( c3 == 'R' ) then c3 = 'r';
+  else if ( c3 == 'S' ) then c3 = 's';
+  else if ( c3 == 'T' ) then c3 = 't';
+  else if ( c3 == 'U' ) then c3 = 'u';
+  else if ( c3 == 'V' ) then c3 = 'v';
+  else if ( c3 == 'W' ) then c3 = 'w';
+  else if ( c3 == 'X' ) then c3 = 'x';
+  else if ( c3 == 'Y' ) then c3 = 'y';
+  else if ( c3 == 'Z' ) then c3 = 'z';
     if ( c1 == '3') then
       return '3';
     else return  '\0';

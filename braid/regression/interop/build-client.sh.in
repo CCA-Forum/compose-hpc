@@ -215,6 +215,11 @@ for libdir in `ls -1 -d ../lib*`; do
   esac
   echo "--compiling client [ $language ->\t$server\t] $TESTCASE"
   rm -f run${language}2${server}.sh
+
+  if [ $server = Chapel ]; then
+      #sed -i -e 's/TRUE ..SIDL_STATIC_LIBRARY../SIDL_STATIC_LIBRARY/g' *_Stub.c
+      sed -i -e 's/SIDL_STATIC_LIBRARY/TRUE/g' *.cxx
+  fi
   
   #set -x
   $MAKE run${language}2${server} \
@@ -222,10 +227,6 @@ for libdir in `ls -1 -d ../lib*`; do
         IMPL="${TESTCASE}test" \
         EXTRA_LDFLAGS="$extralib" \
         TARGET="run${language}2${server}" ||exit 1 #>/dev/null     ||exit 1
-
-  if [ $server = Chapel ]; then
-      sed -i -e 's/TRUE ..SIDL_STATIC_LIBRARY../SIDL_STATIC_LIBRARY/g' *_Stub.c
-  fi
 
   # generate wrapper scripts
   case "$server" in
@@ -253,6 +254,7 @@ EOF
 # To debug, run as ./run${language}2${server}.sh gdbtui
 exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
     SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
+    SLURM_NTASKS=1 \
     \$1 ./run${language}2${server}
 EOF
 	  ;;

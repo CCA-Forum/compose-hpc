@@ -546,7 +546,7 @@ def pass_structs_as_pointers(pre, post, args):
             if ir.is_get_struct_item(e):
                 get, t, n, i = e
                 if n == name: 
-                    print get, t, ir.Deref(n), i 
+                    #print get, t, ir.Deref(n), i 
                     return get, t, ir.Deref(n), i 
                 return get, t, rec(n), i
             elif ir.is_cast(e) or ir.is_sign_extend(e):
@@ -769,9 +769,9 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     else:
         ftype = ir.pt_void
 
+    cstub_allargs = allargs
     # Because of how Chapel generates C code we cannot return structs.
     # Convert them to an additional out argument here.
-    cstub_allargs = allargs
     if ir.is_struct(ftype):
         cstub_allargs = allargs+[(ir.out, (ftype, ('_retval', '_ior__retval', [])))]
         cstub_type = ir.pt_void
@@ -920,7 +920,6 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
             impl_params.append(deref_to_addr(outargs[i], ir.out, 1))
             i += 1
         else:
-            #impl_args.append(arg)
             if (arg[1][1] == outargs[i][1][0] or 
                 (arg[1][1][0] == ir.deref and 
                  arg[1][1][1] == outargs[i][1][0])):
@@ -928,9 +927,20 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
                 mode = ir.inout
             else:
                 mode = ir.in_
+
+            # complex is always passed as a pointer since chpl 1.5
+            if mode == ir.in_ and ir.is_typedef_type(arg[0]) and (
+                # complex is always passed as a pointer since chpl 1.5
+                arg[0][1] == '_complex64' or
+                arg[0][1] == '_complex128'):
+                p = ir.Pointer_type(arg[0])
+                #mode = ir.inout
+                arg = p, (arg[1][0], p, arg[1][2])
+                impl_params.append((ir.pointer_expr, deref_to_addr(arg, mode, 0)))
+
+            else: 
+                impl_params.append(deref_to_addr(arg, mode, 0))
             impl_decl_args.append(ir.Arg([], mode, arg[0], arg[1][0]))
-            impl_params.append(deref_to_addr(arg, mode, 0))
-            
 
     join = lambda a, b: a+b
     pre_call =  reduce(join, map(c_convs,  inargs), [])
@@ -1531,7 +1541,8 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
         scope.gen(ir.Copy(dest, src))
         return t, (dest, src, None)
 
-    scope.gen(ir.Copy(dest, access(src, 'ior')))
+    scope.gen(ir.If(ir.Infix_expr(ir.ne, src, 'nil'),
+                    [ir.Copy(dest, access(src, 'ior'))]))
     #return t, (dest, src, None)
     return array_ior_type(t), (dest, src, None)
 

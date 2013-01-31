@@ -543,9 +543,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         #map(lambda arg: conv.sidl_arg_to_ir(symbol_table, arg), ior_args)
 
-        chpl_args = babel.lower_ir(symbol_table, Args, lower_scoped_ids=False,
-                                        qualify_names=False, qualify_enums=True,
-                                        struct_suffix='')
+        chpl_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args), 
+                                   lower_scoped_ids=False,
+                                   qualify_names=False, qualify_enums=True,
+                                   struct_suffix='')
         chpl_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False,
                                    qualify_names=False, qualify_enums=True)
         chpl_type = conv.ir_type_to_chpl(chpl_type)
