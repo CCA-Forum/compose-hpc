@@ -2,10 +2,10 @@
 #include "rose.h"
 
 /* include paul decorate header */
-#include "PaulDecorate.h"
+#include <paul/PaulDecorate.h>
 
 /* key-value annotation class */
-#include "KVAnnotationValue.h"
+#include <paul/KVAnnotationValue.h>
 
 using namespace std;
 

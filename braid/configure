@@ -870,6 +870,8 @@ enable_numpy
 with_doxygen
 with_dot
 with_chpl
+enable_chpl
+enable_upc
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1535,6 +1537,8 @@ Optional Features:
                           Python thread debugging
   --disable-numeric       do not enable Numeric Python
   --disable-numpy         do not enable NumPy
+  --disable-chpl          disable CHAPEL backend (default: enabled)
+  --disable-upc           disable UPC backend (default: enabled)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -13872,6 +13876,21 @@ $as_echo "$as_me: Did not find Chapel compiler in PATH!" >&6;}
 
 fi
 
+# Check whether --enable-chpl was given.
+if test "${enable_chpl+set}" = set; then :
+  enableval=$enable_chpl; :
+else
+  enable_chpl=yes
+fi
+
+if test "x$enable_chpl" = xyes; then :
+  :
+else
+  CHPL="";CHPL_ROOT="";CHPL_VERSION="";
+   { $as_echo "$as_me:${as_lineno-$LINENO}: Chapel backend disabled per user request!" >&5
+$as_echo "$as_me: Chapel backend disabled per user request!" >&6;}
+
+fi
  if test -n "$CHPL"; then
   BABEL_LANG_CHPL_TRUE=
   BABEL_LANG_CHPL_FALSE='#'
@@ -14204,7 +14223,22 @@ $as_echo "$as_me: Did not find UPC compiler in PATH!" >&6;}
 
 
 fi
- if test -n "$UPC"; then
+# Check whether --enable-upc was given.
+if test "${enable_upc+set}" = set; then :
+  enableval=$enable_upc; :
+else
+  enable_upc=yes
+fi
+
+if test "x$enable_upc" = xyes; then :
+  :
+else
+  UPC="";UPC_ROOT="";UPC_VERSION="";
+   { $as_echo "$as_me:${as_lineno-$LINENO}: UPC backend disabled per user request!" >&5
+$as_echo "$as_me: UPC backend disabled per user request!" >&6;}
+
+fi
+ if test "${UPC}" != ":" -a -n "${UPC}"; then
   BABEL_LANG_UPC_TRUE=
   BABEL_LANG_UPC_FALSE='#'
 else
@@ -16780,17 +16814,17 @@ fi
   chmod +x "$ofile"
 
  ;;
-    "Makefile":F) chmod +x patch-chapel-compiler.sh ;;
-    "braid/braid":F) chmod +x patch-chapel-compiler.sh ;;
-    "braid/rote2braid":F) chmod +x patch-chapel-compiler.sh ;;
-    "braid/config.py":F) chmod +x patch-chapel-compiler.sh ;;
-    "braid/pyburg":F) chmod +x patch-chapel-compiler.sh ;;
-    "Doxyfile":F) chmod +x patch-chapel-compiler.sh ;;
-    "patch-chapel-compiler.sh":F) chmod +x patch-chapel-compiler.sh ;;
-    "regression/interop/build-client.sh":F) chmod +x patch-chapel-compiler.sh ;;
-    "regression/interop/build-server.sh":F) chmod +x patch-chapel-compiler.sh ;;
-    "regression/interop/build-tracker.sh":F) chmod +x patch-chapel-compiler.sh ;;
-    "regression/interop/driver.sh":F) chmod +x patch-chapel-compiler.sh ;;
+    "Makefile":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "braid/braid":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "braid/rote2braid":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "braid/config.py":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "braid/pyburg":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "Doxyfile":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "patch-chapel-compiler.sh":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "regression/interop/build-client.sh":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "regression/interop/build-server.sh":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "regression/interop/build-tracker.sh":F) chmod -f +x patch-chapel-compiler.sh ;;
+    "regression/interop/driver.sh":F) chmod -f +x patch-chapel-compiler.sh ;;
 
   esac
 done # for ac_tag
@@ -16834,8 +16868,8 @@ fi
 $as_echo "==============================================================" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: BRAID Configuration Summary                                   " >&5
 $as_echo "BRAID Configuration Summary                                   " >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ==============================================================" >&5
-$as_echo "==============================================================" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ===========================================o===================" >&5
+$as_echo "===========================================o===================" >&6; }
 if test -z "${SWIPL}"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result:     SWI-Prolog ....... NO" >&5
 $as_echo "    SWI-Prolog ....... NO" >&6; }

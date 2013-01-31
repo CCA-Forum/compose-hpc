@@ -908,7 +908,7 @@ tracker.setExpectations(-1, sidl_ex);
     var opData: opaque = iarray.first();
     var ibarray = sidl.createBorrowedArray1d(iarray);
 
-    init_part(); run_part("Check ibarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(ibarray, TEST_SIZE, sidl_ex) == true);
+    init_part(); run_part("Check ibarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(ibarray, sidl_ex) == true);
     
     tracker.writeComment("End: Check initialization for borrowed array int 32b - 1D", sidl_ex);
   }
@@ -935,7 +935,7 @@ tracker.setExpectations(-1, sidl_ex);
     
     tracker.writeComment("checkRarray3Int", sidl_ex);
     init_part(); run_part("Check ibarray int 3", 
-        ArrayTest.ArrayOps_static.checkRarray3Int(ibarray, m, n, o, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.checkRarray3Int(ibarray, /*m, n, o,*/ sidl_ex) == true);
     
     tracker.writeComment("End: Check initialization for borrowed array int 32b - 3D", sidl_ex);
   }
@@ -967,7 +967,7 @@ tracker.setExpectations(-1, sidl_ex);
       s = iarray.length(6):int(32);
     
     init_part(); run_part("Check ibarray int 7", 
-        ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, m, n, o, p, q, r, s, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.checkRarray7Int(ibarray, /*m, n, o, p, q, r, s,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check initialization for borrowed array int 32b - 7D", sidl_ex);
   }
@@ -977,8 +977,8 @@ tracker.setExpectations(-1, sidl_ex);
 
     var irarray: [0.. #TEST_SIZE] int(32);
     magicNumber = clearstack(magicNumber);
-    ArrayTest.ArrayOps_static.initRarray1Int(irarray, TEST_SIZE, sidl_ex);
-    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, TEST_SIZE, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.initRarray1Int(irarray, /*TEST_SIZE,*/ sidl_ex);
+    init_part(); run_part("Check rarray int 1", ArrayTest.ArrayOps_static.checkRarray1Int(irarray, /*TEST_SIZE,*/ sidl_ex) == true);
     tracker.writeComment("End: Check initialization for int 32b - 1D", sidl_ex);
   }
 
@@ -989,8 +989,8 @@ tracker.setExpectations(-1, sidl_ex);
     var irarray: [0.. #n, 0.. #m, 0.. #o] int(32); //2*3*4 
 
     magicNumber = clearstack(magicNumber);
-    ArrayTest.ArrayOps_static.initRarray3Int(irarray, n, m, o, sidl_ex);
-    init_part(); run_part("Check rarray int 2", ArrayTest.ArrayOps_static.checkRarray3Int(irarray, n, m, o, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.initRarray3Int(irarray, /*n, m, o,*/ sidl_ex);
+    init_part(); run_part("Check rarray int 2", ArrayTest.ArrayOps_static.checkRarray3Int(irarray, /*n, m, o,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check initialization for int 32b - 3D", sidl_ex);
   }
@@ -1003,8 +1003,8 @@ tracker.setExpectations(-1, sidl_ex);
     var irarray: [0.. #n, 0.. #m, 0.. #o, 0.. #p, 0.. #q, 0.. #r, 0.. #s] int(32); //2*2*2*2*3*3*3 
 
     magicNumber = clearstack(magicNumber);
-    ArrayTest.ArrayOps_static.initRarray7Int(irarray, n, m, o, p, q, r, s, sidl_ex);
-    init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps_static.checkRarray7Int(irarray, n, m, o, p, q, r, s, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.initRarray7Int(irarray, /*n, m, o, p, q, r, s,*/ sidl_ex);
+    init_part(); run_part("Check rarray int 7", ArrayTest.ArrayOps_static.checkRarray7Int(irarray, /*n, m, o, p, q, r, s,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check initialization for int 32b - 7D", sidl_ex);
   }
@@ -1014,8 +1014,8 @@ tracker.setExpectations(-1, sidl_ex);
 
     var irarray: [0.. #TEST_SIZE] real(64);
     magicNumber = clearstack(magicNumber);
-    ArrayTest.ArrayOps_static.initRarray1Double(irarray, TEST_SIZE, sidl_ex);
-    init_part(); run_part("Check rarray double 1", ArrayTest.ArrayOps_static.checkRarray1Double(irarray, TEST_SIZE, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.initRarray1Double(irarray, /*TEST_SIZE,*/ sidl_ex);
+    init_part(); run_part("Check rarray double 1", ArrayTest.ArrayOps_static.checkRarray1Double(irarray, /*TEST_SIZE,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check initialization for real 64b - 1D", sidl_ex);
   }
@@ -1025,8 +1025,8 @@ tracker.setExpectations(-1, sidl_ex);
 
     var irarray: [0.. #TEST_SIZE] complex(128);
     magicNumber = clearstack(magicNumber);
-    ArrayTest.ArrayOps_static.initRarray1Dcomplex(irarray, TEST_SIZE, sidl_ex);
-    init_part(); run_part("Check rarray dcomplex 1", ArrayTest.ArrayOps_static.checkRarray1Dcomplex(irarray, TEST_SIZE, sidl_ex) == true);
+    ArrayTest.ArrayOps_static.initRarray1Dcomplex(irarray, /*TEST_SIZE,*/ sidl_ex);
+    init_part(); run_part("Check rarray dcomplex 1", ArrayTest.ArrayOps_static.checkRarray1Dcomplex(irarray, /*TEST_SIZE,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check initialization for complex with 64b components - 1D", sidl_ex);
   }
@@ -1043,10 +1043,10 @@ tracker.setExpectations(-1, sidl_ex);
     [(i) in {0..5}] b[i / o, i % o] = i:int(32);
 
     tracker.writeComment("matrixMultiply()", sidl_ex);
-    ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, n, m, o, sidl_ex);
+    ArrayTest.ArrayOps_static.matrixMultiply(a, b, x, /*n, m, o,*/ sidl_ex);
 
     tracker.writeComment("checkMatrixMultiply()", sidl_ex);
-    init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, n, m, o, sidl_ex) == true);
+    init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(a, b, x, /*n, m, o,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check matrix multiplication", sidl_ex);
  }
@@ -1067,14 +1067,14 @@ tracker.setExpectations(-1, sidl_ex);
         ae[0.. #n, 0.. #m],
         be[0.. #m, 0.. #o],
         xe[0.. #n, 0.. #o],
-        n, m, o, sidl_ex);
+        /*n, m, o,*/ sidl_ex);
 
     tracker.writeComment("checkMatrixMultiply():slice", sidl_ex);
     init_part(); run_part("Check Matrix Multiply", ArrayTest.ArrayOps_static.checkMatrixMultiply(
         ae[0.. #n, 0.. #m],
         be[0.. #m, 0.. #o],
         xe[0.. #n, 0.. #o],
-        n, m, o, sidl_ex) == true);
+        /*n, m, o,*/ sidl_ex) == true);
 
     tracker.writeComment("End: Check matrix multiplication:slice", sidl_ex);
  }

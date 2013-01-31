@@ -27,3 +27,11 @@ and various Unix systems.
   *** underscores in names
 
 ** TODO braid sprays parsetab.py all over the place
+* HOWTO Information
+** How do you add a new backend?
+** What needs to be done to generate the IOR using the IR?
+** How do you add a new IR node type?
+*** Edit the braid/ir.def file to add the node type. Then you will need to braid/codegen.py. Add rules to the generic code generator. These are inherited, but you may need to customize other generators.
+** How do you change the SIDL grammer?
+*** Edit the braid/sidl.def file. This is a pseudo-BNF description of the grammar.
+** BURG generates Python from rules.

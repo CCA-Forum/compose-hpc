@@ -430,11 +430,42 @@ class GenericCodeGenerator(object):
             return '(%s)'%r
         else: return r
 
+    preced = {
+        ir.log_or:   14,
+        ir.log_and:  13,
+        ir.eq:        9,
+        ir.ne:        9,
+        ir.bit_or:   12,
+        ir.bit_and:  10,
+        ir.bit_xor:  11,
+        ir.lt:        8,
+        ir.gt:        8,
+        ir.ge:        8,
+        ir.le:        8,
+        ir.lshift:    7,
+        ir.rshift:    7,
+        ir.plus:      6,
+        ir.minus:     6,
+        ir.times:     5,
+        ir.divide:    5,
+        ir.modulo:    5,
+        ir.pow:      -1,
+        ir.log_not:   3,
+        ir.bit_not:   3
+        }
+
     def precedence(self, node):
         """
         \return an integer denoting the precedence of \c node.
         """
-        return -1
+        if not isinstance(node, tuple): 
+            return -1
+
+        if   node[0] == ir.prefix_expr:  return self.preced[node[1]]
+        elif node[0] == ir.infix_expr:   return self.preced[node[1]]
+        elif node[0] == ir.deref:        return 3
+        elif node[0] == ir.pointer_expr: return 3
+        else: return -1
 
     def generate_non_tuple(self, node, scope):
         """
@@ -838,6 +869,7 @@ class Fortran90CodeGenerator(GenericCodeGenerator):
         if typ[0] == ir.primitive_type:
             return self.type_map[typ[1]]
         import pdb; pdb.set_trace()
+
 
     @generator
     @matcher(globals(), debug=False)
@@ -1292,6 +1324,9 @@ class ClikeCodeGenerator(GenericCodeGenerator):
 
             elif (ir.var_decl, Type, Name):
                 return declare_var(gen(Type), gen(Name))
+
+            elif (ir.cast, Type, Expr):
+                return '(%s)(%s)'% (gen(Type), gen(Expr))
 
             elif (ir.call, (ir.deref, Name), Args):
                 return '(*%s)(%s)' % (gen(Name), gen_comma_sep(Args))

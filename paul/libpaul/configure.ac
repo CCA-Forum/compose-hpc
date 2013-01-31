@@ -9,7 +9,7 @@ AM_SILENT_RULES([yes])
 dnl To regenerate configure and .in files, configure with --enable-maintainer-mode
 AM_MAINTAINER_MODE
 AC_OUTPUT([Makefile src/Makefile tests/Makefile])
-AC_CONFIG_SRCDIR([src/Dynamic.h])
+AC_CONFIG_SRCDIR([src/paul/Dynamic.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -22,6 +22,14 @@ AC_PROG_CC
 AS_IF([test "x`which $CC`" = x],[AC_MSG_FAILURE([Please install gcc])])
 AC_PROG_LEX
 AS_IF([test "x`which $LEX`" = x],[AC_MSG_FAILURE([Please install flex])])
+
+# Some versions of Debian ship with a libtool that defaults to not
+# linking dependencies specified by .la libraries. It seems that
+# patching libtool is the only viable remedy for this.
+AC_PROG_SED
+sed -i "s/\(.*link_all_deplibs\s*,\s*\$1\s*)\)\s*=\s*no/\1=unknown/g" m4/libtool.m4
+AC_MSG_RESULT([patched libtool to force it to link against all deplibs])
+# the patching needs to happen before AC_PROG_LIBTOOL creates ./libtool
 AC_PROG_LIBTOOL
 
 # ROSE PATH

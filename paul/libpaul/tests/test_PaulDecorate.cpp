@@ -1,5 +1,5 @@
 
-#include "PaulDecorate.h"
+#include <paul/PaulDecorate.h>
 
 using namespace std;
 

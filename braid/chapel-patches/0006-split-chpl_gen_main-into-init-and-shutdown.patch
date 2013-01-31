@@ -1,5 +1,22 @@
+From a83f19cf8805455f6c08ed1acb57c5a096054711 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Wed, 25 Jul 2012 11:37:45 -0700
+Subject: [PATCH 06/11] split chpl_gen_main into init and shutdown
+
+---
+ compiler/AST/symbol.cpp                    |    2 +
+ compiler/include/symbol.h                  |    2 +
+ compiler/passes/buildDefaultFunctions.cpp  |   42 +++++++++++++++++++++++++++-
+ compiler/passes/codegen.cpp                |    9 +++++-
+ compiler/passes/insertLineNumbers.cpp      |    2 +
+ compiler/passes/parallel.cpp               |   34 +++++++++++++++++++++-
+ compiler/resolution/callDestructors.cpp    |    2 +
+ compiler/resolution/functionResolution.cpp |    8 +++--
+ runtime/src/chplinit.c                     |   16 ++++++++++
+ 9 files changed, 110 insertions(+), 7 deletions(-)
+
 diff --git a/compiler/AST/symbol.cpp b/compiler/AST/symbol.cpp
-index 3c7c236..d83fb58 100644
+index 91a0092..24b97b8 100644
 --- a/compiler/AST/symbol.cpp
 +++ b/compiler/AST/symbol.cpp
 @@ -26,6 +26,8 @@
@@ -25,10 +42,10 @@ index aa459ae..103d6c2 100644
  class SymExpr;
  class DefExpr;
 diff --git a/compiler/passes/buildDefaultFunctions.cpp b/compiler/passes/buildDefaultFunctions.cpp
-index 720cc13..bcc9896 100644
+index 78d4430..fd4e065 100644
 --- a/compiler/passes/buildDefaultFunctions.cpp
 +++ b/compiler/passes/buildDefaultFunctions.cpp
-@@ -298,6 +298,44 @@ static void build_chpl_entry_points(void) {
+@@ -299,6 +299,44 @@ static void build_chpl_entry_points(void) {
    chpl_user_main->cname = "chpl_user_main";
  
    //
@@ -73,7 +90,7 @@ index 720cc13..bcc9896 100644
    // chpl_gen_main is the entry point for the compiler-generated cdoe.
    // It accounts for the initialization and memory tracking of the
    // code
-@@ -309,9 +347,10 @@ static void build_chpl_entry_points(void) {
+@@ -310,9 +348,10 @@ static void build_chpl_entry_points(void) {
    chpl_gen_main->addFlag(FLAG_TEMP);
    mainModule->block->insertAtTail(new DefExpr(chpl_gen_main));
    normalize(chpl_gen_main);
@@ -85,7 +102,7 @@ index 720cc13..bcc9896 100644
      chpl_gen_main->insertAtHead(new CallExpr("main"));
    }
  
-@@ -328,6 +367,7 @@ static void build_chpl_entry_points(void) {
+@@ -329,6 +368,7 @@ static void build_chpl_entry_points(void) {
      chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount"));
      //chpl_gen_main->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
    }
@@ -94,7 +111,7 @@ index 720cc13..bcc9896 100644
  
  static void build_record_equality_function(ClassType* ct) {
 diff --git a/compiler/passes/codegen.cpp b/compiler/passes/codegen.cpp
-index 7d33bd5..e5d2791 100644
+index 10b11c5..032c28a 100644
 --- a/compiler/passes/codegen.cpp
 +++ b/compiler/passes/codegen.cpp
 @@ -107,7 +107,14 @@ static void legalizeName(Symbol* sym) {
@@ -114,10 +131,10 @@ index 7d33bd5..e5d2791 100644
    }
  }
 diff --git a/compiler/passes/insertLineNumbers.cpp b/compiler/passes/insertLineNumbers.cpp
-index a150913..4cff09f 100644
+index 27eb7c1..beb051e 100644
 --- a/compiler/passes/insertLineNumbers.cpp
 +++ b/compiler/passes/insertLineNumbers.cpp
-@@ -87,6 +87,8 @@ insertLineNumber(CallExpr* call) {
+@@ -88,6 +88,8 @@ insertLineNumber(CallExpr* call) {
    } else if (!strcmp(fn->name, "chpl__heapAllocateGlobals") ||
               !strcmp(fn->name, "chpl__initModuleGuards") ||
               !strcmp(fn->name, "chpl_gen_main") ||
@@ -127,7 +144,7 @@ index a150913..4cff09f 100644
                !fn->hasFlag(FLAG_TEMP) && !fn->hasFlag(FLAG_INLINE)) ||
               (developer && strcmp(fn->name, "halt"))) {
 diff --git a/compiler/passes/parallel.cpp b/compiler/passes/parallel.cpp
-index 9f4a750..a9bc8c8 100644
+index 8428f69..efe4a4c 100644
 --- a/compiler/passes/parallel.cpp
 +++ b/compiler/passes/parallel.cpp
 @@ -193,18 +193,44 @@ static void create_block_fn_wrapper(CallExpr* fcall, ClassType* ctype, VarSymbol
@@ -176,7 +193,7 @@ index 9f4a750..a9bc8c8 100644
      ArgSymbol* arg = new ArgSymbol(INTENT_BLANK, "_endCount", endCountType);
      fn->insertFormalAtTail(arg);
      VarSymbol* var = newTemp("_endCount", endCountType);
-@@ -838,7 +864,11 @@ parallel(void) {
+@@ -861,7 +887,11 @@ parallel(void) {
        FnSymbol* pfn = call->getFunction();
        if (!endCountMap.get(pfn))
          insertEndCount(pfn, endCountType, queue, endCountMap);
@@ -190,10 +207,10 @@ index 9f4a750..a9bc8c8 100644
    }
  
 diff --git a/compiler/resolution/callDestructors.cpp b/compiler/resolution/callDestructors.cpp
-index a8be176..a22a713 100644
+index e112d78..18d8f86 100644
 --- a/compiler/resolution/callDestructors.cpp
 +++ b/compiler/resolution/callDestructors.cpp
-@@ -341,6 +341,8 @@ static void insertGlobalAutoDestroyCalls() {
+@@ -347,6 +347,8 @@ static void insertGlobalAutoDestroyCalls() {
    if( ! fNoInternalModules ) {
      chpl_gen_main->defPoint->insertBefore(new DefExpr(fn));
      chpl_gen_main->insertBeforeReturnAfterLabel(new CallExpr(fn));
@@ -203,7 +220,7 @@ index a8be176..a22a713 100644
    forv_Vec(DefExpr, def, gDefExprs) {
      if (isModuleSymbol(def->parentSymbol))
 diff --git a/compiler/resolution/functionResolution.cpp b/compiler/resolution/functionResolution.cpp
-index 5c4dc62..2364089 100644
+index cc6ff9d..ce8f19d 100644
 --- a/compiler/resolution/functionResolution.cpp
 +++ b/compiler/resolution/functionResolution.cpp
 @@ -255,7 +255,7 @@ resolveUninsertedCall(Type* type, CallExpr* call) {
@@ -215,25 +232,25 @@ index 5c4dc62..2364089 100644
    resolveCall(call);
    call->remove();
    return call->isResolved();
-@@ -289,7 +289,7 @@ static void makeRefType(Type* type) {
- static void
+@@ -290,7 +290,7 @@ static void
  resolveAutoCopy(Type* type) {
+   SET_LINENO(type->symbol);
    Symbol* tmp = newTemp(type);
 -  chpl_gen_main->insertAtHead(new DefExpr(tmp));
 +  chpl_gen_init->insertAtHead(new DefExpr(tmp));
    CallExpr* call = new CallExpr("chpl__autoCopy", tmp);
    FnSymbol* fn = resolveUninsertedCall(type, call);
    resolveFns(fn);
-@@ -301,7 +301,7 @@ resolveAutoCopy(Type* type) {
- static void
+@@ -303,7 +303,7 @@ static void
  resolveAutoDestroy(Type* type) {
+   SET_LINENO(type->symbol);
    Symbol* tmp = newTemp(type);
 -  chpl_gen_main->insertAtHead(new DefExpr(tmp));
 +  chpl_gen_shutdown->insertAtHead(new DefExpr(tmp));
    CallExpr* call = new CallExpr("chpl__autoDestroy", tmp);
    FnSymbol* fn = resolveUninsertedCall(type, call);
    resolveFns(fn);
-@@ -5030,6 +5030,8 @@ resolve() {
+@@ -5037,6 +5037,8 @@ resolve() {
    resolveUses(mainModule);
  
    resolveFns(chpl_gen_main);
@@ -242,31 +259,8 @@ index 5c4dc62..2364089 100644
    USR_STOP();
  
    resolveExports();
-diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
-index 60a3e74..f832692 100644
---- a/runtime/include/chplrt.h
-+++ b/runtime/include/chplrt.h
-@@ -32,11 +32,17 @@ extern int chpl_threads_initialized;
- #define CHPL_ASSIGN_SVEC(x, y)                     \
-   memcpy(&x, &y, sizeof(x))
- 
-+#define _CHECK_NIL(x, lineno, filename)                                 \
-+  do {                                                                  \
-+    if (x == nil)                                                       \
-+      chpl_error("attempt to dereference nil", lineno, filename);	\
-+  } while (0)
-+
- #define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
-   do {									\
-     if (data == nil)							\
-       chpl_error("data vector is nil", lineno, filename);		\
--  (x)->fieldname = (type*) data;					\
-+    x = (type*) data;							\
-   } while (0)
- 
- #define _ARRAY_GET(x, i) (&((x)[i]))
 diff --git a/runtime/src/chplinit.c b/runtime/src/chplinit.c
-index f533f21..1b8d0ce 100644
+index f533f21..ee66c18 100644
 --- a/runtime/src/chplinit.c
 +++ b/runtime/src/chplinit.c
 @@ -139,6 +139,17 @@ void chpl_init(int argc, char* argv[]) {
@@ -287,7 +281,7 @@ index f533f21..1b8d0ce 100644
   * This acts as a replacement to be used in chpl_task_callMain() for
   * Chapel libraries. It is automatically called by
   * chpl_init_library().
-@@ -159,13 +170,27 @@ static void chpl_library_init(void) {
+@@ -159,6 +170,10 @@ static void chpl_library_init(void) {
    //
    CHPL_TASK_STD_MODULES_INITIALIZED();
  
@@ -298,54 +292,14 @@ index f533f21..1b8d0ce 100644
  }
  
  /**
-- * chpl_init_library() installs this as an atexit() handler.
-+ * chpl_init_library() installs this as an atexit() handler for locale 0.
+@@ -166,6 +181,7 @@ static void chpl_library_init(void) {
   */
--static void chpl_library_shutdown(void) {
--  chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
-+static void chpl_library_shutdown_locale_0(void) {
-+  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
+ static void chpl_library_shutdown(void) {
+   chpl_msg(2, "[locale = 0] Shutting down Chapel runtime.\n");
 +  chpl_gen_shutdown(&chpl_wide_endCount_global);
-+  chpl_exit_all(0);
-+}
-+
-+/**
-+ * chpl_init_library() installs this as an atexit() handler for
-+ * non-zero locales.
-+ */
-+static void chpl_library_shutdown_locale_n(void) {
-+  chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
    chpl_exit_all(0);
  }
  
-@@ -189,18 +214,20 @@ int chpl_init_library(int argc, char* argv[]) {
-   if (!chpl_init_library_called) {
-     chpl_init_library_called = true;
- 
--    chpl_init(argc, argv);      // establishes "barrier before main"
-+    // establishes "barrier before main"
-+    chpl_init(argc, argv);
- 
--    if (chpl_localeID != 0) {   // only locale #0 returns control to the
--                                // external call site
--      chpl_msg(2, " [locale = %d] Shutting down Chapel runtime.\n", chpl_localeID);
--      chpl_exit_all(0);         // all other locales can be stopped, we are done
--    } else {
--      atexit(&chpl_library_shutdown);
-+    if (chpl_localeID == 0) {
-+      // register master exit handler
-+      atexit(&chpl_library_shutdown_locale_0);
-+      // initialize Chapel runtime
-       chpl_task_callMain(chpl_library_init);
-+
-+    } else {
-+      // register other exit handlers
-+      atexit(&chpl_library_shutdown_locale_n);
-     }
-   }
- 
-   return chpl_localeID;
--}
--
-+}
-\ No newline at end of file
+-- 
+1.7.0.4
+

@@ -4734,10 +4734,27 @@ def simpleint_expr(prefix, e):
     if isinstance(e, tuple):
         if e[0] == var_ref: return prefix+e[1]
         if e[0] == simple_int_infix_expr:
-            return infix_expr, simpleint_expr(e[1]), simpleint_expr(e[2]) 
+            return Infix_expr(e[1], simpleint_expr(e[2]), simpleint_expr(e[3]))
         if e[0] == simple_int_prefix_expr:
             return prefix_expr, simpleint_expr(e[1])
         if e[0] == simple_int_fn_eval:
-            return call, e[1], map(simpleint_expr, e[2])
+            return Call(e[1], map(simpleint_expr, e[2]))
         else: import pdb; pdb.set_trace()
     return e
+def all_var_refs(e):
+    """
+    yield all var_refs in a Simpleint_Expr
+    """
+    if isinstance(e, tuple):
+        if e[0] == var_ref: yield e[1]
+        elif e[0] == simple_int_infix_expr:
+            for e2 in all_var_refs(e[2]): yield e2
+            for e3 in all_var_refs(e[3]): yield e3
+        elif e[0] == simple_int_prefix_expr:
+            for e1 in all_var_refs(e[1]): yield e1
+        elif e[0] == simple_int_fn_eval:
+            for e1 in e[2]:
+                for e2 in all_var_refs(e1): yield e2
+        else:
+            for e1 in e:
+                for e2 in all_var_refs(e1): yield e2

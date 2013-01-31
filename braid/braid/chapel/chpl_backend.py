@@ -63,7 +63,7 @@ def c_struct(symbol_table, s):
     FIXME: get rid of this function
     """
     def l((item, typ, name)):
-        if typ[0] == ir.pointer_type and typ[1][0] == ir.scoped_id:
+        if ir.is_pointer_type(typ) and ir.is_scoped_id(typ[1]):
             return item, babel.lower_ir(symbol_table, typ[1]), name
         return item, typ, name
     struct, name, items, doc = s
@@ -264,9 +264,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                         "structs and enums since we can't use the extern "+
                         'keyword for them.'))
                 pkg_h.gen(ir.Type_decl(struct_chpl_c))
+                pkg_h.new_header_def('typedef struct %s %s;'%(struct_chpl_c[1], struct_chpl_c[1]))
                 pkg_h.new_header_def('#else // CHPL_GEN_CODE')
                 #pkg_h.new_header_def(forward_decl(struct_chpl_c))
-                pkg_h.new_header_def('#define %s __%s'%(struct_chpl_c[1], struct_chpl_c[1]))
+                #pkg_h.new_header_def('#define %s __%s'%(struct_chpl_c[1], struct_chpl_c[1]))
                 pkg_h.new_header_def('#endif // [not] CHPL_GEN_CODE')
 
                 # record it for later, when the package is being finished
@@ -518,7 +519,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             compare two structs for structural equivalence (aka duck typing)
             '''
             def struct_item_identical(((i1, typ1, n1), (i2, typ2, n2))):
-                if typ1[0] == ir.struct and typ2[0] == ir.struct:
+                if ir.is_struct(typ1) and ir.is_struct(typ2):
                     return structs_identical(typ1, typ2)
                 return typ1 == typ2
             
@@ -542,9 +543,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         #map(lambda arg: conv.sidl_arg_to_ir(symbol_table, arg), ior_args)
 
-        chpl_args = babel.lower_ir(symbol_table, Args, lower_scoped_ids=False,
-                                        qualify_names=False, qualify_enums=True,
-                                        struct_suffix='')
+        chpl_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args), 
+                                   lower_scoped_ids=False,
+                                   qualify_names=False, qualify_enums=True,
+                                   struct_suffix='')
         chpl_type = babel.lower_ir(symbol_table, Type, lower_scoped_ids=False,
                                    qualify_names=False, qualify_enums=True)
         chpl_type = conv.ir_type_to_chpl(chpl_type)
@@ -604,7 +606,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 _, prefix, name, ext = typ
                 return ir.Typedef_type('.'.join(prefix+[name]))
             ##if name =='_ior__retval':print typ, name
-            #if typ[0] == ir.pointer_type and typ[1][0] == ir.struct:
+            #if ir.is_pointer_type(typ) and ir.is_struct(typ[1]):
             #    #if name == '_ior__retval': name = '_retval'
             #    #if name == '_retval': name = '_ior_retval'
             #    if typ[1][1][0] == sidl.scoped_id:
@@ -623,15 +625,17 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 or Type[0] in self.chpl_conv_types):
                 body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
             else:
+                #if ir.is_struct(chpl_type):
+                #    body.genh(ir.Var_decl(chpl_type, '_ior__retval'))
                 body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
-                # this needs to go ...
-                assigns_retval = False
-                for stmt in body._defs:
-                    if re.match(retval_assignment, stmt):
-                        assigns_retval = True
-                        break
-                if not assigns_retval:
-                    body.gen(ir.Copy('_retval', '_ior__retval'))
+                ## this needs to go ...
+                #assigns_retval = False
+                #for stmt in body._defs:
+                #    if re.match(retval_assignment, stmt):
+                #        assigns_retval = True
+                #        break
+                #if not assigns_retval:
+                #    body.gen(ir.Copy('_retval', '_ior__retval'))
 
             body.genh(ir.Comment(str(Type)))
             body.gen(ir.Stmt(ir.Return('_retval')))
@@ -1085,7 +1089,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 # lower array args
                 import pdb; pdb.set_trace()
                 return arg, attr, mode, ir.pt_void, name
-            elif mode == ir.in_ and typ[0] == ir.typedef_type and (
+            elif mode == ir.in_ and ir.is_typedef_type(typ) and (
                 # complex is always passed as a pointer since chpl 1.5
                 typ[1] == '_complex64' or
                 typ[1] == '_complex128'):
@@ -1093,7 +1097,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             else: return arg, attr, mode, typ, name
 
         def unscoped_args((arg, attr, mode, typ, name)):
-            if typ[0] == ir.enum:
+            if ir.is_enum(typ):
                 return (arg, attr, mode,
                         (ir.enum, unscope(ci.epv.symbol_table, typ[1]), typ[2], typ[3]),
                         name)

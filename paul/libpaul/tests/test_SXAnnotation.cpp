@@ -3,7 +3,7 @@
 
 #include "rose.h"
 
-#include "SXAnnotationValue.h"
+#include <paul/SXAnnotationValue.h>
 
 int main( int argc, char * argv[] )
 {

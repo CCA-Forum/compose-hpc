@@ -1,3 +1,15 @@
+From 0e1e0dbc893db93a6383d0155a60c6855a013592 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Tue, 6 Nov 2012 15:56:23 -0800
+Subject: [PATCH 08/11] remove field access from ref_borrow
+
+Conflicts:
+
+	compiler/AST/expr.cpp
+---
+ runtime/include/chplrt.h |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
 diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
 index 60a3e74..f832692 100644
 --- a/runtime/include/chplrt.h
@@ -21,3 +33,6 @@ index 60a3e74..f832692 100644
    } while (0)
  
  #define _ARRAY_GET(x, i) (&((x)[i]))
+-- 
+1.7.0.4
+

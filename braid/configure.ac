@@ -144,6 +144,13 @@ Please see the file $CHPL_ROOT/doc/README.multilocale for more details.
     [AC_MSG_NOTICE([Did not find Chapel compiler in PATH!])
      AC_SUBST([CHPL], [])])
 
+AC_ARG_ENABLE([chpl], 
+  AS_HELP_STRING([--disable-chpl], [disable CHAPEL backend (default: enabled)]),
+  [:], [enable_chpl=yes])
+AS_IF([test "x$enable_chpl" = xyes], [:],
+  [CHPL="";CHPL_ROOT="";CHPL_VERSION="";
+   AC_MSG_NOTICE([Chapel backend disabled per user request!])
+  ])
 AM_CONDITIONAL([BABEL_LANG_CHPL], [test -n "$CHPL"])
 
 ############################################################
@@ -196,7 +203,14 @@ Please see the README for a list of supported versions.])
       [AC_MSG_NOTICE([Did not find UPC compiler in PATH!])
        AC_SUBST([UPC], [])
       ])
-AM_CONDITIONAL([BABEL_LANG_UPC], [test -n "$UPC"])
+AC_ARG_ENABLE([upc], 
+  AS_HELP_STRING([--disable-upc], [disable UPC backend (default: enabled)]),
+  [:], [enable_upc=yes])
+AS_IF([test "x$enable_upc" = xyes], [:],
+  [UPC="";UPC_ROOT="";UPC_VERSION="";
+   AC_MSG_NOTICE([UPC backend disabled per user request!])
+  ])
+AM_CONDITIONAL([BABEL_LANG_UPC], [test "${UPC}" != ":" -a -n "${UPC}"])
 
 ############################################################
 #
@@ -251,13 +265,13 @@ AC_CONFIG_FILES([Makefile
   regression/interop/build-server.sh
   regression/interop/build-tracker.sh
   regression/interop/driver.sh
-], [chmod +x patch-chapel-compiler.sh])
+], [chmod -f +x patch-chapel-compiler.sh])
 
 AC_OUTPUT
 
 AC_MSG_RESULT([==============================================================])
 AC_MSG_RESULT([BRAID Configuration Summary                                   ])
-AC_MSG_RESULT([==============================================================])
+AC_MSG_RESULT([===========================================o===================])
 AS_IF([test -z "${SWIPL}"], 
       AC_MSG_RESULT([    SWI-Prolog ....... NO]),
       AC_MSG_RESULT([    SWI-Prolog ...... YES (${SWIPL_VERSION} in ${SWIPL})]))

@@ -8,7 +8,7 @@ case $machine in
                 ;;
   lemur.*)      AUTORECONF=/opt/local/bin/autoreconf ;;
   ingot*)       AUTORECONF=/usr/apps/babel/dev_tools/bin/autoreconf ;;
-  tux314)       AUTORECONF=/usr/bin/autoreconf ;;
+  tux314|tux316)       AUTORECONF=/usr/bin/autoreconf ;;
   tux*)         export PATH=/usr/casc/babel/apps/autotools_2009/bin:${PATH}
 	        AUTORECONF=/usr/casc/babel/apps/autotools_2009/bin/autoreconf
 	        ;;

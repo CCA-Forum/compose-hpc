@@ -175,7 +175,8 @@ def drop_rarray_ext_args(args):
     names = set()
     for (arg, attrs, mode, typ, name) in args:
         if typ[0] == sidl.rarray:
-            names.update(typ[3])
+            for n in ir.all_var_refs(typ[3]):
+                names.add(n)
 
     return filter(lambda a: a[4] not in names, args)
 

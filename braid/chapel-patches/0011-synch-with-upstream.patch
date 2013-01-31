@@ -1,11 +1,17 @@
-commit 131a7ce37eaeac1fc6964d2af424856d5f5bc676
-Author: Adrian Prantl <adrian@llnl.gov>
-Date:   Fri Nov 30 16:33:01 2012 -0800
+From 0546e4a66b53a4345a94815dc2293058bcf1dd27 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Tue, 29 Jan 2013 15:23:19 -0800
+Subject: [PATCH 11/11] synch with upstream
 
-    synch with upstream
+---
+ compiler/passes/codegen.cpp             |    9 +--------
+ compiler/resolution/callDestructors.cpp |    2 --
+ runtime/include/chplrt.h                |    2 +-
+ runtime/src/chplinit.c                  |    4 ++--
+ 4 files changed, 4 insertions(+), 13 deletions(-)
 
 diff --git a/compiler/passes/codegen.cpp b/compiler/passes/codegen.cpp
-index 579f014..5bde8cc 100644
+index 032c28a..c7b321c 100644
 --- a/compiler/passes/codegen.cpp
 +++ b/compiler/passes/codegen.cpp
 @@ -107,14 +107,7 @@ static void legalizeName(Symbol* sym) {
@@ -25,17 +31,18 @@ index 579f014..5bde8cc 100644
    }
  }
 diff --git a/compiler/resolution/callDestructors.cpp b/compiler/resolution/callDestructors.cpp
-index a22a713..b683f05 100644
+index 18d8f86..e112d78 100644
 --- a/compiler/resolution/callDestructors.cpp
 +++ b/compiler/resolution/callDestructors.cpp
-@@ -341,7 +341,6 @@ static void insertGlobalAutoDestroyCalls() {
+@@ -347,8 +347,6 @@ static void insertGlobalAutoDestroyCalls() {
    if( ! fNoInternalModules ) {
      chpl_gen_main->defPoint->insertBefore(new DefExpr(fn));
      chpl_gen_main->insertBeforeReturnAfterLabel(new CallExpr(fn));
 -    chpl_gen_shutdown->defPoint->insertBefore(new DefExpr(fn));
-     chpl_gen_shutdown->insertBeforeReturnAfterLabel(new CallExpr(fn));
+-    chpl_gen_shutdown->insertBeforeReturnAfterLabel(new CallExpr(fn));
    }
    forv_Vec(DefExpr, def, gDefExprs) {
+     if (isModuleSymbol(def->parentSymbol))
 diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
 index f832692..24cfaed 100644
 --- a/runtime/include/chplrt.h
@@ -69,3 +76,6 @@ index 1b8d0ce..af74c45 100644
 -}
 \ No newline at end of file
 +}
+-- 
+1.7.0.4
+

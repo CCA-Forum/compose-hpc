@@ -16,10 +16,7 @@ test_KVAnnotation_SOURCES = test_KVAnnotation.cpp
 test_PaulDecorate_SOURCES = test_PaulDecorate.cpp
 test_SXAnnotation_SOURCES = test_SXAnnotation.cpp
 
-example_traversal_LDADD = ../src/libpaul.la 
-test_KVAnnotation_LDADD = ../src/libpaul.la 
-test_PaulDecorate_LDADD = ../src/libpaul.la 
-test_SXAnnotation_LDADD = ../src/libpaul.la 
+LDADD = $(top_builddir)/src/libpaul.la $(ROSEDIR)/lib/librose.la
 
 EXTRA_DIST=Contracts.paulconf example.paulconf inputs
 
