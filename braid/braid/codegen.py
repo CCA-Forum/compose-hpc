@@ -1313,6 +1313,10 @@ class ClikeCodeGenerator(GenericCodeGenerator):
             elif (ir.if_, Condition, Body):
                 return new_scope('if (%s)'%gen(Condition), Body)
 
+            elif (ir.if_else, Condition, Then, Else):
+                new_scope('if (%s)'%gen(Condition), Then)
+                return new_scope('else', Else)
+
             elif (ir.arg, Attr, ir.in_, Type, Name):
                 return '%s %s'% (gen(Type), gen(Name))
 

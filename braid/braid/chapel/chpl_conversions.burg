@@ -1541,8 +1541,9 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
         scope.gen(ir.Copy(dest, src))
         return t, (dest, src, None)
 
-    scope.gen(ir.If(ir.Infix_expr(ir.ne, src, 'nil'),
-                    [ir.Copy(dest, access(src, 'ior'))]))
+    scope.gen(ir.If_else(ir.Infix_expr(ir.ne, src, 'nil'),
+                         [ir.Copy(dest, access(src, 'ior'))],
+                         [ir.Stmt(ir.Call('set_to_null', [dest]))]))
     #return t, (dest, src, None)
     return array_ior_type(t), (dest, src, None)
 

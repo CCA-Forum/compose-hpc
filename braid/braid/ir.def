@@ -42,12 +42,13 @@
 	  | type_decl(Type)
 	  ) ],
   Import = import(Id),
-  Stmt = (stmt(Do_while | While | break | Return | If | Goto | Expr) | Comment),
+  Stmt = (stmt(Do_while | While | break | Return | If | If_else | Goto | Expr) | Comment),
   Return = return(Expr),
   Goto = goto(Expr),
   Do_while = do_while(Body, Expr),
   While = while(Expr, Body),
   If = if(Expr, Body),
+  If_else = if_else(Expr, Body, Body),
   Body = [Stmt],
   Expr = ( Literal
 	 | new(Type, [Arg])

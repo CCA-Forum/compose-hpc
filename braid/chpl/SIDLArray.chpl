@@ -236,7 +236,17 @@
 	return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
       else return nil;							\
     }	      							        \
-  }
+									\
+  }									\
+									\
+  /** cast a generic array to a specific array */			\
+  proc cast_ior(in generic_array:opaque,				\
+		out ior: sidl_##C_TYPE##__array) {			\
+    ior = sidl_##C_TYPE##__array_cast(generic_array);			\
+  }									\
+									\
+
+
 
 SIDL_ARRAY(bool,     bool)
 SIDL_ARRAY(char,     string)
@@ -271,6 +281,14 @@ SIDL_ARRAY(interface, opaque)
 	 with the invariant that genarr.d_metadata == genarr */
       extern proc ior_ptr(ior): opaque;
       this.generic = ior_ptr(ior);
+    }
+
+    /**
+     * Invoke this after you initialize an Array through the generic interface
+     * cf. regressions/interop/arrays/runChapel/arraystest.chpl
+     */
+    proc init_from_generic() {
+      cast_ior(this.generic, this.ior);
     }
 
     /**
