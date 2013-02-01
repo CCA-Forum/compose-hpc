@@ -1,11 +1,12 @@
-From b0f8e61a6dcecf863bd4d0a0b966166420182ed9 Mon Sep 17 00:00:00 2001
+From e350536740e79b882a0393217ec4bd32053af0a6 Mon Sep 17 00:00:00 2001
 From: Adrian Prantl <adrian@llnl.gov>
-Date: Fri, 1 Feb 2013 15:19:35 -0800
+Date: Fri, 1 Feb 2013 15:31:04 -0800
 Subject: [PATCH 11/11] add chplinit header
 
 ---
  runtime/include/chplinit.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ runtime/src/Makefile.share |    1 +
+ 2 files changed, 8 insertions(+), 0 deletions(-)
  create mode 100644 runtime/include/chplinit.h
 
 diff --git a/runtime/include/chplinit.h b/runtime/include/chplinit.h
@@ -21,6 +22,18 @@ index 0000000..9dd535b
 +int chpl_init_library(int argc, char* argv[]);
 +
 +#endif
+diff --git a/runtime/src/Makefile.share b/runtime/src/Makefile.share
+index df383c5..d5d5854 100644
+--- a/runtime/src/Makefile.share
++++ b/runtime/src/Makefile.share
+@@ -11,6 +11,7 @@ COMMON_NOGEN_SRCS = \
+ 	chpl-comm.c \
+ 	chplcopygc.c \
+ 	chplexit.c \
++	chplinit.c \
+ 	chplio.c \
+ 	chplgmp.c \
+ 	chpl-mem.c \
 -- 
 1.7.0.4
 
