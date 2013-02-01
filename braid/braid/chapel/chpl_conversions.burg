@@ -1421,8 +1421,8 @@ string_ior_c <-- string_chpl_c : cost(0)
 
 string_chpl_c <-- string_ior_c : cost(1)
     dest, src, conv = a0
-    # Convert null pointer into empty string
-    conv.append(ir.Stmt(ir.If(src, [ir.Copy(src, '""')])))
+    conv.append(ir.Comment('Convert null pointer into empty string'))
+    conv.append(ir.Stmt(ir.If(ir.Infix_expr(ir.eq, src, 0), [ir.Copy(src, '""')])))
     conv.append(ir.Copy(dest, src))
     scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_string, dest, src, conv))
