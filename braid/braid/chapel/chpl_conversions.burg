@@ -249,11 +249,9 @@ def wrap_rarray(scope, a0, fulltype, dest):
     # TODO: Change the IOR in Babel to use the r-array calling
     # convention.  This will complicate the Python/Fortran/Java
     # backends but simplify the C/C++ ones.
-    scope.gen(ir.Copy('var '+lus,    ir.Call('computeLowerUpperAndStride',[local])))
+    scope.gen(ir.Copy('var (%s, %s, %s)'%(lower, upper, stride),
+                      ir.Call('computeLowerUpperAndStride',[local])))
     scope.gen(ir.Copy('var '+rank,   ir.Cast(ir.pt_int, access(dom,'rank'))))
-    scope.gen(ir.Copy('var '+lower,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [0]))))
-    scope.gen(ir.Copy('var '+upper,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [1]))))
-    scope.gen(ir.Copy('var '+stride, ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [2]))))
     scope.gen(ir.Copy(dest,
                       ir.Call('%s_borrow'%iortype[1],
                               [ir.Call(scalar_type+'_ptr', 

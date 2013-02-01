@@ -246,12 +246,9 @@ proc test_chapelIMatrix() {
   // make1DIMatrix()
   var chplArray: [0 .. #arraySize] int(32);
   var chplArray_rank = chplArray.domain.rank: int(32);
-  var chplArray_lus = computeLowerUpperAndStride(chplArray): int(32);
-  var chplArray_lower = chplArray_lus(0): int(32);
-  var chplArray_upper = chplArray_lus(1): int(32);
-  var chplArray_stride = chplArray_lus(2): int(32);
+  var (chplArray_lower, chplArray_upper, chplArray_stride) = computeLowerUpperAndStride(chplArray);
 
-  [(i) in [0..arraySize]] chplArray(i) = i;
+  [(i) in {0..arraySize}] chplArray(i) = i;
               
   var wrappedArray: sidl_int__array = sidl_int__array_borrow(
         int_ptr(chplArray(chplArray.domain.low)),
