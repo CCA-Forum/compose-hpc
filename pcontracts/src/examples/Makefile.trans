@@ -19,20 +19,31 @@ CE_OBJ=$(RT_DIR)/ContractsEnforcer.o
 LDFLAGS = $(FLAGS) $(LIBS)
 CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
+HWCC_EXE=helloworld
+HWCC2_EXE=helloworld-v2
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack
 UKCPP_EXE=UnlabeledKnapsack
 
-BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE)
+# WARNING:  helloword-v2 WILL fail to compile when instrumented with
+# routine contracts instrumenter.
+BINARIES=$(HWCC_EXE)  $(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) \
+	${HWCC2_EXE} 
 
 all:	$(BINARIES)
 
 .c.o:
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
+.cc.o:
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
+
 .cpp.o:
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
+
+$(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o $(CE_OBJ)
+	$(CXX) -o $(HWCC_EXE) $(LDFLAGS) $(HWCC_EXE).o $(CE_OBJ)
 
 $(LKC_EXE): $(LKC_EXE).c $(LKC_EXE).o $(CE_OBJ)
 	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o $(CE_OBJ)
@@ -46,7 +57,7 @@ $(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o $(CE_OBJ)
 $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o $(CE_OBJ)
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o $(CE_OBJ)
 
-check: checkKnapsack checkUK
+check: all checkKnapsack checkUK
 
 checkKnapsack: knapsack Knapsack
 	@echo "Checking C and C++ knapsack programs..."; \

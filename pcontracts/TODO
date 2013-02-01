@@ -1,17 +1,36 @@
 PROTOTYPE
 
-- Convert to ROSE visitor to:
-  -- Add atTraversal[Start|End] methods to VisitContractsInstrumenter.*pp
-  -- Finish refactoring ContractsProcessor, which may need a subclass
-     containing the instrumentFunctions(?) routine for the routine 
-     instrumenter.
-  -- Ensure pick up invariant annotations
+- Resolve issues with Visitor instrumentation example.
+
+- Should customize the makefile used to build instrumented codes
+  to account for the fact that helloworld-v2.cc WILL NOT COMPILE
+  when instrumented with RoutineContractInstrumenter since it
+  has INIT and FINAL embeddeed in a function and NOT in the
+  function comments.
+
+- Convert ROSE visitor to:
+  -- Implement node-level extractContractClause (ContractsProcessor)
+
+  -- Support invariant annotations on non-function declaration nodes.
+     o These are simply stored until needed.
+     o Need to ensure the 'first' flag is set properly when they are
+       actually needed.
+  
   -- Support INIT and FINAL within bodies as alternative to being associated
-     with function.
+     with function declaration.
+     o These MUST be instrumented BEFORE the node associated with the 
+       comment. 
 
 - Move runtime headers to include directory and adjust build accordingly.
 
+
 Refinements:
+- Add support for statement-level ASSERT
+  -- The instrumentation MUST be BEFORE the associated node based on how
+     ROSE picks up the comments.
+  -- This includes adding options to support ASSERT-only enforcement and
+     ASSERT with contract clause options.
+  -- Note these are not suited to adaptive enforcement options as written.
 - Support advanced (non-standard C) contract expressions
      (ie, those containing non-C operators supported in SIDL built-ins)
 - Test or eliminate support for contract tracing.
@@ -24,4 +43,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2012 November 28
+Last Updated:  2012 December 10

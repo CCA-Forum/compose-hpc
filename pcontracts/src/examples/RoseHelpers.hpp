@@ -3,7 +3,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 November 28
+ * Last Modified:  2012 December 10
  * \endinternal
  *
  *
@@ -43,6 +43,16 @@ attachTranslationComment(SgNode* node, std::string cmt);
  */
 std::string
 getBasicSignature(SgFunctionDeclaration* decl);
+
+
+/**
+ * Get the basic signature.  
+ *
+ * @param def  [in] The function definition.
+ * @return      A basic signature derived from the node's unparsed output.
+ */
+std::string
+getBasicSignature(SgFunctionDefinition* def);
 
 
 /**

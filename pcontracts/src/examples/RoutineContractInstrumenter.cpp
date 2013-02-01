@@ -3,7 +3,7 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 November 28
+ * Last Modified:  2012 December 10
  * \endinternal
  *
  * @file

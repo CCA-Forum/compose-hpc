@@ -107,6 +107,33 @@ getBasicSignature(
 
 
 string
+getBasicSignature(
+  /* in */ SgFunctionDefinition* def)
+{
+  string res;
+
+  if (def != NULL)
+  {
+    SgFunctionDeclaration* decl = def->get_declaration();
+    if (decl != NULL)
+    {
+      res = getBasicSignature(decl);
+    }
+    else
+    {
+      cerr<<"\nERROR:  getBasicSignature requires function declaration.\n";
+    }
+  }
+  else
+  {
+    cerr<<"\nERROR:  getBasicSignature requires function definition.\n";
+  }
+
+  return res;
+}  /* getBasicSignature */
+
+
+string
 getLanguageOptionName(
   /* in */ SgFile::outputLanguageOption_enum lang)
 {
