@@ -1,14 +1,14 @@
-From 17965b01c62ebb546ce8ca1e08ee9fa0f9c935bd Mon Sep 17 00:00:00 2001
+From c2d87b2cd76d3293aee23ebec3946aa41f2c4adf Mon Sep 17 00:00:00 2001
 From: Adrian Prantl <adrian@llnl.gov>
 Date: Fri, 30 Nov 2012 11:12:43 -0800
-Subject: [PATCH 10/11] fix wrong pointer in cmdline handling
+Subject: [PATCH 09/11] fix wrong pointer in cmdline handling
 
 ---
  compiler/main/arg.cpp |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/compiler/main/arg.cpp b/compiler/main/arg.cpp
-index 40d625a..f1ae85c 100644
+index 3e6851e..903bc50 100644
 --- a/compiler/main/arg.cpp
 +++ b/compiler/main/arg.cpp
 @@ -102,7 +102,7 @@ process_arg(ArgumentState *arg_state, int i, char ***argv, char* currentFlag) {

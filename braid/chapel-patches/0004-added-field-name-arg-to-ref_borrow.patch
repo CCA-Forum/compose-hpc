@@ -1,7 +1,7 @@
-From 782b33ce09cec27362030c0f3bd11b28fab37bd5 Mon Sep 17 00:00:00 2001
+From cce1f72c8f19d0d03cfbfb41756ea22c96e9606d Mon Sep 17 00:00:00 2001
 From: Adrian Prantl <adrian@llnl.gov>
 Date: Mon, 9 Jul 2012 10:09:51 -0700
-Subject: [PATCH 04/11]  added field name arg to ref_borrow
+Subject: [PATCH 04/11] added field name arg to ref_borrow
 
 ---
  examples/borrowed/borrowed_array.chpl |    2 +-

@@ -72,52 +72,50 @@ initSimple(s1: s.s_Simple)
   s1.d_float = 3.1:real(32);
   s1.d_int = 3;
   s1.d_long = 3;
-  s1.d_opaque = 0;
+  extern proc set_to_null(inout X);
+  set_to_null(s1.d_opaque);
   s1.d_enum = s.Color.blue;
 }
 
 proc
 initHard(h: s.s_Hard) {
+  //h.d_string = sidl.string_array.create1d(1);
+  //h.d_string = sidl_string__array__create1d(1);
+  //h.d_string[0] = "Three";
+  h.d_object = sidl.BaseClass_static.create(sidl_ex);
+  h.d_interface = h.d_object.as_sidl_BaseInterface();
+  h.d_array = sidl.double_array.create1d(3);
+  h.d_array(0) = 1.0;
+  h.d_array(1) = 2.0;
+  h.d_array(2) = 3.0;
+  h.d_objectArray = sidl.interface_array.create1d(3);
+  h.d_objectArray(0) = sidl.BaseClass.create(sidl_ex);
+  h.d_objectArray(1) = sidl.BaseClass.create(sidl_ex);
+  h.d_objectArray(2) = sidl.BaseClass.create(sidl_ex);
 }
-/*   ::sidl::array< ::std::string> str = ::sidl::array< ::std::string> ::create1d(1); */
-/*   str.set(0,"Three"); */
-/*   h.set_d_string(str); */
-/*   h.set_d_object(::sidl::BaseClass::_create()); */
-/*   h.set_d_interface(h.get_d_object()); */
-/*   ::sidl::array<double> da = ::sidl::array<double> ::create1d(3); */
-/*   da.set(0,1.0); */
-/*   da.set(1,2.0); */
-/*   da.set(2,3.0); */
-/*   h.set_d_array(da); */
-/*   ::sidl::array< ::sidl::BaseClass > oa =  */
-/*       ::sidl::array< ::sidl::BaseClass > :: create1d(3); */
-/*   oa.set(0, ::sidl::BaseClass::_create()); */
-/*   oa.set(1, ::sidl::BaseClass::_create()); */
-/*   oa.set(2, ::sidl::BaseClass::_create()); */
-/*   h.set_d_objectArray(oa); */
-/* } */
 
 
 proc
 initRarrays(r: s.s_Rarrays) {
+
+  var N=3:int(32);
+
+  var raw = sidl.double_array.create1d(N);
+  var fix = sidl.double_array.create1d(N);
+  r.d_int=N;
+  for i in 0..#N do {
+    raw(2)[i:int(32)]=(i+1):real(64);
+    fix(2)[i:int(32)]=((i+1)*5):real(64);
+  }
+  r.d_rarrayRaw = raw(1);
+  r.d_rarrayFix = fix(1);
 }
-/*   const int N=3; */
-/*   int i; */
-
-/*   r.d_rarrayRaw = new double[N]; */
-
-/*   r.d_int=N; */
-/*   for (i=0; i<N;i++){ */
-/*     r.d_rarrayRaw[i]=(double)(i+1); */
-/*     r.d_rarrayFix[i]=(double)((i+1)*5); */
-/*   } */
-/* } */
 
 proc
 initCombined(c: s.s_Combined)
 {
-/*   initSimple(c.get_d_simple()); */
-/*   initHard(c.get_d_hard()); */
+  initSimple(c.d_simple);
+  initHard(c.d_hard);
 }
 
 proc

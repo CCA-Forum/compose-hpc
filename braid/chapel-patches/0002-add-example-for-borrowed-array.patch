@@ -1,4 +1,4 @@
-From 935217d0e91642b9fd65d3c65ab68260f402875d Mon Sep 17 00:00:00 2001
+From 1373ef01ec7d08112cc60a5ab82cd4c350d98145 Mon Sep 17 00:00:00 2001
 From: Adrian Prantl <adrian@llnl.gov>
 Date: Mon, 9 Jul 2012 10:08:36 -0700
 Subject: [PATCH 02/11] add example for borrowed array

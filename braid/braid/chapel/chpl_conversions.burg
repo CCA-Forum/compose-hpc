@@ -252,6 +252,9 @@ def wrap_rarray(scope, a0, fulltype, dest):
     scope.gen(ir.Copy('var (%s, %s, %s)'%(lower, upper, stride),
                       ir.Call('computeLowerUpperAndStride',[local])))
     scope.gen(ir.Copy('var '+rank,   ir.Cast(ir.pt_int, access(dom,'rank'))))
+    scope.gen(ir.Copy('var '+lower,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [0]))))
+    scope.gen(ir.Copy('var '+upper,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [1]))))
+    scope.gen(ir.Copy('var '+stride, ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [2]))))
     scope.gen(ir.Copy(dest,
                       ir.Call('%s_borrow'%iortype[1],
                               [ir.Call(scalar_type+'_ptr', 
@@ -408,7 +411,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
 
     struct_ior_type_map={
         ir.pt_bool:     bool_ior_c,
-        ir.pt_char:     char_ior_c,
+        ir.pt_char:     char_item_ior_c,
         ir.pt_dcomplex: dcomplex_ior_c,
         ir.pt_double:   double_ior_c,
         ir.pt_float:    float_ior_c,
@@ -1350,6 +1353,17 @@ char_chpl_c <-- char_ior_c : cost(1)
     conv.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     conv.append(ir.Copy(dest, '(const char*)&chpl_char_lut[2*(unsigned char)%s]'%c_gen(src)))
+    c_scope.optional.add(str(c_gen(ir.Import('string'))))
+    c_scope.optional.add(char_lut)
+    scope.gen(ir.Copy(dest, src))
+    return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
+
+# char struct item -- needs copy
+char_chpl_c <-- char_item_ior_c : cost(1)
+    dest, src, conv = a0
+    conv.append(ir.Comment('in chapel, a char is a string of length 1'))
+    conv.append(ir.Copy(dest, 'strdup((const char*)&chpl_char_lut[2*(unsigned char)%s])'%c_gen(src)))
+    c_scope.optional.add(str(c_gen(ir.Import('string'))))
     c_scope.optional.add(char_lut)
     scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
@@ -1425,9 +1439,11 @@ string_ior_c <-- string_chpl_c : cost(0)
 string_chpl_c <-- string_ior_c : cost(1)
     dest, src, conv = a0
     conv.append(ir.Comment('Convert null pointer into empty string'))
-    conv.append(ir.Stmt(ir.If(ir.Infix_expr(ir.eq, src, 0), [ir.Copy(src, '""')])))
+    conv.append(ir.Stmt(ir.If(ir.Infix_expr(ir.eq, src, 0), 
+                              [ir.Copy(src, ir.Call('strdup', ['""']))])))
     conv.append(ir.Copy(dest, src))
     scope.gen(ir.Copy(dest, src))
+    c_scope.optional.add(str(c_gen(ir.Import('string'))))
     return ir.pt_string, (dest, src, (ir.pt_string, dest, src, conv))
 
 # INT

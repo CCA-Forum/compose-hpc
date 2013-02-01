@@ -140,10 +140,7 @@
    */											\
   proc borrow_##C_TYPE##_array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank: int(32);					\
-    var lus = computeLowerUpperAndStride(a);				\
-    var lower = lus(0): int(32);					\
-    var upper = lus(1): int(32);					\
-    var stride = lus(2): int(32);					\
+    var (lower, upper, stride) = computeLowerUpperAndStride(a);		\
     if (here.id != a.locale.id) {					\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id); \
     }									\

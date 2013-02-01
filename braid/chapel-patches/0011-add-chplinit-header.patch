@@ -1,0 +1,26 @@
+From b0f8e61a6dcecf863bd4d0a0b966166420182ed9 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Fri, 1 Feb 2013 15:19:35 -0800
+Subject: [PATCH 11/11] add chplinit header
+
+---
+ runtime/include/chplinit.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+ create mode 100644 runtime/include/chplinit.h
+
+diff --git a/runtime/include/chplinit.h b/runtime/include/chplinit.h
+new file mode 100644
+index 0000000..9dd535b
+--- /dev/null
++++ b/runtime/include/chplinit.h
+@@ -0,0 +1,7 @@
++#ifndef _CHPL_INIT_H_
++#define _CHPL_INIT_H_
++
++void chpl_init(int argc, char* argv[]);
++int chpl_init_library(int argc, char* argv[]);
++
++#endif
+-- 
+1.7.0.4
+
