@@ -142,7 +142,7 @@ export Args_Basic_passinoutchar_impl proc passinoutchar(inout c: string): bool {
   else if ( c == 'x' ) then c = 'X';
   else if ( c == 'y' ) then c = 'Y';
   else if ( c == 'z' ) then c = 'Z';
-       if ( c == 'A' ) then c = 'a';
+  else if ( c == 'A' ) then c = 'a';
   else if ( c == 'B' ) then c = 'b';
   else if ( c == 'C' ) then c = 'c';
   else if ( c == 'D' ) then c = 'd';
@@ -203,7 +203,7 @@ export Args_Basic_passeverywherechar_impl proc passeverywherechar(in c1: string,
   else if ( c3 == 'x' ) then c3 = 'X';
   else if ( c3 == 'y' ) then c3 = 'Y';
   else if ( c3 == 'z' ) then c3 = 'Z';
-       if ( c3 == 'A' ) then c3 = 'a';
+  else if ( c3 == 'A' ) then c3 = 'a';
   else if ( c3 == 'B' ) then c3 = 'b';
   else if ( c3 == 'C' ) then c3 = 'c';
   else if ( c3 == 'D' ) then c3 = 'd';
