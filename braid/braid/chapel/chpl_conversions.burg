@@ -93,10 +93,6 @@ def ir_type_to_chpl(typ, in_struct=False):
     try:
         return mapping[typ]
     except:
-        if ir.is_enum(typ): 
-            # the types need to be dissimilar, even if they have the same name
-            enum, name, items, comment = typ
-            return enum, name, items, 'chpl '+comment
         if ir.is_typedef_type(typ) and typ[1] == 'sidl_bool': 
             import pdb; pdb.set_trace()
             return ir.Typedef_type('chpl_bool')
@@ -131,6 +127,13 @@ def ir_type_to_chpl(typ, in_struct=False):
 
         if ir.is_rarray(typ):
             return typ if not in_struct else get_array_type(typ)[1]
+
+        #if typ == (ir.typedef_type, 'sidl_enum'):
+        #    return ir.pt_int
+        if ir.is_enum(typ): 
+            # the types need to be dissimilar, even if they have the same name
+            enum, name, items, comment = typ
+            return enum, name, items, 'chpl '+comment
 
         return typ
 
@@ -381,7 +384,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
         ir.pt_string:   string_ior_c,
         ir.void_ptr:    pointer_type_ior_c,
 
-        ir.enum:        enum_ior_c,
+         ir.enum:        enum_ior_c,
         'ext':          ext_ior_c,
         'array':        array_ior_c,
         ir.rarray:      rarray_ior_c
@@ -460,6 +463,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
     elif ir.is_rarray(typ):
         return type_map[ir.rarray], typ, user_data
 
+    #elif typ == (ir.typedef_type, 'sidl_enum'):
     elif ir.is_enum(typ):
         return type_map[ir.enum], hashable(typ), user_data
 
@@ -1400,12 +1404,13 @@ enum_ior_c <-- enum_chpl_c : cost(1)
     t, (dest, src, orig) = a0
     # No special treatment for enums, rely on chpl runtime to set it
     scope.gen(ir.Copy(dest, src))
-    return t, (dest, src, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
+    return t, (dest, src, (ir.pt_long, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
 
 enum_chpl_c <-- enum_ior_c : cost(1)
     t, (dest, src, orig) = a0
+    #scope.new_def('extern proc nop_cast(in val);')
     scope.gen(ir.Copy(dest, src))
-    return t, (dest, src, (t, dest, src, [ir.Copy(dest, src)]))
+    return t, (dest, src, (ir.pt_long, dest, src, [ir.Copy(dest, src)]))
 
 # STRING
 #------------------------------------------------------------------------

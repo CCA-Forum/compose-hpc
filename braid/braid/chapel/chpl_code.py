@@ -554,6 +554,8 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (sidl.scoped_id, Prefix, Name, Ext):
                 return '.'.join(Prefix+[Name])
 
+            elif (ir.typedef_type, 'sidl_enum'): return 'int(64)'
+
             else:
                 return super(ChapelCodeGenerator, self).generate(node, scope)
         return scope

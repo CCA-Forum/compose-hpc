@@ -38,6 +38,7 @@ def generate_ior(ci, with_ior_c, _braid_config):
     prefix = '_'.join(ci.epv.symbol_table.prefix)
     iorname = '_'.join([prefix, ci.epv.name])
     ci.ior.genh(ir.Import('stdint'))
+    ci.ior.new_header_def('#ifndef sidl_enum\n#define sidl_enum int64_t\n#endif')
     for _, ext in ci.co.extends + ci.co.implements:
         ci.ior.genh(ir.Import(qual_id(ext)+'_IOR'))
 

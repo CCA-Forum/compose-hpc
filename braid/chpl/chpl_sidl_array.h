@@ -16,6 +16,8 @@
 #include <sidl_BaseInterface_IOR.h>
 #include <sidl_interface_IOR.h>
 #include <stdlib.h>
+typedef sidl_enum sidl_long;
+
 
 struct sidl_string__array {
   struct sidl__array   d_metadata;
