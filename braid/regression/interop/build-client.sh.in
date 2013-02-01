@@ -186,6 +186,7 @@ echo 'echo "No chapel server implementation for $TESTCASE"; exit 1' >run${langua
 ########################################################################
 for libdir in `ls -1 -d ../lib*`; do
   server=`echo $libdir|sed 's/^...lib//g'`
+  extralib=
   case $server in
       F*)     extralib="-lgfortran" 
 	      ;;
@@ -195,8 +196,9 @@ for libdir in `ls -1 -d ../lib*`; do
               #
               # Trick the IOR into behaving as if created by a
               # static-only version of Babel:
-              sed -i -e 's/SIDL_STATIC_LIBRARY/TRUE \/*SIDL_STATIC_LIBRARY*\//g' *_Stub.c
-              extralib=
+              #sed -i -e 's/SIDL_STATIC_LIBRARY/TRUE \/*SIDL_STATIC_LIBRARY*\//g' *Stub.c *.cxx
+	      #extralib="-static"
+	      sed -i -e 's/\.lo/.o/g' GNUmakefile
 
 	      if [ $language = Chapel ]; then
 		  echo "Chapel -> Chapel is not yet supported"
@@ -204,14 +206,12 @@ for libdir in `ls -1 -d ../lib*`; do
 		  chmod u+x run${language}2${server}.sh
 		  continue
 	      fi
-
 	      ;;
 
-      *)      extralib= 
-	      ;;
+      *)      ;;
   esac
   case $language in
-      F*) extralib="-lgfortran" ;;
+      F*) extralib="-lgfortran $extralib" ;;
   esac
   echo "--compiling client [ $language ->\t$server\t] $TESTCASE"
   rm -f run${language}2${server}.sh
@@ -223,41 +223,23 @@ for libdir in `ls -1 -d ../lib*`; do
         EXTRA_LDFLAGS="$extralib" \
         TARGET="run${language}2${server}" ||exit 1 #>/dev/null     ||exit 1
 
-  if [ $server = Chapel ]; then
-      sed -i -e 's/TRUE ..SIDL_STATIC_LIBRARY../SIDL_STATIC_LIBRARY/g' *_Stub.c
-  fi
-
   # generate wrapper scripts
-  case "$server" in
-      Java)
-	  cat >run${language}2Java.sh <<EOF
-# To debug, run as ./run${language}2${server}.sh gdbtui
-exec env LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}:$libdir" \
-    CLASSPATH="../libJava:@BABEL_PREFIX@/lib/sidl-@BABEL_VERSION@.jar:@BABEL_PREFIX@/lib/sidlstub_@BABEL_VERSION@.jar:.:$libdir" \
-    SIDL_DLL_PATH="../libJava/libimpl.scl;@BABEL_PREFIX@/lib/libsidlstub_java.scl;@BABEL_PREFIX@/lib/libsidl.scl;../../../runtime/sidlx/libsidlx.scl;../../output/libC/libimpl.scl" \
-      \$1 ./run${language}2${server} 
-EOF
+  case "$client$server" in
+      *Java*)
+	  LD_LIBRARY_PATH="${libjvm_dir}:${libjava_dir}:$LD_LIBRARY_PATH"
+	  SIDL_DLL_PATH="@BABEL_PREFIX@/lib/libsidlstub_java.scl"
 	  ;;
-      Python)
-	  cat >run${language}2Python.sh <<EOF
-# To debug, run as ./run${language}2${server}.sh gdbtui
-exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-    PYTHONPATH="../libPython:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')"`:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@BABEL_PREFIX@',plat_specific=1) + ':' + get_python_lib(prefix='@BABEL_PREFIX@')"`$PYTHONPATH" \
-    SIDL_DLL_PATH="../libPython/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
-    \$1 ./run${language}2${server}
-EOF
-	  ;;
-
-      *)
-	  cat >run${language}2${server}.sh <<EOF
-# To debug, run as ./run${language}2${server}.sh gdbtui
-exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \
-    SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libimpl.scl;@BABEL_PREFIX@/lib/libsidlx.scl" \
-    \$1 ./run${language}2${server}
-EOF
-	  ;;
+      *)  ;;
   esac
-
+  cat >run${language}2${server}.sh <<EOF
+# To debug, run as ./run${language}2${server}.sh gdbtui
+exec env LD_LIBRARY_PATH="@BABEL_PREFIX@/lib:${LD_LIBRARY_PATH}" \\
+    PYTHONPATH="../libPython:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@prefix@',plat_specific=1) + ':' + get_python_lib(prefix='@prefix@')"`:`@PYTHON@ -c "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='@BABEL_PREFIX@',plat_specific=1) + ':' + get_python_lib(prefix='@BABEL_PREFIX@')"`$PYTHONPATH" \\
+    CLASSPATH="../libJava:@BABEL_PREFIX@/lib/sidl-@BABEL_VERSION@.jar:@BABEL_PREFIX@/lib/sidlstub_@BABEL_VERSION@.jar:.:$libdir" \\
+    SIDL_DLL_PATH="$libdir/libimpl.scl;../../output/libC/libimpl.scl;${SIDL_DLL_PATH};@BABEL_PREFIX@/lib/libsidlx.scl" \\
+    SLURM_NTASKS=1 \\
+    \$@ ./run${language}2${server}
+EOF
   chmod u+x run${language}2${server}.sh
 done
 mv client-temp client-stamp

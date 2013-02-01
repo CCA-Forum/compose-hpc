@@ -175,7 +175,8 @@ def drop_rarray_ext_args(args):
     names = set()
     for (arg, attrs, mode, typ, name) in args:
         if typ[0] == sidl.rarray:
-            names.update(typ[3])
+            for n in ir.all_var_refs(typ[3]):
+                names.add(n)
 
     return filter(lambda a: a[4] not in names, args)
 
@@ -260,11 +261,15 @@ def lower_ir(symbol_table, sidl_term, header=None,
         elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
 
         elif (sidl.enum, Name, Enumerators, DocComment):
+            # in the IOR enums are represented as int64
             if qualify_enums:
                 es = lower_ir(SymbolTable(symbol_table,
                                           symbol_table.prefix+[Name]),
-                              Enumerators, header, struct_suffix,
-                              lower_scoped_ids, qualify_names)
+                              Enumerators, header,
+                              struct_suffix, enum_suffix,
+                              lower_scoped_ids, 
+                              qualify_names, qualify_enums,
+                              raw_ior_arrays, wrap_rarrays)
                 return ir.Enum(qual_name(symbol_table, sidl_term[1])+enum_suffix, es, DocComment)
             else:
                 return ir.Enum(sidl_term[1], low(Enumerators), DocComment)
@@ -343,7 +348,12 @@ def lower_ir(symbol_table, sidl_term, header=None,
 
 
 def get_type_name((fn_decl, Attrs, Type, Name, Args, DocComment)):
-    return ir.Pointer_type((fn_decl, Attrs, Type, Name, Args, DocComment)), Name
+    def ior_enums((arg, Attrs, Mode, Type, Name)):
+        if ir.is_enum(Type):
+            return arg, Attrs, Mode, ir.Typedef_type('sidl_enum'), Name
+        return (arg, Attrs, Mode, Type, Name)
+
+    return ir.Pointer_type((fn_decl, Attrs, Type, Name, map(ior_enums, Args), DocComment)), Name
 
 
 def is_fixed_rarray(rarray):

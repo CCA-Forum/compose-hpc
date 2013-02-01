@@ -42,12 +42,13 @@
 	  | type_decl(Type)
 	  ) ],
   Import = import(Id),
-  Stmt = (stmt(Do_while | While | break | Return | If | Goto | Expr) | Comment),
+  Stmt = (stmt(Do_while | While | break | Return | If | If_else | Goto | Expr) | Comment),
   Return = return(Expr),
   Goto = goto(Expr),
   Do_while = do_while(Body, Expr),
   While = while(Expr, Body),
   If = if(Expr, Body),
+  If_else = if_else(Expr, Body, Body),
   Body = [Stmt],
   Expr = ( Literal
 	 | new(Type, [Arg])
@@ -216,3 +217,22 @@
 %            return Call(e[1], map(simpleint_expr, e[2]))
 %        else: import pdb; pdb.set_trace()
 %    return e
+%
+%def all_var_refs(e):
+%    """
+%    yield all var_refs in a Simpleint_Expr
+%    """
+%    if isinstance(e, tuple):
+%        if e[0] == var_ref: yield e[1]
+%        elif e[0] == simple_int_infix_expr:
+%            for e2 in all_var_refs(e[2]): yield e2
+%            for e3 in all_var_refs(e[3]): yield e3
+%        elif e[0] == simple_int_prefix_expr:
+%            for e1 in all_var_refs(e[1]): yield e1
+%        elif e[0] == simple_int_fn_eval:
+%            for e1 in e[2]:
+%                for e2 in all_var_refs(e1): yield e2
+%        else:
+%            for e1 in e:
+%                for e2 in all_var_refs(e1): yield e2
+%

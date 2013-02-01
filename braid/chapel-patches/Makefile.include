@@ -1,16 +1,20 @@
 # TO BE INCLUDED BY THE TOPLEVEL Makefile.am         -*- makefile-automake -*-
+# --------------------------------------
+# CURRENTLY BASED UPON CHAPEL SVN r20966
+# --------------------------------------
+#
 # Generate this list with
 # ls -1 chapel-patches/*.patch
-# Generate patches with cd $CHPLDIR; git format-patch -o chapel-patches
+# Generate patches with cd $CHPLDIR; git format-patch -o chapel-patches $LAST_SVN_GIT_ID
 EXTRA_DIST += \
-chapel-patches/0001-add-support-for-reference-copying-borrowing-from-dat.patch \
-chapel-patches/0002-add-example-for-borrowed-array.patch		       \
-chapel-patches/0003-add-support-for-configurable-field-name-during-assig.patch \
-chapel-patches/0004-added-field-name-arg-to-ref_borrow.patch		       \
-chapel-patches/0005-add-library-init-function.patch			       \
-chapel-patches/0006-split-chpl_gen_main-into-init-and-shutdown.patch	       \
-chapel-patches/0007-implement-dual-atext-handlers-for-locale-0-and-other.patch \
-chapel-patches/0008-remove-field-access-from-ref_borrow.patch		       \
-chapel-patches/0009-add-endCount-argument-to-_waitEndCount-call.patch	       \
-chapel-patches/0010-fix-wrong-pointer-in-cmdline-handling.patch		       \
-chapel-patches/0011-synch-with-upstream.patch
+chapel-patches/0001-add-support-for-reference-copying-borrowing-from-dat.patch 	\
+chapel-patches/0002-add-example-for-borrowed-array.patch		       	\
+chapel-patches/0003-add-support-for-configurable-field-name-during-assig.patch 	\
+chapel-patches/0004-added-field-name-arg-to-ref_borrow.patch		       	\
+chapel-patches/0005-add-library-init-function.patch			       	\
+chapel-patches/0006-split-chpl_gen_main-into-init-and-shutdown.patch	       	\
+chapel-patches/0007-remove-field-access-from-ref_borrow.patch		       	\
+chapel-patches/0008-add-endCount-argument-to-_waitEndCount-call.patch	       	\
+chapel-patches/0009-fix-wrong-pointer-in-cmdline-handling.patch		       	\
+chapel-patches/0010-synch-with-upstream.patch				       	\
+chapel-patches/0011-add-chplinit-header.patch

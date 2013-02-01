@@ -1,0 +1,25 @@
+From 8e6ed285000bf629fa9f51c7f03eaf030b02806b Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Tue, 29 Jan 2013 15:23:19 -0800
+Subject: [PATCH 10/11] synch with upstream
+
+---
+ runtime/include/sys_basic.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/runtime/include/sys_basic.h b/runtime/include/sys_basic.h
+index 6d63362..8c9e299 100644
+--- a/runtime/include/sys_basic.h
++++ b/runtime/include/sys_basic.h
+@@ -120,7 +120,7 @@ static inline int chpl_macro_int_EFORMAT(void) { return EFORMAT; }
+ #define PTR_DIFFBYTES(end_ptr,start_ptr) (((unsigned char*)end_ptr) - ((unsigned char*)start_ptr))
+ 
+ // Array borrowing
+-#define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
++#define _REF_BORROW(x, type, data, lineno, filename)			\
+   do {									\
+     if (data == nil)							\
+       chpl_error("data vector is nil", lineno, filename);		\
+-- 
+1.7.0.4
+

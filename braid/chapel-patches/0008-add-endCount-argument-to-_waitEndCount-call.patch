@@ -1,0 +1,26 @@
+From 5042e58ced5609a512d8c115a5afa8d93f999e3c Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Wed, 7 Nov 2012 11:03:42 -0800
+Subject: [PATCH 08/11] add endCount argument to _waitEndCount call
+
+---
+ compiler/passes/buildDefaultFunctions.cpp |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/compiler/passes/buildDefaultFunctions.cpp b/compiler/passes/buildDefaultFunctions.cpp
+index 3aa606b..d81cfdb 100644
+--- a/compiler/passes/buildDefaultFunctions.cpp
++++ b/compiler/passes/buildDefaultFunctions.cpp
+@@ -326,8 +326,7 @@ static void build_chpl_entry_points(void) {
+     chpl_gen_main->insertAtHead(new CallExpr(PRIM_SET_END_COUNT, endCount));
+     chpl_gen_main->insertAtHead(new CallExpr(PRIM_MOVE, endCount, new CallExpr("_endCountAlloc")));
+     chpl_gen_main->insertAtHead(new DefExpr(endCount));
+-    chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount"));
+-    //chpl_gen_main->insertBeforeReturn(new CallExpr("_endCountFree", endCount));
++    chpl_gen_main->insertBeforeReturn(new CallExpr("_waitEndCount", endCount));
+   }
+ }
+ 
+-- 
+1.7.0.4
+

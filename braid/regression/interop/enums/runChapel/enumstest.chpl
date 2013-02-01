@@ -125,7 +125,8 @@ proc test_EnumsNumber() {
   init_part(); run_part(" passeverywhere", 
       obj.passeverywhere(enums.number.notZero, outVar, inoutVar, sidl_ex) == enums.number.notOne &&
   	  outVar == enums.number.negOne && inoutVar == enums.number.zero );
-  
+  writeln(outVar); writeln(enums.number.negOne);
+
   tracker.writeComment("End: test_EnumsNumber", sidl_ex);
   magicNumber = clearstack(magicNumber);
 }

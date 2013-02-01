@@ -93,10 +93,6 @@ def ir_type_to_chpl(typ, in_struct=False):
     try:
         return mapping[typ]
     except:
-        if ir.is_enum(typ): 
-            # the types need to be dissimilar, even if they have the same name
-            enum, name, items, comment = typ
-            return enum, name, items, 'chpl '+comment
         if ir.is_typedef_type(typ) and typ[1] == 'sidl_bool': 
             import pdb; pdb.set_trace()
             return ir.Typedef_type('chpl_bool')
@@ -131,6 +127,13 @@ def ir_type_to_chpl(typ, in_struct=False):
 
         if ir.is_rarray(typ):
             return typ if not in_struct else get_array_type(typ)[1]
+
+        #if typ == (ir.typedef_type, 'sidl_enum'):
+        #    return ir.pt_int
+        if ir.is_enum(typ): 
+            # the types need to be dissimilar, even if they have the same name
+            enum, name, items, comment = typ
+            return enum, name, items, 'chpl '+comment
 
         return typ
 
@@ -246,7 +249,8 @@ def wrap_rarray(scope, a0, fulltype, dest):
     # TODO: Change the IOR in Babel to use the r-array calling
     # convention.  This will complicate the Python/Fortran/Java
     # backends but simplify the C/C++ ones.
-    scope.gen(ir.Copy('var '+lus,    ir.Call('computeLowerUpperAndStride',[local])))
+    scope.gen(ir.Copy('var (%s, %s, %s)'%(lower, upper, stride),
+                      ir.Call('computeLowerUpperAndStride',[local])))
     scope.gen(ir.Copy('var '+rank,   ir.Cast(ir.pt_int, access(dom,'rank'))))
     scope.gen(ir.Copy('var '+lower,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [0]))))
     scope.gen(ir.Copy('var '+upper,  ir.Cast(ir.pt_int, ir.Call('%s_lus'%prefix, [1]))))
@@ -381,7 +385,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
         ir.pt_string:   string_ior_c,
         ir.void_ptr:    pointer_type_ior_c,
 
-        ir.enum:        enum_ior_c,
+         ir.enum:        enum_ior_c,
         'ext':          ext_ior_c,
         'array':        array_ior_c,
         ir.rarray:      rarray_ior_c
@@ -407,7 +411,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
 
     struct_ior_type_map={
         ir.pt_bool:     bool_ior_c,
-        ir.pt_char:     char_ior_c,
+        ir.pt_char:     char_item_ior_c,
         ir.pt_dcomplex: dcomplex_ior_c,
         ir.pt_double:   double_ior_c,
         ir.pt_float:    float_ior_c,
@@ -460,6 +464,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
     elif ir.is_rarray(typ):
         return type_map[ir.rarray], typ, user_data
 
+    #elif typ == (ir.typedef_type, 'sidl_enum'):
     elif ir.is_enum(typ):
         return type_map[ir.enum], hashable(typ), user_data
 
@@ -546,7 +551,7 @@ def pass_structs_as_pointers(pre, post, args):
             if ir.is_get_struct_item(e):
                 get, t, n, i = e
                 if n == name: 
-                    print get, t, ir.Deref(n), i 
+                    #print get, t, ir.Deref(n), i 
                     return get, t, ir.Deref(n), i 
                 return get, t, rec(n), i
             elif ir.is_cast(e) or ir.is_sign_extend(e):
@@ -769,9 +774,9 @@ stmt <-- ior_call_assign(rvalue_ior_c, lvalue_chpl_c)    :cost(1)
     else:
         ftype = ir.pt_void
 
+    cstub_allargs = allargs
     # Because of how Chapel generates C code we cannot return structs.
     # Convert them to an additional out argument here.
-    cstub_allargs = allargs
     if ir.is_struct(ftype):
         cstub_allargs = allargs+[(ir.out, (ftype, ('_retval', '_ior__retval', [])))]
         cstub_type = ir.pt_void
@@ -920,7 +925,6 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
             impl_params.append(deref_to_addr(outargs[i], ir.out, 1))
             i += 1
         else:
-            #impl_args.append(arg)
             if (arg[1][1] == outargs[i][1][0] or 
                 (arg[1][1][0] == ir.deref and 
                  arg[1][1][1] == outargs[i][1][0])):
@@ -928,9 +932,20 @@ stmt <-- chpl_call_assign(rvalue_chpl_chpl, lvalue_ior_c) :cost(1)
                 mode = ir.inout
             else:
                 mode = ir.in_
+
+            # complex is always passed as a pointer since chpl 1.5
+            if mode == ir.in_ and ir.is_typedef_type(arg[0]) and (
+                # complex is always passed as a pointer since chpl 1.5
+                arg[0][1] == '_complex64' or
+                arg[0][1] == '_complex128'):
+                p = ir.Pointer_type(arg[0])
+                #mode = ir.inout
+                arg = p, (arg[1][0], p, arg[1][2])
+                impl_params.append((ir.pointer_expr, deref_to_addr(arg, mode, 0)))
+
+            else: 
+                impl_params.append(deref_to_addr(arg, mode, 0))
             impl_decl_args.append(ir.Arg([], mode, arg[0], arg[1][0]))
-            impl_params.append(deref_to_addr(arg, mode, 0))
-            
 
     join = lambda a, b: a+b
     pre_call =  reduce(join, map(c_convs,  inargs), [])
@@ -1338,6 +1353,17 @@ char_chpl_c <-- char_ior_c : cost(1)
     conv.append(ir.Comment('in chapel, a char is a string of length 1'))
     # we can't allocate a new string, this would leak memory
     conv.append(ir.Copy(dest, '(const char*)&chpl_char_lut[2*(unsigned char)%s]'%c_gen(src)))
+    c_scope.optional.add(str(c_gen(ir.Import('string'))))
+    c_scope.optional.add(char_lut)
+    scope.gen(ir.Copy(dest, src))
+    return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
+
+# char struct item -- needs copy
+char_chpl_c <-- char_item_ior_c : cost(1)
+    dest, src, conv = a0
+    conv.append(ir.Comment('in chapel, a char is a string of length 1'))
+    conv.append(ir.Copy(dest, 'strdup((const char*)&chpl_char_lut[2*(unsigned char)%s])'%c_gen(src)))
+    c_scope.optional.add(str(c_gen(ir.Import('string'))))
     c_scope.optional.add(char_lut)
     scope.gen(ir.Copy(dest, src))
     return ir.pt_string, (dest, src, (ir.pt_char, dest, src, conv))
@@ -1390,12 +1416,13 @@ enum_ior_c <-- enum_chpl_c : cost(1)
     t, (dest, src, orig) = a0
     # No special treatment for enums, rely on chpl runtime to set it
     scope.gen(ir.Copy(dest, src))
-    return t, (dest, src, (t, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
+    return t, (dest, src, (ir.pt_long, dest, src, [ir.Copy(dest, ir.Sign_extend(64, src))]))
 
 enum_chpl_c <-- enum_ior_c : cost(1)
     t, (dest, src, orig) = a0
+    #scope.new_def('extern proc nop_cast(in val);')
     scope.gen(ir.Copy(dest, src))
-    return t, (dest, src, (t, dest, src, [ir.Copy(dest, src)]))
+    return t, (dest, src, (ir.pt_long, dest, src, [ir.Copy(dest, src)]))
 
 # STRING
 #------------------------------------------------------------------------
@@ -1411,10 +1438,12 @@ string_ior_c <-- string_chpl_c : cost(0)
 
 string_chpl_c <-- string_ior_c : cost(1)
     dest, src, conv = a0
-    # Convert null pointer into empty string
-    conv.append(ir.Stmt(ir.If(src, [ir.Copy(src, '""')])))
+    conv.append(ir.Comment('Convert null pointer into empty string'))
+    conv.append(ir.Stmt(ir.If(ir.Infix_expr(ir.eq, src, 0), 
+                              [ir.Copy(src, ir.Call('strdup', ['""']))])))
     conv.append(ir.Copy(dest, src))
     scope.gen(ir.Copy(dest, src))
+    c_scope.optional.add(str(c_gen(ir.Import('string'))))
     return ir.pt_string, (dest, src, (ir.pt_string, dest, src, conv))
 
 # INT
@@ -1531,7 +1560,9 @@ array_ior_chpl <-- array_chpl_chpl: cost(1)
         scope.gen(ir.Copy(dest, src))
         return t, (dest, src, None)
 
-    scope.gen(ir.Copy(dest, access(src, 'ior')))
+    scope.gen(ir.If_else(ir.Infix_expr(ir.ne, src, 'nil'),
+                         [ir.Copy(dest, access(src, 'ior'))],
+                         [ir.Stmt(ir.Call('set_to_null', [dest]))]))
     #return t, (dest, src, None)
     return array_ior_type(t), (dest, src, None)
 

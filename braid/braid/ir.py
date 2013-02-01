@@ -34,12 +34,13 @@
 # 	  | type_decl(Type)
 # 	  ) ],
 #   Import = import(Id),
-#   Stmt = (stmt(Do_while | While | break | Return | If | Goto | Expr) | Comment),
+#   Stmt = (stmt(Do_while | While | break | Return | If | If_else | Goto | Expr) | Comment),
 #   Return = return(Expr),
 #   Goto = goto(Expr),
 #   Do_while = do_while(Body, Expr),
 #   While = while(Expr, Body),
 #   If = if(Expr, Body),
+#   If_else = if_else(Expr, Body, Body),
 #   Body = [Stmt],
 #   Expr = ( Literal
 # 	 | new(Type, [Arg])
@@ -169,6 +170,7 @@ goto = 'goto'
 gt = 'gt'
 hooks = 'hooks'
 if_ = 'if'
+if_else = 'if_else'
 import_ = 'import'
 in_ = 'in'
 infix_expr = 'infix_expr'
@@ -488,6 +490,102 @@ def Goto(*args):
     return tuple(['goto']+list(args))
 
 # skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Cast|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
+def If_else(*args):
+    """
+    Construct a "if_else" node. Valid arguments are 
+    (\c Expr(), \c Body(), \c Body())
+    \return (\c "If_else", \c Expr(), \c Body(), \c Body())
+    """
+    f = If_else
+    if len(args) <> 3:
+        print "**GRAMMAR ERROR: expected 3 arguments for a", f.__name__
+        print "Most likely you want to enter \"up<enter>l<enter>\" now to see what happened."
+        raise Exception("Grammar Error")
+    if isinstance(args[0], tuple) and args[0][0] == str:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == float:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == double:
+        pass
+    elif isinstance(args[0], PythonTypes.IntType):
+        pass
+    elif args[0] == pure:
+        pass
+    elif args[0] == result:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == complex:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == bool:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == new:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == var_decl_init:
+        pass
+    elif isinstance(args[0], PythonTypes.StringType):
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == pointer_expr:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == deref:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == get_struct_item:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == call:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == cast:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_struct_item:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == assignment:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == set_arg:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == infix_expr:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == prefix_expr:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == sign_extend:
+        pass
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[0] = %s"%repr(args[0]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[1], list) or isinstance(args[1], tuple):
+        for a in args[1]:
+            if isinstance(a, tuple) and a[0] == stmt:
+                pass
+            elif isinstance(a, tuple) and a[0] == comment:
+                pass
+            else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
+                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                raise Exception("Grammar Error")
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[1] = %s"%repr(args[1]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    if isinstance(args[2], list) or isinstance(args[2], tuple):
+        for a in args[2]:
+            if isinstance(a, tuple) and a[0] == stmt:
+                pass
+            elif isinstance(a, tuple) and a[0] == comment:
+                pass
+            else:
+                print "\n","*"*72, "\n** GRAMMAR ERROR in argument a = %s"%repr(a),"\n", "*"*72
+                print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+                print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+                raise Exception("Grammar Error")
+    else:
+        print "\n","*"*72, "\n** GRAMMAR ERROR in argument args[2] = %s"%repr(args[2]),"\n", "*"*72
+        print f.__name__+"():\n    \"\"\"%s\"\"\"\n" %f.__doc__.replace("\\n","\n").replace("\return","Returns").replace("\\c ","")
+        print "\n  Most likely you now want to enter \"up<enter>l<enter>\"\n into the debugger to see what happened.\n"
+        raise Exception("Grammar Error")
+    return tuple(['if_else']+list(args))
+
 def If(*args):
     """
     Construct a "if" node. Valid arguments are 
@@ -1425,6 +1523,7 @@ def Stmt(*args):
     |Break()
     |\c Return()
     |\c If()
+    |\c If_else()
     |\c Goto()
     |\c Expr())
     \return (\c "Stmt", \c Do_while()
@@ -1432,6 +1531,7 @@ def Stmt(*args):
     |Break()
     |\c Return()
     |\c If()
+    |\c If_else()
     |\c Goto()
     |\c Expr())
     """
@@ -1449,6 +1549,8 @@ def Stmt(*args):
     elif isinstance(args[0], tuple) and args[0][0] == return_:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == if_:
+        pass
+    elif isinstance(args[0], tuple) and args[0][0] == if_else:
         pass
     elif isinstance(args[0], tuple) and args[0][0] == goto:
         pass
@@ -3005,6 +3107,42 @@ def goto_expr(arg):
 
 
 # skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Cast|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
+def if_else_expr(arg):
+    """
+    Accessor function.
+    \return the "expr" member of a "if_else" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'if_else':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
+def if_else_body(arg):
+    """
+    Accessor function.
+    \return the "body" member of a "if_else" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'if_else':
+        raise Exception("Grammar Error")
+    else: return arg[2]
+
+
+def if_else_body(arg):
+    """
+    Accessor function.
+    \return the "body" member of a "if_else" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'if_else':
+        raise Exception("Grammar Error")
+    else: return arg[3]
+
+
 def if_expr(arg):
     """
     Accessor function.
@@ -3693,6 +3831,18 @@ def stmt_if_(arg):
     else: return arg[1]
 
 
+def stmt_if_else(arg):
+    """
+    Accessor function.
+    \return the "if_else" member of a "stmt" node.
+    """
+    if not isinstance(arg, tuple):
+        raise Exception("Grammar Error")
+    elif arg[0] <> 'stmt':
+        raise Exception("Grammar Error")
+    else: return arg[1]
+
+
 def stmt_goto(arg):
     """
     Accessor function.
@@ -4266,6 +4416,15 @@ def is_goto(arg):
     return arg[0] == 'goto'
 
 # skipping \c Expr= (\c Literal|\c New|\c Var_decl|\c VarRefExpr|\c Cast|\c Set_struct_item|\c Assignment|\c Set_arg|\c Infix_expr|\c Prefix_expr|\c Sign_extend)
+def is_if_else(arg):
+    """
+    instanceof-like function.
+    \return \c True if the argument is a "if_else" node.
+    """
+    if not isinstance(arg, tuple):
+        return False
+    return arg[0] == 'if_else'
+
 def is_if(arg):
     """
     instanceof-like function.
@@ -4741,3 +4900,20 @@ def simpleint_expr(prefix, e):
             return Call(e[1], map(simpleint_expr, e[2]))
         else: import pdb; pdb.set_trace()
     return e
+def all_var_refs(e):
+    """
+    yield all var_refs in a Simpleint_Expr
+    """
+    if isinstance(e, tuple):
+        if e[0] == var_ref: yield e[1]
+        elif e[0] == simple_int_infix_expr:
+            for e2 in all_var_refs(e[2]): yield e2
+            for e3 in all_var_refs(e[3]): yield e3
+        elif e[0] == simple_int_prefix_expr:
+            for e1 in all_var_refs(e[1]): yield e1
+        elif e[0] == simple_int_fn_eval:
+            for e1 in e[2]:
+                for e2 in all_var_refs(e1): yield e2
+        else:
+            for e1 in e:
+                for e2 in all_var_refs(e1): yield e2

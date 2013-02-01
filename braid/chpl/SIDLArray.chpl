@@ -140,10 +140,7 @@
    */											\
   proc borrow_##C_TYPE##_array(inout a: [?dom_a]CHAPEL_TYPE, in firstElement: opaque) {	\
     var rank = dom_a.rank: int(32);					\
-    var lus = computeLowerUpperAndStride(a);				\
-    var lower = lus(0): int(32);					\
-    var upper = lus(1): int(32);					\
-    var stride = lus(2): int(32);					\
+    var (lower, upper, stride) = computeLowerUpperAndStride(a);		\
     if (here.id != a.locale.id) {					\
       halt( "Non-local access! here = " + here.id + ", a.locale = " + a.locale.id); \
     }									\
@@ -236,7 +233,17 @@
 	return new Array(CHAPEL_TYPE, sidl_##C_TYPE##__array, ior);	\
       else return nil;							\
     }	      							        \
-  }
+									\
+  }									\
+									\
+  /** cast a generic array to a specific array */			\
+  proc cast_ior(in generic_array:opaque,				\
+		out ior: sidl_##C_TYPE##__array) {			\
+    ior = sidl_##C_TYPE##__array_cast(generic_array);			\
+  }									\
+									\
+
+
 
 SIDL_ARRAY(bool,     bool)
 SIDL_ARRAY(char,     string)
@@ -271,6 +278,14 @@ SIDL_ARRAY(interface, opaque)
 	 with the invariant that genarr.d_metadata == genarr */
       extern proc ior_ptr(ior): opaque;
       this.generic = ior_ptr(ior);
+    }
+
+    /**
+     * Invoke this after you initialize an Array through the generic interface
+     * cf. regressions/interop/arrays/runChapel/arraystest.chpl
+     */
+    proc init_from_generic() {
+      cast_ior(this.generic, this.ior);
     }
 
     /**
