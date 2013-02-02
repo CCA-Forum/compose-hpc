@@ -181,7 +181,7 @@ upc/sidl_BaseClass_Stub.upc: $(nobase_python_PYTHON)
 	@$(MKDIR_P) upc
 	$(AM_V_GEN)
 	@echo "generating UPC bindings for the SIDL runtime"
-	@cd upc && sh ../braid/braid -c upc $(SIDL_PATH)/sidl.sidl
+	@cd upc && $(BRAID) -c upc $(SIDL_PATH)/sidl.sidl
 
 # Rules to build the UPC stubs for the SIDL runtime
 $(UPC_SIDLSTUB_SRCS): upc/sidl_BaseClass_Stub.upc
