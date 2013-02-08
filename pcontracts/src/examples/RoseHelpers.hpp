@@ -3,7 +3,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 December 10
+ * Last Modified:  2012 February 7
  * \endinternal
  *
  *
@@ -104,11 +104,12 @@ isInputFile(SgProject* project, std::string filename);
  * Prints the specified comment followed by the node type, line, and file
  * information of the associated node.
  *
- * @param[in] node  The associated AST node.
- * @param[in] cmt   The comment to be printed.
+ * @param[in] node     The associated AST node.
+ * @param[in] cmt      The comment to be printed.
+ * @param[in] addFile  Include the file name in the message.
  */
 void
-printLineComment(SgNode* node, std::string cmt);
+printLineComment(SgNode* node, std::string cmt, bool addFile);
 
 /**
  * Strip and compress white space.  Strip leading and trailing white space

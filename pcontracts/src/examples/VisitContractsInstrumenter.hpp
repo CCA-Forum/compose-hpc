@@ -37,10 +37,11 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
     /**
      * Constructor.
      */
-    VisitContractsInstrumenter() 
+    VisitContractsInstrumenter(Sg_File_Info* fileInfo) 
     { 
       d_processor = ContractsProcessor(); 
       d_num       = 0;
+      d_fileInfo = fileInfo;
     };
 
     /**
@@ -63,6 +64,13 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
 
     /** The number of contract-related statements added. */
     int  d_num;
+
+    /**
+     * Information on the file currently being processed.  This is
+     * useful for eliminating processing of some front end AST nodes
+     * (e.g., ROSE's numeric_traits.h).
+     */
+    Sg_File_Info* d_fileInfo;
 
 }; /* VisitContractsInstrumenter */
 

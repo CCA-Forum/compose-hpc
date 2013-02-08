@@ -35,7 +35,7 @@ UKCPP_EXE=UnlabeledKnapsack
 CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
 RCI_EXE=RoutineContractInstrumenter
-#VCI_EXE=VisitContractInstrumenter
+#VCI_EXE=VisitContractsInstrumenter
 
 BASE_ROSE_SOURCES = \
 	RoseHelpers.cpp
@@ -233,7 +233,11 @@ checkRoseTrans: $(EXE)
 	echo "\n...Successfully processed $$ok of $$n files.\n"; \
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
-	  cp -f Makefile.trans $$OUTDIR/Makefile; \
+          if [ "$(EXE)" = "$(RCI_EXE)" ]; then \
+	    cp -f Makefile.rtrans $$OUTDIR/Makefile; \
+          else \
+	    cp -f Makefile.trans $$OUTDIR/Makefile; \
+          fi; \
 	  echo "Copying header files to $$OUTDIR"; \
 	  cp -f *ack*.h* $$OUTDIR; \
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
