@@ -136,7 +136,8 @@ AS_IF([test -n "$CHPL" -a -x "$CHPL"],
            AC_MSG_NOTICE([
 ========================================================================
 The environment variable CHPL_COMM was not set, defaulting to "none".
-Please see the file $CHPL_ROOT/doc/README.multilocale for more details.
+Please see the file $CHPL_ROOT/doc/release/README.multilocale 
+for more details.
 ========================================================================
 ])
 	  ])

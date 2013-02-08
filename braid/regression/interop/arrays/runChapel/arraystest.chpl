@@ -683,7 +683,7 @@ tracker.setExpectations(-1, sidl_ex);
     init_part(); run_part("create1d", objarray.is_not_nil());
     init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(objarray, sidl_ex) == 0);
     var obj = ArrayTest.ArrayOps_static.create(sidl_ex);
-    [i in {0..#TEST_SIZE}] objarray.set(i:int(32), generic_ptr(obj.as_ArrayTest_ArrayOps()));
+    [i in {0..#TEST_SIZE by 2}] objarray.set(i:int(32), generic_ptr(obj.as_ArrayTest_ArrayOps()));
     init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(objarray, sidl_ex) == ((TEST_SIZE+1)/2));
     // IMPLEMENT ME!
 //    var sliced: sidl.Array(opaque, sidl_interface_array);
@@ -699,7 +699,7 @@ tracker.setExpectations(-1, sidl_ex);
 //    init_part(); run_part("create1d", ArrayTest.ArrayOps_static.checkObject(sliced, sidl_ex) == 0);
 
     init_part(); run_part("createObjectNegOne", ArrayTest.ArrayOps_static.createObject(-1, sidl_ex).is_nil());
-    init_part(); run_part("checkObjectNull", ArrayTest.ArrayOps_static.checkObject(nil, sidl_ex) != 0);
+    init_part(); run_part("checkObjectNull", ArrayTest.ArrayOps_static.checkObject(nil, sidl_ex) == 0);
     magicNumber = clearstack(magicNumber);
   }
 
@@ -870,6 +870,7 @@ tracker.setExpectations(-1, sidl_ex);
     var garrayout: opaque;
     var iarray = new sidl.Array(int(32), sidl_int__array, nil);
     var garrayret = ArrayTest.ArrayOps_static.passGeneric(garray, iarray.generic, garrayout, sidl_ex);
+    iarray.init_from_generic();
     var garrayret_meta = sidl.int_array.cast(garrayret);    
     init_part(); run_part("Generic returned array not NULL", is_not_null(garrayret));
     init_part(); run_part("Generic returned array correct dimension",

@@ -1,0 +1,35 @@
+From cad15210af2ccfe8af5c4f29dcc02a2f7ffe0000 Mon Sep 17 00:00:00 2001
+From: Adrian Prantl <adrian@llnl.gov>
+Date: Tue, 6 Nov 2012 15:56:23 -0800
+Subject: [PATCH 07/11] remove field access from ref_borrow
+
+Conflicts:
+
+	compiler/AST/expr.cpp
+---
+ runtime/include/sys_basic.h |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/runtime/include/sys_basic.h b/runtime/include/sys_basic.h
+index 0c56ab5..6d63362 100644
+--- a/runtime/include/sys_basic.h
++++ b/runtime/include/sys_basic.h
+@@ -119,6 +119,15 @@ static inline int chpl_macro_int_EFORMAT(void) { return EFORMAT; }
+ 
+ #define PTR_DIFFBYTES(end_ptr,start_ptr) (((unsigned char*)end_ptr) - ((unsigned char*)start_ptr))
+ 
++// Array borrowing
++#define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
++  do {									\
++    if (data == nil)							\
++      chpl_error("data vector is nil", lineno, filename);		\
++    x = (type*) data;							\
++  } while (0)
++
++
+ static inline c_int is_c_nil(void* x) { return x==NULL; }
+ 
+ // Define LLONG_MAX, ULLONG_MAX if it doesn't exist (should be in limits.h)
+-- 
+1.7.0.4
+

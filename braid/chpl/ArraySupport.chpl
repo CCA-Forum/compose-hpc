@@ -117,16 +117,18 @@ proc checkArraysAreEqual(in srcArray: [], inout destArray: []) {
 proc computeLowerUpperAndStride(in srcArray: [?srcDom]) {
 
   param arrayRank = srcArray.rank;
-  var result: [0..2][1..arrayRank] int(64);
+  var lower: [1..arrayRank]int(32);
+  var upper: [1..arrayRank]int(32);
+  var stride: [1..arrayRank]int(32);
   var arrayOrderMode = getArrayOrderMode(srcArray);
 
   for i in {1..arrayRank} {
     var r = srcDom.dim(i);
-    result[0][i] = r.low;
-    result[1][i] = r.high;
+    lower[i] = r.low:int(32);
+    upper[i] = r.high:int(32);
+    // rely on the blk value from the array to provide the strides
+    stride[i] = srcArray._value.blk[i]:int(32);
   }
-  // rely on the blk value from the array to provide the strides
-  result[2] = srcArray._value.blk;
   
-  return result;
+  return (lower, upper, stride);
 }

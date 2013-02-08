@@ -13858,13 +13858,15 @@ else
            { $as_echo "$as_me:${as_lineno-$LINENO}:
 ========================================================================
 The environment variable CHPL_COMM was not set, defaulting to \"none\".
-Please see the file $CHPL_ROOT/doc/README.multilocale for more details.
+Please see the file $CHPL_ROOT/doc/release/README.multilocale
+for more details.
 ========================================================================
 " >&5
 $as_echo "$as_me:
 ========================================================================
 The environment variable CHPL_COMM was not set, defaulting to \"none\".
-Please see the file $CHPL_ROOT/doc/README.multilocale for more details.
+Please see the file $CHPL_ROOT/doc/release/README.multilocale
+for more details.
 ========================================================================
 " >&6;}
 

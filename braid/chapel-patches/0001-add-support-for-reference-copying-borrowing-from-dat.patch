@@ -1,76 +1,38 @@
-From 5e3c3b61a43608d6fffa594617e16ea840dff79e Mon Sep 17 00:00:00 2001
+From 46589fb8b4a9a8337e68474823423e6915277277 Mon Sep 17 00:00:00 2001
 From: Adrian Prantl <adrian@llnl.gov>
 Date: Mon, 9 Jul 2012 10:07:46 -0700
 Subject: [PATCH 01/11] add support for reference copying/borrowing from data classes
 
 ---
- compiler/AST/expr.cpp        |    7 +++++++
- compiler/AST/primitive.cpp   |    1 +
+ compiler/AST/primitive.cpp   |    2 ++
  compiler/include/primitive.h |    1 +
- runtime/include/chplrt.h     |    7 ++++++-
- 4 files changed, 15 insertions(+), 1 deletions(-)
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/compiler/AST/expr.cpp b/compiler/AST/expr.cpp
-index 97d3d63..8af359c 100644
---- a/compiler/AST/expr.cpp
-+++ b/compiler/AST/expr.cpp
-@@ -2683,6 +2683,13 @@ GenRet CallExpr::codegen() {
-       codegenAssign(dst, alloced);
-       break;
-     }
-+    case PRIM_REF_BORROW:
-+    {
-+      gen(outfile, "_REF_BORROW(%A, %A, %A, %A, %A)", get(1),
-+          getDataClassType(get(1)->typeInfo()->symbol),
-+          get(2), get(3), get(4));
-+      break;  
-+    }
-     case PRIM_GPU_ALLOC:
-     {
-       if (get(1)->typeInfo()->symbol->hasFlag(FLAG_WIDE_CLASS)) {
 diff --git a/compiler/AST/primitive.cpp b/compiler/AST/primitive.cpp
-index 019f911..e35ffa5 100644
+index 259bd20..5d6d069 100644
 --- a/compiler/AST/primitive.cpp
 +++ b/compiler/AST/primitive.cpp
-@@ -469,6 +469,7 @@ initPrimitive() {
-   prim_def(PRIM_CAPTURE_FN, "capture fn", returnInfoVoid);
-   prim_def(PRIM_CREATE_FN_TYPE, "create fn type", returnInfoVoid);
+@@ -474,6 +474,8 @@ initPrimitive() {
+   prim_def(PRIM_CHPL_COMM_GET_STRD, "chpl_comm_get_strd", returnInfoVoid, true, true);
+   prim_def(PRIM_CHPL_COMM_PUT_STRD, "chpl_comm_put_strd", returnInfoVoid, true, true);
  
 +  prim_def(PRIM_REF_BORROW, "ref_borrow", returnInfoVoid, true, true);
++
    prim_def(PRIM_ARRAY_ALLOC, "array_alloc", returnInfoVoid, true, true);
    prim_def(PRIM_ARRAY_FREE, "array_free", returnInfoVoid, true, true);
    prim_def(PRIM_ARRAY_FREE_ELTS, "array_free_elts", returnInfoVoid, true);
 diff --git a/compiler/include/primitive.h b/compiler/include/primitive.h
-index 9621d4c..3270bd6 100644
+index f89d339..58edea6 100644
 --- a/compiler/include/primitive.h
 +++ b/compiler/include/primitive.h
-@@ -125,6 +125,7 @@ enum PrimitiveTag {
+@@ -117,6 +117,7 @@ enum PrimitiveTag {
+   PRIM_CHPL_COMM_GET_STRD,   // Direct calls to the Chapel comm layer for strided comm
+   PRIM_CHPL_COMM_PUT_STRD,   //  may eventually add others (e.g., non-blocking)
+ 
++  PRIM_REF_BORROW,
+   PRIM_ARRAY_ALLOC,
    PRIM_ARRAY_FREE,
    PRIM_ARRAY_FREE_ELTS,
-   PRIM_ARRAY_ALLOC,
-+  PRIM_REF_BORROW,
- 
-   PRIM_GPU_GET_ARRAY,
-   PRIM_GPU_GET_VALUE,
-diff --git a/runtime/include/chplrt.h b/runtime/include/chplrt.h
-index fa7b604..60a3e74 100644
---- a/runtime/include/chplrt.h
-+++ b/runtime/include/chplrt.h
-@@ -32,8 +32,13 @@ extern int chpl_threads_initialized;
- #define CHPL_ASSIGN_SVEC(x, y)                     \
-   memcpy(&x, &y, sizeof(x))
- 
-+#define _REF_BORROW(x, type, fieldname,data, lineno, filename)		\
-+  do {									\
-+    if (data == nil)							\
-+      chpl_error("data vector is nil", lineno, filename);		\
-+  (x)->fieldname = (type*) data;					\
-+  } while (0)
- 
--// MPF - believe no longer used
- #define _ARRAY_GET(x, i) (&((x)[i]))
- #define _ARRAY_GET_VALUE(x, i) ((x)[i])
- #define _ARRAY_SET(x, i, v) ((x)[i] = v)
 -- 
 1.7.0.4
 

@@ -313,7 +313,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
                     # new file for the toplevel package
                     self.pkg_chpl_stub = ChapelFile(qname, relative_indent=0)
-                    self.pkg_chpl_stub.gen(ir.Import('sidl'))
+                    if Name <> 'sidl':
+                        self.pkg_chpl_stub.gen(ir.Import('sidl'))
                     self.pkg_chpl_stub.gen((ir.stmt, "extern proc generic_ptr(a:sidl__array):opaque"))
                     self.pkg_chpl_stub.gen((ir.stmt, "extern proc ptr_generic(a:opaque):sidl__array"))
 
@@ -501,10 +502,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         \param symbol_table  the symbol table of the SIDL file
         \param ci            a ClassInfo object
 
+        Note: this comment is a little outdated. Code generation is
+        now handled by burg.
+
         The code generation proceeds in two big steps, one is here and
         creates a Chapel stub in Chapel that does as much of the
         argument -> IOR conversion as possible, but we also generate a
-        secon stub in C. It might be possible to move the bulk of
+        second stub in C. It might be possible to move the bulk of
         argument conversions into small C functions or macros for each
         type, but at least the virtual call can only be implemented in
         C (or in a macro).
@@ -536,7 +540,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         #                          lower_scoped_ids=False)
 
         cdecl_type = babel.lower_ir(symbol_table, Type)
-        
+
         #cdecl_self = babel.lower_ir(symbol_table, ci.co.get_qualified_data())
         cdecl_args = babel.lower_ir(symbol_table, babel.drop_rarray_ext_args(Args))
         #chpl_stub_args = babel.epv_args(Attrs, cdecl_args, symbol_table, ci.epv.name)
