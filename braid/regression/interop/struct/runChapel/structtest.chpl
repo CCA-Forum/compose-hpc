@@ -82,16 +82,18 @@ initHard(h: s.s_Hard) {
   //h.d_string = sidl.string_array.create1d(1);
   //h.d_string = sidl_string__array__create1d(1);
   //h.d_string[0] = "Three";
+  var sidl_ex: sidl.BaseInterface;
   h.d_object = sidl.BaseClass_static.create(sidl_ex);
-  h.d_interface = h.d_object.as_sidl_BaseInterface();
-  h.d_array = sidl.double_array.create1d(3);
-  h.d_array(0) = 1.0;
-  h.d_array(1) = 2.0;
-  h.d_array(2) = 3.0;
-  h.d_objectArray = sidl.interface_array.create1d(3);
-  h.d_objectArray(0) = sidl.BaseClass.create(sidl_ex);
-  h.d_objectArray(1) = sidl.BaseClass.create(sidl_ex);
-  h.d_objectArray(2) = sidl.BaseClass.create(sidl_ex);
+  h.d_interface.wrap(h.d_object.as_sidl_BaseInterface(), sidl_ex);
+  // Arrays in structs doesn't work yet
+  //  h.d_array = sidl.double_array.create1d(3);
+  //  h.d_array(0) = 1.0;
+  // h.d_array(1) = 2.0;
+  // h.d_array(2) = 3.0;
+  // h.d_objectArray = sidl.interface_array.create1d(3);
+  // h.d_objectArray(0) = sidl.BaseClass.create(sidl_ex);
+  // h.d_objectArray(1) = sidl.BaseClass.create(sidl_ex);
+  // h.d_objectArray(2) = sidl.BaseClass.create(sidl_ex);
 }
 
 
