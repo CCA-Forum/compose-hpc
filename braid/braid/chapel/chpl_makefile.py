@@ -4,7 +4,7 @@
 #
 # BRAID Chapel Makefile generator
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

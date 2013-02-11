@@ -70,7 +70,7 @@ module sidl {
    * MACRO(!) API, which is possible because Chapel is eventually being
    * compiled down to C.
    *
-   * Please report bugs to <adrian@llnl.gov>.
+   * Please report bugs to <components@llnl.gov>.
    *
    * \authors <pre>
    *

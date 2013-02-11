@@ -8,7 +8,7 @@
 #
 # Copyright (c) 2012 Lawrence Livermore National Security, LLC.
 # Produced at the Lawrence Livermore National Laboratory
-# Written by Adrian Prantl <adrian@llnl.gov>.
+# Written by Adrian Prantl <components@llnl.gov>.
 # 
 #
 # LLNL-CODE-473891.

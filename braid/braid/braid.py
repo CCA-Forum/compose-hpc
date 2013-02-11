@@ -4,7 +4,7 @@
 #
 # Command line handling for the BRAID tool
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

@@ -3,7 +3,7 @@
 ## @package ir
 # Convenience definitions for intermediate representation (IR) nodes.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

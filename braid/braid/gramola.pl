@@ -91,7 +91,7 @@ main(_) :-
 %    format('    """~n'),
     
 main(_) :-
-    format(user_error, 'Internal error. Please complain to <adrian@llnl.gov>.~n', []).
+    format(user_error, 'Internal error. Please complain to <components@llnl.gov>.~n', []).
 
 % all reserved words in the Python language
 python_reserved_word(A) :-

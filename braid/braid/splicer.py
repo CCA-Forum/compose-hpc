@@ -3,7 +3,7 @@
 ## @package splicer
 # Support functions for handling Babel Splicer blocks
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

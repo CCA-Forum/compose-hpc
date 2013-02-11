@@ -9,7 +9,7 @@
 /**
  * This is a scanner for SIDL files. For performance reasons it is
  * written in C and 100% replaces the Python scanner in parser.py .
- * Please report bugs to <adrian@llnl.gov>.
+ * Please report bugs to <components@llnl.gov>.
  *
  * \authors <pre>
  *

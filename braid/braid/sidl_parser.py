@@ -23,7 +23,7 @@
 # and generate the s-expressions directly.
 # http://people.csail.mit.edu/rivest/Sexp.txt
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

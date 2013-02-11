@@ -4,7 +4,7 @@
 #
 # Symbol table creation and symbol resolving for SIDL ASTs.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

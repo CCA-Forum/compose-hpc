@@ -5,7 +5,7 @@
 # Some often use list-manipulation functions and type-checking
 # decorators.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

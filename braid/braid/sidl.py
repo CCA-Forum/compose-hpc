@@ -4,7 +4,7 @@
 # Grammar for the SIDL intermediate representation (IR).
 # This is NOT a grammar for SIDL, the language.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

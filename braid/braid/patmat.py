@@ -71,7 +71,7 @@
 # One idea is to replace match() with an operator syntax like
 # <code>a ~ b</code>.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

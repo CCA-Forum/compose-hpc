@@ -14,7 +14,7 @@
 #
 # but is at this point not nearly as sophisticated.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # Command line argument handling
     cmdline = argparse.ArgumentParser(
         description='A code generator generator',
-        epilog='Please report bugs to <adrian@llnl.gov>.')
+        epilog='Please report bugs to <components@llnl.gov>.')
 
     cmdline.add_argument('spec', metavar='<spec.burg>', nargs='?', type=file,
                          help='generator spec file to use as input')

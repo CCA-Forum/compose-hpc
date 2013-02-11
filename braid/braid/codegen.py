@@ -32,7 +32,7 @@
 # would automatically be generated from the grammar and invokes
 # functions named after each node's id.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #

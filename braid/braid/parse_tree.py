@@ -7,7 +7,7 @@
 # It returns a python tuple.
 # The expression may be closed with an optional '.'.
 #
-# Please report bugs to <adrian@llnl.gov>.
+# Please report bugs to <components@llnl.gov>.
 #
 # \authors <pre>
 #
