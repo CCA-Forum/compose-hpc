@@ -3,7 +3,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2012 November 28
+ * Last Modified: 2013 February 7
  * \endinternal
  *
  * @file
@@ -92,32 +92,33 @@ processCommentContents(
     {
       if ((pos=cmt.find("REQUIRE"))!=string::npos)
       {
-        printLineComment(node, "Precondition clause:");
+        printLineComment(node, "Precondition clause:", true);
         printClause(cmt.substr(pos+7));
       }
       else if ((pos=cmt.find("ENSURE"))!=string::npos)
       {
-        printLineComment(node, "Postcondition clause:");
+        printLineComment(node, "Postcondition clause:", true);
         printClause(cmt.substr(pos+6));
       }
       else if ((pos=cmt.find("INVARIANT"))!=string::npos)
       {
-        printLineComment(node, "Invariant clause:");
+        printLineComment(node, "Invariant clause:", true);
         printClause(cmt.substr(pos+9));
       }
       else if ((pos=cmt.find("INIT"))!=string::npos)
       {
-        printLineComment(node, "Initialization:");
+        printLineComment(node, "Initialization:", true);
         printClause(cmt.substr(pos+4));
       }
       else if ((pos=cmt.find("FINAL"))!=string::npos)
       {
-        printLineComment(node, "Finalization:");
+        printLineComment(node, "Finalization:", true);
         printClause(cmt.substr(pos+5));
       }
       else
       {
-        printLineComment(node, "WARNING: Unidentified contract annotation:");
+        printLineComment(node, "WARNING: Unidentified contract annotation:",
+                         true);
         printClause(cmt.substr(pos+8));
       }
     }

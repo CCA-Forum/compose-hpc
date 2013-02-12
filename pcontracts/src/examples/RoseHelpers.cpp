@@ -3,7 +3,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 February 7
  * \endinternal
  *
  * @file
@@ -107,6 +107,33 @@ getBasicSignature(
 
 
 string
+getBasicSignature(
+  /* in */ SgFunctionDefinition* def)
+{
+  string res;
+
+  if (def != NULL)
+  {
+    SgFunctionDeclaration* decl = def->get_declaration();
+    if (decl != NULL)
+    {
+      res = getBasicSignature(decl);
+    }
+    else
+    {
+      cerr<<"\nERROR:  getBasicSignature requires function declaration.\n";
+    }
+  }
+  else
+  {
+    cerr<<"\nERROR:  getBasicSignature requires function definition.\n";
+  }
+
+  return res;
+}  /* getBasicSignature */
+
+
+string
 getLanguageOptionName(
   /* in */ SgFile::outputLanguageOption_enum lang)
 {
@@ -201,7 +228,8 @@ isInputFile(
 void
 printLineComment(
   /* in */ SgNode* node, 
-  /* in */ string  cmt)
+  /* in */ string  cmt,
+  /* in */ bool    addFile)
 {
   SgLocatedNode* lNode = isSgLocatedNode(node);
   if (lNode != NULL)
@@ -209,8 +237,16 @@ printLineComment(
     Sg_File_Info* info = lNode->get_file_info();
     if (info != NULL)
     {
-      cout<<"\n"<<cmt<<"\n   @line "<<info->get_raw_line();
-      cout<<" of "<<info->get_raw_filename()<<endl;
+      if (addFile)
+      {
+        cout<<"\n"<<cmt<<"\n   @line "<<info->get_raw_line();
+        cout<<" of "<<info->get_raw_filename();
+      }
+      else
+      {
+        cout<<cmt<<" (@line "<<info->get_raw_line()<<")";
+      }
+      cout<<endl;
     }
   }
 

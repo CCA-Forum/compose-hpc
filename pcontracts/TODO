@@ -1,27 +1,37 @@
 PROTOTYPE
 
-- Convert to ROSE visitor to:
-  -- Add atTraversal[Start|End] methods to VisitContractsInstrumenter.*pp
-  -- Finish refactoring ContractsProcessor, which may need a subclass
-     containing the instrumentFunctions(?) routine for the routine 
-     instrumenter.
-  -- Ensure pick up invariant annotations
-  -- Support INIT and FINAL within bodies as alternative to being associated
-     with function.
+Address:
+- Determine why the contracts visitor is not generating output.
+- Ensure INVARIANT checks added _even when_ the precondition(s) and or post-
+  condition(s) are non-executable.
+- The 'first' flag needs to be set properly in instrumented contract checks.
+  (Currently always set to FALSE.)
+- Ensure node-level INIT and FINAL instrumentation is added BEFORE the 
+  associated node.
 
-- Move runtime headers to include directory and adjust build accordingly.
 
 Refinements:
+- Add support for instrumentation related to node-level CONTRACT ASSERT 
+  statements.  HOWEVER, these will require modifications to adaptive
+  enforcement options.
+- Move runtime headers to include directory and adjust build accordingly.
 - Support advanced (non-standard C) contract expressions
      (ie, those containing non-C operators supported in SIDL built-ins)
 - Test or eliminate support for contract tracing.
 - Ensure build failures in rose examples accounted for in 'make check' results.
   (Assumes skipping 'make' step.)
+- Should customize the makefile used to build instrumented codes
+  to account for the fact that helloworld-v2.cc WILL NOT COMPILE
+  when instrumented with RoutineContractInstrumenter since it
+  has INIT and FINAL embeddeed in a function and NOT in the
+  function comments.
+
    
 
 LIBPAUL
 - Develop ties and links to contract instrumentation work
+  -- Investigate Adrian's work on this
 - Add related unit test(s)
 
 
-Last Updated:  2012 November 28
+Last Updated:  2013 February 7

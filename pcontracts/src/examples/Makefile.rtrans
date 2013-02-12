@@ -20,16 +20,14 @@ LDFLAGS = $(FLAGS) $(LIBS)
 CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
 HWCC_EXE=helloworld
-HWCC2_EXE=helloworld-v2
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack
 UKCPP_EXE=UnlabeledKnapsack
 
 # WARNING:  helloword-v2 WILL fail to compile when instrumented with
-# routine contracts instrumenter.
-BINARIES=$(HWCC_EXE)  $(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) \
-	${HWCC2_EXE} 
+# routine contracts instrumenter since pce_* variables will be undefined.
+BINARIES=$(HWCC_EXE)  $(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) 
 
 all:	$(BINARIES)
 

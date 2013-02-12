@@ -1,5 +1,5 @@
-/* %CONTRACT INVARIANT have_gesture: !gesture.empty(); */
 /* NOTE:  Invariants NOT supported for C at this time. */
+/* %CONTRACT INVARIANT have_gesture: !gesture.empty(); */
 #include <iostream>
 
 using namespace std;

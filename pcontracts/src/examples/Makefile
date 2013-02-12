@@ -26,6 +26,8 @@ ROSE_LDFLAGS = $(ROSE_LIB) $(BOOST_LIB) $(FLAGS)
 ROSE_CXXFLAGS = $(ROSE_INCLUDES) $(ROSE_FLAGS) -Wno-deprecated
 
 
+EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*" 
+
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack
@@ -33,7 +35,7 @@ UKCPP_EXE=UnlabeledKnapsack
 CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
 RCI_EXE=RoutineContractInstrumenter
-#VCI_EXE=VisitContractInstrumenter
+#VCI_EXE=VisitContractsInstrumenter
 
 BASE_ROSE_SOURCES = \
 	RoseHelpers.cpp
@@ -169,9 +171,7 @@ checkRosePrinter: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
-	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
-	FILES=`echo $$CFILES $$CPPFILES`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp`; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
@@ -205,9 +205,7 @@ checkRoseTrans: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	CFILES=`find ../examples -name "*sack*.c" -print | grep -v rose | grep -v .swp`; \
-	CPPFILES=`find ../examples -name "*sack*.cpp" -print | grep -v rose | grep -v .swp`; \
-	FILES=`echo $$CFILES $$CPPFILES`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp`; \
 	ok=0; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
@@ -235,7 +233,11 @@ checkRoseTrans: $(EXE)
 	echo "\n...Successfully processed $$ok of $$n files.\n"; \
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
-	  cp -f Makefile.trans $$OUTDIR/Makefile; \
+          if [ "$(EXE)" = "$(RCI_EXE)" ]; then \
+	    cp -f Makefile.rtrans $$OUTDIR/Makefile; \
+          else \
+	    cp -f Makefile.trans $$OUTDIR/Makefile; \
+          fi; \
 	  echo "Copying header files to $$OUTDIR"; \
 	  cp -f *ack*.h* $$OUTDIR; \
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \

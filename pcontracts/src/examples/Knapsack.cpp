@@ -73,11 +73,11 @@ Examples::Knapsack::initialize(
         d_nextIndex = len;
       } else {
         // ToDo/TBD:  Throw a "BadWeight" exception (L_POS_WEIGHTS)
-        std::cerr << "ERROR: " << L_POS_WEIGHTS << std::endl;
+        cerr << "ERROR: " << L_POS_WEIGHTS << "\n";
       }
     } else {
       // ToDo/TBD:  Throw an exception (L_MAX_WEIGHTS)
-      std::cerr << "ERROR: " << L_MAX_WEIGHTS << std::endl;
+      cerr << "ERROR: " << L_MAX_WEIGHTS << "\n";
     }
   }
 
@@ -200,7 +200,7 @@ sameWeights(
         same = onlyPos(p, lenW);
         free(p);
       }
-    }  /* else weights list size mismatch so assume will false */
+    }  /* else weights list size mismatch so assume will be false */
   }  /* else no input weights provided so automatically false */
 
   return same;

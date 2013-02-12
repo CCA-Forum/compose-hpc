@@ -3,7 +3,7 @@
  * File:           AssertionExpression.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 January 31
  * \endinternal
  *
  * @file
@@ -15,6 +15,9 @@
 
 #ifndef include_Assertion_Expression_hpp
 #define include_Assertion_Expression_hpp
+
+#include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -64,6 +67,35 @@ class AssertionExpression
      * otherwise. 
      */
     bool isFirst() { return d_isFirst; }
+
+    /** 
+     * Return a string representation of the expression.  
+     *
+     * @param[in] sep  Field separator.
+     * @return         Field-separated string representation.
+     */
+    string str(string sep) 
+    { 
+      ostringstream rep;
+      rep << d_label << sep << d_expr << sep;
+      rep << (d_isFirst ? "First" : "Not First") << sep;
+      switch (d_level)
+      {
+      case AssertionSupport_ADVISORY:
+        rep << "Advisory";
+        break;
+      case AssertionSupport_EXECUTABLE:
+        rep << "Executable";
+        break;
+      case AssertionSupport_UNSUPPORTED:
+        rep << "Unsupported";
+        break;
+      default:
+        rep << "UNKNOWN";
+        break;
+      }
+      return rep.str(); 
+    }
 
   private:
     /** The optional label associated with the expression. */

@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 January 31
  * \endinternal
  *
  * @file
@@ -17,6 +17,7 @@
 #define include_Contract_Comment_hpp
 
 #include <list>
+#include <sstream>
 #include "rose.h"
 //#include "contractOptions.h"
 #include "AssertionExpression.hpp"
@@ -144,6 +145,47 @@ class ContractComment
     /** Return the number of executable assertion expressions in the clause. */
     int numExecutable() { return d_numExec; }
 
+    /** 
+     * Return a string representation of the contract comment.
+     *
+     * @param[in] sep  Field separator.
+     * @return         Field-separated string representation.
+     */
+    string str(string sep)
+    {
+      ostringstream rep;
+      switch (d_type)
+      {
+      case ContractComment_NONE:
+        rep << "None";
+        break;
+      case ContractComment_INVARIANT:
+        rep << "Invariant";
+        break;
+      case ContractComment_PRECONDITION:
+        rep << "Precondition";
+        break;
+      case ContractComment_POSTCONDITION:
+        rep << "Postcondition";
+        break;
+      case ContractComment_INIT:
+        rep << "Init";
+        break;
+      case ContractComment_FINAL:
+        rep << "Final";
+        break;
+      default:
+        rep << "UNKNOWN";
+        break;
+      }
+      rep << d_aeList.size() << sep;
+      rep << (d_needsResult ? "NeedsResult" : "NoResult") << sep;
+      rep << (d_isInit ? "isINIT" : "notINIT") << sep;
+      rep << d_numExec;
+      return rep.str();
+    }
+
+
   private:
     /** Type of contract comment. */
     ContractCommentEnum        d_type;
@@ -163,5 +205,11 @@ class ContractComment
     /** Cache the number of executable expressions in the clause. */
     int                        d_numExec;
 };  /* class ContractComment */
+
+/**
+ * ContractClauseType consists of a vector of ContractComment entries.
+ */
+typedef std::vector<ContractComment*> ContractClauseType;
+
 
 #endif /* include_Contract_Comment_hpp */
