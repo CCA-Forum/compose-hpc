@@ -20,7 +20,7 @@
 # </pre>
 #
 from codegen import c_gen
-import babel, ir, ior_template, sidl
+import babel, ir, ior_template, sidlir
 
 class GlueCodeGenerator(object):
     """
@@ -114,60 +114,60 @@ class GlueCodeGenerator(object):
 
         def builtin(t, name, args):
             ci.epv.add_method(
-                sidl.Method(t, sidl.Method_name(name, ''), [],
+                sidlir.Method(t, sidlir.Method_name(name, ''), [],
                             args, [], [], [], [], 
                             'Implicit built-in method: '+name))
 
         def static_builtin(t, name, args):
             ci.epv.add_method(
-                sidl.Method(t, sidl.Method_name(name, ''), [sidl.static],
+                sidlir.Method(t, sidlir.Method_name(name, ''), [sidlir.static],
                             args, [], [], [], [], 
                             'Implicit built-in method: '+name))
 
         def inarg(t, name):
-            return sidl.Arg([], sidl.in_, t, name)
+            return sidlir.Arg([], sidlir.in_, t, name)
 
         # Implicit Built-in methods
-        builtin(sidl.pt_opaque, '_cast',
-                [inarg(sidl.pt_string, 'name')])
+        builtin(sidlir.pt_opaque, '_cast',
+                [inarg(sidlir.pt_string, 'name')])
 
-        builtin(sidl.void, '_delete', [])
+        builtin(sidlir.void, '_delete', [])
 
-        builtin(sidl.void, '_exec', [
-                inarg(sidl.pt_string, 'methodName'),
+        builtin(sidlir.void, '_exec', [
+                inarg(sidlir.pt_string, 'methodName'),
                 inarg(babel.object_type(['sidl', 'rmi'], 'Call'), 'inArgs'),
                 inarg(babel.object_type(['sidl', 'rmi'], 'Return'), 'outArgs')])
 
-        builtin(sidl.pt_string, '_getURL', [])
-        builtin(sidl.void, '_raddRef', [])
-        builtin(sidl.pt_bool, '_isRemote', [])
-        builtin(sidl.void, '_set_hooks', 
-                [inarg(sidl.pt_bool, 'enable')])
-        builtin(sidl.void, '_set_contracts', [
-                inarg(sidl.pt_bool, 'enable'),
-                inarg(sidl.pt_string, 'enfFilename'),
-                inarg(sidl.pt_bool, 'resetCounters')],
+        builtin(sidlir.pt_string, '_getURL', [])
+        builtin(sidlir.void, '_raddRef', [])
+        builtin(sidlir.pt_bool, '_isRemote', [])
+        builtin(sidlir.void, '_set_hooks', 
+                [inarg(sidlir.pt_bool, 'enable')])
+        builtin(sidlir.void, '_set_contracts', [
+                inarg(sidlir.pt_bool, 'enable'),
+                inarg(sidlir.pt_string, 'enfFilename'),
+                inarg(sidlir.pt_bool, 'resetCounters')],
                 )
-        builtin(sidl.void, '_dump_stats', 
-                [inarg(sidl.pt_string, 'filename'),
-                 inarg(sidl.pt_string, 'prefix')])
+        builtin(sidlir.void, '_dump_stats', 
+                [inarg(sidlir.pt_string, 'filename'),
+                 inarg(sidlir.pt_string, 'prefix')])
         if not cls.is_interface():
-            builtin(sidl.void, '_ctor', [])
-            builtin(sidl.void, '_ctor2',
-                    [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')])
-            builtin(sidl.void, '_dtor', [])
-            builtin(sidl.void, '_load', [])
+            builtin(sidlir.void, '_ctor', [])
+            builtin(sidlir.void, '_ctor2',
+                    [(sidlir.arg, [], sidlir.in_, ir.void_ptr, 'private_data')])
+            builtin(sidlir.void, '_dtor', [])
+            builtin(sidlir.void, '_load', [])
 
-        static_builtin(sidl.void, '_set_hooks_static', 
-                [inarg(sidl.pt_bool, 'enable')])
-        static_builtin(sidl.void, '_set_contracts_static', [
-                inarg(sidl.pt_bool, 'enable'),
-                inarg(sidl.pt_string, 'enfFilename'),
-                inarg(sidl.pt_bool, 'resetCounters')],
+        static_builtin(sidlir.void, '_set_hooks_static', 
+                [inarg(sidlir.pt_bool, 'enable')])
+        static_builtin(sidlir.void, '_set_contracts_static', [
+                inarg(sidlir.pt_bool, 'enable'),
+                inarg(sidlir.pt_string, 'enfFilename'),
+                inarg(sidlir.pt_bool, 'resetCounters')],
                 )
-        static_builtin(sidl.void, '_dump_stats_static', 
-                [inarg(sidl.pt_string, 'filename'),
-                 inarg(sidl.pt_string, 'prefix')])
+        static_builtin(sidlir.void, '_dump_stats_static', 
+                [inarg(sidlir.pt_string, 'filename'),
+                 inarg(sidlir.pt_string, 'prefix')])
 
 
         prefix = ci.epv.symbol_table.prefix
@@ -213,7 +213,7 @@ class GlueCodeGenerator(object):
         # pointers to the implemented interface's EPV
         if not cls.is_interface():
             for impl in cls.get_unique_interfaces():
-                if impl <> (sidl.scoped_id, ('sidl',), 'BaseInterface', ''):
+                if impl <> (sidlir.scoped_id, ('sidl',), 'BaseInterface', ''):
                     gen_inherits(impl)
 
         baseclass = []
@@ -247,7 +247,7 @@ class GlueCodeGenerator(object):
                                                        ir.Pointer_type(ci.obj),
                                                        'createObject', [
                                                            ir.Arg([], ir.inout, ir.void_ptr, 'ddata'),
-                                                           ir.Arg([], sidl.out, babel.ir_exception_type(), '_ex')],
+                                                           ir.Arg([], sidlir.out, babel.ir_exception_type(), '_ex')],
                                                        '')),
                                                        'createObject')] 
                       if not cls.is_abstract else []) +

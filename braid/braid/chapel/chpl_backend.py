@@ -34,7 +34,7 @@
 # </pre>
 #
 
-import ior, ior_template, ir, os.path, re, sidl, sidlobjects, splicer
+import ior, ior_template, ir, os.path, re, sidlir, sidlobjects, splicer
 from utils import write_to, unzip
 from patmat import *
 from codegen import CFile, CCompoundStmt, c_gen
@@ -159,16 +159,16 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             builtins = [] if cls.is_interface() else babel.builtins
             # all the methods for which we would generate a server impl
             impl_methods = builtins+cls.get_methods()
-            impl_methods_names = [sidl.method_method_name(m) for m in impl_methods]
+            impl_methods_names = [sidlir.method_method_name(m) for m in impl_methods]
 
             # client
             for method in builtins+cls.all_methods:
-                has_impl = sidl.method_method_name(method) in impl_methods_names
+                has_impl = sidlir.method_method_name(method) in impl_methods_names
                 self.generate_client_method(symbol_table, method, ci, has_impl)
 
             if self.server:
-                class_methods = filter(sidl.is_not_static, impl_methods)
-                static_methods = filter(sidl.is_static, impl_methods)
+                class_methods = filter(sidlir.is_not_static, impl_methods)
+                static_methods = filter(sidlir.is_static, impl_methods)
 
                 # Class
                 ci.impl.new_def(gen_doc_comment(cls.doc_comment, chpl_stub)+
@@ -238,11 +238,11 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             raise Exception()
 
         with match(node):
-            if (sidl.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
+            if (sidlir.class_, (Name), Extends, Implements, Invariants, Methods, DocComment):
                 expect(data, None)
                 generate_ext_stub(sidlobjects.Class(symbol_table, node, self.class_attrs))
 
-            elif (sidl.struct, (Name), Items, DocComment):
+            elif (sidlir.struct, (Name), Items, DocComment):
                 # Generate Chapel stub
                 struct_chpl_ior  = babel.lower_ir(symbol_table, node,
                                                   qualify_names=False, qualify_enums=False,
@@ -274,12 +274,12 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 # self.pkg_enums_and_structs.append(babel.struct_ior_names(node))
                 # self.pkg_enums_and_structs.append(node)
 
-            elif (sidl.interface, (Name), Extends, Invariants, Methods, DocComment):
+            elif (sidlir.interface, (Name), Extends, Invariants, Methods, DocComment):
                 # Interfaces also have an IOR to be generated
                 expect(data, None)
                 generate_ext_stub(sidlobjects.Interface(symbol_table, node, self.class_attrs))
 
-            elif (sidl.enum, Name, Items, DocComment):
+            elif (sidlir.enum, Name, Items, DocComment):
                 # Generate Chapel stub
                 enum_chpl_ior = babel.lower_ir(symbol_table, node, qualify_enums=False)
                 enum_chpl     = conv.ir_type_to_chpl(enum_chpl_ior)
@@ -290,10 +290,10 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 # record it for later, when the package is being finished
                 # self.pkg_enums_and_structs.append(node)
 
-            elif (sidl.package, Name, Version, UserTypes, DocComment):
+            elif (sidlir.package, Name, Version, UserTypes, DocComment):
                 # Generate the chapel stub
                 qname = '_'.join(symbol_table.prefix+[Name])
-                _, pkg_symbol_table = symbol_table[sidl.Scoped_id([], Name, '')]
+                _, pkg_symbol_table = symbol_table[sidlir.Scoped_id([], Name, '')]
 
                 # header for package-wide definitions (enums, structs).
                 pkg_h = CFile(qname)
@@ -335,11 +335,11 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                 self.pkg_chpl_stub.write()
                 pkg_h.write()
 
-            elif (sidl.user_type, Attrs, Cipse):
+            elif (sidlir.user_type, Attrs, Cipse):
                 self.class_attrs = Attrs
                 gen(Cipse)
 
-            elif (sidl.file, Requires, Imports, UserTypes):
+            elif (sidlir.file, Requires, Imports, UserTypes):
                 self.in_package = False
                 gen(UserTypes)
 
@@ -354,7 +354,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         return data
 
     def struct_typedef(self, pkgname, s):
-        if s[0] == sidl.enum: return ''
+        if s[0] == sidlir.enum: return ''
         return 'typedef {0} {1} _{1};\ntypedef _{1}* {1};'.format(
             s[0], pkgname+'_'+s[1][:-6])
 
@@ -398,7 +398,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
         return header
 
-    chpl_conv_types = set([sidl.rarray, sidl.array, sidl.interface, sidl.class_])
+    chpl_conv_types = set([sidlir.rarray, sidlir.array, sidlir.interface, sidlir.class_])
 
     def babel_method_call(self, chpl_scope, symbol_table, cdecl, arguments, ci):
         # Build a burg tree for the function call
@@ -407,13 +407,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             return '_ior_%s'%name
 
         def incoming(((_, attrs, mode, typ, name), param_exp)):
-            if mode <> sidl.out:
-                param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
+            if mode <> sidlir.out:
+                param = ir.Deref(param_exp) if mode <> sidlir.in_ else param_exp
                 return conv.ir_to_burg(typ, 'chpl', symbol_table, False, tmp(name), param, [])
             else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
-            if mode <> sidl.in_:
+            if mode <> sidlir.in_:
                 param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
                 return conv.ir_to_burg(typ, 'ior', symbol_table, False, param, tmp(name), [])
             else: return []
@@ -454,13 +454,13 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             return '_chpl_%s'%name
 
         def incoming(((_, attrs, mode, typ, name), param_exp)):
-            if mode <> sidl.out:
-                param = ir.Deref(param_exp) if mode <> sidl.in_ else param_exp
+            if mode <> sidlir.out:
+                param = ir.Deref(param_exp) if mode <> sidlir.in_ else param_exp
                 return conv.ir_to_burg(typ, 'ior', symbol_table, False, tmp(name), param, [])
             else: return conv.outgoing_arg, (param_exp, tmp(name), None)
 
         def outgoing(((_, attrs, mode, typ, name), param_exp)):
-            if mode <> sidl.in_:
+            if mode <> sidlir.in_:
                 param = ir.Deref(param_exp) if param_exp <> '_retval' else param_exp
                 return conv.ir_to_burg(typ, 'chpl', symbol_table, False, param, tmp(name), [])
             else: return []
@@ -514,7 +514,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         C (or in a macro).
         """
         def lower_rarray_args((arg, attrs, mode, typ, name)):
-            if typ[0] == sidl.rarray:
+            if typ[0] == sidlir.rarray:
                 return arg, attrs, mode, conv.get_array_type(typ)[1], name
             return arg, attrs, mode, typ, name
 
@@ -555,9 +555,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                                    qualify_names=False, qualify_enums=True)
         chpl_type = conv.ir_type_to_chpl(chpl_type)
 
-        abstract = member_chk(sidl.abstract, Attrs)
-        #final = member_chk(sidl.final, Attrs)
-        static = member_chk(sidl.static, Attrs)
+        abstract = member_chk(sidlir.abstract, Attrs)
+        #final = member_chk(sidlir.final, Attrs)
+        static = member_chk(sidlir.static, Attrs)
 
         #attrs = []
         if abstract:
@@ -593,8 +593,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         body.gen(ir.Stmt(ir.Call("set_to_null", [stub_ex])))
 
         # return value type conversion -- treat it as an out argument
-        #srarg = (sidl.arg, [], sidl.out, Type, '_retval')
-        #rarg  = (ir.arg, [], sidl.out, cdecl_type, '_retval')
+        #srarg = (sidlir.arg, [], sidlir.out, Type, '_retval')
+        #rarg  = (ir.arg, [], sidlir.out, cdecl_type, '_retval')
         #crarg = (ir.arg, [], ir.out, cdecl_type, '_retval') #conv.sidl_arg_to_ir(symbol_table, rarg)
         #_,_,_,ctype,_ = crarg
         args = selfarg+map(lambda arg: ir.arg_id(arg), cdecl_args)+[stub_ex]
@@ -613,7 +613,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
             #if ir.is_pointer_type(typ) and ir.is_struct(typ[1]):
             #    #if name == '_ior__retval': name = '_retval'
             #    #if name == '_retval': name = '_ior_retval'
-            #    if typ[1][1][0] == sidl.scoped_id:
+            #    if typ[1][1][0] == sidlir.scoped_id:
             #        _, prefix, tname, ext = typ[1][1]
             #        if ext == '__object' and name == '_retval':
             #            #name <> '_ex' and name[:4] <> '_ior_': 
@@ -623,8 +623,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 
 
         # FIXME, this is ugly!
-        if Type <> sidl.void:
-            if ((Type[0] == sidl.scoped_id and
+        if Type <> sidlir.void:
+            if ((Type[0] == sidlir.scoped_id and
                  symbol_table[Type][1][0] in self.chpl_conv_types)
                 or Type[0] in self.chpl_conv_types):
                 body.genh(ir.Stmt(ir.Var_decl(ext_to_chpl_classtype(chpl_type), '_retval')))
@@ -903,8 +903,8 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
         sepv_init = []
         for m in babel.builtins+cls.get_methods():
             fname =  m[2][1] + m[2][2]
-            attrs = sidl.method_method_attrs(m)
-            static = member_chk(sidl.static, attrs)
+            attrs = sidlir.method_method_attrs(m)
+            static = member_chk(sidlir.static, attrs)
             def entry(stmts, epv_t, table, field, pointer):
                 stmts.append(ir.Set_struct_item_stmt(epv_t, ir.Deref(table), field, pointer))
 
@@ -1040,9 +1040,9 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
 #        ci.epv.add_method((Method, Type, (MName,  Name, Extension), Attrs, ior_args,
 #                           Except, From, Requires, Ensures, DocComment))
 
-        abstract = member_chk(sidl.abstract, Attrs)
-        static = member_chk(sidl.static, Attrs)
-        #final = member_chk(sidl.static, Attrs)
+        abstract = member_chk(sidlir.abstract, Attrs)
+        static = member_chk(sidlir.static, Attrs)
+        #final = member_chk(sidlir.static, Attrs)
 
         if abstract:
             # nothing to be done for an abstract function
@@ -1089,7 +1089,7 @@ class GlueCodeGenerator(backend.GlueCodeGenerator):
                     DocComment)
 
         def skel_args((arg, attr, mode, typ, name)):
-            if typ[0] == sidl.array:
+            if typ[0] == sidlir.array:
                 # lower array args
                 import pdb; pdb.set_trace()
                 return arg, attr, mode, ir.pt_void, name

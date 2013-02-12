@@ -19,20 +19,20 @@
 # </pre>
 #
 
-import sidl
+import sidlir
 from sidl_symbols import visit_hierarchy, scan_methods
 from patmat import member_chk
 from utils import accepts, returns, hashable
 
 @accepts(object, tuple)
 def make_extendable(symbol_table, sidl_ext):
-    if sidl.is_scoped_id(sidl_ext): 
+    if sidlir.is_scoped_id(sidl_ext): 
         return make_extendable(*symbol_table[sidl_ext])
 
-    if sidl.is_class(sidl_ext): 
+    if sidlir.is_class(sidl_ext): 
         return Class(symbol_table, sidl_ext, [])
 
-    if sidl.is_interface(sidl_ext): 
+    if sidlir.is_interface(sidl_ext): 
         return Interface(symbol_table, sidl_ext, [])
 
     import pdb; pdb.set_trace()
@@ -47,8 +47,8 @@ class Extendable(object):
         Create a new Extendable object from the sidl tuple representation.
         """
         self.data = ext
-        self.is_abstract = member_chk(sidl.abstract, attrs)
-        if sidl.is_scoped_id(ext[1]):
+        self.is_abstract = member_chk(sidlir.abstract, attrs)
+        if sidlir.is_scoped_id(ext[1]):
             self.symbol_table, _ = symbol_table[ext[1]]
             self.name = ext[1][2]
             self.qualified_name = ext[1][1]+[self.name+ext[1][3]]
@@ -80,7 +80,7 @@ class Extendable(object):
         """
         \return the scoped id of this extendable.
         """
-        return sidl.Scoped_id(self.symbol_table.prefix, self.name)
+        return sidlir.Scoped_id(self.symbol_table.prefix, self.name)
 
     def get_parent(self):
         """
@@ -100,7 +100,7 @@ class Extendable(object):
         """
         if self.all_parents:
             return self.all_parents
-        start = sidl.Scoped_id(self.symbol_table.prefix, sidl.type_id(self.data), '')
+        start = sidlir.Scoped_id(self.symbol_table.prefix, sidlir.type_id(self.data), '')
         visit_hierarchy(start, 
                         lambda _st, ext, _id: self.all_parents.append(ext), 
                         self.symbol_table, [])
@@ -111,21 +111,21 @@ class Extendable(object):
         """
         return a list of the scoped ids of all implemented interfaces
         """
-        isinterface = sidl.is_interface(self.data)
-        isclass = sidl.is_class(self.data)
+        isinterface = sidlir.is_interface(self.data)
+        isclass = sidlir.is_class(self.data)
         assert isclass or isinterface
 
         def f(_, ext, s_id):
-            if ext[0] == sidl.interface:
+            if ext[0] == sidlir.interface:
                 # make the scoped id hashable by converting the list
                 # of modules into a tuple
                 sid, modules, name, ext = s_id
                 all_interfaces.append((sid, tuple(modules), name, ext))
 
         all_interfaces = []
-        #tid = sidl.type_id(self.data)
+        #tid = sidlir.type_id(self.data)
         #if not isinstance(tid, tuple):
-        #    start = sidl.Scoped_id(self.symbol_table.prefix, tid, '')
+        #    start = sidlir.Scoped_id(self.symbol_table.prefix, tid, '')
         #else:
         #    start = tid
         start = self.get_scoped_id()
@@ -147,10 +147,10 @@ class Extendable(object):
         return a set of all direct (local) implemented interfaces
         """
 
-        if self.data[0] == sidl.interface:
-            parents = sidl.interface_extends(self.data)
+        if self.data[0] == sidlir.interface:
+            parents = sidlir.interface_extends(self.data)
         else:
-            parents = sidl.class_implements(self.data)
+            parents = sidlir.class_implements(self.data)
         return set([hashable(impl) for _, impl in parents])
 
     def get_unique_interfaces(self):
@@ -199,16 +199,16 @@ class Extendable(object):
                      self, 
                      toplevel=True)
 
-        self.all_nonstatic_methods   = filter(sidl.is_not_static, self.all_methods)
-        self.local_nonstatic_methods = filter(sidl.is_not_static, self.get_methods())
-        self.all_static_methods      = filter(sidl.is_static, self.all_methods)
-        self.local_static_methods    = filter(sidl.is_static, self.get_methods())
+        self.all_nonstatic_methods   = filter(sidlir.is_not_static, self.all_methods)
+        self.local_nonstatic_methods = filter(sidlir.is_not_static, self.get_methods())
+        self.all_static_methods      = filter(sidlir.is_static, self.all_methods)
+        self.local_static_methods    = filter(sidlir.is_static, self.get_methods())
         # FIXME: should be all methods + send/recv for nonblocking methods
         self.all_nonblocking_methods = self.all_nonstatic_methods
         self.has_static_methods = self.all_static_methods <> []
 
     def number_of_methods(self):
-        return len(sidl.ext_methods(self.data))
+        return len(sidlir.ext_methods(self.data))
 
     def get_newmethods(self):
         # FIXME!!!
@@ -237,7 +237,7 @@ class Extendable(object):
                       be searched.
         """
         for m in self.all_methods if _all else self.get_methods():
-              name = sidl.method_method_name(m)
+              name = sidlir.method_method_name(m)
               if name[1]+name[2] == longname:
                   return m
         return None  
@@ -252,32 +252,32 @@ class Extendable(object):
         """
         if _all:
             for par in self.get_parents():
-                if sidl.ext_invariants(par):
+                if sidlir.ext_invariants(par):
                     return True
             return False
         else:
-            return sidl.ext_invariants(self.data)
+            return sidlir.ext_invariants(self.data)
 
 
     def is_interface(self):
-        return sidl.is_interface(self.data)
+        return sidlir.is_interface(self.data)
 
     def is_class(self):
-        return sidl.is_class(self.data)
+        return sidlir.is_class(self.data)
 
     def get_id(self):
         """
-        Same as \ref sidl.type_id()
+        Same as \ref sidlir.type_id()
         """
-        return self.name #sidl.type_id(self.data)
+        return self.name #sidlir.type_id(self.data)
 
 
     @returns(tuple)
     def get_scoped_id(self):
         """
-        Same as \ref sidl.get_scoped_id()
+        Same as \ref sidlir.get_scoped_id()
         """
-        return sidl.get_scoped_id(self.symbol_table, self.data)
+        return sidlir.get_scoped_id(self.symbol_table, self.data)
 
 class Class(Extendable):
     """
@@ -289,8 +289,8 @@ class Class(Extendable):
         Create a new Class object from the sidl tuple representation.
         """
         super(Class, self).__init__(symbol_table, sidl_class, attrs)
-        self.implements = sidl.class_implements(sidl_class)
-        self.doc_comment = sidl.class_doc_comment(sidl_class)
+        self.implements = sidlir.class_implements(sidl_class)
+        self.doc_comment = sidlir.class_doc_comment(sidl_class)
 
     def is_class(self):
         return True
@@ -299,7 +299,7 @@ class Class(Extendable):
         return False
 
     def get_methods(self):
-        return sidl.class_methods(self.data)
+        return sidlir.class_methods(self.data)
 
     def inherits_from(self, scoped_id):
         """
@@ -335,7 +335,7 @@ class Interface(Extendable):
         Create a new Class object from the sidl tuple representation.
         """
         super(Interface, self).__init__(symbol_table, sidl_interface, attrs)
-        self.doc_comment = sidl.interface_doc_comment(sidl_interface)
+        self.doc_comment = sidlir.interface_doc_comment(sidl_interface)
 
     def is_interface(self):
         return True
@@ -344,7 +344,7 @@ class Interface(Extendable):
         return False
 
     def get_methods(self):
-        return sidl.interface_methods(self.data)
+        return sidlir.interface_methods(self.data)
 
     def get_qualified_data(self):
         """

@@ -1,6 +1,6 @@
 ## @package UPC.upc
 # type definitions for the conversion code generator
-import ir, sidl
+import ir, sidlir
 bool     = 'UPC', ir.pt_bool
 char     = 'UPC', ir.pt_char
 int      = 'UPC', ir.pt_int
@@ -14,8 +14,8 @@ void_ptr = 'UPC', ir.void_ptr
 void     = 'UPC', ir.pt_void
 # dummy types for aggregate types
 enum     = 'UPC', ir.enum
-array    = 'UPC', sidl.array
-rarray   = 'UPC', sidl.rarray
-struct   = 'UPC', sidl.struct
+array    = 'UPC', sidlir.array
+rarray   = 'UPC', sidlir.rarray
+struct   = 'UPC', sidlir.struct
 pointer_type = 'UPC', ir.pointer_type
 new_array = 'UPC', 'new_array'

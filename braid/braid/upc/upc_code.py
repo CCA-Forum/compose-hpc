@@ -22,7 +22,7 @@
 #
 # </pre>
 #
-import ir, sidl, re
+import ir, sidlir, re
 import ior
 from patmat import *
 from utils import *

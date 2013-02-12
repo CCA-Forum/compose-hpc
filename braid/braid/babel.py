@@ -20,7 +20,7 @@
 # </pre>
 #
 
-import ir, sidl
+import ir, sidlir
 from patmat import *
 from sidl_symbols import SymbolTable
 from string import Template
@@ -66,7 +66,7 @@ def object_type(package, name):
     """
     if isinstance(name, tuple):
         name = name[1]
-    return sidl.Scoped_id(package, name, '')
+    return sidlir.Scoped_id(package, name, '')
 
 def exception_type():
     """
@@ -95,12 +95,12 @@ def ir_baseinterface_type():
     return ir_object_type(['sidl'], 'BaseInterface')
 
 def builtin((name, args)):
-    return sidl.Method(sidl.void, sidl.Method_name(name, ''), [], args,
+    return sidlir.Method(sidlir.void, sidlir.Method_name(name, ''), [], args,
                        [], [], [], [], 'builtin method')
 
 builtins = map(builtin,
                [('_ctor', []),
-                ('_ctor2', [(sidl.arg, [], sidl.in_, ir.void_ptr, 'private_data')]),
+                ('_ctor2', [(sidlir.arg, [], sidlir.in_, ir.void_ptr, 'private_data')]),
                 ('_dtor', []),
                 ('_load', [])])
 
@@ -174,7 +174,7 @@ def drop_rarray_ext_args(args):
     """
     names = set()
     for (arg, attrs, mode, typ, name) in args:
-        if typ[0] == sidl.rarray:
+        if typ[0] == sidlir.rarray:
             for n in ir.all_var_refs(typ[3]):
                 names.add(n)
 
@@ -240,7 +240,7 @@ def lower_ir(symbol_table, sidl_term, header=None,
     array_prefix = '/* IOR */ ' if raw_ior_arrays else ''
 
     with match(sidl_term):
-        if (sidl.arg, Attrs, Mode, (sidl.scoped_id, _, _, _), Name):
+        if (sidlir.arg, Attrs, Mode, (sidlir.scoped_id, _, _, _), Name):
             lowtype = low(sidl_term[3])
             if lowtype[0] == ir.struct and Mode == ir.in_:
                 # struct arguments are passed as pointer, regardless of mode
@@ -248,19 +248,19 @@ def lower_ir(symbol_table, sidl_term, header=None,
                 lowtype = ir.Pointer_type(lowtype)
             return (ir.arg, Attrs, Mode, lowtype, Name)
 
-        elif (sidl.arg, Attrs, Mode, Typ, Name):
+        elif (sidlir.arg, Attrs, Mode, Typ, Name):
             return (ir.arg, Attrs, Mode, low(Typ), Name)
 
-        elif (sidl.scoped_id, Prefix, Name, Ext):
+        elif (sidlir.scoped_id, Prefix, Name, Ext):
             return low(symbol_table[sidl_term][1])
 
-        elif (sidl.void):                        return ir.pt_void
+        elif (sidlir.void):                        return ir.pt_void
         elif (ir.void_ptr):                      return ir.void_ptr
-        elif (sidl.primitive_type, sidl.opaque): return ir.Pointer_type(ir.pt_void)
-        elif (sidl.primitive_type, sidl.string): return sidl_term #ir.const_str
-        elif (sidl.primitive_type, Type):        return ir.Primitive_type(Type)
+        elif (sidlir.primitive_type, sidlir.opaque): return ir.Pointer_type(ir.pt_void)
+        elif (sidlir.primitive_type, sidlir.string): return sidl_term #ir.const_str
+        elif (sidlir.primitive_type, Type):        return ir.Primitive_type(Type)
 
-        elif (sidl.enum, Name, Enumerators, DocComment):
+        elif (sidlir.enum, Name, Enumerators, DocComment):
             # in the IOR enums are represented as int64
             if qualify_enums:
                 es = lower_ir(SymbolTable(symbol_table,
@@ -274,53 +274,53 @@ def lower_ir(symbol_table, sidl_term, header=None,
             else:
                 return ir.Enum(sidl_term[1], low(Enumerators), DocComment)
 
-        elif (sidl.enumerator, Name):
+        elif (sidlir.enumerator, Name):
             if qualify_enums: return ir.Enumerator(qual_name(symbol_table, Name))
             else:             return sidl_term
 
-        elif (sidl.enumerator_value, Name, Val):
+        elif (sidlir.enumerator_value, Name, Val):
             if qualify_enums: return ir.Enumerator_value(qual_name(symbol_table, Name), Val)
             else:             return sidl_term
 
 
-        elif (sidl.struct, (sidl.scoped_id, Prefix, Name, Ext), Items, DocComment):
+        elif (sidlir.struct, (sidlir.scoped_id, Prefix, Name, Ext), Items, DocComment):
             # a nested Struct
             return ir.Struct(qual_id(sidl_term[1])+struct_suffix, low(Items), '')
 
-        elif (sidl.struct, Name, Items, DocComment):
+        elif (sidlir.struct, Name, Items, DocComment):
             return ir.Struct(qual_name(symbol_table, Name)+struct_suffix, low(Items), '')
 
-        elif (sidl.struct_item, Type, Name):
-            if Type[0] == sidl.scoped_id:
+        elif (sidlir.struct_item, Type, Name):
+            if Type[0] == sidlir.scoped_id:
                 t = symbol_table[Type][1]
-                if t[0] == sidl.class_ or t[0] == sidl.interface:
+                if t[0] == sidlir.class_ or t[0] == sidlir.interface:
                     if header: header.genh(ir.Import(qual_id(t[1])+'_IOR'))
                     t = ir_object_type(t[1][1],t[1][2])
-                elif t[0] == sidl.struct or t[0] == sidl.enum:
+                elif t[0] == sidlir.struct or t[0] == sidlir.enum:
                     return (ir.struct_item, low(t), Name)
                 return (ir.struct_item, t, Name)
             return (ir.struct_item, low(Type), Name)
 
-        # elif (sidl.rarray, Scalar_type, Dimension, Extents):
+        # elif (sidlir.rarray, Scalar_type, Dimension, Extents):
         #     # Future optimization:
         #     # Direct-call version (r-array IOR)
         #     # return ir.Pointer_type(lower_type_ir(symbol_table, Scalar_type)) # FIXME
         #     # SIDL IOR version
         #     return ir.Typedef_type('sidl_%s__array'%Scalar_type[1])
 
-        elif (sidl.rarray, Scalar_type, Dimension, Extents):
+        elif (sidlir.rarray, Scalar_type, Dimension, Extents):
             if wrap_rarrays:
                 return ir.Pointer_type(ir.Struct('%ssidl_%s__array'
                                                  %(array_prefix,Scalar_type[1]), [], ''))
             else:
                 return ir.Rarray(low(Scalar_type), Dimension, Extents)
 
-        elif (sidl.array, [], [], []):
+        elif (sidlir.array, [], [], []):
             #if not lower_scoped_ids: return sidl_term
             #return ir.Pointer_type(ir.pt_void)
             return ir.Pointer_type(ir.Struct('sidl__array', [], ''))
 
-        elif (sidl.array, Scalar_type, Dimension, Orientation):
+        elif (sidlir.array, Scalar_type, Dimension, Orientation):
             #if not lower_scoped_ids: return sidl_term
             if Scalar_type[0] == ir.scoped_id:
                 # All object arrays are called sidl_interface__array
@@ -331,11 +331,11 @@ def lower_ir(symbol_table, sidl_term, header=None,
             if header: header.genh(ir.Import('sidl_'+t+'_IOR'))
             return ir.Pointer_type(ir.Struct('%ssidl_%s__array'%(array_prefix,t), [], ''))
 
-        elif (sidl.class_, ScopedId, _, _, _, _, _):
+        elif (sidlir.class_, ScopedId, _, _, _, _, _):
             if not lower_scoped_ids: return ScopedId
             else: return ir_object_type(ScopedId[1], ScopedId[2])
 
-        elif (sidl.interface, ScopedId, _, _, _, _):
+        elif (sidlir.interface, ScopedId, _, _, _, _):
             if not lower_scoped_ids: return ScopedId
             return ir_object_type(ScopedId[1], ScopedId[2])
 
@@ -446,8 +446,8 @@ class EPV(object):
 
             # discard the abstract/final attributes. Ir doesn't know them.
             attrs = set(Attrs)
-            attrs.discard(sidl.abstract)
-            attrs.discard(sidl.final)
+            attrs.discard(sidlir.abstract)
+            attrs.discard(sidlir.final)
             attrs = list(attrs)
             args = epv_args(attrs, Args, self.symbol_table, self.name)
             return ir.Fn_decl(attrs, typ, name+suffix, args, DocComment)
@@ -456,7 +456,7 @@ class EPV(object):
             import pdb; pdb.set_trace()
             raise Exception()
 
-        if member_chk(sidl.static, method[3]):
+        if member_chk(sidlir.static, method[3]):
             self.static_methods.append(to_fn_decl(method))
             if member_chk(ir.hooks, method[3]):
                 self.static_pre_methods.append(to_fn_decl(method, '_pre'))
@@ -601,7 +601,7 @@ def static_ior_args(args, symbol_table, class_name):
     arg_self = [ir.Arg([], ir.in_,
                        ir_object_type(symbol_table.prefix, class_name),
                        'self')]
-    arg_ex = [ir.Arg([], sidl.out, ir_baseinterface_type(), '_ex')]
+    arg_ex = [ir.Arg([], sidlir.out, ir_baseinterface_type(), '_ex')]
     return arg_self+lower_ir(symbol_table, args, qualify_names=True)+arg_ex
 
 
@@ -609,7 +609,7 @@ def epv_args(attrs, args, symbol_table, class_name):
     """
     \return a SIDL -> Ir lowered version of [self]+args+[*ex]
     """
-    if member_chk(sidl.static, attrs):
+    if member_chk(sidlir.static, attrs):
         arg_self = []
     else:
         arg_self = \
@@ -624,24 +624,24 @@ def stub_args(attrs, args, symbol_table, class_name, extra_attrs):
     """
     \return a SIDL -> [*self]+args+[*ex]
     """
-    if member_chk(sidl.static, attrs):
+    if member_chk(sidlir.static, attrs):
         arg_self = []
     else:
         arg_self = [
-            ir.Arg(extra_attrs, sidl.in_,
+            ir.Arg(extra_attrs, sidlir.in_,
                 ir_object_type(symbol_table.prefix, class_name), 'self')]
     arg_ex = \
-        [ir.Arg(extra_attrs, sidl.out, ir_exception_type(), '_ex')]
+        [ir.Arg(extra_attrs, sidlir.out, ir_exception_type(), '_ex')]
     return arg_self+args+arg_ex
 
 
 def is_obj_type(symbol_table, typ):
-    return typ[0] == sidl.scoped_id and (
-        symbol_table[typ][1][0] == sidl.class_ or
-        symbol_table[typ][1][0] == sidl.interface)
+    return typ[0] == sidlir.scoped_id and (
+        symbol_table[typ][1][0] == sidlir.class_ or
+        symbol_table[typ][1][0] == sidlir.interface)
 
 def is_struct_type(symbol_table, typ):
-    return typ[0] == sidl.scoped_id and symbol_table[typ][1][0] == sidl.struct
+    return typ[0] == sidlir.scoped_id and symbol_table[typ][1][0] == sidlir.struct
 
 
 def ior_type(symbol_table, t):
@@ -649,7 +649,7 @@ def ior_type(symbol_table, t):
     if \c t is a scoped_id return the IOR type of t.
     else return \c t.
     """
-    if (t[0] == sidl.scoped_id and symbol_table[t][1][0] in [sidl.class_, sidl.interface]):
+    if (t[0] == sidlir.scoped_id and symbol_table[t][1][0] in [sidlir.class_, sidlir.interface]):
     #    return ir_object_type(*symbol_table.get_full_name(t[1]))
         return ir_object_type(t[1], t[2])
 

@@ -62,7 +62,7 @@
 
 
 #------------------------------------------------------------------------
-import babel, ior, ir, sidl, re
+import babel, ior, ir, sidlir, re
 import chapel.chpl as chpl
 from codegen import CCodeGenerator, CFile
 from utils import hashable
@@ -88,7 +88,7 @@ def ir_type_to_chpl(typ, in_struct=False):
         ir.pt_dcomplex: ir.Typedef_type('_complex128'),
         ir.pt_float:    ir.pt_float,
         ir.pt_double:   ir.pt_double,
-        sidl.pt_opaque: ir.Pointer_type(ir.pt_void)
+        sidlir.pt_opaque: ir.Pointer_type(ir.pt_void)
         }
     try:
         return mapping[typ]
@@ -122,7 +122,7 @@ def ir_type_to_chpl(typ, in_struct=False):
         if ir.is_struct_item(typ):
             return ir.Struct_item(ir_type_to_chpl(typ[1], True), typ[2])
 
-        if typ[0] == sidl.array:
+        if typ[0] == sidlir.array:
             return get_array_type(typ)[1]
 
         if ir.is_rarray(typ):
@@ -142,8 +142,8 @@ def strip(typ):
     if ir.is_pointer_type(typ) and typ[1][0] == ir.struct:
         return ir.struct
     # strip unnecessary details from aggregate types
-    if (typ[0] == sidl.class_ or 
-        typ[0] == sidl.interface):
+    if (typ[0] == sidlir.class_ or 
+        typ[0] == sidlir.interface):
         return ior.ext
     if (ir.is_enum(typ) or
         ir.is_rarray(typ) or
@@ -434,7 +434,7 @@ def ir_to_burg(typ, language, symbol_table, in_struct, *user_data):
     except KeyError:  pass # not found
     except TypeError: pass # not hashable
 
-    if typ[0] in [sidl.class_, sidl.interface]:
+    if typ[0] in [sidlir.class_, sidlir.interface]:
         return type_map['ext'], typ, user_data
 
     elif ir.is_pointer_type(typ):
@@ -1618,7 +1618,7 @@ xvalue_ior_c <-- rarray_item_chpl_c    :cost(1)
     rarray, basetype, dim, exts = t
     cbasetype = c_gen(basetype)
     p_src = ir.Call('sidlArrayAddr1', [src, 0])
-    if sidl.fixed_rarray(exts):
+    if sidlir.fixed_rarray(exts):
         conv.append(ir.Comment('copy array data unless the sidl array '+
                                'happens to be borrowed from the original'))
         # build an expression for the size of the array

@@ -23,7 +23,7 @@
 # </pre>
 #
 
-import config, sidl, ir, babel
+import config, sidlir, ir, babel
 from codegen import sidl_gen, c_gen
 from patmat import *
 from sidl_symbols import visit_hierarchy
@@ -52,12 +52,12 @@ def generate_ior(ci, with_ior_c, _braid_config):
             ctype = ''
             if not typ:
                 pass
-            elif typ[0] == sidl.scoped_id:
+            elif typ[0] == sidlir.scoped_id:
                 # Symbol
                 ctype = qual_id(typ)
-            elif typ[0] == sidl.array: # Scalar_type, Dimension, Orientation
+            elif typ[0] == sidlir.array: # Scalar_type, Dimension, Orientation
                 ctype = get_ctype(typ[1])    
-            elif typ[0] == sidl.rarray: # Scalar_type, Dimension, ExtentsExpr
+            elif typ[0] == sidlir.rarray: # Scalar_type, Dimension, ExtentsExpr
                 ctype = get_ctype(typ[1]) 
 
             return ctype
@@ -141,7 +141,7 @@ def gen_IOR_c(iorname, cls, _braid_config):
     braid_config = _braid_config
     # class hierarchy for the casting function
     sorted_parents = sorted(cls.get_parents(), 
-                            key = lambda x: qual_id(sidl.type_id(x), '.'))
+                            key = lambda x: qual_id(sidlir.type_id(x), '.'))
 
     return Template(text).substitute(
         CLASS = iorname, 
@@ -552,7 +552,7 @@ initClassInfo(sidl_ClassInfo *info, struct sidl_BaseInterface__object **_ex)
 }
 
 /*
- * initMetadata: store IOR version & class in sidl.BaseClass's data
+ * initMetadata: store IOR version & class in sidlir.BaseClass's data
  */
 
 static void
@@ -731,7 +731,7 @@ def class_to_interface_ptr(cls, e):
     @accepts(list, object, tuple)
     def hasAncestor(excluded, search, target):
         #print 'search=%r, target=%r, excluded=%r' %( search.name, target, excluded)
-        hsearch = sidl.hashable_type_id(search.data)
+        hsearch = sidlir.hashable_type_id(search.data)
         if hsearch in excluded: return False
         if hsearch == target: return True
         for e in search.get_parent_interfaces():
@@ -749,7 +749,7 @@ def class_to_interface_ptr(cls, e):
     @accepts(object, tuple)
     def directlyImplements(cls, e):
         while cls:
-            if sidl.hashable_type_id(e) in cls.get_direct_parent_interfaces():
+            if sidlir.hashable_type_id(e) in cls.get_direct_parent_interfaces():
                 return True
             cls = cls.get_parent()
         return False
@@ -764,14 +764,14 @@ def class_to_interface_ptr(cls, e):
 
         for ext in cls.get_unique_interfaces():
             ext = make_extendable(*cls.symbol_table[ext])
-            if hasAncestor(excludedInterfaces, ext, sidl.hashable_type_id(e)):
+            if hasAncestor(excludedInterfaces, ext, sidlir.hashable_type_id(e)):
                 return True
             
         return False
 
-    if (cls.inherits_from(sidl.type_id(e))
-        or hasAncestor([], cls, sidl.hashable_type_id(e))): 
-      if sidl.is_class(e):
+    if (cls.inherits_from(sidlir.type_id(e))
+        or hasAncestor([], cls, sidlir.hashable_type_id(e))): 
+      if sidlir.is_class(e):
           # fixme: for enums, this is not true
           return '((struct %s__object*)self)'%qual_name(cls.symbol_table, e)
       
@@ -781,7 +781,7 @@ def class_to_interface_ptr(cls, e):
         direct = directlyImplements(cls, e)
         result.append('&((*self)')
         while ancestor:
-            if ((direct and (sidl.hashable_type_id(e) in ancestor.get_unique_interfaces())) 
+            if ((direct and (sidlir.hashable_type_id(e) in ancestor.get_unique_interfaces())) 
                 or ((not direct) and implementsByInheritance(ancestor, e))):
                 result.append('.d_')
                 result.append(qual_name_low(ancestor.symbol_table, e))
@@ -791,7 +791,7 @@ def class_to_interface_ptr(cls, e):
 
         if ancestor == None:
             raise Exception('Illegal symbol table entry: %s and %s' 
-                            % ( cls.name, sidl.type_id(e)))
+                            % ( cls.name, sidlir.type_id(e)))
         
         result.append(')')
         return ''.join(result)
@@ -806,8 +806,8 @@ def qual_id_low(scoped_id):
     return str.lower(qual_id(scoped_id))
 
 def qual_name(symbol_table, cls):
-    assert not sidl.is_scoped_id(cls)
-    _, prefix, name, ext = sidl.get_scoped_id(symbol_table, cls)
+    assert not sidlir.is_scoped_id(cls)
+    _, prefix, name, ext = sidlir.get_scoped_id(symbol_table, cls)
     return '_'.join(prefix+[name])+ext
 
 def qual_name_low(symbol_table, cls):
@@ -883,8 +883,8 @@ def StaticEPVDecls(sorted_parents, cls, ior_name):
     # Interfaces and parents
     new_interfaces = cls.get_unique_interfaces()
     for parent in sorted_parents:
-        is_par   = not sidl.hashable_type_id(parent) in new_interfaces
-        t = qual_id(sidl.type_id(parent))
+        is_par   = not sidlir.hashable_type_id(parent) in new_interfaces
+        t = qual_id(sidlir.type_id(parent))
         n = str.lower(t)
         r.append('static struct %s__epv  s_my_epv__%s;'% (t, n))
         with_parent_hooks = generateHookEPVs(make_extendable(cls.symbol_table, parent))
@@ -956,7 +956,7 @@ static void {t}__init_sepv(void)
 
     r.append('')
     for m in cls.get_methods():
-        r.append('  s->f_%s = NULL;'%sidl.method_id(m))
+        r.append('  s->f_%s = NULL;'%sidlir.method_id(m))
 
     r.append('')
     r.append('  %s__set_sepv(s, &s_preSEPV, &s_postSEPV);'%t)
@@ -969,7 +969,7 @@ static void {t}__init_sepv(void)
     if contracts:
         r.append('  memcpy((void*)cs, s, sizeof(struct %s__sepv));'%t)
         for m in cls.get_methods():
-            n = sidl.method_id(m)
+            n = sidlir.method_id(m)
             r.append('  cs->f_%s = check_%s_%s;'%(n, qual_cls(cls), n))
 
     r.append('')
@@ -1102,8 +1102,8 @@ def generateEPVMethodAssignments(r, ext, setType, ptrVar, doStatics):
 
     for m in methods:
         if (not doChecks) or (hasInvs or m.hasPreClause() or m.hasPostClause()):
-            tName = 'hooks_'+sidl.long_method_name(m) if doChecks else 'check_'+sidl.long_method_name(m)
-            r.append(' %s->f_%s = %s;' % (ptrVar, sidl.long_method_name(m), tName))
+            tName = 'hooks_'+sidlir.long_method_name(m) if doChecks else 'check_'+sidlir.long_method_name(m)
+            r.append(' %s->f_%s = %s;' % (ptrVar, sidlir.long_method_name(m), tName))
       
 
 def generateNonstaticMethods(r, cls, obj, methods, var, parent, mwidth):
@@ -1114,7 +1114,7 @@ def generateNonstaticMethods(r, cls, obj, methods, var, parent, mwidth):
     # parent class does not have the method and to the parent function pointer
     # if the parent has the method.
     for method in methods:
-        mname     = sidl.long_method_name(method)
+        mname     = sidlir.long_method_name(method)
         parentHas = parent and parent.has_method_by_long_name(mname, _all=True)
 
         generateNonstaticEPV(r, method, obj, var, parent, parentHas, mwidth)
@@ -1123,13 +1123,13 @@ def generateNonstaticMethods(r, cls, obj, methods, var, parent, mwidth):
         #    and not skip_rmi):
         #    send = method.spawnNonblockingSend()
         #    if  send: 
-        #        mname     = sidl.long_method_name(send()
+        #        mname     = sidlir.long_method_name(send()
         #        parentHas = parent and parent.has_method_by_long_name(mname, true)
         #        assignNonblockingPointer(r, cls, send, mwidth); 
         #    
         #    recv = method.spawnNonblockingRecv()
         #    if  recv != null : 
-        #        mname     = sidl.long_method_name(recv()
+        #        mname     = sidlir.long_method_name(recv()
         #        parentHas = parent and parent.has_method_by_long_name(mname, true)
         #        assignNonblockingPointer(r, cls, recv, mwidth); 
             
@@ -1184,7 +1184,7 @@ def assignNonblockingPointer(r, cls, method, mwidth):
            formatting parameter related to width of longest method name
     """
 
-    mname = sidl.long_method_name(method)
+    mname = sidlir.long_method_name(method)
     r.append('  epv->f_%s= ior_%s_%s;'(align(mname, mwidth), '_'.join(cls.qualified_name), mname))
   
 
@@ -1192,7 +1192,7 @@ def generateNonstaticEPV(r, m, obj, var, parent, parentHas, width):
     """
     Generate the non-static method epv entry for the method.
     """
-    name = sidl.long_method_name(m)
+    name = sidlir.long_method_name(m)
     if parentHas:
         r.append('  %s->f_%s= %ss1->f_%s;'%(var, align(name, width), 
                                             getCast(parent.symbol_table, m, obj + "*"), name))
@@ -1284,10 +1284,10 @@ def copyEPVs(r, symbol_table, parents, renames):
         T = '_'.join(ext.qualified_name)
         # Iterate over all methods in the EPV and set the method pointer.
         for method in methList:
-          name          = T+sidl.long_method_name(method)
-          oldname       = sidl.long_method_name(method)
-          if sidl.long_method_name(method) in renames:
-            newname = sidl.long_method_name(renames[method])
+          name          = T+sidlir.long_method_name(method)
+          oldname       = sidlir.long_method_name(method)
+          if sidlir.long_method_name(method) in renames:
+            newname = sidlir.long_method_name(renames[method])
           else:
             newname = oldname
    
@@ -1304,14 +1304,14 @@ def copyEPVs(r, symbol_table, parents, renames):
         #   for (Iterator j = methList.iterator(); j.hasNext(); ) {
         #     Method method        = (Method) j.next();
         #     String name          = id.getFullName() + ".";
-        #     name                += sidl.long_method_name(method();
+        #     name                += sidlir.long_method_name(method();
         #     Method renamedMethod = (Method) renames.get(name);
-        #     String oldname       = sidl.long_method_name(method();
+        #     String oldname       = sidlir.long_method_name(method();
         #     String newname       = null;
         #     if (renamedMethod != null) {
-        #       newname = sidl.long_method_name(renamedMethod();
+        #       newname = sidlir.long_method_name(renamedMethod();
         #     } else { 
-        #       newname = sidl.long_method_name(method();
+        #       newname = sidlir.long_method_name(method();
         #     }
         #     r.append(estring);
         #     r.appendAligned(IOR.getNativeVectorEntry(oldname), mwidth);
@@ -1329,10 +1329,10 @@ def copyEPVs(r, symbol_table, parents, renames):
           # Iterate over all methods in the EPV and set the method pointer.
           # if we're using hooks
           for method in methods:
-              name          = T+'.'+sidl.long_method_name(method)
-              oldname       = sidl.long_method_name(method)
-              if sidl.method_method_name(method) in renames:
-                  newname = sidl.long_method_name(renames[method])
+              name          = T+'.'+sidlir.long_method_name(method)
+              oldname       = sidlir.long_method_name(method)
+              if sidlir.method_method_name(method) in renames:
+                  newname = sidlir.long_method_name(renames[method])
               else:
                   newname = oldname
               r.append('// TODO  %she_%s= %shepv->%s;'
@@ -1352,14 +1352,14 @@ def getCast(symbol_table, method, selfptr):
     # Begin the cast string with the return type and self object reference.
     cast = []
     cast.append("(");
-    cast.append(c_gen(babel.lower_ir(symbol_table, sidl.method_type_void(method))))
+    cast.append(c_gen(babel.lower_ir(symbol_table, sidlir.method_type_void(method))))
     cast.append(" (*)(")
 
     # Add the method arguments to the cast clause as well as an
     # optional exception argument.
     args = [selfptr]
-    for arg in sidl.method_args(method):
-        args.append(c_gen(babel.lower_ir(symbol_table, sidl.arg_type_void(arg))))
+    for arg in sidlir.method_args(method):
+        args.append(c_gen(babel.lower_ir(symbol_table, sidlir.arg_type_void(arg))))
 
     args.append('struct sidl_BaseInterface__object **') # exception
     cast.append(', '.join(args))
@@ -1513,7 +1513,7 @@ def setEPVsInGetEPVs(r, cls):
 def s_methods(cls, iorname):
     r = []
     for m in cls.all_nonstatic_methods:  
-        ln = sidl.long_method_name(m)
+        ln = sidlir.long_method_name(m)
         r.append('    { "%s", %s_%s__exec },'%(ln, iorname, ln));
     return '\n'.join(r)
 
@@ -1698,37 +1698,37 @@ def lower_assertion(cls, m, expr):
         if name == '_retval':
             return m[1]
 
-        args = sidl.method_args(m)
+        args = sidlir.method_args(m)
         for arg in args:
-            if sidl.arg_id(arg) == name:
+            if sidlir.arg_id(arg) == name:
                 return arg[3]
         raise Exception('arg not found: '+name)
 
 
     with match(expr):
-        if (sidl.infix_expr, sidl.iff, Lhs, Rhs):
+        if (sidlir.infix_expr, sidlir.iff, Lhs, Rhs):
             return ir.Infix_expr(ir.log_or,
                                  ir.Infix_expr(ir.log_and, low(Lhs), low(Rhs)),
                                  ir.Infix_expr(ir.log_and,
                                                ir.Prefix_expr(ir.log_not, low(Lhs)), 
                                                ir.Prefix_expr(ir.log_not, low(Rhs))))
 
-        if (sidl.infix_expr, sidl.implies, Lhs, Rhs):
+        if (sidlir.infix_expr, sidlir.implies, Lhs, Rhs):
             return ir.Infix_expr(ir.log_or, ir.Prefix_expr(ir.log_not, low(Lhs)), low(Rhs))
 
-        elif (sidl.infix_expr, Bin_op, Lhs, Rhs):
+        elif (sidlir.infix_expr, Bin_op, Lhs, Rhs):
             return ir.Infix_expr(Bin_op, low(Lhs), low(Rhs))
 
-        elif (sidl.prefix_expr, Un_op, AssertExpr):
+        elif (sidlir.prefix_expr, Un_op, AssertExpr):
             return ir.Prefix_expr(Un_op, AssertExpr)
 
-        elif (sidl.fn_eval, Id, AssertExprs):
+        elif (sidlir.fn_eval, Id, AssertExprs):
             args = [low(e) for e in AssertExprs]
             if Id in builtin_funcs.keys():
                 try: arg0 = AssertExprs[0]
                 except: print "**ERROR: assert function has no arguments: ", sidl_gen(expr)
                 t = get_arg_type(low(arg0))
-                if sidl.is_array(t):
+                if sidlir.is_array(t):
                     typearg = c_gen(babel.lower_ir(cls.symbol_table, t))
                     return ir.Call('SIDL_ARRAY_'+builtin_funcs[Id], [typearg]+args)
                 else:
@@ -1736,7 +1736,7 @@ def lower_assertion(cls, m, expr):
             else:
                 return ir.Call('(sepv->f_%s)'%Id, args+['_ex'])
 
-        elif (sidl.var_ref, Id):
+        elif (sidlir.var_ref, Id):
             return Id
         else: 
             if expr == 'RESULT':
@@ -1763,7 +1763,7 @@ def precondition_check(cls, m, assertion):
           sidl_PreViolation_deleteRef(pre_err, &tae);
         }
       }''').substitute(t = t,
-                       m = sidl.method_id(m), 
+                       m = sidlir.method_id(m), 
                        n = name, 
                        ac = ac, 
                        a = a)
@@ -1775,7 +1775,7 @@ def postcondition_check(cls, m, assertion):
     _, name, expr = assertion
     t = '.'.join(cls.qualified_name)
 
-    if sidl.is_prefix_expr(expr) and expr[1] == sidl.is_:
+    if sidlir.is_prefix_expr(expr) and expr[1] == sidlir.is_:
         return 'if (NULL) { /* pure */ }'
 
     a = sidl_gen(assertion)
@@ -1791,7 +1791,7 @@ def postcondition_check(cls, m, assertion):
           sidl_PostViolation_deleteRef(post_err, &tae);
         }
       }''').substitute(t = t,
-                       m = sidl.method_id(m), 
+                       m = sidlir.method_id(m), 
                        n = name, 
                        ac = ac, 
                        a = a)
@@ -1892,8 +1892,8 @@ def check_skeletons(cls, ior_name):
     r = []
     for m in cls.get_methods():
         (_, Type, _, Attrs, Args, _, _, Requires, Ensures, _) = m
-        static = member_chk(sidl.static, Attrs)
-        method_name = sidl.method_id(m)
+        static = member_chk(sidlir.static, Attrs)
+        method_name = sidlir.method_id(m)
         preconditions = Requires
         postconditions = Ensures
         ctype = c_gen(babel.lower_ir(cls.symbol_table, Type))
@@ -1908,7 +1908,7 @@ def check_skeletons(cls, ior_name):
                 ', '.join([c_gen(a) for a in cargs])))
         r.append('{')
 
-        if Type <> sidl.void:
+        if Type <> sidlir.void:
             r.append('  %s _retval = 0;'%ctype)
 
         r.append(Template(r'''
@@ -1975,10 +1975,10 @@ def check_skeletons(cls, ior_name):
 ''')
         # the method call
         r.append('    %s(%sepv->f_%s)(%s, _ex);'%(
-                '_retval = ' if Type <> sidl.void else '',
+                '_retval = ' if Type <> sidlir.void else '',
                 's' if static else '',
                 method_name,
-                ', '.join([sidl.arg_id(arg) for arg in Args])))
+                ', '.join([sidlir.arg_id(arg) for arg in Args])))
         
         r.append(Template(r'''
       if ((*_ex) != NULL) {
@@ -2061,7 +2061,7 @@ def check_skeletons(cls, ior_name):
   printf("check_${t}_${m}: Exiting normally\n");
 #endif /* SIDL_CONTRACTS_DEBUG */
 ''').substitute(substs))
-        if Type <> sidl.void:
+        if Type <> sidlir.void:
             r.append('  return _retval;')
         
         r.append('}')
@@ -2094,7 +2094,7 @@ static VAR_UNUSED struct ${t}__inv_desc{
     r.append('static const int32_t s_IOR_%s_MIN = 0;'%T)
     for m in cls.get_methods():
         r.append('static const int32_t s_IOR_%s_%s = %d;'
-                 %(T, str.upper(sidl.method_id(m)), n))
+                 %(T, str.upper(sidlir.method_id(m)), n))
         n = n + 1
     r.append('static const int32_t s_IOR_%s_MAX = %d;'%(T, n))
     r.append('''
@@ -2110,7 +2110,7 @@ static VAR_UNUSED struct {t}__method_desc{{
 }} s_ior_{t}_method[] = {{
 '''.format(t=iorname))
     for m in cls.get_methods():
-        r.append('{"%s", 1, 0, 0, 0, 0.0, 0.0, 0.0},'%sidl.method_id(m))
+        r.append('{"%s", 1, 0, 0, 0, 0.0, 0.0, 0.0},'%sidlir.method_id(m))
 
     r.append('};')
     r.append('')
@@ -2145,10 +2145,10 @@ def generateMethodExecs(cls, iorname):
     
     for m in cls.all_methods:
         needExecErr = False
-        if not sidl.is_static(m):
+        if not sidlir.is_static(m):
             numSerialized = 0  # number of args + return value + exceptions
-            name = sidl.long_method_name(m)
-            returnType = sidl.method_type_void(m)
+            name = sidlir.long_method_name(m)
+            returnType = sidlir.method_type_void(m)
             r.append("static void");
             r.append('%s_%s__exec('%(iorname,name))
             r.append("        struct %s__object* self,"%iorname);
@@ -2490,19 +2490,19 @@ def resolveRenamedMethods(ext, renames):
     renamed = ext.get_newmethods()
     for newM in renamed:
       oldM = ext.get_renamed_method()
-      renames[oldM+"."+sidl.long_method_name(oldM)] = newM
+      renames[oldM+"."+sidlir.long_method_name(oldM)] = newM
     
     # Check if parent has any methods that are renamed, if so, add to map 
       for parent in ext.get_parents():
           for curM in parent.get_methods():
               # If the method was renamed in a child
-              curM_name = sidl.long_method_name(curM)
+              curM_name = sidlir.long_method_name(curM)
               if (ext.getFullName() + "."+ curM_name) in renames:
                   # and we haven't already added this parents's version
                   k = parent.getFullName() + "." + curM_name
                   if k not in renames.containsKey():
                       # add this parents version
-                      renames[k] = ext.lookup_method_by_long_name(sidl.long_method_name(curM), True)
+                      renames[k] = ext.lookup_method_by_long_name(sidlir.long_method_name(curM), True)
             
           # After adding the methods from this parent, recursively call the parent
           resolveRenamedMethods(parent, renames)
@@ -2570,12 +2570,12 @@ def class_contracts(cls):
     has_contracts = []
 
     def evaluate(_symtab, ext, _sid):
-        if sidl.ext_invariants(ext):
+        if sidlir.ext_invariants(ext):
             has_contracts.append(True)
             return
 
-        for m in sidl.ext_methods(ext):
-            if sidl.method_requires(m) or sidl.method_ensures(m):
+        for m in sidlir.ext_methods(ext):
+            if sidlir.method_requires(m) or sidlir.method_ensures(m):
                 has_contracts.append(True)
                 return
 
@@ -2603,7 +2603,7 @@ def isSIDLSymbol(scoped_id):
     Return TRUE if the Symbol ID corresponds to a SIDL symbol; FALSE 
     otherwise.
     """
-    return sidl.scoped_id_modules(scoped_id)[0] == 'sidl'
+    return sidlir.scoped_id_modules(scoped_id)[0] == 'sidl'
    
 
 @accepts(tuple)
@@ -2612,7 +2612,7 @@ def isSIDLXSymbol(scoped_id):
     Return TRUE if the Symbol ID corresponds to a SIDLX symbol; FALSE 
     otherwise.
     """
-    return sidl.scoped_id_modules(scoped_id)[0] == 'sidlx'
+    return sidlir.scoped_id_modules(scoped_id)[0] == 'sidlx'
 
 @accepts(object)
 def generateContractBuiltins(ext):
@@ -2638,6 +2638,6 @@ def isException(ext):
    the base exception interface, or it has the base exception class or 
    interface in its type ancestry.
    """
-   base_ex = (sidl.scoped_id, ('sidl',), 'BaseException', '')
+   base_ex = (sidlir.scoped_id, ('sidl',), 'BaseException', '')
    sid = ext.get_id()
    return sid == base_ex or ext.has_parent_interface(base_ex)

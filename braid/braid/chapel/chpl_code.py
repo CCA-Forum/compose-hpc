@@ -29,7 +29,7 @@
 #
 # </pre>
 #
-import babel, ir, sidl, re
+import babel, ir, sidlir, re
 import ior
 from patmat import *
 from utils import *
@@ -58,10 +58,10 @@ def epv_qname(scoped_id, sep='_'):
 stubs_generated = set()
 
 def incoming((arg, attrs, mode, typ, name)):
-    return mode <> sidl.out
+    return mode <> sidlir.out
 
 def outgoing((arg, attrs, mode, typ, name)):
-    return mode <> sidl.in_
+    return mode <> sidlir.in_
 
 def deref(mode, typ, name):
     if ir.is_pointer_type(typ) and ir.is_struct(typ[1]):
@@ -70,7 +70,7 @@ def deref(mode, typ, name):
         return name+'->'  # _ex
     elif typ[0] ==  ir.struct:
         return name+'->'
-    elif mode == sidl.in_:
+    elif mode == sidlir.in_:
         return name 
     else: return '(*%s)'%name
  
@@ -405,15 +405,15 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.arg, Attrs, Mode, Type, Name):
                 return '%s %s: %s'%(gen(Mode), gen(Name), gen(Type))
 
-            elif (sidl.class_, (ir.scoped_id, Prefix, Name, Ext), Extends, Implements, Invariants, Methods, DocComment):
+            elif (sidlir.class_, (ir.scoped_id, Prefix, Name, Ext), Extends, Implements, Invariants, Methods, DocComment):
                 return '%sclass %s' % (gen_comment(DocComment), 
                                        '.'.join(Prefix+['_'.join(Prefix+[Name+Ext])]))
 
-            elif (sidl.array, [], [], []):
+            elif (sidlir.array, [], [], []):
                 print '** WARNING: deprecated rule, use a sidl__array struct instead'
                 return 'sidl.Array(opaque, sidl__array) /* DEPRECATED */'
 
-            elif (sidl.array, Scalar_type, Dimension, Orientation):
+            elif (sidlir.array, Scalar_type, Dimension, Orientation):
                 print '** WARNING: deprecated rule, use a sidl_*__array struct instead'
                 if ir.is_scoped_id(Scalar_type):
                     ctype = 'BaseInterface'
@@ -484,7 +484,7 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.set_struct_item, _, (ir.deref, StructName), (ir.struct_item, _, Item), Value):
                 return gen(StructName)+'.'+gen(Item)+' = '+gen(Value)
 
-            elif (ir.struct_item, (sidl.array, Scalar_type, Dimension, Extents), Name):
+            elif (ir.struct_item, (sidlir.array, Scalar_type, Dimension, Extents), Name):
                 return '%s: []%s'%(gen(Name), gen(Scalar_type))
 
 
@@ -549,9 +549,9 @@ class ChapelCodeGenerator(ClikeCodeGenerator):
             elif (ir.double, N):   
                 return str(N)+':real(64)'
 
-            elif (sidl.custom_attribute, Id):       return gen(Id)
-            elif (sidl.method_name, Id, Extension): return gen(Id) + gen(Extension)
-            elif (sidl.scoped_id, Prefix, Name, Ext):
+            elif (sidlir.custom_attribute, Id):       return gen(Id)
+            elif (sidlir.method_name, Id, Extension): return gen(Id) + gen(Extension)
+            elif (sidlir.scoped_id, Prefix, Name, Ext):
                 return '.'.join(Prefix+[Name])
 
             elif (ir.typedef_type, 'sidl_enum'): return 'int(64)'

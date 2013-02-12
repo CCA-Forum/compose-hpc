@@ -43,7 +43,7 @@
 #
 import itertools, logging, operator, os.path, sys
 sys.path.append('.libs')
-import yacc, sidl, scanner
+import yacc, sidlir, scanner
 #import ply.lex as lex
 #from ply.lex import TOKEN
 
@@ -355,7 +355,7 @@ def t_error(t):
 
 def p_start(p):
     '''start : requires imports userTypes'''
-    p[0] = sidl.File((p[1]), (p[2]), (p[3]))
+    p[0] = sidlir.File((p[1]), (p[2]), (p[3]))
 
 def p_empty(p):
     '''empty :'''
@@ -469,7 +469,7 @@ def p_error(errorToken):
 
 def p_version(p):
     '''version : VERSION version_'''
-    p[0] = sidl.Version(p[2])
+    p[0] = sidlir.Version(p[2])
 
 def p_version_error(p):
     '''version : VERSION error'''
@@ -488,7 +488,7 @@ def p_requires(p): # *
 
 def p_require(p):
     '''require : REQUIRE scopedId version SEMICOLON'''
-    p[0] = sidl.Requires(p[2], p[3])
+    p[0] = sidlir.Requires(p[2], p[3])
 
 def p_require_error(p):
     '''require : REQUIRE error version SEMICOLON'''
@@ -502,12 +502,12 @@ def p_imports(p): # *
 def p_import_1(p):
     '''import : IMPORT scopedId SEMICOLON'''
     print "FIXME: sidl_parser.p_import_1::process import"
-    p[0] = (sidl.import_, p[2])
+    p[0] = (sidlir.import_, p[2])
 
 def p_import_2(p):
     '''import : IMPORT scopedId version SEMICOLON'''
     print "FIXME: sidl_parser.p_import_2::process import"
-    p[0] = (sidl.import_, p[2], p[3])
+    p[0] = (sidlir.import_, p[2], p[3])
 
 def p_import_error(p):
     '''import : IMPORT error SEMICOLON'''
@@ -516,12 +516,12 @@ def p_import_error(p):
 def p_package_1(p):
     '''package : PACKAGE name LBRACE userTypes RBRACE'''
     no_comma(p[5])
-    p[0] = (sidl.package, p[2], 'no version', (p[4]), scanner.last_doc_comment())
+    p[0] = (sidlir.package, p[2], 'no version', (p[4]), scanner.last_doc_comment())
 
 def p_package_2(p):
     '''package : PACKAGE name version LBRACE userTypes RBRACE'''
     no_comma(p[6])
-    p[0] = (sidl.package, p[2], p[3], (p[5]), scanner.last_doc_comment())
+    p[0] = (sidlir.package, p[2], p[3], (p[5]), scanner.last_doc_comment())
 
 def p_package_error_1(p):
     '''package : PACKAGE error'''
@@ -538,7 +538,7 @@ def p_userTypes(p): # *
 
 def p_userType(p):
     '''userType : typeCustomAttrs cipse maybeSemicolon'''
-    p[0] = sidl.User_type((p[1]), p[2])
+    p[0] = sidlir.User_type((p[1]), p[2])
 
 def p_cipse(p):
     '''cipse : class
@@ -573,7 +573,7 @@ def p_name(p):
 
 def p_enum(p):
     '''enum : ENUM name LBRACE enumerators RBRACE'''
-    p[0] = sidl.Enum(p[2], (p[4]), scanner.last_doc_comment())
+    p[0] = sidlir.Enum(p[2], (p[4]), scanner.last_doc_comment())
 
 def p_enumerators(p): # +
     '''enumerators : enumerator
@@ -585,14 +585,14 @@ def p_enumerator(p):
     '''enumerator : name
                   | name ASSIGN integer'''
     if len(p) < 4:
-        p[0] = sidl.Enumerator(p[1])
+        p[0] = sidlir.Enumerator(p[1])
     else:
-        p[0] = sidl.Enumerator_value(p[1], p[3])
+        p[0] = sidlir.Enumerator_value(p[1], p[3])
 
 def p_struct(p):
     '''struct : STRUCT name LBRACE structItems RBRACE'''
     no_comma(p[5])
-    p[0] = sidl.Struct(p[2], (p[4]), scanner.last_doc_comment())
+    p[0] = sidlir.Struct(p[2], (p[4]), scanner.last_doc_comment())
 
 def p_structItems(p): # *
     '''structItems : empty
@@ -601,12 +601,12 @@ def p_structItems(p): # *
 
 def p_structItem_1(p):
     '''structItem : type name SEMICOLON'''
-    p[0] = sidl.Struct_item(p[1], p[2])
+    p[0] = sidlir.Struct_item(p[1], p[2])
 
 def p_structItem_2(p):
     '''structItem : rarray SEMICOLON'''
     # pull out the name
-    p[0] = sidl.Struct_item(sidl.Rarray(p[1][1], p[1][2], p[1][4]), p[1][3])
+    p[0] = sidlir.Struct_item(sidlir.Rarray(p[1][1], p[1][2], p[1][4]), p[1][3])
 
 def p_class(p):
     '''class : CLASS name maybeExtendsOne implementsSomeAllLists LBRACE invariants methods RBRACE'''
@@ -614,7 +614,7 @@ def p_class(p):
     # Every class implicitly inherits from BaseClass
     if not p[3]:
         if p[2] <> 'BaseClass':
-            ext = [sidl.Extends(sidl.Scoped_id(['sidl'], 'BaseClass', ''))]
+            ext = [sidlir.Extends(sidlir.Scoped_id(['sidl'], 'BaseClass', ''))]
         else: ext = []
     else: ext = p[3]
 
@@ -622,7 +622,7 @@ def p_class(p):
         impl = list(itertools.chain.from_iterable(p[4]))
     else: impl = p[4]
 
-    p[0] = sidl.Class(p[2], ext, impl, (p[6]), (p[7]), scanner.last_doc_comment())
+    p[0] = sidlir.Class(p[2], ext, impl, (p[6]), (p[7]), scanner.last_doc_comment())
 
 def p_implementsSomeAllLists(p):
     '''implementsSomeAllLists : empty
@@ -659,10 +659,10 @@ def p_interface(p):
         exts = p[3]
     else:
         if p[2] <> 'BaseInterface':
-            exts = [sidl.Extends(sidl.Scoped_id(['sidl'], 'BaseInterface', ''))]
+            exts = [sidlir.Extends(sidlir.Scoped_id(['sidl'], 'BaseInterface', ''))]
         else: exts = []
 
-    p[0] = sidl.Interface(p[2], exts, (p[5]), (p[6]), scanner.last_doc_comment())
+    p[0] = sidlir.Interface(p[2], exts, (p[5]), (p[6]), scanner.last_doc_comment())
 
 def p_scopedIds(p): # +
     '''scopedIds : scopedId
@@ -673,25 +673,25 @@ def p_extendsList(p):
     '''extendsList : empty
                    | EXTENDS scopedIds'''
     try2nd(p)
-    p[0] = map(lambda x: sidl.Extends(x), p[0])
+    p[0] = map(lambda x: sidlir.Extends(x), p[0])
 
 def p_maybeExtendsOne(p):
     '''maybeExtendsOne : empty
                        | EXTENDS scopedId'''
     try2nd(p)
-    if p[0]: p[0] = [sidl.Extends(p[0])]
+    if p[0]: p[0] = [sidlir.Extends(p[0])]
 
 def p_implementsList(p):
     '''implementsList : IMPLEMENTS scopedIds'''
-    p[0] = map(lambda x: sidl.Implements(x), p[2])
+    p[0] = map(lambda x: sidlir.Implements(x), p[2])
 
 def p_implementsAllList(p):
     '''implementsAllList : IMPLEMENTS_ALL scopedIds'''
-    p[0] = map(lambda x: sidl.Implements_all(x), p[2])
+    p[0] = map(lambda x: sidlir.Implements_all(x), p[2])
 
 def p_method(p):
     '''method : methodAttrs typeVoid methodName LPAREN maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions'''
-    p[0] = sidl.Method(p[2], p[3], (p[1]), (p[5]), p[7], p[8], (p[10]), (p[11]), scanner.last_doc_comment())
+    p[0] = sidlir.Method(p[2], p[3], (p[1]), (p[5]), p[7], p[8], (p[10]), (p[11]), scanner.last_doc_comment())
 
 def p_method_error(p):
     '''method : methodAttrs typeVoid methodName error maybeArgList RPAREN maybeExceptClause maybeFromClause  SEMICOLON requireAssertions ensureAssertions
@@ -702,7 +702,7 @@ def p_typeVoid(p):
     '''typeVoid : type
                 | VOID'''
     if p[1] == 'VOID':
-        p[0] = (sidl.void)
+        p[0] = (sidlir.void)
     else: p[0] = p[1]
 
 def p_methodAttrs(p): # *
@@ -730,10 +730,10 @@ def p_methodName(p):
     '''methodName : name empty
                   | name EXTENSION'''
     if p[2] == []:
-        p[0] = sidl.Method_name(p[1], '')
+        p[0] = sidlir.Method_name(p[1], '')
     else:
         # '[token]'->'token'
-        p[0] = sidl.Method_name(p[1], p[2][1:-1])
+        p[0] = sidlir.Method_name(p[1], p[2][1:-1])
 
 def p_maybeExceptClause(p):
     '''maybeExceptClause : exceptClause
@@ -742,27 +742,27 @@ def p_maybeExceptClause(p):
 
 def p_exceptClause(p):
     '''exceptClause : THROWS scopedIds'''
-    p[0] = map(lambda x: sidl.Except(x), p[2])
+    p[0] = map(lambda x: sidlir.Except(x), p[2])
 
 def p_maybeFromClause(p):
     '''maybeFromClause : FROM scopedId
                        | empty'''
     try2nd(p)
-    if p[0]: p[0] = [sidl.From(p[0])]
+    if p[0]: p[0] = [sidlir.From(p[0])]
 
 def p_invariant(p):
     '''invariant : INVARIANT assertion'''
-    p[0] = sidl.Invariant(p[2])
+    p[0] = sidlir.Invariant(p[2])
 
 def p_requireAssertions(p):
     '''requireAssertions : REQUIRE assertions
                          | empty empty'''
-    p[0] = map(lambda x: sidl.Require(x), p[2])
+    p[0] = map(lambda x: sidlir.Require(x), p[2])
 
 def p_ensureAssertions(p):
     '''ensureAssertions : ENSURE assertions
                         | empty empty'''
-    p[0] = map(lambda x: sidl.Ensure(x), p[2])
+    p[0] = map(lambda x: sidlir.Ensure(x), p[2])
 
 def p_assertions(p): # +
     '''assertions : assertion
@@ -772,11 +772,11 @@ def p_assertions(p): # +
 
 def p_assertion_1(p):
     '''assertion : IDENTIFIER_COLON assertExpr SEMICOLON'''
-    p[0] = sidl.Assertion((p[1]), p[2])
+    p[0] = sidlir.Assertion((p[1]), p[2])
 
 def p_assertion_2(p):
     '''assertion : assertExpr SEMICOLON'''
-    p[0] = sidl.Assertion('<anonymous>', p[1])
+    p[0] = sidlir.Assertion('<anonymous>', p[1])
 
 def p_maybeArgList(p):
     '''maybeArgList : argList
@@ -790,12 +790,12 @@ def p_argList(p): # +
 
 def p_arg_1(p):
     '''arg : argAttrs mode type name'''
-    p[0] = sidl.Arg((p[1]), p[2], p[3], p[4])
+    p[0] = sidlir.Arg((p[1]), p[2], p[3], p[4])
 
 def p_arg_2(p):
     '''arg : argAttrs mode rarray'''
-    p[0] = sidl.Arg(p[1], p[2], # pull out the name
-                    sidl.Rarray(p[3][1], p[3][2], p[3][4]), p[3][3])
+    p[0] = sidlir.Arg(p[1], p[2], # pull out the name
+                    sidlir.Rarray(p[3][1], p[3][2], p[3][4]), p[3][3])
 
 def p_argAttrs(p):
     '''argAttrs : COPY
@@ -815,11 +815,11 @@ def p_customAttrs(p):
 
 def p_customAttr_1(p):
     '''customAttr : ATTRIB_ID'''
-    p[0] = (sidl.custom_attribute, p[1])
+    p[0] = (sidlir.custom_attribute, p[1])
 
 def p_customAttr_2(p):
     '''customAttr : ATTRIB_ID ATTRIB_EQ ATTRIB_STRING'''
-    p[0] = (sidl.custom_attribute_assoc, p[1], p[3])
+    p[0] = (sidlir.custom_attribute_assoc, p[1], p[3])
 
 def p_mode(p):
     '''mode : IN
@@ -844,11 +844,11 @@ def p_primitiveType(p):
                      | DCOMPLEX
                      | STRING
                      | OPAQUE'''
-    p[0] = (sidl.primitive_type, str.lower(p[1]))
+    p[0] = (sidlir.primitive_type, str.lower(p[1]))
     
 def p_array(p):
     '''array : ARRAY LT scalarType dimension orientation GT'''
-    p[0] = (sidl.array, p[3], p[4], p[5])
+    p[0] = (sidlir.array, p[3], p[4], p[5])
 
 def p_scalarType(p):
     '''scalarType : primitiveType
@@ -880,7 +880,7 @@ def p_rarray(p):
     if nexps <> dimension:
         error(p, 'Expected %d extent expressions in rarray declaration, but there are %d.'
               %(dimension, nexps))
-    p[0] = (sidl.rarray, p[3], dimension, p[6], tuple(p[8]))
+    p[0] = (sidlir.rarray, p[3], dimension, p[6], tuple(p[8]))
 
 def p_maybeExtents(p):
     '''maybeExtents : empty
@@ -908,15 +908,15 @@ def p_simpleIntTerm_1(p):
 
 def p_simpleIntTerm_2(p):
     '''simpleIntTerm : simpleIntPrimary STAR simpleIntPrimary'''
-    p[0] = sidl.Simple_int_infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Simple_int_infix_expr(p[2], p[1], p[3])
 
 def p_simpleIntTerm_3(p):
     '''simpleIntTerm : simpleIntPrimary SLASH simpleIntPrimary'''
-    p[0] = sidl.Simple_int_infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Simple_int_infix_expr(p[2], p[1], p[3])
 
 def p_simpleIntPrimary_1(p):
     '''simpleIntPrimary : name'''
-    p[0] = sidl.Var_ref(p[1])
+    p[0] = sidlir.Var_ref(p[1])
 
 def p_simpleIntPrimary_2(p):
     '''simpleIntPrimary : integer'''
@@ -934,7 +934,7 @@ def p_assertExpr_1(p):
 def p_assertExpr_2(p):
     '''assertExpr : orExpr IMPLIES orExpr
                   | orExpr IFF orExpr'''
-    p[0] = sidl.Infix_expr(str.lower(p[2]), p[1], p[3])
+    p[0] = sidlir.Infix_expr(str.lower(p[2]), p[1], p[3])
 
 # TODO:
 #   simplify the grammar by using the following declaration
@@ -958,7 +958,7 @@ def p_orExpr_1(p):
 def p_orExpr_2(p):
     '''orExpr : andExpr LOGICAL_OR orExpr
               | andExpr LOGICAL_XOR orExpr'''
-    p[0] = sidl.Infix_expr('log_'+str.lower(p[2]), p[1], p[3])
+    p[0] = sidlir.Infix_expr('log_'+str.lower(p[2]), p[1], p[3])
 
 def p_andExpr_1(p):
     '''andExpr : bitwiseExpr'''
@@ -966,7 +966,7 @@ def p_andExpr_1(p):
 
 def p_andExpr_2(p):
     '''andExpr : bitwiseExpr LOGICAL_AND andExpr'''
-    p[0] = sidl.Infix_expr('log_'+str.lower(p[2]), p[1], p[3])
+    p[0] = sidlir.Infix_expr('log_'+str.lower(p[2]), p[1], p[3])
 
 def p_bitwiseExpr_1(p):
     '''bitwiseExpr : equalityExpr'''
@@ -976,7 +976,7 @@ def p_bitwiseExpr_2(p):
     '''bitwiseExpr : equalityExpr BITWISE_AND bitwiseExpr
                    | equalityExpr BITWISE_OR bitwiseExpr
                    | equalityExpr BITWISE_XOR bitwiseExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_equalityExpr_1(p):
     '''equalityExpr : relationalExpr'''
@@ -985,7 +985,7 @@ def p_equalityExpr_1(p):
 def p_equalityExpr_2(p):
     '''equalityExpr : relationalExpr EQ equalityExpr
                     | relationalExpr NE equalityExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_relationalExpr_1(p):
     '''relationalExpr : shiftExpr'''
@@ -996,7 +996,7 @@ def p_relationalExpr_2(p):
                       | shiftExpr GT relationalExpr
                       | shiftExpr LE relationalExpr
                       | shiftExpr GE relationalExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_shiftExpr_1(p):
     '''shiftExpr : addExpr'''
@@ -1005,7 +1005,7 @@ def p_shiftExpr_1(p):
 def p_shiftExpr_2(p):
     '''shiftExpr : addExpr LSHIFT shiftExpr
                  | addExpr RSHIFT shiftExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_addExpr_1(p):
     '''addExpr : multExpr'''
@@ -1014,7 +1014,7 @@ def p_addExpr_1(p):
 def p_addExpr_2(p):
     '''addExpr : multExpr PLUS addExpr
                | multExpr MINUS addExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_multExpr_1(p):
     '''multExpr : powerExpr'''
@@ -1026,9 +1026,9 @@ def p_multExpr_2(p):
                 | powerExpr MODULUS multExpr
                 | powerExpr REMAINDER multExpr'''
     if p[2] == 'rem':
-        p[0] = sidl.Infix_expr('mod', p[1], p[3])
+        p[0] = sidlir.Infix_expr('mod', p[1], p[3])
     else:
-        p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+        p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_powerExpr_1(p):
     '''powerExpr : unaryExpr'''
@@ -1036,13 +1036,13 @@ def p_powerExpr_1(p):
 
 def p_powerExpr_2(p):
     '''powerExpr : unaryExpr POWER powerExpr'''
-    p[0] = sidl.Infix_expr(p[2], p[1], p[3])
+    p[0] = sidlir.Infix_expr(p[2], p[1], p[3])
 
 def p_unaryExpr_1(p):
     '''unaryExpr : IS funcEval
                  | NOT funcEval
                  | TILDE funcEval'''
-    p[0] = sidl.Prefix_expr(str.lower(p[1]), p[2])
+    p[0] = sidlir.Prefix_expr(str.lower(p[1]), p[2])
 
 def p_unaryExpr_2(p):
     '''unaryExpr : funcEval'''
@@ -1052,15 +1052,15 @@ def p_unaryExpr_2(p):
 # TODO funcEval is btw. not a good name...
 def p_funcEval_1(p):
     '''funcEval : name LPAREN funcArgs RPAREN'''
-    p[0] = sidl.Fn_eval(p[1], p[3])
+    p[0] = sidlir.Fn_eval(p[1], p[3])
 
 def p_funcEval_2(p):
     '''funcEval : name LPAREN RPAREN'''
-    p[0] = sidl.Fn_eval(p[1], [])
+    p[0] = sidlir.Fn_eval(p[1], [])
 
 def p_funcEval_3(p):
     '''funcEval : name'''
-    p[0] = sidl.Var_ref(p[1])
+    p[0] = sidlir.Var_ref(p[1])
 
 def p_funcEval_4(p):
     '''funcEval : literal'''
@@ -1089,9 +1089,9 @@ def p_scopedId(p):
     '''scopedId : maybeDot names empty
                 | maybeDot names EXTENSION'''
     if p[3] == []:
-        p[0] = sidl.Scoped_id((p[2][:-1]), p[2][-1], '')
+        p[0] = sidlir.Scoped_id((p[2][:-1]), p[2][-1], '')
     else:
-        p[0] = sidl.Scoped_id((p[2][:-1]), p[2][-1], p[3])
+        p[0] = sidlir.Scoped_id((p[2][:-1]), p[2][-1], p[3])
 
 def p_names(p): # +
     '''names : name
@@ -1114,7 +1114,7 @@ def p_complex(p):
     no_comma(p[5])
     if operator.indexof(';', p[5]) > -1:
         error(p, "Unexpected ';'")
-    p[0] = sidl.Complex(p[2], p[4])
+    p[0] = sidlir.Complex(p[2], p[4])
 
 def p_number(p):
     '''number : empty numliteral
@@ -1168,13 +1168,13 @@ def package_nest(node, in_package):
         return in_package
 
     t = node[0]
-    if t == sidl.package:
+    if t == sidlir.package:
         in_package = True
     if not in_package:
-        if (t == sidl.class_ or
-            t == sidl.interface or
-            t == sidl.struct or
-            t == sidl.enum):
+        if (t == sidlir.class_ or
+            t == sidlir.interface or
+            t == sidlir.struct or
+            t == sidlir.enum):
             print "**ERROR: %s %s must appear inside of a package."%(node[0], node[1][1])
             exit(1)
     return in_package

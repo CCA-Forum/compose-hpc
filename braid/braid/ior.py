@@ -1,6 +1,6 @@
 ## @package ior
 # type definitions for the conversion code generator
-import ir, sidl
+import ir, sidlir
 bool     = ir.pt_bool
 char     = ir.pt_char
 int      = ir.pt_int
@@ -13,8 +13,8 @@ string   = ir.pt_string
 void_ptr = ir.void_ptr
 # dummy types for aggregate types
 enum     = ir.enum
-array    = sidl.array
-rarray   = sidl.rarray
+array    = sidlir.array
+rarray   = sidlir.rarray
 struct   = ir.struct
 void     = ir.pt_void
 pointer_type = ir.pointer_type 

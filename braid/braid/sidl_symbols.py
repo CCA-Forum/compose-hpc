@@ -24,7 +24,7 @@
 #
 from utils import accepts, returns, hashable
 from patmat import *
-import sidl, types, sys
+import sidlir, types, sys
 
 def resolve(ast, verbose=True):
     """
@@ -62,26 +62,26 @@ def build_symbol_table(node, symbol_table, verbose=True):
         return build_symbol_table(node, symbol_table, verbose)
 
     with match(node):
-        if (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
+        if (sidlir.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
             symbol_table[Name] = \
-                ( sidl.class_, (sidl.scoped_id, symbol_table.prefix, Name, ''),
+                ( sidlir.class_, (sidlir.scoped_id, symbol_table.prefix, Name, ''),
                   Extends, Implements, Invariants, Methods, DocComment )
 
-        elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
+        elif (sidlir.interface, Name, Extends, Invariants, Methods, DocComment):
             symbol_table[Name] = \
-                ( sidl.interface, (sidl.scoped_id, symbol_table.prefix, Name, ''),
+                ( sidlir.interface, (sidlir.scoped_id, symbol_table.prefix, Name, ''),
                   Extends, Invariants, Methods, DocComment )
 
-        elif (sidl.enum, Name, Items, DocComment):
+        elif (sidlir.enum, Name, Items, DocComment):
             symbol_table[Name] = node
 
-        elif (sidl.struct, Name, Items, DocComment):
+        elif (sidlir.struct, Name, Items, DocComment):
             symbol_table[Name] = \
-                ( sidl.struct,
-                  ( sidl.scoped_id, symbol_table.prefix, Name, ''), Items, 
+                ( sidlir.struct,
+                  ( sidlir.scoped_id, symbol_table.prefix, Name, ''), Items, 
                   DocComment )
 
-        elif (sidl.package, Name, Version, UserTypes, DocComment):
+        elif (sidlir.package, Name, Version, UserTypes, DocComment):
             if (verbose):
                 import sys
                 sys.stdout.write('\r'+' '*80)
@@ -91,16 +91,16 @@ def build_symbol_table(node, symbol_table, verbose=True):
 
             symbol_table[Name] = SymbolTable(symbol_table,
                                              symbol_table.prefix+[Name])
-            build_symbol_table(UserTypes, symbol_table[sidl.Scoped_id([], Name, '')][1], verbose)
+            build_symbol_table(UserTypes, symbol_table[sidlir.Scoped_id([], Name, '')][1], verbose)
 
-        elif (sidl.user_type, Attrs, Cipse):
+        elif (sidlir.user_type, Attrs, Cipse):
             gen(Cipse)
 
-        elif (sidl.file, Requires, Imports, UserTypes):
+        elif (sidlir.file, Requires, Imports, UserTypes):
             gen(Imports)
             gen(UserTypes)
 
-        elif (sidl.import_, (sidl.scoped_id, [], 'sidl', '')):
+        elif (sidlir.import_, (sidlir.scoped_id, [], 'sidl', '')):
             # imported by default
             pass
 
@@ -135,13 +135,13 @@ def resolve_symbols(node, symbol_table, verbose=True):
     #        print node[0:5]
 
     with match(node):
-        if (sidl.scoped_id, Prefix, Name, Ext):
+        if (sidlir.scoped_id, Prefix, Name, Ext):
             prefix, name = symbol_table.get_full_name(Prefix+[Name])
             # if name == ['BaseException']:
             #     print Names, "->", prefix, name
-            return (sidl.scoped_id, prefix, name, Ext)
+            return (sidlir.scoped_id, prefix, name, Ext)
         
-        elif (sidl.package, Name, Version, UserTypes, DocComment):
+        elif (sidlir.package, Name, Version, UserTypes, DocComment):
             if (verbose):
                 import sys
                 sys.stdout.write('\r'+' '*80)
@@ -149,7 +149,7 @@ def resolve_symbols(node, symbol_table, verbose=True):
                                  %'.'.join(symbol_table.prefix+[Name]))
                 sys.stdout.flush()
 
-            return (sidl.package, Name, Version,
+            return (sidlir.package, Name, Version,
                     resolve_symbols(UserTypes, symbol_table._symbol[Name],
                                     verbose), DocComment)
         else:
@@ -176,7 +176,7 @@ def consolidate_packages(node):
         others = []
         for n in nodes:
             with match(n):
-                if (sidl.user_type, Attr, (sidl.package, Name, Version, UTs, _)):
+                if (sidlir.user_type, Attr, (sidlir.package, Name, Version, UTs, _)):
                     p = packages.get(Name)
                     if p: # Merge with other existing package
                         (ut, attr, (pkg, name, version, usertypes, doc_comment)) = p
@@ -197,7 +197,7 @@ def consolidate_packages(node):
     def cons(node): return consolidate_packages(node)
 
     with match(node):
-        if (sidl.class_, _, _, _, _, _, _):
+        if (sidlir.class_, _, _, _, _, _, _):
             return node # speedup -- cut off search
 
         else:
@@ -246,7 +246,7 @@ class SymbolTable(object):
         """
         perform a recursive symbol lookup of a scoped identifier
         """
-        if not sidl.is_scoped_id(scoped_id):
+        if not sidlir.is_scoped_id(scoped_id):
             return self, scoped_id
 
         scopes = list(scoped_id[1])+[scoped_id[2]]
@@ -340,13 +340,13 @@ def scan_methods(symbol_table, is_abstract,
         for sorting purposes.
         """
         def arg_hash((arg, attr, mode, typ, name)):
-            if typ[0] == sidl.scoped_id:
+            if typ[0] == sidlir.scoped_id:
                 return mode, hashable(typ)
-            if typ[0] == sidl.array:
-                return hashable((mode, typ[0], sidl.hashable_type_id(typ), typ[2], typ[3]))
+            if typ[0] == sidlir.array:
+                return hashable((mode, typ[0], sidlir.hashable_type_id(typ), typ[2], typ[3]))
             return mode, typ
 
-        return method[2], tuple([arg_hash(a) for a in sidl.method_args(method)])
+        return method[2], tuple([arg_hash(a) for a in sidlir.method_args(method)])
 
     def update_method(m):
         """
@@ -365,7 +365,7 @@ def scan_methods(symbol_table, is_abstract,
         raise Exception('?')
 
     def add_method(m, with_hooks):
-        if member_chk(sidl.static, sidl.method_method_attrs(m)):
+        if member_chk(sidlir.static, sidlir.method_method_attrs(m)):
             flags.has_static_methods = True
 
         if not method_hash(m) in all_names:
@@ -402,31 +402,31 @@ def scan_methods(symbol_table, is_abstract,
     def scan_protocols(implements):
         for impl, ifce_sym in implements:
             _, ifce = symbol_table[ifce_sym]
-            if impl == sidl.implements_all:
+            if impl == sidlir.implements_all:
                 scan_methods(symtab, is_abstract,
-                             sidl.interface_extends(ifce), 
+                             sidlir.interface_extends(ifce), 
                              [], 
-                             sidl.interface_methods(ifce),
+                             sidlir.interface_methods(ifce),
                              all_names, all_methods, flags, 
                              toplevel=False)
 
-            for m in sidl.interface_methods(ifce):
+            for m in sidlir.interface_methods(ifce):
                 add_method(m, toplevel and not is_abstract)
 
     for _, ext in extends:
         symtab, base = symbol_table[ext]
-        if base[0] == sidl.class_:
+        if base[0] == sidlir.class_:
             scan_methods(symtab, is_abstract,
-                         sidl.class_extends(base), 
-                         sidl.class_implements(base), 
-                         sidl.class_methods(base),
+                         sidlir.class_extends(base), 
+                         sidlir.class_implements(base), 
+                         sidlir.class_methods(base),
                          all_names, all_methods, flags, 
                          toplevel=False)
-        elif base[0] == sidl.interface:
+        elif base[0] == sidlir.interface:
             scan_methods(symtab, is_abstract,
-                         sidl.interface_extends(base), 
+                         sidlir.interface_extends(base), 
                          [], 
-                         sidl.interface_methods(base),
+                         sidlir.interface_methods(base),
                          all_names, all_methods, flags, 
                          toplevel=False)
         else: raise("?")
@@ -444,7 +444,7 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
     """
     Visit all parent classes and implemented interfaces of
     \c base_class exactly once and invoke visit_func on each
-    sidl.class/sidl.interface node.
+    sidlir.class/sidlir.interface node.
  
     \arg visited_nodes         An optional list of nodes
                                to exclude from visiting.
@@ -459,7 +459,7 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
        visited_nodes.append(base)
  
        if n:
-           if n[0] == sidl.class_:
+           if n[0] == sidlir.class_:
                extends = n[2]
                for ext in extends:
                    if ext[1] not in visited_nodes:
@@ -468,7 +468,7 @@ def visit_hierarchy(base_class, visit_func, symbol_table, visited_nodes):
                    if impl and impl not in visited_nodes:
                        step(visited_nodes, impl)
 
-           elif n[0] == sidl.interface:
+           elif n[0] == sidlir.interface:
                for parent_interface in n[2]:
                    if parent_interface[1] and parent_interface[1] not in visited_nodes:
                        step(visited_nodes, parent_interface[1])

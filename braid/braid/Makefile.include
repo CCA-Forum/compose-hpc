@@ -40,14 +40,14 @@ PYTHON_SOURCES = \
 	braid/upc/upc_makefile.py 
 
 BUILT_PYTHON_SOURCES = \
-	braid/parsetab.pyc braid/ir.py braid/sidl.py braid/legal.py \
+	braid/parsetab.pyc braid/ir.py braid/sidlir.py braid/legal.py \
 	$(builddir)/braid/chapel/chpl_conversions.py \
 	$(builddir)/braid/upc/upc_conversions.py
 
 # the nobase_ prefix prevents path stripping during install
 nobase_python_PYTHON += $(PYTHON_SOURCES) $(BUILT_PYTHON_SOURCES)
 BUILT_SOURCES += $(BUILT_PYTHON_SOURCES)
-GRAMMARS = braid/ir.def braid/sidl.def
+GRAMMARS = braid/ir.def braid/sidlir.def
 BURG_RULES = \
 	braid/chapel/chpl_conversions.burg \
 	braid/upc/upc_conversions.burg
@@ -100,7 +100,7 @@ SIDL_TESTS= \
 	regression/parser/wrapper.sidl
 
 EXTRA_DIST+=$(SIDL_TESTS) $(GRAMMARS) $(BURG_RULES) \
-	braid/gramola.pl braid/ir.py braid/sidl.py braid/headerize
+	braid/gramola.pl braid/ir.py braid/sidlir.py braid/headerize
 
 # Most of the Python files contain doctest tests, see
 # http://www.gnu.org/software/automake/manual/automake.html#Simple-Tests-using-parallel_002dtests
@@ -117,7 +117,7 @@ AM_SIDL_LOG_FLAGS = --gen-sexp --gen-sidl
 $(builddir)/%.unit: $(srcdir)/%.py scanner.la
 	env PYTHONPATH=$(abs_builddir)/braid:$(PYTHONPATH) $(PYTHON) -m doctest $<
 
-$(builddir)/braid/parsetab.pyc: $(abs_srcdir)/braid/sidl_parser.py braid/sidl.py braid/scanner.la braid/sidl_token.py
+$(builddir)/braid/parsetab.pyc: $(abs_srcdir)/braid/sidl_parser.py braid/sidlir.py braid/scanner.la braid/sidl_token.py
 	@echo "  GEN  [sidl parser tables]"
 	@rm -f $@
 	cd braid && env PYTHONPATH=.:$(abs_builddir)/braid:$(PYTHONPATH):$(BACKPORTS) $(PYTHON) $<
@@ -140,7 +140,7 @@ BURG=env PYTHONPATH=$(builddir)/braid:$(PYTHONPATH) $(PYTHON) $(srcdir)/braid/bu
 # We keep this file in srcdir because we only regenerate them if the
 # user has swipl installed
 $(srcdir)/braid/ir.py: $(srcdir)/braid/ir.def $(srcdir)/braid/gramola.pl
-$(srcdir)/braid/sidl.py: $(srcdir)/braid/sidl.def $(srcdir)/braid/gramola.pl
+$(srcdir)/braid/sidlir.py: $(srcdir)/braid/sidlir.def $(srcdir)/braid/gramola.pl
 
 $(srcdir)/braid/%.py: $(srcdir)/braid/%.def
 	$(AM_V_GEN)if [ -n "$(SWIPL)" ]; then \

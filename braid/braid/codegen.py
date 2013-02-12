@@ -51,7 +51,7 @@
 # </pre>
 
 import re, string, sys
-import babel, ir, sidl
+import babel, ir, sidlir
 from patmat import *
 from utils import *
 
@@ -1800,32 +1800,32 @@ class SIDLCodeGenerator(GenericCodeGenerator):
     """
 
     bin_op = {
-        sidl.log_or:  '||',
-        sidl.log_and: '&&',
-        sidl.eq:      '==',
-        sidl.ne:      '!=',
-        sidl.bit_or:  '|',
-        sidl.bit_and: '&',
-        sidl.bit_xor: '^',
-        sidl.lt:      '<',
-        sidl.gt:      '>',
-        sidl.ge:      '>=',
-        sidl.le:      '=<',
-        sidl.lshift:  '<<',
-        sidl.rshift:  '>>',
-        sidl.plus:    '+',
-        sidl.minus:   '-',
-        sidl.times:   '*',
-        sidl.divide:  '/',
-        sidl.modulo:  'rem',
-        sidl.pow:     'pow',
-        sidl.implies: 'implies',
-        sidl.iff:     'iff'
+        sidlir.log_or:  '||',
+        sidlir.log_and: '&&',
+        sidlir.eq:      '==',
+        sidlir.ne:      '!=',
+        sidlir.bit_or:  '|',
+        sidlir.bit_and: '&',
+        sidlir.bit_xor: '^',
+        sidlir.lt:      '<',
+        sidlir.gt:      '>',
+        sidlir.ge:      '>=',
+        sidlir.le:      '=<',
+        sidlir.lshift:  '<<',
+        sidlir.rshift:  '>>',
+        sidlir.plus:    '+',
+        sidlir.minus:   '-',
+        sidlir.times:   '*',
+        sidlir.divide:  '/',
+        sidlir.modulo:  'rem',
+        sidlir.pow:     'pow',
+        sidlir.implies: 'implies',
+        sidlir.iff:     'iff'
         }
     un_op = {
-        sidl.log_not: '!',
-        sidl.bit_not: '~',
-        sidl.is_:     'is'
+        sidlir.log_not: '!',
+        sidlir.bit_not: '~',
+        sidlir.is_:     'is'
         }
 
 
@@ -1900,36 +1900,36 @@ class SIDLCodeGenerator(GenericCodeGenerator):
             return tuple(map(f, l))
 
         with match(node):
-            if (sidl.file, Requires, Imports, Packages):
+            if (sidlir.file, Requires, Imports, Packages):
                 new_def(gen(Requires))
                 new_def(gen(Imports))
                 new_def(gen(Packages))
                 return str(scope)
 
-            elif (sidl.package, (Name), Version, Usertypes, DocComment):
+            elif (sidlir.package, (Name), Version, Usertypes, DocComment):
                 gen_comment(DocComment)
                 gen_scope('%spackage %s %s {' % (
                         gen_comment(DocComment), Name, gen(Version)),
                           Usertypes,
                           '}')
 
-            elif (sidl.user_type, Attrs, Defn):
+            elif (sidlir.user_type, Attrs, Defn):
                 return gen_(Attrs)+gen(Defn)
 
-            elif (sidl.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
+            elif (sidlir.class_, Name, Extends, Implements, Invariants, Methods, DocComment):
                 head = gen_comment(DocComment)+'class '+gen(Name)
                 if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
                 if (Implements) <> []: head += ' implements '+gen_ws_sep(Implements)
                 if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
-            elif (sidl.interface, Name, Extends, Invariants, Methods, DocComment):
+            elif (sidlir.interface, Name, Extends, Invariants, Methods, DocComment):
                 head = gen_comment(DocComment)+'interface '+gen(Name)
                 if (Extends)    <> []: head += ' extends '+gen_ws_sep(Extends)
                 if (Invariants) <> []: head += ' invariants '+gen_ws_sep(Invariants)
                 gen_scope(head+'{', Methods, '}')
 
-            elif (sidl.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, DocComment):
+            elif (sidlir.method, Typ, Name, Attrs, Args, Excepts, Froms, Requires, Ensures, DocComment):
                 return (gen_comment(DocComment)+gen_ws_sep(Attrs)+
                         gen(Typ)+' '+gen(Name)+'('+gen_comma_sep(Args)+')'+
                         _gen(Excepts)+
@@ -1937,43 +1937,43 @@ class SIDLCodeGenerator(GenericCodeGenerator):
                         _gen(Requires)+
                         _gen(Ensures))
 
-            elif (sidl.arg, Attrs, Mode, Typ, Name):
+            elif (sidlir.arg, Attrs, Mode, Typ, Name):
                 return gen_(Attrs) + '%s %s %s' % tmap(gen, (Mode, Typ, Name))
 
-            elif (sidl.array, Typ, Dimension, Orientation):
+            elif (sidlir.array, Typ, Dimension, Orientation):
                 return ('array<%s%s%s>' %
                         (gen(Typ), _comma_gen(Dimension), _comma_gen(Orientation)))
 
-            elif (sidl.rarray, Typ, Dimension, Name, Extents):
+            elif (sidlir.rarray, Typ, Dimension, Name, Extents):
                 return ('rarray<%s%s> %s(%s)' %
                         (gen(Typ), _comma_gen(Dimension), gen(Name), gen_comma_sep(Extents)))
 
-            elif (sidl.enum, Name, Enumerators):
+            elif (sidlir.enum, Name, Enumerators):
                 gen_scope('enum %s {' % gen(Name), gen_comma_sep(Enumerators), '}')
 
-            elif (sidl.enumerator, Name):
+            elif (sidlir.enumerator, Name):
                 return gen(Name)
 
-            elif (sidl.enumerator_value, Name, Value):
+            elif (sidlir.enumerator_value, Name, Value):
                 return '%s = %s' % (gen(Name), gen(Value))
 
-            elif (sidl.struct, Name, Items, DocComment):
+            elif (sidlir.struct, Name, Items, DocComment):
                 gen_comment(DocComment)
                 gen_scope('struct %s {' % gen(Name), Items, '}')
 
-            elif (sidl.scoped_id, Prefix, Name, Ext):
+            elif (sidlir.scoped_id, Prefix, Name, Ext):
                 return '%s%s' % (gen_dot_sep(list(Prefix)+[Name]), gen(Ext))
 
-            elif (sidl.version,     Version):    return 'version %s'%str(Version)
-            elif (sidl.method_name, Name, []):   return Name
-            elif (sidl.method_name, Name, Ext):  return '%s[%s]'%(Name,Ext)
-            elif (sidl.primitive_type, Name):    return Name
-            elif (sidl.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
-            elif (sidl.assertion, Name, Expr):   return '%s: %s'%(Name, gen(Expr))
-            elif (sidl.fn_eval, Name, Args):     return '%s(%s)'%(Name, gen_comma_sep(Args))
-            elif (sidl.var_ref, Name):           return Name
-            elif (sidl.infix_expr, Op, A, B):    return ' '.join((gen(A), self.bin_op[Op], gen(B)))
-            elif (sidl.prefix_expr, Op, A):      return ' '.join((self.un_op[Op], gen(A)))
+            elif (sidlir.version,     Version):    return 'version %s'%str(Version)
+            elif (sidlir.method_name, Name, []):   return Name
+            elif (sidlir.method_name, Name, Ext):  return '%s[%s]'%(Name,Ext)
+            elif (sidlir.primitive_type, Name):    return Name
+            elif (sidlir.struct_item, Type, Name): return ' '.join((gen(Type), gen(Name)))
+            elif (sidlir.assertion, Name, Expr):   return '%s: %s'%(Name, gen(Expr))
+            elif (sidlir.fn_eval, Name, Args):     return '%s(%s)'%(Name, gen_comma_sep(Args))
+            elif (sidlir.var_ref, Name):           return Name
+            elif (sidlir.infix_expr, Op, A, B):    return ' '.join((gen(A), self.bin_op[Op], gen(B)))
+            elif (sidlir.prefix_expr, Op, A):      return ' '.join((self.un_op[Op], gen(A)))
             elif []: return ''
             elif A:
                 if (isinstance(A, list)):

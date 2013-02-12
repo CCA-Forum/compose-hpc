@@ -29,7 +29,7 @@
 %action arguments: (convs, skel, dest, full_type)
 
 #------------------------------------------------------------------------
-import ior, ir, sidl
+import ior, ir, sidlir
 import upc.upc as upc
 from codegen import CCodeGenerator, CFile
 
@@ -52,8 +52,8 @@ def strip(typ):
         return ior.bool
     # strip unnecessary details from aggregate types
     if (typ[0] == ir.enum or
-        typ[0] == sidl.array or
-        typ[0] == sidl.rarray or
+        typ[0] == sidlir.array or
+        typ[0] == sidlir.rarray or
         typ[0] == ir.pointer_type or
         typ[0] == ir.struct):
         return typ[0]
