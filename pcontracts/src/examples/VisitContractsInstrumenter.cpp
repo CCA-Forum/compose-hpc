@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 November 9
- * Last Modified: 2013 February 7
+ * Last Modified: 2013 February 21
  * \endinternal
  *
  * @file
@@ -93,18 +93,17 @@ VisitContractsInstrumenter::visit(
         {
           d_num += d_processor.processFunctionDef(def);
         }
+#ifdef PCE_ENABLE_WARNINGS
         else
         {  
-          cout << "\nWARNING:  Detected null definition for a declaration.\n  ";
+          cout << "\nWARNING: Detected null definition for a declaration.\n  ";
           cout << "Ignoring any associated contract comments.\n";
         }
+#endif /* PCE_ENABLE_WARNINGS */
       }
-      else if ( (def = isSgFunctionDefinition(lNode)) != NULL )
+      else if ( (def = isSgFunctionDefinition(lNode)) == NULL )
       {
-        cout << "\nWARNING:  Skipping function definition node visit.\n";
-      }
-      else /* The node could support an invariant or contract clause. */
-      {
+        /* The node could support an invariant or contract clause. */
         d_num += d_processor.processNonFunctionNode(lNode);
       }
     }
@@ -147,32 +146,39 @@ main(int argc, char* argv[])
       {
         /* Warn the user the ROSE skip transformation option will be ignored. */
         if (project->get_skip_transformation())
-          cout<<"WARNING:  The skip transformation option is NOT honored.\n\n";
+          cout<<"WARNING: The skip transformation option is NOT honored.\n\n";
 
         Sg_File_Info* info = file->get_file_info();
         if (info != NULL)
         {
           VisitContractsInstrumenter* vis = 
               new VisitContractsInstrumenter(info);
+
           if (vis != NULL)
           {
             vis->traverseInputFiles(project, preorder);
+            /*
+             * The following is REQUIRED to generate source (unlike
+             * the routine instrumentation version.
+             */
+            status = backend(project);
+
             delete vis;
           }
           /* Do NOT attempt to delete info as doing so messes up AST. */
         }
       } else {
-        cout << "\nERROR:  Failed to retrive the file node.\n";
+        cout << "\nERROR: Failed to retrieve the file node.\n";
         status = 1;
       }
     } else {
-      cout << "\nERROR:  Only ONE file can be processed at a time.\n";
+      cout << "\nERROR: Only ONE file can be processed at a time.\n";
       status = 1;
     }
 
     delete project;
   } else {
-    cout << "\nERROR:  Failed to build the AST.\n";
+    cout << "\nERROR: Failed to build the AST.\n";
     status = 1;
   }
 

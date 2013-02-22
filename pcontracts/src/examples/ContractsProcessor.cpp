@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 February 7
+ * Last Modified:  2013 February 21
  * \endinternal
  *
  * @file
@@ -60,6 +60,7 @@ const string S_WARN_MULTI_NOFUNC =
 const string S_WARN_NO_EXECS = 
   "WARNING: Expecting first clause but no executable contract checks.";
 
+const string S_SEP = ";";
 
 /**
  * Extract and add assertion expressions to the contract clause.
@@ -179,7 +180,7 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
     int i;
 
     /*
-     * @todo TBD/FIX:  Temporarily adding statistics dump here.
+     * @todo TBD/FIX: Temporarily adding statistics dump here.
      */
     SgExprListExp* parmsD = new SgExprListExp(FILE_INFO);
     if (parmsD != NULL)
@@ -397,6 +398,7 @@ ContractsProcessor::addPostChecks(
                 int i = SageInterface::instrumentEndOfFunction(
                          def->get_declaration(), sttmt);
                 num+=i;
+                d_first = false;
 #ifdef DEBUG
                 cout << "DEBUG: ..added to end of function: ";
                 cout << sttmt->unparseToString() << "\n";
@@ -406,6 +408,9 @@ ContractsProcessor::addPostChecks(
             break;
           case AssertionSupport_UNSUPPORTED:
             {
+#ifdef DEBUG
+              cout << "DEBUG: ..unsupported expression(s)\n";
+#endif /* DEBUG */
               // attach unsupported comment (NOTE: ROSE seems to ignore!)
               SageInterface::attachComment(body, 
                 "PContract: " + string(S_CONTRACT_CLAUSE[ccType])
@@ -415,6 +420,9 @@ ContractsProcessor::addPostChecks(
             break;
           default:
             // Nothing to do here
+#ifdef DEBUG
+            cout << "DEBUG: ..unrecognized support level\n";
+#endif /* DEBUG */
             break;
         }
       }
@@ -481,6 +489,7 @@ ContractsProcessor::addPreChecks(
                 cout << sttmt->unparseToString() << "\n";
 #endif /* DEBUG */
                 num++;
+                d_first = false;
               }
             }
             break;
@@ -569,11 +578,11 @@ ContractsProcessor::buildCheck(
           break;
         default:
           {
-            /*  WARNING:  This should NEVER happen. */
+            /*  WARNING: This should NEVER happen. */
             parms->append_expression(SageBuilder::buildVarRefExp(
               "ContractClause_NONE"));
             clauseTime = "0";
-            cmt = "PContract Error:  Contact Developer(s)!";
+            cmt = "PContract Error: Contact Developer(s)!";
           }
           break;
       }
@@ -582,7 +591,7 @@ ContractsProcessor::buildCheck(
       parms->append_expression(SageBuilder::buildVarRefExp(
         "pce_def_times.routine"));
       parms->append_expression(SageBuilder::buildVarRefExp(
-        (ae.isFirst()) ? "CONTRACTS_TRUE" : "CONTRACTS_FALSE"));
+        (ae.isFirst() && d_first) ? "CONTRACTS_TRUE" : "CONTRACTS_FALSE"));
       parms->append_expression(new SgStringVal(FILE_INFO, ae.label()));
       parms->append_expression(SageBuilder::buildVarRefExp("("+ae.expr()+")"));
   
@@ -645,7 +654,7 @@ ContractsProcessor::extractContract(
   if (lNode != NULL)
   {
 #ifdef DEBUG
-    printLineComment(lNode, "DEBUG: ..extracting node comments.", false);
+//    printLineComment(lNode, "DEBUG: ..extracting node comments.", false);
 #endif /* DEBUG */
 
     AttachedPreprocessingInfoType* cmts = 
@@ -660,7 +669,7 @@ ContractsProcessor::extractContract(
       AttachedPreprocessingInfoType::iterator iter;
       for (iter = cmts->begin(); iter != cmts->end(); iter++)
       {
-        ContractComment* cc = extractContractComment(lNode, iter, false);
+        ContractComment* cc = extractContractComment(lNode, iter, firstExec);
         if (cc != NULL)
         {
           if (firstExec && (cc->numExecutable() > 0))
@@ -674,10 +683,12 @@ ContractsProcessor::extractContract(
 
     } /* end if have comments */
 #ifdef DEBUG
+/*
     else
     {
       cout<<"DEBUG: ....no attached comments\n";
     }
+*/
 #endif /* DEBUG */
   } /* end if have a node */
 
@@ -735,7 +746,7 @@ ContractsProcessor::extractContractComment(
 #ifdef DEBUG
   else
   {
-    cout << "DEBUG:  extractContractComment: Information is NULL\n";
+    cout << "DEBUG: extractContractComment: Information is NULL\n";
   }
 #endif /* DEBUG */
 
@@ -922,25 +933,39 @@ ContractsProcessor::processCommentEntry(
       {
         cc = new ContractComment(ContractComment_PRECONDITION, dirType);
         addExpressions(cmt.substr(pos+7), cc, firstExecClause);
+#ifdef DEBUG
+        cout<<"DEBUG: Created REQUIRE ContractComment: "<<cc->str(S_SEP)<<endl;
+#endif /* DEBUG */
       }
       else if ((pos=cmt.find("ENSURE"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_POSTCONDITION, dirType);
         addExpressions(cmt.substr(pos+6), cc, firstExecClause);
-
+#ifdef DEBUG
+        cout<<"DEBUG: Created ENSURE ContractComment: "<<cc->str(S_SEP)<<endl;
+#endif /* DEBUG */
       }
       else if ((pos=cmt.find("INVARIANT"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_INVARIANT, dirType);
         addExpressions(cmt.substr(pos+9), cc, firstExecClause);
+#ifdef DEBUG
+        cout<<"DEBUG: Created INVARIANT ContractComment: "<<cc->str(S_SEP)<<endl;
+#endif /* DEBUG */
       }
       else if ((pos=cmt.find("INIT"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_INIT, dirType);
+#ifdef DEBUG
+        cout<<"DEBUG: Created INIT ContractComment: "<<cc->str(S_SEP)<<endl;
+#endif /* DEBUG */
       }
       else if ((pos=cmt.find("FINAL"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_FINAL, dirType);
+#ifdef DEBUG
+        cout<<"DEBUG: Created FINAL ContractComment: "<<cc->str(S_SEP)<<endl;
+#endif /* DEBUG */
       }
       else
       {
@@ -994,7 +1019,7 @@ ContractsProcessor::processFunctionComments(
       ContractClauseType clauses;
       extractContract(decl, true, clauses);
 #ifdef DEBUG
-      cout<<"DEBUG: ....extracted "<<clauses.size()<<" contract clauses.\n";
+      cout<<"DEBUG: ....extracted "<<clauses.size()<<" contract clause(s).\n";
 #endif /* DEBUG */
 
       if (clauses.size() > 0)
@@ -1013,10 +1038,12 @@ ContractsProcessor::processFunctionComments(
           ContractComment* cc = (*iter);
           if (cc != NULL)
           {
+#ifdef PCE_ENABLE_WARNING
             if (firstExecClause && (cc->numExecutable() <= 0))
             {
               printLineComment(def, S_WARN_NO_EXECS, false);
             }
+#endif /* PCE_ENABLE_WARNING */
 
             switch (cc->type())
             {
@@ -1080,7 +1107,6 @@ ContractsProcessor::processFunctionComments(
              * First add initial routine instrumentation.
              * ..Order IS important since each is prepended to the body.
              */
-            bool isFirst = numChecks[2] <= 0;
             bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
               || (d_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
               || (!isMemberFunc) || inInvariants(nm);
@@ -1100,7 +1126,7 @@ ContractsProcessor::processFunctionComments(
             if (init != NULL)
             {
               numPrep[0] += addInitialize(body, init);
-              num += numPrep[0];
+              num += 1;
             }
 
             /*
@@ -1122,7 +1148,7 @@ ContractsProcessor::processFunctionComments(
             if (final != NULL)
             {
               numPrep[1] += addFinalize(def, body, final);
-              num += numPrep[1];
+              num += 1;
             }
           } /* end if have an annotation destination */
         } /* end if have annotations to make */
@@ -1176,6 +1202,7 @@ ContractsProcessor::processFunctionDef(
         printLineComment(def, "DEBUG: Have function declaration node.", false);
 #endif /* DEBUG */
 
+        d_first = true;
         num = processFunctionComments(def);
       }
     }
@@ -1201,7 +1228,7 @@ ContractsProcessor::processNonFunctionNode(
   if (lNode != NULL)
   {
 #ifdef DEBUG
-    printLineComment(lNode, "DEBUG: ..processing non-function node", false);
+//    printLineComment(lNode, "DEBUG: ..processing non-function node", false);
 #endif /* DEBUG */
 
     ContractClauseType clauses;
@@ -1279,6 +1306,10 @@ ContractsProcessor::processNonFunctionNode(
                       PreprocessingInfo::after, cc->directive());
                     SageInterface::insertStatementBefore(currSttmt, sttmt,true);
                     num += 1;
+#ifdef DEBUG
+                    cout<<"DEBUG: INIT: currSttmt: "<<currSttmt->unparseToString()<<endl;
+                    cout<<"DEBUG: INIT: sttmt: "<<sttmt->unparseToString()<<endl;
+#endif /* DEBUG */
                   }
                 }
               }
@@ -1310,6 +1341,10 @@ ContractsProcessor::processNonFunctionNode(
                       PreprocessingInfo::after, cc->directive());
                     SageInterface::insertStatementBefore(currSttmt, sttmt,true);
                     num += 1;
+#ifdef DEBUG
+                    cout<<"DEBUG: FINAL: currSttmt"<<currSttmt->unparseToString()<<endl;
+                    cout<<"DEBUG: FINAL: sttmt"<<sttmt->unparseToString()<<endl;
+#endif /* DEBUG */
                   }
                 }
               }

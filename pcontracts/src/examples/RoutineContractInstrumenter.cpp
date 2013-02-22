@@ -3,7 +3,7 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 December 10
+ * Last Modified:  2013 February 21
  * \endinternal
  *
  * @file
@@ -72,7 +72,7 @@ main(int argc, char* argv[])
       bool skipTransforms = project->get_skip_transformation();
   
       if (skipTransforms)
-        cout << "WARNING:  Skipping transformations per ROSE option.\n\n";
+        cout << "WARNING: Skipping transformations per ROSE option.\n\n";
   
       /* First add requisite include files. */
       ContractsProcessor processor = ContractsProcessor();
@@ -82,6 +82,14 @@ main(int argc, char* argv[])
       if (status == 0)
       {
         status = processor.instrumentRoutines(project, skipTransforms);
+        /*
+         * The following appears to break on C++ sources:
+         *
+        if (status == 0)
+        {
+          status = backend(project);
+        } 
+        */
       }
       else
       {
@@ -93,7 +101,7 @@ main(int argc, char* argv[])
     }
     else
     {
-      cerr << "\nERROR:  Failed to build the AST.\n";
+      cerr << "\nERROR: Failed to build the AST.\n";
       status = 1;
     }
   }

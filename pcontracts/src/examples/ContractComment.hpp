@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 January 31
+ * Last Modified:  2013 February 21
  * \endinternal
  *
  * @file
@@ -178,6 +178,7 @@ class ContractComment
         rep << "UNKNOWN";
         break;
       }
+      rep << sep;
       rep << d_aeList.size() << sep;
       rep << (d_needsResult ? "NeedsResult" : "NoResult") << sep;
       rep << (d_isInit ? "isINIT" : "notINIT") << sep;

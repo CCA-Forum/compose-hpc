@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 January 31
+ * Last Modified:  2013 February 21
  * \endinternal
  *
  * @file
@@ -88,6 +88,10 @@ class ContractsProcessor
 
   private:
     ContractComment*  d_invariants;
+
+    /** Global first (routine) clause flag. */
+    bool  d_first;
+
 
 };  /* class ContractsProcessor */
 

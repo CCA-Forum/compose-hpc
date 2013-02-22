@@ -1,13 +1,16 @@
 PROTOTYPE
 
 Address:
-- Determine why the contracts visitor is not generating output.
-- Ensure INVARIANT checks added _even when_ the precondition(s) and or post-
-  condition(s) are non-executable.
-- The 'first' flag needs to be set properly in instrumented contract checks.
-  (Currently always set to FALSE.)
-- Ensure node-level INIT and FINAL instrumentation is added BEFORE the 
+- Investigate why in-lined INIT, while translated, does not aid in resolving
+  undefined pce var, etc.
+- Determine why in-lined FINAL is ignored by the visitor.
+
+- Ensure node-level INIT and FINAL instrumentation each added BEFORE the 
   associated node.
+
+- Check if the 'first' flag now set properly in instrumented contract checks.
+- Check if INVARIANT checks added _even when_ the precondition(s) and or post-
+  condition(s) are non-executable.
 
 
 Refinements:

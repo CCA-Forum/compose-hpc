@@ -4,6 +4,7 @@ RT_DIR=$(ROOT_DIR)/src/runtime
 
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
+# contract checking.
 CXX = g++
 FLAGS = -g -O3 $(PCEFLAGS)
 
@@ -20,14 +21,15 @@ LDFLAGS = $(FLAGS) $(LIBS)
 CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
 HWCC_EXE=helloworld
-HWCC2_EXE=helloworld-v2
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack
 UKCPP_EXE=UnlabeledKnapsack
 
 # WARNING:  helloword-v2 WILL fail to compile when instrumented with
-# routine contracts instrumenter.
+# routine contracts instrumenter since pce_* variables will be undefined
+# due to embedded INIT contract comment being ignored.
+HWCC2_EXE=helloworld-v2
 BINARIES=$(HWCC_EXE)  $(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) \
 	${HWCC2_EXE} 
 
@@ -57,7 +59,58 @@ $(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o $(CE_OBJ)
 $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o $(CE_OBJ)
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o $(CE_OBJ)
 
-check: all checkKnapsack checkUK
+check: all checkKC checkKCpp checkKnapsack checkUK
+
+checkKC: knapsack unlabeledknapsack
+	@echo "Checking C knapsack programs..."; \
+	if [ -s knapsack ]; then \
+	  if [ -s unlabeledknapsack ]; then \
+	    ./knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
+	        > knapsack.out 2>&1; \
+	    ./unlabeledknapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > unlabeledknapsack.out 2>&1; \
+	    diff knapsack.out unlabeledknapsack.out > knapsack.diffs 2>&1; \
+	    if [ -s knapsack.diffs ]; then \
+	      echo "ERROR: Different C knapsack results"; \
+	    else \
+	      echo "SUCCESS: Identical C knapsack results!"; \
+	    fi; \
+	    rm -f knapsack.diffs; \
+	  fi; \
+	fi; \
+	echo "DONE"; \
+	echo
+
+checkKCpp: Knapsack UnlabeledKnapsack
+	@echo "Checking C++ knapsack programs..."; \
+	if [ -s Knapsack ]; then \
+	  if [ -s UnlabeledKnapsack ]; then \
+	    ./Knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
+	        > Knapsack.out 2>&1; \
+	    ./UnlabeledKnapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > UnlabeledKnapsack.out 2>&1; \
+	    diff Knapsack.out UnlabeledKnapsack.out > Knapsack.diffs 2>&1; \
+	    if [ -s Knapsack.diffs ]; then \
+	      if [ "X$$PCEFLAGS" != "X" ]; then \
+	        cat Knapsack.out | grep pos_target > Knapsack-pt.out 2>&1; \
+	        if [ -s Knapsack-pt.out ]; then \
+	          echo "SUCCESS: Different C++ knapsack results due to";\
+	          echo "  known C++ precondition violation (label)."; \
+	        else \
+	          echo "ERROR: Different C++ knapsack results"; \
+	        fi; \
+	        rm -f Knapsack-pt.out; \
+	      else \
+	        echo "ERROR: Different C++ knapsack results"; \
+	      fi; \
+	    else \
+	      echo "SUCCESS: Identical C++ knapsack results!"; \
+	    fi; \
+	    rm -f Knapsack.diffs; \
+	  fi; \
+	fi; \
+	echo "DONE"; \
+	echo
 
 checkKnapsack: knapsack Knapsack
 	@echo "Checking C and C++ knapsack programs..."; \
@@ -69,14 +122,26 @@ checkKnapsack: knapsack Knapsack
 	        > knapsack.out 2>&1; \
 	    diff Knapsack.out knapsack.out > knapsack.diffs 2>&1; \
 	    if [ -s knapsack.diffs ]; then \
-	      echo "ERROR: Different C and C++ knapsack results"; \
+	      if [ "X$$PCEFLAGS" != "X" ]; then \
+	        cat Knapsack.out | grep pos_target > knapsack-pt.out 2>&1; \
+	        if [ -s knapsack-pt.out ]; then \
+	          echo "SUCCESS: Different C and C++ knapsack results due to";\
+	          echo "  known C++ precondition violation (label)."; \
+	        else \
+	          echo "ERROR: Different C and C++ knapsack results"; \
+	        fi; \
+	        rm -f knapsack-pt.out; \
+	      else \
+	        echo "ERROR: Different C and C++ knapsack results"; \
+	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C and C++ knapsack results!"; \
 	    fi; \
 	    rm -f knapsack.diffs; \
 	  fi; \
 	fi; \
-	echo "DONE"
+	echo "DONE"; \
+	echo
 
 checkUK: unlabeledknapsack UnlabeledKnapsack
 	@echo "Checking C and C++ knapsack programs..."; \
@@ -89,14 +154,27 @@ checkUK: unlabeledknapsack UnlabeledKnapsack
 	    diff UnlabeledKnapsack.out unlabeledknapsack.out > \
 	      unlabeledknapsack.diffs 2>&1; \
 	    if [ -s unlabeledknapsack.diffs ]; then \
-	      echo "ERROR: Different C and C++ unlabeled knapsack results"; \
+	      if [ "X$$PCEFLAGS" != "X" ]; then \
+	        cat UnlabeledKnapsack.out | grep Violation > ulknapsack-pt.out \
+	          2>&1; \
+	        if [ -s ulknapsack-pt.out ]; then \
+	          echo "SUCCESS: Different C and C++ knapsack results due to";\
+	          echo "  known C++ precondition violation."; \
+	        else \
+	          echo "ERROR: Different C and C++ knapsack results"; \
+	        fi; \
+	        rm -f ulknapsack-pt.out; \
+	      else \
+	        echo "ERROR: Different C and C++ unlabeled knapsack results"; \
+	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C and C++ unlabeled knapsack results!"; \
 	    fi; \
 	    rm -f unlabeledknapsack.diffs; \
 	  fi; \
 	fi; \
-	echo "DONE"
+	echo "DONE"; \
+	echo
 
 clean:
 	rm -f *.o *.out *.diffs

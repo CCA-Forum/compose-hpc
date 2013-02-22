@@ -41,7 +41,7 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
     { 
       d_processor = ContractsProcessor(); 
       d_num       = 0;
-      d_fileInfo = fileInfo;
+      d_fileInfo  = fileInfo;
     };
 
     /**

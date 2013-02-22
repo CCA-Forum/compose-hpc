@@ -6,8 +6,8 @@ CHECK_STATUS=../../.checkStatus
 
 MAKE = make --no-print-directory
 CXX=g++
-#FLAGS=-g -O3 -DDEBUG
-FLAGS=-g -O3
+FLAGS=-g -O3 -DDEBUG
+#FLAGS=-g -O3
 INCLUDES=-I. -I${RT_DIR}
 
 LDFLAGS=$(FLAGS)
@@ -20,8 +20,7 @@ BOOST_LIB = -L$(BOOST_HOME)/lib
 ROSE_INCLUDES = -I$(ROSE_HOME)/include -I$(BOOST_HOME)/include $(INCLUDES)
 #ROSE_FLAGS = --edg:no_warnings
 ROSE_FLAGS = $(FLAGS)
-
-ROSE_OPTS = -rose:skipfinalCompileStep
+ROSE_OPTS =
 
 ROSE_LDFLAGS = $(ROSE_LIB) $(BOOST_LIB) $(FLAGS)
 ROSE_CXXFLAGS = $(ROSE_INCLUDES) $(ROSE_FLAGS) -Wno-deprecated
@@ -37,7 +36,6 @@ CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
 RCI_EXE=RoutineContractInstrumenter
 VCI_EXE=VisitContractsInstrumenter
-#VCI_EXE=
 
 BASE_ROSE_SOURCES = \
 	RoseHelpers.cpp
@@ -191,7 +189,7 @@ checkRosePrinter: $(EXE)
 	done; \
 	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
 
-# TLD/TODO
+
 checkRoseTranslators: checkRCI checkVCI
 
 #checkRoseTranslators: checkRCI 

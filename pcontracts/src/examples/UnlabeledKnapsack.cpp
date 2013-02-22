@@ -102,6 +102,7 @@ Examples::UnlabeledKnapsack::hasWeights(unsigned int* weights,
 } /* hasWeights */
 
 
+/* %CONTRACT REQUIRE t > 0; */
 /* %CONTRACT ENSURE is pure; */
 bool
 Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
@@ -205,6 +206,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  *                   the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
+    pos_target: t > 0;
     ((weights!=NULL) and (n>0)) implies pce_all(weights>0, n); 
  */
 /* %CONTRACT ENSURE is pure; */

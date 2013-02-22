@@ -107,6 +107,9 @@ Examples::Knapsack::hasWeights(
 }
 
 
+/* %CONTRACT REQUIRE
+    pos_target: t > 0;
+ */
 /* %CONTRACT ENSURE 
     side_effect_free: is pure;
  */

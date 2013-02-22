@@ -1,12 +1,12 @@
-/* NOTE:  Invariants NOT supported for C at this time. */
-/* %CONTRACT INVARIANT have_gesture: !gesture.empty(); */
+/* NOTE:  (Class) invariants are NOT supported for non-instance routines. */
+
 #include <iostream>
 
 using namespace std;
 
 const string gesture = "Hello";
 
-/* %CONTRACT REQUIRE !gesture.empty(); have_name: !nm.empty(); */
+/* %CONTRACT REQUIRE have_gesture: !gesture.empty(); have_name: !nm.empty(); */
 void
 printGreeting(string nm)
 {
