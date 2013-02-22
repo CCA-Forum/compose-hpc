@@ -1,0 +1,18 @@
+      PROGRAM LAPACK_TEST
+
+        INTEGER M, N, K, STATUS
+        PARAMETER ( M = 8192, N = 8192, K = 8192 )
+
+        REAL A(M, N)
+        REAL TAU(K)
+
+
+        STATUS = CULA_INITIALIZE()
+        CALL CULA_CHECK_STATUS(STATUS)
+
+        STATUS = CULA_SGEQRF(M, N, A, M, TAU)
+        CALL CULA_CHECK_STATUS(STATUS)
+
+        CALL CULA_SHUTDOWN()
+      END
+

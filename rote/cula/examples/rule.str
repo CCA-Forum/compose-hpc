@@ -1,0 +1,27 @@
+module basic
+imports libstrategolib
+signature
+  sorts E F A
+constructors
+  gen_info               : F
+  file_info              : S * N * N -> F
+  add_op                 : E * E * A * F -> E
+  multiply_op            : E * E * A * F -> E
+  int_val                : A * F -> E
+  value_annotation       : N * F -> E
+  preprocessing_info     : S -> A
+  var_ref_exp            : A * F -> E
+  var_ref_exp_annotation : T * A * A * A * A -> A
+  binary_op_annotation   : T * A -> A
+  type_int               : T
+  default                : A
+  null                   : A
+rules
+  G : gen_info() -> file_info("compilerGenerated",0,0)
+  R1 : variable_declaration([initialized_name("null",initialized_name_annotation("type_int","LWORK","no_static","null",preprocessing_info([])),_)],variable_declaration_specific(declaration_modifier(["e_default"],type_modifier(["e_default"],"e_default","e_default","e_default"),"e_default","e_default"),"null",preprocessing_info([])),_) -> expr_statement(assign_op(var_ref_exp(var_ref_exp_annotation("type_int","STATUS","no_static","null",preprocessing_info([])),gen_info()),function_call_exp(function_ref_exp(function_ref_exp_annotation("CULA_INITIALIZE",function_type("type_float","no_ellipses",[]),"e_function_subprogram_kind",preprocessing_info([])),gen_info()),expr_list_exp([],default_annotation(preprocessing_info([])),gen_info()),function_call_exp_annotation("type_float",preprocessing_info([])),gen_info()),binary_op_annotation("type_int",preprocessing_info([])),gen_info()),default_annotation(preprocessing_info([])),gen_info())
+  R2 : "SGEQRF" -> "CULA_CHECK_STATUS"
+  R3 : [RG_0,RG_1,RG_2,RG_3,RG_4,variable_declaration([initialized_name("null",initialized_name_annotation(array_type("type_float",null_expression(default_annotation(preprocessing_info([])),gen_info()),1,expr_list_exp([int_val(value_annotation(100,preprocessing_info([])),gen_info())],default_annotation(preprocessing_info([])),gen_info())),"WORK","no_static","null",preprocessing_info([])),gen_info())],variable_declaration_specific(declaration_modifier(["e_default"],type_modifier(["e_default"],"e_default","e_default","e_default"),"e_default","e_default"),"null",preprocessing_info([])),gen_info()),variable_declaration([initialized_name("null",initialized_name_annotation("type_int","LDA","no_static","null",preprocessing_info([])),gen_info())],variable_declaration_specific(declaration_modifier(["e_default"],type_modifier(["e_default"],"e_default","e_default","e_default"),"e_default","e_default"),"null",preprocessing_info([])),gen_info()),RG_5] -> [RG_0,RG_1,RG_2,RG_3,RG_4,RG_5,expr_statement(assign_op(var_ref_exp(var_ref_exp_annotation("type_int","STATUS","no_static","null",preprocessing_info([])),gen_info()),function_call_exp(function_ref_exp(function_ref_exp_annotation("CULA_SGEQRF",function_type("type_float","no_ellipses",[]),"e_function_subprogram_kind",preprocessing_info([])),gen_info()),expr_list_exp([var_ref_exp(var_ref_exp_annotation("type_int","M","no_static","null",preprocessing_info([])),gen_info()),var_ref_exp(var_ref_exp_annotation("type_int","N","no_static","null",preprocessing_info([])),gen_info()),var_ref_exp(var_ref_exp_annotation(array_type("type_float",null_expression(default_annotation(preprocessing_info([])),gen_info()),2,expr_list_exp([var_ref_exp(var_ref_exp_annotation("type_int","M","no_static","null",preprocessing_info([])),gen_info()),var_ref_exp(var_ref_exp_annotation("type_int","N","no_static","null",preprocessing_info([])),gen_info())],default_annotation(preprocessing_info([])),gen_info())),"A","no_static","null",preprocessing_info([])),gen_info()),var_ref_exp(var_ref_exp_annotation("type_int","M","no_static","null",preprocessing_info([])),gen_info()),var_ref_exp(var_ref_exp_annotation(array_type("type_float",null_expression(default_annotation(preprocessing_info([])),gen_info()),1,expr_list_exp([var_ref_exp(var_ref_exp_annotation("type_int","K","no_static","null",preprocessing_info([])),gen_info())],default_annotation(preprocessing_info([])),gen_info())),"TAU","no_static","null",preprocessing_info([])),gen_info())],default_annotation(preprocessing_info([])),gen_info()),function_call_exp_annotation("type_float",preprocessing_info([])),gen_info()),binary_op_annotation("type_int",preprocessing_info([])),gen_info()),default_annotation(preprocessing_info([])),gen_info()),expr_statement(function_call_exp(function_ref_exp(function_ref_exp_annotation("CULA_CHECK_STATUS",function_type("type_float","no_ellipses",[]),"e_subroutine_subprogram_kind",preprocessing_info([])),gen_info()),expr_list_exp([var_ref_exp(var_ref_exp_annotation("type_int","STATUS","no_static","null",preprocessing_info([])),gen_info())],default_annotation(preprocessing_info([])),gen_info()),function_call_exp_annotation("type_float",preprocessing_info([])),gen_info()),default_annotation(preprocessing_info([])),gen_info()),expr_statement(function_call_exp(function_ref_exp(function_ref_exp_annotation("CULA_SHUTDOWN",function_type("type_float","no_ellipses",[]),"e_subroutine_subprogram_kind",preprocessing_info([])),gen_info()),expr_list_exp([],default_annotation(preprocessing_info([])),gen_info()),function_call_exp_annotation("type_float",preprocessing_info([])),gen_info()),default_annotation(preprocessing_info([])),gen_info())]
+strategies
+  main = io-wrap(rewr;gen)
+  rewr = oncetd(R1);oncetd(R2);oncetd(R3)
+  gen = innermost(G)
