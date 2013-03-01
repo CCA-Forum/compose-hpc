@@ -1,16 +1,16 @@
 PROTOTYPE
 
 Address:
-- Investigate why in-lined INIT, while translated, does not aid in resolving
-  undefined pce var, etc.
-- Determine why in-lined FINAL is ignored by the visitor.
-
-- Ensure node-level INIT and FINAL instrumentation each added BEFORE the 
-  associated node.
+- Determine why translated helloworld-v2.cc doesn't compiler.
 
 - Check if the 'first' flag now set properly in instrumented contract checks.
+  -- Looks good for postcondition + invariant
+  -- Looks good for invariants-only
+  -- Not set properly when invariant (appearing first) is before precheck.
+
 - Check if INVARIANT checks added _even when_ the precondition(s) and or post-
   condition(s) are non-executable.
+  -- NO, not adding!
 
 
 Refinements:
