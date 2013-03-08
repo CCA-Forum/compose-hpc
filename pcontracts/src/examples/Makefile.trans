@@ -21,17 +21,14 @@ LDFLAGS = $(FLAGS) $(LIBS)
 CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
 HWCC_EXE=helloworld
+HWCC2_EXE=helloworld-v2
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack
 UKCPP_EXE=UnlabeledKnapsack
 
-# WARNING:  helloword-v2 WILL fail to compile when instrumented with
-# routine contracts instrumenter since pce_* variables will be undefined
-# due to embedded INIT contract comment being ignored.
-HWCC2_EXE=helloworld-v2
-BINARIES=$(HWCC_EXE)  $(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) \
-	${HWCC2_EXE} 
+BINARIES=$(HWCC_EXE) ${HWCC2_EXE} $(LKC_EXE) $(UKC_EXE) \
+	$(LKCPP_EXE) $(UKCPP_EXE) 
 
 all:	$(BINARIES)
 
@@ -46,6 +43,9 @@ all:	$(BINARIES)
 
 $(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o $(CE_OBJ)
 	$(CXX) -o $(HWCC_EXE) $(LDFLAGS) $(HWCC_EXE).o $(CE_OBJ)
+
+$(HWCC2_EXE): $(HWCC2_EXE).cc $(HWCC2_EXE).o $(CE_OBJ)
+	$(CXX) -o $(HWCC2_EXE) $(LDFLAGS) $(HWCC2_EXE).o $(CE_OBJ)
 
 $(LKC_EXE): $(LKC_EXE).c $(LKC_EXE).o $(CE_OBJ)
 	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o $(CE_OBJ)

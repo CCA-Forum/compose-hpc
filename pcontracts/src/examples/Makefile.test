@@ -6,8 +6,8 @@ CHECK_STATUS=../../.checkStatus
 
 MAKE = make --no-print-directory
 CXX=g++
-FLAGS=-g -O3 -DDEBUG
-#FLAGS=-g -O3
+#FLAGS=-g -O3 -DDEBUG
+FLAGS=-g -O3
 INCLUDES=-I. -I${RT_DIR}
 
 LDFLAGS=$(FLAGS)

@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 February 28
+ * Last Modified:  2013 March 7
  * \endinternal
  *
  * @file
@@ -53,6 +53,21 @@ const string S_ERROR_PRECONDITIONS =
   "ERROR: Preconditions MUST be associated with function definitions.";
 const string S_ERROR_POSTCONDITIONS = 
   "ERROR: Postconditions MUST be associated with function definitions.";
+
+/*
+ * Would prefer to use the following to add a comment or at least a C-style
+ * message; however, that appears to cause problems ranging from SEGV to
+ * non-comment text.  
+ *
+const string S_NOTE_INVARIANTS = 
+  "NOTE: (Class) Invariants are NOT supported for non-instance routines.";
+ *
+ * So modified the note to include C-style comments AND formatting (under 
+ * the assumption it is necessary to simply add the comment as text for the 
+ * unparser).
+ */
+const string S_NOTE_INVARIANTS = 
+  "\n/* NOTE: Invariants are NOT supported for non-instance routines. */\n";
 
 const string S_WARN_INVARIANTS = 
   "WARNING: Ignoring additional invariant clause.";
@@ -182,8 +197,9 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
     PPIDirectiveType dt = cc->directive();
     int i;
 
+#ifdef PCE_ADD_STATS_DUMP
     /*
-     * @todo TBD/FIX: Temporarily adding statistics dump here.
+     * @todo TBD/FIX: Add statistics dump?
      */
     SgExprListExp* parmsD = new SgExprListExp(FILE_INFO);
     if (parmsD != NULL)
@@ -206,6 +222,7 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
         num+=i;
       }
     }
+#endif /* PCE_ADD_STATS_DUMP */
 
     SgExprListExp* parmsF = new SgExprListExp(FILE_INFO);
     if (parmsF != NULL)
@@ -409,7 +426,6 @@ ContractsProcessor::addPostChecks(
                 int i = SageInterface::instrumentEndOfFunction(
                          def->get_declaration(), sttmt);
                 num+=i;
-                d_first = false;
 #ifdef DEBUG
                 cout << "DEBUG: ..added to end of function: ";
                 cout << sttmt->unparseToString() << "\n";
@@ -437,6 +453,8 @@ ContractsProcessor::addPostChecks(
             break;
         }
       }
+
+      d_first = false;
     } 
     else
     { 
@@ -500,7 +518,6 @@ ContractsProcessor::addPreChecks(
                 cout << sttmt->unparseToString() << "\n";
 #endif /* DEBUG */
                 num++;
-                d_first = false;
               }
             }
             break;
@@ -769,7 +786,7 @@ ContractsProcessor::extractContractComment(
 
 /**
  * Determine if what is assumed to be the method name is in the 
- * invariants.
+ * invariants clause.
  *
  * @param[in] nm  Method name.
  * @return        True if nm is in at least one invariant expression; false 
@@ -976,9 +993,9 @@ ContractsProcessor::processCommentEntry(
       else if ((pos=cmt.find("FINAL"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_FINAL, dirType);
-//#ifdef DEBUG
+#ifdef DEBUG
         cout<<"DEBUG: Created FINAL ContractComment: "<<cc->str(S_SEP)<<endl;
-//#endif /* DEBUG */
+#endif /* DEBUG */
       }
       else
       {
@@ -1075,6 +1092,15 @@ ContractsProcessor::processFunctionComments(
               break;
             case ContractComment_INVARIANT:
               {
+                /* 
+                 * The following adds a C comment to .cc files BUT simple
+                 * text to .cpp files.
+                 *
+                SageInterface::addMessageStatement(def, S_NOTE_INVARIANTS);
+                 */
+                SageInterface::addTextForUnparser(def, S_NOTE_INVARIANTS,
+                  AstUnparseAttribute::e_before);
+
                 if (d_invariants == NULL)
                 {
                   d_invariants = cc;
@@ -1123,17 +1149,25 @@ ContractsProcessor::processFunctionComments(
             bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
               || (d_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
               || (!isMemberFunc) || inInvariants(nm);
-            if (pre != NULL) 
-            { 
-              if (numChecks[0] > 0) 
-              {
-                num += addPreChecks(body, pre);
-              }
-            }
+
+            bool havePreChecks = (pre != NULL) && (numChecks[0] > 0);
 
             if (! (skipInvariants || isInitRoutine) )
             {
+              bool fixFirst = havePreChecks 
+                && (pre->numExecutable() > 0) && d_first;
+
+              cout << "DEBUG: Invariants: pre->numExecutable()=";
+              cout << pre->numExecutable() << ", first=" << d_first << endl;
+
+              if (fixFirst) d_first = false;
               num += addPreChecks(body, d_invariants);
+              if (fixFirst) d_first = true;
+            }
+
+            if (havePreChecks)
+            { 
+              num += addPreChecks(body, pre);
             }
 
             if (init != NULL)
@@ -1243,11 +1277,11 @@ ContractsProcessor::processNonFunctionNode(
 
   if (lNode != NULL)
   {
-//#ifdef DEBUG
+#ifdef DEBUG
     printLineComment(lNode, "DEBUG: ..processing non-function node", false);
     cout << "Node type: " << lNode->variantT() << "(";
     cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
 
     ContractClauseType clauses;
     extractContract(lNode, true, clauses);
@@ -1292,6 +1326,25 @@ ContractsProcessor::processNonFunctionNode(
               if (d_invariants == NULL)
               {
                 d_invariants = cc;
+
+                /* 
+                 * The following adds a C comment to .cc files BUT simple
+                 * text to .cpp files.
+                 *
+                SgStatement* currSttmt = isSgStatement(lNode);
+                if (currSttmt != NULL)
+                {
+                  SageInterface::addMessageStatement(currSttmt, 
+                    S_NOTE_INVARIANTS);
+
+                 // Ideally would use the following instead:
+                  SageInterface::attachComment(currSttmt, S_NOTE_INVARIANTS,
+                    PreprocessingInfo::before, cc->directive());
+                }
+                 */
+
+                SageInterface::addTextForUnparser(lNode, S_NOTE_INVARIANTS,
+                  AstUnparseAttribute::e_before);
               }
               else
               {
@@ -1443,6 +1496,8 @@ ContractsProcessor::processNonFunctionNode(
       {
         printLineComment(lNode, S_WARN_MULTI_NOFUNC, false);
       }
+
+      d_first = false;
     } /* end if have comments */
   } /* end if have a node */
 

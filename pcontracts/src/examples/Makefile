@@ -235,11 +235,7 @@ checkRoseTrans: $(EXE)
 	echo "\n...Successfully processed $$ok of $$n files.\n"; \
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
-          if [ "$(EXE)" = "$(RCI_EXE)" ]; then \
-	    cp -f Makefile.rtrans $$OUTDIR/Makefile; \
-          else \
-	    cp -f Makefile.trans $$OUTDIR/Makefile; \
-          fi; \
+	  cp -f Makefile.trans $$OUTDIR/Makefile; \
 	  echo "Copying header files to $$OUTDIR"; \
 	  cp -f *ack*.h* $$OUTDIR; \
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
