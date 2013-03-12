@@ -1,4 +1,4 @@
-#include <math.h>
+//#include <math.h>
 
 #define KDT_DIM (3)
 

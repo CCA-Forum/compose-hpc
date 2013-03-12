@@ -7,6 +7,7 @@ module RuleGen.CmdlineArgs (
   getGVSource,
   getGVTarget,
   getGVWeave,
+  getConfigFile,
   isDebuggingOn,
   isGVizOnlyOn
 ) where
@@ -36,21 +37,28 @@ data Flag = Source String
           | Output String
           | GVizOnly
           | Debug
+          | ConfigFile String
   deriving (Show, Eq)
 
 options :: [OptDescr Flag]
 options = [
-  Option ['d'] ["debug"]           (NoArg Debug)             "Enable debugging output",
-  Option ['g'] ["graphviz"]        (NoArg GVizOnly)          "Emit the desired graphviz files and exit",
-  Option ['s'] ["source"]          (ReqArg Source "FILE")    "Source file",
-  Option ['t'] ["target"]          (ReqArg Target "FILE")    "Target file",
-  Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")  "Graphviz output for source diff",
-  Option ['T'] ["target-graphviz"] (ReqArg GVTarget "FILE")  "Graphviz output for target diff",
-  Option ['W'] ["woven-graphviz"]  (ReqArg GVWeave "FILE")   "Graphviz output for woven edit trees",
-  Option ['o'] ["output"]          (ReqArg Output "FILE")    "Stratego rule file output"]
+  Option ['c'] ["config"]          (ReqArg ConfigFile "FILE") "Heuristics configuration",
+  Option ['d'] ["debug"]           (NoArg Debug)              "Enable debugging output",
+  Option ['g'] ["graphviz"]        (NoArg GVizOnly)           "Emit the desired graphviz files and exit",
+  Option ['s'] ["source"]          (ReqArg Source "FILE")     "Source file",
+  Option ['t'] ["target"]          (ReqArg Target "FILE")     "Target file",
+  Option ['S'] ["source-graphviz"] (ReqArg GVSource "FILE")   "Graphviz output for source diff",
+  Option ['T'] ["target-graphviz"] (ReqArg GVTarget "FILE")   "Graphviz output for target diff",
+  Option ['W'] ["woven-graphviz"]  (ReqArg GVWeave "FILE")    "Graphviz output for woven edit trees",
+  Option ['o'] ["output"]          (ReqArg Output "FILE")     "Stratego rule file output"]
 
 header :: String
 header = "Usage: rulegen [OPTION...]"
+
+getConfigFile :: [Flag] -> Maybe String
+getConfigFile []                     = Nothing
+getConfigFile ((ConfigFile fname):_) = Just fname
+getConfigFile (_:rest)               = getConfigFile rest
 
 getOutput :: [Flag] -> String
 getOutput [] = error $ "stratego rule file required\n" ++ usageInfo header options

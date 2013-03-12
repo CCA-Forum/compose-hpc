@@ -56,6 +56,11 @@ main = do
       wgraphviz  = getGVWeave flags
       debugflag  = isDebuggingOn flags
       gvizflag   = isGVizOnlyOn flags
+      configfile = getConfigFile flags
+
+  generalizations <- case configfile of
+                       Nothing    -> return []
+                       Just fname -> readGeneralizationConfig fname
 
   -- read in trees from term files
   tree1 <- readToTree sourcefile
@@ -132,7 +137,8 @@ main = do
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
   let nonmatching_forestPre = nonMatchForest woven'
-      nonmatching_forest = map generalizeWeave nonmatching_forestPre
+      nonmatching_forest = map (generalizeWeave generalizations) nonmatching_forestPre
+      --nonmatching_forest = nonmatching_forestPre
 
   -- debug : print stuff out
   when debugflag $ do
