@@ -9,7 +9,7 @@
 --
 --  matt@galois.com // july 2012
 --
-module RuleGen.GraphvizUtil (
+module RuleGen.Util.Graphviz (
 	dumpGraphvizToFile,
 	etreeToGraphviz,
 	treeToGraphviz,
@@ -17,11 +17,11 @@ module RuleGen.GraphvizUtil (
 ) where
 
 import System.IO
-import RuleGen.Trees
+import RuleGen.Data.Trees
 import Data.Tree
 import RuleGen.Yang
 import RuleGen.Weaver
-import RuleGen.IDGen
+import RuleGen.Util.IDGen
 import Data.List
 
 cleanlabel :: String -> String

@@ -22,17 +22,17 @@ Contact : matt sottile (matt@galois.com)
           
 -}
 
-import RuleGen.AtermUtilities
+import RuleGen.Data.Aterm
+import RuleGen.Data.Trees
 import RuleGen.Weaver
 import RuleGen.Stratego
-import RuleGen.IDGen
+import RuleGen.Util.IDGen
 import RuleGen.Yang
-import RuleGen.Trees
 --import RuleGen.Pruner
 import RuleGen.Filter
 import RuleGen.Contextualizer
-import RuleGen.CmdlineArgs
-import RuleGen.GraphvizUtil
+import RuleGen.Util.CmdlineArgs
+import RuleGen.Util.Graphviz
 import System.Exit 
 import Data.Tree
 import Control.Monad (when)
@@ -56,6 +56,11 @@ main = do
       wgraphviz  = getGVWeave flags
       debugflag  = isDebuggingOn flags
       gvizflag   = isGVizOnlyOn flags
+      configfile = getConfigFile flags
+
+  generalizations <- case configfile of
+                       Nothing    -> return []
+                       Just fname -> readGeneralizationConfig fname
 
   -- read in trees from term files
   tree1 <- readToTree sourcefile
@@ -132,7 +137,8 @@ main = do
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
   let nonmatching_forestPre = nonMatchForest woven'
-      nonmatching_forest = map generalizeWeave nonmatching_forestPre
+      --nonmatching_forest = map (generalizeWeave generalizations) nonmatching_forestPre
+      nonmatching_forest = nonmatching_forestPre
 
   -- debug : print stuff out
   when debugflag $ do

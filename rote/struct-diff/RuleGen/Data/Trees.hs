@@ -9,7 +9,7 @@
 --
 -- matt@galois.com // July 2012
 --
-module RuleGen.Trees (
+module RuleGen.Data.Trees (
   Label(..),
   LabeledTree,
   SizedTree,

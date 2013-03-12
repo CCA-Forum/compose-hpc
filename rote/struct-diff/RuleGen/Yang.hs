@@ -16,7 +16,7 @@ module RuleGen.Yang (
 import Data.Array
 import Data.Maybe
 import Data.List
-import RuleGen.Trees
+import RuleGen.Data.Trees
 import Data.Tree
 import Prelude hiding (Left)
 

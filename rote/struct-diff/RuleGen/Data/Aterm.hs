@@ -10,14 +10,14 @@
   purposes of this prototype tool.
 -}
 
-module RuleGen.AtermUtilities (
+module RuleGen.Data.Aterm (
 	readToTree
 ) where
 
 import ATerm.ReadWrite
 import Data.Tree
 import ATerm.AbstractSyntax
-import RuleGen.Trees
+import RuleGen.Data.Trees
 
 {-|
   Read an aterm from the given filename and return a LabeledTree.

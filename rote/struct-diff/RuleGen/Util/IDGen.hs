@@ -1,4 +1,4 @@
-module RuleGen.IDGen (
+module RuleGen.Util.IDGen (
     IDGen,
     genID,
     genName,
