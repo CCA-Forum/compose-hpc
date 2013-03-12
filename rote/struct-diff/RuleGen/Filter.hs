@@ -127,7 +127,7 @@ readGeneralizationConfig fname = do
     val <- readfile emptyCP fname
     let cp = forceEither val
         sects = sections cp
-        csvs = wordsWhen (==',')
+        csvs s = map (filter (/=' ')) $ wordsWhen (==',') s
         handleSection s = let root = csvs $ forceEither $ get cp s "root"
                               targets = csvs $ forceEither $ get cp s "target"
                           in case root of 
