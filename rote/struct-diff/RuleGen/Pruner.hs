@@ -12,7 +12,7 @@ module RuleGen.Pruner (
 ) where
 
 import RuleGen.Yang
-import RuleGen.Trees
+import RuleGen.Data.Trees
 import Data.Tree
 
 -- given a subtree rooted at a var_ref_exp, get the name

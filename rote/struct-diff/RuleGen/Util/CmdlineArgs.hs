@@ -1,4 +1,4 @@
-module RuleGen.CmdlineArgs (
+module RuleGen.Util.CmdlineArgs (
   Flag,
   handleCommandLine,
   getOutput,

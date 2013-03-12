@@ -20,7 +20,7 @@ module RuleGen.Weaver (
 
 import RuleGen.Yang
 -- import Debug.Trace
-import RuleGen.Trees
+import RuleGen.Data.Trees
 
 -- pass-through to turn off tracing
 trace :: String -> a -> a

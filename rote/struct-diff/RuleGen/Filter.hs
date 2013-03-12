@@ -9,7 +9,7 @@ module RuleGen.Filter (
 ) where
 
 import Data.ConfigFile
-import RuleGen.Trees
+import RuleGen.Data.Trees
 import RuleGen.Weaver
 import RuleGen.Pruner
 import Data.Tree
@@ -42,12 +42,6 @@ toLabelSet lbls = S.fromList $ map LBLString lbls
 
 toLabelList :: [String] -> [Label]
 toLabelList = map LBLString
-
---arithOps = toLabelSet ["multiply_op", "add_op", "subtract_op", "divide_op"]
-
---generalizeTargets = ["var_ref_exp", "binary_op_annotation"]
-
---genCase = GSpecific (LBLString "multiply_op") (toLabelList generalizeTargets)
 
 generalizeWeave :: [Generalization] -> WeavePoint -> WeavePoint
 generalizeWeave gens (Mismatch (WLeaf a) (WLeaf b)) = (Mismatch (WLeaf a') (WLeaf b'))
