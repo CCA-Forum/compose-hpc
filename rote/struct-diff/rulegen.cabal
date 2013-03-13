@@ -15,9 +15,9 @@ Executable rulegen
 
   Build-Depends: base >=4&&<5, mtl, containers, array, aterm <= 0.1.0.1, ConfigFile <= 1.1.1
   Main-Is: RuleGen/rulegen.hs
-  Other-Modules: RuleGen.AtermUtilities,
-                 RuleGen.GraphvizUtil,
-                 RuleGen.Trees,
+  Other-Modules: RuleGen.Data.Aterm,
+                 RuleGen.Util.Graphviz,
+                 RuleGen.Data.Trees,
                  RuleGen.Stratego,
                  RuleGen.Weaver,
                  RuleGen.Contextualizer,

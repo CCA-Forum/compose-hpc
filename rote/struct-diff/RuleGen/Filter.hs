@@ -15,12 +15,7 @@ import RuleGen.Pruner
 import Data.Tree
 import qualified Data.Set as S
 import Data.List (foldl')
-
--- taken from MissingH.  this is so simple, I don't want to induce a
--- package dependency simply for this little function.
-forceEither :: Show e => Either e a -> a
-forceEither (Left x) = error (show x)
-forceEither (Right x) = x
+import RuleGen.Util.Misc
 
 despecifyFile :: LabeledTree -> LabeledTree
 despecifyFile t = replaceSubtrees (LBLString "file_info") replacementNode t
@@ -94,15 +89,6 @@ generalizer (GSpecific lbl ls) (tIn@(Node rootLbl _), tOut)
     in (tIn', tOut')
 
 generalizer _ _ = error "Bad generalizer call"
-
-
-
--- see: http://stackoverflow.com/questions/4978578/how-to-split-a-string-in-haskell
-wordsWhen     :: (Char -> Bool) -> String -> [String]
-wordsWhen p s =  case dropWhile p s of
-                      "" -> []
-                      s' -> w : wordsWhen p s''
-                            where (w, s'') = break p s'
 
 --
 -- read a configuration file of generalizations.  the format is as follows:
