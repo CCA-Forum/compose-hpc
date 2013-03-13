@@ -3,7 +3,7 @@
  * File:           contractPrivateTypes.h
  * Author:         T. Dahlgren
  * Created:        2012 April 23
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 March 12
  * \endinternal
  * 
  * @file
@@ -43,6 +43,10 @@ typedef struct EnforcementPolicy__struct {
 /**
  * Interface contract enforcement time estimates, in milliseconds.  This 
  * data is ONLY applicable to adaptive enforcement policy(ies).
+ *
+ * @todo Need to give some thought regarding time estimates for assertions, 
+ * especially for cases where there are multiple assertion clauses within
+ * a routine.
  */
 typedef struct TimeEstimates__struct {
   /** Milliseconds spent checking precondition clause. */
@@ -51,6 +55,8 @@ typedef struct TimeEstimates__struct {
   uint64_t post;    
   /** Milliseconds spent checking invariant clause. */
   uint64_t inv;     
+  /** Milliseconds spent, on average?, checking assertion clause. */
+  uint64_t asrt;     
   /** Milliseconds spent in the routine implementation. */
   uint64_t routine; 
 } TimeEstimatesType;

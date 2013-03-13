@@ -3,7 +3,7 @@
  * File:           contracts.h
  * Author:         T. Dahlgren
  * Created:        2012 April 12
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 March 12
  * \endinternal
  * 
  * @file
@@ -88,8 +88,8 @@ typedef enum ContractViolation__enum {
   ContractViolation_PRECONDITION   = 2,
   /** POSTCONDITION:  A postcondition clause was violated. */
   ContractViolation_POSTCONDITION  = 4,
-  /** CUSTOM:  Future Work Placeholder */
-  ContractViolation_CUSTOM         = 8
+  /** ASSERT:  An assertion clause was violated. */
+  ContractViolation_ASSERT         = 8
 } ContractViolationEnum;
 
 /** 
@@ -104,7 +104,7 @@ static const ContractViolationEnum S_CONTRACT_VIOLATION_MIN
  * for traversal purposes.
  */
 static const ContractViolationEnum S_CONTRACT_VIOLATION_MAX
-                                   = ContractViolation_CUSTOM;
+                                   = ContractViolation_ASSERT;
 
 /**
  * Names corresponding to (and indexable by) ContractViolationEnum.
@@ -115,12 +115,12 @@ static const char* S_CONTRACT_VIOLATION[9] = {
   "None",
   "Invariant",
   "Precondition",
-  "**undefined**",
+  "**undefined1**",
   "Postcondition",
-  "**undefined**",
-  "**undefined**",
-  "**undefined**",
-  "Custom"
+  "**undefined2**",
+  "**undefined3**",
+  "**undefined4**",
+  "Assertion"
 };
 
 /** 

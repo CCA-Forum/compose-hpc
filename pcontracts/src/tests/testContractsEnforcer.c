@@ -120,6 +120,13 @@ checkRoutineClauses(
         times.inv, times.routine, firstTime) ? 1 : 0;
   }
 
+  if (clauses & EnforcementClause_ASSERTS)
+  {
+    numEnforced += 
+      ContractsEnforcer_enforceClause(enforcer, ContractClause_ASSERT,
+        times.asrt, times.routine, firstTime) ? 1 : 0;
+  }
+
   ContractsEnforcer_logTrace(enforcer, times, NULL, NULL);
 
   return numEnforced;
@@ -147,6 +154,7 @@ checkAppClauses(
   times.pre     = 0;
   times.post    = 0;
   times.inv     = 0;
+  times.asrt    = 0;
   times.routine = 5;
 
   for (i=0; i<iters; i++) 
@@ -165,6 +173,7 @@ checkAppClauses(
     times.pre++;
     times.post++;
     times.inv++;
+    times.asrt++;
     times.routine += 5;
   }
   
@@ -196,23 +205,30 @@ main(int argc, char **argv)
 
   /* 
    * The numbers of enforced clauses given in the table below MUST match what 
-   * is actually obtained from default options 
+   * is actually obtained from default options.
    */
-  unsigned int numEC = S_ENFORCEMENT_CLAUSE_MAX+1;
-  unsigned int numEF = S_ENFORCEMENT_FREQUENCY_MAX+1;
+  static const unsigned int numEC = S_ENFORCEMENT_CLAUSE_MAX+1;
+  static const unsigned int numEF = S_ENFORCEMENT_FREQUENCY_MAX+1;
   unsigned int total = numEC*numEF;
-  unsigned int 
-    defaultEnforced[S_ENFORCEMENT_CLAUSE_MAX+1][S_ENFORCEMENT_FREQUENCY_MAX+1] =
-  { 
+  unsigned int defaultEnforced[numEC][numEF] = 
+  {
   /* NEVER, ALWAYS,   AF,   AT, PERIODIC, RANDOM */
-    {    0,      0,    0,    0,        0,      0 }, /* NONE */
-    {    0,    900,    8,    8,       60,     60 }, /* INVARIANTS */
-    {    0,    450,    4,    4,       30,     30 }, /* PRECONDITIONS */
-    {    0,   1350,   12,   12,       90,     90 }, /* INVPRE */
-    {    0,    450,    4,    4,       30,     30 }, /* POSTCONDITIONS */
-    {    0,   1350,   12,   12,       90,     90 }, /* INVPOST */
-    {    0,    900,    8,    8,       60,     60 }, /* PREPOST */
-    {    0,   1800,   16,   16,      120,    120 }  /* ALL */
+    {    0,      0,    0,    0,        0,      0 }, /*  0=NONE */
+    {    0,    900,    8,    8,       60,     60 }, /*  1=INVARIANTS */
+    {    0,    450,    4,    4,       30,     30 }, /*  2=PRECONDITIONS */
+    {    0,   1350,   12,   12,       90,     90 }, /*  3=INVPRE */
+    {    0,    450,    4,    4,       30,     30 }, /*  4=POSTCONDITIONS */
+    {    0,   1350,   12,   12,       90,     90 }, /*  5=INVPOST */
+    {    0,    900,    8,    8,       60,     60 }, /*  6=PREPOST */
+    {    0,   1800,   16,   16,      120,    120 }, /*  7=INVPREPOST */
+    {    0,    450,    4,    4,       30,     30 }, /*  8=ASSERTIONS */
+    {    0,   1350,   12,   12,       90,     90 }, /*  9=INVASRT */
+    {    0,    900,    8,    8,       60,     60 }, /* 10=PREASRT */
+    {    0,   1800,   16,   16,      120,    120 }, /* 11=INVPREASRT */
+    {    0,    900,    8,    8,       60,     60 }, /* 12=POSTASRT */
+    {    0,   1800,   16,   16,      120,    120 }, /* 13=INVPOSTASRT */
+    {    0,   1350,   12,   12,       90,     90 }, /* 14=PREPOSTASRT */
+    {    0,   2250,   20,   20,      150,    150 }  /* 15=ALL */
   };
 
   if (argc == 2) {
@@ -239,6 +255,8 @@ main(int argc, char **argv)
            iterations);
     printf("\nProceeding with default options since none entered.\n");
   }
+
+  setvbuf(stdout, NULL, _IONBF, 0);
 
   if ( (policyValue == defaultPV) && (iterations == defaultIters) ) {
     checkDefault = CONTRACTS_TRUE;
@@ -276,7 +294,7 @@ main(int argc, char **argv)
             printf("  PASSED");
           } else {
             printf("  FAILED");
-            printf(": %d vs. %d (expected)", numChecked, defaultEnforced[ec][ef]);
+            printf(": %d vs. %d (expected)",numChecked,defaultEnforced[ec][ef]);
           }
         }
 

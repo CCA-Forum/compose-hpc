@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 March 12
  * \endinternal
  *
  * @file
@@ -147,396 +147,6 @@ newBaseEnforcer(
 
   return enforcer;
 } /* newBaseEnforcer */
-
-
-/**
- * Create an invariants clause enforcer.
- *
- * @param[in] frequency Frequency of checking the clauses encountered.
- * @param[in] value     The policy value option, when appropriate.
- * @param[in] statsfile [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile [Optional] Name of the file to output enforcement 
- *                        traces.
- * @return              Pointer to the initialized enforcer, if successful.
- */
-ContractsEnforcerType*
-createInvEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_INVARIANTS, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                 EnforcementClause_INVARIANTS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_INVARIANTS, statsfile, 
-                               tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createInvEnforcer */
-
-
-/**
- * Create a preconditions clause enforcer.
- *
- * @param[in] frequency Frequency of checking the clauses encountered.
- * @param[in] value     The policy value option, when appropriate.
- * @param[in] statsfile [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile [Optional] Name of the file to output enforcement 
- *                        traces.
- * @return              Pointer to the initialized enforcer, if successful.
- */
-ContractsEnforcerType*
-createPreEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_PRECONDITIONS, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                 EnforcementClause_PRECONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_PRECONDITIONS, statsfile, 
-                               tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createPreEnforcer */
-
-
-/**
- * Create an invariant and precondition clauses enforcer.
- *
- * @param[in] frequency  Frequency of checking the clauses encountered.
- * @param[in] value      The policy value option, when appropriate.
- * @param[in] statsfile  [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile  [Optional] Name of the file to output enforcement 
- *                         traces.
- * @return               Pointer to the initialized enforcer, if successful;
- *                         otherwise, NULL.
- */
-ContractsEnforcerType*
-createInvPreEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_INVPRE, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_INVPRE, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                 EnforcementClause_INVPRE, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                 EnforcementClause_INVPRE, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                 EnforcementClause_INVPRE, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_INVPRE, statsfile, tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createInvPreEnforcer */
-
-
-/**
- * Create a postcondition clause enforcer.
- *
- * @param[in] frequency Frequency of checking the clauses encountered.
- * @param[in] value     The policy value option, when appropriate.
- * @param[in] statsfile [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile [Optional] Name of the file to output enforcement 
- *                        traces.
- * @return              Pointer to the initialized enforcer, if successful.
- */
-ContractsEnforcerType*
-createPostEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_POSTCONDITIONS, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                 EnforcementClause_POSTCONDITIONS, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_POSTCONDITIONS, statsfile, 
-                               tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createPostEnforcer */
-
-
-/**
- * Create an invariant and postcondition clauses enforcer.
- *
- * @param[in] frequency Frequency of checking the clauses encountered.
- * @param[in] value     The policy value option, when appropriate.
- * @param[in] statsfile [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile [Optional] Name of the file to output enforcement 
- *                        traces.
- * @return              Pointer to the initialized enforcer, if successful.
- */
-ContractsEnforcerType*
-createInvPostEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_INVPOST, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_INVPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                 EnforcementClause_INVPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                 EnforcementClause_INVPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                 EnforcementClause_INVPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_INVPOST, statsfile, tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createInvPostEnforcer */
-
-
-/**
- * Create a precondition and precondition clauses enforcer based on the 
- * specified frequency.
- *
- * @param[in] frequency Frequency of checking the clauses encountered.
- * @param[in] value     The policy value option, when appropriate.
- * @param[in] statsfile [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile [Optional] Name of the file to output enforcement 
- *                        traces.
- * @return               Pointer to the initialized enforcer, if successful.
- */
-ContractsEnforcerType*
-createPrePostEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_PREPOST, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_PREPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                 EnforcementClause_PREPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                 EnforcementClause_PREPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                 EnforcementClause_PREPOST, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_PREPOST, statsfile, tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createPrePostEnforcer */
-
-
-/**
- * Create an all interface contract clause enforcer.
- *
- * @param[in] frequency Frequency of checking the clauses encountered.
- * @param[in] value     The policy value option, when appropriate.
- * @param[in] statsfile [Optional] Name of the file to output enforcement data.
- * @param[in] tracefile [Optional] Name of the file to output enforcement 
- *                        traces.
- * @return               Pointer to the initialized enforcer, if successful.
- */
-ContractsEnforcerType*
-createAllEnforcer(
-  /* in */ EnforcementFrequencyEnum frequency, 
-  /* in */ unsigned int             value,
-  /* in */ const char*              statsfile,
-  /* in */ const char*              tracefile)
-{
-  ContractsEnforcerType* enforcer = NULL;
-
-  switch (frequency)
-  {
-  case EnforcementFrequency_ALWAYS:
-    enforcer = ContractsEnforcer_setEnforceAll(
-                 EnforcementClause_ALL, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_FIT:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveFit(
-                 EnforcementClause_ALL, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_ADAPTIVE_TIMING:
-    enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(
-                EnforcementClause_ALL, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_PERIODIC:
-    enforcer = ContractsEnforcer_setEnforcePeriodic(
-                EnforcementClause_ALL, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_RANDOM:
-    enforcer = ContractsEnforcer_setEnforceRandom(
-                EnforcementClause_ALL, value, statsfile, tracefile);
-    break;
-  case EnforcementFrequency_NEVER:
-    /* TBD: Is this case even worth doing? */
-    enforcer = newBaseEnforcer(EnforcementClause_ALL, statsfile, tracefile);
-    enforcer->policy.value = value;
-    break;
-  default:
-    /* Not a valid combination */
-    break;
-  } /* frequency */
-
-  return enforcer;
-} /* createAllEnforcer */
 
 
 /**
@@ -773,68 +383,34 @@ ContractsEnforcer_createEnforcer(
   DEBUG_MESSAGE("ContractsEnforcer_createEnforcer(): begin")
   ContractsEnforcerType* enforcer = NULL;
 
-  switch (clauses)
-  {
-  case EnforcementClause_NONE:
-    if (frequency == EnforcementFrequency_NEVER)
-    {
+  switch (frequency) {
+    case EnforcementFrequency_NEVER:
       enforcer = ContractsEnforcer_setEnforceNone();
-    }
-    else if (frequency == EnforcementFrequency_ALWAYS)
-    {
+      break;
+    case EnforcementFrequency_ALWAYS:
       enforcer = ContractsEnforcer_setEnforceAll(clauses, statsfile, tracefile);
-    }
-    else if (frequency == EnforcementFrequency_ADAPTIVE_FIT)
-    {
-      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, 0, statsfile,
-                                                         tracefile);
-    }
-    else if (frequency == EnforcementFrequency_ADAPTIVE_TIMING)
-    {
-      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, 0, 
+      break;
+    case EnforcementFrequency_ADAPTIVE_FIT:
+      enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value, 
                    statsfile, tracefile);
-    }
-    else if (frequency == EnforcementFrequency_PERIODIC)
-    {
-      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, 0, statsfile, 
-                                                      tracefile);
-    }
-    else if (frequency == EnforcementFrequency_RANDOM)
-    {
-      enforcer = ContractsEnforcer_setEnforceRandom(clauses, 0, statsfile, 
-                                                    tracefile);
-    }
-    else 
-    {
+      break;
+    case EnforcementFrequency_ADAPTIVE_TIMING:
+      enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value, 
+                   statsfile, tracefile);
+      break;
+    case EnforcementFrequency_PERIODIC:
+      enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value, 
+                   statsfile, tracefile);
+      break;
+    case EnforcementFrequency_RANDOM:
+      enforcer = ContractsEnforcer_setEnforceRandom(clauses, value, 
+                   statsfile, tracefile);
+      break;
+    default:
       printf("\nERROR: Unrecognized/unsupported enforcement frequency %d\n",
              frequency);
-    }
-    break;
-  case EnforcementClause_INVARIANTS:
-    enforcer = createInvEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  case EnforcementClause_PRECONDITIONS:
-    enforcer = createPreEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  case EnforcementClause_INVPRE:
-    enforcer = createInvPreEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  case EnforcementClause_POSTCONDITIONS:
-    enforcer = createPostEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  case EnforcementClause_INVPOST:
-    enforcer = createInvPostEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  case EnforcementClause_PREPOST:
-    enforcer = createPrePostEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  case EnforcementClause_ALL:
-    enforcer = createAllEnforcer(frequency, value, statsfile, tracefile);
-    break;
-  default:
-    printf("ERROR:  Unrecognized enforcement clause option.\n");
-    break;
-  } /* clauses */
+      break;
+  } /* frequency */
 
   DEBUG_MESSAGE("ContractsEnforcer_createEnforcer(): end")
   return enforcer;

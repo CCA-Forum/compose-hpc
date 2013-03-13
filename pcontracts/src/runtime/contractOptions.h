@@ -3,7 +3,7 @@
  * File:           contractOptions.h
  * Author:         T. Dahlgren
  * Created:        2012 April 12
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 March 12
  * \endinternal
  *
  * @file
@@ -42,7 +42,9 @@ typedef enum ContractClause__enum {
   /** Precondition contract clause. */
   ContractClause_PRECONDITION  = 2,
   /** Postcondition contract clause. */
-  ContractClause_POSTCONDITION = 4
+  ContractClause_POSTCONDITION = 4,
+  /** Assertion contract clause. */
+  ContractClause_ASSERT = 8
 } ContractClauseEnum;
 
 /**
@@ -52,12 +54,16 @@ typedef enum ContractClause__enum {
  *   MUST be kept in sync.  That is, any changes to one must correspond to 
  *   changes in the others.
  */
-static const char* S_CONTRACT_CLAUSE[5] = {
+static const char* S_CONTRACT_CLAUSE[9] = {
   "None",
   "Invariant",
   "Precondition",
-  "**undefined**",
-  "Postcondition"
+  "**undefined1**",
+  "Postcondition",
+  "**undefined2*",
+  "**undefined3*",
+  "**undefined4*",
+  "Assertion"
 };
 
 /**
@@ -70,7 +76,7 @@ static const unsigned int S_CONTRACT_CLAUSE_MIN_IND = 0;
  * The maximum Contract Clause name index.  Provided for traversal 
  * purposes.
  */
-static const unsigned int S_CONTRACT_CLAUSE_MAX_IND = 4;
+static const unsigned int S_CONTRACT_CLAUSE_MAX_IND = 8;
 
 
 /**
@@ -98,10 +104,38 @@ typedef enum EnforcementClause__enum {
   /** Check precondition and postcondition clauses ONLY. */
   EnforcementClause_PREPOST        = ContractClause_PRECONDITION
                                    | ContractClause_POSTCONDITION, /* 6 */
+  /** Check precondition, postcondition, and invariant contract clauses. */
+  EnforcementClause_INVPREPOST     = ContractClause_INVARIANT
+                                   | ContractClause_PRECONDITION
+                                   | ContractClause_POSTCONDITION, /* 7 */
+  /** Check assert contract clauses ONLY. */
+  EnforcementClause_ASSERTS        = ContractClause_ASSERT,        /* 8 */
+  /** Check invariant and assert contract clauses. */
+  EnforcementClause_INVASRT        = ContractClause_INVARIANT
+                                   | ContractClause_ASSERT,        /* 9 */
+  /** Check precondition and assert contract clauses. */
+  EnforcementClause_PREASRT        = ContractClause_PRECONDITION
+                                   | ContractClause_ASSERT,        /* 10 */
+  /** Check invariant, precondition, and assert contract clauses. */
+  EnforcementClause_INVPREASRT     = ContractClause_INVARIANT
+                                   | ContractClause_PRECONDITION
+                                   | ContractClause_ASSERT,        /* 11 */
+  /** Check postcondition and assert contract clauses. */
+  EnforcementClause_POSTASRT       = ContractClause_POSTCONDITION
+                                   | ContractClause_ASSERT,        /* 12 */
+  /** Check invariant, postcondition, and assert contract clauses. */
+  EnforcementClause_INVPOSTASRT    = ContractClause_INVARIANT
+                                   | ContractClause_POSTCONDITION
+                                   | ContractClause_ASSERT,        /* 13 */
+  /** Check precondition, postcondition, and assert contract clauses. */
+  EnforcementClause_PREPOSTASRT    = ContractClause_PRECONDITION
+                                   | ContractClause_POSTCONDITION
+                                   | ContractClause_ASSERT,        /* 14 */
   /** Check all contract clauses. */
   EnforcementClause_ALL            = ContractClause_INVARIANT
                                    | ContractClause_PRECONDITION
-                                   | ContractClause_POSTCONDITION /* 7 */
+                                   | ContractClause_POSTCONDITION
+                                   | ContractClause_ASSERT         /* 15 */
 } EnforcementClauseEnum;
 
 /**
@@ -124,7 +158,7 @@ static const EnforcementClauseEnum S_ENFORCEMENT_CLAUSE_MAX
  *  at runtime, it was decided to maintain them here for consistency 
  *  with other enforcement-related enumerations.
  */
-static const char* S_ENFORCEMENT_CLAUSE[8] = {
+static const char* S_ENFORCEMENT_CLAUSE[16] = {
   "None",
   "Invariants",
   "Preconditions",
@@ -132,7 +166,15 @@ static const char* S_ENFORCEMENT_CLAUSE[8] = {
   "Postconditions",
   "Invariants-Postconditions",
   "Preconditions-Postconditions",
-  "Invariants-Preconditions-Postconditions"
+  "Invariants-Preconditions-Postconditions",
+  "Assertions",
+  "Invariants-Assertions",
+  "Preconditions-Assertions",
+  "Invariants-Preconditions-Assertions",
+  "Postconditions-Assertions",
+  "Invariants-Postconditions-Assertions",
+  "Preconditions-Postconditions-Assertions",
+  "Invariants-Preconditions-Postconditions-Assertions"
 };
 
 /**
@@ -142,7 +184,7 @@ static const char* S_ENFORCEMENT_CLAUSE[8] = {
  *  at runtime, it was decided to maintain them here for consistency 
  *  with other enforcement-related enumerations.
  */
-static const char* S_ENFORCEMENT_CLAUSE_ABBREV[8] = {
+static const char* S_ENFORCEMENT_CLAUSE_ABBREV[16] = {
   "None",
   "Inv",
   "Pre",
@@ -150,7 +192,15 @@ static const char* S_ENFORCEMENT_CLAUSE_ABBREV[8] = {
   "Post",
   "InvPost",
   "PrePost",
-  "InvPrePost"
+  "InvPrePost",
+  "Asrt",
+  "InvAsrt",
+  "PreAsrt",
+  "InvPreAsrt",
+  "PostAsrt",
+  "InvPostAsrt",
+  "PrePostAsrt",
+  "InvPrePostAsrt"
 };
 
 /**
@@ -163,7 +213,7 @@ static const unsigned int S_ENFORCEMENT_CLAUSE_MIN_IND = 0;
  * The maximum Enforcement Clause name index.  Provided for traversal 
  * purposes.
  */
-static const unsigned int S_ENFORCEMENT_CLAUSE_MAX_IND = 7;
+static const unsigned int S_ENFORCEMENT_CLAUSE_MAX_IND = 15;
 
 
 /** 
