@@ -22,6 +22,7 @@ Contact : matt sottile (matt@galois.com)
           
 -}
 
+import RuleGen.Generalize
 import RuleGen.Data.Aterm
 import RuleGen.Data.Trees
 import RuleGen.Weaver
