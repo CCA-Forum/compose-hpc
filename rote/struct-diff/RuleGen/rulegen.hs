@@ -33,6 +33,7 @@ import RuleGen.Filter
 import RuleGen.Contextualizer
 import RuleGen.Util.CmdlineArgs
 import RuleGen.Util.Graphviz
+import RuleGen.Util.Configuration
 import System.Exit 
 import Data.Tree
 import Control.Monad (when)
@@ -58,9 +59,23 @@ main = do
       gvizflag   = isGVizOnlyOn flags
       configfile = getConfigFile flags
 
-  generalizations <- case configfile of
-                       Nothing    -> return []
-                       Just fname -> readGeneralizationConfig fname
+  -- read configuration rules into a big rule list
+  configRules <- case configfile of
+                   Nothing    -> return []
+                   Just fname -> readConfig fname
+
+  --
+  -- partition configuration rules into the four sets that
+  -- correspond to preFilter, postFilter, generalizeFilter, and
+  -- contextualizeFilter phases.
+  --
+  let (preFilt, postFilt, gFilt, cFilt) = partitionRuleSets configRules
+
+  when debugflag $ do
+    putStrLn $ "PREFILT: "++(show preFilt)
+    putStrLn $ "POSTFILT: "++(show postFilt)
+    putStrLn $ "GFILT: "++(show gFilt)
+    putStrLn $ "CFILT: "++(show cFilt)
 
   -- read in trees from term files
   tree1 <- readToTree sourcefile
@@ -68,8 +83,8 @@ main = do
 
   -- clean up trees to remove fileinfo nodes that will induce many false
   -- positive diffs
-  let tree1' = despecifyFile tree1
-      tree2' = despecifyFile tree2
+  let tree1' = preFilters preFilt tree1
+      tree2' = preFilters preFilt tree2
 
       -- label comparator that is used by the tree diff algorithm
       labelcompare = (==)
@@ -137,8 +152,8 @@ main = do
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
 
   let nonmatching_forestPre = nonMatchForest woven'
-      --nonmatching_forest = map (generalizeWeave generalizations) nonmatching_forestPre
-      nonmatching_forest = nonmatching_forestPre
+      nonmatching_forest = map (generalizeWeave gFilt) nonmatching_forestPre
+      --nonmatching_forest = nonmatching_forestPre
 
   -- debug : print stuff out
   when debugflag $ do

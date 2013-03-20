@@ -28,6 +28,7 @@ module RuleGen.Data.Trees (
 import Data.Tree
 import Data.Maybe
 import Data.List
+import RuleGen.Data.Labels
 
 dumpTree :: Show a => Tree a -> String
 dumpTree t = drawTree $ convert t
@@ -36,16 +37,6 @@ dumpTree t = drawTree $ convert t
 {-|
   A tree where the node data is a string label.
 -}
-data Label = LBLString String
-           | LBLList
-           | LBLInt Integer
-  deriving (Eq, Ord)
-
-instance Show Label where
-  show (LBLString s) = s
-  show (LBLList)     = "LIST"
-  show (LBLInt i)    = show i
-
 type LabeledTree = Tree Label
 
 {-|
