@@ -55,10 +55,11 @@ wtreeToGraphviz t = snd $ evalIDGen t wToGV
   IO function to write a sequence of DOT file lines to
   a file.
 -}
-dumpGraphvizToFile :: String    -- ^ Filename for DOT file
-                   -> [String]  -- ^ DOT-file lines
+dumpGraphvizToFile :: Maybe String -- ^ Filename for DOT file
+                   -> [String]     -- ^ DOT-file lines
                    -> IO ()
-dumpGraphvizToFile fname ls = do
+dumpGraphvizToFile Nothing _       = do return ()
+dumpGraphvizToFile (Just fname) ls = do
   h <- openFile fname WriteMode
   hPutStrLn h "digraph G {"
   _ <- mapM (\s -> hPutStrLn h ("  "++s)) ls

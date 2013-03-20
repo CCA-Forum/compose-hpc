@@ -105,24 +105,16 @@ main = do
       --y1 = replaceEditTreeNode (LBLString "gen_info()") (ENode blank []) (Node blank []) y1'
       y1 = y1'
 
-  -- check if we want graphviz files dumped of the two diff trees
-  case sgraphviz of
-    Just fname -> do let g = etreeToGraphviz y1
-                     dumpGraphvizToFile fname g
-    Nothing    -> return ()
-  case tgraphviz of
-    Just fname -> do let g = etreeToGraphviz y2
-                     dumpGraphvizToFile fname g
-    Nothing    -> return ()
+  -- graphviz files dumped of the two diff trees (or not if the filename is
+  -- Nothing).
+  dumpGraphvizToFile sgraphviz (etreeToGraphviz y1)
+  dumpGraphvizToFile tgraphviz (etreeToGraphviz y2)
 
   -- create a forest of woven diff trees
   let woven' = weave y1 y2
 
-  -- do we want to dump this out as graphviz?
-  case wgraphviz of
-    Just fname -> do let g = wtreeToGraphviz woven'
-                     dumpGraphvizToFile fname g
-    Nothing    -> return ()
+  -- dump weave tree as graphviz is wgraphviz isn't Nothing
+  dumpGraphvizToFile wgraphviz (wtreeToGraphviz woven')
 
   -- check if user only wants the graphviz dumps - exit here if so.
   -- TODO: this still requires the stratego output file to be specified
@@ -176,5 +168,4 @@ main = do
     then putStrLn "No difference identified."
     else writeFile outputfile (strategoRules rules)
 
--- putStrLn (strategoRules rules)
   return ()
