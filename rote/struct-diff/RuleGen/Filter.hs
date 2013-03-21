@@ -3,7 +3,9 @@
 -}
 module RuleGen.Filter (
     preFilter,
-    preFilters
+    preFilters,
+    postFilter,
+    postFilters
 ) where
 
 import RuleGen.Data.Trees
@@ -22,3 +24,12 @@ preFilter (PreFilterRule roots repl) tree =
   where 
     replacementNode = Node repl []
 
+postFilters :: [PostFilterRule] -> LabeledTree -> LabeledTree
+postFilters rules tree =
+  foldl' (\t f -> postFilter f t) tree rules
+
+postFilter :: PostFilterRule -> LabeledTree -> LabeledTree
+postFilter (PostFilterRule roots repl) tree = 
+  S.fold (\i t -> replaceSubtrees i replacementNode t) tree roots
+  where 
+    replacementNode = Node repl []

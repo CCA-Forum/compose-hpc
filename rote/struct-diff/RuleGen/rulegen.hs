@@ -134,15 +134,20 @@ main = do
   --       chosen and when.
   --  
   let holes = evalIDGen woven' (contextualize cFilt)
-      (pre,post) = unzip holes
+
+  -- post filters apply here
+  let (pre,post) = unzip holes
+      pre' = map (postFilters postFilt) pre
+      post' = map (postFilters postFilt) post
+      holes' = zip pre' post'
 
   when debugflag $ do
     putStrLn "---PRE---"
-    mapM_ putStrLn (map dumpTree pre)
+    mapM_ putStrLn (map dumpTree pre')
     putStrLn "---POST---"
-    mapM_ putStrLn (map dumpTree post)
+    mapM_ putStrLn (map dumpTree post')
 
-  let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes
+  let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes'
 
   let nonmatching_forestPre = nonMatchForest woven'
       nonmatching_forest = map (generalizeWeave gFilt) nonmatching_forestPre
