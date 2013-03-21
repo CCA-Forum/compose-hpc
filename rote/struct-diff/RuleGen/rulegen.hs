@@ -133,7 +133,7 @@ main = do
   --       want both available, with some control possible as to which is
   --       chosen and when.
   --  
-  let holes = evalIDGen woven' (contextualize2 cFilt)
+  let holes = evalIDGen woven' (contextualize cFilt)
       (pre,post) = unzip holes
 
   when debugflag $ do

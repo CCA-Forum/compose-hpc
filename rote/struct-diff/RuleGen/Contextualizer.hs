@@ -7,7 +7,6 @@
   code insertion/deletion occurs.
 -}
 module RuleGen.Contextualizer (
-  contextualize2,
   contextualize
 ) where
 
@@ -89,23 +88,23 @@ holeAnnotator (WNode str _ kids) =
       deeperHoles = deeperHoleFinder kids'
   in WNode str (or [holes, deeperHoles]) kids'
 
-contextualize2 :: [ContextualizeFilterRule] -> WeaveTree a -> IDGen [(LabeledTree, LabeledTree)]
-contextualize2 rules t = do
+contextualize :: [ContextualizeFilterRule] -> WeaveTree a -> IDGen [(LabeledTree, LabeledTree)]
+contextualize rules t = do
   let t' = holeAnnotator t
-  results <- mapM (\r -> contextualize r t') rules
+  results <- mapM (\r -> contextualize_inner r t') rules
   return $ concat results
 
-contextualize :: ContextualizeFilterRule -> WeaveTree Bool -> IDGen [(LabeledTree, LabeledTree)]
+contextualize_inner :: ContextualizeFilterRule -> WeaveTree Bool -> IDGen [(LabeledTree, LabeledTree)]
 -- nothing interesting happens for WLeaf nodes - shouldn't be here
-contextualize _ (WLeaf _)                  = error "Can't contextualize a leaf"
+contextualize_inner _ (WLeaf _)                  = error "Can't contextualize a leaf"
 
 -- no holes below here, so nothing interesting will come back.
-contextualize _ (WNode _ False _)          = do return []
+contextualize_inner _ (WNode _ False _)          = do return []
 
 -- holes be below here.  if this node matches a subtree root to contextualize from,
 -- do it!  Otherwise, descend seeking the holes and possible nodes that do
 -- match
-contextualize cfilt (WNode str True kids)  = do
+contextualize_inner cfilt (WNode str True kids)  = do
   let (ContextualizeFilterRule lsetMatch) = cfilt
   if (S.member str lsetMatch) then
     (do kids' <- mapM kidVars kids
@@ -113,26 +112,5 @@ contextualize cfilt (WNode str True kids)  = do
             rhs = Node str (mapMaybe (ctxtize True) kids')
         return [(lhs,rhs)])
     else
-      (do rv <- mapM (contextualize cfilt) $ mapMaybe checkMatch kids
+      (do rv <- mapM (contextualize_inner cfilt) $ mapMaybe checkMatch kids
           return $ concat rv)
-
-{-
--- the action is in the WNodes...
-contextualize (WNode str hs kids) = do
-  -- if any of the kids of this node are a hole, then we build
-  -- context from this node as parent.
-  let holes = holeFinder kids
-
-  case holes of
-    -- no kids are holes, so descend into subtrees that match
-    [] -> do rv <- mapM contextualize $ mapMaybe checkMatch kids
-             return $ concat rv
-
-    -- we have one or more kid-holes.  what to do?
-    --  1. all non-hole kids, they become stratego variables
-    --  2. all hole kids are emitted as their raw trees
-    _  -> do kids' <- mapM kidVars kids
-             let lhs = Node str (mapMaybe (ctxtize False) kids')
-                 rhs = Node str (mapMaybe (ctxtize True) kids')
-             return [(lhs,rhs)]
--}
