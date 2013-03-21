@@ -112,7 +112,7 @@ main = do
   dumpGraphvizToFile tgraphviz (etreeToGraphviz y2)
 
   -- create a forest of woven diff trees
-  let woven' = weave y1 y2
+  let woven' = weave y1 y2 False
 
   -- dump weave tree as graphviz is wgraphviz isn't Nothing
   dumpGraphvizToFile wgraphviz (wtreeToGraphviz woven')
@@ -133,7 +133,7 @@ main = do
   --       want both available, with some control possible as to which is
   --       chosen and when.
   --  
-  let holes = evalIDGen woven' contextualize
+  let holes = evalIDGen woven' (contextualize2 cFilt)
       (pre,post) = unzip holes
 
   when debugflag $ do
@@ -156,7 +156,7 @@ main = do
   -- get the rules
   let blank = LBLString "_"
       nonmatching_forest' = map (\p -> replaceWeavePoint (LBLString "gen_info()") 
-                                                         (WNode blank [])
+                                                         (WNode blank False [])
                                                          (Node blank []) 
                                                          (True,False) 
                                                          p) 

@@ -11,7 +11,7 @@ import RuleGen.Data.Trees
 import qualified Data.Set as S
 import Data.Tree
 
-generalizeWeave :: [GeneralizeFilterRule] -> WeavePoint -> WeavePoint
+generalizeWeave :: [GeneralizeFilterRule] -> WeavePoint a -> WeavePoint a
 generalizeWeave gens (Mismatch (WLeaf a) (WLeaf b)) = (Mismatch (WLeaf a') (WLeaf b'))
   where (a',b') = foldl' (flip generalizer) (a,b) gens
 generalizeWeave _    w = w

@@ -47,8 +47,8 @@ etreeToGraphviz t = snd $ evalIDGen t etToGV
   Take a WeaveTree and return a list of lines for the
   corresponding graphviz DOT file.
 -}
-wtreeToGraphviz :: WeaveTree -- ^ Tree to print
-                -> [String]  -- ^ DOT-file lines
+wtreeToGraphviz :: WeaveTree a -- ^ Tree to print
+                -> [String]    -- ^ DOT-file lines
 wtreeToGraphviz t = snd $ evalIDGen t wToGV
 
 {-|
@@ -100,13 +100,13 @@ cBlack = "color=black"
 aBold :: String
 aBold  = "style=bold"
 
-wpLabel :: WeavePoint -> String
-wpLabel (Match _) = "MATCH"
+wpLabel :: WeavePoint a -> String
+wpLabel (Match _)      = "MATCH"
 wpLabel (Mismatch _ _) = "MISMATCH"
-wpLabel (RightHole _) = "RHOLE"
-wpLabel (LeftHole _) = "LHOLE"
+wpLabel (RightHole _)  = "RHOLE"
+wpLabel (LeftHole _)   = "LHOLE"
 
-wpToGV :: WeavePoint -> IDGen (Int, [String])
+wpToGV :: WeavePoint a -> IDGen (Int, [String])
 wpToGV wp = do
   myID <- genID
   let self = makeNode myID [cGreen] (wpLabel wp)
@@ -126,14 +126,14 @@ wpToGV wp = do
                       let kEdge = makeEdge myID kidID
                       return (myID, self:kEdge:kidStrings)
 
-wToGV :: WeaveTree -> IDGen (Int, [String])
+wToGV :: WeaveTree a -> IDGen (Int, [String])
 wToGV (WLeaf t) = do
   myID <- genID
   let self = makeNode myID [cGreen] "WLeaf"
   (kidID, kidStrings) <- tToGV t
   let kidEdge = makeEdge myID kidID
   return (myID, self:kidEdge:kidStrings)
-wToGV (WNode lbl wps) = do
+wToGV (WNode lbl _ wps) = do
   myID <- genID
   let self = makeNode myID [cGreen] ("WNode:"++(show lbl))
   processed <- mapM wpToGV wps

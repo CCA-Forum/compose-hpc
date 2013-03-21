@@ -43,7 +43,7 @@ data PostFilterRule = PostFilterRule LabelSet Label
 data GeneralizeFilterRule = GeneralizeFilterRule LabelSet [Label]
   deriving (Show, Eq)
 
-data ContextualizeFilterRule = ContextualizeFilterRule
+data ContextualizeFilterRule = ContextualizeFilterRule LabelSet
   deriving (Show, Eq)
 
 readConfig :: String -> IO [ConfigurationRule]
@@ -63,7 +63,8 @@ readConfig fname = do
                 "generalize" -> GeneralizeFilter $
                                 GeneralizeFilterRule (toLabelSet match) 
                                                      (toLabelList targets)
-                "context" -> error "CONTEXT unimplemented"
+                "context" -> ContextualizeFilter $ 
+                             ContextualizeFilterRule (toLabelSet match)
                 "post" -> error "POST unimplemented"
                 _      -> error $ "Phase `"++phase++"' unknown."
     return $ map handleSection sects
