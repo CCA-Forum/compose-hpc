@@ -65,6 +65,7 @@ readConfig fname = do
                                                      (toLabelList targets)
                 "context" -> ContextualizeFilter $ 
                              ContextualizeFilterRule (toLabelSet match)
-                "post" -> error "POST unimplemented"
+                "post" -> PostFilter $ PostFilterRule (toLabelSet match)
+                                                      (head $ toLabelList substitute)
                 _      -> error $ "Phase `"++phase++"' unknown."
     return $ map handleSection sects
