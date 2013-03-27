@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 March 7
+ * Last Modified:  2013 March 26
  * \endinternal
  *
  * @file
@@ -41,6 +41,7 @@ const string S_INIT = "Initialization";
 #endif /* PCE_ADD_COMMENTS */
 
 const string S_ERROR = "Error: Contract Developer(s)";
+const string S_ASSERTIONS = "Assertions";
 const string S_INVARIANTS = "Invariants";
 const string S_PRECONDITIONS = "Preconditions";
 const string S_POSTCONDITIONS = "Postconditions";
@@ -49,10 +50,12 @@ const string S_POSTCONDITIONS = "Postconditions";
 const string S_ERROR_NOT_SCOPED = 
   "ERROR: The contract annotation MUST be associated with a scoped statement.";
 
-const string S_ERROR_PRECONDITIONS = 
-  "ERROR: Preconditions MUST be associated with function definitions.";
+const string S_ERROR_ASSERTIONS = 
+  "ERROR: Assertions CANNOT be associated with function definitions.";
 const string S_ERROR_POSTCONDITIONS = 
   "ERROR: Postconditions MUST be associated with function definitions.";
+const string S_ERROR_PRECONDITIONS = 
+  "ERROR: Preconditions MUST be associated with function definitions.";
 
 /*
  * Would prefer to use the following to add a comment or at least a C-style
@@ -79,6 +82,112 @@ const string S_WARN_NO_EXECS =
   "WARNING: Expecting first clause but no executable contract checks.";
 
 const string S_SEP = ";";
+
+
+/**
+ * Build a contracts stats dump statement.
+ *
+ * @param[in] currSttmt  The current AST statement node.
+ * @param[in] dt         The pre-processing directive type.
+ * @return               The function call statement or NULL.
+ */
+SgExprStatement*
+buildDump(
+  /* in */ SgStatement*      currSttmt,
+  /* in */ PPIDirectiveType  dt)
+{
+  SgExprStatement* sttmt = NULL;
+
+  SgExprListExp* parms = new SgExprListExp(FILE_INFO);
+  if ( (currSttmt != NULL) && (parms != NULL) )
+  {
+    parms->append_expression(SageBuilder::buildVarRefExp("pce_enforcer"));
+    parms->append_expression(new SgStringVal(FILE_INFO, "End processing"));
+    sttmt = SageBuilder::buildFunctionCallStmt("PCE_DUMP_STATS", 
+      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+    if (sttmt != NULL)
+    {
+#ifdef PCE_ADD_COMMENTS
+      SageInterface::attachComment(sttmt, S_PREFACE + S_DUMP + S_BEGIN,
+        PreprocessingInfo::before, dt);
+      SageInterface::attachComment(sttmt, S_PREFACE + S_DUMP + S_END,
+        PreprocessingInfo::after, dt);
+#endif /* PCE_ADD_COMMENTS */
+    }
+  }
+
+  return sttmt;
+} /* buildDump */
+
+
+/**
+ * Build a contracts finalization statement.
+ *
+ * @param[in] currSttmt  The current AST statement node.
+ * @param[in] dt         The pre-processing directive type.
+ * @return               The function call statement or NULL.
+ */
+SgExprStatement*
+buildFinal(
+  /* in */ SgStatement*      currSttmt,
+  /* in */ PPIDirectiveType  dt)
+{
+  SgExprStatement* sttmt = NULL;
+
+  SgExprListExp* parms = new SgExprListExp(FILE_INFO);
+  if ( (currSttmt != NULL) && (parms != NULL) )
+  {
+    sttmt = SageBuilder::buildFunctionCallStmt("PCE_FINALIZE", 
+      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+    if (sttmt != NULL)
+    {
+#ifdef PCE_ADD_COMMENTS
+      SageInterface::attachComment(sttmt, S_PREFACE + S_FINAL + S_BEGIN,
+        PreprocessingInfo::before, dt);
+      SageInterface::attachComment(sttmt, S_PREFACE + S_FINAL + S_END,
+        PreprocessingInfo::after, dt);
+#endif /* PCE_ADD_COMMENTS */
+    }
+  }
+
+  return sttmt;
+} /* buildFinal */
+
+
+/**
+ * Build a contracts initialization statement.
+ *
+ * @param[in] currSttmt  The current AST statement node.
+ * @param[in] dt         The pre-processing directive type.
+ * @return               The function call statement or NULL.
+ */
+SgExprStatement*
+buildInit(
+  /* in */ SgStatement*      currSttmt,
+  /* in */ PPIDirectiveType  dt)
+{
+  SgExprStatement* sttmt = NULL;
+
+  SgExprListExp* parms = new SgExprListExp(FILE_INFO);
+  if ( (currSttmt != NULL) && (parms != NULL) )
+  {
+    parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
+    sttmt = SageBuilder::buildFunctionCallStmt("PCE_INITIALIZE", 
+      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+    if (sttmt != NULL)
+    {
+#ifdef PCE_ADD_COMMENTS
+      SageInterface::attachComment(sttmt, S_PREFACE + S_INIT + S_BEGIN,
+        PreprocessingInfo::before, dt);
+      SageInterface::attachComment(sttmt, S_PREFACE + S_INIT + S_END,
+        PreprocessingInfo::after, dt);
+#endif /* PCE_ADD_COMMENTS */
+    }
+  }
+
+  return sttmt;
+} /* buildInit */
+
 
 /**
  * Extract and add assertion expressions to the contract clause.
@@ -143,7 +252,7 @@ ContractsProcessor::addExpressions(
         }
         else if (expr == "is initialization") 
         {
-          cc->setInit(true);
+          cc->setInInit(true);
 #ifdef DEBUG
             cout << "DEBUG: ..is initialization routine.\n";
 #endif /* DEBUG */
@@ -194,53 +303,27 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
 
   if ( (def != NULL) && (body != NULL) && (cc != NULL) )
   {
+    SgExprStatement* sttmt;
+
     PPIDirectiveType dt = cc->directive();
-    int i;
 
 #ifdef PCE_ADD_STATS_DUMP
     /*
      * @todo TBD/FIX: Add statistics dump?
      */
-    SgExprListExp* parmsD = new SgExprListExp(FILE_INFO);
-    if (parmsD != NULL)
+    sttmt = buildFinal(body, dt);
+    if (sttmt != NULL)
     {
-      parmsD->append_expression(SageBuilder::buildVarRefExp("pce_enforcer"));
-      parmsD->append_expression(new SgStringVal(FILE_INFO, "End processing"));
-      SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-        "PCE_DUMP_STATS", SageBuilder::buildVoidType(), parmsD, body);
-      if (sttmt != NULL)
-      {
-#ifdef PCE_ADD_COMMENTS
-        SageInterface::attachComment(sttmt, S_PREFACE + S_DUMP + S_BEGIN,
-          PreprocessingInfo::before, dt); 
-        SageInterface::attachComment(sttmt, S_PREFACE + S_DUMP + S_END,
-          PreprocessingInfo::after, dt);
-#endif /* PCE_ADD_COMMENTS */
-
-        i = SageInterface::instrumentEndOfFunction(def->get_declaration(), 
-              sttmt);
-        num+=i;
-      }
+      num += SageInterface::instrumentEndOfFunction(def->get_declaration(), 
+                                                    sttmt);
     }
 #endif /* PCE_ADD_STATS_DUMP */
 
-    SgExprListExp* parmsF = new SgExprListExp(FILE_INFO);
-    if (parmsF != NULL)
+    sttmt = buildFinal(body, dt);
+    if (sttmt != NULL)
     {
-      SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-        "PCE_FINALIZE", SageBuilder::buildVoidType(), parmsF, body);
-      if (sttmt != NULL)
-      {
-#ifdef PCE_ADD_COMMENTS
-        SageInterface::attachComment(sttmt, S_PREFACE + S_FINAL + S_BEGIN,
-          PreprocessingInfo::before, dt);
-        SageInterface::attachComment(sttmt, S_PREFACE + S_FINAL + S_END,
-          PreprocessingInfo::after, dt);
-#endif /* PCE_ADD_COMMENTS */
-        i = SageInterface::instrumentEndOfFunction(def->get_declaration(),
-              sttmt);
-        num+=i;
-      }
+      num += SageInterface::instrumentEndOfFunction(def->get_declaration(),
+                                                    sttmt);
     }
   }
               
@@ -357,23 +440,10 @@ ContractsProcessor::addInitialize(SgBasicBlock* body, ContractComment* cc)
 
   if ( (body != NULL) && (cc != NULL) )
   {
-    SgExprListExp* parms = new SgExprListExp(FILE_INFO);
-    if (parms != NULL)
-    {
-      parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
-      SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-        "PCE_INITIALIZE", SageBuilder::buildVoidType(), parms, body);
-      if (sttmt != NULL)
-      {
-#ifdef PCE_ADD_COMMENTS
-        SageInterface::attachComment(sttmt, S_PREFACE + S_INIT + S_BEGIN,
-          PreprocessingInfo::before, cc->directive());
-        SageInterface::attachComment(sttmt, S_PREFACE + S_INIT + S_END,
-          PreprocessingInfo::after, cc->directive());
-#endif /* PCE_ADD_COMMENTS */
-        body->prepend_statement(sttmt);
-        num += 1;
-      }
+    SgExprStatement* sttmt = buildInit(body, cc->directive());
+    if (sttmt != NULL) {
+      body->prepend_statement(sttmt);
+      num += 1;
     }
   }
               
@@ -420,16 +490,11 @@ ContractsProcessor::addPostChecks(
           case AssertionSupport_EXECUTABLE:
             {
               SgExprStatement* sttmt = buildCheck(body, ccType, ae, 
-                cc->directive());
+                                                  cc->directive());
               if (sttmt != NULL)
               {
-                int i = SageInterface::instrumentEndOfFunction(
+                num += SageInterface::instrumentEndOfFunction(
                          def->get_declaration(), sttmt);
-                num+=i;
-#ifdef DEBUG
-                cout << "DEBUG: ..added to end of function: ";
-                cout << sttmt->unparseToString() << "\n";
-#endif /* DEBUG */
               }
             }
             break;
@@ -438,7 +503,10 @@ ContractsProcessor::addPostChecks(
 #ifdef DEBUG
               cout << "DEBUG: ..unsupported expression(s)\n";
 #endif /* DEBUG */
-              // attach unsupported comment (NOTE: ROSE seems to ignore!)
+              /*
+               * Attach unsupported comment (NOTE: ROSE/unparser seems to 
+               * ignore!)
+               */
               SageInterface::attachComment(body, 
                 S_PREFACE + string(S_CONTRACT_CLAUSE[ccType])
                   + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
@@ -513,10 +581,6 @@ ContractsProcessor::addPreChecks(
               if (sttmt != NULL)
               {
                 body->prepend_statement(sttmt);
-#ifdef DEBUG
-                cout << "DEBUG: ..prepended: ";
-                cout << sttmt->unparseToString() << "\n";
-#endif /* DEBUG */
                 num++;
               }
             }
@@ -553,7 +617,7 @@ ContractsProcessor::addPreChecks(
 /**
  * Build the contract clause check statement.
  *
- * @param     body       [inout] Pointer to the function body.
+ * @param     currSttmt  [inout] Pointer to the current statement.
  * @param[in] clauseType The type of contract clause associated with the 
  *                         expression.
  * @param[in] ae         The assertion expression.
@@ -562,16 +626,16 @@ ContractsProcessor::addPreChecks(
  */
 SgExprStatement*
 ContractsProcessor::buildCheck(
-  /* inout */ SgBasicBlock*       body, 
+  /* inout */ SgStatement*        currSttmt, 
   /* in */    ContractClauseEnum  clauseType, 
   /* in */    AssertionExpression ae, 
   /* in */    PPIDirectiveType    dt)
 {
   SgExprStatement* sttmt = NULL;
 
-  if ( (body != NULL) && (ae.support() == AssertionSupport_EXECUTABLE) )
+  if ( (currSttmt != NULL) && (ae.support() == AssertionSupport_EXECUTABLE) )
   {
-    string cmt, clauseTime;
+    string cmt, clauseTypeStr, clauseTime;
     SgExprListExp* parms = new SgExprListExp(FILE_INFO);
 
     if (parms != NULL)
@@ -582,39 +646,43 @@ ContractsProcessor::buildCheck(
       {
         case ContractClause_PRECONDITION:
           {
-            parms->append_expression(SageBuilder::buildVarRefExp(
-              "ContractClause_PRECONDITION"));
+            clauseTypeStr = "ContractClause_PRECONDITION";
             clauseTime = "pce_def_times.pre";
             cmt = S_PRECONDITIONS;
           }
           break;
         case ContractClause_POSTCONDITION:
           {
-            parms->append_expression(SageBuilder::buildVarRefExp(
-              "ContractClause_POSTCONDITION"));
+            clauseTypeStr = "ContractClause_POSTCONDITION";
             clauseTime = "pce_def_times.post";
             cmt = S_POSTCONDITIONS;
           }
           break;
         case ContractClause_INVARIANT:
           {
-            parms->append_expression(SageBuilder::buildVarRefExp(
-              "ContractClause_INVARIANT"));
+            clauseTypeStr = "ContractClause_INVARIANT";
             clauseTime = "pce_def_times.inv";
             cmt = S_INVARIANTS;
+          }
+          break;
+        case ContractClause_ASSERT:
+          {
+            clauseTypeStr = "ContractClause_ASSERT";
+            clauseTime = "pce_def_times.asrt";
+            cmt = S_ASSERTIONS;
           }
           break;
         default:
           {
             /*  WARNING: This should NEVER happen. */
-            parms->append_expression(SageBuilder::buildVarRefExp(
-              "ContractClause_NONE"));
+            clauseTypeStr = "ContractClause_NONE";
             clauseTime = "0";
             cmt = S_ERROR;
           }
           break;
       }
 
+      parms->append_expression(SageBuilder::buildVarRefExp(clauseTypeStr));
       parms->append_expression(SageBuilder::buildVarRefExp(clauseTime));
       parms->append_expression(SageBuilder::buildVarRefExp(
         "pce_def_times.routine"));
@@ -624,7 +692,8 @@ ContractsProcessor::buildCheck(
       parms->append_expression(SageBuilder::buildVarRefExp("("+ae.expr()+")"));
   
       sttmt = SageBuilder::buildFunctionCallStmt("PCE_CHECK_EXPR_TERM", 
-        SageBuilder::buildVoidType(), parms, body);
+        SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+
 #ifdef PCE_ADD_COMMENTS
       if (sttmt != NULL)
       {
@@ -651,7 +720,11 @@ ContractsProcessor::buildCheck(
 #ifdef DEBUG
   else
   {
-    if (body == NULL) cout << "DEBUG: buildCheck: Given NULL body (wrong!)\n";
+    if (currSttmt == NULL) 
+    {
+      cout << "DEBUG: buildCheck: Given NULL body (wrong!)\n";
+    }
+
     if (ae.support() != AssertionSupport_EXECUTABLE)
     {
       cout << "DEBUG: buildCheck: Passed non-executable expression (wrong!)\n";
@@ -980,8 +1053,18 @@ ContractsProcessor::processCommentEntry(
         cc = new ContractComment(ContractComment_INVARIANT, dirType);
         addExpressions(cmt.substr(pos+9), cc, firstExecClause);
 #ifdef DEBUG
-        cout<<"DEBUG: Created INVARIANT ContractComment: "<<cc->str(S_SEP)<<endl;
+        cout<<"DEBUG: Created INVARIANT ContractComment: ";
+        cout<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
+      }
+      else if ((pos=cmt.find("ASSERT"))!=string::npos)
+      {
+        cc = new ContractComment(ContractComment_ASSERT, dirType);
+        addExpressions(cmt.substr(pos+6), cc, firstExecClause);
+//#ifdef DEBUG
+        cout<<"DEBUG: Created ASSERT ContractComment: ";
+        cout<<cc->str(S_SEP)<<endl;
+//#endif /* DEBUG */
       }
       else if ((pos=cmt.find("INIT"))!=string::npos)
       {
@@ -1080,7 +1163,7 @@ ContractsProcessor::processFunctionComments(
             case ContractComment_PRECONDITION:
               {
                 pre = cc;
-                if (cc->isInit()) isInitRoutine = true;
+                if (cc->isInInit()) isInitRoutine = true;
                 numChecks[0] += pre->size();
               }
               break;
@@ -1092,6 +1175,9 @@ ContractsProcessor::processFunctionComments(
               break;
             case ContractComment_INVARIANT:
               {
+                setInvariants(isSgLocatedNode(def), cc);
+#if 0
+/* This is the current working version for a function definition. */
                 /* 
                  * The following adds a C comment to .cc files BUT simple
                  * text to .cpp files.
@@ -1110,6 +1196,7 @@ ContractsProcessor::processFunctionComments(
                   printLineComment(decl, S_WARN_INVARIANTS, false);
                   cc = NULL;
                 }
+#endif
               }
               break;
             case ContractComment_INIT:
@@ -1122,9 +1209,19 @@ ContractsProcessor::processFunctionComments(
                 final = cc;
               }
               break;
+            case ContractComment_ASSERT:
+              {
+//#ifdef DEBUG
+                cout<<"DEBUG: ......erroneous ASSERT clause\n";
+//#endif /* DEBUG */
+
+                printLineComment(decl, S_ERROR_ASSERTIONS, false);
+              }
+              break;
             case ContractComment_NONE:
             default:
               {
+                /* Nothing to do here. */
               }
               break;
             } /* end switch */
@@ -1152,13 +1249,15 @@ ContractsProcessor::processFunctionComments(
 
             bool havePreChecks = (pre != NULL) && (numChecks[0] > 0);
 
+            bool fixFirst = havePreChecks 
+              && (pre->numExecutable() > 0) && d_first;
+
             if (! (skipInvariants || isInitRoutine) )
             {
-              bool fixFirst = havePreChecks 
-                && (pre->numExecutable() > 0) && d_first;
-
+//#ifdef DEBUG
               cout << "DEBUG: Invariants: pre->numExecutable()=";
               cout << pre->numExecutable() << ", first=" << d_first << endl;
+//#endif /* DEBUG */
 
               if (fixFirst) d_first = false;
               num += addPreChecks(body, d_invariants);
@@ -1168,6 +1267,7 @@ ContractsProcessor::processFunctionComments(
             if (havePreChecks)
             { 
               num += addPreChecks(body, pre);
+              if (fixFirst) d_first = false;
             }
 
             if (init != NULL)
@@ -1189,6 +1289,10 @@ ContractsProcessor::processFunctionComments(
 
             if (! (skipInvariants || isDestructor) )
             {
+//#ifdef DEBUG
+              cout << "DEBUG: (Post) Invariants: first =" << d_first << endl;
+//#endif /* DEBUG */
+
               num += addPostChecks(def, body, d_invariants);
             } 
 
@@ -1205,7 +1309,7 @@ ContractsProcessor::processFunctionComments(
 #ifdef DEBUG
         cout<<"\nDEBUG:BEGIN **********************************\n";
         cout<<"Instrumented routine:  "<<nm.getString()<<"():\n";
-        cout<<"  Checks\n";
+        cout<<"  Checks (includes non-executable)\n";
         cout<<"    Preconditions  = "<<numChecks[0]<<"\n";
         cout<<"    PostConditions = "<<numChecks[1]<<"\n";
         cout<<"    Invariants     = "<<numChecks[2]<<"\n";
@@ -1287,9 +1391,9 @@ ContractsProcessor::processNonFunctionNode(
     extractContract(lNode, true, clauses);
     if (clauses.size() > 0)
     {
-#ifdef DEBUG
-      cout<<"DEBUG: ....processing contract clauses\n";
-#endif /* DEBUG */
+//#ifdef DEBUG
+      cout<<"DEBUG: ..processing non-function node contract clauses\n";
+//#endif /* DEBUG */
 
       ContractClauseType::iterator iter;
       for (iter = clauses.begin(); iter != clauses.end(); iter++)
@@ -1301,190 +1405,47 @@ ContractsProcessor::processNonFunctionNode(
           {
           case ContractComment_PRECONDITION:
             {
-#ifdef DEBUG
-              cout<<"DEBUG: ......processing erroneous PRECONDITION clause\n";
-#endif /* DEBUG */
-
               printLineComment(lNode, S_ERROR_PRECONDITIONS, false);
             }
             break;
           case ContractComment_POSTCONDITION:
             {
-#ifdef DEBUG
-              cout<<"DEBUG: ......processing erroneous POSTCONDITION clause\n";
-#endif /* DEBUG */
-
               printLineComment(lNode, S_ERROR_POSTCONDITIONS, false);
             }
             break;
           case ContractComment_INVARIANT:
             {
-#ifdef DEBUG
-              cout<<"DEBUG: ......processing INVARIANT clause\n";
-#endif /* DEBUG */
-
-              if (d_invariants == NULL)
-              {
-                d_invariants = cc;
-
-                /* 
-                 * The following adds a C comment to .cc files BUT simple
-                 * text to .cpp files.
-                 *
-                SgStatement* currSttmt = isSgStatement(lNode);
-                if (currSttmt != NULL)
-                {
-                  SageInterface::addMessageStatement(currSttmt, 
-                    S_NOTE_INVARIANTS);
-
-                 // Ideally would use the following instead:
-                  SageInterface::attachComment(currSttmt, S_NOTE_INVARIANTS,
-                    PreprocessingInfo::before, cc->directive());
-                }
-                 */
-
-                SageInterface::addTextForUnparser(lNode, S_NOTE_INVARIANTS,
-                  AstUnparseAttribute::e_before);
-              }
-              else
-              {
-                printLineComment(lNode, S_WARN_INVARIANTS, false);
-              }
+              setInvariants(lNode, cc);
             }
             break;
           case ContractComment_INIT:
             {
-#ifdef DEBUG
-              cout<<"DEBUG: ......processing INIT clause\n";
-#endif /* DEBUG */
-
-              SgStatement* currSttmt = isSgStatement(lNode);
-              if (currSttmt != NULL)
-              {
-                SgScopeStatement* scope = currSttmt->get_scope();
-                SgExprListExp* parms = new SgExprListExp(FILE_INFO);
-                if (parms != NULL)
-                {
-#ifdef PCE_STATEMENT_NOT_WORKING
-                  /* 
-                   * TBD/TODO: Why does adding statements here prevent the
-                   * visitor from going beyond the instrumentation site?
-                   *
-                   * The provided warning is:
-                   *
-                   * "Warning: at present statements being inserted should
-                   * not have attached comments of CPP directives (could be
-                   * a problem, but comment relocation is not disabled)."
-                   *
-                   * However, the problem of not going beyond the site
-                   * occurs even when the comments are not added.  Vaquely
-                   * recall there may be some AST cleanup step needed after
-                   * an insertion.  Need to look into this again.
-                   */
-                  parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
-                  SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-                    "PCE_INITIALIZE", SageBuilder::buildVoidType(), parms, 
-                    scope);
-                  if (sttmt != NULL)
-                  {
-#ifdef PCE_ADD_COMMENTS
-                    SageInterface::attachComment(sttmt, 
-                      S_PREFACE + S_INIT + S_BEGIN,
-                      PreprocessingInfo::before, cc->directive());
-                    SageInterface::attachComment(sttmt, 
-                      S_PREFACE + S_INIT + S_END,
-                      PreprocessingInfo::after, cc->directive());
-#endif /* PCE_ADD_COMMENTS */
-                    SageInterface::insertStatementBefore(currSttmt, sttmt,true);
-                    num += 1;
-#ifdef DEBUG
-                    cout<<"DEBUG: INIT: currSttmt: ";
-                    cout<<currSttmt->unparseToString()<<endl;
-                    cout<<"DEBUG: INIT: sttmt: ";
-                    cout<<sttmt->unparseToString()<<endl;
-#endif /* DEBUG */
-                  }
-#else
-                  ostringstream initCode;
-                  //initCode << "/* " << S_INIT_BEGIN << " */";
-                  initCode << "\nPCE_INITIALIZE(NULL);\n";
-                  //initCode << "/* " << S_INIT_END << " */\n";
-                  SageInterface::addTextForUnparser(currSttmt, initCode.str(),
-                    AstUnparseAttribute::e_before);
-                  initCode.clear();
-#endif /* PCE_STATEMENT_NOT_WORKING */
-                }
-              }
-              else
-              {
-                printLineComment(lNode, S_ERROR_NOT_SCOPED, false);
-              }
+              num += processInit(lNode, cc);
             }
             break;
           case ContractComment_FINAL:
             {
-#ifdef DEBUG
-              cout<<"DEBUG: ......processing FINAL clause\n";
-#endif /* DEBUG */
-              SgStatement* currSttmt = isSgStatement(lNode);
-              if (currSttmt != NULL)
-              {
-                SgExprListExp* parmsF = new SgExprListExp(FILE_INFO);
-                SgScopeStatement* scope = currSttmt->get_scope();
-                if ( (parmsF != NULL) && (scope != NULL) )
-                {
-#ifdef PCE_STATEMENT_NOT_WORKING
-                  /* 
-                   * TBD/TODO: Why does adding statements here prevent the
-                   * visitor from going beyond the instrumentation site?
-                   *
-                   * The provided warning is:
-                   *
-                   * "Warning: at present statements being inserted should
-                   * not have attached comments of CPP directives (could be
-                   * a problem, but comment relocation is not disabled)."
-                   *
-                   * However, the problem of not going beyond the site
-                   * occurs even when the comments are not added.  Vaquely
-                   * recall there may be some AST cleanup step needed after
-                   * an insertion.  Need to look into this again.
-                   */
-                  SgExprStatement* sttmt = SageBuilder::buildFunctionCallStmt(
-                    "PCE_FINALIZE", SageBuilder::buildVoidType(), parmsF,scope);
-                  if (sttmt != NULL)
-                  {
-#ifdef PCE_ADD_COMMENTS
-                    SageInterface::attachComment(sttmt, 
-                      S_PREFACE + S_FINAL + S_BEGIN,
-                      PreprocessingInfo::before, cc->directive());
-                    SageInterface::attachComment(sttmt, 
-                      S_PREFACE + S_FINAL + S_END,
-                      PreprocessingInfo::after, cc->directive());
-#endif /* PCE_ADD_COMMENTS */
-                    SageInterface::insertStatementBefore(currSttmt, sttmt,true);
-                    num += 1;
-#ifdef DEBUG
-                    cout<<"DEBUG: FINAL: currSttmt";
-                    cout<<currSttmt->unparseToString()<<endl;
-                    cout<<"DEBUG: FINAL: sttmt";
-                    cout<<sttmt->unparseToString()<<endl;
-#endif /* DEBUG */
-                  }
-#else
-                  ostringstream finalCode;
-                  //finalCode << "/* " << S_FINAL_BEGIN << " */";
-                  finalCode << "\nPCE_FINALIZE();\n";
-                  //finalCode << "/* " << S_FINAL_END << " */\n";
-                  SageInterface::addTextForUnparser(currSttmt, 
-                    finalCode.str(), AstUnparseAttribute::e_before);
-                  finalCode.clear();
-#endif /* PCE_STATEMENT_NOT_WORKING */
-                }
-              }
+              num += processFinal(lNode, cc);
+            }
+            break;
+          case ContractComment_ASSERT:
+            {
+              num += processAssert(lNode, cc);
             }
             break;
           case ContractComment_NONE:
+            {
+//#ifdef DEBUG
+              cout << "DEBUG: ....No contract comment(?)\n";
+//#endif /* DEBUG */
+            }
+            break;
           default:
+            {
+//#ifdef DEBUG
+              cout << "DEBUG: ....unrecognized contract comment\n";
+//#endif /* DEBUG */
+            }
             break;
           } /* end switch */
         } /* end if have contract comment to process */
@@ -1503,3 +1464,189 @@ ContractsProcessor::processNonFunctionNode(
 
   return num;
 }  /* processNonFunctionNode */
+
+
+/**
+ * Sets the specified (invariant) contract comment to the specified AST 
+ * node IF it is not already set.
+ *
+ * @param lNode   [inout] Current AST (located) node.
+ * @param[in] cc  Invariant contract comment.
+ */
+void 
+ContractsProcessor::setInvariants(SgLocatedNode* lNode, ContractComment* cc) {
+#ifdef DEBUG
+  cout<<"DEBUG: ....processing INVARIANT clause\n";
+#endif /* DEBUG */
+
+  if ( (lNode != NULL) && (cc != NULL) && (cc->isInvariant()) ) {
+    if (d_invariants == NULL)
+    {
+      d_invariants = cc;
+
+#if 0
+      /* 
+       * The following adds a C comment to .cc files BUT simple
+       * text to .cpp files.
+       *
+       */
+      SgStatement* currSttmt = isSgStatement(lNode);
+      if (currSttmt != NULL)
+      {
+        SageInterface::addMessageStatement(currSttmt, S_NOTE_INVARIANTS);
+
+       // Ideally would use the following instead of adding simple :
+        SageInterface::attachComment(currSttmt, S_NOTE_INVARIANTS,
+          PreprocessingInfo::before, cc->directive());
+      }
+#endif
+
+      SageInterface::addTextForUnparser(lNode, S_NOTE_INVARIANTS,
+        AstUnparseAttribute::e_before);
+    }
+    else
+    {
+      printLineComment(lNode, S_WARN_INVARIANTS, false);
+    }
+  }
+
+  return;
+}  /* setInvariants */
+
+
+/**
+ * Process an ASSERT clause associated with the specified node.
+ *
+ * @param     lNode  [inout] Current AST (located) node.
+ * @param[in] cc     INIT contract comment.
+ * @return           Returns a count of the number of instrumentations made 
+ *                     (i.e., 1 if added, 0 otherwise).
+ */
+int
+ContractsProcessor::processAssert(SgLocatedNode* lNode, ContractComment* cc)
+{
+  int num = 0;
+
+#ifdef DEBUG
+  cout<<"DEBUG: ....processing ASSERT clause\n";
+#endif /* DEBUG */
+
+  if ( (lNode != NULL) && (cc != NULL) && cc->isAssert() ) 
+  {
+    SgStatement* currSttmt = isSgStatement(lNode);
+    if (currSttmt != NULL)
+    {
+      ContractClauseEnum ccType = cc->clause();
+
+      list<AssertionExpression> aeList = cc->getList();
+      for(list<AssertionExpression>::iterator iter = aeList.begin();
+          iter != aeList.end(); iter++)
+      {
+        AssertionExpression ae = (*iter);
+        switch (ae.support())
+        {
+        case AssertionSupport_EXECUTABLE:
+          {
+            SgExprStatement* sttmt = buildCheck(currSttmt, ccType, ae, 
+                                                cc->directive());
+            if (sttmt != NULL)
+            {
+              SageInterface::insertStatementBefore(currSttmt, sttmt, true);
+              num+=1;
+            }
+          }
+          break;
+        case AssertionSupport_UNSUPPORTED:
+          {
+            SageInterface::attachComment(currSttmt, 
+              S_PREFACE + string(S_CONTRACT_CLAUSE[ccType])
+                + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
+              PreprocessingInfo::after, cc->directive());
+          }
+          break;
+        default:
+          {
+            /* Nothing to do here */
+          }
+          break;
+        }
+      }
+    }
+    else
+    {
+      printLineComment(lNode, S_ERROR_NOT_SCOPED, false);
+    }
+  }
+
+  return num;
+} /* processAssert */
+
+
+/**
+ * Process a FINAL clause associated with the specified node.
+ *
+ * @param     lNode  [inout] Current AST (located) node.
+ * @param[in] cc     Final contract comment.
+ * @return           Returns a count of the number of instrumentations made 
+ *                     (i.e., 1 if added, 0 otherwise).
+ */
+int
+ContractsProcessor::processFinal(SgLocatedNode* lNode, ContractComment* cc)
+{
+  int num = 0;
+
+//#ifdef DEBUG
+  cout<<"DEBUG: ....processing FINAL clause\n";
+//#endif /* DEBUG */
+
+  if ( (lNode != NULL) && (cc != NULL) && cc->isFinal() ) 
+  {
+    SgStatement* currSttmt = isSgStatement(lNode);
+    if (currSttmt != NULL)
+    {
+      SgExprStatement* sttmt = buildFinal(currSttmt, cc->directive());
+      if (sttmt != NULL)
+      {
+        SageInterface::insertStatementBefore(currSttmt, sttmt,true);
+        num += 1;
+      }
+    }
+  }
+
+  return num;
+} /* processFinal */
+
+
+/**
+ * Process an INIT clause associated with the specified node.
+ *
+ * @param     lNode  [inout] Current AST (located) node.
+ * @param[in] cc     INIT contract comment.
+ * @return           Returns a count of the number of instrumentations made 
+ *                     (i.e., 1 if added, 0 otherwise).
+ */
+int
+ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
+{
+  int num = 0;
+
+#ifdef DEBUG
+  cout<<"DEBUG: ....processing INIT clause\n";
+#endif /* DEBUG */
+
+  if ( (lNode != NULL) && (cc != NULL) && cc->isInit() ) 
+  {
+    SgStatement* currSttmt = isSgStatement(lNode);
+    if (currSttmt != NULL)
+    {
+      SgExprStatement* sttmt = buildInit(currSttmt, cc->directive());
+      if (sttmt != NULL)
+      {
+        SageInterface::insertStatementBefore(currSttmt, sttmt,true);
+        num += 1;
+      }
+    }
+  }
+
+  return num;
+} /* processInit */

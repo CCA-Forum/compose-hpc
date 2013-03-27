@@ -49,6 +49,19 @@ knapsack(
 {
   int has = 0;
 
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      weights!=NULL;
+      n>0;
+   */
+
   if (t==0) {
     has = 1;
   } else if (i >= n) {

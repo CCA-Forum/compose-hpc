@@ -3,7 +3,7 @@
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 February 7
+ * Last Modified: 2013 March 19
  * \endinternal
  *
  * @file
@@ -64,6 +64,11 @@ ContractPrinter::visit(
             else if (str.find("INVARIANT")!=string::npos)
             {
               printLineComment(node, "Invariant clause:", true);
+              cout<<(*iter)->getString()<<endl;
+            }
+            else if (str.find("ASSERT")!=string::npos)
+            {
+              printLineComment(node, "Assertion clause:", true);
               cout<<(*iter)->getString()<<endl;
             }
             else if (str.find("INIT")!=string::npos)

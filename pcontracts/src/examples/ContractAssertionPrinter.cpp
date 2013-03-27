@@ -3,7 +3,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 February 7
+ * Last Modified: 2013 March 19
  * \endinternal
  *
  * @file
@@ -104,6 +104,11 @@ processCommentContents(
       {
         printLineComment(node, "Invariant clause:", true);
         printClause(cmt.substr(pos+9));
+      }
+      else if ((pos=cmt.find("ASSERT"))!=string::npos)
+      {
+        printLineComment(node, "Assertion clause:", true);
+        printClause(cmt.substr(pos+6));
       }
       else if ((pos=cmt.find("INIT"))!=string::npos)
       {

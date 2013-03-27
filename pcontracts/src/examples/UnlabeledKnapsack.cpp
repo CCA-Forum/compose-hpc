@@ -130,6 +130,19 @@ onlyPos(unsigned int* weights, unsigned int len)
   unsigned int i;
   bool         isPos = false;
 
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      weights!=NULL;
+      len>0;
+   */
+
   if (len > 0) {
     isPos = true;
     for (i=0; (i<len) && isPos; i++) {
@@ -213,6 +226,19 @@ sameWeights(unsigned int* nW, unsigned int lenW,
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
   bool has = false;
+
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      weights!=NULL;
+      n>0;
+   */
 
   if (t==0) {
     has = true;

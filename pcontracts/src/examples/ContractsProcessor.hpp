@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 February 21
+ * Last Modified:  2013 March 26
  * \endinternal
  *
  * @file
@@ -61,7 +61,7 @@ class ContractsProcessor
     
     int addPreChecks(SgBasicBlock* body, ContractComment* cc);
 
-    SgExprStatement* buildCheck(SgBasicBlock* body, 
+    SgExprStatement* buildCheck(SgStatement* scope, 
       ContractClauseEnum clauseType, AssertionExpression ae, 
       PPIDirectiveType dt);
     
@@ -92,6 +92,13 @@ class ContractsProcessor
     /** Global first (routine) clause flag. */
     bool  d_first;
 
+    void setInvariants(SgLocatedNode* lNode, ContractComment* cc);
+
+    int processAssert(SgLocatedNode* lNode, ContractComment* cc);
+
+    int processInit(SgLocatedNode* lNode, ContractComment* cc);
+
+    int processFinal(SgLocatedNode* lNode, ContractComment* cc);
 
 };  /* class ContractsProcessor */
 

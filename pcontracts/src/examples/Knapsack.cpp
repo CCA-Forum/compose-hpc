@@ -60,9 +60,22 @@ Examples::Knapsack::Knapsack() {
 void
 Examples::Knapsack::initialize(
   /* in */ unsigned int* weights,
-  /* in */ unsigned int   len)
+  /* in */ unsigned int  len)
 {
   unsigned int i;
+
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      given_weights: weights!=NULL;
+      one_or_more_weights: len>0;
+   */
 
   if (weights != NULL) {
     if (len <= MAX_WEIGHTS) {
@@ -142,6 +155,19 @@ onlyPos(
 {
   unsigned int i;
   bool         isPos = false;
+
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      given_weights: weights!=NULL;
+      one_or_more_weights: len>0;
+   */
 
   if (len > 0) {
     isPos = true;
@@ -240,6 +266,19 @@ solve(
   /* in */ unsigned int  n) 
 {
   bool has = false;
+
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      given_weights: weights!=NULL;
+      one_or_more_weights: n>0;
+   */
 
   if (t==0) {
     has = true;

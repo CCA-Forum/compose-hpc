@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 February 21
+ * Last Modified:  2013 March 26
  * \endinternal
  *
  * @file
@@ -39,6 +39,8 @@ typedef enum ContractComment__enum {
   ContractComment_PRECONDITION,
   /** POSTCONDITION:  A postcondition clause comment. */
   ContractComment_POSTCONDITION,
+  /** ASSERT:  An assertion clause comment. */
+  ContractComment_ASSERT,
   /** INIT:  An initialization clause comment. */
   ContractComment_INIT,
   /** FINAL:  A finalization clause comment. */
@@ -60,6 +62,8 @@ static const ContractClauseEnum ContractCommentClause[] = {
   ContractClause_PRECONDITION,
   /** POSTCONDITION:  Postcondition contract clause. */
   ContractClause_POSTCONDITION,
+  /** ASSERT:  Assertion contract clause. */
+  ContractClause_ASSERT,
   /** INIT:  No corresponding contract clause. */
   ContractClause_NONE,
   /** FINAL:  No corresponding contract clause. */
@@ -75,7 +79,7 @@ static const ContractClauseEnum ContractCommentClause[] = {
  * contract clause, which consists of a list of assertions; however, not
  * all comments contain assertions.
  *
- * @todo  Consider (someday) refactoring to recognize the distinction 
+ * @todo  Consider (some day) refactoring to recognize the distinction 
  *   between the types of contract comments (ie, those with and those
  *   without assertions).
  */
@@ -84,7 +88,7 @@ class ContractComment
   public:
     /** Constructor */
     ContractComment(ContractCommentEnum t, PPIDirectiveType dt): 
-      d_type(t), d_needsResult(false), d_isInit(false), d_dirType(dt), 
+      d_type(t), d_needsResult(false), d_isInInit(false), d_dirType(dt), 
       d_numExec(0) {}
 
     /** Destructor */
@@ -93,7 +97,7 @@ class ContractComment
     /** Return the contract comment type. */
     ContractCommentEnum type() { return d_type; }
 
-    /** Return the contract comment clause type. */
+    /** Return the contract clause type. */
     ContractClauseEnum clause() { return ContractCommentClause[d_type]; }
 
     /** 
@@ -110,13 +114,31 @@ class ContractComment
     /** 
      * Set initialization routine association cache. 
      *
-     * @param[in] init  Pass true if the INIT annotation is detected for the
+     * @param[in] inInit  Pass true if the INIT annotation is detected for the
      *                    routine; otherwise, pass false.
      */
-    void setInit(bool init) { d_isInit = init; }
+    void setInInit(bool inInit) { d_isInInit = inInit; }
 
     /** Return whether the clause is associated with initialization routine. */
-    bool isInit() { return d_isInit; }
+    bool isInInit() { return d_isInInit; }
+
+    /** Return whether an assert clause. */
+    bool isAssert() { return d_type == ContractComment_ASSERT; }
+
+    /** Return whether an final clause. */
+    bool isFinal() { return d_type == ContractComment_FINAL; }
+
+    /** Return whether an init (or initialization) clause. */
+    bool isInit() { return d_type == ContractComment_INIT; }
+
+    /** Return whether an invariant clause. */
+    bool isInvariant() { return d_type == ContractComment_INVARIANT; }
+
+    /** Return whether a precondition clause. */
+    bool isPreconditions() { return d_type == ContractComment_PRECONDITION; }
+
+    /** Return whether a postcondition clause. */
+    bool isPostconditions() { return d_type == ContractComment_POSTCONDITION; }
 
     /** 
      * Set return result assertion cache. 
@@ -168,6 +190,9 @@ class ContractComment
       case ContractComment_POSTCONDITION:
         rep << "Postcondition";
         break;
+      case ContractComment_ASSERT:
+        rep << "Assertion";
+        break;
       case ContractComment_INIT:
         rep << "Init";
         break;
@@ -181,7 +206,7 @@ class ContractComment
       rep << sep;
       rep << d_aeList.size() << sep;
       rep << (d_needsResult ? "NeedsResult" : "NoResult") << sep;
-      rep << (d_isInit ? "isINIT" : "notINIT") << sep;
+      rep << (d_isInInit ? "isINIT" : "notINIT") << sep;
       rep << d_numExec;
       return rep.str();
     }
@@ -201,7 +226,7 @@ class ContractComment
     bool                       d_needsResult;
 
     /** Cache whether the clause is associated with initialization routine. */
-    bool                       d_isInit;
+    bool                       d_isInInit;
 
     /** Cache the number of executable expressions in the clause. */
     int                        d_numExec;

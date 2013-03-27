@@ -1,6 +1,6 @@
 /* 
  * CONTRACT INVARIANT annotations NOT supported for non-instance methods
- * so non are added to this example.
+ * so none are added to this example.
  */
 
 #include <iostream>

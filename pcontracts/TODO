@@ -1,14 +1,18 @@
 PROTOTYPE
 
-Address:
-- Resolve issue where first is true multiple once in prechecks and again in
-  postchecks.
+- Need to test the recently refactored code to see if ASSERT, etc.
+  instrumentation still works.
+
+- Still need to resolve the issue of firstCheck (or firstExec) boolean not
+  quite right for post-check invariants when only invariants!
+
+- Assert firstCheck is also not set properly; ordering of checks also issue.
+
+- In-lined final not being created.
+
 
 
 Refinements:
-- Add support for instrumentation related to node-level CONTRACT ASSERT 
-  statements.  HOWEVER, these will require modifications to adaptive
-  enforcement options if they are to be sampled as well.
 - Move runtime headers to include directory and adjust build accordingly.
 - Support advanced (non-standard C) contract expressions
      (ie, those containing non-C operators supported in SIDL built-ins)
