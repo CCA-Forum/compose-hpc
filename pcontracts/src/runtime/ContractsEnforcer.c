@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 March 12
+ * Last Modified:  2013 April 9
  * \endinternal
  *
  * @file
@@ -77,7 +77,7 @@ newBaseEnforcer(
   /* in */ const char*           tracefile)
 {
   static const char* l_timesLine = 
-         "Pre Time (ms); Post Time (ms); Inv Time (ms); Routine Time (ms); ";
+         "Pre (ms); Post (ms); Inv (ms); Asrt (ms); Routine (ms); ";
 
   ContractsEnforcerType* enforcer = (ContractsEnforcerType*)malloc(
                                       sizeof(ContractsEnforcerType));
@@ -663,11 +663,11 @@ ContractsEnforcer_dumpStatistics(
       /*
         "Clauses; Frequency; Value; Timestamp; ",          Policy
         "Requests; Requests Allowed; Countdown; Skip; ",   State basics
-        "Pre Time (ms); Post Time (ms); Inv Time (ms); Routine Time (ms);", 
+        "Pre (ms); Post (ms); Inv (ms); Asrt (ms); Routine (ms);", 
         "Message"
        */
       fprintf(enforcer->stats->filePtr, 
-              "%s; %s; %d; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %s\n",
+              "%s; %s; %d; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %ld; %s\n",
               S_ENFORCEMENT_CLAUSE[enforcer->policy.clauses],
               S_ENFORCEMENT_FREQUENCY[enforcer->policy.frequency],
               enforcer->policy.value,
@@ -679,6 +679,7 @@ ContractsEnforcer_dumpStatistics(
               enforcer->data.total.pre, 
               enforcer->data.total.post, 
               enforcer->data.total.inv, 
+              enforcer->data.total.asrt, 
               enforcer->data.total.routine,
               cmt);
       fflush(enforcer->stats->filePtr);
@@ -689,7 +690,7 @@ ContractsEnforcer_dumpStatistics(
       /*
        * WARNING:  The following should be kept in sync with the output above.
        */
-      printf("%s; %s; %d; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %s\n",
+      printf("%s; %s; %d; %s; %ld; %ld; %d; %d; %ld; %ld; %ld; %ld; %ld; %s\n",
              S_ENFORCEMENT_CLAUSE[enforcer->policy.clauses],
              S_ENFORCEMENT_FREQUENCY[enforcer->policy.frequency],
              enforcer->policy.value,
@@ -701,6 +702,7 @@ ContractsEnforcer_dumpStatistics(
              enforcer->data.total.pre, 
              enforcer->data.total.post, 
              enforcer->data.total.inv, 
+             enforcer->data.total.asrt, 
              enforcer->data.total.routine,
              cmt);
     }
@@ -810,7 +812,6 @@ ContractsEnforcer_logTrace(
  * @param[in] clauseTime   The time it is estimated to take to check the clause.
  * @param[in] routineTime  The time it is estimated to take to execute the 
  *                           routine body.
- * @param[in] firstForCall First time a clause is checked for the routine.
  * @return                 CONTRACTS_TRUE if the clause is to be checked; 
  *                           CONTRACTS_FALSE otherwise.
  *
@@ -821,8 +822,7 @@ ContractsEnforcer_enforceClause(
   /* inout */ ContractsEnforcerType* enforcer,
   /* in */    ContractClauseEnum     clause,
   /* in */    uint64_t               clauseTime,
-  /* in */    uint64_t               routineTime,
-  /* in */    CONTRACTS_BOOL         firstForCall)
+  /* in */    uint64_t               routineTime)
 {
   CONTRACTS_BOOL checkIt = CONTRACTS_FALSE;
 
@@ -830,10 +830,6 @@ ContractsEnforcer_enforceClause(
   if (enforcer)
   {
     (enforcer->data.requests)++;
-    if (firstForCall)
-    {
-      (enforcer->data.total.routine) += routineTime;
-    }
 
     if (enforcer->policy.clauses & clause) 
     {
@@ -854,6 +850,9 @@ ContractsEnforcer_enforceClause(
         case ContractClause_POSTCONDITION:
           (enforcer->data.total.post) += clauseTime;
           break;
+        case ContractClause_ASSERT:
+          (enforcer->data.total.asrt) += clauseTime;
+          break;
         default:
           /* Nothing to do here */
           break;
@@ -872,3 +871,29 @@ ContractsEnforcer_enforceClause(
   DEBUG_MESSAGE("ContractsEnforcer_enforceClause(): end")
   return checkIt;
 } /* ContractsEnforcer_enforceClause */
+
+
+/**
+ * Add the routine time estimate.  This data is needed by partial
+ * enforcement strategies.
+ *
+ * @param enforcer [inout] The responsible contracts enforcer.
+ * @param[in] routineTime  The time it is estimated to take to execute the 
+ *                           routine body.
+ *
+ * \warning For internal/automated use \em only.
+ */
+void
+ContractsEnforcer_updateEstTime(
+  /* inout */ ContractsEnforcerType* enforcer,
+  /* in */    uint64_t               routineTime)
+{
+  DEBUG_MESSAGE("ContractsEnforcer_updateEstTime(): begin")
+
+  if (enforcer) {
+    (enforcer->data.total.routine) += routineTime;
+  }
+
+  DEBUG_MESSAGE("ContractsEnforcer_updateEstTime(): end")
+  return;
+} /* ContractsEnforcer_updateEstTime */

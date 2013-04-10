@@ -66,7 +66,7 @@ knapsack(
 
   /* %CONTRACT ASSERT
       given_weights: weights!=NULL;
-      one_or_more_weights: len>0;
+      one_or_more_weights: n>0;
    */
 
   if (t==0) {

@@ -84,47 +84,43 @@ checkRoutineClauses(
   /* in */    EnforcementClauseEnum  clauses,
   /* in */    TimeEstimatesType      times)
 {
-  CONTRACTS_BOOL firstTime;
   unsigned int   numEnforced = 0;
 
-  firstTime = CONTRACTS_TRUE;
+  ContractsEnforcer_updateEstTime(enforcer, times.routine);
 
   if (clauses & EnforcementClause_INVARIANTS)
   {
     numEnforced += 
       ContractsEnforcer_enforceClause(enforcer, ContractClause_INVARIANT,
-        times.inv, times.routine, firstTime) ? 1 : 0;
-    firstTime = CONTRACTS_FALSE;
+        times.inv, times.routine) ? 1 : 0;
   }
 
   if (clauses & EnforcementClause_PRECONDITIONS)
   {
     numEnforced += 
       ContractsEnforcer_enforceClause(enforcer, ContractClause_PRECONDITION,
-        times.pre, times.routine, firstTime) ? 1 : 0;
-    firstTime = CONTRACTS_FALSE;
+        times.pre, times.routine) ? 1 : 0;
   }
 
   if (clauses & EnforcementClause_POSTCONDITIONS)
   {
     numEnforced += 
       ContractsEnforcer_enforceClause(enforcer, ContractClause_POSTCONDITION,
-        times.post, times.routine, firstTime) ?  1 : 0;
-    firstTime = CONTRACTS_FALSE;
+        times.post, times.routine) ?  1 : 0;
   }
 
   if (clauses & EnforcementClause_INVARIANTS)
   {
     numEnforced += 
       ContractsEnforcer_enforceClause(enforcer, ContractClause_INVARIANT,
-        times.inv, times.routine, firstTime) ? 1 : 0;
+        times.inv, times.routine) ? 1 : 0;
   }
 
   if (clauses & EnforcementClause_ASSERTS)
   {
     numEnforced += 
       ContractsEnforcer_enforceClause(enforcer, ContractClause_ASSERT,
-        times.asrt, times.routine, firstTime) ? 1 : 0;
+        times.asrt, times.routine) ? 1 : 0;
   }
 
   ContractsEnforcer_logTrace(enforcer, times, NULL, NULL);

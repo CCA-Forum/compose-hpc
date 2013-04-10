@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 March 26
+ * Last Modified:  2013 April 9
  * \endinternal
  *
  * @file
@@ -44,8 +44,7 @@ class ContractsProcessor
     ContractsProcessor() : d_invariants(NULL) {}
     ~ContractsProcessor() { if (d_invariants != NULL) delete d_invariants; }
 
-    void addExpressions(string clause, ContractComment* cc, 
-      bool firstExecClause);
+    void addExpressions(string clause, ContractComment* cc);
     
     int addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, 
       ContractComment* cc);
@@ -61,15 +60,16 @@ class ContractsProcessor
     
     int addPreChecks(SgBasicBlock* body, ContractComment* cc);
 
+    int addTimeUpdate(SgBasicBlock* body);
+
     SgExprStatement* buildCheck(SgStatement* scope, 
       ContractClauseEnum clauseType, AssertionExpression ae, 
       PPIDirectiveType dt);
     
-    void extractContract(SgLocatedNode* lNode, bool firstExec, 
-      ContractClauseType &clause);
+    void extractContract(SgLocatedNode* lNode, ContractClauseType &clause);
     
     ContractComment* extractContractComment(SgNode* aNode, 
-      AttachedPreprocessingInfoType::iterator info, bool firstExecClause);
+      AttachedPreprocessingInfoType::iterator info);
     
     bool inInvariants(string nm);
     
@@ -78,7 +78,7 @@ class ContractsProcessor
     bool isExecutable(string expr);
     
     ContractComment* processCommentEntry(SgNode* aNode, string cmt, 
-      PreprocessingInfo::DirectiveType dirType, bool firstExecClause);
+      PreprocessingInfo::DirectiveType dirType);
     
     int processFunctionComments(SgFunctionDefinition* def);
 

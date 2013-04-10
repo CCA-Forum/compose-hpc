@@ -3,7 +3,7 @@
  * File:           AssertionExpression.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 January 31
+ * Last Modified:  2013 April 9
  * \endinternal
  *
  * @file
@@ -46,9 +46,8 @@ class AssertionExpression
 {
   public:
     /** Constructor */
-    AssertionExpression(string l, string expr, AssertionSupportEnum level,
-      bool isFirst) 
-      : d_label(l), d_expr(expr), d_level(level), d_isFirst(isFirst) {}
+    AssertionExpression(string l, string expr, AssertionSupportEnum level)
+      : d_label(l), d_expr(expr), d_level(level) {}
 
     /** Destructor */
     ~AssertionExpression() {}
@@ -63,12 +62,6 @@ class AssertionExpression
     AssertionSupportEnum support() { return d_level; }
 
     /** 
-     * Return true if the assertion is the first in the clause; false, 
-     * otherwise. 
-     */
-    bool isFirst() { return d_isFirst; }
-
-    /** 
      * Return a string representation of the expression.  
      *
      * @param[in] sep  Field separator.
@@ -78,7 +71,6 @@ class AssertionExpression
     { 
       ostringstream rep;
       rep << d_label << sep << d_expr << sep;
-      rep << (d_isFirst ? "First" : "Not First") << sep;
       switch (d_level)
       {
       case AssertionSupport_ADVISORY:
@@ -106,9 +98,6 @@ class AssertionExpression
 
     /** The level of translation support associated with the expression. */
     AssertionSupportEnum d_level;
-
-    /** Indicates whether the expression is the first in the clause. */
-    bool                 d_isFirst;
 };  /* class AssertionExpression */
 
 #endif /* include_Assertion_Expression_hpp */
