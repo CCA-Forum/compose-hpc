@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 March 26
+ * Last Modified:  2013 April 9
  * \endinternal
  *
  * @file

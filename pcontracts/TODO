@@ -1,14 +1,13 @@
 PROTOTYPE
 
-- Need to test the recently refactored code to see if ASSERT, etc.
-  instrumentation still works.
+- Generated calls
+  -- Need to figure out why processNonFunctionNode is not called for the
+     return statement of the main of helloworld-v2.cc.  This may be the
+     last of the test cases that is not working; however, would be good
+     to double-check after the last round of changes.
 
-- Still need to resolve the issue of firstCheck (or firstExec) boolean not
-  quite right for post-check invariants when only invariants!
-
-- Assert firstCheck is also not set properly; ordering of checks also issue.
-
-- In-lined final not being created.
+- Complete support for partial enforcement strategies.
+  This involves, on first pass, implementing the configuration file.
 
 
 

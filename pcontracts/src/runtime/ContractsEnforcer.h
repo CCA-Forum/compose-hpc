@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 April 9
  * \endinternal
  *
  * @file
@@ -34,8 +34,8 @@ extern "C" {
 /**
  * Macro to check an assertion expression.
  */
-#define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR, CVE) { \
-  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR), (FT))) { \
+#define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) { \
+  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
     if (!(EXPR)) { \
       printf("ERROR: %s Violation: %s: %d\n", S_CONTRACT_CLAUSE[TP], \
              (LBL), (EXPR)); \
@@ -47,23 +47,25 @@ extern "C" {
 /**
  * Macro to check an assertion expression and terminate if violated.
  */
-#define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, FT, LBL, EXPR) { \
+#define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, LBL, EXPR) { \
   ContractViolationEnum _pce_vio = ContractViolation_NONE; \
-  PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (FT), (LBL), (EXPR), _pce_vio) \
+  PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (LBL), (EXPR), _pce_vio) \
   if (_pce_vio != ContractViolation_NONE) { exit(1); } \
 }
 
 #define PCE_DUMP_STATS(ENF,CMT) ContractsEnforcer_dumpStatistics(ENF, CMT);
 #define PCE_FINALIZE() ContractsEnforcer_finalize();
 #define PCE_INITIALIZE(FN) ContractsEnforcer_initialize(FN);
+#define PCE_UPDATE_EST_TIME(ENF,TR) ContractsEnforcer_updateEstTime(ENF, TR);
 
 #else /* !def PAUL_CONTRACTS */
 
-#define PCE_CHECK_EXPR(ENF, TP, TA, TR, FT, LBL, EXPR, CVE) 
-#define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, FT, LBL, EXPR)
+#define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) 
+#define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, LBL, EXPR)
 #define PCE_DUMP_STATS(ENF,CMT) 
 #define PCE_FINALIZE() 
 #define PCE_INITIALIZE(FN)
+#define PCE_UPDATE_EST_TIME(ENF,TR)
 #endif /* PAUL_CONTRACTS */
 
 
@@ -349,7 +351,6 @@ ContractsEnforcer_logTrace(
  * @param[in] clauseTime   The time it is estimated to take to check the clause.
  * @param[in] routineTime  The time it is estimated to take to execute the 
  *                           routine body.
- * @param[in] firstForCall First time a clause is checked for the routine.
  * @return                 CONTRACTS_TRUE if the clause is to be checked; 
  *                           CONTRACTS_FALSE otherwise.
  */
@@ -358,8 +359,24 @@ ContractsEnforcer_enforceClause(
   /* inout */ ContractsEnforcerType* enforcer,
   /* in */    ContractClauseEnum     clause,
   /* in */    uint64_t               clauseTime,
-  /* in */    uint64_t               routineTime,
-  /* in */    CONTRACTS_BOOL         firstForCall);
+  /* in */    uint64_t               routineTime);
+
+
+/**
+ * Add the routine time estimate.  This data is needed by partial
+ * enforcement strategies.
+ *
+ * @param enforcer [inout] The responsible contracts enforcer.
+ * @param[in] routineTime  The time it is estimated to take to execute the 
+ *                           routine body.
+ *
+ * \warning For internal/automated use \em only.
+ */
+void
+ContractsEnforcer_updateEstTime(
+  /* inout */ ContractsEnforcerType* enforcer,
+  /* in */    uint64_t               routineTime);
+
 
 #ifdef __cplusplus
 }
