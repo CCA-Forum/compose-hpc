@@ -1,3 +1,8 @@
+--
+-- quick stratego signature generator
+--
+-- matt@galois.com
+--
 import ATerm.ReadWrite
 import Data.Tree
 import ATerm.AbstractSyntax
@@ -8,9 +13,11 @@ import System.Environment
 data Constructor = Constructor String [String]
   deriving Show
 
+-- need this so nub will work
 instance (Eq Constructor) where
     (==) (Constructor a _) (Constructor b _) = a==b
 
+-- filter a list of subtrees to either be E or [E]
 kidMap :: [LabeledTree] -> [String]
 kidMap []         = []
 kidMap (cur:rest) = 
