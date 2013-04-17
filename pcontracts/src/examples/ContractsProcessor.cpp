@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 April 9
+ * Last Modified:  2013 April 16
  * \endinternal
  *
  * @file
@@ -918,7 +918,6 @@ ContractsProcessor::instrumentRoutines(
   /* in */    bool       skipTransforms)
 {
   int status = 0;
-
   if (project != NULL)
   {
     /* Find all function definitions. */
@@ -944,8 +943,8 @@ ContractsProcessor::instrumentRoutines(
            && isInputFile(project, info->get_raw_filename()) )
         {
 #ifdef DEBUG
-            printLineComment(def, "DEBUG: Have a function definition node.",
-                             false);
+          printLineComment(def, "DEBUG: Have a function definition node.",
+                           false);
 #endif /* DEBUG */
 
           if (skipTransforms)
@@ -1037,7 +1036,7 @@ ContractsProcessor::processCommentEntry(
   if ( (aNode != NULL) && !cmt.empty() )
   {
     size_t pos;
-    if ((pos=cmt.find("CONTRACT"))!=string::npos)
+    if ((pos=cmt.find("\%CONTRACT"))!=string::npos)
     {
       if ((pos=cmt.find("REQUIRE"))!=string::npos)
       {
@@ -1118,7 +1117,6 @@ ContractsProcessor::processFunctionComments(
 #ifdef DEBUG
       cout<<"DEBUG: ..obtained function declaration\n";
 #endif /* DEBUG */
-
       bool isConstructor = false;
       bool isDestructor = false;
       bool isInitRoutine = false;
@@ -1421,11 +1419,12 @@ ContractsProcessor::processNonFunctionNode(
 
   if (lNode != NULL)
   {
-#ifdef DEBUG
-    printLineComment(lNode, "DEBUG: ..processing non-function node", false);
-    cout << "Node type: " << lNode->variantT() << "(";
+//#ifdef DEBUG
+    printLineComment(lNode, "DEBUG: ..processing non-function node", 
+             true);
+    cout << "       Node type: " << lNode->variantT() << "(";
     cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
-#endif /* DEBUG */
+//#endif /* DEBUG */
 
     ContractClauseType clauses;
     extractContract(lNode, clauses);
@@ -1441,6 +1440,9 @@ ContractsProcessor::processNonFunctionNode(
         ContractComment* cc = (*iter);
         if (cc != NULL)
         {
+//#ifdef DEBUG
+          cout << "DEBUG: ..cc=" << cc->str(",") << endl;
+//#endif /* DEBUG */
           switch (cc->type())
           {
           case ContractComment_PRECONDITION:
@@ -1571,9 +1573,19 @@ ContractsProcessor::processAssert(SgLocatedNode* lNode, ContractComment* cc)
     {
       ContractClauseEnum ccType = cc->clause();
 
+      if ( (cc->numExecutable() > 0) && d_first )
+      {
+        SgExprStatement* sttmt = buildTimeUpdate(currSttmt);
+        if (sttmt != NULL)
+        {
+          SageInterface::insertStatementBefore(currSttmt, sttmt, true);
+          num+=1;
+        }
+      }
+
       list<AssertionExpression> aeList = cc->getList();
-      for(list<AssertionExpression>::iterator iter = aeList.begin();
-          iter != aeList.end(); iter++)
+      for(list<AssertionExpression>::reverse_iterator iter = aeList.rbegin();
+          iter != aeList.rend(); iter++)
       {
         AssertionExpression ae = (*iter);
         switch (ae.support())
@@ -1602,17 +1614,6 @@ ContractsProcessor::processAssert(SgLocatedNode* lNode, ContractComment* cc)
             /* Nothing to do here */
           }
           break;
-        }
-      }
-
-
-      if ( (num > 0) && d_first )
-      {
-        SgExprStatement* sttmt = buildTimeUpdate(currSttmt);
-        if (sttmt != NULL)
-        {
-          SageInterface::insertStatementBefore(currSttmt, sttmt, true);
-          num+=1;
         }
       }
     }

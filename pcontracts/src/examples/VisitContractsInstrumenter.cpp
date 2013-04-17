@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 November 9
- * Last Modified: 2013 February 21
+ * Last Modified: 2013 April 16
  * \endinternal
  *
  * @file
@@ -22,10 +22,6 @@
  * more advanced expression containing special operators, keywords, or 
  * functions.
  *
- *
- * @todo Finish support for non-function definition nodes.
- * 
- * @todo Determine if "firstTime" handling is working now.  If not, fix it.
  *
  * @todo Generate return variable when needed.
  *
@@ -48,9 +44,6 @@
  *
  * @todo Add a new annotation for checking/dumping contract check data;
  *  ensure configuration is being done properly; and test the feature.
- *
- * @todo Consider checking language and attaching comment of corresponding
- *  style.
  *
  * @htmlinclude copyright.html
  */
@@ -77,11 +70,23 @@ VisitContractsInstrumenter::visit(
   if (lNode != NULL)
   {
     Sg_File_Info* info = lNode->get_file_info();
-    if ( (info != NULL) && (info->isSameFile(d_fileInfo)) )
+    long line;
+    if (  (info != NULL) && (info->isSameFile(d_fileInfo)) 
+       && ( (line = info->get_raw_line()) != d_lastLine )
+       )
     {
+      d_lastLine = line;
+
+#ifdef DEBUG
+      printLineComment(lNode, "\nDEBUG:  Processing...", true);
+      cout << "Node type: " << lNode->variantT() << "(";
+      cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
+#endif /* DEBUG */
+
       SgGlobal* globalScope;
       SgFunctionDefinition* def;
       SgFunctionDeclaration* decl;
+
       if ( (globalScope = isSgGlobal(node)) != NULL )
       {
         int status = d_processor.addIncludes(globalScope);
@@ -106,6 +111,13 @@ VisitContractsInstrumenter::visit(
         /* The node could support an invariant or contract clause. */
         d_num += d_processor.processNonFunctionNode(lNode);
       }
+#ifdef DEBUG
+      else
+      {
+         cout << "Skipping Node type: " << lNode->variantT() << "(";
+         cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
+      }
+#endif /* DEBUG */
     }
   }
   return;
@@ -136,6 +148,9 @@ main(int argc, char* argv[])
 
   if (project != NULL)
   {
+    /* Check internal consistency of the AST.  */
+    AstTests::runAllTests(project);
+
     /*
      * Ensure we have a SINGLE file.
      */
@@ -157,9 +172,11 @@ main(int argc, char* argv[])
           if (vis != NULL)
           {
             vis->traverseInputFiles(project, preorder);
+
+
             /*
              * The following is REQUIRED to generate source (unlike
-             * the routine instrumentation version.
+             * the routine instrumentation version).
              */
             status = backend(project);
 

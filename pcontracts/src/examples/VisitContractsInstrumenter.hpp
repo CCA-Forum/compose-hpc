@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.hpp
  * Author:        T. Dahlgren
  * Created:       2012 November 1
- * Last Modified: 2012 December 10
+ * Last Modified: 2013 April 26
  * \endinternal
  *
  * @file
@@ -40,8 +40,9 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
     VisitContractsInstrumenter(Sg_File_Info* fileInfo) 
     { 
       d_processor = ContractsProcessor(); 
-      d_num       = 0;
       d_fileInfo  = fileInfo;
+      d_lastLine  = -1;
+      d_num       = 0;
     };
 
     /**
@@ -59,18 +60,21 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
 
 
   private:
-    /** The contracts processor. */
-    ContractsProcessor  d_processor;
-
-    /** The number of contract-related statements added. */
-    int  d_num;
-
     /**
      * Information on the file currently being processed.  This is
      * useful for eliminating processing of some front end AST nodes
      * (e.g., ROSE's numeric_traits.h).
      */
     Sg_File_Info* d_fileInfo;
+
+    /** The number of contract-related statements added. */
+    int  d_num;
+
+    /** The last line processed. */
+    long  d_lastLine;
+
+    /** The contracts processor. */
+    ContractsProcessor  d_processor;
 
 }; /* VisitContractsInstrumenter */
 
