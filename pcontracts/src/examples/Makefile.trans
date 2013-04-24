@@ -22,12 +22,13 @@ CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
 HWCC_EXE=helloworld
 HWCC2_EXE=helloworld-v2
+HWCC3_EXE=helloworld-v3
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack
 UKCPP_EXE=UnlabeledKnapsack
 
-BINARIES=$(HWCC_EXE) ${HWCC2_EXE} $(LKC_EXE) $(UKC_EXE) \
+BINARIES=$(HWCC_EXE) ${HWCC2_EXE} ${HWCC3_EXE} $(LKC_EXE) $(UKC_EXE) \
 	$(LKCPP_EXE) $(UKCPP_EXE) 
 
 all:	$(BINARIES)
@@ -46,6 +47,9 @@ $(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o $(CE_OBJ)
 
 $(HWCC2_EXE): $(HWCC2_EXE).cc $(HWCC2_EXE).o $(CE_OBJ)
 	$(CXX) -o $(HWCC2_EXE) $(LDFLAGS) $(HWCC2_EXE).o $(CE_OBJ)
+
+$(HWCC3_EXE): $(HWCC3_EXE).cc $(HWCC3_EXE).o $(CE_OBJ)
+	$(CXX) -o $(HWCC3_EXE) $(LDFLAGS) $(HWCC3_EXE).o $(CE_OBJ)
 
 $(LKC_EXE): $(LKC_EXE).c $(LKC_EXE).o $(CE_OBJ)
 	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o $(CE_OBJ)

@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 November 9
- * Last Modified: 2013 April 16
+ * Last Modified: 2013 April 23
  * \endinternal
  *
  * @file
@@ -22,16 +22,21 @@
  * more advanced expression containing special operators, keywords, or 
  * functions.
  *
+ * @bug  The helloworld-v2.cc example illustrates a case where ROSE (17286) 
+ *  fails to provide an AST node for the final 'return 0;', which has the
+ *  inlined 'CONTRACT FINAL' annotation.  As a result, the visitor is
+ *  unable to add the contract finalization call to the routine.
+ *  The current "work around" is to either NOT inline the annotation
+ *  or ensure there's some extra functionality performed between the
+ *  "finalization" annotation and the return.  helloworld-v3.cc was
+ *  added to illustrate this point.
+ * 
  *
  * @todo Generate return variable when needed.
  *
  * @todo Support configuration of enforcer and execution time estimates
  *  for contract clauses and routines.  Ensure time estimates are properly
  *  utilized in relevant partial enforcement options.
- *
- * @todo Ensure proper handling of clause checks and consider limiting
- *  BEGIN and END comments surrounding clauses in cases where multiple
- *  expressions are present.
  *
  * @todo Support of advanced (ie, non-C) expressions requires parsing 
  *  expressions.  This includes the equivalent of SIDL built-in assertion

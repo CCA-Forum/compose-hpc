@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 April 9
+ * Last Modified:  2013 April 23
  * \endinternal
  *
  * @file
@@ -37,7 +37,7 @@ extern "C" {
 #define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) { \
   if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
     if (!(EXPR)) { \
-      printf("ERROR: %s Violation: %s: %d\n", S_CONTRACT_CLAUSE[TP], \
+      printf("\nERROR: %s Violation: %s: %d\n", S_CONTRACT_CLAUSE[TP], \
              (LBL), (EXPR)); \
       (CVE) = (ContractViolationEnum)(TP); \
     } \

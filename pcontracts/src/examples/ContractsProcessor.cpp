@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 April 16
+ * Last Modified:  2013 April 23
  * \endinternal
  *
  * @file
@@ -1419,12 +1419,12 @@ ContractsProcessor::processNonFunctionNode(
 
   if (lNode != NULL)
   {
-//#ifdef DEBUG
+#ifdef DEBUG
     printLineComment(lNode, "DEBUG: ..processing non-function node", 
              true);
     cout << "       Node type: " << lNode->variantT() << "(";
     cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
 
     ContractClauseType clauses;
     extractContract(lNode, clauses);
@@ -1440,9 +1440,9 @@ ContractsProcessor::processNonFunctionNode(
         ContractComment* cc = (*iter);
         if (cc != NULL)
         {
-//#ifdef DEBUG
+#ifdef DEBUG
           cout << "DEBUG: ..cc=" << cc->str(",") << endl;
-//#endif /* DEBUG */
+#endif /* DEBUG */
           switch (cc->type())
           {
           case ContractComment_PRECONDITION:

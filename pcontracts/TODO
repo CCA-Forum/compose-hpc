@@ -1,13 +1,8 @@
 PROTOTYPE
 
-- Generated calls
-  -- Need to figure out why processNonFunctionNode is not called for the
-     return statement of the main of helloworld-v2.cc.  This may be the
-     last of the test cases that is not working; however, would be good
-     to double-check after the last round of changes.
 
 - Complete support for partial enforcement strategies.
-  This involves, on first pass, implementing the configuration file.
+  This involves, on first pass, implementing support for the configuration file.
 
 
 

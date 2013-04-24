@@ -1,6 +1,6 @@
 /* 
- * CONTRACT INVARIANT annotations NOT supported for non-instance methods
- * so none are added to this example.
+ * WARNING: CONTRACT INVARIANT annotations NOT supported for non-instance 
+ * methods so none are added to the instrumented version of this example.
  */
 #include <iostream>
 
@@ -30,6 +30,12 @@ main(int argc, char*argv[]) {
     printGreeting(names[i]);
   }
 
+/* 
+ * WARNING: ROSE (17286) does NOT pass the final return AST node to the
+ * visit routine so the visitor instrumenting it will NOT add the 
+ * finalization routine below.  The current proposed work-around is
+ * to add the annotation as a comment before the method definition.
+ */
 /* %CONTRACT FINAL */
 
   return 0;

@@ -1,6 +1,7 @@
 RT_DIR=../runtime
 RES_DIR=../../results
 BASE_RES_DIR=$(RES_DIR)/base
+BASE_ORACLE_DIR=../data
 
 CHECK_STATUS=../../.checkStatus
 
@@ -60,7 +61,26 @@ BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 
 all: $(BINARIES)
 
-check: checkKnapsackTests checkRose
+check: checkSetup checkKnapsackTests checkRose
+	@echo; \
+	if [ -f $(CHECK_STATUS) ]; then \
+	  res=`cat $(CHECK_STATUS)`; \
+	  if [ "$$res" -eq "0" ]; then \
+	    echo "Complete Test Suite:  FAILED";\
+	    echo; echo "Review output to identify failure(s)"; \
+	  else \
+	    echo "Complete Test Suite:  PASSED";\
+	  fi; \
+	else \
+	  echo; echo "*******"; \
+	  echo "WARNING:  $(CHECK_STATUS) is missing.  Cannot assess suite."; \
+	  echo "*******"; \
+	fi; \
+	rm -f $(CHECK_STATUS); \
+	echo "DONE"
+
+checkSetup: 
+	@echo 1 > $(CHECK_STATUS)
 
 $(KC_EXE): $(KC_EXE).c
 	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c
@@ -115,7 +135,7 @@ checkKnapsackDiffs:
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
                 if [ -s $$DIFFS ]; then \
 	          echo "......*** $$PRE $$COMP are different ***"; \
-	          echo 0 > ${CHECK_STATUS}; \
+	          echo 0 > $(CHECK_STATUS); \
 	        else \
 	          echo "......$$PRE $$COMP are identical"; \
 	          if [ -f $$DIFFS ]; then \
@@ -125,19 +145,19 @@ checkKnapsackDiffs:
 	        fi; \
 	      else \
 	        echo "......ERROR:  Missing COMP definition"; \
-	        echo 0 > ${CHECK_STATUS}; \
+	        echo 0 > $(CHECK_STATUS); \
 	      fi; \
 	    else \
 	      echo "......ERROR:  Missing PRE definition"; \
-	      echo 0 > ${CHECK_STATUS}; \
+	      echo 0 > $(CHECK_STATUS); \
 	    fi; \
 	  else \
 	    echo "......ERROR:  Missing EXE2 definition"; \
-	    echo 0 > ${CHECK_STATUS}; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
 	else \
 	  echo "......ERROR:  Missing EXE1 definition"; \
-	  echo 0 > ${CHECK_STATUS}; \
+	  echo 0 > $(CHECK_STATUS); \
 	fi;
 
 checkKnapsacks: $(KS_BINARIES)
@@ -186,12 +206,11 @@ checkRosePrinter: $(EXE)
 	    echo "......Results in $$OFN"; \
 	  else \
 	    echo "......FAILED on $$file"; echo; \
-	    echo 0 > ${CHECK_STATUS}; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
 	done; \
 	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
 
-# TLD/TODO
 checkRoseTranslators: checkRCI checkVCI
 
 #checkRoseTranslators: checkRCI 
@@ -217,14 +236,32 @@ checkRoseTrans: $(EXE)
 	  OFN=rose_$$BASE.$$EXT; \
 	  ERRFN=$$OUTDIR/$$BASE.err; \
 	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
+	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$BASE.res; \
 	  if [ -f $$OFN ]; then \
-	    ok=`expr $$ok + 1`; \
+	    ERFN=$$BASE.res; \
+	    grep PCE_CHECK $$OFN | grep ASSERT | wc -l > $$ERFN; \
+	    grep PCE_CHECK $$OFN | grep INVARIANT | wc -l >> $$ERFN; \
+	    grep PCE_CHECK $$OFN | grep POSTCONDITION | wc -l >> $$ERFN;\
+	    grep PCE_CHECK $$OFN | grep PRECONDITION | wc -l >> $$ERFN; \
+	    grep PCE_FINALIZE $$OFN | wc -l >> $$ERFN; \
+	    grep PCE_INITIALIZE $$OFN | wc -l >> $$ERFN; \
+	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
+	    diff $$ERFN $$ORFN > $$ERFN.diffs; \
+            if [ -s $$ERFN.diffs ]; then \
+	      echo "......*** $$ERFN $$ORFN are different ***"; \
+	      cat $$ERFN.diffs; \
+	      echo "......FAILED on $$file"; echo; \
+	      echo 0 > $(CHECK_STATUS); \
+	    else \
+	      echo "......$$ERFN $$ORFN are identical"; \
+	      ok=`expr $$ok + 1`; \
+	    fi; \
 	    DESTFN=$$OUTDIR/$$BASE.$$EXT; \
 	    mv -f $$OFN $$DESTFN; \
 	    echo "......Unparse results in $$DESTFN"; \
 	  else \
 	    echo "......No output generated.  FAILED on $$file"; \
-	    echo 0 > ${CHECK_STATUS}; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
 	  if [ ! -s $$ERRFN ]; then \
 	    echo "......Removing empty error file."; \
@@ -241,13 +278,13 @@ checkRoseTrans: $(EXE)
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
 	else \
 	  echo "ERROR: Must resolve issues before able to build translations.";\
-	  echo 0 > ${CHECK_STATUS}; \
+	  echo 0 > $(CHECK_STATUS); \
         fi; \
 	echo "DONE"
 
 
 clean:
-	@rm -f *.o *.out *.diffs *.ti rose_*
+	@rm -f *.o *.out *.diffs *.ti rose_* *.res
 
 clean-all: clean
 	@rm -rf $(BINARIES) *.dot *.pdf $(RES_DIR)/*

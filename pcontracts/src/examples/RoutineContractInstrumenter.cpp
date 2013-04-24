@@ -3,7 +3,7 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 February 21
+ * Last Modified:  2013 April 23
  * \endinternal
  *
  * @file
@@ -93,7 +93,7 @@ main(int argc, char* argv[])
       }
       else
       {
-        cerr << "ERROR: Skipping routines instrumentation call due to ";
+        cerr << "\nERROR: Skipping routines instrumentation call due to ";
         cerr << "previous error(s).\n";
       }
 

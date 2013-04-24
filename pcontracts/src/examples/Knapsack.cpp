@@ -86,11 +86,11 @@ Examples::Knapsack::initialize(
         d_nextIndex = len;
       } else {
         // ToDo/TBD:  Throw a "BadWeight" exception (L_POS_WEIGHTS)
-        cerr << "ERROR: " << L_POS_WEIGHTS << "\n";
+        cerr << "\nERROR: " << L_POS_WEIGHTS << "\n";
       }
     } else {
       // ToDo/TBD:  Throw an exception (L_MAX_WEIGHTS)
-      cerr << "ERROR: " << L_MAX_WEIGHTS << "\n";
+      cerr << "\nERROR: " << L_MAX_WEIGHTS << "\n";
     }
   }
 
