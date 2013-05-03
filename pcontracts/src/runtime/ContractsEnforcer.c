@@ -3,12 +3,19 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 April 9
+ * Last Modified:  2013 May 2
  * \endinternal
  *
  * @file
  * @brief 
  * Interface contract enforcement manager.
+ *
+ * @todo A useful enhancement would be to support multiple enforcer
+ * "instances", each initialized with a different configuration file.
+ *
+ * @todo Eventually it would be nice to support per-routine, per-clause
+ * time estimates along the lines supported in Babel.
+ *
  *
  * @htmlinclude contractsSource.html
  * @htmlinclude copyright.html
@@ -274,6 +281,25 @@ timeToCheckClause(
  * If no input file is provided, then default contract enforcement options
  * are used.
  *
+ * Being a prototype, the configuration file contents are assumed to
+ * (initially) contain four lines of space-separated input.  The 
+ * first line is expected to contain enforcement policy options, using
+ * enumeration values instead of names, where appropriate.  The second
+ * line should contain default average time estimates for each clause
+ * type followed by the estimate for the routine.  Finally, the third 
+ * and fourth lines should contain the statistics and trace file names,
+ * respectively.  In other words configuration files should consist of 
+ * the following information:
+ *
+ * <enforcement-clause(s)> <enforcement-frequency> <policy-value>
+ * <pre-avg> <post-avg> <inv-avg> <asrt-avg> <routine-avg>
+ * <statistics-output-filename> 
+ * <trace-output-filename>
+ *
+ * where average times are in milliseconds (uint64_t) and statistics 
+ * and trace output file name entries should each be NULL if they
+ * are not desired.
+ *
  * @param[in] configfile [Optional] Name of the contract enforcement 
  *                         configuration file.
  */
@@ -295,6 +321,9 @@ ContractsEnforcer_initialize(
   {
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): Config file given")
 #if TBD_PCE_CONFIGURATION
+    memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
+    pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
+      NULL, NULL);
     /*
      * @todo Review potential runtime location issues with configuration file. 
      */
@@ -302,24 +331,85 @@ ContractsEnforcer_initialize(
     cfPtr = fopen(configfile, "r");
     if (cfPtr!= NULL) 
     {
-      /*
-       * Read entries from the configuration file to set the following:
-       *
-       * - Enforcement clause(s);
-       * - Enforcement frequency;
-       * - Enforcement value (see frequency options);
-       * - Statistics (output) file;
-       * - Trace (output) file; and
-       * - Default clause and routine timing data: pce_def_times.
-       */
+       uint64_t                 pre, post, inv, asrt, routine;
+       int                      num, ec, ef, val;
+       EnforcementClauseEnum    ece;
+       EnforcementFrequencyEnum efe;
+       char                     statsfn[81];
+       char                     tracefn[81];
+
+printf("\nDEBUG: initialize: Reading configuration file: %s\n", configfile);
+
+      /* Read the enforcement policy options from the configuration file. */
+      if ( (num = fscanf(cfPtr, "%d %d %d\n", &ec, &ef, &val)) != 3 )
+      {
+        printf("\nFATAL: %s %s\n",
+               "Error reading enforcement policy from configuration file: ",
+               configfile);
+        exit(1);
+      }
+      ece = (EnforcementClauseEnum)    ec;
+      efe = (EnforcementFrequencyEnum) ef;
+printf("DEBUG: ..(ec,ef,val)= (%d,%d,%d)\n", ec, ef, val);
+
+      /* Read average estimated times from the configuration file. */
+      num = fscanf(cfPtr,"%lu %lu %lu %lu %lu\n", 
+                   &pre, &post, &inv, &asrt, &routine);
+      if (num != 5)
+      {
+        printf("\nFATAL: %s %s\n",
+               "Error reading average time estimates from configuration file: ",
+               configfile);
+        exit(1);
+      }
+      pce_def_times.pre     = pre;
+      pce_def_times.post    = post;
+      pce_def_times.inv     = inv;
+      pce_def_times.asrt    = asrt;
+      pce_def_times.routine = routine;
+printf("DEBUG: ..(pre,post,inv,asrt,routine)= (%lu,%lu,%lu,%lu,%lu)\n", 
+       pre, post, inv, asrt, routine);
+
+      /* Read the statistics file name, which should be NULL if not wanted. */
+      if ( (num = fscanf(cfPtr,"%80s\n", &statsfn)) != 1 )
+      {
+        printf("\nFATAL: Error reading %s %s\n",
+               "statistics filename (or 'null') from configuration file: ",
+               configfile);
+        exit(1);
+      }
+      if ( (strcmp(statsfn, "NULL") == 0) || (strcmp(statsfn, "null") == 0) )
+      {
+        statsfn = "";
+      }
+printf("DEBUG: ..statsfn= %s\n", statsfn);
+
+      /* Read the trace file name, which should be NULL if not wanted. */
+      if ( (num = fscanf(cfPtr,"%80s\n", &tracefn)) != 1 )
+      {
+        printf("\nFATAL: Error reading %s %s\n",
+               "trace filename (or 'null') from configuration file: ",
+               configfile);
+        exit(1);
+      }
+      if ( (strcmp(tracefn, "NULL") == 0) || (strcmp(tracefn, "null") == 0) )
+      {
+        tracefn = "";
+      }
+printf("DEBUG: ..tracefn= %s\n", tracefn);
+printf("DEBUG: Creating pce_enforcer..\n");
+
+      pce_enforcer = ContractsEnforcer_createEnforcer(ece, efe, val,
+                                                      statsfn, tracefn);
 
       fclose(cfPtr);
     }
-#endif /* TBD_PCE_CONFIGURATION */
+#else /* TBD_PCE_CONFIGURATION */
     printf("\nFATAL: %s %s\n",
            "Contract enforcement initialization from configuration file",
            "not yet supported.");
     exit(1);
+#endif /* TBD_PCE_CONFIGURATION */
   }
   else
   {
@@ -788,11 +878,12 @@ ContractsEnforcer_logTrace(
     {
       /*
          "Name; ",        Trace identification
-         "Pre Time (ms); Post Time (ms); Inv Time (ms); Routine Time (ms);", 
+         "Pre (ms); Post (ms); Inv (ms); Asrt (ms); Routine (ms);", 
          "Message"
       */
-      fprintf(enforcer->trace->filePtr, "%s; %ld; %ld; %ld; %ld; %s\n",
-              nm, times.pre, times.post, times.inv, times.routine, cmt);
+      fprintf(enforcer->trace->filePtr, 
+        "%s; %ld; %ld; %ld; %ld; %ld; %s\n",
+        nm, times.pre, times.post, times.inv, times.asrt, times.routine, cmt);
       fflush(enforcer->trace->filePtr);
     }
   }

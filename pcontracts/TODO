@@ -2,17 +2,30 @@ PROTOTYPE
 
 
 - Complete support for partial enforcement strategies.
-  This involves, on first pass, implementing support for the configuration file.
+  This involves, as a first pass, implementing support for a configuration file
+  containing default (average) time estimates in addition to the enforcement
+  policy and optional statistics and trace files.
 
+  -- Add tests (testContractsEnforcer) for the initialization routine.
+  -- Modify the INIT comment to optionally accept a configuration file name.
+  -- Add support for an in-lined TRACE comment to output enforcement trace
+     information (provided a trace file was provided in the configuration).
+  -- Add support for an in-lined STATS comment to output enforcement statistics
+     information (provided a statistics file was provided in the configuration).
 
 
 Refinements:
 - Move runtime headers to include directory and adjust build accordingly.
 - Support advanced (non-standard C) contract expressions
      (ie, those containing non-C operators supported in SIDL built-ins)
-- Test or eliminate support for contract tracing.
+- Test or eliminate support for contract tracing through new contract
+  annotation.
 - Ensure build failures in rose examples accounted for in 'make check' results.
   (Assumes skipping 'make' step.)
+
+Lower Priority Refinements:
+- Support multiple enforcers (and configurations).
+- Support routine-specific time estimates (as had been done in Babel).
 
    
 

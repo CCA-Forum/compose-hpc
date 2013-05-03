@@ -42,7 +42,7 @@ static const char* S_FILE_TYPE[2] = {
  * @param[in] frequency  Frequency of checking.
  * @param[in] fileType   Type of file being created.
  * @param[in] ext        Desired file extension [Default=csv].
- * @return           The resulting filename.
+ * @return               The resulting filename.
  */ 
 char*
 getFilename(
@@ -123,7 +123,8 @@ checkRoutineClauses(
         times.asrt, times.routine) ? 1 : 0;
   }
 
-  ContractsEnforcer_logTrace(enforcer, times, NULL, NULL);
+  ContractsEnforcer_logTrace(enforcer, times, NULL, 
+                             S_ENFORCEMENT_CLAUSE_ABBREV[clauses]);
 
   return numEnforced;
 }  /* checkRoutineClauses */
@@ -194,7 +195,7 @@ main(int argc, char **argv)
   unsigned int           numChecked = 0, passed = 0;
   unsigned int           policyValue = max, defaultPV = max;
   unsigned int           iterations = max*iFactor, defaultIters = iterations;
-  int                    ec, ef, val;
+  int                    ec, ef;
   CONTRACTS_BOOL         checkDefault = CONTRACTS_FALSE;
   EnforcementClauseEnum  ece;
   EnforcementFrequencyEnum efe;
