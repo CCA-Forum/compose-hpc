@@ -4,7 +4,7 @@ LIB_DIR=../../lib
 CHECK_STATUS=../../.checkStatus
 
 CXX=g++
-FLAGS=-g -O3
+FLAGS=-g -O3 
 INCLUDES=-I. -I${RT_DIR}
 
 # TBD/ToDo:  Need to resolve library linking issue

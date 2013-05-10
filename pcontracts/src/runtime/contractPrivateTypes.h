@@ -3,7 +3,7 @@
  * File:           contractPrivateTypes.h
  * Author:         T. Dahlgren
  * Created:        2012 April 23
- * Last Modified:  2013 March 12
+ * Last Modified:  2013 May 9
  * \endinternal
  * 
  * @file
@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <time.h>
 #include <sys/time.h>
 #include "contractOptions.h"
 
@@ -76,8 +75,6 @@ typedef struct EnforcementState__struct {
   unsigned int       countdown;  
   /** Skip, if any, in a random window. */
   unsigned int       skip;       
-  /** TBD?  Starting timestamp. */
-  struct timeval     start;      
   /** Timing accumulators. */
   TimeEstimatesType  total;      
 } EnforcementStateType;

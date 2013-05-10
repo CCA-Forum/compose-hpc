@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 May 2
+ * Last Modified:  2013 May 9
  * \endinternal
  *
  * @file
@@ -35,7 +35,7 @@
 #include "ContractsEnforcer.h"
 
 
-#ifdef CONFENF_DEBUG
+#if DEBUG==1
 #define DEBUG_MESSAGE(MSG) printf("\nDEBUG: %s\n", (MSG));
 #define DUMP_DEBUG_STATS(ENF, MSG) ContractsEnforcer_dumpStatistics(ENF, MSG);
 #else
@@ -209,7 +209,7 @@ timeToCheckClause(
   /* in */    uint64_t               routineTime)
 {
   CONTRACTS_BOOL checkIt = CONTRACTS_FALSE;
-  uint64_t       enforceTotal, routinesTotal;
+  uint64_t       enforceTotal;
   double         limit;
 
   if (enforcer)
@@ -221,29 +221,68 @@ timeToCheckClause(
       checkIt = CONTRACTS_TRUE;
       break;
     case EnforcementFrequency_ADAPTIVE_FIT:
+#if DEBUG==3
+      printf("\nDEBUG: timeToCheckClause: AF: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
+             clauseTime, routineTime, enforcer->data.checksTime, 
+             enforcer->data.total.routine);
+#endif /* DEBUG==3 */
       enforceTotal = clauseTime + enforcer->data.checksTime;
-      limit = (double)(routineTime) * (double)enforcer->policy.value/100.0;
-      if ((double)clauseTime <= limit)
+      /* The following assumes total routine time includes current. */
+      limit = (double)enforcer->data.total.routine 
+              * (double)enforcer->policy.value/100.0;
+#if DEBUG==3
+      printf("..enforceTotal=%d <= limit=%f?\n", enforceTotal, limit);
+#endif /* DEBUG==3 */
+      if ((double)enforceTotal <= limit)
       {
         checkIt = CONTRACTS_TRUE;
+#if DEBUG==3
+        printf("....checking\n");
+#endif /* DEBUG==3 */
       }
       break;
     case EnforcementFrequency_ADAPTIVE_TIMING:
-      limit = (double)(routineTime) * (double)enforcer->policy.value/100.0;
+#if DEBUG==3
+      printf("\nDEBUG: timeToCheckClause: AT: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
+             clauseTime, routineTime, enforcer->data.checksTime, 
+             enforcer->data.total.routine);
+#endif /* DEBUG==3 */
+      limit = (double)routineTime * (double)enforcer->policy.value/100.0;
+#if DEBUG==3
+      printf("..clauseTime=%d <= limit=%f?\n", clauseTime, limit);
+#endif /* DEBUG==3 */
       if ((double)clauseTime <= limit)
       {
         checkIt = CONTRACTS_TRUE;
+#if DEBUG==3
+        printf("....checking\n");
+#endif /* DEBUG==3 */
       } 
       else if (clauseTime <= 1)
       {
-        enforceTotal = clauseTime + enforcer->data.checksTime;
-        limit = (double)(enforcer->data.total.routine) 
-              * (double)enforcer->policy.value/100.0;
+        limit = (double)enforcer->data.total.routine
+                * (double)enforcer->policy.value/100.0;
+#if DEBUG==3
+        printf("..else checksTime=%d <= limit2=%f?\n", 
+               enforcer->data.checksTime,limit);
+#endif /* DEBUG==3 */
+
+        if ((double)enforcer->data.checksTime < limit) {
           checkIt = CONTRACTS_TRUE;
+#if DEBUG==3
+          printf("....checking\n");
+#endif /* DEBUG==3 */
+        }
       }
       break;
     case EnforcementFrequency_PERIODIC:
     case EnforcementFrequency_RANDOM:
+#if DEBUG==3
+      printf("\nDEBUG: timeToCheckClause: AT: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
+             clauseTime, routineTime, enforcer->data.checksTime, 
+             enforcer->data.total.routine);
+      printf("..countdown=%d\n", enforcer->data.countdown);
+#endif /* DEBUG==3 */
       if (enforcer->data.countdown > 1)
       {
         DUMP_DEBUG_STATS(enforcer, "timeToCheckClause(): begin")
@@ -253,7 +292,13 @@ timeToCheckClause(
       else
       {
         checkIt = CONTRACTS_TRUE;
+#if DEBUG==3
+        printf("....checking\n");
+#endif /* DEBUG==3 */
         resetEnforcementCountdown(enforcer);
+#if DEBUG==3
+        printf("..reset countdown=%d\n", enforcer->data.countdown);
+#endif /* DEBUG==3 */
       }
       break;
     default:
@@ -320,7 +365,7 @@ ContractsEnforcer_initialize(
   else if (strlen(configfile) > 0)
   {
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): Config file given")
-#if TBD_PCE_CONFIGURATION
+#ifdef PCE_CONFIG
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
       NULL, NULL);
@@ -338,7 +383,9 @@ ContractsEnforcer_initialize(
        char                     statsfn[81];
        char                     tracefn[81];
 
-printf("\nDEBUG: initialize: Reading configuration file: %s\n", configfile);
+#if DEBUG==2
+       printf("\nDEBUG: initialize: Reading configuration file: %s\n", configfile);
+#endif /* DEBUG==2 */
 
       /* Read the enforcement policy options from the configuration file. */
       if ( (num = fscanf(cfPtr, "%d %d %d\n", &ec, &ef, &val)) != 3 )
@@ -350,7 +397,10 @@ printf("\nDEBUG: initialize: Reading configuration file: %s\n", configfile);
       }
       ece = (EnforcementClauseEnum)    ec;
       efe = (EnforcementFrequencyEnum) ef;
-printf("DEBUG: ..(ec,ef,val)= (%d,%d,%d)\n", ec, ef, val);
+
+#if DEBUG==2
+      printf("DEBUG: ..(ec,ef,val)= (%d,%d,%d)\n", ec, ef, val);
+#endif /* DEBUG==2 */
 
       /* Read average estimated times from the configuration file. */
       num = fscanf(cfPtr,"%lu %lu %lu %lu %lu\n", 
@@ -367,8 +417,11 @@ printf("DEBUG: ..(ec,ef,val)= (%d,%d,%d)\n", ec, ef, val);
       pce_def_times.inv     = inv;
       pce_def_times.asrt    = asrt;
       pce_def_times.routine = routine;
-printf("DEBUG: ..(pre,post,inv,asrt,routine)= (%lu,%lu,%lu,%lu,%lu)\n", 
-       pre, post, inv, asrt, routine);
+
+#if DEBUG==2
+      printf("DEBUG: ..(pre,post,inv,asrt,routine)= (%lu,%lu,%lu,%lu,%lu)\n", 
+             pre, post, inv, asrt, routine);
+#endif /* DEBUG==2 */
 
       /* Read the statistics file name, which should be NULL if not wanted. */
       if ( (num = fscanf(cfPtr,"%80s\n", &statsfn)) != 1 )
@@ -382,7 +435,10 @@ printf("DEBUG: ..(pre,post,inv,asrt,routine)= (%lu,%lu,%lu,%lu,%lu)\n",
       {
         statsfn = "";
       }
-printf("DEBUG: ..statsfn= %s\n", statsfn);
+
+#if DEBUG==2
+      printf("DEBUG: ..statsfn= %s\n", statsfn);
+#endif /* DEBUG==2 */
 
       /* Read the trace file name, which should be NULL if not wanted. */
       if ( (num = fscanf(cfPtr,"%80s\n", &tracefn)) != 1 )
@@ -396,20 +452,24 @@ printf("DEBUG: ..statsfn= %s\n", statsfn);
       {
         tracefn = "";
       }
-printf("DEBUG: ..tracefn= %s\n", tracefn);
-printf("DEBUG: Creating pce_enforcer..\n");
+
+#if DEBUG==2
+      printf("DEBUG: ..tracefn= %s\n", tracefn);
+      printf("DEBUG: Creating pce_enforcer..\n");
+#endif /* DEBUG==2 */
 
       pce_enforcer = ContractsEnforcer_createEnforcer(ece, efe, val,
                                                       statsfn, tracefn);
 
       fclose(cfPtr);
     }
-#else /* TBD_PCE_CONFIGURATION */
+
+#else /* PCE_CONFIG */
     printf("\nFATAL: %s %s\n",
            "Contract enforcement initialization from configuration file",
            "not yet supported.");
     exit(1);
-#endif /* TBD_PCE_CONFIGURATION */
+#endif /* PCE_CONFIG */
   }
   else
   {

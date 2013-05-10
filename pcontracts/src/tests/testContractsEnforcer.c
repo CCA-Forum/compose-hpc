@@ -124,7 +124,7 @@ checkRoutineClauses(
   }
 
   ContractsEnforcer_logTrace(enforcer, times, NULL, 
-                             S_ENFORCEMENT_CLAUSE_ABBREV[clauses]);
+    S_ENFORCEMENT_CLAUSE_ABBREV[enforcer->policy.clauses]);
 
   return numEnforced;
 }  /* checkRoutineClauses */
@@ -163,15 +163,15 @@ checkAppClauses(
        ? ec-- : (unsigned int)S_ENFORCEMENT_CLAUSE_MAX;
 
     /* 
-     * Provide variability for adaptive timing policies, though ignoring
+     * Provide "variability" for adaptive timing policies, though ignoring
      * the fact that different clauses for a given method call can have
      * different execution times.
      */
-    times.pre++;
-    times.post++;
-    times.inv++;
-    times.asrt++;
-    times.routine += 5;
+    times.pre = ++times.pre % 5;
+    times.post = ++times.post % 10;
+    times.inv = ++times.inv % 20;
+    times.asrt = ++times.asrt % 2;
+    times.routine = (times.routine + 5) % 40;
   }
   
   ContractsEnforcer_dumpStatistics(enforcer, "Completed checks");
@@ -211,21 +211,21 @@ main(int argc, char **argv)
   {
   /* NEVER, ALWAYS,   AF,   AT, PERIODIC, RANDOM */
     {    0,      0,    0,    0,        0,      0 }, /*  0=NONE */
-    {    0,    900,    8,    8,       60,     60 }, /*  1=INVARIANTS */
-    {    0,    450,    4,    4,       30,     30 }, /*  2=PRECONDITIONS */
-    {    0,   1350,   12,   12,       90,     90 }, /*  3=INVPRE */
-    {    0,    450,    4,    4,       30,     30 }, /*  4=POSTCONDITIONS */
-    {    0,   1350,   12,   12,       90,     90 }, /*  5=INVPOST */
-    {    0,    900,    8,    8,       60,     60 }, /*  6=PREPOST */
-    {    0,   1800,   16,   16,      120,    120 }, /*  7=INVPREPOST */
-    {    0,    450,    4,    4,       30,     30 }, /*  8=ASSERTIONS */
-    {    0,   1350,   12,   12,       90,     90 }, /*  9=INVASRT */
-    {    0,    900,    8,    8,       60,     60 }, /* 10=PREASRT */
-    {    0,   1800,   16,   16,      120,    120 }, /* 11=INVPREASRT */
-    {    0,    900,    8,    8,       60,     60 }, /* 12=POSTASRT */
-    {    0,   1800,   16,   16,      120,    120 }, /* 13=INVPOSTASRT */
-    {    0,   1350,   12,   12,       90,     90 }, /* 14=PREPOSTASRT */
-    {    0,   2250,   20,   20,      150,    150 }  /* 15=ALL */
+    {    0,    900,  315,  162,       60,     60 }, /*  1=INVARIANTS */
+    {    0,    450,  450,  303,       30,     30 }, /*  2=PRECONDITIONS */
+    {    0,   1350,  562,  465,       90,     90 }, /*  3=INVPRE */
+    {    0,    450,  348,  158,       30,     30 }, /*  4=POSTCONDITIONS */
+    {    0,   1350,  416,  320,       90,     90 }, /*  5=INVPOST */
+    {    0,    900,  606,  461,       60,     60 }, /*  6=PREPOST */
+    {    0,   1800,  662,  622,      120,    120 }, /*  7=INVPREPOST */
+    {    0,    450,  450,  450,       30,     30 }, /*  8=ASSERTIONS */
+    {    0,   1350,  694,  612,       90,     90 }, /*  9=INVASRT */
+    {    0,    900,  898,  753,       60,     60 }, /* 10=PREASRT */
+    {    0,   1800,  976,  914,      120,    120 }, /* 11=INVPREASRT */
+    {    0,    900,  741,  608,       60,     60 }, /* 12=POSTASRT */
+    {    0,   1800,  787,  769,      120,    120 }, /* 13=INVPOSTASRT */
+    {    0,   1350,  964,  911,       90,     90 }, /* 14=PREPOSTASRT */
+    {    0,   2250, 1032, 1069,      150,    150 }  /* 15=ALL */
   };
 
   if (argc == 2) {
