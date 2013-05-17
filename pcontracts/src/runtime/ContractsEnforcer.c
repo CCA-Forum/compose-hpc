@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 May 9
+ * Last Modified:  2013 May 16
  * \endinternal
  *
  * @file
@@ -354,7 +354,7 @@ ContractsEnforcer_initialize(
 {
   FILE* cfPtr = NULL;
 
-  if (configfile == NULL)
+  if ( (configfile == NULL) || (strlen(configfile) == 0) )
   {
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): No config file given")
     pce_config_filename = configfile;
@@ -367,8 +367,6 @@ ContractsEnforcer_initialize(
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): Config file given")
 #ifdef PCE_CONFIG
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
-    pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
-      NULL, NULL);
     /*
      * @todo Review potential runtime location issues with configuration file. 
      */
@@ -433,7 +431,7 @@ ContractsEnforcer_initialize(
       }
       if ( (strcmp(statsfn, "NULL") == 0) || (strcmp(statsfn, "null") == 0) )
       {
-        statsfn = "";
+        sprintf(statsfn,"");
       }
 
 #if DEBUG==2
@@ -450,7 +448,7 @@ ContractsEnforcer_initialize(
       }
       if ( (strcmp(tracefn, "NULL") == 0) || (strcmp(tracefn, "null") == 0) )
       {
-        tracefn = "";
+        sprintf(tracefn,"");
       }
 
 #if DEBUG==2
@@ -491,6 +489,13 @@ void
 ContractsEnforcer_finalize(void)
 {
   DEBUG_MESSAGE("ContractsEnforcer_finalize(): begin")
+
+#if DEBUG==2
+      printf("DEBUG: finalizing..\n");
+#endif /* DEBUG==2 */
+
+  ContractsEnforcer_dumpStatistics(pce_enforcer, "In Finalize");
+
   ContractsEnforcer_free(pce_enforcer);
 
   if (pce_config_filename != NULL) 
@@ -803,6 +808,10 @@ ContractsEnforcer_dumpStatistics(
   DEBUG_MESSAGE("ContractsEnforcer_dumpStatistics(): begin")
   if ( (enforcer != NULL) && (enforcer->stats != NULL) )
   {
+#if DEBUG==2
+      printf("DEBUG: ..dumping stats..\n");
+#endif /* DEBUG==2 */
+
     cmt = (msg != NULL) ? msg : "";
     currTime = time(NULL);
     timeStr  = ctime(&currTime);  /* Static so do NOT free() */
@@ -810,6 +819,10 @@ ContractsEnforcer_dumpStatistics(
 
     if (enforcer->stats->filePtr != NULL) 
     {
+#if DEBUG==2
+      printf("DEBUG: ..dumping stats..\n");
+#endif /* DEBUG==2 */
+
       /*
         "Clauses; Frequency; Value; Timestamp; ",          Policy
         "Requests; Requests Allowed; Countdown; Skip; ",   State basics

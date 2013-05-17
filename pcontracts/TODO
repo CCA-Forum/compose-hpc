@@ -2,16 +2,13 @@ PROTOTYPE
 
 
 - Complete support for partial enforcement strategies.
-  This involves, as a first pass, implementing support for a configuration file
-  containing default (average) time estimates in addition to the enforcement
-  policy and optional statistics and trace files.
-
+  -- Add configuration option (line 1) and support in the enforcer for
+     making termination on exception optional.
   -- Add tests (testContractsEnforcer) for the initialization routine.
-  -- Modify the INIT comment to optionally accept a configuration file name.
   -- Add support for an in-lined TRACE comment to output enforcement trace
-     information (provided a trace file was provided in the configuration).
+     information (provided a trace file was specified in the configuration).
   -- Add support for an in-lined STATS comment to output enforcement statistics
-     information (provided a statistics file was provided in the configuration).
+     information (IF a statistics file was provided in the configuration).
 
 
 Refinements:

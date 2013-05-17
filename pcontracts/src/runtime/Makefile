@@ -6,7 +6,7 @@ endif
 
 ifdef CONFIG
 DCONFIG=-DPCE_CONFIG
-DDEBUG=2
+DDEBUG=-DDEBUG=2
 else
 DCONFIG=
 endif

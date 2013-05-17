@@ -193,7 +193,7 @@ checkRosePrinter: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config`; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
@@ -226,7 +226,7 @@ checkRoseTrans: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config`; \
 	ok=0; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
@@ -273,6 +273,8 @@ checkRoseTrans: $(EXE)
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
 	  cp -f Makefile.trans $$OUTDIR/Makefile; \
+	  echo "Copying configuration file(s) to $$OUTDIR"; \
+	  cp -f *.config $$OUTDIR; \
 	  echo "Copying header files to $$OUTDIR"; \
 	  cp -f *ack*.h* $$OUTDIR; \
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \

@@ -16,7 +16,7 @@ printGreeting(string nm)
   cout << gesture << " " << nm << "!\n";
 }
 
-/* %CONTRACT INIT */
+/* %CONTRACT INIT helloworld.config; */
 /* %CONTRACT FINAL */
 int 
 main(int argc, char*argv[]) {

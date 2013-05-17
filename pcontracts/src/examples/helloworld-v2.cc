@@ -24,7 +24,7 @@ main(int argc, char*argv[]) {
     "world"
   };
 
-/* %CONTRACT INIT */
+/* %CONTRACT INIT helloworld.config; */
 
   for (int i=0; i<4; i++) {
     printGreeting(names[i]);

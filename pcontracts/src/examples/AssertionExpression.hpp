@@ -3,7 +3,7 @@
  * File:           AssertionExpression.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 April 9
+ * Last Modified:  2013 May 16
  * \endinternal
  *
  * @file
@@ -29,6 +29,8 @@ typedef enum AssertionSupport__enum {
   AssertionSupport_ADVISORY,
   /** EXECUTABLE:  Executable in C (currently as-is). */
   AssertionSupport_EXECUTABLE,
+  /** FILENAME:  A filename =>Hack to re-use infrastructure for INIT filename.*/
+  AssertionSupport_FILENAME,
   /** UNSUPPORTED:  Known to include an unsupported annotation. */
   AssertionSupport_UNSUPPORTED
 } AssertionSupportEnum;
@@ -78,6 +80,9 @@ class AssertionExpression
         break;
       case AssertionSupport_EXECUTABLE:
         rep << "Executable";
+        break;
+      case AssertionSupport_FILENAME:
+        rep << "Filename";
         break;
       case AssertionSupport_UNSUPPORTED:
         rep << "Unsupported";

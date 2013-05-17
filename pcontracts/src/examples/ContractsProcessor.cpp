@@ -3,12 +3,16 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 April 23
+ * Last Modified:  2013 May 16
  * \endinternal
  *
  * @file
  * @brief
  * Basic contract clause processing utilities.
+ *
+ * @todo At some point should be more flexible in format of INIT with 
+ * optional configuration filename.
+ * 
  *
  * @htmlinclude copyright.html
  */
@@ -53,6 +57,10 @@ const string S_ERROR_NOT_SCOPED =
 
 const string S_ERROR_ASSERTIONS = 
   "ERROR: Assertions CANNOT be associated with function definitions.";
+const string S_ERROR_BAD_CHECKS = 
+  "ERROR: Refusing to add non-postcondition/invariant checks to routine end.";
+const string S_ERROR_INIT = 
+  "ERROR: INIT statement CANNOT have more than one filename 'expression'.";
 const string S_ERROR_POSTCONDITIONS = 
   "ERROR: Postconditions MUST be associated with function definitions.";
 const string S_ERROR_PRECONDITIONS = 
@@ -157,19 +165,25 @@ buildFinal(
  *
  * @param[in] currSttmt  The current AST statement node.
  * @param[in] dt         The pre-processing directive type.
+ * @param[in] filename   The contracts configuration filename.
  * @return               The function call statement or NULL.
  */
 SgExprStatement*
 buildInit(
   /* in */ SgStatement*      currSttmt,
-  /* in */ PPIDirectiveType  dt)
+  /* in */ PPIDirectiveType  dt,
+  /* in */ string            filename)
 {
   SgExprStatement* sttmt = NULL;
 
   SgExprListExp* parms = new SgExprListExp(FILE_INFO);
   if ( (currSttmt != NULL) && (parms != NULL) )
   {
-    parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
+    if (filename.empty()) {
+      parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
+    } else {
+      parms->append_expression(SageBuilder::buildStringVal(filename));
+    }
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_INITIALIZE", 
       SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
     if (sttmt != NULL)
@@ -294,6 +308,21 @@ ContractsProcessor::addExpressions(
 #ifdef DEBUG
             cout << "DEBUG: ..is executable expression.\n";
 #endif /* DEBUG */
+        } 
+        else if (cc->isInit()) // Assuming the expression is a filename
+        {
+          if (cc->size() <= 0)
+          {
+            AssertionExpression ae (label, expr, AssertionSupport_FILENAME);
+            cc->add(ae);
+//#ifdef DEBUG
+            cout << "DEBUG: ..(assuming) is an INIT filename.\n";
+//#endif /* DEBUG */
+          } 
+          else 
+          {
+            cerr << S_ERROR_INIT << " Ignoring any additional entries.\n";
+          } 
         } 
         else
         {
@@ -467,7 +496,11 @@ ContractsProcessor::addInitialize(SgBasicBlock* body, ContractComment* cc)
 
   if ( (body != NULL) && (cc != NULL) )
   {
-    SgExprStatement* sttmt = buildInit(body, cc->directive());
+//#ifdef DEBUG
+      cout<<"DEBUG: ....INIT filename =\""<<cc->getFilename()<<"\"\n";
+//#endif /* DEBUG */
+    SgExprStatement* sttmt = buildInit(body, cc->directive(), 
+                                       cc->getFilename());
     if (sttmt != NULL) {
       body->prepend_statement(sttmt);
       num += 1;
@@ -551,8 +584,7 @@ ContractsProcessor::addPostChecks(
     } 
     else
     { 
-      cerr<<"\nERROR: Refusing to add non-postcondition and non-invariant ";
-      cerr<<"checks to routine end.\n";
+      cerr<<"\n"<<S_ERROR_BAD_CHECKS<<"n";
     } /* end if have something to work with */
 
 #ifdef DEBUG
@@ -626,8 +658,7 @@ ContractsProcessor::addPreChecks(
     } 
     else
     { 
-      cerr<<"\nERROR: Refusing to add non-precondition and non-invariant ";
-      cerr<<"checks to routine start.\n";
+      cerr<<"\n"<<S_ERROR_BAD_CHECKS<<"n";
     } /* end if have something to work with */
 
 #ifdef DEBUG
@@ -1075,8 +1106,10 @@ ContractsProcessor::processCommentEntry(
       else if ((pos=cmt.find("INIT"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_INIT, dirType);
+        addExpressions(cmt.substr(pos+5), cc);
 #ifdef DEBUG
-        cout<<"DEBUG: Created INIT ContractComment: "<<cc->str(S_SEP)<<endl;
+        cout<<"DEBUG: Created INIT ContractComment: ";
+        cout<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
       else if ((pos=cmt.find("FINAL"))!=string::npos)
@@ -1684,7 +1717,11 @@ ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
     SgStatement* currSttmt = isSgStatement(lNode);
     if (currSttmt != NULL)
     {
-      SgExprStatement* sttmt = buildInit(currSttmt, cc->directive());
+//#ifdef DEBUG
+      cout<<"DEBUG: ....INIT filename =\""<<cc->getFilename()<<"\"\n";
+//#endif /* DEBUG */
+      SgExprStatement* sttmt = buildInit(currSttmt, cc->directive(), 
+                                         cc->getFilename());
       if (sttmt != NULL)
       {
         SageInterface::insertStatementBefore(currSttmt, sttmt,true);

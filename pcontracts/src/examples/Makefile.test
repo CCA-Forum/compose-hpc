@@ -171,7 +171,7 @@ checkRosePrinter: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config`; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
@@ -205,7 +205,7 @@ checkRoseTrans: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config`; \
 	ok=0; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \

@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 April 9
+ * Last Modified:  2013 May 16
  * \endinternal
  *
  * @file
@@ -154,6 +154,15 @@ class ContractComment
 
     /** Return the list of assertion expressions. */
     list<AssertionExpression> getList() { return d_aeList; }
+
+    /** 
+     * Return the filename for INIT; otherwise, return empty string. 
+     * @warning It is assumed the (first) expression corresponds to a filename.
+     */
+    string getFilename() 
+    {
+      return d_aeList.size() == 1 ? d_aeList.front().expr() : "";
+    }
 
     /** Clear the list of assertion expressions. */
     void clear() { d_aeList.clear(); }

@@ -181,7 +181,7 @@ checkUK: unlabeledknapsack UnlabeledKnapsack
 	echo
 
 clean:
-	rm -f *.o *.out *.diffs
+	rm -f *.o *.out *.diffs *.stats *.trace
 
 clean-all: clean
 	rm -f $(BINARIES)
