@@ -7,6 +7,9 @@
  * @brief
  * Test suite for ContractsEnforcer.
  *
+ * @todo Add tests of initialization method (ie, from configuration file).
+ * @todo Add tests with and without termination option.
+ *
  * @htmlinclude copyright.html
  */
 #include <stdio.h>
@@ -277,7 +280,7 @@ main(int argc, char **argv)
       statsfile = getFilename(ece, efe, FileType_STATISTICS, NULL);
       tracefile = getFilename(ece, efe, FileType_TRACE, NULL);
       enforcer = ContractsEnforcer_createEnforcer(ece, efe, policyValue,
-                                                  statsfile, tracefile);
+                   CONTRACTS_FALSE, statsfile, tracefile);
       if (enforcer != NULL) {
         good++;
         printf("  Case %s, %s: ", S_ENFORCEMENT_CLAUSE[ece],

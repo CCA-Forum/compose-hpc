@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 May 16
+ * Last Modified:  2013 May 23
  * \endinternal
  *
  * @file
@@ -13,8 +13,11 @@
  * @todo A useful enhancement would be to support multiple enforcer
  * "instances", each initialized with a different configuration file.
  *
- * @todo Eventually it would be nice to support per-routine, per-clause
- * time estimates along the lines supported in Babel.
+ * @todo A useful enhancement would be to support per routine and 
+ * interface clause time estimates along the lines supported in Babel.
+ * Alternatively, could support provision of time estimates in the
+ * annotation itself OR, perhaps, through another annotation that could be 
+ * used to load estimates from a file(?)
  *
  *
  * @htmlinclude contractsSource.html
@@ -72,6 +75,8 @@ TimeEstimatesType      pce_def_times;
  * Create a basic enforcer that does NOT check any contracts.
  * 
  * @param[in] clauses   Interface contract clause(s) to be checked.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -80,6 +85,7 @@ TimeEstimatesType      pce_def_times;
 ContractsEnforcerType*
 newBaseEnforcer(
   /* in */ EnforcementClauseEnum clauses,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
@@ -92,6 +98,7 @@ newBaseEnforcer(
   {
     DEBUG_MESSAGE("newBaseEnforcer: enforcer allocated")
     memset(enforcer, 0, sizeof(ContractsEnforcerType));
+    enforcer->terminate = terminate;
     enforcer->policy.clauses = clauses;
     enforcer->policy.frequency = EnforcementFrequency_NEVER;
     if ( (statsfile != NULL) && (strlen(statsfile) > 0) )
@@ -336,17 +343,29 @@ timeToCheckClause(
  * respectively.  In other words configuration files should consist of 
  * the following information:
  *
- * <enforcement-clause(s)> <enforcement-frequency> <policy-value>
+ * <enforcement-clause(s)> <enforcement-frequency> <policy-value> <terminate>
  * <pre-avg> <post-avg> <inv-avg> <asrt-avg> <routine-avg>
  * <statistics-output-filename> 
  * <trace-output-filename>
  *
- * where average times are in milliseconds (uint64_t) and statistics 
- * and trace output file name entries should each be NULL if they
- * are not desired.
+ * where 
+ *   enforcement-clause(s) is the desired EnforcementClauseEnum value;
+ *   enforcement-frequency is the desired EnforcementFrequencyEnum value;
+ *   policy-value is the desired policy-specific (unsigned integer) value:
+ *                interval (periodic), window size (random), overhead
+ *                limit (as percent for adaptive fit and timing), or 0;
+ *   terminate is 1 if enforcement is to result in program termination on
+ *             contract clause violations or 0 if execution should continue;
+ *   average times are in milliseconds (uint64_t);  
+ *   statistics-output-filename is the qualified name of the enforcement
+ *                              data output file or 'null' for no stats; and
+ *   trace-output-filename is the qualified name of the enforcement trace
+ *                         data output file or 'null' for no tracing.
  *
  * @param[in] configfile [Optional] Name of the contract enforcement 
- *                         configuration file.
+ *                        configuration file.  All clauses will be enforced
+ *                        violations will lead to termination if a filename
+ *                        is not provided.
  */
 void
 ContractsEnforcer_initialize(
@@ -360,12 +379,12 @@ ContractsEnforcer_initialize(
     pce_config_filename = configfile;
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
-      NULL, NULL);
+      CONTRACTS_TRUE, NULL, NULL);
   }
   else if (strlen(configfile) > 0)
   {
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): Config file given")
-#ifdef PCE_CONFIG
+//#ifdef PCE_CONFIG
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     /*
      * @todo Review potential runtime location issues with configuration file. 
@@ -375,18 +394,19 @@ ContractsEnforcer_initialize(
     if (cfPtr!= NULL) 
     {
        uint64_t                 pre, post, inv, asrt, routine;
-       int                      num, ec, ef, val;
+       int                      num, ec, ef, term, val;
        EnforcementClauseEnum    ece;
        EnforcementFrequencyEnum efe;
        char                     statsfn[81];
        char                     tracefn[81];
+       CONTRACTS_BOOL           terminate;
 
 #if DEBUG==2
        printf("\nDEBUG: initialize: Reading configuration file: %s\n", configfile);
 #endif /* DEBUG==2 */
 
       /* Read the enforcement policy options from the configuration file. */
-      if ( (num = fscanf(cfPtr, "%d %d %d\n", &ec, &ef, &val)) != 3 )
+      if ( (num = fscanf(cfPtr, "%d %d %d %d\n", &ec, &ef, &val, &term)) != 4 )
       {
         printf("\nFATAL: %s %s\n",
                "Error reading enforcement policy from configuration file: ",
@@ -395,9 +415,10 @@ ContractsEnforcer_initialize(
       }
       ece = (EnforcementClauseEnum)    ec;
       efe = (EnforcementFrequencyEnum) ef;
+      terminate = (term == 1);
 
 #if DEBUG==2
-      printf("DEBUG: ..(ec,ef,val)= (%d,%d,%d)\n", ec, ef, val);
+      printf("DEBUG: ..(ec,ef,val,term)= (%d,%d,%d, %d)\n", ec, ef, val, term);
 #endif /* DEBUG==2 */
 
       /* Read average estimated times from the configuration file. */
@@ -456,18 +477,18 @@ ContractsEnforcer_initialize(
       printf("DEBUG: Creating pce_enforcer..\n");
 #endif /* DEBUG==2 */
 
-      pce_enforcer = ContractsEnforcer_createEnforcer(ece, efe, val,
+      pce_enforcer = ContractsEnforcer_createEnforcer(ece, efe, val, terminate,
                                                       statsfn, tracefn);
 
       fclose(cfPtr);
     }
 
-#else /* PCE_CONFIG */
-    printf("\nFATAL: %s %s\n",
-           "Contract enforcement initialization from configuration file",
-           "not yet supported.");
-    exit(1);
-#endif /* PCE_CONFIG */
+//#else /* PCE_CONFIG */
+//    printf("\nFATAL: %s %s\n",
+//           "Contract enforcement initialization from configuration file",
+//           "not yet supported.");
+//    exit(1);
+//#endif /* PCE_CONFIG */
   }
   else
   {
@@ -522,6 +543,8 @@ ContractsEnforcer_finalize(void)
  * @param[in] clauses   Clause(s) to be checked when encountered.
  * @param[in] frequency Frequency of checking encountered clauses.
  * @param[in] value     The policy value option, when appropriate.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -532,6 +555,7 @@ ContractsEnforcer_createEnforcer(
   /* in */ EnforcementClauseEnum    clauses, 
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
+  /* in */ CONTRACTS_BOOL           terminate,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile)
 {
@@ -543,23 +567,24 @@ ContractsEnforcer_createEnforcer(
       enforcer = ContractsEnforcer_setEnforceNone();
       break;
     case EnforcementFrequency_ALWAYS:
-      enforcer = ContractsEnforcer_setEnforceAll(clauses, statsfile, tracefile);
+      enforcer = ContractsEnforcer_setEnforceAll(clauses, terminate, statsfile, 
+                                                 tracefile);
       break;
     case EnforcementFrequency_ADAPTIVE_FIT:
       enforcer = ContractsEnforcer_setEnforceAdaptiveFit(clauses, value, 
-                   statsfile, tracefile);
+                   terminate, statsfile, tracefile);
       break;
     case EnforcementFrequency_ADAPTIVE_TIMING:
       enforcer = ContractsEnforcer_setEnforceAdaptiveTiming(clauses, value, 
-                   statsfile, tracefile);
+                   terminate, statsfile, tracefile);
       break;
     case EnforcementFrequency_PERIODIC:
       enforcer = ContractsEnforcer_setEnforcePeriodic(clauses, value, 
-                   statsfile, tracefile);
+                   terminate, statsfile, tracefile);
       break;
     case EnforcementFrequency_RANDOM:
       enforcer = ContractsEnforcer_setEnforceRandom(clauses, value, 
-                   statsfile, tracefile);
+                   terminate, statsfile, tracefile);
       break;
     default:
       printf("\nERROR: Unrecognized/unsupported enforcement frequency %d\n",
@@ -578,6 +603,8 @@ ContractsEnforcer_createEnforcer(
  * the given files, when provided.
  * 
  * @param[in] clauses   Clause(s) to be checked every time they are encountered.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -587,12 +614,13 @@ ContractsEnforcer_createEnforcer(
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAll(
   /* in */ EnforcementClauseEnum clauses,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
   DEBUG_MESSAGE("ContractsEnforcer_setEnforceAll(): begin")
   ContractsEnforcerType* enforcer = 
-    newBaseEnforcer(clauses, statsfile, tracefile);
+    newBaseEnforcer(clauses, terminate, statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.frequency = EnforcementFrequency_ALWAYS;
   }
@@ -613,7 +641,7 @@ ContractsEnforcer_setEnforceNone(void)
 {
   DEBUG_MESSAGE("ContractsEnforcer_setEnforceNone(): begin")
   ContractsEnforcerType* enforcer = newBaseEnforcer(EnforcementClause_NONE, 
-                                                    NULL, NULL);
+                                                   CONTRACTS_FALSE, NULL, NULL);
   if (enforcer) {
     enforcer->policy.frequency = EnforcementFrequency_NEVER;
   }
@@ -632,6 +660,8 @@ ContractsEnforcer_setEnforceNone(void)
  * @param[in] clauses   Clause(s) to be checked at the specified interval.
  * @param[in] interval  The desired check frequency (i.e., for each interval
  *                        clause encountered).
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -641,12 +671,13 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforcePeriodic(
   /* in */ EnforcementClauseEnum clauses,
   /* in */ unsigned int          interval,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
   DEBUG_MESSAGE("ContractsEnforcer_setEnforcePeriodic(): begin")
   ContractsEnforcerType* enforcer = 
-    newBaseEnforcer(clauses, statsfile, tracefile);
+    newBaseEnforcer(clauses, terminate, statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.frequency = EnforcementFrequency_PERIODIC;
     enforcer->policy.value = interval;
@@ -666,6 +697,8 @@ ContractsEnforcer_setEnforcePeriodic(
  * 
  * @param[in] clauses   Clause(s) to be checked at the specified interval.
  * @param[in] window    The maximum size of the runtime check window.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -675,12 +708,13 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforceRandom(
   /* in */ EnforcementClauseEnum clauses,
   /* in */ unsigned int          window,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
   DEBUG_MESSAGE("ContractsEnforcer_setEnforceRandom(): begin")
   ContractsEnforcerType* enforcer = 
-    newBaseEnforcer(clauses, statsfile, tracefile);
+    newBaseEnforcer(clauses, terminate, statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.frequency = EnforcementFrequency_RANDOM;
     enforcer->policy.value = window;
@@ -703,6 +737,8 @@ ContractsEnforcer_setEnforceRandom(
  * @param[in] limit     Runtime overhead limit, from 1 to 99, as a percentage of
  *                        execution time.  If 0, the value used will default to 
  *                        1 or, if greater than 99, to 99.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -713,12 +749,13 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ EnforcementClauseEnum clauses,
   /* in */ unsigned int          limit,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
   DEBUG_MESSAGE("ContractsEnforcer_setEnforceAdaptiveFit(): begin")
   ContractsEnforcerType* enforcer = 
-    newBaseEnforcer(clauses, statsfile, tracefile);
+    newBaseEnforcer(clauses, terminate, statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.frequency = EnforcementFrequency_ADAPTIVE_FIT;
     if (limit < 1)
@@ -752,6 +789,8 @@ ContractsEnforcer_setEnforceAdaptiveFit(
  * @param[in] limit     Runtime overhead limit, from 1 to 99, as a percentage of
  *                        execution time.  If 0, the value used will default to
  *                        1 or, if greater than 99, to 99.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -761,12 +800,13 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ EnforcementClauseEnum clauses,
   /* in */ unsigned int          limit,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile)
 {
   DEBUG_MESSAGE("ContractsEnforcer_setEnforceAdaptiveTiming(): begin")
   ContractsEnforcerType* enforcer = 
-    newBaseEnforcer(clauses, statsfile, tracefile);
+    newBaseEnforcer(clauses, terminate, statsfile, tracefile);
   if (enforcer) {
     enforcer->policy.frequency = EnforcementFrequency_ADAPTIVE_TIMING;
     if (limit < 1)
@@ -1035,6 +1075,23 @@ ContractsEnforcer_enforceClause(
   DEBUG_MESSAGE("ContractsEnforcer_enforceClause(): end")
   return checkIt;
 } /* ContractsEnforcer_enforceClause */
+
+
+/**
+ * FOR INTERNAL/AUTOMATED-USE ONLY.
+ *
+ * Respond with whether the appolication should terminate on violation.
+ *
+ * @param[in] enforcer  The responsible contracts enforcer.
+ * @return              CONTRACTS_TRUE if a violation should result in
+ *                        termination, CONTRACTS_FALSE otherwise.
+ */
+CONTRACTS_BOOL
+ContractsEnforcer_terminate(
+  /* in */ ContractsEnforcerType* enforcer)
+{
+    return enforcer->terminate;
+}
 
 
 /**

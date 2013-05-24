@@ -4,12 +4,13 @@ else
 DDEBUG=
 endif
 
-ifdef CONFIG
-DCONFIG=-DPCE_CONFIG
-DDEBUG=-DDEBUG=2
-else
-DCONFIG=
-endif
+#Enabling configuration input file though will retain macro defs for a while.
+#ifdef CONFIG
+#DCONFIG=-DPCE_CONFIG
+#DDEBUG=-DDEBUG=2
+#else
+#DCONFIG=
+#endif
 
 CXX=g++
 FLAGS=-g -O3 ${DDEBUG} ${DCONFIG} 

@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 April 23
+ * Last Modified:  2013 May 23
  * \endinternal
  *
  * @file
@@ -50,7 +50,11 @@ extern "C" {
 #define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, LBL, EXPR) { \
   ContractViolationEnum _pce_vio = ContractViolation_NONE; \
   PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (LBL), (EXPR), _pce_vio) \
-  if (_pce_vio != ContractViolation_NONE) { exit(1); } \
+  if ((_pce_vio!=ContractViolation_NONE)&&(ContractsEnforcer_terminate(ENF))) \
+  { \
+    printf("Terminating execution...\n"); \
+    exit(1); \
+  } \
 }
 
 #define PCE_DUMP_STATS(ENF,CMT) ContractsEnforcer_dumpStatistics(ENF, CMT);
@@ -81,6 +85,8 @@ extern "C" {
 typedef struct ContractsEnforcer__struct {
   /** Basic enforcement policy */
   EnforcementPolicyType   policy;
+  /** Terminate on violation */
+  CONTRACTS_BOOL          terminate;
   /** Enforcement state */
   EnforcementStateType    data;
   /** [Optional] Enforcement statistics */
@@ -147,6 +153,8 @@ ContractsEnforcer_finalize(void);
  * @param[in] clauses   Clause(s) to be checked when encountered.
  * @param[in] frequency Frequency of checking encountered clauses.
  * @param[in] value     The policy value option, when appropriate.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -157,6 +165,7 @@ ContractsEnforcer_createEnforcer(
   /* in */ EnforcementClauseEnum    clauses, 
   /* in */ EnforcementFrequencyEnum frequency, 
   /* in */ unsigned int             value,
+  /* in */ CONTRACTS_BOOL           terminate,
   /* in */ const char*              statsfile,
   /* in */ const char*              tracefile);
 
@@ -169,6 +178,8 @@ ContractsEnforcer_createEnforcer(
  * the given files, when provided.
  * 
  * @param[in] clauses   Clause(s) to be checked every time they are encountered.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -177,6 +188,7 @@ ContractsEnforcer_createEnforcer(
 ContractsEnforcerType*
 ContractsEnforcer_setEnforceAll(
   /* in */ EnforcementClauseEnum clauses,
+  /* in */ CONTRACTS_BOOL        terminate,
   /* in */ const char*           statsfile,
   /* in */ const char*           tracefile);
 
@@ -202,6 +214,8 @@ ContractsEnforcer_setEnforceNone(void);
  * @param[in] clauses   Clause(s) to be checked at the specified interval.
  * @param[in] interval  The desired check frequency (i.e., for each interval
  *                        clause encountered).
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -211,6 +225,7 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforcePeriodic(
   /* in */ EnforcementClauseEnum  clauses,
   /* in */ unsigned int           interval,
+  /* in */ CONTRACTS_BOOL         terminate,
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile);
 
@@ -224,6 +239,8 @@ ContractsEnforcer_setEnforcePeriodic(
  * 
  * @param[in] clauses   Clause(s) to be checked at the specified interval.
  * @param[in] window    The maximum size of the runtime check window.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -233,6 +250,7 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforceRandom(
   /* in */ EnforcementClauseEnum  clauses,
   /* in */ unsigned int           window,
+  /* in */ CONTRACTS_BOOL         terminate,
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile);
 
@@ -249,6 +267,8 @@ ContractsEnforcer_setEnforceRandom(
  * @param[in] limit     Runtime overhead limit, from 1 to 99, as a percentage of
  *                        execution time.  If 0, the value used will default to
  *                        1 or, if greater than 99, to 99.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -258,6 +278,7 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveFit(
   /* in */ EnforcementClauseEnum  clauses,
   /* in */ unsigned int           limit,
+  /* in */ CONTRACTS_BOOL         terminate,
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile);
 
@@ -275,6 +296,8 @@ ContractsEnforcer_setEnforceAdaptiveFit(
  * @param[in] limit     Runtime overhead limit, from 1 to 99, as a percentage of
  *                        execution time.  If 0, the value used will default to
  *                        1 or, if greater than 99, to 99.
+ * @param[in] terminate CONTRACTS_TRUE will terminate execution on violation,
+ *                      while CONTRACTS_FALSE will allow execution to proceed.
  * @param[in] statsfile [Optional] Name of the file to output enforcement data.
  * @param[in] tracefile [Optional] Name of the file to output enforcement 
  *                        traces.
@@ -284,6 +307,7 @@ ContractsEnforcerType*
 ContractsEnforcer_setEnforceAdaptiveTiming(
   /* in */ EnforcementClauseEnum  clauses,
   /* in */ unsigned int           limit,
+  /* in */ CONTRACTS_BOOL         terminate,
   /* in */ const char*            statsfile,
   /* in */ const char*            tracefile);
 
@@ -317,7 +341,7 @@ ContractsEnforcer_free(
 
 
 /**
- * /privatesectoin
+ * /privatesection
  *
  * FOR INTERNAL/AUTOMATED-USE ONLY.
  *
@@ -360,6 +384,20 @@ ContractsEnforcer_enforceClause(
   /* in */    ContractClauseEnum     clause,
   /* in */    uint64_t               clauseTime,
   /* in */    uint64_t               routineTime);
+
+
+/**
+ * FOR INTERNAL/AUTOMATED-USE ONLY.
+ *
+ * Respond with whether the appolication should terminate on violation.
+ *
+ * @param[in] enforcer  The responsible contracts enforcer.
+ * @return              CONTRACTS_TRUE if a violation should result in
+ *                        termination, CONTRACTS_FALSE otherwise.
+ */
+CONTRACTS_BOOL
+ContractsEnforcer_terminate(
+  /* in */ ContractsEnforcerType* enforcer);
 
 
 /**
