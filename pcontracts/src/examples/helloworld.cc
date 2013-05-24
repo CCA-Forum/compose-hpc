@@ -10,6 +10,7 @@ using namespace std;
 const string gesture = "Hello";
 
 /* %CONTRACT REQUIRE have_gesture: !gesture.empty(); have_name: !nm.empty(); */
+/* %CONTRACT STATS in printGreeting; */
 void
 printGreeting(string nm)
 {

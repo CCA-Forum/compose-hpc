@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 May 16
+ * Last Modified:  2013 May 23
  * \endinternal
  *
  * @file
@@ -41,10 +41,12 @@ typedef enum ContractComment__enum {
   ContractComment_POSTCONDITION,
   /** ASSERT:  An assertion clause comment. */
   ContractComment_ASSERT,
-  /** INIT:  An initialization clause comment. */
+  /** INIT:  An initialization comment. */
   ContractComment_INIT,
-  /** FINAL:  A finalization clause comment. */
-  ContractComment_FINAL
+  /** FINAL:  A finalization comment. */
+  ContractComment_FINAL,
+  /** STATS:  A 'dump enforcement statistics' comment. */
+  ContractComment_STATS
 } ContractCommentEnum;
 
 
@@ -67,6 +69,8 @@ static const ContractClauseEnum ContractCommentClause[] = {
   /** INIT:  No corresponding contract clause. */
   ContractClause_NONE,
   /** FINAL:  No corresponding contract clause. */
+  ContractClause_NONE,
+  /** STATS:  No corresponding contract clause. */
   ContractClause_NONE
 };
 
@@ -125,10 +129,10 @@ class ContractComment
     /** Return whether an assert clause. */
     bool isAssert() { return d_type == ContractComment_ASSERT; }
 
-    /** Return whether an final clause. */
+    /** Return whether a final comment. */
     bool isFinal() { return d_type == ContractComment_FINAL; }
 
-    /** Return whether an init (or initialization) clause. */
+    /** Return whether an init (or initialization) comment. */
     bool isInit() { return d_type == ContractComment_INIT; }
 
     /** Return whether an invariant clause. */
@@ -139,6 +143,9 @@ class ContractComment
 
     /** Return whether a postcondition clause. */
     bool isPostconditions() { return d_type == ContractComment_POSTCONDITION; }
+
+    /** Return whether a dump statistics comment. */
+    bool isStats() { return d_type == ContractComment_STATS; }
 
     /** 
      * Set return result assertion cache. 
@@ -152,16 +159,31 @@ class ContractComment
     /** Return whether a result variable needs to be generated. */
     bool needsResult() { return d_needsResult; }
 
+    /** 
+     * Return the comment for STATS; otherwise, return empty string. 
+     * \warning {
+     *  It is assumed the (first) expression corresponds to a comment.
+     * }
+     */
+    string getComment() 
+    {
+      return (d_type == ContractComment_STATS) && (d_aeList.size() == 1) ? 
+               d_aeList.front().expr() : "";
+    }
+
     /** Return the list of assertion expressions. */
     list<AssertionExpression> getList() { return d_aeList; }
 
     /** 
      * Return the filename for INIT; otherwise, return empty string. 
-     * @warning It is assumed the (first) expression corresponds to a filename.
+     * \warning {
+     * It is assumed the (first) expression corresponds to a filename.
+     * }
      */
     string getFilename() 
     {
-      return d_aeList.size() == 1 ? d_aeList.front().expr() : "";
+      return (d_type == ContractComment_INIT) && (d_aeList.size() == 1) ? 
+               d_aeList.front().expr() : "";
     }
 
     /** Clear the list of assertion expressions. */
@@ -207,6 +229,9 @@ class ContractComment
         break;
       case ContractComment_FINAL:
         rep << "Final";
+        break;
+      case ContractComment_STATS:
+        rep << "Stats";
         break;
       default:
         rep << "UNKNOWN";

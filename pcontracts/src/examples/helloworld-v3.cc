@@ -31,11 +31,15 @@ main(int argc, char*argv[]) {
     printGesture(gestureStart, names[i]);
   }
 
+  /* %CONTRACT STATS post-printGesture Start; */
+
   cout << "Sure is a beautiful day!\n";
   
   for (int i=0; i<4; i++) {
     printGesture(gestureEnd, names[i]);
   }
+
+  /* %CONTRACT STATS post-printGesture End; */
 
   /* %CONTRACT FINAL */
 

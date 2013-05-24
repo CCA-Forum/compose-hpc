@@ -2,13 +2,12 @@ PROTOTYPE
 
 
 - Complete support for partial enforcement strategies.
-  -- Add configuration option (line 1) and support in the enforcer for
-     making termination on exception optional.
+  -- Complete testing and debugging of STATS.
+
   -- Add tests (testContractsEnforcer) for the initialization routine.
   -- Add support for an in-lined TRACE comment to output enforcement trace
      information (provided a trace file was specified in the configuration).
-  -- Add support for an in-lined STATS comment to output enforcement statistics
-     information (IF a statistics file was provided in the configuration).
+     (This will require restoration of timing instrumentation.)
 
 
 Refinements:

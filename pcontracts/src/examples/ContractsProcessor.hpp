@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 April 9
+ * Last Modified:  2013 May 23
  * \endinternal
  *
  * @file
@@ -96,9 +96,11 @@ class ContractsProcessor
 
     int processAssert(SgLocatedNode* lNode, ContractComment* cc);
 
+    int processFinal(SgLocatedNode* lNode, ContractComment* cc);
+
     int processInit(SgLocatedNode* lNode, ContractComment* cc);
 
-    int processFinal(SgLocatedNode* lNode, ContractComment* cc);
+    int processStats(SgLocatedNode* lNode, ContractComment* cc);
 
 };  /* class ContractsProcessor */
 

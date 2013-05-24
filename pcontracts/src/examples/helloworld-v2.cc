@@ -12,6 +12,7 @@ const string gesture = "Hello";
 void
 printGreeting(string nm)
 {
+  /* %CONTRACT STATS in printGreeting; */
   cout << gesture << " " << nm << "!\n";
 }
 

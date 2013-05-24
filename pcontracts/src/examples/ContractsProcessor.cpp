@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 May 16
+ * Last Modified:  2013 May 23
  * \endinternal
  *
  * @file
@@ -65,6 +65,8 @@ const string S_ERROR_POSTCONDITIONS =
   "ERROR: Postconditions MUST be associated with function definitions.";
 const string S_ERROR_PRECONDITIONS = 
   "ERROR: Preconditions MUST be associated with function definitions.";
+const string S_ERROR_STATS = 
+  "ERROR: STATS statement CANNOT have more than one comment 'expression'.";
 
 /*
  * Would prefer to use the following to add a comment or at least a C-style
@@ -95,12 +97,14 @@ const string S_SEP = ";";
  *
  * @param[in] currSttmt  The current AST statement node.
  * @param[in] dt         The pre-processing directive type.
+ * @param[in] desc       A _brief_ description of the purpose of the dump.
  * @return               The function call statement or NULL.
  */
 SgExprStatement*
 buildDump(
   /* in */ SgStatement*      currSttmt,
-  /* in */ PPIDirectiveType  dt)
+  /* in */ PPIDirectiveType  dt,
+  /* in */ string            desc)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -108,7 +112,11 @@ buildDump(
   if ( (currSttmt != NULL) && (parms != NULL) )
   {
     parms->append_expression(SageBuilder::buildVarRefExp("pce_enforcer"));
-    parms->append_expression(new SgStringVal(FILE_INFO, "End processing"));
+    if (desc.empty()) {
+      parms->append_expression(SageBuilder::buildVarRefExp("NULL"));
+    } else {
+      parms->append_expression(SageBuilder::buildStringVal(desc));
+    }
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_DUMP_STATS", 
       SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
     if (sttmt != NULL)
@@ -324,6 +332,21 @@ ContractsProcessor::addExpressions(
             cerr << S_ERROR_INIT << " Ignoring any additional entries.\n";
           } 
         } 
+        else if (cc->isStats()) // Assuming the expression is a brief comment
+        {
+          if (cc->size() <= 0)
+          {
+            AssertionExpression ae (label, expr, AssertionSupport_COMMENT);
+            cc->add(ae);
+//#ifdef DEBUG
+            cout << "DEBUG: ..(assuming) is an STATS comment/desc.\n";
+//#endif /* DEBUG */
+          } 
+          else 
+          {
+            cerr << S_ERROR_STATS << " Ignoring any additional entries.\n";
+          } 
+        } 
         else
         {
           AssertionExpression ae (label, expr, AssertionSupport_UNSUPPORTED);
@@ -363,17 +386,14 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
 
     PPIDirectiveType dt = cc->directive();
 
-#ifdef PCE_ADD_STATS_DUMP
-    /*
-     * @todo TBD/FIX: Add statistics dump?
-     */
-    sttmt = buildFinal(body, dt);
+//#ifdef PCE_ADD_STATS_DUMP
+    sttmt = buildDump(body, dt, "End processing");
     if (sttmt != NULL)
     {
       num += SageInterface::instrumentEndOfFunction(def->get_declaration(), 
                                                     sttmt);
     }
-#endif /* PCE_ADD_STATS_DUMP */
+//#endif /* PCE_ADD_STATS_DUMP */
 
     sttmt = buildFinal(body, dt);
     if (sttmt != NULL)
@@ -1119,6 +1139,14 @@ ContractsProcessor::processCommentEntry(
         cout<<"DEBUG: Created FINAL ContractComment: "<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
+      else if ((pos=cmt.find("STATS"))!=string::npos)
+      {
+        cc = new ContractComment(ContractComment_STATS, dirType);
+        addExpressions(cmt.substr(pos+6), cc);
+#ifdef DEBUG
+        cout<<"DEBUG: Created STATS ContractComment: "<<cc->str(S_SEP)<<endl;
+#endif /* DEBUG */
+      }
       else
       {
         string msg = "WARNING: Unidentified contract annotation: ";
@@ -1179,6 +1207,7 @@ ContractsProcessor::processFunctionComments(
         ContractComment* init = NULL;
         ContractComment* pre = NULL;
         ContractComment* post = NULL;
+        ContractComment* stats = NULL;
         int numChecks[] = { 0, 0, 0 };
         int numPrep[] = { 0, 0 };
         int numExec = 0;
@@ -1263,6 +1292,11 @@ ContractsProcessor::processFunctionComments(
                 final = cc;
               }
               break;
+            case ContractComment_STATS:
+              {
+                stats = cc;
+              }
+              break;
             case ContractComment_ASSERT:
               {
 #ifdef DEBUG
@@ -1283,7 +1317,7 @@ ContractsProcessor::processFunctionComments(
         } /* end for each comment */
 
         if (  (init != NULL) || (final != NULL) || (pre != NULL) 
-           || (post != NULL) || (d_invariants != NULL) )
+           || (post != NULL) || (stats != NULL) || (d_invariants != NULL) )
         {
           SgBasicBlock* body = def->get_body();
   
@@ -1661,7 +1695,7 @@ ContractsProcessor::processAssert(SgLocatedNode* lNode, ContractComment* cc)
 
 
 /**
- * Process a FINAL clause associated with the specified node.
+ * Process a FINAL associated with the specified node.
  *
  * @param     lNode  [inout] Current AST (located) node.
  * @param[in] cc     Final contract comment.
@@ -1674,7 +1708,7 @@ ContractsProcessor::processFinal(SgLocatedNode* lNode, ContractComment* cc)
   int num = 0;
 
 #ifdef DEBUG
-  cout<<"DEBUG: ....processing FINAL clause\n";
+  cout<<"DEBUG: ....processing FINAL\n";
 #endif /* DEBUG */
 
   if ( (lNode != NULL) && (cc != NULL) && cc->isFinal() ) 
@@ -1696,7 +1730,7 @@ ContractsProcessor::processFinal(SgLocatedNode* lNode, ContractComment* cc)
 
 
 /**
- * Process an INIT clause associated with the specified node.
+ * Process an INIT associated with the specified node.
  *
  * @param     lNode  [inout] Current AST (located) node.
  * @param[in] cc     INIT contract comment.
@@ -1709,7 +1743,7 @@ ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
   int num = 0;
 
 #ifdef DEBUG
-  cout<<"DEBUG: ....processing INIT clause\n";
+  cout<<"DEBUG: ....processing INIT\n";
 #endif /* DEBUG */
 
   if ( (lNode != NULL) && (cc != NULL) && cc->isInit() ) 
@@ -1732,3 +1766,39 @@ ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
 
   return num;
 } /* processInit */
+
+
+/**
+ * Process a STATS associated with the specified node.
+ *
+ * @param     lNode  [inout] Current AST (located) node.
+ * @param[in] cc     Stats contract comment.
+ * @return           Returns a count of the number of instrumentations made 
+ *                     (i.e., 1 if added, 0 otherwise).
+ */
+int
+ContractsProcessor::processStats(SgLocatedNode* lNode, ContractComment* cc)
+{
+  int num = 0;
+
+#ifdef DEBUG
+  cout<<"DEBUG: ....processing STATS\n";
+#endif /* DEBUG */
+
+  if ( (lNode != NULL) && (cc != NULL) && cc->isFinal() ) 
+  {
+    SgStatement* currSttmt = isSgStatement(lNode);
+    if (currSttmt != NULL)
+    {
+      SgExprStatement* sttmt = buildDump(currSttmt, cc->directive(),
+                                         cc->getComment());
+      if (sttmt != NULL)
+      {
+        SageInterface::insertStatementBefore(currSttmt, sttmt, true);
+        num += 1;
+      }
+    }
+  }
+
+  return num;
+} /* processStats */

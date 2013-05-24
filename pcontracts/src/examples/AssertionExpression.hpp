@@ -27,6 +27,8 @@ using namespace std;
 typedef enum AssertionSupport__enum {
   /** ADVISORY:  Advisory only. */
   AssertionSupport_ADVISORY,
+  /** COMMENT:  A _brief_ comment=>Hack to re-use infrastructure for STATS. */
+  AssertionSupport_COMMENT,
   /** EXECUTABLE:  Executable in C (currently as-is). */
   AssertionSupport_EXECUTABLE,
   /** FILENAME:  A filename =>Hack to re-use infrastructure for INIT filename.*/
@@ -77,6 +79,9 @@ class AssertionExpression
       {
       case AssertionSupport_ADVISORY:
         rep << "Advisory";
+        break;
+      case AssertionSupport_COMMENT:
+        rep << "Comment";
         break;
       case AssertionSupport_EXECUTABLE:
         rep << "Executable";
