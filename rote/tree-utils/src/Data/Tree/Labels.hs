@@ -1,4 +1,4 @@
-module RuleGen.Data.Labels (
+module Data.Tree.Labels (
     Label(..),
     LabelSet,
     toLabelSet,

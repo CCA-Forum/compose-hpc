@@ -17,9 +17,9 @@ module RuleGen.Util.Graphviz (
 ) where
 
 import System.IO
-import RuleGen.Data.Trees
 import Data.Tree
-import RuleGen.Yang
+import Data.Tree.Types
+import Data.Tree.Yang
 import RuleGen.Weaver
 import RuleGen.Util.IDGen
 import Data.List

@@ -2,14 +2,14 @@ module RuleGen.Generalize (
     generalizeWeave
 ) where
 
-import RuleGen.Weaver
-import RuleGen.Util.Configuration
-import RuleGen.Pruner
-import RuleGen.Data.Labels
 import Data.List (foldl')
-import RuleGen.Data.Trees
-import qualified Data.Set as S
 import Data.Tree
+import Data.Tree.Labels
+import Data.Tree.Types
+import RuleGen.Pruner
+import RuleGen.Util.Configuration
+import RuleGen.Weaver
+import qualified Data.Set as S
 
 generalizeWeave :: [GeneralizeFilterRule] -> WeavePoint a -> WeavePoint a
 generalizeWeave gens (Mismatch (WLeaf a) (WLeaf b)) = (Mismatch (WLeaf a') (WLeaf b'))

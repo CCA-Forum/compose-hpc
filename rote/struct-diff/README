@@ -8,6 +8,10 @@ a network connection).
 
 % cabal install aterm
 
+Then, install the dependencies from this repository:
+
+% cabal install ../tree-utils
+
 Then, configure the rule generator:
 
 % cabal configure

@@ -53,7 +53,7 @@ module RuleGen.Util.Configuration (
 ) where
 
 import Data.ConfigFile
-import RuleGen.Data.Labels
+import Data.Tree.Labels
 import RuleGen.Util.Misc
 
 {-|

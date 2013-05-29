@@ -10,13 +10,13 @@ module RuleGen.Contextualizer (
   contextualize
 ) where
 
-import RuleGen.Util.Configuration
-import qualified Data.Set as S
-import RuleGen.Data.Trees
-import Data.Tree
 import Data.Maybe (mapMaybe)
-import RuleGen.Weaver
+import Data.Tree
+import Data.Tree.Types
+import RuleGen.Util.Configuration
 import RuleGen.Util.IDGen
+import RuleGen.Weaver
+import qualified Data.Set as S
 
 --
 -- generate unique labeled tree elements.  each element represents

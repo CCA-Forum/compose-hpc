@@ -19,9 +19,9 @@ module RuleGen.Weaver (
 ) where
 
 import Data.List (intercalate)
-import RuleGen.Yang
+import Data.Tree.Yang
 -- import Debug.Trace
-import RuleGen.Data.Trees
+import Data.Tree.Types
 
 -- pass-through to turn off tracing
 trace :: String -> a -> a

@@ -8,10 +8,10 @@ module RuleGen.Filter (
     postFilters
 ) where
 
-import RuleGen.Data.Trees
-import RuleGen.Util.Configuration
-import Data.Tree
 import Data.List (foldl')
+import Data.Tree
+import Data.Tree.Types
+import RuleGen.Util.Configuration
 import qualified Data.Set as S
 
 preFilters :: [PreFilterRule] -> LabeledTree -> LabeledTree

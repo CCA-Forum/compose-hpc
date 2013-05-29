@@ -3,7 +3,7 @@
 --
 -- matt@galois.com
 --
-module RuleGen.Yang (
+module Data.Tree.Yang (
   treediff,
   treedist,
   EditTree(..),
@@ -16,8 +16,8 @@ module RuleGen.Yang (
 import Data.Array
 import Data.Maybe
 import Data.List
-import RuleGen.Data.Trees
 import Data.Tree
+import Data.Tree.Types
 import Prelude hiding (Left)
 
 -- edit node is used to represent the original tree node with its  

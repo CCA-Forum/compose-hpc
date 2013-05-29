@@ -9,7 +9,7 @@
 --
 -- matt@galois.com // July 2012
 --
-module RuleGen.Data.Trees (
+module Data.Tree.Types (
   Label(..),
   LabeledTree,
   SizedTree,
@@ -26,9 +26,9 @@ module RuleGen.Data.Trees (
 ) where
 
 import Data.Tree
+import Data.Tree.Labels
 import Data.Maybe
 import Data.List
-import RuleGen.Data.Labels
 
 dumpTree :: Show a => Tree a -> String
 dumpTree t = drawTree $ convert t

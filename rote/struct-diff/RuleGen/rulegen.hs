@@ -22,23 +22,23 @@ Contact : matt sottile (matt@galois.com)
           
 -}
 
-import RuleGen.Generalize
-import RuleGen.Data.Aterm
-import RuleGen.Data.Trees
-import RuleGen.Weaver
-import RuleGen.Stratego
-import RuleGen.Util.IDGen
-import RuleGen.Yang
 --import RuleGen.Pruner
-import RuleGen.Filter
-import RuleGen.Contextualizer
-import RuleGen.Util.CmdlineArgs
-import RuleGen.Util.Graphviz
-import RuleGen.Util.Configuration
-import System.Exit 
-import Data.Tree
 import Control.Monad (when)
 import Data.Maybe (mapMaybe)
+import Data.Tree
+import Data.Tree.Types
+import Data.Tree.Yang
+import RuleGen.Contextualizer
+import RuleGen.Data.Aterm
+import RuleGen.Filter
+import RuleGen.Generalize
+import RuleGen.Stratego
+import RuleGen.Util.CmdlineArgs
+import RuleGen.Util.Configuration
+import RuleGen.Util.Graphviz
+import RuleGen.Util.IDGen
+import RuleGen.Weaver
+import System.Exit 
 
 
 -- ==============================================

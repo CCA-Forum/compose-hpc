@@ -11,9 +11,9 @@ module RuleGen.Pruner (
   variableReplacer
 ) where
 
-import RuleGen.Yang
-import RuleGen.Data.Trees
 import Data.Tree
+import Data.Tree.Types
+import Data.Tree.Yang
 
 -- given a subtree rooted at a var_ref_exp, get the name
 -- of the variable being referenced.  the danger referred

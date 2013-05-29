@@ -14,12 +14,11 @@ Executable rulegen
   GHC-Prof-Options: -Wall -auto-all -caf-all
 
   Build-Depends: base >=4&&<5, mtl, containers, array, aterm <= 0.1.0.1, ConfigFile <= 1.1.1
+               , tree-utils
   Main-Is: RuleGen/rulegen.hs
   Other-Modules: RuleGen.Data.Aterm,
                  RuleGen.Util.Graphviz,
-                 RuleGen.Data.Trees,
                  RuleGen.Stratego,
                  RuleGen.Weaver,
                  RuleGen.Contextualizer,
-                 RuleGen.Pruner,
-                 RuleGen.Yang
+                 RuleGen.Pruner

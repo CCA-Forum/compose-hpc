@@ -14,10 +14,10 @@ module RuleGen.Data.Aterm (
 	readToTree
 ) where
 
+import ATerm.AbstractSyntax
 import ATerm.ReadWrite
 import Data.Tree
-import ATerm.AbstractSyntax
-import RuleGen.Data.Trees
+import Data.Tree.Types
 
 {-|
   Read an aterm from the given filename and return a LabeledTree.
