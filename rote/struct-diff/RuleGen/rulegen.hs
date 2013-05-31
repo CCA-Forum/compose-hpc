@@ -26,10 +26,10 @@ Contact : matt sottile (matt@galois.com)
 import Control.Monad (when)
 import Data.Maybe (mapMaybe)
 import Data.Tree
+import Data.Tree.ATerm
 import Data.Tree.Types
 import Data.Tree.Yang
 import RuleGen.Contextualizer
-import RuleGen.Data.Aterm
 import RuleGen.Filter
 import RuleGen.Generalize
 import RuleGen.Stratego

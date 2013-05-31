@@ -10,7 +10,7 @@
   purposes of this prototype tool.
 -}
 
-module RuleGen.Data.Aterm (
+module Data.Tree.ATerm (
 	readToTree
 ) where
 
