@@ -13,6 +13,7 @@ module Data.Tree.AntiUnification (
 
 import Data.List
 import Data.Tree
+import Data.Tree.Types
 import Control.Monad.State
 import qualified Data.Map as Map
 
@@ -32,7 +33,7 @@ genName :: String -> IDGen String
 genName n = do i <- genID
                return $ n ++ (show i)
 
-type Term = Tree String
+type Term = LabeledTree
 deriving instance Ord a => Ord (Tree a)
 
 data Subs = Subs (Map.Map Term Term)
@@ -40,7 +41,7 @@ data Subs = Subs (Map.Map Term Term)
 
 newFreeVar :: IDGen Term
 newFreeVar = do n <- genName "VAR"
-                return (Node n [])
+                return (Node (LBLString n) [])
 
 combineSubs :: (Subs,Subs) -> (Subs,Subs) -> (Subs,Subs)
 combineSubs (Subs s0, Subs s1) (Subs t0, Subs t1) =
