@@ -12,6 +12,7 @@
 
 module Data.Tree.ATerm (
 	readToTree
+, atermToTree
 ) where
 
 import ATerm.AbstractSyntax
