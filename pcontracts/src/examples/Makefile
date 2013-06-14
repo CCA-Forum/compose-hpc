@@ -4,8 +4,12 @@ BASE_RES_DIR=$(RES_DIR)/base
 BASE_ORACLE_DIR=../data
 
 CHECK_STATUS=../../.checkStatus
+#CHECK_STATUS_ALL=../../.checkStatus*
+RI_DIR=RoutineInstrumenter
+VI_DIR=VisitInstrumenter
+INSTR_DIRS=$(RI_DIR) $(VI_DIR)
 
-MAKE = make --no-print-directory
+MAKE=make --no-print-directory
 CXX=g++
 #FLAGS=-g -O3 -DDEBUG
 FLAGS=-g -O3
@@ -61,15 +65,15 @@ BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 
 all: $(BINARIES)
 
-check: checkSetup checkKnapsackTests checkRose
+check: checkClean all checkSetup checkKnapsackTests checkRose
 	@echo; \
 	if [ -f $(CHECK_STATUS) ]; then \
 	  res=`cat $(CHECK_STATUS)`; \
 	  if [ "$$res" -eq "0" ]; then \
-	    echo "Complete Test Suite:  FAILED";\
+	    echo; echo "Complete Test Suite:  FAILED";\
 	    echo; echo "Review output to identify failure(s)"; \
 	  else \
-	    echo "Complete Test Suite:  PASSED";\
+	    echo; echo "Complete Test Suite:  PASSED";\
 	  fi; \
 	else \
 	  echo; echo "*******"; \
@@ -77,7 +81,49 @@ check: checkSetup checkKnapsackTests checkRose
 	  echo "*******"; \
 	fi; \
 	rm -f $(CHECK_STATUS); \
-	echo "DONE"
+	echo "DONE"; echo
+
+checkAll: checkClean all checkSetup checkKnapsackTests checkRose checkContracts
+	@echo; \
+	if [ -f $(CHECK_STATUS) ]; then \
+	  res=`cat $(CHECK_STATUS)`; \
+	  if [ "$$res" -eq "0" ]; then \
+	    echo; echo "Complete Test Suite:  FAILED"; \
+	    echo; echo "Review output to identify failure(s)"; \
+	  else \
+	    echo; echo "Complete Test Suite:  PASSED";\
+	  fi; \
+	else \
+	  echo; echo "*******"; \
+	  echo "WARNING:  $(CHECK_STATUS) is missing.  Cannot assess suite."; \
+	  echo "*******"; \
+	fi; \
+	rm -f $(CHECK_STATUS)*; \
+	echo; echo "DONE"; echo
+
+checkClean:
+	rm -f $(CHECK_STATUS) *.o *.out $(BINARIES)
+
+checkContracts:
+	@echo; \
+	for dir in $(INSTR_DIRS); do \
+	  echo; echo "Checking instrumented $$dir sources..."; \
+	  ((cd $(RES_DIR)/$$dir &&  $(MAKE) check) || \
+	     (echo 0 > $(CHECK_STATUS))); \
+	  CSFN=$(CHECK_STATUS)-$$dir; \
+	  if [ -f "$$CSFN" ]; then \
+	    res=`cat $$CSFN`; \
+	    if [ "$$res" -eq "0" ]; then \
+	      echo "$$dir test suite failed..."; \
+	      echo 0 > $(CHECK_STATUS); \
+	    else \
+	      echo "$$dir test suite passed..."; \
+	    fi; \
+	  else \
+	    echo "ERROR: Unable to detect $$CSFN"; \
+	    echo 0 > $(CHECK_STATUS); \
+	  fi; \
+	done
 
 checkSetup: 
 	@echo 1 > $(CHECK_STATUS)
@@ -172,11 +218,12 @@ checkKnapsacks: $(KS_BINARIES)
 	  PRE="U2L-CPP" COMP="Unlabeled -> Labeled"
 
 checkKnapsackTests:
-	@$(MAKE) checkKnapsacks KT=-1; \
+	@echo; \
+	$(MAKE) checkKnapsacks KT=-1; \
 	$(MAKE) checkKnapsacks KT=0; \
 	$(MAKE) checkKnapsacks KT=10; \
 	$(MAKE) checkKnapsacks KT=; \
-	echo "\nDONE"
+	echo; echo "DONE"; echo
 
 checkRose: checkRosePrinters checkRoseTranslators
 
@@ -193,7 +240,7 @@ checkRosePrinter: $(EXE)
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config | grep -v checks | grep -v diffs`; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
@@ -209,24 +256,25 @@ checkRosePrinter: $(EXE)
 	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
 	done; \
-	echo "\n...Successfully processed $$ok of $$n files.\nDONE"
+	echo; \
+	echo "...Successfully processed $$ok of $$n files."; echo "DONE";echo
 
 checkRoseTranslators: checkRCI checkVCI
 
 #checkRoseTranslators: checkRCI 
 
 checkRCI: $(RCI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(RCI_EXE) SDIR="RoutineInstrumenter"
+	@$(MAKE) checkRoseTrans EXE=$(RCI_EXE) SDIR="$(RI_DIR)"
 
 checkVCI: $(VCI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(VCI_EXE) SDIR="VisitInstrumenter"
+	@$(MAKE) checkRoseTrans EXE=$(VCI_EXE) SDIR="$(VI_DIR)"
 
 checkRoseTrans: $(EXE)
 	@echo; echo "Running $(EXE)..."; \
 	OUTDIR=$(RES_DIR)/$$SDIR; \
 	mkdir -p $$OUTDIR; \
 	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config`; \
+	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config | grep -v checks | grep -v diffs`; \
 	ok=0; \
 	for file in $$FILES; do \
 	  n=`expr $$n + 1`; \
@@ -236,9 +284,9 @@ checkRoseTrans: $(EXE)
 	  OFN=rose_$$BASE.$$EXT; \
 	  ERRFN=$$OUTDIR/$$BASE.err; \
 	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
-	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$BASE.res; \
+	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$BASE.checks; \
 	  if [ -f $$OFN ]; then \
-	    ERFN=$$BASE.res; \
+	    ERFN=$$BASE.checks; \
 	    grep PCE_CHECK $$OFN | grep ASSERT | wc -l > $$ERFN; \
 	    grep PCE_CHECK $$OFN | grep INVARIANT | wc -l >> $$ERFN; \
 	    grep PCE_CHECK $$OFN | grep POSTCONDITION | wc -l >> $$ERFN;\
@@ -269,10 +317,10 @@ checkRoseTrans: $(EXE)
 	  fi; \
 	  echo; \
 	done; \
-	echo "\n...Successfully processed $$ok of $$n files.\n"; \
+	echo; echo "...Successfully processed $$ok of $$n files."; echo; \
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
-	  cp -f Makefile.trans $$OUTDIR/Makefile; \
+	  cat Makefile.trans | sed 's/FIXME/${SDIR}/g' > $$OUTDIR/Makefile; \
 	  echo "Copying configuration file(s) to $$OUTDIR"; \
 	  cp -f *.config $$OUTDIR; \
 	  echo "Copying header files to $$OUTDIR"; \
@@ -282,11 +330,16 @@ checkRoseTrans: $(EXE)
 	  echo "ERROR: Must resolve issues before able to build translations.";\
 	  echo 0 > $(CHECK_STATUS); \
         fi; \
-	echo "DONE"
+	echo "DONE"; echo
 
 
 clean:
-	@rm -f *.o *.out *.diffs *.ti rose_* *.res
+	@rm -f *.o *.out *.diffs *.ti rose_* *.res *.checks
 
-clean-all: clean
-	@rm -rf $(BINARIES) *.dot *.pdf $(RES_DIR)/*
+clean-all: cleanAll
+
+cleanAll: clean
+	@rm -f $(BINARIES) *.dot *.pdf; \
+	if [ "$(RES_DIR)" != "" ]; then \
+	  rm -rf $(RES_DIR)/*; \
+	fi

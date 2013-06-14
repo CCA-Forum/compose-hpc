@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 May 23
+ * Last Modified:  2013 June 14
  * \endinternal
  *
  * @file
@@ -247,9 +247,9 @@ buildTimeUpdate(
 /**
  * Extract and add assertion expressions to the contract clause.
  *
- * @param[in] clause          The contract clause text extracted from the 
- *                              structured comment.
- * @param     cc              [inout] The resulting contract clause/comment.
+ * @param[in]      clause  The contract clause text extracted from the 
+ *                           structured comment.
+ * @param[in,out]  cc      The resulting contract clause/comment.
  */
 void
 ContractsProcessor::addExpressions(
@@ -323,9 +323,9 @@ ContractsProcessor::addExpressions(
           {
             AssertionExpression ae (label, expr, AssertionSupport_FILENAME);
             cc->add(ae);
-//#ifdef DEBUG
+#ifdef DEBUG
             cout << "DEBUG: ..(assuming) is an INIT filename.\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
           } 
           else 
           {
@@ -369,10 +369,10 @@ ContractsProcessor::addExpressions(
 /**
  * Build and add contract enforcement finalization call.
  *
- * @param def  Function definition.
- * @param body Function body.
- * @param cc   (FINAL) Contract comment.
- * @return     Returns number of finalization calls added.    
+ * @param[in]     def   Function definition.
+ * @param[in,out] body  Function body.
+ * @param[in]     cc    (FINAL) Contract comment.
+ * @return              Returns number of finalization calls added.    
  */
 int
 ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, 
@@ -410,9 +410,10 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
 /**
  * Add requisite include file(s).
  *
- * @param globalScope  The Sage project representing the initial AST of the
- *                       file(s).
- * @return             The processing status: 0 for success, non-0 for failure.
+ * @param[in,out]  globalScope  The Sage project representing the initial AST 
+ *                                of the file(s).
+ * @return                      The processing status: 0 for success, non-0 
+ *                                for failure.
  */
 int
 ContractsProcessor::addIncludes(
@@ -456,15 +457,17 @@ ContractsProcessor::addIncludes(
 /**
  * Add requisite include file(s).
  *
- * @param project         The Sage project representing the initial AST of the
- *                          file(s).
- * @param skipTransforms  True if the transformations are to be skipped;
- *                          otherwise, false.
- * @return                The processing status: 0 for success, non-0 for 
- *                          failure.
+ * @param[in,out]  project         The Sage project representing the initial 
+ *                                   AST of the file(s).
+ * @param[in]      skipTransforms  True if the transformations are to be 
+ *                                   skipped; otherwise, false.
+ * @return                         The processing status: 0 for success, non-0 
+ *                                   for failure.
  */
 int
-ContractsProcessor::addIncludes(SgProject* project, bool skipTransforms)
+ContractsProcessor::addIncludes(
+  /* inout */ SgProject* project, 
+  /* in */    bool       skipTransforms)
 {
   int status = 0;
 
@@ -505,20 +508,22 @@ ContractsProcessor::addIncludes(SgProject* project, bool skipTransforms)
 /**
  * Build and add the contract enforcement initialization call.
  *
- * @param body   Pointer to the function body.
- * @param cc     (INIT) Contract comment.
- * @return       Number of initialization calls added.
+ * @param[in,out]  body  Pointer to the function body.
+ * @param[in]      cc    (INIT) Contract comment.
+ * @return               Number of initialization calls added.
  */
 int
-ContractsProcessor::addInitialize(SgBasicBlock* body, ContractComment* cc)
+ContractsProcessor::addInitialize(
+  /* inout */ SgBasicBlock*    body, 
+  /* in */    ContractComment* cc)
 {
   int num = 0;
 
   if ( (body != NULL) && (cc != NULL) )
   {
-//#ifdef DEBUG
+#ifdef DEBUG
       cout<<"DEBUG: ....INIT filename =\""<<cc->getFilename()<<"\"\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
     SgExprStatement* sttmt = buildInit(body, cc->directive(), 
                                        cc->getFilename());
     if (sttmt != NULL) {
@@ -535,11 +540,11 @@ ContractsProcessor::addInitialize(SgBasicBlock* body, ContractComment* cc)
  * Add checks for all contract clause assertion expressions to the end
  * of the routine body.  
  *
- * @param     def  [inout] Function definition.
- * @param     body [inout] Pointer to the function body, which is assumed
- *                   to belong to the function definition, def.
- * @param[in] cc   The contract comment whose expressions are to be added.
- * @return         The number of statements added to the body.
+ * @param[in,out]  def   Function definition.
+ * @param[in,out]  body  Pointer to the function body, which is assumed
+ *                         to belong to the function definition, def.
+ * @param[in]      cc    The contract comment whose expressions are to be added.
+ * @return               The number of statements added to the body.
  */
 int
 ContractsProcessor::addPostChecks(
@@ -620,11 +625,11 @@ ContractsProcessor::addPostChecks(
  * Add checks for all contract clause assertion expressions to the start
  * of the routine body.  
  *
- * @param body    [inout] Pointer to the function body, which is assumed to 
- *                  belong to an SgFunctionDefinition node.
- * @param[in] cc  The contract clause/comment whose (executable) expressions
- *                  are to be added.
- * @return        The number of statements added to the body.
+ * @param[in,out]  body  Pointer to the function body, which is assumed to 
+ *                         belong to an SgFunctionDefinition node.
+ * @param[in]      cc    The contract clause/comment whose (executable) 
+ *                         expressions are to be added.
+ * @return               The number of statements added to the body.
  */
 int
 ContractsProcessor::addPreChecks(
@@ -694,11 +699,12 @@ ContractsProcessor::addPreChecks(
  * Build and add the contract enforcement (routine's estimated) time update
  * call.
  *
- * @param body   Pointer to the function body.
- * @return       Number of initialization calls added.
+ * @param[in,out]  body  Pointer to the function body.
+ * @return               Number of initialization calls added.
  */
 int
-ContractsProcessor::addTimeUpdate(SgBasicBlock* body)
+ContractsProcessor::addTimeUpdate(
+  /* inout */ SgBasicBlock* body)
 {
   int num = 0;
 
@@ -718,12 +724,12 @@ ContractsProcessor::addTimeUpdate(SgBasicBlock* body)
 /**
  * Build the contract clause check statement.
  *
- * @param     currSttmt  [inout] Pointer to the current statement.
- * @param[in] clauseType The type of contract clause associated with the 
- *                         expression.
- * @param[in] ae         The assertion expression.
- * @param[in] dt         The (comment) directive type.
- * @return               Contract clause statement node.
+ * @param[in,out]  currSttmt  Pointer to the current statement.
+ * @param[in]      clauseType The type of contract clause associated with the 
+ *                              expression.
+ * @param[in]      ae         The assertion expression.
+ * @param[in]      dt         The (comment) directive type.
+ * @return                    Contract clause statement node.
  */
 SgExprStatement*
 ContractsProcessor::buildCheck(
@@ -838,8 +844,9 @@ ContractsProcessor::buildCheck(
 /**
  * Extract the contract, if any, associated with the node.
  *
- * @param lNode   [in] Current located AST node.
- * @param clauses [inout] The contract, which may consist of one or more *                           clauses.
+ * @param[in]      lNode    Current located AST node.
+ * @param[in,out]  clauses  The contract, which may consist of one or more 
+ *                            clauses.
  */
 void
 ContractsProcessor::extractContract(
@@ -873,8 +880,8 @@ ContractsProcessor::extractContract(
  * Extract the contract clause comment, if any, from the pre-processing 
  * directive.
  *
- * @param[in] aNode  Current AST node.
- * @param[in] info   The preprocessing directive.
+ * @param[in]  aNode  Current AST node.
+ * @param[in]  info   The preprocessing directive.
  * @return           The ContractComment type.
  */
 ContractComment*
@@ -921,9 +928,9 @@ ContractsProcessor::extractContractComment(
  * Determine if what is assumed to be the method name is in the 
  * invariants clause.
  *
- * @param[in] nm  Method name.
- * @return        True if nm is in at least one invariant expression; false 
- *                  otherwise.
+ * @param[in]  nm  Method name.
+ * @return         True if nm is in at least one invariant expression; false 
+ *                   otherwise.
  */
 bool
 ContractsProcessor::inInvariants(
@@ -956,12 +963,12 @@ ContractsProcessor::inInvariants(
 /**
  * Add (test) contract assertion checks to each routine.
  *
- * @param project             [inout] The Sage project representing the initial
- *                              AST of the file(s).
- * @param[in] skipTransforms  True if the transformations are to be skipped;
- *                              otherwise, false.
- * @return                    The processing status: 0 for success, non-0 for 
- *                              failure.
+ * @param[in,out]  project         The Sage project representing the initial
+ *                                   AST of the file(s).
+ * @param[in]      skipTransforms  True if the transformations are to be 
+ *                                   skipped; otherwise, false.
+ * @return                         The processing status: 0 for success, non-0 
+ *                                   for failure.
  */
 int
 ContractsProcessor::instrumentRoutines(
@@ -1038,9 +1045,9 @@ ContractsProcessor::instrumentRoutines(
  * are no syntactic or semantic checks other than to eliminate expressions
  * known not to translate.
  *
- * @param[in] expr  The string representing the assertion expression.
- * @return          True if the expression appears to be executable; False 
- *                    otherwise.
+ * @param[in]  expr  The string representing the assertion expression.
+ * @return           True if the expression appears to be executable; False 
+ *                     otherwise.
  */
 bool
 ContractsProcessor::isExecutable(
@@ -1071,10 +1078,10 @@ ContractsProcessor::isExecutable(
 /**
  * Process the comment to assess and handle any contract annotation.
  *
- * @param     aNode   [inout] Current AST node.
- * @param[in] cmt     Comment contents.
- * @param[in] dirType (Comment) directive type.
- * @return            The corresponding ContractComment type.
+ * @param[in,out]  aNode   Current AST node.
+ * @param[in]      cmt     Comment contents.
+ * @param[in]      dirType (Comment) directive type.
+ * @return                 The corresponding ContractComment type.
  */
 ContractComment*
 ContractsProcessor::processCommentEntry(
@@ -1161,8 +1168,8 @@ ContractsProcessor::processCommentEntry(
 /**
  * Process comments associated with the function definition.
  *
- * @param def  [inout] The function definition node.
- * @return     The number of statements added.
+ * @param[in,out]  def  The function definition node.
+ * @return              The number of statements added.
  */
 int
 ContractsProcessor::processFunctionComments(
@@ -1430,8 +1437,8 @@ ContractsProcessor::processFunctionComments(
  * Process any contract annotations associated with the function declaration 
  * node.
  *
- * @param[in] def  Function definition node.
- * @return         The number of statements added.
+ * @param[in,out]  def  Function definition node.
+ * @return              The number of statements added.
  */
 int
 ContractsProcessor::processFunctionDef(
@@ -1468,8 +1475,8 @@ ContractsProcessor::processFunctionDef(
  * Process any contract annotations associated with a general (i.e.,
  * non-function) node.
  *
- * @param lNode   [inout] Current AST (located) node.
- * @return        The number of statements added.
+ * @param[in,out]  lNode  Current AST (located) node.
+ * @return                The number of statements added.
  *
  * @warning  The work-around for adding embedded contract initialization and
  * finalization calls assumes we are only generating checks in C/C++.
@@ -1572,11 +1579,14 @@ ContractsProcessor::processNonFunctionNode(
  * Sets the specified (invariant) contract comment to the specified AST 
  * node IF it is not already set.
  *
- * @param lNode   [inout] Current AST (located) node.
- * @param[in] cc  Invariant contract comment.
+ * @param[in,out]  lNode  Current AST (located) node.
+ * @param[in]      cc     Invariant contract comment.
  */
 void 
-ContractsProcessor::setInvariants(SgLocatedNode* lNode, ContractComment* cc) {
+ContractsProcessor::setInvariants(
+  /* inout */ SgLocatedNode*   lNode, 
+  /* in */    ContractComment* cc) 
+{
 #ifdef DEBUG
   cout<<"DEBUG: ....processing INVARIANT clause\n";
 #endif /* DEBUG */
@@ -1619,13 +1629,15 @@ ContractsProcessor::setInvariants(SgLocatedNode* lNode, ContractComment* cc) {
 /**
  * Process an ASSERT clause associated with the specified node.
  *
- * @param     lNode  [inout] Current AST (located) node.
- * @param[in] cc     INIT contract comment.
- * @return           Returns a count of the number of instrumentations made 
- *                     (i.e., 1 if added, 0 otherwise).
+ * @param[in,out]  lNode  Current AST (located) node.
+ * @param[in]      cc     INIT contract comment.
+ * @return                Returns a count of the number of instrumentations 
+ *                          made (i.e., 1 if added, 0 otherwise).
  */
 int
-ContractsProcessor::processAssert(SgLocatedNode* lNode, ContractComment* cc)
+ContractsProcessor::processAssert(
+  /* inout */ SgLocatedNode*   lNode, 
+  /* in */    ContractComment* cc)
 {
   int num = 0;
 
@@ -1697,13 +1709,15 @@ ContractsProcessor::processAssert(SgLocatedNode* lNode, ContractComment* cc)
 /**
  * Process a FINAL associated with the specified node.
  *
- * @param     lNode  [inout] Current AST (located) node.
- * @param[in] cc     Final contract comment.
- * @return           Returns a count of the number of instrumentations made 
- *                     (i.e., 1 if added, 0 otherwise).
+ * @param[in,out]  lNode  Current AST (located) node.
+ * @param[in]      cc     Final contract comment.
+ * @return                Returns a count of the number of instrumentations 
+ *                          made (i.e., 1 if added, 0 otherwise).
  */
 int
-ContractsProcessor::processFinal(SgLocatedNode* lNode, ContractComment* cc)
+ContractsProcessor::processFinal(
+  /* inout */ SgLocatedNode*   lNode, 
+  /* in */    ContractComment* cc)
 {
   int num = 0;
 
@@ -1732,13 +1746,15 @@ ContractsProcessor::processFinal(SgLocatedNode* lNode, ContractComment* cc)
 /**
  * Process an INIT associated with the specified node.
  *
- * @param     lNode  [inout] Current AST (located) node.
- * @param[in] cc     INIT contract comment.
- * @return           Returns a count of the number of instrumentations made 
- *                     (i.e., 1 if added, 0 otherwise).
+ * @param[in,out]  lNode  Current AST (located) node.
+ * @param[in]      cc     INIT contract comment.
+ * @return                Returns a count of the number of instrumentations
+ *                          made (i.e., 1 if added, 0 otherwise).
  */
 int
-ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
+ContractsProcessor::processInit(
+  /* inout */ SgLocatedNode*   lNode, 
+  /* in */    ContractComment* cc)
 {
   int num = 0;
 
@@ -1751,9 +1767,9 @@ ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
     SgStatement* currSttmt = isSgStatement(lNode);
     if (currSttmt != NULL)
     {
-//#ifdef DEBUG
+#ifdef DEBUG
       cout<<"DEBUG: ....INIT filename =\""<<cc->getFilename()<<"\"\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
       SgExprStatement* sttmt = buildInit(currSttmt, cc->directive(), 
                                          cc->getFilename());
       if (sttmt != NULL)
@@ -1771,13 +1787,15 @@ ContractsProcessor::processInit(SgLocatedNode* lNode, ContractComment* cc)
 /**
  * Process a STATS associated with the specified node.
  *
- * @param     lNode  [inout] Current AST (located) node.
- * @param[in] cc     Stats contract comment.
- * @return           Returns a count of the number of instrumentations made 
- *                     (i.e., 1 if added, 0 otherwise).
+ * @param[in,out]  lNode  Current AST (located) node.
+ * @param[in]      cc     Stats contract comment.
+ * @return                Returns a count of the number of instrumentations 
+ *                          made (i.e., 1 if added, 0 otherwise).
  */
 int
-ContractsProcessor::processStats(SgLocatedNode* lNode, ContractComment* cc)
+ContractsProcessor::processStats(
+  /* inout */ SgLocatedNode*   lNode, 
+  /* in */    ContractComment* cc)
 {
   int num = 0;
 

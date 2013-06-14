@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.hpp
  * Author:        T. Dahlgren
  * Created:       2012 November 1
- * Last Modified: 2013 April 26
+ * Last Modified: 2013 June 14
  * \endinternal
  *
  * @file
@@ -49,7 +49,7 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
      * Process the current AST node passed by the front end, identifying
      * and printing individual contract clause assertions.
      *
-     * @param node  [inout] Current AST node.
+     * @param[in,out]  node  Current AST node.
      */
     void virtual visit(SgNode* node);
 

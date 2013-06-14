@@ -3,7 +3,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2012 February 7
+ * Last Modified:  2013 June 14
  * \endinternal
  *
  *
@@ -28,8 +28,8 @@
 /**
  * Attach a translation comment to the node.
  *
- * @param     node  [inout] Current AST node.
- * @param[in] cmt   The comment to be attached to the node.
+ * @param[in,out]  node  Current AST node.
+ * @param[in]      cmt   The comment to be attached to the node.
  */
 void 
 attachTranslationComment(SgNode* node, std::string cmt);
@@ -38,8 +38,8 @@ attachTranslationComment(SgNode* node, std::string cmt);
 /**
  * Get the basic signature.  
  *
- * @param decl  [in] The function declaration.
- * @return      A basic signature derived from the node's unparsed output.
+ * @param[in]  decl  The function declaration.
+ * @return           A basic signature derived from the node's unparsed output.
  */
 std::string
 getBasicSignature(SgFunctionDeclaration* decl);
@@ -48,8 +48,8 @@ getBasicSignature(SgFunctionDeclaration* decl);
 /**
  * Get the basic signature.  
  *
- * @param def  [in] The function definition.
- * @return      A basic signature derived from the node's unparsed output.
+ * @param[in]  def  The function definition.
+ * @return          A basic signature derived from the node's unparsed output.
  */
 std::string
 getBasicSignature(SgFunctionDefinition* def);

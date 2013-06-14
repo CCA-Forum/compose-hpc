@@ -1,14 +1,13 @@
 PROTOTYPE
 
+- Resolve issues with latest enforcement automation (make check) in examples.
 
 - Complete support for partial enforcement strategies.
   -- Complete testing and debugging of STATS.
 
-  -- Add tests (testContractsEnforcer) for the initialization routine.
   -- Add support for an in-lined TRACE comment to output enforcement trace
      information (provided a trace file was specified in the configuration).
      (This will require restoration of timing instrumentation.)
-
 
 Refinements:
 - Move runtime headers to include directory and adjust build accordingly.
@@ -19,9 +18,12 @@ Refinements:
 - Ensure build failures in rose examples accounted for in 'make check' results.
   (Assumes skipping 'make' step.)
 
+
 Lower Priority Refinements:
 - Support multiple enforcers (and configurations).
 - Support routine-specific time estimates (as had been done in Babel).
+- Add tests (testContractsEnforcer) for the initialization routine.
+
 
    
 
@@ -31,4 +33,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2013 March 7
+Last Updated:  2013 June 14

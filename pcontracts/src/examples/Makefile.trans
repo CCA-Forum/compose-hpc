@@ -1,6 +1,14 @@
 ROOT_DIR=../..
 EX_DIR=${ROOT_DIR}/src/examples
 RT_DIR=$(ROOT_DIR)/src/runtime
+BASE_ORACLE_DIR=$(ROOT_DIR)/src/data
+
+MAKE= make --no-print-directory
+
+BASE_TEST_DIR=FIXME
+
+ORACLE_DIR=$(BASE_ORACLE_DIR)/$(BASE_TEST_DIR)
+CHECK_STATUS=$(ROOT_DIR)/checkStatus-$(BASE_TEST_DIR)
 
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
@@ -63,125 +71,219 @@ $(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o $(CE_OBJ)
 $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o $(CE_OBJ)
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o $(CE_OBJ)
 
-check: all checkKC checkKCpp checkKnapsack checkUK
+check: all checkBasicsCore
 
-checkKC: knapsack unlabeledknapsack
+checkFIXME: checkClean checkSetup checkBasicsCore 
+	@echo; echo "Cleaning up core objects and executables..."; \
+	$(MAKE) cleanExe; \
+	echo; echo "Building and testing contract versions..."; \
+	$(MAKE) PCEFLAGS=-DPAUL_CONTRACTS; \
+	$(MAKE) checkContractsCore; \
+	$(MAKE) checkSummary; \
+	echo; echo "DONE"; echo
+	
+
+checkBasics: checkClean checkSetup checkBasicsCore checkSummary
+
+checkBasicsCore: checkKC checkKCpp checkKnapsack checkUK
+
+checkContracts:  checkClean checkSetup checkContractsCore checkSummary
+
+checkContractsCore: 
+	@echo; echo "Checking contracts..."; \
+	ok=0; \
+	n=0; \
+	for exe in $(BINARIES); do \
+	  n=`expr $$n + 1`; \
+	  echo "..Processing $$exe"; \
+	  ORFN=$(ORACLE_DIR)/$$exe.out; \
+	  TFN=$$exe.out; \
+	  ./$$exe > $$exe.out; \
+	  if [ -f $$ORFN ]; then \
+	    diff $$TFN $$ORFN > $$TFN.diffs; \
+	    if [ -s $$TFN.diffs ]; then \
+	      echo "....*** $$TFN $$ORFN are different ***"; \
+	      cat $$TFN.diffs; \
+	      echo "....FAILED on $$exe"; echo; \
+	      echo 0 > $(CHECK_STATUS); \
+	    else \
+	      echo "....$$TFN $$ORFN are identical"; \
+	      ok=`expr $$ok + 1`; \
+	    fi; \
+	  fi; \
+	done; \
+	echo; echo; \
+	echo "...Successfully processed $$ok of $$n files."; echo
+
+checkSummary:
+	@echo; \
+	if [ -f $(CHECK_STATUS) ]; then \
+	  res=`cat $(CHECK_STATUS)`; \
+	  if [ "$$res" -eq "0" ]; then \
+	    echo "$$BASE_TEST_DIR Test Suite:  FAILED"; \
+	    echo; echo "Review output to identify failure(s)"; \
+	  else \
+	    echo "$$BASE_TEST_DIR Test Suite:  PASSED"; \
+	  fi; \
+	else \
+	  echo; echo "*******"; \
+	  echo "WARNING:  $(CHECK_STATUS) is missing.  "; \
+	  echo "          Cannot assess $$BASE_TEST_DIR test suite."; \
+	  echo "*******"; \
+	fi; \
+	echo "DONE"; echo
+
+checkClean:
+	@rm -f $(CHECK_STATUS) *.o *.out $(BINARIES)
+
+checkSetup:
+	@echo 1 > $(CHECK_STATUS)
+
+checkKC: $(LKC_EXE) $(UKC_EXE)
 	@echo "Checking C knapsack programs..."; \
-	if [ -s knapsack ]; then \
-	  if [ -s unlabeledknapsack ]; then \
-	    ./knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
-	        > knapsack.out 2>&1; \
-	    ./unlabeledknapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
-	        | sed 's/ [ ]*/ /g' > unlabeledknapsack.out 2>&1; \
-	    diff knapsack.out unlabeledknapsack.out > knapsack.diffs 2>&1; \
-	    if [ -s knapsack.diffs ]; then \
+	if [ -s $(LKC_EXE) ]; then \
+	  if [ -s $(UKC_EXE) ]; then \
+	    ./$(LKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
+	        sed 's/ [ ]*/ /g' > $(LKC_EXE).out 2>&1; \
+	    ./$(UKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
+	        sed 's/ [ ]*/ /g' > $(UKC_EXE).out 2>&1; \
+	    diff $(LKC_EXE).out $(UKC_EXE).out > checkKC.diffs 2>&1; \
+	    if [ -s checkKC.diffs ]; then \
 	      echo "ERROR: Different C knapsack results"; \
+	      echo 0 > $(CHECK_STATUS); \
 	    else \
 	      echo "SUCCESS: Identical C knapsack results!"; \
 	    fi; \
-	    rm -f knapsack.diffs; \
+	    rm -f checkKC.diffs; \
+	  else \
+	    echo "ERROR: Cannot find or empty $(UKC_EXE)"; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
+	else \
+	  echo "ERROR: Cannot find or empty $(LKC_EXE)"; \
+	  echo 0 > $(CHECK_STATUS); \
 	fi; \
-	echo "DONE"; \
-	echo
+	echo "DONE"; echo
 
-checkKCpp: Knapsack UnlabeledKnapsack
+checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
 	@echo "Checking C++ knapsack programs..."; \
-	if [ -s Knapsack ]; then \
-	  if [ -s UnlabeledKnapsack ]; then \
-	    ./Knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
-	        > Knapsack.out 2>&1; \
-	    ./UnlabeledKnapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
-	        | sed 's/ [ ]*/ /g' > UnlabeledKnapsack.out 2>&1; \
-	    diff Knapsack.out UnlabeledKnapsack.out > Knapsack.diffs 2>&1; \
-	    if [ -s Knapsack.diffs ]; then \
+	if [ -s $(LKCPP_EXE) ]; then \
+	  if [ -s $(UKCPP_EXE) ]; then \
+	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
+	        sed 's/ [ ]*/ /g' > $(LKCPP_EXE).out 2>&1; \
+	    ./$(UKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
+	        sed 's/ [ ]*/ /g' > $(UKCPP_EXE).out 2>&1; \
+	    diff $(LKCPP_EXE).out $(UKCPP_EXE).out > checkKCpp.diffs 2>&1;\
+	    if [ -s checkKCpp.diffs ]; then \
 	      if [ "X$$PCEFLAGS" != "X" ]; then \
-	        cat Knapsack.out | grep pos_target > Knapsack-pt.out 2>&1; \
-	        if [ -s Knapsack-pt.out ]; then \
+	        cat $(LKCPP_EXE).out | grep pos_target > checkKCpp-pt.out 2>&1;\
+	        if [ -s checkKCpp-pt.out ]; then \
 	          echo "SUCCESS: Different C++ knapsack results due to";\
 	          echo "  known C++ precondition violation (label)."; \
 	        else \
 	          echo "ERROR: Different C++ knapsack results"; \
+	          echo 0 > $(CHECK_STATUS); \
 	        fi; \
-	        rm -f Knapsack-pt.out; \
+	        rm -f checkKCpp-pt.out; \
 	      else \
 	        echo "ERROR: Different C++ knapsack results"; \
+	        echo 0 > $(CHECK_STATUS); \
 	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C++ knapsack results!"; \
 	    fi; \
-	    rm -f Knapsack.diffs; \
+	    rm -f checkKCpp.diffs; \
+	  else \
+	    echo "ERROR: Cannot find or empty $(UKCPP_EXE)"; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
+	else \
+	  echo "ERROR: Cannot find or empty $(LKCPP_EXE)"; \
+	  echo 0 > $(CHECK_STATUS); \
 	fi; \
-	echo "DONE"; \
-	echo
+	echo "DONE"; echo
 
-checkKnapsack: knapsack Knapsack
+checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
 	@echo "Checking C and C++ knapsack programs..."; \
-	if [ -s Knapsack ]; then \
-	  if [ -s knapsack ]; then \
-	    ./Knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
-	        > Knapsack.out 2>&1; \
-	    ./knapsack | grep -v DEBUG | tr "\n\r\f\v" " " | sed 's/ [ ]*/ /g' \
-	        > knapsack.out 2>&1; \
-	    diff Knapsack.out knapsack.out > knapsack.diffs 2>&1; \
-	    if [ -s knapsack.diffs ]; then \
+	if [ -s $(LKCPP_EXE) ]; then \
+	  if [ -s $(LKC_EXE) ]; then \
+	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(LKCPP_EXE).out 2>&1; \
+	    ./$(LKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(LKC_EXE).out 2>&1; \
+	    diff $(LKCPP_EXE).out $(LKC_EXE).out > checkKnapsack.diffs 2>&1; \
+	    if [ -s checkKnapsack.diffs ]; then \
 	      if [ "X$$PCEFLAGS" != "X" ]; then \
-	        cat Knapsack.out | grep pos_target > knapsack-pt.out 2>&1; \
-	        if [ -s knapsack-pt.out ]; then \
+	        cat $(LKCPP_EXE).out \
+	           | grep pos_target > checkKnapsack-pt.out 2>&1; \
+	        if [ -s checkKnapsack-pt.out ]; then \
 	          echo "SUCCESS: Different C and C++ knapsack results due to";\
 	          echo "  known C++ precondition violation (label)."; \
 	        else \
 	          echo "ERROR: Different C and C++ knapsack results"; \
+	          echo 0 > $(CHECK_STATUS); \
 	        fi; \
-	        rm -f knapsack-pt.out; \
+	        rm -f checkKnapsack-pt.out; \
 	      else \
 	        echo "ERROR: Different C and C++ knapsack results"; \
+	        echo 0 > $(CHECK_STATUS); \
 	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C and C++ knapsack results!"; \
 	    fi; \
-	    rm -f knapsack.diffs; \
+	    rm -f checkKnapsack.diffs; \
+	  else \
+	    echo "ERROR: Cannot find or empty $(LKC_EXE)"; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
+	else \
+	  echo "ERROR: Cannot find or empty $(LKCPP_EXE)"; \
+	  echo 0 > $(CHECK_STATUS); \
 	fi; \
-	echo "DONE"; \
-	echo
+	echo "DONE"; echo
 
-checkUK: unlabeledknapsack UnlabeledKnapsack
+checkUK: $(UKC_EXE) $(LKCPP_EXE)
 	@echo "Checking C and C++ knapsack programs..."; \
-	if [ -s UnlabeledKnapsack ]; then \
-	  if [ -s unlabeledknapsack ]; then \
-	    ./UnlabeledKnapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
-	        | sed 's/ [ ]*/ /g' > UnlabeledKnapsack.out 2>&1; \
-	    ./unlabeledknapsack | grep -v DEBUG | tr "\n\r\f\v" " " \
-	        | sed 's/ [ ]*/ /g' > unlabeledknapsack.out 2>&1; \
-	    diff UnlabeledKnapsack.out unlabeledknapsack.out > \
-	      unlabeledknapsack.diffs 2>&1; \
-	    if [ -s unlabeledknapsack.diffs ]; then \
+	if [ -s $(LKCPP_EXE) ]; then \
+	  if [ -s $(UKC_EXE) ]; then \
+	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(LKCPP_EXE).out 2>&1; \
+	    ./$(UKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(UKC_EXE).out 2>&1; \
+	    diff $(LKCPP_EXE).out $(UKC_EXE).out > checkUK.diffs 2>&1; \
+	    if [ -s checkUK.diffs ]; then \
 	      if [ "X$$PCEFLAGS" != "X" ]; then \
-	        cat UnlabeledKnapsack.out | grep Violation > ulknapsack-pt.out \
-	          2>&1; \
-	        if [ -s ulknapsack-pt.out ]; then \
-	          echo "SUCCESS: Different C and C++ knapsack results due to";\
-	          echo "  known C++ precondition violation."; \
+	        cat $(LKCPP_EXE).out | grep Violation > checkUK-pt.out 2>&1; \
+	        if [ -s checkUK-pt.out ]; then \
+	          echo "SUCCESS: Different C and C++ unlabeled knapsack";\
+	          echo "  results due to known C++ precondition violation."; \
 	        else \
-	          echo "ERROR: Different C and C++ knapsack results"; \
+	          echo "ERROR: Different C and C++ unlabeled knapsack results";\
+	          echo 0 > $(CHECK_STATUS); \
 	        fi; \
-	        rm -f ulknapsack-pt.out; \
+	        rm -f checkUK-pt.out; \
 	      else \
 	        echo "ERROR: Different C and C++ unlabeled knapsack results"; \
+	        echo 0 > $(CHECK_STATUS); \
 	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C and C++ unlabeled knapsack results!"; \
 	    fi; \
-	    rm -f unlabeledknapsack.diffs; \
+	    rm -f checkUK.diffs; \
+	  else \
+	    echo "ERROR: Cannot find or empty $(UKC_EXE)"; \
+	    echo 0 > $(CHECK_STATUS); \
 	  fi; \
+	else \
+	  echo "ERROR: Cannot find or empty Unlabeledknapsack"; \
+	  echo 0 > $(CHECK_STATUS); \
 	fi; \
-	echo "DONE"; \
-	echo
+	echo "DONE"; echo
 
 clean:
-	rm -f *.o *.out *.diffs *.stats *.trace
+	rm -f *.o *.out *.diffs *.stats *.trace 
 
-clean-all: clean
-	rm -f $(BINARIES)
+cleanAll: clean cleanExe
+
+cleanExe:
+	rm -f *.o $(BINARIES)
