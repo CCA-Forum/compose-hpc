@@ -28,6 +28,7 @@ import Data.Maybe (mapMaybe)
 import Data.Tree
 import Data.Tree.ATerm
 import Data.Tree.Types
+import Data.Tree.Weaver
 import Data.Tree.Yang
 import RuleGen.Contextualizer
 import RuleGen.Filter
@@ -37,7 +38,6 @@ import RuleGen.Util.CmdlineArgs
 import RuleGen.Util.Configuration
 import RuleGen.Util.Graphviz
 import RuleGen.Util.IDGen
-import RuleGen.Weaver
 import System.Exit 
 
 

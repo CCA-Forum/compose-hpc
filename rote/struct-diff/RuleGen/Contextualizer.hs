@@ -13,9 +13,9 @@ module RuleGen.Contextualizer (
 import Data.Maybe (mapMaybe)
 import Data.Tree
 import Data.Tree.Types
+import Data.Tree.Weaver
 import RuleGen.Util.Configuration
 import RuleGen.Util.IDGen
-import RuleGen.Weaver
 import qualified Data.Set as S
 
 --

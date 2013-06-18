@@ -8,7 +8,7 @@
 --
 -- Author: matt@galois.com
 --
-module RuleGen.Weaver (
+module Data.Tree.Weaver (
 	WeaveTree(..),
 	WeavePoint(..),
 	weave,

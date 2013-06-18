@@ -18,6 +18,5 @@ Executable rulegen
   Main-Is: RuleGen/rulegen.hs
   Other-Modules: RuleGen.Util.Graphviz,
                  RuleGen.Stratego,
-                 RuleGen.Weaver,
                  RuleGen.Contextualizer,
                  RuleGen.Pruner

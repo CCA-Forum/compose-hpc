@@ -14,10 +14,11 @@ cabal-version:       >=1.8
 library
   ghc-options:         -Wall
   hs-source-dirs:      src
-  exposed-modules:     Data.Tree.AntiUnification 
-                     , Data.Tree.ATerm
+  exposed-modules:     Data.Tree.ATerm
+                     , Data.Tree.AntiUnification
                      , Data.Tree.Labels
                      , Data.Tree.Types
+                     , Data.Tree.Weaver
                      , Data.Tree.Yang
   -- other-modules:       
   build-depends:       base >= 3 && < 5

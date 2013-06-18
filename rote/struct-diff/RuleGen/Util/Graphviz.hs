@@ -16,13 +16,13 @@ module RuleGen.Util.Graphviz (
   wtreeToGraphviz
 ) where
 
-import System.IO
+import Data.List
 import Data.Tree
 import Data.Tree.Types
+import Data.Tree.Weaver
 import Data.Tree.Yang
-import RuleGen.Weaver
 import RuleGen.Util.IDGen
-import Data.List
+import System.IO
 
 cleanlabel :: String -> String
 cleanlabel lbl = filter (\c -> c /= '\\' && c /= '\'' && c /= '\"') lbl
