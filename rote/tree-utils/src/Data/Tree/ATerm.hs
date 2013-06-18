@@ -13,10 +13,12 @@
 module Data.Tree.ATerm (
 	readToTree
 , atermToTree
+, treeToATerm
 ) where
 
 import ATerm.AbstractSyntax
 import ATerm.ReadWrite
+import ATerm.Unshared
 import Data.Tree
 import Data.Tree.Types
 
@@ -43,3 +45,10 @@ atermToTree a t =
             (ShAList ss _) -> Node LBLList (map (\i -> atermToTree (getShATerm i t) t) ss)
             (ShAInt i _) -> Node (LBLInt i) []
   in x
+
+treeToATerm :: LabeledTree -> ATermTable
+treeToATerm t = toATermTable (treeToATerm' t)
+  where
+  treeToATerm' (Node (LBLString lbl) xs) = AAppl lbl (map treeToATerm' xs) []
+  treeToATerm' (Node LBLList         xs) = AList (map treeToATerm' xs) []
+  treeToATerm' (Node (LBLInt i)       _) = AInt i []

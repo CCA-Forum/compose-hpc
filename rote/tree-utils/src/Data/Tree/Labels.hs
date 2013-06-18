@@ -10,12 +10,7 @@ import qualified Data.Set as S
 data Label = LBLString String
            | LBLList
            | LBLInt Integer
-  deriving (Eq, Ord)
-
-instance Show Label where
-  show (LBLString s) = s
-  show (LBLList)     = "LIST"
-  show (LBLInt i)    = show i
+  deriving (Read, Show, Eq, Ord)
 
 type LabelSet = S.Set Label
 
