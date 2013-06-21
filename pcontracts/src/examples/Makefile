@@ -75,13 +75,13 @@ check: checkClean all checkSetup checkKnapsackTests checkRose
 	  else \
 	    echo; echo "Complete Test Suite:  PASSED";\
 	  fi; \
+	  rm -f $(CHECK_STATUS); \
 	else \
 	  echo; echo "*******"; \
 	  echo "WARNING:  $(CHECK_STATUS) is missing.  Cannot assess suite."; \
 	  echo "*******"; \
 	fi; \
-	rm -f $(CHECK_STATUS); \
-	echo "DONE"; echo
+	echo "DONE (check)"; echo
 
 checkAll: checkClean all checkSetup checkKnapsackTests checkRose checkContracts
 	@echo; \
@@ -99,12 +99,12 @@ checkAll: checkClean all checkSetup checkKnapsackTests checkRose checkContracts
 	  echo "*******"; \
 	fi; \
 	rm -f $(CHECK_STATUS)*; \
-	echo; echo "DONE"; echo
+	echo; echo "DONE (checkAll)"; echo
 
 checkClean:
-	rm -f $(CHECK_STATUS) *.o *.out $(BINARIES)
+	rm -f $(CHECK_STATUS) *.o *.mout $(BINARIES)
 
-checkContracts:
+checkContracts: all checkSetup
 	@echo; \
 	for dir in $(INSTR_DIRS); do \
 	  echo; echo "Checking instrumented $$dir sources..."; \
@@ -126,7 +126,9 @@ checkContracts:
 	done
 
 checkSetup: 
-	@echo 1 > $(CHECK_STATUS)
+	@if [ ! -f $(CHECK_STATUS) ]; then \
+	  echo 1 > $(CHECK_STATUS); \
+	fi
 
 $(KC_EXE): $(KC_EXE).c
 	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c
@@ -173,9 +175,9 @@ checkKnapsackDiffs:
 	  if [ "$$EXE2" != "" ]; then \
 	    if [ "$$PRE" != "" ]; then \
 	      if [ "$$COMP" != "" ]; then \
-	        OFN1=$(BASE_RES_DIR)/$$EXE1-$$KT.out; \
+	        OFN1=$(BASE_RES_DIR)/$$EXE1-$$KT.mout; \
 	        ./$$EXE1 $$KT > $$OFN1; \
-	        OFN2=$(BASE_RES_DIR)/$$EXE2-$$KT.out; \
+	        OFN2=$(BASE_RES_DIR)/$$EXE2-$$KT.mout; \
 	        ./$$EXE2 $$KT > $$OFN2; \
 	        DIFFS=$(BASE_RES_DIR)/$$PRE-$$KT.diffs; \
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
@@ -223,7 +225,7 @@ checkKnapsackTests:
 	$(MAKE) checkKnapsacks KT=0; \
 	$(MAKE) checkKnapsacks KT=10; \
 	$(MAKE) checkKnapsacks KT=; \
-	echo; echo "DONE"; echo
+	echo; echo "DONE (checkKnapsackTests)"; echo
 
 checkRose: checkRosePrinters checkRoseTranslators
 
@@ -246,7 +248,7 @@ checkRosePrinter: $(EXE)
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
 	  echo "...Processing $$BASE.$$EXT"; \
-	  OFN=$$OUTDIR/$$BASE.out; \
+	  OFN=$$OUTDIR/$$BASE.mout; \
 	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
 	  if [ -s $$OFN ]; then \
 	    ok=`expr $$ok + 1`; \
@@ -257,7 +259,8 @@ checkRosePrinter: $(EXE)
 	  fi; \
 	done; \
 	echo; \
-	echo "...Successfully processed $$ok of $$n files."; echo "DONE";echo
+	echo "...Successfully processed $$ok of $$n files."; \
+	echo "DONE (checkRosePrinter)"; echo
 
 checkRoseTranslators: checkRCI checkVCI
 
@@ -330,11 +333,11 @@ checkRoseTrans: $(EXE)
 	  echo "ERROR: Must resolve issues before able to build translations.";\
 	  echo 0 > $(CHECK_STATUS); \
         fi; \
-	echo "DONE"; echo
+	echo "DONE (checkRoseTran)"; echo
 
 
 clean:
-	@rm -f *.o *.out *.diffs *.ti rose_* *.res *.checks
+	@rm -f *.o *.out *.mout *.diffs *.ti rose_* *.res *.checks
 
 clean-all: cleanAll
 

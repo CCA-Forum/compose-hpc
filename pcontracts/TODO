@@ -1,7 +1,5 @@
 PROTOTYPE
 
-- Resolve issues with latest enforcement automation (make check) in examples.
-
 - Complete support for partial enforcement strategies.
   -- Complete testing and debugging of STATS.
 
