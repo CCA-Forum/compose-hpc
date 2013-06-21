@@ -6,9 +6,9 @@ import Data.List (foldl')
 import Data.Tree
 import Data.Tree.Labels
 import Data.Tree.Types
+import Data.Tree.Weaver
 import RuleGen.Pruner
 import RuleGen.Util.Configuration
-import RuleGen.Weaver
 import qualified Data.Set as S
 
 generalizeWeave :: [GeneralizeFilterRule] -> WeavePoint a -> WeavePoint a

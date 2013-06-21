@@ -17,7 +17,7 @@ Should represent the distributive law for any variables x, a, y, and z.  Without
 generalization, the rule will ONLY apply the distributive law for the term
 "x = a*(y+z)", where the variables are named.  
 
-Contact : matt sottile (matt@galois.com)
+Contact : matt sottile (mjsottile@gmail.com)
           geoff hulette (ghulette@gmail.com)
           
 -}
@@ -28,6 +28,7 @@ import Data.Maybe (mapMaybe)
 import Data.Tree
 import Data.Tree.ATerm
 import Data.Tree.Types
+import Data.Tree.Weaver
 import Data.Tree.Yang
 import RuleGen.Contextualizer
 import RuleGen.Filter
@@ -37,7 +38,6 @@ import RuleGen.Util.CmdlineArgs
 import RuleGen.Util.Configuration
 import RuleGen.Util.Graphviz
 import RuleGen.Util.IDGen
-import RuleGen.Weaver
 import System.Exit 
 
 

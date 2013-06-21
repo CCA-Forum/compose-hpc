@@ -37,7 +37,7 @@ type Term = LabeledTree
 deriving instance Ord a => Ord (Tree a)
 
 data Subs = Subs (Map.Map Term Term)
-  deriving (Show, Eq)
+  deriving (Read, Show, Eq)
 
 newFreeVar :: IDGen Term
 newFreeVar = do n <- genName "VAR"

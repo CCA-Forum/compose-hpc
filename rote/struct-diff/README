@@ -25,4 +25,4 @@ Finally, if you want the haddock documentation:
 % cabal haddock --executables
 
 
-Problems?  Contact matt@galois.com.
+Problems?  Contact mjsottile@gmail.com.
