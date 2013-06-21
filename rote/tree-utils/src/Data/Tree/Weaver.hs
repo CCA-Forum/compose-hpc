@@ -18,10 +18,10 @@ module Data.Tree.Weaver (
 	toRule
 ) where
 
-import Data.List (intercalate)
-import Data.Tree.Yang
 -- import Debug.Trace
+import Data.List (intercalate)
 import Data.Tree.Types
+import Data.Tree.Yang
 
 -- pass-through to turn off tracing
 trace :: String -> a -> a
@@ -49,9 +49,9 @@ instance (Show (WeaveTree a)) where
 --        not the source.
 --  
 --   [lefthole ==> insertion of new code; righthole ==> deletion of existing code]
-data WeavePoint a = Match (WeaveTree a)
-                  | Mismatch (WeaveTree a) (WeaveTree a)
-                  | LeftHole (WeaveTree a)
+data WeavePoint a = Match     (WeaveTree a)
+                  | Mismatch  (WeaveTree a) (WeaveTree a)
+                  | LeftHole  (WeaveTree a)
                   | RightHole (WeaveTree a)
   deriving Eq
 
