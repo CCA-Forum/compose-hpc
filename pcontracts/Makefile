@@ -1,4 +1,5 @@
 SUBDIRS = src
+include make.inc
 
 all:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -10,46 +11,47 @@ docs: clean-docs
 	doxygen; \
 	cp COPYRIGHT docs/html
 
-check: all
-	@echo 1 > .checkStatus; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
+check: 
+	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) check) \
 	done; \
-	echo; \
-	if [ -f .checkStatus ]; then \
-	  RES=`cat .checkStatus`; \
-	  if [ $$RES -eq 1 ]; then \
-	    echo "CHECKS PROBABLY PASSED"; \
-	  else \
-	    echo "CHECKS FAILED"; \
-	  fi; \
-	else \
-	  echo "CHECKS FAILED (Missing .checkStatus file)"; \
-	fi; \
-	echo; \
+	$(MAKE) checkSummary; \
+	echo; echo "DONE (check)"; echo
+
+checkAll: 
+	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	  (cd $$subdir && $(MAKE) checkAll) \
+	done; \
+	$(MAKE) checkSummary; \
+	echo "DONE (checkAll)"; echo
+
+checkSummary:
+	@echo; \
 	echo "  *************************************************************";\
-	echo "  * Standard out messages and generated source files must be  *";\
-	echo "  * reviewed manually since only some executions end in 'pass *";\
-	echo "  * /fail' comparisons.                                       *";\
+	echo "  * Standard out messages must be reviewed manually.          *";\
 	echo "  *                                                           *";\
-	echo "  * In addition, only one level of indirection is supported.  *";\
-	echo "  * That is, 'make check' of instrumented source files, found *";\
-	echo "  * in the results subdirectory, must be performed manually.  *";\
-	echo "  * Exercising instrumented checks requires the software be   *";\
+	echo "  * NOTE:                                                     *";\
+	echo "  * - 'make check' checks the core software.                  *";\
+	echo "  * - 'make checkAll' checks core AND instrumented codes.     *";\
+	echo "  *                                                           *";\
+	echo "  * Exercising instrumented codes requires the software be    *";\
 	echo "  * built with 'PCEFLAGS=-DPAUL_CONTRACTS'.  It can be added  *";\
 	echo "  * during check (ie, 'make PCEFLAGS=-DPAUL_CONTRACTS check') *";\
 	echo "  * to perform the build, execution, and check processes.     *";\
 	echo "  *************************************************************";\
-	echo; rm -f .checkStatus
+	echo
 
 clean: 
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	@rm -f $(CHECK_STATUS); \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) clean) \
 	done;
 
-clean-all:  clean-docs
+clean-all:  cleanAll
+
+cleanAll:  clean-docs
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  (cd $$subdir && $(MAKE) clean-all) \
+	  (cd $$subdir && $(MAKE) cleanAll) \
 	done;
 
 clean-docs:

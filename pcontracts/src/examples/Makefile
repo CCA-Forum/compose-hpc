@@ -1,10 +1,18 @@
-RT_DIR=../runtime
-RES_DIR=../../results
-BASE_RES_DIR=$(RES_DIR)/base
-BASE_ORACLE_DIR=../data
+ROOT_DIR=../..
 
-CHECK_STATUS=../../.checkStatus
-#CHECK_STATUS_ALL=../../.checkStatus*
+include $(ROOT_DIR)/make.inc
+
+SRC_DIR=..
+
+RES_DIR=$(ROOT_DIR)/results
+RT_DIR=$(SRC_DIR)/runtime
+
+BASE_RES_DIR=$(RES_DIR)/base
+BASE_ORACLE_DIR=$(SRC_DIR)/data
+
+CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
+CHECK_SRC_STATUS=$(SRC_DIR)/$(CHECK_STATUS)
+
 RI_DIR=RoutineInstrumenter
 VI_DIR=VisitInstrumenter
 INSTR_DIRS=$(RI_DIR) $(VI_DIR)
@@ -66,68 +74,59 @@ BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 all: $(BINARIES)
 
 check: checkClean all checkSetup checkKnapsackTests checkRose
-	@echo; \
-	if [ -f $(CHECK_STATUS) ]; then \
-	  res=`cat $(CHECK_STATUS)`; \
-	  if [ "$$res" -eq "0" ]; then \
-	    echo; echo "Complete Test Suite:  FAILED";\
-	    echo; echo "Review output to identify failure(s)"; \
-	  else \
-	    echo; echo "Complete Test Suite:  PASSED";\
-	  fi; \
-	  rm -f $(CHECK_STATUS); \
-	else \
-	  echo; echo "*******"; \
-	  echo "WARNING:  $(CHECK_STATUS) is missing.  Cannot assess suite."; \
-	  echo "*******"; \
-	fi; \
+	@$(MAKE) checkSummary; \
 	echo "DONE (check)"; echo
 
 checkAll: checkClean all checkSetup checkKnapsackTests checkRose checkContracts
-	@echo; \
-	if [ -f $(CHECK_STATUS) ]; then \
-	  res=`cat $(CHECK_STATUS)`; \
-	  if [ "$$res" -eq "0" ]; then \
-	    echo; echo "Complete Test Suite:  FAILED"; \
-	    echo; echo "Review output to identify failure(s)"; \
-	  else \
-	    echo; echo "Complete Test Suite:  PASSED";\
-	  fi; \
-	else \
-	  echo; echo "*******"; \
-	  echo "WARNING:  $(CHECK_STATUS) is missing.  Cannot assess suite."; \
-	  echo "*******"; \
-	fi; \
-	rm -f $(CHECK_STATUS)*; \
-	echo; echo "DONE (checkAll)"; echo
+	@$(MAKE) checkSummary; \
+	echo "DONE (checkAll)"; echo
 
 checkClean:
-	rm -f $(CHECK_STATUS) *.o *.mout $(BINARIES)
+	rm -f *.o *.mout $(BINARIES)
 
 checkContracts: all checkSetup
 	@echo; \
 	for dir in $(INSTR_DIRS); do \
 	  echo; echo "Checking instrumented $$dir sources..."; \
-	  ((cd $(RES_DIR)/$$dir &&  $(MAKE) check) || \
-	     (echo 0 > $(CHECK_STATUS))); \
-	  CSFN=$(CHECK_STATUS)-$$dir; \
+	  CSFN=$(CHECK_ALL_STATUS)-$$dir; \
+	  $(MAKE) -n -C $(RES_DIR)/$$dir checkAll || echo 0 > $$CSFN; \
 	  if [ -f "$$CSFN" ]; then \
 	    res=`cat $$CSFN`; \
 	    if [ "$$res" -eq "0" ]; then \
 	      echo "$$dir test suite failed..."; \
-	      echo 0 > $(CHECK_STATUS); \
+	      echo 0 > $(CHECK_SRC_STATUS); \
 	    else \
 	      echo "$$dir test suite passed..."; \
 	    fi; \
 	  else \
 	    echo "ERROR: Unable to detect $$CSFN"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo 0 > $(CHECK_SRC_STATUS); \
 	  fi; \
 	done
 
 checkSetup: 
-	@if [ ! -f $(CHECK_STATUS) ]; then \
-	  echo 1 > $(CHECK_STATUS); \
+	@if [ ! -f $(CHECK_SRC_STATUS) ]; then \
+	  echo 1 > $(CHECK_SRC_STATUS); \
+	fi
+
+checkSummary:
+	@echo; \
+	if [ -f $(CHECK_SRC_STATUS) ]; then \
+	  res=`cat $(CHECK_SRC_STATUS)`; \
+	  if [ "$$res" -eq "0" ]; then \
+	    echo; echo "Complete Test Suite:  FAILED";\
+	    echo; echo "Review output to identify failure(s)"; \
+	    echo 0 > $(CHECK_ALL_STATUS); \
+	  else \
+	    echo; echo "Complete Test Suite:  PASSED";\
+	  fi; \
+	  rm -f $(CHECK_SRC_STATUS); \
+	else \
+	  echo; echo "***********"; \
+	  echo "WARNING:  Cannot assess test suite."; \
+	  echo "          $(CHECK_SRC_STATUS) is missing."; \
+	  echo "***********"; \
+	  echo 0 > $(CHECK_ALL_STATUS); \
 	fi
 
 $(KC_EXE): $(KC_EXE).c
@@ -169,7 +168,7 @@ $(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
 
 
 checkKnapsackDiffs: 
-	@echo "...Comparing runs of $$EXE1 and $$EXE2 with target $$KT..."; \
+	@echo "..Comparing runs of $$EXE1 and $$EXE2 with target $$KT"; \
 	mkdir -p $(BASE_RES_DIR); \
 	if [ "$$EXE1" != "" ]; then \
 	  if [ "$$EXE2" != "" ]; then \
@@ -182,31 +181,31 @@ checkKnapsackDiffs:
 	        DIFFS=$(BASE_RES_DIR)/$$PRE-$$KT.diffs; \
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
                 if [ -s $$DIFFS ]; then \
-	          echo "......*** $$PRE $$COMP are different ***"; \
-	          echo 0 > $(CHECK_STATUS); \
+	          echo "....*** $$PRE $$COMP are different ***"; \
+	          echo 0 > $(CHECK_SRC_STATUS); \
 	        else \
-	          echo "......$$PRE $$COMP are identical"; \
+	          echo "....$$PRE $$COMP are identical"; \
 	          if [ -f $$DIFFS ]; then \
-	            echo ".........Removing empty differences file"; \
+	            echo ".......Removing empty differences file"; \
 	            rm -f $$DIFFS; \
 	          fi; \
 	        fi; \
 	      else \
-	        echo "......ERROR:  Missing COMP definition"; \
-	        echo 0 > $(CHECK_STATUS); \
+	        echo "....ERROR:  Missing COMP definition"; \
+	        echo 0 > $(CHECK_SRC_STATUS); \
 	      fi; \
 	    else \
-	      echo "......ERROR:  Missing PRE definition"; \
-	      echo 0 > $(CHECK_STATUS); \
+	      echo "....ERROR:  Missing PRE definition"; \
+	      echo 0 > $(CHECK_SRC_STATUS); \
 	    fi; \
 	  else \
-	    echo "......ERROR:  Missing EXE2 definition"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo "....ERROR:  Missing EXE2 definition"; \
+	    echo 0 > $(CHECK_SRC_STATUS); \
 	  fi; \
 	else \
-	  echo "......ERROR:  Missing EXE1 definition"; \
-	  echo 0 > $(CHECK_STATUS); \
-	fi;
+	  echo "....ERROR:  Missing EXE1 definition"; \
+	  echo 0 > $(CHECK_SRC_STATUS); \
+	fi
 
 checkKnapsacks: $(KS_BINARIES)
 	@echo; echo "Running solvers with target=$$KT..."; \
@@ -225,7 +224,7 @@ checkKnapsackTests:
 	$(MAKE) checkKnapsacks KT=0; \
 	$(MAKE) checkKnapsacks KT=10; \
 	$(MAKE) checkKnapsacks KT=; \
-	echo; echo "DONE (checkKnapsackTests)"; echo
+	echo "DONE (checkKnapsackTests)"
 
 checkRose: checkRosePrinters checkRoseTranslators
 
@@ -247,19 +246,18 @@ checkRosePrinter: $(EXE)
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
-	  echo "...Processing $$BASE.$$EXT"; \
+	  echo "..Processing $$BASE.$$EXT"; \
 	  OFN=$$OUTDIR/$$BASE.mout; \
 	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
 	  if [ -s $$OFN ]; then \
 	    ok=`expr $$ok + 1`; \
-	    echo "......Results in $$OFN"; \
+	    echo "....Results in $$OFN"; \
 	  else \
-	    echo "......FAILED on $$file"; echo; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo "....FAILED on $$file"; echo; \
+	    echo 0 > $(CHECK_SRC_STATUS); \
 	  fi; \
 	done; \
-	echo; \
-	echo "...Successfully processed $$ok of $$n files."; \
+	echo "..Successfully processed $$ok of $$n files."; \
 	echo "DONE (checkRosePrinter)"; echo
 
 checkRoseTranslators: checkRCI checkVCI
@@ -283,7 +281,7 @@ checkRoseTrans: $(EXE)
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
-	  echo "...Processing $$BASE.$$EXT"; \
+	  echo "..Processing $$BASE.$$EXT"; \
 	  OFN=rose_$$BASE.$$EXT; \
 	  ERRFN=$$OUTDIR/$$BASE.err; \
 	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
@@ -299,31 +297,30 @@ checkRoseTrans: $(EXE)
 	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
 	    diff $$ERFN $$ORFN > $$ERFN.diffs; \
             if [ -s $$ERFN.diffs ]; then \
-	      echo "......*** $$ERFN $$ORFN are different ***"; \
+	      echo "....*** $$ERFN $$ORFN are different ***"; \
 	      cat $$ERFN.diffs; \
-	      echo "......FAILED on $$file"; echo; \
-	      echo 0 > $(CHECK_STATUS); \
+	      echo "....FAILED on $$file"; echo; \
+	      echo 0 > $(CHECK_SRC_STATUS); \
 	    else \
-	      echo "......$$ERFN $$ORFN are identical"; \
+	      echo "....$$ERFN $$ORFN are identical"; \
 	      ok=`expr $$ok + 1`; \
 	    fi; \
 	    DESTFN=$$OUTDIR/$$BASE.$$EXT; \
 	    mv -f $$OFN $$DESTFN; \
-	    echo "......Unparse results in $$DESTFN"; \
+	    echo "....Unparse results in $$DESTFN"; \
 	  else \
-	    echo "......No output generated.  FAILED on $$file"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo "....No output generated.  FAILED on $$file"; \
+	    echo 0 > $(CHECK_SRC_STATUS); \
 	  fi; \
 	  if [ ! -s $$ERRFN ]; then \
-	    echo "......Removing empty error file."; \
+	    echo "....Removing empty error file."; \
 	    rm -f $$ERRFN; \
 	  fi; \
-	  echo; \
 	done; \
-	echo; echo "...Successfully processed $$ok of $$n files."; echo; \
+	echo; echo "..Successfully processed $$ok of $$n files."; echo; \
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
-	  cat Makefile.trans | sed 's/FIXME/${SDIR}/g' > $$OUTDIR/Makefile; \
+	  cat Makefile.trans | sed 's/REPLACEME/${SDIR}/g' > $$OUTDIR/Makefile;\
 	  echo "Copying configuration file(s) to $$OUTDIR"; \
 	  cp -f *.config $$OUTDIR; \
 	  echo "Copying header files to $$OUTDIR"; \
@@ -331,9 +328,9 @@ checkRoseTrans: $(EXE)
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
 	else \
 	  echo "ERROR: Must resolve issues before able to build translations.";\
-	  echo 0 > $(CHECK_STATUS); \
+	  echo 0 > $(CHECK_SRC_STATUS); \
         fi; \
-	echo "DONE (checkRoseTran)"; echo
+	echo "DONE (checkRoseTran)"
 
 
 clean:

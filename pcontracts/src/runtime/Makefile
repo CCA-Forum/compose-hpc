@@ -35,8 +35,12 @@ all: $(C_OBJECTS)
 
 check:
 
+checkAll:
+
 clean:
 	@rm -f *.o 
 
-clean-all: clean
+clean-all: cleanAll
+
+cleanAll: clean
 	@rm -f $(LIB)

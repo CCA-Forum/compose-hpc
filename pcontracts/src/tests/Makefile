@@ -1,7 +1,13 @@
-RT_DIR=../runtime
-LIB_DIR=../../lib
+ROOT_DIR=../..
 
-CHECK_STATUS=../../.checkStatus
+include $(ROOT_DIR)/make.inc
+
+LIB_DIR=$(ROOT_DIR)/lib
+
+SRC_DIR=$(ROOT_DIR)/src
+RT_DIR=$(SRC_DIR)/runtime
+
+CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
 
 CXX=g++
 FLAGS=-g -O3 
@@ -24,7 +30,9 @@ CXX_OBJECTS = $(CXX_FILES:.cpp=.o)
 
 all: $(BINARIES)
 
-check: checkTCE
+check: checkAll
+
+checkAll: checkTCE
 
 .c.o:
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
@@ -38,13 +46,16 @@ checkTCE: $(TCE_EXE)
 	SUCCESS=`grep "TEST SUITE PASSED" run$(TCE_EXE).out`; \
 	if [ -z "$$SUCCESS" ]; then \
 	  echo "...FAILED"; \
-	  echo 1 > ${CHECK_STATUS}; \
+	  echo 0 > $(CHECK_ALL_STATUS); \
 	else \
 	  echo "...PASSED"; \
-	fi;
+	fi; \
+	echo
 
 clean:
 	@rm -f *.o *.csv *.out
 
-clean-all: clean
+clean-all: cleanAll
+
+cleanAll: clean
 	@rm -f $(BINARIES)

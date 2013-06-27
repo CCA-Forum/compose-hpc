@@ -1,14 +1,20 @@
 ROOT_DIR=../..
-EX_DIR=${ROOT_DIR}/src/examples
-RT_DIR=$(ROOT_DIR)/src/runtime
-BASE_ORACLE_DIR=$(ROOT_DIR)/src/data
 
-MAKE= make --no-print-directory
+import $(ROOT_DIR)/make.inc
 
-BASE_TEST_DIR=FIXME
+SRC_DIR=$(ROOT_DIR)/src
+
+EX_DIR=$(SRC_DIR)/examples
+RT_DIR=$(SRC_DIR)/runtime
+BASE_ORACLE_DIR=$(SRC_DIR)/data
+
+MAKE=make --no-print-directory
+
+# NOTE: The following is automatically replaced by the examples Makefile
+BASE_TEST_DIR=REPLACEME
 
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(BASE_TEST_DIR)
-CHECK_STATUS=$(ROOT_DIR)/.checkStatus-$(BASE_TEST_DIR)
+CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(BASE_TEST_DIR)
 
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
@@ -72,25 +78,25 @@ $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o $(CE_OBJ)
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o $(CE_OBJ)
 
 check: checkClean checkSetup all checkBasicsCore checkSummary
-	@echo; echo "DONE (check)"; echo
+	@echo "DONE (check)"; echo
 
 checkAll: checkClean checkSetup all checkBasicsCore checkContractsCore \
 	    checkSummary
-	@echo; echo "DONE (checkAll)"; echo
+	@echo "DONE (checkAll)"; echo
 	
 
 checkBasics: checkClean checkSetup all checkBasicsCore checkSummary
-	@echo; echo "DONE (checkBasics)"; echo
+	@echo "DONE (checkBasics)"
 
 checkBasicsCore: checkKC checkKCpp checkKnapsack checkUK
-	@echo; echo "DONE (checkBasicsCore)"; echo
+	@echo "DONE (checkBasicsCore)"
 
 checkContracts:  checkClean checkSetup all checkContractsCore checkSummary
-	@echo; echo "DONE (checkContracts)"; echo
+	@echo "DONE (checkContracts)"
 
 checkContractsCore: 
-	@echo; echo "Checking contracts..."; \
-	$(MAKE) PCEFLAGS=-DPAUL_CONTRACTS || echo 0 > $(CHECK_STATUS); \
+	@echo "Checking contracts..."; \
+	$(MAKE) PCEFLAGS=-DPAUL_CONTRACTS check || echo 0 > $(CHECK_EX_STATUS);\
 	ok=0; \
 	n=0; \
 	for exe in $(BINARIES); do \
@@ -98,29 +104,31 @@ checkContractsCore:
 	  echo "..Processing $$exe"; \
 	  ORFN=$(ORACLE_DIR)/$$exe.mout; \
 	  TFN=$$exe.mout; \
-	  ./$$exe > $$exe.mout; \
+	  ./$$exe > $$TRN; \
 	  if [ -f $$ORFN ]; then \
 	    diff $$TFN $$ORFN > $$TFN.diffs; \
 	    if [ -s $$TFN.diffs ]; then \
-	      echo "....*** $$TFN $$ORFN are different ***"; \
+	      echo "....*** $$TFN and $$ORFN are different ***"; \
 	      cat $$TFN.diffs; \
 	      echo "....FAILED on $$exe"; echo; \
-	      echo 0 > $(CHECK_STATUS); \
+	      echo 0 > $(CHECK_EX_STATUS); \
 	    else \
-	      echo "....$$TFN $$ORFN are identical"; \
+	      echo "....$$TFN and $$ORFN are identical"; \
 	      ok=`expr $$ok + 1`; \
 	    fi; \
+	  else \
+	    echo "....*** $$ORFN is missing ***"; \
+	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	done; \
-	echo; \
-	echo; echo "...Successfully processed $$ok of $$n files."; \
+	echo "...Successfully processed $$ok of $$n files."; \
 	@echo; echo "DONE (checkContractsCore)"; echo
 
-# Do NOT remove $(CHECK_STATUS) as long as the root makefile expects it
+# Do NOT remove $(CHECK_EX_STATUS) as long as the root makefile expects it
 checkSummary:
 	@echo; \
-	if [ -f $(CHECK_STATUS) ]; then \
-	  res=`cat $(CHECK_STATUS)`; \
+	if [ -f $(CHECK_EX_STATUS) ]; then \
+	  res=`cat $(CHECK_EX_STATUS)`; \
 	  if [ "$$res" -eq "0" ]; then \
 	    echo "$$BASE_TEST_DIR Test Suite:  FAILED"; \
 	    echo; echo "Review output to identify failure(s)"; \
@@ -129,17 +137,16 @@ checkSummary:
 	  fi; \
 	else \
 	  echo; echo "*******"; \
-	  echo "WARNING:  $(CHECK_STATUS) is missing.  "; \
+	  echo "WARNING:  $(CHECK_EX_STATUS) is missing.  "; \
 	  echo "          Cannot assess $$BASE_TEST_DIR test suite."; \
 	  echo "*******"; \
-	fi; \
-	echo "DONE (checkSummary)"; echo
+	fi
 
 checkClean:
 	@rm -f *.o *.mout $(BINARIES)
 
 checkSetup:
-	@echo 1 > $(CHECK_STATUS)
+	@echo 1 > $(CHECK_EX_STATUS)
 
 checkKC: $(LKC_EXE) $(UKC_EXE)
 	@echo "Checking C knapsack programs..."; \
@@ -152,18 +159,18 @@ checkKC: $(LKC_EXE) $(UKC_EXE)
 	    diff $(LKC_EXE).mout $(UKC_EXE).mout > checkKC.diffs 2>&1; \
 	    if [ -s checkKC.diffs ]; then \
 	      echo "ERROR: Different C knapsack results"; \
-	      echo 0 > $(CHECK_STATUS); \
+	      echo 0 > $(CHECK_EX_STATUS); \
 	    else \
 	      echo "SUCCESS: Identical C knapsack results!"; \
 	    fi; \
 	    rm -f checkKC.diffs; \
 	  else \
 	    echo "ERROR: Cannot find or empty $(UKC_EXE)"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	else \
 	  echo "ERROR: Cannot find or empty $(LKC_EXE)"; \
-	  echo 0 > $(CHECK_STATUS); \
+	  echo 0 > $(CHECK_EX_STATUS); \
 	fi; \
 	echo "DONE (checkKC)"; echo
 
@@ -184,12 +191,12 @@ checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
 	          echo "  known C++ precondition violation (label)."; \
 	        else \
 	          echo "ERROR: Different C++ knapsack results"; \
-	          echo 0 > $(CHECK_STATUS); \
+	          echo 0 > $(CHECK_EX_STATUS); \
 	        fi; \
 	        rm -f checkKCpp-pt.mout; \
 	      else \
 	        echo "ERROR: Different C++ knapsack results"; \
-	        echo 0 > $(CHECK_STATUS); \
+	        echo 0 > $(CHECK_EX_STATUS); \
 	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C++ knapsack results!"; \
@@ -197,11 +204,11 @@ checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
 	    rm -f checkKCpp.diffs; \
 	  else \
 	    echo "ERROR: Cannot find or empty $(UKCPP_EXE)"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	else \
 	  echo "ERROR: Cannot find or empty $(LKCPP_EXE)"; \
-	  echo 0 > $(CHECK_STATUS); \
+	  echo 0 > $(CHECK_EX_STATUS); \
 	fi; \
 	echo "DONE (checkKCpp)"; echo
 
@@ -223,12 +230,12 @@ checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
 	          echo "  known C++ precondition violation (label)."; \
 	        else \
 	          echo "ERROR: Different C and C++ knapsack results"; \
-	          echo 0 > $(CHECK_STATUS); \
+	          echo 0 > $(CHECK_EX_STATUS); \
 	        fi; \
 	        rm -f checkKnapsack-pt.mout; \
 	      else \
 	        echo "ERROR: Different C and C++ knapsack results"; \
-	        echo 0 > $(CHECK_STATUS); \
+	        echo 0 > $(CHECK_EX_STATUS); \
 	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C and C++ knapsack results!"; \
@@ -236,11 +243,11 @@ checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
 	    rm -f checkKnapsack.diffs; \
 	  else \
 	    echo "ERROR: Cannot find or empty $(LKC_EXE)"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	else \
 	  echo "ERROR: Cannot find or empty $(LKCPP_EXE)"; \
-	  echo 0 > $(CHECK_STATUS); \
+	  echo 0 > $(CHECK_EX_STATUS); \
 	fi; \
 	echo "DONE (checkKnapsack)"; echo
 
@@ -261,12 +268,12 @@ checkUK: $(UKC_EXE) $(LKCPP_EXE)
 	          echo "  results due to known C++ precondition violation."; \
 	        else \
 	          echo "ERROR: Different C and C++ unlabeled knapsack results";\
-	          echo 0 > $(CHECK_STATUS); \
+	          echo 0 > $(CHECK_EX_STATUS); \
 	        fi; \
 	        rm -f checkUK-pt.mout; \
 	      else \
 	        echo "ERROR: Different C and C++ unlabeled knapsack results"; \
-	        echo 0 > $(CHECK_STATUS); \
+	        echo 0 > $(CHECK_EX_STATUS); \
 	      fi; \
 	    else \
 	      echo "SUCCESS: Identical C and C++ unlabeled knapsack results!"; \
@@ -274,16 +281,18 @@ checkUK: $(UKC_EXE) $(LKCPP_EXE)
 	    rm -f checkUK.diffs; \
 	  else \
 	    echo "ERROR: Cannot find or empty $(UKC_EXE)"; \
-	    echo 0 > $(CHECK_STATUS); \
+	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	else \
 	  echo "ERROR: Cannot find or empty Unlabeledknapsack"; \
-	  echo 0 > $(CHECK_STATUS); \
+	  echo 0 > $(CHECK_EX_STATUS); \
 	fi; \
 	echo "DONE (checkUK)"; echo
 
 clean:
 	rm -f *.o *.mout *.out *.diffs *.stats *.trace 
+
+clean-all: cleanAll
 
 cleanAll: clean cleanExe
 

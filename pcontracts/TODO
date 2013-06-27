@@ -1,5 +1,10 @@
 PROTOTYPE
 
+- Determine why checkContracts is having a parsing issue.
+
+- Need to determine what else was lost when the examples directory was
+  mysteriously deleted!
+  
 - Complete support for partial enforcement strategies.
   -- Complete testing and debugging of STATS.
 
