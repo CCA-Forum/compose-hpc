@@ -1,11 +1,11 @@
 /**
  * \internal
- * File:  Knapsack.hpp
+ * File:  UnlabeledKnapsack-v2.hpp
  * \endinternal
  *
  * @file
  * @brief
- * Class, with labeled contracts, for printing a solution to the knapsack
+ * Class, with unlabeled contracts, for printing a solution to the knapsack
  * problem.
  *
  * @details
@@ -13,14 +13,15 @@
  * given target based on a known set of possible weights, where the 
  * size of the list is restricted.
  *
- * Contract annotations in this version of the program contain optional labels.
+ * Contract annotations in this version of the program do NOT contain optional
+ * labels.
  *
  * @htmlinclude knapsackSource.html
  * @htmlinclude copyright.html
  */
 
-#ifndef included_Knapsack_hpp
-#define included_Knapsack_hpp
+#ifndef included_Unlabeled_Knapsack_v2_hpp
+#define included_Unlabeled_Knapsack_v2_hpp
 
 namespace Examples {
 
@@ -29,7 +30,7 @@ namespace Examples {
  */
 static const unsigned int MAX_WEIGHTS=10;
 
-class Knapsack 
+class UnlabeledKnapsack 
 {
   protected:
     /**
@@ -44,14 +45,14 @@ class Knapsack
   
   public:
     /**
-     *  Returns an instance of the Knapsack class.
+     *  Returns an instance of the UnlabeledKnapsack class.
      */
-    Knapsack();
+    UnlabeledKnapsack();
   
     /**
      *  Deletes the instance.
      */
-    virtual ~Knapsack() { }
+    virtual ~UnlabeledKnapsack() { }
   
   public:
     /**
@@ -94,8 +95,8 @@ class Knapsack
      */
     bool
     hasSolution(unsigned int t);
-};  /* end class Knapsack */
+};  /* end class UnlabeledKnapsack */
 
 }; /* end namespace Examples */
 
-#endif /* included_Knapsack_hpp */
+#endif /* included_Unlabeled_Knapsack_v2_hpp */

@@ -44,8 +44,8 @@ EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*"
 
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
-LKCPP_EXE=Knapsack
-UKCPP_EXE=UnlabeledKnapsack
+LKCPP_EXE=Knapsack-v2
+UKCPP_EXE=UnlabeledKnapsack-v2
 CPRINTER_EXE=ContractPrinter
 CAPRINTER_EXE=ContractAssertionPrinter
 RCI_EXE=RoutineContractInstrumenter
@@ -84,12 +84,14 @@ checkAll: checkClean all checkSetup checkKnapsackTests checkRose checkContracts
 checkClean:
 	rm -f *.o *.mout $(BINARIES)
 
+#	  (cd $$dir && make -n checkAll) || echo 0 > $$CSFN; \
+
 checkContracts: all checkSetup
 	@echo; \
 	for dir in $(INSTR_DIRS); do \
 	  echo; echo "Checking instrumented $$dir sources..."; \
 	  CSFN=$(CHECK_ALL_STATUS)-$$dir; \
-	  $(MAKE) -n -C $(RES_DIR)/$$dir checkAll || echo 0 > $$CSFN; \
+	  (cd $(RES_DIR)/$$dir && make checkAll) || echo 0 > $$CSFN; \
 	  if [ -f "$$CSFN" ]; then \
 	    res=`cat $$CSFN`; \
 	    if [ "$$res" -eq "0" ]; then \
@@ -181,10 +183,10 @@ checkKnapsackDiffs:
 	        DIFFS=$(BASE_RES_DIR)/$$PRE-$$KT.diffs; \
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
                 if [ -s $$DIFFS ]; then \
-	          echo "....*** $$PRE $$COMP are different ***"; \
+	          echo "....*** Different: $$PRE $$COMP ***"; \
 	          echo 0 > $(CHECK_SRC_STATUS); \
 	        else \
-	          echo "....$$PRE $$COMP are identical"; \
+	          echo "....Identical: $$PRE $$COMP"; \
 	          if [ -f $$DIFFS ]; then \
 	            echo ".......Removing empty differences file"; \
 	            rm -f $$DIFFS; \
@@ -285,9 +287,9 @@ checkRoseTrans: $(EXE)
 	  OFN=rose_$$BASE.$$EXT; \
 	  ERRFN=$$OUTDIR/$$BASE.err; \
 	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
-	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$BASE.checks; \
+	  ERFN=$$BASE.checks; \
+	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$ERFN; \
 	  if [ -f $$OFN ]; then \
-	    ERFN=$$BASE.checks; \
 	    grep PCE_CHECK $$OFN | grep ASSERT | wc -l > $$ERFN; \
 	    grep PCE_CHECK $$OFN | grep INVARIANT | wc -l >> $$ERFN; \
 	    grep PCE_CHECK $$OFN | grep POSTCONDITION | wc -l >> $$ERFN;\
@@ -297,12 +299,12 @@ checkRoseTrans: $(EXE)
 	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
 	    diff $$ERFN $$ORFN > $$ERFN.diffs; \
             if [ -s $$ERFN.diffs ]; then \
-	      echo "....*** $$ERFN $$ORFN are different ***"; \
+	      echo "....*** Different: $$ERFN $$ORFN ***"; \
 	      cat $$ERFN.diffs; \
 	      echo "....FAILED on $$file"; echo; \
 	      echo 0 > $(CHECK_SRC_STATUS); \
 	    else \
-	      echo "....$$ERFN $$ORFN are identical"; \
+	      echo "....Identical: $$ERFN $$ORFN"; \
 	      ok=`expr $$ok + 1`; \
 	    fi; \
 	    DESTFN=$$OUTDIR/$$BASE.$$EXT; \

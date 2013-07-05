@@ -1,11 +1,11 @@
 /**
  * \internal
- * File:  UnlabeledKnapsack.cpp
+ * File:  Knapsack-v2.cpp
  * \endinternal
  *
  * @file
  * @brief
- * Class implementation, with unlabeled contracts, for printing a solution to 
+ * Class implementation, with labeled contracts, for printing a solution to
  * the knapsack problem.
  *
  * @details
@@ -13,8 +13,7 @@
  * given target based on a known set of possible weights, where the
  * size of the list is restricted.
  *
- * Contract annotations in this version of the program do NOT contain optional
- * labels.
+ * Contract annotations in this version of the program contain optional labels.
  *
  * @htmlinclude knapsackSource.html
  * @htmlinclude copyright.html
@@ -23,7 +22,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
-#include "UnlabeledKnapsack.hpp"
+#include "Knapsack-v2.hpp"
 
 using namespace std;
 
@@ -42,25 +41,41 @@ bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
 
-/* %CONTRACT INVARIANT onlyPosWeights(); */
+/* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
 
-Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
+Examples::Knapsack::Knapsack() {
   d_nextIndex = 0;
   memset(d_weights, 0, (size_t)(MAX_WEIGHTS*sizeof(int)));
   return;
-} /* UnlabeledKnapsack */
-
+}
 
 /* %CONTRACT REQUIRE 
-    is initialization;
-    ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
+    pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
+    initialization: is initialization;
  */
-/* %CONTRACT ENSURE hasWeights(weights, len); */
+/* %CONTRACT ENSURE 
+    has_new_weights: hasWeights(weights, len); 
+ */
 void
-Examples::UnlabeledKnapsack::initialize(unsigned int* weights, unsigned int len)
+Examples::Knapsack::initialize(
+  /* in */ unsigned int* weights,
+  /* in */ unsigned int  len)
 {
   unsigned int i;
+
+  /*
+   * Routine _should_ be directly protecting itself from bad inputs rather
+   * than relying on assertions whose enforcement can be disabled (and will
+   * only result in executable checks with the Visitor version of the 
+   * instrumentor); however, needed some plausible excuse for using the
+   * assertion 'contract'...
+   */
+
+  /* %CONTRACT ASSERT
+      given_weights: weights!=NULL;
+      one_or_more_weights: len>0;
+   */
 
   if (weights != NULL) {
     if (len <= MAX_WEIGHTS) {
@@ -80,52 +95,63 @@ Examples::UnlabeledKnapsack::initialize(unsigned int* weights, unsigned int len)
   }
 
   return;  
-} /* initialize */
+}
 
-
-/* %CONTRACT ENSURE is pure; */
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
-Examples::UnlabeledKnapsack::onlyPosWeights() {
+Examples::Knapsack::onlyPosWeights() {
   return onlyPos(d_weights, d_nextIndex);
-} /* onlyPosWeights */
-
+}
 
 /* %CONTRACT REQUIRE 
-  ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
+  pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
  */
-/* %CONTRACT ENSURE is pure; */
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
-Examples::UnlabeledKnapsack::hasWeights(unsigned int* weights, 
-                                        unsigned int len) 
+Examples::Knapsack::hasWeights(
+  /* in */ unsigned int* weights, 
+  /* in */ unsigned int  len) 
 {
   return sameWeights(d_weights, d_nextIndex, weights, len);
-} /* hasWeights */
+}
 
 
-/* %CONTRACT REQUIRE t > 0; */
-/* %CONTRACT ENSURE is pure; */
+/* %CONTRACT REQUIRE
+    pos_target: t > 0;
+ */
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
-Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
+Examples::Knapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
-} /* hasSolution */
+}
 
 
 /**
  * Determine whether the weights of all of the available items are
  * positive.
  *
- * @param weights  The weights of the items that could be added to the 
- *                   knapsack.
- * @param len      The length, or number, of weights in the list.
- * @return         Returns true if they are all non-zero; otherwise,
- *                   returns false.
+ * @param[in] weights  The weights of the items that could be added to the 
+ *                       knapsack.
+ * @param[in] len      The length, or number, of weights in the list.
+ * @return             Returns true if they are all non-zero; otherwise,
+ *                       returns false.
  */
 /* %CONTRACT REQUIRE 
-    ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
+    pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
  */
-/* %CONTRACT ENSURE is pure; */
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
-onlyPos(unsigned int* weights, unsigned int len) 
+onlyPos(
+  /* in */ unsigned int* weights,
+  /* in */ unsigned int  len) 
 {
   unsigned int i;
   bool         isPos = false;
@@ -139,8 +165,8 @@ onlyPos(unsigned int* weights, unsigned int len)
    */
 
   /* %CONTRACT ASSERT
-      weights!=NULL;
-      len>0;
+      given_weights: weights!=NULL;
+      one_or_more_weights: len>0;
    */
 
   if (len > 0) {
@@ -159,21 +185,28 @@ onlyPos(unsigned int* weights, unsigned int len)
  * Determine whether the weights in the two lists match, where order
  * does not matter.
  *
- * @param nW    The weights of the items that could be added to the knapsack.
- * @param lenW  The length, or number, of weights in nW.
- * @param nS    The weights of the items that could be added to the knapsack.
- * @param lenS  The length, or number, of weights in nS.
- * @return      Returns true if the values in the two lists match; 
- *                otherwise, returns false.
+ * @param[in] nW    The weights of the items that could be added to the 
+ *                    knapsack.
+ * @param[in] lenW  The length, or number, of weights in nW.
+ * @param[in] nS    The weights of the items that could be added to the 
+ *                    knapsack.
+ * @param[in] lenS  The length, or number, of weights in nS.
+ * @return          Returns true if the values in the two lists match; 
+ *                    otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    ((nW!=NULL) and (lenW>0)) implies pce_all(nW>0, lenW); 
-    ((nS!=NULL) and (lenS>0)) implies pce_all(nS>0, lenS); 
+    pos_w_weights: ((nW!=NULL) and (lenW>0)) implies pce_all(nW>0, lenW); 
+    pos_s_weights: ((nS!=NULL) and (lenS>0)) implies pce_all(nS>0, lenS); 
  */
-/* %CONTRACT ENSURE is pure; */
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
-sameWeights(unsigned int* nW, unsigned int lenW, 
-            unsigned int* nS, unsigned int lenS)
+sameWeights(
+  /* in */ unsigned int* nW, 
+  /* in */ unsigned int  lenW, 
+  /* in */ unsigned int* nS, 
+  /* in */ unsigned int  lenS)
 {
   bool     same = false;
   unsigned int* p;
@@ -196,7 +229,7 @@ sameWeights(unsigned int* nW, unsigned int lenW,
         same = onlyPos(p, lenW);
         free(p);
       }
-    }  /* else weights list size mismatch so assume will false */
+    }  /* else weights list size mismatch so assume will be false */
   }  /* else no input weights provided so automatically false */
 
   return same;
@@ -209,22 +242,29 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  * based on the algorithm defined in "Data Structures and Algorithms" by 
  * Aho, Hopcroft, and Ullman (c) 1983.
  *
- * @param weights  The weights of the items that could be added to the 
- *                   knapsack.
- * @param t        The desired, or target, weight of items to carry in
- *                   the knapsack.
- * @param i        The current entry in the list.
- * @param n        The number of weights in the list.
- * @return         Returns true if the solution has been found based on
- *                   the specified entry; otherwise, returns false.
+ * @param[in] weights  The weights of the items that could be added to the 
+ *                       knapsack.
+ * @param[in] t        The desired, or target, weight of items to carry in
+ *                       the knapsack.
+ * @param[in] i        The current entry in the list.
+ * @param[in] n        The number of weights in the list.
+ * @return             Returns true if the solution has been found based on
+ *                       the specified entry; otherwise, returns false.
  */
 /* %CONTRACT REQUIRE 
-    pos_target: t > 0;
-    ((weights!=NULL) and (n>0)) implies pce_all(weights>0, n); 
+    pos_weights: ((weights!=NULL) and (n>0)) 
+			implies pce_all(weights>0, n); 
  */
-/* %CONTRACT ENSURE is pure; */
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
-solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
+solve(
+  /* in */ unsigned int* weights, 
+  /* in */ unsigned int  t, 
+  /* in */ unsigned int  i, 
+  /* in */ unsigned int  n) 
+{
   bool has = false;
 
   /*
@@ -236,8 +276,8 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
    */
 
   /* %CONTRACT ASSERT
-      weights!=NULL;
-      n>0;
+      given_weights: weights!=NULL;
+      one_or_more_weights: n>0;
    */
 
   if (t==0) {
@@ -256,15 +296,19 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
 
 
 /**
- * Perform a single solve, relying on the UnlabeledKnapsack class to output 
- * the result from a successful run.
+ * Perform a single solve, relying on the Knapsack class to output the
+ * result from a successful run.
  *
- * @param ksack  The knapsack instance.
- * @param t      The target weight.
+ * @param[in] ksack  The knapsack instance.
+ * @param[in] t      The target weight.
  */
-/* %CONTRACT REQUIRE ksack != NULL; */
+/* %CONTRACT REQUIRE 
+    has_sack: ksack != NULL;
+ */
 void
-runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
+runIt(
+  /* in */ Examples::Knapsack* ksack, 
+  /* in */ unsigned int        t)
 {
   cout << "Solution for target=" << t <<"?: ";
   if ( (ksack != NULL) && !ksack->hasSolution(t) ) {
@@ -305,7 +349,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  Examples::UnlabeledKnapsack* ksack = new Examples::UnlabeledKnapsack();
+  Examples::Knapsack* ksack = new Examples::Knapsack();
   if (ksack != NULL) {
     ksack->initialize(weights, num);
 

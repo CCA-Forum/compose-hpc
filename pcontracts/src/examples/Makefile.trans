@@ -1,6 +1,7 @@
 ROOT_DIR=../..
 
-import $(ROOT_DIR)/make.inc
+#import $(ROOT_DIR)/make.inc
+CHECK_STATUS=.checkStatus
 
 SRC_DIR=$(ROOT_DIR)/src
 
@@ -10,7 +11,7 @@ BASE_ORACLE_DIR=$(SRC_DIR)/data
 
 MAKE=make --no-print-directory
 
-# NOTE: The following is automatically replaced by the examples Makefile
+# NOTE: The following value is automatically replaced by the examples Makefile.
 BASE_TEST_DIR=REPLACEME
 
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(BASE_TEST_DIR)
@@ -34,27 +35,33 @@ CE_OBJ=$(RT_DIR)/ContractsEnforcer.o
 LDFLAGS = $(FLAGS) $(LIBS)
 CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
+CSRCS = knapsack.c unlabeledknapsack.c
+CCSRCS = helloworld.cc helloworld-v2.cc helloworld-v3.cc
+CPPSRCS = Knapsack-v2.cpp UnlabeledKnapsack-v2.cpp
+
+SRCS=$(CSRCS) $(CCSRCS) $(CPPSRCS)
+HDRS=$(CSRCS:.h=.o) $(CCSRCS:.hh=.o) $(CPPSRCS:.hpp=.o)
+OBJS=$(CSRCS:.c=.o) $(CCSRCS:.cc=.o) $(CPPSRCS:.cpp=.o)
+EXES=$(CSRCS:.c=) $(CCSRCS:.cc=) $(CPPSRCS:.cpp=)
+
 HWCC_EXE=helloworld
 HWCC2_EXE=helloworld-v2
 HWCC3_EXE=helloworld-v3
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
-LKCPP_EXE=Knapsack
-UKCPP_EXE=UnlabeledKnapsack
+LKCPP_EXE=Knapsack-v2
+UKCPP_EXE=UnlabeledKnapsack-v2
 
-BINARIES=$(HWCC_EXE) ${HWCC2_EXE} ${HWCC3_EXE} $(LKC_EXE) $(UKC_EXE) \
-	$(LKCPP_EXE) $(UKCPP_EXE) 
-
-all:	$(BINARIES)
+all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
 
 .c.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 .cc.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o $(CE_OBJ)
 	$(CXX) -o $(HWCC_EXE) $(LDFLAGS) $(HWCC_EXE).o $(CE_OBJ)
@@ -99,21 +106,21 @@ checkContractsCore:
 	$(MAKE) PCEFLAGS=-DPAUL_CONTRACTS check || echo 0 > $(CHECK_EX_STATUS);\
 	ok=0; \
 	n=0; \
-	for exe in $(BINARIES); do \
+	for exe in $(EXES); do \
 	  n=`expr $$n + 1`; \
 	  echo "..Processing $$exe"; \
-	  ORFN=$(ORACLE_DIR)/$$exe.mout; \
 	  TFN=$$exe.mout; \
-	  ./$$exe > $$TRN; \
+	  ORFN=$(ORACLE_DIR)/$$TFN; \
+	  ./$$exe > $$TFN; \
 	  if [ -f $$ORFN ]; then \
 	    diff $$TFN $$ORFN > $$TFN.diffs; \
 	    if [ -s $$TFN.diffs ]; then \
-	      echo "....*** $$TFN and $$ORFN are different ***"; \
+	      echo "....*** Different: $$TFN $$ORFN ***"; \
 	      cat $$TFN.diffs; \
 	      echo "....FAILED on $$exe"; echo; \
 	      echo 0 > $(CHECK_EX_STATUS); \
 	    else \
-	      echo "....$$TFN and $$ORFN are identical"; \
+	      echo "....Identical:  $$TFN $$ORFN"; \
 	      ok=`expr $$ok + 1`; \
 	    fi; \
 	  else \
@@ -122,7 +129,7 @@ checkContractsCore:
 	  fi; \
 	done; \
 	echo "...Successfully processed $$ok of $$n files."; \
-	@echo; echo "DONE (checkContractsCore)"; echo
+	echo; echo "DONE (checkContractsCore)"; echo
 
 # Do NOT remove $(CHECK_EX_STATUS) as long as the root makefile expects it
 checkSummary:
@@ -143,7 +150,7 @@ checkSummary:
 	fi
 
 checkClean:
-	@rm -f *.o *.mout $(BINARIES)
+	@rm -f *.o *.mout $(EXES)
 
 checkSetup:
 	@echo 1 > $(CHECK_EX_STATUS)
@@ -297,4 +304,4 @@ clean-all: cleanAll
 cleanAll: clean cleanExe
 
 cleanExe:
-	rm -f *.o $(BINARIES)
+	rm -f *.o $(EXES)

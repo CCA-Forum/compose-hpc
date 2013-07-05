@@ -29,15 +29,6 @@ checkSummary:
 	@echo; \
 	echo "  *************************************************************";\
 	echo "  * Standard out messages must be reviewed manually.          *";\
-	echo "  *                                                           *";\
-	echo "  * NOTE:                                                     *";\
-	echo "  * - 'make check' checks the core software.                  *";\
-	echo "  * - 'make checkAll' checks core AND instrumented codes.     *";\
-	echo "  *                                                           *";\
-	echo "  * Exercising instrumented codes requires the software be    *";\
-	echo "  * built with 'PCEFLAGS=-DPAUL_CONTRACTS'.  It can be added  *";\
-	echo "  * during check (ie, 'make PCEFLAGS=-DPAUL_CONTRACTS check') *";\
-	echo "  * to perform the build, execution, and check processes.     *";\
 	echo "  *************************************************************";\
 	echo
 
@@ -52,7 +43,24 @@ clean-all:  cleanAll
 cleanAll:  clean-docs
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) cleanAll) \
-	done;
+	done; \
+	rm -f *.out $(CHECK_STATUS)*
 
 clean-docs:
 	@rm -rf rose docs
+
+help:
+	@echo; \
+	echo "  *************************************************************";\
+	echo "  * Standard out messages must be reviewed manually.          *";\
+	echo "  *                                                           *";\
+	echo "  * NOTE:                                                     *";\
+	echo "  * - 'make check' checks the core software.                  *";\
+	echo "  * - 'make checkAll' checks core AND instrumented codes.     *";\
+	echo "  *                                                           *";\
+	echo "  * Exercising instrumented codes requires the software be    *";\
+	echo "  * built with 'PCEFLAGS=-DPAUL_CONTRACTS'.  It can be added  *";\
+	echo "  * during check (ie, 'make PCEFLAGS=-DPAUL_CONTRACTS check') *";\
+	echo "  * to perform the build, execution, and check processes.     *";\
+	echo "  *************************************************************";\
+	echo
