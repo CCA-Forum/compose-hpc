@@ -10,7 +10,7 @@ module RuleGen.Contextualizer (
   contextualize
 ) where
 
-import Data.Maybe (mapMaybe)
+import Data.Maybe (catMaybes, mapMaybe)
 import Data.Tree
 import Data.Tree.Types
 import Data.Tree.Weaver
@@ -30,87 +30,70 @@ strategoVar = do
   ident <- genName "RG_"
   return $ Node (LBLString ident) []
 
---
--- find if a list of weave points contains holes.  if it does,
--- return a list of them.  otherwise, return the empty list
---
-holeFinder :: [WeavePoint a] -> [WeavePoint a]
-holeFinder []                     = []
-holeFinder ((Match _):rest)       = holeFinder rest
-holeFinder ((Mismatch _ _):rest)  = holeFinder rest
-holeFinder (l@(LeftHole _):rest)  = l:(holeFinder rest)
-holeFinder (r@(RightHole _):rest) = r:(holeFinder rest)
+booler :: WeaveTree a -> WeaveTree Bool
+booler (WLeaf t) = WLeaf t
+booler (WNode lbl _ kids) = WNode lbl (or flags) kids'
+  where kfilt (Match m) = let w@(WNode _ flag _) = booler m
+                          in (Match w, flag)
+        kfilt (Mismatch m1 m2) = (Mismatch (booler m1) (booler m2), False)
+        kfilt (LeftHole lh) = (LeftHole (booler lh), True)
+        kfilt (RightHole rh) = (RightHole (booler rh), True)
+        (kids',flags) = unzip $ map kfilt kids
 
-ctxtize :: Bool -> (WeavePoint a, Maybe LabeledTree) -> Maybe LabeledTree
-ctxtize True  ((LeftHole (WLeaf t)), _)  = Just t
-ctxtize False ((LeftHole (WLeaf _)), _)  = Nothing
-ctxtize _     ((LeftHole _), _)          = error "Malformed lefthole"
-ctxtize True  ((RightHole (WLeaf _)), _) = Nothing
-ctxtize False ((RightHole (WLeaf t)), _) = Just t
-ctxtize _     ((RightHole _), _)         = error "Malformed righthole"
-ctxtize _     (_, lt)                    = lt
+-- wrapper that annotates the tree with booleans indicating the presence of a hole in
+-- subtrees, and then calls the main function that does the traversal called
+-- contextualize_booltree
+contextualize :: [ContextualizeFilterRule] -> WeaveTree a -> IDGen [(LabeledTree, LabeledTree)]
+contextualize ctxt_filt t = do
+  let bt = booler t
+      lsetmatch = foldl1 S.union $ map (\(ContextualizeFilterRule r) -> r) ctxt_filt
+  contextualize_booltree (ContextualizeFilterRule lsetmatch) bt
+
+-- main function that does the traversal.  spins down until it hits a node that has a hole
+-- under it, AND has a matching label.  if this occurs, it hands off to the handler for the
+-- subtree.
+contextualize_booltree :: ContextualizeFilterRule -> WeaveTree Bool 
+               -> IDGen [(LabeledTree, LabeledTree)]
+contextualize_booltree ctxt_filt@(ContextualizeFilterRule filt_set) w@(WNode lbl True kids) = do
+  if (S.member lbl filt_set) then
+    contextualize_inner w
+    else
+      (do rv <- mapM (contextualize_booltree ctxt_filt) $ mapMaybe checkMatch kids
+          return $ concat rv
+        )
+contextualize_booltree _ (WNode _ False _) = do return []
+contextualize_booltree _ (WLeaf _) = error "BAD"
 
 checkMatch :: WeavePoint a -> Maybe (WeaveTree a)
 checkMatch (Match m) = Just m
 checkMatch _         = Nothing
 
-kidVars :: WeavePoint a -> IDGen (WeavePoint a, Maybe LabeledTree)
-kidVars k@(LeftHole _)  = return (k,Nothing)
-kidVars k@(RightHole _) = return (k,Nothing)
-kidVars k               = 
-  do l <- strategoVar 
-     return (k,Just l)
+contextualize_inner :: WeaveTree Bool 
+                    -> IDGen [(LabeledTree, LabeledTree)]
+-- WLeafs can be assumed by construction to only hang off specific kinds of
+-- weave points, and are handled elsewhere.  This function should only get
+-- invoked for nodes that contain WNode entries.
+contextualize_inner (WLeaf _) = 
+  error "Contextualize_inner incorrectly reached a WLeaf."
 
-deeperHoleFinder :: [WeavePoint Bool] -> Bool
-deeperHoleFinder []                      = False
-deeperHoleFinder ((Match t):rest)        = or [(isHoley t), (deeperHoleFinder rest)]
-deeperHoleFinder ((Mismatch lt rt):rest) = or [(isHoley lt), (isHoley rt),
-                                              (deeperHoleFinder rest)]
-deeperHoleFinder ((LeftHole t):rest)     = or [(isHoley t), (deeperHoleFinder rest)]
-deeperHoleFinder ((RightHole t):rest)    = or [(isHoley t), (deeperHoleFinder rest)]
+-- no holes underneath, and we are inside a subtree that is under a context
+-- node, so subtrees without holes turn into metavariables.
+contextualize_inner (WNode _ False _) = do  
+  l <- strategoVar
+  return [(l,l)]
 
-isHoley :: WeaveTree Bool -> Bool
-isHoley (WLeaf _)        = False
-isHoley (WNode _ flag _) = flag 
+-- otherwise, handle kids and keep this label
+contextualize_inner (WNode lbl True kids) = do
+  kids' <- mapM (ctxtWP) kids
+  let (kl,kr) = unzip $ concat kids'
+  return [(Node lbl $ catMaybes kl, Node lbl $ catMaybes kr)]
 
-kidAnnotator :: WeavePoint a -> WeavePoint Bool
-kidAnnotator (Match t)        = Match (holeAnnotator t)
-kidAnnotator (Mismatch lt rt) = Mismatch (holeAnnotator lt) (holeAnnotator rt)
-kidAnnotator (LeftHole t)     = LeftHole (holeAnnotator t)
-kidAnnotator (RightHole t)    = RightHole (holeAnnotator t)
-
-holeAnnotator :: WeaveTree a -> WeaveTree Bool
-holeAnnotator (WLeaf t)          = WLeaf t
-holeAnnotator (WNode str _ [])   = WNode str False []
-holeAnnotator (WNode str _ kids) =
-  let holes = not $ null $ holeFinder kids  -- any kids are holes?
-      kids' = map kidAnnotator kids
-      deeperHoles = deeperHoleFinder kids'
-  in WNode str (or [holes, deeperHoles]) kids'
-
-contextualize :: [ContextualizeFilterRule] -> WeaveTree a -> IDGen [(LabeledTree, LabeledTree)]
-contextualize rules t = do
-  let t' = holeAnnotator t
-  results <- mapM (\r -> contextualize_inner r t') rules
-  return $ concat results
-
-contextualize_inner :: ContextualizeFilterRule -> WeaveTree Bool -> IDGen [(LabeledTree, LabeledTree)]
--- nothing interesting happens for WLeaf nodes - shouldn't be here
-contextualize_inner _ (WLeaf _)                  = error "Can't contextualize a leaf"
-
--- no holes below here, so nothing interesting will come back.
-contextualize_inner _ (WNode _ False _)          = do return []
-
--- holes be below here.  if this node matches a subtree root to contextualize from,
--- do it!  Otherwise, descend seeking the holes and possible nodes that do
--- match
-contextualize_inner cfilt (WNode str True kids)  = do
-  let (ContextualizeFilterRule lsetMatch) = cfilt
-  if (S.member str lsetMatch) then
-    (do kids' <- mapM kidVars kids
-        let lhs = Node str (mapMaybe (ctxtize False) kids')
-            rhs = Node str (mapMaybe (ctxtize True) kids')
-        return [(lhs,rhs)])
-    else
-      (do rv <- mapM (contextualize_inner cfilt) $ mapMaybe checkMatch kids
-          return $ concat rv)
+ctxtWP :: WeavePoint Bool -> IDGen [(Maybe LabeledTree, Maybe LabeledTree)]
+ctxtWP (LeftHole (WLeaf lh))            = return [(Nothing, Just lh)]
+ctxtWP (RightHole (WLeaf rh))           = return [(Just rh, Nothing)]
+ctxtWP (Mismatch (WLeaf m1) (WLeaf m2)) = return [(Just m1, Just m2)]
+ctxtWP (Match n)                        = 
+  do xs <- contextualize_inner n
+     let mxs = map (\(a,b) -> (Just a, Just b)) xs
+     return mxs
+ctxtWP _                                = error "Malformed weavepoint encountered"

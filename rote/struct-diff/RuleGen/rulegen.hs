@@ -149,6 +149,9 @@ main = do
 
   let hole_rules = map (\(a,b) -> (treeToRule a, treeToRule b)) holes'
 
+  when debugflag $ do
+    putStrLn $ show hole_rules
+
   let nonmatching_forestPre = nonMatchForest woven'
       nonmatching_forest = map (generalizeWeave gFilt) nonmatching_forestPre
       --nonmatching_forest = nonmatching_forestPre
