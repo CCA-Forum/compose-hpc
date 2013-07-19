@@ -25,7 +25,7 @@ main(int argc, char*argv[]) {
     "world"
   };
 
-  /* %CONTRACT INIT */
+  /* %CONTRACT INIT helloworld-v3.config; */
 
   for (int i=0; i<4; i++) {
     printGesture(gestureStart, names[i]);

@@ -63,7 +63,7 @@ the check rule:
   $ make check
 
 where results of a variety of translation examples can be found in files
-with .out extensions and, when provided, comparisons between translations
+with .mout extensions and, when provided, comparisons between translations
 in files with .diffs extensions.  
 
   Basic file cleanup -- of object and output files --  is performed using the

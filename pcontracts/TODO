@@ -1,18 +1,32 @@
 PROTOTYPE
 
-- Complete support for partial enforcement strategies.
-  -- Complete testing and debugging of STATS.
+- Complete testing and debugging of STATS support.
+  -- TBD: Where should pre-routine STATS be instrumented?
+     (Now blanket adding before finalize regardless of annotation location.)
 
-  -- Add support for an in-lined TRACE comment to output enforcement trace
-     information (provided a trace file was specified in the configuration).
-     (This will require restoration of timing instrumentation.)
+  -- Need to resolve in-lined STATS not being translated (since currently
+     treating like FINAL).  Review whether distinguishing between inlined
+     and pre-routine annotations.
+
+- TBD: How should finer grained timing data be acquired for partial
+  enforcement strategies?
+  -- Support what could be considered default timing data added to each
+     executable annotation?
+  -- CONTRACT TIMING ?
+
 
 Refinements:
 - Move runtime headers to include directory and adjust build accordingly.
+
+- TRACE annotation support (optional?)
+  -- Add support for an in-lined TRACE comment to output enforcement trace
+     information (provided a trace file was specified in the configuration).
+     (This will require restoration of timing instrumentation.)
+  -- Complete testing and debugging
+
 - Support advanced (non-standard C) contract expressions
      (ie, those containing non-C operators supported in SIDL built-ins)
-- Test or eliminate support for contract tracing through new contract
-  annotation.
+
 - Ensure build failures in rose examples accounted for in 'make check' results.
   (Assumes skipping 'make' step.)
 

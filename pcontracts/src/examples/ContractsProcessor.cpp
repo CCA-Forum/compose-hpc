@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 June 14
+ * Last Modified:  2013 July 19
  * \endinternal
  *
  * @file
@@ -338,9 +338,9 @@ ContractsProcessor::addExpressions(
           {
             AssertionExpression ae (label, expr, AssertionSupport_COMMENT);
             cc->add(ae);
-//#ifdef DEBUG
+#ifdef DEBUG
             cout << "DEBUG: ..(assuming) is an STATS comment/desc.\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
           } 
           else 
           {
@@ -385,15 +385,6 @@ ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body,
     SgExprStatement* sttmt;
 
     PPIDirectiveType dt = cc->directive();
-
-//#ifdef PCE_ADD_STATS_DUMP
-    sttmt = buildDump(body, dt, "End processing");
-    if (sttmt != NULL)
-    {
-      num += SageInterface::instrumentEndOfFunction(def->get_declaration(), 
-                                                    sttmt);
-    }
-//#endif /* PCE_ADD_STATS_DUMP */
 
     sttmt = buildFinal(body, dt);
     if (sttmt != NULL)
@@ -693,6 +684,38 @@ ContractsProcessor::addPreChecks(
 
   return num;
 }  /* addPreChecks */
+
+
+/**
+ * Build and add contract enforcement statistics (dump) call.
+ *
+ * @param[in]     def   Function definition.
+ * @param[in,out] body  Function body.
+ * @param[in]     cc    (STATS) Contract comment.
+ * @return              Returns number of finalization calls added.    
+ */
+int
+ContractsProcessor::addStatsDump(SgFunctionDefinition* def, SgBasicBlock* body, 
+  ContractComment* cc)
+{
+  int num = 0;
+
+  if ( (def != NULL) && (body != NULL) && (cc != NULL) )
+  {
+//#ifdef DEBUG
+    cout<<"DEBUG: ....STATS comment =\""<<cc->getComment()<<"\"\n";
+//#endif /* DEBUG */
+
+    SgExprStatement* sttmt = buildDump(body, cc->directive(), cc->getComment());
+    if (sttmt != NULL)
+    {
+      num += SageInterface::instrumentEndOfFunction(def->get_declaration(),
+                                                    sttmt);
+    }
+  }
+              
+  return num;
+}  /* addStatsDump */
 
 
 /**
@@ -1216,7 +1239,7 @@ ContractsProcessor::processFunctionComments(
         ContractComment* post = NULL;
         ContractComment* stats = NULL;
         int numChecks[] = { 0, 0, 0 };
-        int numPrep[] = { 0, 0 };
+        int numPrep[] = { 0, 0, 0 };
         int numExec = 0;
 
         ContractClauseType::iterator iter;
@@ -1390,6 +1413,12 @@ ContractsProcessor::processFunctionComments(
               numExec += d_invariants->numExecutable();
             } 
 
+            if (stats != NULL)
+            {
+              numPrep[2] += addStatsDump(def, body, stats);
+              num += 1;
+            }
+
             if (final != NULL)
             {
               numPrep[1] += addFinalize(def, body, final);
@@ -1421,6 +1450,7 @@ ContractsProcessor::processFunctionComments(
         cout<<"  Prep Statements\n";
         cout<<"    Initialization = "<<numPrep[0]<<"\n";
         cout<<"    Finalization   = "<<numPrep[1]<<"\n";
+        cout<<"    Stats dump     = "<<numPrep[2]<<"\n";
         cout<<"  Total Statements = "<<num<<"\n";
         cout<<"        Executable = "<<numExec<<"\n";
         cout<<"DEBUG:END ************************************\n\n";

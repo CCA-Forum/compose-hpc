@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 May 23
+ * Last Modified:  2013 July 19
  * \endinternal
  *
  * @file
@@ -860,7 +860,7 @@ ContractsEnforcer_dumpStatistics(
     if (enforcer->stats->filePtr != NULL) 
     {
 #if DEBUG==2
-      printf("DEBUG: ..dumping stats..\n");
+      printf("DEBUG: ....to file..\n");
 #endif /* DEBUG==2 */
 
       /*
@@ -887,9 +887,13 @@ ContractsEnforcer_dumpStatistics(
               cmt);
       fflush(enforcer->stats->filePtr);
     }
-#ifdef CONFENF_DEBUG
     else
     {
+#if DEBUG==2
+      printf("DEBUG: ..cannot write to unopened stats file\n");
+#endif /* DEBUG==2 */
+
+#ifndef CONFENF_DEBUG
       /*
        * WARNING:  The following should be kept in sync with the output above.
        */
@@ -908,8 +912,8 @@ ContractsEnforcer_dumpStatistics(
              enforcer->data.total.asrt, 
              enforcer->data.total.routine,
              cmt);
-    }
 #endif
+    }
   }
 
   DEBUG_MESSAGE("ContractsEnforcer_dumpStatistics(): end")
@@ -918,7 +922,7 @@ ContractsEnforcer_dumpStatistics(
 
 
 /**
- * Finalize enabled enforcement features prior to cleaning up and freeing
+ *: Finalize enabled enforcement features prior to cleaning up and freeing
  * associated memory.
  *
  * @param enforcer [inout] The responsible contracts enforcer.
