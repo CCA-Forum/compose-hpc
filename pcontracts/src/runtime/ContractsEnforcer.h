@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 May 23
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -85,21 +85,21 @@ extern "C" {
 typedef struct ContractsEnforcer__struct {
   /** Basic enforcement policy */
   EnforcementPolicyType   policy;
-  /** Terminate on violation */
-  CONTRACTS_BOOL          terminate;
   /** Enforcement state */
   EnforcementStateType    data;
   /** [Optional] Enforcement statistics */
   EnforcementFileType*    stats;
   /** [Optional] Enforcement tracing */
   EnforcementFileType*    trace;
+  /** Terminate on violation */
+  CONTRACTS_BOOL          terminate;
 } ContractsEnforcerType;
 
 
 /**
  * Configuration file name. 
  */
-extern const char*            pce_config_filename;
+extern char*                  pce_config_filename;
 
 /**
  * Contracts enforcer "instance".
@@ -397,7 +397,7 @@ ContractsEnforcer_enforceClause(
  */
 CONTRACTS_BOOL
 ContractsEnforcer_terminate(
-  /* in */ ContractsEnforcerType* enforcer);
+  /* in */ const ContractsEnforcerType* enforcer);
 
 
 /**

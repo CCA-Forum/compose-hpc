@@ -3,7 +3,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 February 7
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -108,7 +108,7 @@ getBasicSignature(
 
 string
 getBasicSignature(
-  /* in */ SgFunctionDefinition* def)
+  /* in */ const SgFunctionDefinition* def)
 {
   string res;
 
@@ -218,7 +218,9 @@ isInputFile(
        iter!=project->get_fileList().end() && !isIF; iter++)
   {
     if (filename == (((*iter)->get_sourceFileNameWithPath())))
+    {
       isIF = true;
+    }
   }
 
   return isIF;

@@ -33,15 +33,15 @@ class Knapsack
 {
   protected:
     /**
-     * The next index in the fixed size list of possible weights.
-     */
-    unsigned int d_nextIndex;
-
-    /**
      * The fixed size list of the weights of available items.
      */
     unsigned int d_weights[MAX_WEIGHTS];
   
+    /**
+     * The next index in the fixed size list of possible weights.
+     */
+    unsigned int d_nextIndex;
+
   public:
     /**
      *  Returns an instance of the Knapsack class.
@@ -51,7 +51,7 @@ class Knapsack
     /**
      *  Deletes the instance.
      */
-    virtual ~Knapsack() { }
+    virtual ~Knapsack();
   
   public:
     /**
@@ -61,7 +61,7 @@ class Knapsack
      * @param[in] len      The length, or number, of weights in the list.
      */
     void
-    initialize(unsigned int* weights, unsigned int len);
+    initialize(const unsigned int* weights, unsigned int len);
   
     /**
      * Determine whether all weights of available items are positive.
@@ -82,7 +82,7 @@ class Knapsack
      *                       false.
      */
     bool
-    hasWeights(unsigned int* weights, unsigned int len);
+    hasWeights(const unsigned int* weights, unsigned int len);
   
     /**
      * Determine whether a solution exists such that a subset of weights

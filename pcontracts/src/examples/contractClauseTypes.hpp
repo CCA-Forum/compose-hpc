@@ -3,7 +3,7 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2012 November 28
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -18,8 +18,6 @@
 
 #include <string>
 #include "contractOptions.h"
-
-using namespace std;
 
 
 /**
@@ -40,7 +38,7 @@ using namespace std;
  *     // Use it
  *   }
  */
-static const string ReservedWordPairs[][2] = {
+static const std::string ReservedWordPairs[][2] = {
   { "all", "PCE_ALL" },
   { "and", "&&" },
   { "any", "PCE_ANY" },
@@ -75,7 +73,7 @@ static const string ReservedWordPairs[][2] = {
 static const int MIN_NEE_INDEX = 0;
 static const int MAX_NEE_INDEX = 29;
 
-static const string L_UNSUPPORTED_EXPRESSION 
+static const std::string L_UNSUPPORTED_EXPRESSION 
     = "Unsupported reserved word(s) detected in:\n\t";
 
 #endif /* include_contract_Clause_Types_hpp */

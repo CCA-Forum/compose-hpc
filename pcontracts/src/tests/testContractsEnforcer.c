@@ -31,7 +31,8 @@ typedef enum FileType__enum {
 /**
  * Names corresponding to (and indexable by) FileTypeEnum.
  */
-static const char* S_FILE_TYPE[2] = {
+//static const char* S_FILE_TYPE[2] = {
+static const char* S_FILE_TYPE[] = {
   "trace",
   "stats"
 };
@@ -191,7 +192,7 @@ int
 main(int argc, char **argv)
 {
   ContractsEnforcerType* enforcer = NULL;
-  char                   *statsfile, *tracefile;
+  char                   *statsfile = NULL, *tracefile = NULL;
   unsigned int           max = 15;
   unsigned int           iFactor = 30;
   unsigned int           bad = 0, good = 0;
@@ -209,8 +210,8 @@ main(int argc, char **argv)
    */
   static const unsigned int numEC = S_ENFORCEMENT_CLAUSE_MAX+1;
   static const unsigned int numEF = S_ENFORCEMENT_FREQUENCY_MAX+1;
-  unsigned int total = numEC*numEF;
-  unsigned int defaultEnforced[numEC][numEF] = 
+  //static const unsigned int defaultEnforced[numEC][numEF] = 
+  static const unsigned int defaultEnforced[][numEF] = 
   {
   /* NEVER, ALWAYS,   AF,   AT, PERIODIC, RANDOM */
     {    0,      0,    0,    0,        0,      0 }, /*  0=NONE */
@@ -316,6 +317,7 @@ main(int argc, char **argv)
 
   printf("\n\nResults:\n  %d valid enforcers\n  %d invalid options", good, bad);
   if (checkDefault) {
+    unsigned int total = numEC*numEF;
     printf("\n  %d passed out of %d cases\n", passed, total);
     printf("\n\nTEST SUITE %s\n", (passed==total) ? "PASSED" : "FAILED");
   }

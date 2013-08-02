@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 July 19
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -102,9 +102,9 @@ const string S_SEP = ";";
  */
 SgExprStatement*
 buildDump(
-  /* in */ SgStatement*      currSttmt,
-  /* in */ PPIDirectiveType  dt,
-  /* in */ string            desc)
+  /* in */ const SgStatement*  currSttmt,
+  /* in */ PPIDirectiveType    dt,
+  /* in */ string              desc)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -143,8 +143,8 @@ buildDump(
  */
 SgExprStatement*
 buildFinal(
-  /* in */ SgStatement*      currSttmt,
-  /* in */ PPIDirectiveType  dt)
+  /* in */ const SgStatement* currSttmt,
+  /* in */ PPIDirectiveType   dt)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -178,9 +178,9 @@ buildFinal(
  */
 SgExprStatement*
 buildInit(
-  /* in */ SgStatement*      currSttmt,
-  /* in */ PPIDirectiveType  dt,
-  /* in */ string            filename)
+  /* in */ const SgStatement* currSttmt,
+  /* in */ PPIDirectiveType   dt,
+  /* in */ string             filename)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -217,7 +217,7 @@ buildInit(
  */
 SgExprStatement*
 buildTimeUpdate(
-  /* in */ SgStatement* currSttmt)
+  /* in */ const SgStatement* currSttmt)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -253,7 +253,7 @@ buildTimeUpdate(
  */
 void
 ContractsProcessor::addExpressions(
-  /* in */    string           clause, 
+  /* in */    const string     clause, 
   /* inout */ ContractComment* cc)
 {
   if (!clause.empty() && cc != NULL)
@@ -369,24 +369,24 @@ ContractsProcessor::addExpressions(
 /**
  * Build and add contract enforcement finalization call.
  *
- * @param[in]     def   Function definition.
- * @param[in,out] body  Function body.
- * @param[in]     cc    (FINAL) Contract comment.
- * @return              Returns number of finalization calls added.    
+ * @param[in] def   Function definition.
+ * @param[in] body  Function body.
+ * @param[in] cc    (FINAL) Contract comment.
+ * @return          Returns number of finalization calls added.    
  */
 int
-ContractsProcessor::addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, 
-  ContractComment* cc)
+ContractsProcessor::addFinalize(
+  /* in */    const SgFunctionDefinition* def, 
+  /* inout */ const SgBasicBlock*         body, 
+  /* in */    ContractComment*            cc)
 {
   int num = 0;
 
   if ( (def != NULL) && (body != NULL) && (cc != NULL) )
   {
-    SgExprStatement* sttmt;
-
     PPIDirectiveType dt = cc->directive();
 
-    sttmt = buildFinal(body, dt);
+    SgExprStatement* sttmt = buildFinal(body, dt);
     if (sttmt != NULL)
     {
       num += SageInterface::instrumentEndOfFunction(def->get_declaration(),
@@ -469,8 +469,8 @@ ContractsProcessor::addIncludes(
     for (Rose_STL_Container<SgNode*>::iterator i = globalScopeList.begin();
          i != globalScopeList.end(); i++)
     {
-      Sg_File_Info* info;
-      SgGlobal* globalScope;
+      Sg_File_Info* info        = NULL;
+      SgGlobal*     globalScope = NULL;
       if ( (  (globalScope = isSgGlobal(*i)) != NULL)
            && ((info=globalScope->get_file_info()) != NULL)
            && isInputFile(project, info->get_raw_filename()) )
@@ -531,7 +531,7 @@ ContractsProcessor::addInitialize(
  * Add checks for all contract clause assertion expressions to the end
  * of the routine body.  
  *
- * @param[in,out]  def   Function definition.
+ * @param[in]      def   Function definition.
  * @param[in,out]  body  Pointer to the function body, which is assumed
  *                         to belong to the function definition, def.
  * @param[in]      cc    The contract comment whose expressions are to be added.
@@ -539,9 +539,9 @@ ContractsProcessor::addInitialize(
  */
 int
 ContractsProcessor::addPostChecks(
-  /* inout */ SgFunctionDefinition* def, 
-  /* inout */ SgBasicBlock*         body, 
-  /* in */    ContractComment*      cc)
+  /* in */    const SgFunctionDefinition* def, 
+  /* inout */ SgBasicBlock*               body, 
+  /* in */    ContractComment*            cc)
 {
   int num = 0;
 
@@ -695,8 +695,10 @@ ContractsProcessor::addPreChecks(
  * @return              Returns number of finalization calls added.    
  */
 int
-ContractsProcessor::addStatsDump(SgFunctionDefinition* def, SgBasicBlock* body, 
-  ContractComment* cc)
+ContractsProcessor::addStatsDump(
+  /* in */    const SgFunctionDefinition* def, 
+  /* inout */ SgBasicBlock*               body, 
+  /* in */    ContractComment*            cc)
 {
   int num = 0;
 
@@ -747,19 +749,19 @@ ContractsProcessor::addTimeUpdate(
 /**
  * Build the contract clause check statement.
  *
- * @param[in,out]  currSttmt  Pointer to the current statement.
- * @param[in]      clauseType The type of contract clause associated with the 
- *                              expression.
- * @param[in]      ae         The assertion expression.
- * @param[in]      dt         The (comment) directive type.
- * @return                    Contract clause statement node.
+ * @param[in]  currSttmt  Pointer to the current statement.
+ * @param[in]  clauseType The type of contract clause associated with the 
+ *                          expression.
+ * @param[in]  ae         The assertion expression.
+ * @param[in]  dt         The (comment) directive type.
+ * @return                Contract clause statement node.
  */
 SgExprStatement*
 ContractsProcessor::buildCheck(
-  /* inout */ SgStatement*        currSttmt, 
-  /* in */    ContractClauseEnum  clauseType, 
-  /* in */    AssertionExpression ae, 
-  /* in */    PPIDirectiveType    dt)
+  /* in */ const SgStatement*  currSttmt, 
+  /* in */ ContractClauseEnum  clauseType, 
+  /* in */ AssertionExpression ae, 
+  /* in */ PPIDirectiveType    dt)
 {
   SgExprStatement* sttmt = NULL;
 
@@ -770,6 +772,7 @@ ContractsProcessor::buildCheck(
 
     if (parms != NULL)
     {
+      string cmt, clauseTypeStr, clauseTime;
       parms->append_expression(SageBuilder::buildVarRefExp("pce_enforcer"));
   
       switch (clauseType)
@@ -873,7 +876,7 @@ ContractsProcessor::buildCheck(
  */
 void
 ContractsProcessor::extractContract(
-  /* in */    SgLocatedNode*      lNode,
+  /* in */    SgLocatedNode*     lNode,
   /* inout */ ContractClauseType &clauses)
 {
   if (lNode != NULL)
@@ -1012,7 +1015,7 @@ ContractsProcessor::instrumentRoutines(
       vector<SgNode*>::iterator iter;
       for (iter=fdList.begin(); iter!=fdList.end(); iter++)
       {
-        Sg_File_Info* info;
+        Sg_File_Info* info = NULL;
         SgFunctionDefinition* def = isSgFunctionDefinition(*iter);
 
         /*
@@ -1074,7 +1077,7 @@ ContractsProcessor::instrumentRoutines(
  */
 bool
 ContractsProcessor::isExecutable(
-  /* in */string expr)
+  /* in */ string expr)
 {
   bool isOkay = true;
 
@@ -1210,7 +1213,6 @@ ContractsProcessor::processFunctionComments(
 #endif /* DEBUG */
       bool isConstructor = false;
       bool isDestructor = false;
-      bool isInitRoutine = false;
       bool isMemberFunc = false;
       SgMemberFunctionDeclaration* mfDecl = 
         isSgMemberFunctionDeclaration(decl);
@@ -1233,6 +1235,8 @@ ContractsProcessor::processFunctionComments(
 
       if (clauses.size() > 0)
       {
+        bool isInitRoutine = false;
+
         ContractComment* final = NULL;
         ContractComment* init = NULL;
         ContractComment* pre = NULL;
@@ -1260,7 +1264,7 @@ ContractsProcessor::processFunctionComments(
             case ContractComment_PRECONDITION:
               {
                 pre = cc;
-                if (cc->isInInit()) isInitRoutine = true;
+                if (cc->isInInit()) { isInitRoutine = true; }
                 numChecks[0] += pre->size();
 
                 /**

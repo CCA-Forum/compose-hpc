@@ -31,11 +31,11 @@ static const char* L_POS_WEIGHTS = "Non-positive weights are NOT supported.";
 
 
 bool
-onlyPos(unsigned int* weights, unsigned int len);
+onlyPos(const unsigned int* weights, unsigned int len);
 
 bool
-sameWeights(unsigned int* nW, unsigned int lenW, 
-            unsigned int* nS, unsigned int lenS);
+sameWeights(const unsigned int* nW, unsigned int lenW, 
+            const unsigned int* nS, unsigned int lenS);
 
 bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
@@ -44,11 +44,14 @@ solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 /* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
 
 
-Examples::Knapsack::Knapsack() {
-  d_nextIndex = 0;
+Examples::Knapsack::Knapsack() : d_nextIndex(0) {
   memset(d_weights, 0, (size_t)(MAX_WEIGHTS*sizeof(int)));
   return;
 }
+
+
+Examples::Knapsack::~Knapsack() {}
+
 
 /* %CONTRACT REQUIRE 
     pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
@@ -59,11 +62,9 @@ Examples::Knapsack::Knapsack() {
  */
 void
 Examples::Knapsack::initialize(
-  /* in */ unsigned int* weights,
-  /* in */ unsigned int  len)
+  /* in */ const unsigned int* weights,
+  /* in */ unsigned int        len)
 {
-  unsigned int i;
-
   /*
    * Routine _should_ be directly protecting itself from bad inputs rather
    * than relying on assertions whose enforcement can be disabled (and will
@@ -80,7 +81,7 @@ Examples::Knapsack::initialize(
   if (weights != NULL) {
     if (len <= MAX_WEIGHTS) {
       if (onlyPos(weights, len)) {
-        for (i=0; i<len; i++) {
+        for (unsigned int i=0; i<len; i++) {
           d_weights[i] = weights[i];
         }
         d_nextIndex = len;
@@ -113,8 +114,8 @@ Examples::Knapsack::onlyPosWeights() {
  */
 bool
 Examples::Knapsack::hasWeights(
-  /* in */ unsigned int* weights, 
-  /* in */ unsigned int  len) 
+  /* in */ const unsigned int* weights, 
+  /* in */ unsigned int        len) 
 {
   return sameWeights(d_weights, d_nextIndex, weights, len);
 }
@@ -150,10 +151,9 @@ Examples::Knapsack::hasSolution(unsigned int t) {
  */
 bool
 onlyPos(
-  /* in */ unsigned int* weights,
-  /* in */ unsigned int  len) 
+  /* in */ const unsigned int* weights,
+  /* in */ unsigned int        len) 
 {
-  unsigned int i;
   bool         isPos = false;
 
   /*
@@ -171,7 +171,7 @@ onlyPos(
 
   if (len > 0) {
     isPos = true;
-    for (i=0; (i<len) && isPos; i++) {
+    for (unsigned int i=0; (i<len) && isPos; i++) {
       if (weights[i] <= 0) {
         isPos = false;
       }
@@ -203,23 +203,21 @@ onlyPos(
  */
 bool
 sameWeights(
-  /* in */ unsigned int* nW, 
-  /* in */ unsigned int  lenW, 
-  /* in */ unsigned int* nS, 
-  /* in */ unsigned int  lenS)
+  /* in */ const unsigned int* nW, 
+  /* in */ unsigned int        lenW, 
+  /* in */ const unsigned int* nS, 
+  /* in */ unsigned int        lenS)
 {
-  bool     same = false;
-  unsigned int* p;
-  unsigned int  i, j, w;
+  bool same = false;
 
   if ((nW != NULL) && (nS != NULL)) {
     if (lenW == lenS && lenW > 0) {
-      p = (unsigned int*)malloc(lenW*sizeof(unsigned int));
+      unsigned int* p = (unsigned int*)malloc(lenW*sizeof(unsigned int));
       if (p) {
         memset(p, 0, (size_t)(lenW*sizeof(unsigned int)));
-        for (i=0; i<lenW; i++) {
-          w = nS[i];
-          for (j=0; j<lenW; j++) {
+        for (unsigned int i=0; i<lenW; i++) {
+          unsigned int w = nS[i];
+          for (unsigned int j=0; j<lenW; j++) {
             if ((w == nW[j]) && !p[j]) {
               p[j] = 1;
               break;
@@ -332,8 +330,7 @@ runIt(
 int 
 main(int argc, char **argv) {
   int t;
-  unsigned int i, num=7, min=0, max=20;
-  unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
+  unsigned int min=0, max=20;
 
   if (argc==1) {
     cout << "Assuming targets ranging from " << min << " to " << max << ".\n\n";
@@ -351,6 +348,9 @@ main(int argc, char **argv) {
 
   Examples::Knapsack* ksack = new Examples::Knapsack();
   if (ksack != NULL) {
+    unsigned int i, num=7;
+    unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
+
     ksack->initialize(weights, num);
 
     cout << "Knapsack contains: ";

@@ -142,7 +142,7 @@ main(int argc, char **argv) {
   if (t != -1) {
     runIt(weights, t, num);
   } else {
-    for (i=0; i<=max; i++) {
+    for (i=min; i<=max; i++) {
       runIt(weights, i, num);
     }
   }

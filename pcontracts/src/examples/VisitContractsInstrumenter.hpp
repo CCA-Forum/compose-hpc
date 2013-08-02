@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.hpp
  * Author:        T. Dahlgren
  * Created:       2012 November 1
- * Last Modified: 2013 June 14
+ * Last Modified: 2013 August 2
  * \endinternal
  *
  * @file
@@ -37,13 +37,12 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
     /**
      * Constructor.
      */
-    VisitContractsInstrumenter(Sg_File_Info* fileInfo) 
-    { 
-      d_processor = ContractsProcessor(); 
-      d_fileInfo  = fileInfo;
-      d_lastLine  = -1;
-      d_num       = 0;
-    };
+    VisitContractsInstrumenter(Sg_File_Info* fileInfo); 
+
+    /**
+     * Destructor.
+     */
+    virtual ~VisitContractsInstrumenter();
 
     /**
      * Process the current AST node passed by the front end, identifying
@@ -56,10 +55,13 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
     /**
      * Output the number of contract-related statements added.
      */
-    void atTraversalEnd(void);
+    virtual void atTraversalEnd(void);
 
 
   private:
+    /** The contracts processor. */
+    ContractsProcessor*  d_processor;
+
     /**
      * Information on the file currently being processed.  This is
      * useful for eliminating processing of some front end AST nodes
@@ -67,14 +69,16 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
      */
     Sg_File_Info* d_fileInfo;
 
-    /** The number of contract-related statements added. */
-    int  d_num;
-
     /** The last line processed. */
     long  d_lastLine;
 
-    /** The contracts processor. */
-    ContractsProcessor  d_processor;
+    /** The number of contract-related statements added. */
+    int  d_num;
+
+    VisitContractsInstrumenter& operator=( 
+       const VisitContractsInstrumenter& vci);
+
+    VisitContractsInstrumenter(VisitContractsInstrumenter& vci);
 
 }; /* VisitContractsInstrumenter */
 

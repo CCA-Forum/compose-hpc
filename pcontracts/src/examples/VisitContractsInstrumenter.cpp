@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 November 9
- * Last Modified: 2013 April 23
+ * Last Modified: 2013 August 2
  * \endinternal
  *
  * @file
@@ -67,6 +67,16 @@
 using namespace std;
 
 
+VisitContractsInstrumenter::VisitContractsInstrumenter(Sg_File_Info* fileInfo) 
+  : d_processor(new ContractsProcessor()), d_fileInfo(fileInfo), d_lastLine(-1),
+    d_num(0) {}
+
+
+VisitContractsInstrumenter::~VisitContractsInstrumenter()
+{
+  delete d_processor;
+}
+
 void
 VisitContractsInstrumenter::visit(
   /* inout */ SgNode* node)
@@ -88,20 +98,20 @@ VisitContractsInstrumenter::visit(
       cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
 #endif /* DEBUG */
 
-      SgGlobal* globalScope;
-      SgFunctionDefinition* def;
-      SgFunctionDeclaration* decl;
+      SgGlobal* globalScope = NULL;
+      SgFunctionDefinition* def = NULL;
+      SgFunctionDeclaration* decl = NULL;
 
       if ( (globalScope = isSgGlobal(node)) != NULL )
       {
-        int status = d_processor.addIncludes(globalScope);
+        int status = d_processor->addIncludes(globalScope);
       }
       else if ( (decl = isSgFunctionDeclaration(lNode)) != NULL )
       {
         def = decl->get_definition();
         if (def != NULL)
         {
-          d_num += d_processor.processFunctionDef(def);
+          d_num += d_processor->processFunctionDef(def);
         }
 #ifdef PCE_ENABLE_WARNINGS
         else
@@ -114,7 +124,7 @@ VisitContractsInstrumenter::visit(
       else if ( (def = isSgFunctionDefinition(lNode)) == NULL )
       {
         /* The node could support an invariant or contract clause. */
-        d_num += d_processor.processNonFunctionNode(lNode);
+        d_num += d_processor->processNonFunctionNode(lNode);
       }
 #ifdef DEBUG
       else
@@ -166,7 +176,9 @@ main(int argc, char* argv[])
       {
         /* Warn the user the ROSE skip transformation option will be ignored. */
         if (project->get_skip_transformation())
+        {
           cout<<"WARNING: The skip transformation option is NOT honored.\n\n";
+        }
 
         Sg_File_Info* info = file->get_file_info();
         if (info != NULL)

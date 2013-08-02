@@ -3,7 +3,7 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 April 23
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -72,16 +72,18 @@ main(int argc, char* argv[])
       bool skipTransforms = project->get_skip_transformation();
   
       if (skipTransforms)
+      {
         cout << "WARNING: Skipping transformations per ROSE option.\n\n";
+      }
   
       /* First add requisite include files. */
-      ContractsProcessor processor = ContractsProcessor();
-      status = processor.addIncludes(project, skipTransforms);
+      ContractsProcessor* processor = new ContractsProcessor();
+      status = processor->addIncludes(project, skipTransforms);
   
       /* Now instrument routines. */
       if (status == 0)
       {
-        status = processor.instrumentRoutines(project, skipTransforms);
+        status = processor->instrumentRoutines(project, skipTransforms);
         /*
          * The following appears to break on C++ sources:
          *

@@ -3,7 +3,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 March 19
+ * Last Modified: 2013 August 2
  * \endinternal
  *
  * @file
@@ -39,11 +39,6 @@ void
 printClause(
  /* in */ string clause)
 {
-  string labels[] = { 
-   "label/error comment ", 
-   "assertion expression" 
-  };
-
   if (!clause.empty())
   {
     size_t startAE = 0, endAE;
@@ -53,16 +48,21 @@ printClause(
       string statement = clause.substr(startAE, endAE-startAE);
       if (!statement.empty())
       {
-        string label, expr;
         size_t startE = 0, endL;
+
+        string labels[] = { 
+         "label/error comment ", 
+         "assertion expression" 
+        };
+
         if ( (endL=statement.find(":")) != string::npos )
         {
-          label = compress(statement.substr(0, endL));
+          string label = compress(statement.substr(0, endL));
           startE = endL+1;
           cout<<"   "<<labels[0]<<": "<<label<<endl;
         }
     
-        expr = compress(statement.substr(startE));
+        string expr = compress(statement.substr(startE));
         cout<<"   "<<labels[1]<<": "<<expr<<endl;
       }
 

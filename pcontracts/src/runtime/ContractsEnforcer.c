@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 July 19
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -50,12 +50,12 @@
 /**
  * Configuration file name. 
  */
-const char*            pce_config_filename;
+char*                  pce_config_filename = NULL;
 
 /**
  * Contracts enforcer "instance".
  */
-ContractsEnforcerType* pce_enforcer;
+ContractsEnforcerType* pce_enforcer = NULL;
 
 /**
  * Default contracts enforcement-related time estimates.
@@ -216,65 +216,34 @@ timeToCheckClause(
   /* in */    uint64_t               routineTime)
 {
   CONTRACTS_BOOL checkIt = CONTRACTS_FALSE;
-  uint64_t       enforceTotal;
-  double         limit;
 
   if (enforcer)
   {
     DEBUG_MESSAGE("timeToCheckClause(): begin (with enforcer)")
+    double   limit;
+
     switch (enforcer->policy.frequency)
     {
     case EnforcementFrequency_ALWAYS:
       checkIt = CONTRACTS_TRUE;
       break;
     case EnforcementFrequency_ADAPTIVE_FIT:
-#if DEBUG==3
-      printf("\nDEBUG: timeToCheckClause: AF: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
-             clauseTime, routineTime, enforcer->data.checksTime, 
-             enforcer->data.total.routine);
-#endif /* DEBUG==3 */
-      enforceTotal = clauseTime + enforcer->data.checksTime;
-      /* The following assumes total routine time includes current. */
-      limit = (double)enforcer->data.total.routine 
-              * (double)enforcer->policy.value/100.0;
-#if DEBUG==3
-      printf("..enforceTotal=%d <= limit=%f?\n", enforceTotal, limit);
-#endif /* DEBUG==3 */
-      if ((double)enforceTotal <= limit)
       {
-        checkIt = CONTRACTS_TRUE;
+        uint64_t enforceTotal = clauseTime + enforcer->data.checksTime;
+
 #if DEBUG==3
-        printf("....checking\n");
+        printf("\nDEBUG: timeToCheckClause: AF: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
+               clauseTime, routineTime, enforcer->data.checksTime, 
+               enforcer->data.total.routine);
 #endif /* DEBUG==3 */
-      }
-      break;
-    case EnforcementFrequency_ADAPTIVE_TIMING:
-#if DEBUG==3
-      printf("\nDEBUG: timeToCheckClause: AT: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
-             clauseTime, routineTime, enforcer->data.checksTime, 
-             enforcer->data.total.routine);
-#endif /* DEBUG==3 */
-      limit = (double)routineTime * (double)enforcer->policy.value/100.0;
-#if DEBUG==3
-      printf("..clauseTime=%d <= limit=%f?\n", clauseTime, limit);
-#endif /* DEBUG==3 */
-      if ((double)clauseTime <= limit)
-      {
-        checkIt = CONTRACTS_TRUE;
-#if DEBUG==3
-        printf("....checking\n");
-#endif /* DEBUG==3 */
-      } 
-      else if (clauseTime <= 1)
-      {
-        limit = (double)enforcer->data.total.routine
+        /* The following assumes total routine time includes current. */
+        limit = (double)enforcer->data.total.routine 
                 * (double)enforcer->policy.value/100.0;
 #if DEBUG==3
-        printf("..else checksTime=%d <= limit2=%f?\n", 
-               enforcer->data.checksTime,limit);
+        printf("..enforceTotal=%d <= limit=%f?\n", enforceTotal, limit);
 #endif /* DEBUG==3 */
-
-        if ((double)enforcer->data.checksTime < limit) {
+        if ((double)enforceTotal <= limit)
+        {
           checkIt = CONTRACTS_TRUE;
 #if DEBUG==3
           printf("....checking\n");
@@ -282,30 +251,68 @@ timeToCheckClause(
         }
       }
       break;
+    case EnforcementFrequency_ADAPTIVE_TIMING:
+      {
+#if DEBUG==3
+        printf("\nDEBUG: timeToCheckClause: AT: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
+               clauseTime, routineTime, enforcer->data.checksTime, 
+               enforcer->data.total.routine);
+#endif /* DEBUG==3 */
+        limit = (double)routineTime * (double)enforcer->policy.value/100.0;
+#if DEBUG==3
+        printf("..clauseTime=%d <= limit=%f?\n", clauseTime, limit);
+#endif /* DEBUG==3 */
+        if ((double)clauseTime <= limit)
+        {
+          checkIt = CONTRACTS_TRUE;
+#if DEBUG==3
+          printf("....checking\n");
+#endif /* DEBUG==3 */
+        } 
+        else if (clauseTime <= 1)
+        {
+          limit = (double)enforcer->data.total.routine
+                  * (double)enforcer->policy.value/100.0;
+#if DEBUG==3
+          printf("..else checksTime=%d <= limit2=%f?\n", 
+                 enforcer->data.checksTime,limit);
+#endif /* DEBUG==3 */
+
+          if ((double)enforcer->data.checksTime < limit) {
+            checkIt = CONTRACTS_TRUE;
+#if DEBUG==3
+            printf("....checking\n");
+#endif /* DEBUG==3 */
+          }
+        }
+      }
+      break;
     case EnforcementFrequency_PERIODIC:
     case EnforcementFrequency_RANDOM:
-#if DEBUG==3
-      printf("\nDEBUG: timeToCheckClause: AT: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
-             clauseTime, routineTime, enforcer->data.checksTime, 
-             enforcer->data.total.routine);
-      printf("..countdown=%d\n", enforcer->data.countdown);
-#endif /* DEBUG==3 */
-      if (enforcer->data.countdown > 1)
       {
-        DUMP_DEBUG_STATS(enforcer, "timeToCheckClause(): begin")
-        (enforcer->data.countdown)--;
-        DUMP_DEBUG_STATS(enforcer, "timeToCheckClause(): end")
-      }
-      else
-      {
-        checkIt = CONTRACTS_TRUE;
 #if DEBUG==3
-        printf("....checking\n");
+        printf("\nDEBUG: timeToCheckClause: AT: clauseTime=%d, routineTime=%d; totalChecksTime=%d, totalRoutineTime=%d\n", 
+               clauseTime, routineTime, enforcer->data.checksTime, 
+               enforcer->data.total.routine);
+        printf("..countdown=%d\n", enforcer->data.countdown);
 #endif /* DEBUG==3 */
-        resetEnforcementCountdown(enforcer);
+        if (enforcer->data.countdown > 1)
+        {
+          DUMP_DEBUG_STATS(enforcer, "timeToCheckClause(): begin")
+          (enforcer->data.countdown)--;
+          DUMP_DEBUG_STATS(enforcer, "timeToCheckClause(): end")
+        }
+        else
+        {
+          checkIt = CONTRACTS_TRUE;
 #if DEBUG==3
-        printf("..reset countdown=%d\n", enforcer->data.countdown);
+          printf("....checking\n");
 #endif /* DEBUG==3 */
+          resetEnforcementCountdown(enforcer);
+#if DEBUG==3
+          printf("..reset countdown=%d\n", enforcer->data.countdown);
+#endif /* DEBUG==3 */
+        }
       }
       break;
     default:
@@ -371,12 +378,10 @@ void
 ContractsEnforcer_initialize(
   /* in */ const char* configfile)
 {
-  FILE* cfPtr = NULL;
-
   if ( (configfile == NULL) || (strlen(configfile) == 0) )
   {
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): No config file given")
-    pce_config_filename = configfile;
+    pce_config_filename = NULL;
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
       CONTRACTS_TRUE, NULL, NULL);
@@ -390,7 +395,7 @@ ContractsEnforcer_initialize(
      * @todo Review potential runtime location issues with configuration file. 
      */
     pce_config_filename = strdup(configfile);
-    cfPtr = fopen(configfile, "r");
+    FILE* cfPtr = fopen(configfile, "r");
     if (cfPtr!= NULL) 
     {
        uint64_t                 pre, post, inv, asrt, routine;
@@ -443,7 +448,7 @@ ContractsEnforcer_initialize(
 #endif /* DEBUG==2 */
 
       /* Read the statistics file name, which should be NULL if not wanted. */
-      if ( (num = fscanf(cfPtr,"%80s\n", &statsfn)) != 1 )
+      if ( (num = fscanf(cfPtr,"%80s\n", (char*)&statsfn)) != 1 )
       {
         printf("\nFATAL: Error reading %s %s\n",
                "statistics filename (or 'null') from configuration file: ",
@@ -460,7 +465,7 @@ ContractsEnforcer_initialize(
 #endif /* DEBUG==2 */
 
       /* Read the trace file name, which should be NULL if not wanted. */
-      if ( (num = fscanf(cfPtr,"%80s\n", &tracefn)) != 1 )
+      if ( (num = fscanf(cfPtr,"%80s\n", (char*)&tracefn)) != 1 )
       {
         printf("\nFATAL: Error reading %s %s\n",
                "trace filename (or 'null') from configuration file: ",
@@ -841,10 +846,6 @@ ContractsEnforcer_dumpStatistics(
   /* in */ ContractsEnforcerType* enforcer,
   /* in */ const char*            msg)
 {
-  time_t      currTime;
-  char*       timeStr;
-  const char* cmt;
-
   DEBUG_MESSAGE("ContractsEnforcer_dumpStatistics(): begin")
   if ( (enforcer != NULL) && (enforcer->stats != NULL) )
   {
@@ -852,9 +853,9 @@ ContractsEnforcer_dumpStatistics(
       printf("DEBUG: ..dumping stats..\n");
 #endif /* DEBUG==2 */
 
-    cmt = (msg != NULL) ? msg : "";
-    currTime = time(NULL);
-    timeStr  = ctime(&currTime);  /* Static so do NOT free() */
+    const char* cmt = (msg != NULL) ? msg : "";
+    time_t currTime = time(NULL);
+    char*  timeStr  = ctime(&currTime);  /* Static so do NOT free() */
     timeStr[24] = '\0';           /* Only need 1st 24 characters */
 
     if (enforcer->stats->filePtr != NULL) 
@@ -985,14 +986,14 @@ ContractsEnforcer_logTrace(
   /* in */ const char*            name,
   /* in */ const char*            msg)
 {
-  const char* nm = (name != NULL) ? name : "TRACE";
-  const char* cmt = (msg != NULL) ? msg : "";
-
   DEBUG_MESSAGE("ContractsEnforcer_logTrace(): begin")
   if ( (enforcer != NULL) && (enforcer->trace != NULL) )
   {
     if (enforcer->trace->filePtr != NULL) 
     {
+      const char* nm = (name != NULL) ? name : "TRACE";
+      const char* cmt = (msg != NULL) ? msg : "";
+
       /*
          "Name; ",        Trace identification
          "Pre (ms); Post (ms); Inv (ms); Asrt (ms); Routine (ms);", 
@@ -1092,7 +1093,7 @@ ContractsEnforcer_enforceClause(
  */
 CONTRACTS_BOOL
 ContractsEnforcer_terminate(
-  /* in */ ContractsEnforcerType* enforcer)
+  /* in */ const ContractsEnforcerType* enforcer)
 {
     return enforcer->terminate;
 }

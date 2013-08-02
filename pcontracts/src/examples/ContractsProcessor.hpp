@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 July 19
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -27,26 +27,24 @@
 #include "ContractComment.hpp"
 
 
-using namespace std;
-
 /**
  * Contract enforcement include files.
  */
-const string S_INCLUDE_BASICS   = "#include \"contracts.h\"";
-const string S_INCLUDE_ENFORCER = "#include \"ContractsEnforcer.h\"";
-const string S_INCLUDE_OPTIONS  = "#include \"contractOptions.h\"";
-const string S_INCLUDES = S_INCLUDE_BASICS + "\n" + S_INCLUDE_ENFORCER + "\n"
-                           + S_INCLUDE_OPTIONS;
+const std::string S_INCLUDE_BASICS   = "#include \"contracts.h\"";
+const std::string S_INCLUDE_ENFORCER = "#include \"ContractsEnforcer.h\"";
+const std::string S_INCLUDE_OPTIONS  = "#include \"contractOptions.h\"";
+const std::string S_INCLUDES = S_INCLUDE_BASICS + "\n" + S_INCLUDE_ENFORCER 
+                             + "\n" + S_INCLUDE_OPTIONS;
 
 class ContractsProcessor
 {
   public:
-    ContractsProcessor() : d_invariants(NULL) {}
-    ~ContractsProcessor() { if (d_invariants != NULL) delete d_invariants; }
+    ContractsProcessor() : d_invariants(NULL), d_first(false) {}
+    ~ContractsProcessor() { if (d_invariants != NULL) {delete d_invariants;} }
 
-    void addExpressions(string clause, ContractComment* cc);
+    void addExpressions(const std::string clause, ContractComment* cc);
     
-    int addFinalize(SgFunctionDefinition* def, SgBasicBlock* body, 
+    int addFinalize(const SgFunctionDefinition* def, const SgBasicBlock* body, 
       ContractComment* cc);
     
     int addIncludes(SgGlobal* globalScope);
@@ -55,33 +53,33 @@ class ContractsProcessor
     
     int addInitialize(SgBasicBlock* body, ContractComment* cc);
     
-    int addPostChecks(SgFunctionDefinition* def, SgBasicBlock* body, 
+    int addPostChecks(const SgFunctionDefinition* def, SgBasicBlock* body, 
       ContractComment* cc);
     
     int addPreChecks(SgBasicBlock* body, ContractComment* cc);
 
-    int addStatsDump(SgFunctionDefinition* def, SgBasicBlock* body,
+    int addStatsDump(const SgFunctionDefinition* def, SgBasicBlock* body,
       ContractComment* cc);
 
 
     int addTimeUpdate(SgBasicBlock* body);
 
-    SgExprStatement* buildCheck(SgStatement* scope, 
+    SgExprStatement* buildCheck(const SgStatement* currSttmt, 
       ContractClauseEnum clauseType, AssertionExpression ae, 
       PPIDirectiveType dt);
     
-    void extractContract(SgLocatedNode* lNode, ContractClauseType &clause);
+    void extractContract(SgLocatedNode* lNode, ContractClauseType &clauses);
     
     ContractComment* extractContractComment(SgNode* aNode, 
       AttachedPreprocessingInfoType::iterator info);
     
-    bool inInvariants(string nm);
+    bool inInvariants(std::string nm);
     
     int instrumentRoutines(SgProject* project, bool skipTransforms);
     
-    bool isExecutable(string expr);
+    bool isExecutable(std::string expr);
     
-    ContractComment* processCommentEntry(SgNode* aNode, string cmt, 
+    ContractComment* processCommentEntry(SgNode* aNode, std::string cmt, 
       PreprocessingInfo::DirectiveType dirType);
     
     int processFunctionComments(SgFunctionDefinition* def);
@@ -95,6 +93,10 @@ class ContractsProcessor
 
     /** Global first (routine) clause flag. */
     bool  d_first;
+
+    ContractsProcessor& operator=( const ContractsProcessor&);
+
+    ContractsProcessor(ContractsProcessor&);
 
     void setInvariants(SgLocatedNode* lNode, ContractComment* cc);
 

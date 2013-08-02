@@ -32,24 +32,28 @@ static const char* L_POS_WEIGHTS = "Non-positive weights are NOT supported.";
 
 
 bool
-onlyPos(unsigned int* weights, unsigned int len);
+onlyPos(const unsigned int* weights, unsigned int len);
 
 bool
-sameWeights(unsigned int* nW, unsigned int lenW, 
-            unsigned int* nS, unsigned int lenS);
+sameWeights(const unsigned int* nW, unsigned int lenW, 
+            const unsigned int* nS, unsigned int lenS);
 
 bool
-solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
+solve(const unsigned int* weights, unsigned int t, unsigned int i, 
+      unsigned int n);
 
 
 /* %CONTRACT INVARIANT onlyPosWeights(); */
 
 
-Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
-  d_nextIndex = 0;
+Examples::UnlabeledKnapsack::UnlabeledKnapsack() : d_nextIndex(0) 
+{
   memset(d_weights, 0, (size_t)(MAX_WEIGHTS*sizeof(int)));
   return;
 } /* UnlabeledKnapsack */
+
+
+Examples::UnlabeledKnapsack::~UnlabeledKnapsack() {}
 
 
 /* %CONTRACT REQUIRE 
@@ -58,14 +62,13 @@ Examples::UnlabeledKnapsack::UnlabeledKnapsack() {
  */
 /* %CONTRACT ENSURE hasWeights(weights, len); */
 void
-Examples::UnlabeledKnapsack::initialize(unsigned int* weights, unsigned int len)
+Examples::UnlabeledKnapsack::initialize(const unsigned int* weights, 
+                                        unsigned int len)
 {
-  unsigned int i;
-
   if (weights != NULL) {
     if (len <= MAX_WEIGHTS) {
       if (onlyPos(weights, len)) {
-        for (i=0; i<len; i++) {
+        for (unsigned int i=0; i<len; i++) {
           d_weights[i] = weights[i];
         }
         d_nextIndex = len;
@@ -95,7 +98,7 @@ Examples::UnlabeledKnapsack::onlyPosWeights() {
  */
 /* %CONTRACT ENSURE is pure; */
 bool
-Examples::UnlabeledKnapsack::hasWeights(unsigned int* weights, 
+Examples::UnlabeledKnapsack::hasWeights(const unsigned int* weights, 
                                         unsigned int len) 
 {
   return sameWeights(d_weights, d_nextIndex, weights, len);
@@ -125,10 +128,9 @@ Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
  */
 /* %CONTRACT ENSURE is pure; */
 bool
-onlyPos(unsigned int* weights, unsigned int len) 
+onlyPos(const unsigned int* weights, unsigned int len) 
 {
-  unsigned int i;
-  bool         isPos = false;
+  bool isPos = false;
 
   /*
    * Routine _should_ be directly protecting itself from bad inputs rather
@@ -145,7 +147,7 @@ onlyPos(unsigned int* weights, unsigned int len)
 
   if (len > 0) {
     isPos = true;
-    for (i=0; (i<len) && isPos; i++) {
+    for (unsigned int i=0; (i<len) && isPos; i++) {
       if (weights[i] <= 0) {
         isPos = false;
       }
@@ -172,21 +174,19 @@ onlyPos(unsigned int* weights, unsigned int len)
  */
 /* %CONTRACT ENSURE is pure; */
 bool
-sameWeights(unsigned int* nW, unsigned int lenW, 
-            unsigned int* nS, unsigned int lenS)
+sameWeights(const unsigned int* nW, unsigned int lenW, 
+            const unsigned int* nS, unsigned int lenS)
 {
   bool     same = false;
-  unsigned int* p;
-  unsigned int  i, j, w;
 
   if ((nW != NULL) && (nS != NULL)) {
     if (lenW == lenS && lenW > 0) {
-      p = (unsigned int*)malloc(lenW*sizeof(unsigned int));
+      unsigned int* p = (unsigned int*)malloc(lenW*sizeof(unsigned int));
       if (p) {
         memset(p, 0, (size_t)(lenW*sizeof(unsigned int)));
-        for (i=0; i<lenW; i++) {
-          w = nS[i];
-          for (j=0; j<lenW; j++) {
+        for (unsigned int i=0; i<lenW; i++) {
+          unsigned int w = nS[i];
+          for (unsigned int j=0; j<lenW; j++) {
             if ((w == nW[j]) && !p[j]) {
               p[j] = 1;
               break;
@@ -224,7 +224,9 @@ sameWeights(unsigned int* nW, unsigned int lenW,
  */
 /* %CONTRACT ENSURE is pure; */
 bool
-solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n) {
+solve(const unsigned int* weights, unsigned int t, unsigned int i, 
+      unsigned int n) 
+{
   bool has = false;
 
   /*
@@ -288,8 +290,7 @@ runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
 int 
 main(int argc, char **argv) {
   int t;
-  unsigned int i, num=7, min=0, max=20;
-  unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
+  unsigned int min=0, max=20;
 
   if (argc==1) {
     cout << "Assuming targets ranging from " << min << " to " << max << ".\n\n";
@@ -307,6 +308,9 @@ main(int argc, char **argv) {
 
   Examples::UnlabeledKnapsack* ksack = new Examples::UnlabeledKnapsack();
   if (ksack != NULL) {
+    unsigned int i, num=7;
+    unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
+
     ksack->initialize(weights, num);
 
     cout << "Knapsack contains: ";

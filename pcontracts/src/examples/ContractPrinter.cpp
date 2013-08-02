@@ -3,7 +3,7 @@
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 March 19
+ * Last Modified: 2013 August 2
  * \endinternal
  *
  * @file
@@ -45,7 +45,6 @@ ContractPrinter::visit(
       AttachedPreprocessingInfoType::iterator iter;
       for (iter = cmts->begin(); iter != cmts->end(); iter++)
       {
-        size_t cInd;
         if (isCComment(((*iter)->getTypeOfDirective())))
         {
           string str = (*iter)->getString();

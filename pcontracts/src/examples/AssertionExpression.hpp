@@ -3,7 +3,7 @@
  * File:           AssertionExpression.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 May 16
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -18,8 +18,6 @@
 
 #include <string>
 #include <sstream>
-
-using namespace std;
 
 /**
  * Assertion expression support states.
@@ -50,17 +48,17 @@ class AssertionExpression
 {
   public:
     /** Constructor */
-    AssertionExpression(string l, string expr, AssertionSupportEnum level)
-      : d_label(l), d_expr(expr), d_level(level) {}
+    AssertionExpression(std::string l, std::string expr, 
+      AssertionSupportEnum level) : d_label(l), d_expr(expr), d_level(level) {}
 
     /** Destructor */
     ~AssertionExpression() {}
 
     /** Return the optional label. */
-    string label() { return d_label; }
+    std::string label() { return d_label; }
 
     /** Return the expression. */
-    string expr() { return d_expr; }
+    std::string expr() { return d_expr; }
 
     /** Return the level of support for the expression. */
     AssertionSupportEnum support() { return d_level; }
@@ -71,9 +69,9 @@ class AssertionExpression
      * @param[in] sep  Field separator.
      * @return         Field-separated string representation.
      */
-    string str(string sep) 
+    std::string str(std::string sep) 
     { 
-      ostringstream rep;
+      std::ostringstream rep;
       rep << d_label << sep << d_expr << sep;
       switch (d_level)
       {
@@ -101,10 +99,10 @@ class AssertionExpression
 
   private:
     /** The optional label associated with the expression. */
-    string               d_label;
+    std::string          d_label;
 
     /** The assertion expression (text). */
-    string               d_expr;
+    std::string          d_expr;
 
     /** The level of translation support associated with the expression. */
     AssertionSupportEnum d_level;

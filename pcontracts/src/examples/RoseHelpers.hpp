@@ -3,7 +3,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 June 14
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  *
@@ -52,7 +52,7 @@ getBasicSignature(SgFunctionDeclaration* decl);
  * @return          A basic signature derived from the node's unparsed output.
  */
 std::string
-getBasicSignature(SgFunctionDefinition* def);
+getBasicSignature(const SgFunctionDefinition* def);
 
 
 /**

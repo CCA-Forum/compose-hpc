@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 May 23
+ * Last Modified:  2013 August 2
  * \endinternal
  *
  * @file
@@ -23,8 +23,6 @@
 #include "AssertionExpression.hpp"
 
 #define PPIDirectiveType PreprocessingInfo::DirectiveType
-
-using namespace std;
 
 
 /**
@@ -92,8 +90,8 @@ class ContractComment
   public:
     /** Constructor */
     ContractComment(ContractCommentEnum t, PPIDirectiveType dt): 
-      d_type(t), d_needsResult(false), d_isInInit(false), d_dirType(dt), 
-      d_numExec(0) {}
+      d_type(t), d_dirType(dt), d_numExec(0), d_needsResult(false), 
+      d_isInInit(false) {}
 
     /** Destructor */
     ~ContractComment() { d_aeList.clear(); }
@@ -112,7 +110,7 @@ class ContractComment
     void add(AssertionExpression ae) 
     { 
       d_aeList.push_front(ae); 
-      if (ae.support() == AssertionSupport_EXECUTABLE) d_numExec += 1;
+      if (ae.support() == AssertionSupport_EXECUTABLE) { d_numExec += 1; }
     }
 
     /** 
@@ -165,14 +163,14 @@ class ContractComment
      *  It is assumed the (first) expression corresponds to a comment.
      * }
      */
-    string getComment() 
+    std::string getComment() 
     {
       return (d_type == ContractComment_STATS) && (d_aeList.size() == 1) ? 
                d_aeList.front().expr() : "";
     }
 
     /** Return the list of assertion expressions. */
-    list<AssertionExpression> getList() { return d_aeList; }
+    std::list<AssertionExpression> getList() { return d_aeList; }
 
     /** 
      * Return the filename for INIT; otherwise, return empty string. 
@@ -180,7 +178,7 @@ class ContractComment
      * It is assumed the (first) expression corresponds to a filename.
      * }
      */
-    string getFilename() 
+    std::string getFilename() 
     {
       return (d_type == ContractComment_INIT) && (d_aeList.size() == 1) ? 
                d_aeList.front().expr() : "";
@@ -204,9 +202,9 @@ class ContractComment
      * @param[in] sep  Field separator.
      * @return         Field-separated string representation.
      */
-    string str(string sep)
+    std::string str(std::string sep)
     {
-      ostringstream rep;
+      std::ostringstream rep;
       switch (d_type)
       {
       case ContractComment_NONE:
@@ -248,22 +246,22 @@ class ContractComment
 
   private:
     /** Type of contract comment. */
-    ContractCommentEnum        d_type;
+    ContractCommentEnum             d_type;
 
     /** Assertion expressions associated with the contract comment. */
-    list<AssertionExpression>  d_aeList;
+    std::list<AssertionExpression>  d_aeList;
 
     /** The type of preprocessing directive associated with the AST node. */
-    PPIDirectiveType           d_dirType;
-
-    /** Cache whether the function result appears in the clause. */
-    bool                       d_needsResult;
-
-    /** Cache whether the clause is associated with initialization routine. */
-    bool                       d_isInInit;
+    PPIDirectiveType                d_dirType;
 
     /** Cache the number of executable expressions in the clause. */
-    int                        d_numExec;
+    int                             d_numExec;
+
+    /** Cache whether the function result appears in the clause. */
+    bool                            d_needsResult;
+
+    /** Cache whether the clause is associated with initialization routine. */
+    bool                            d_isInInit;
 };  /* class ContractComment */
 
 /**
