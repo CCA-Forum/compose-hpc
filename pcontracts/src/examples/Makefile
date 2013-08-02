@@ -1,43 +1,13 @@
 ROOT_DIR=../..
+include $(ROOT_DIR)/make_rose.inc
+include $(ROOT_DIR)/make_test.inc
 
-include $(ROOT_DIR)/make.inc
 
-SRC_DIR=..
-
-RES_DIR=$(ROOT_DIR)/results
-RT_DIR=$(SRC_DIR)/runtime
-
-BASE_RES_DIR=$(RES_DIR)/base
-BASE_ORACLE_DIR=$(SRC_DIR)/data
-
-CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
-CHECK_SRC_STATUS=$(SRC_DIR)/$(CHECK_STATUS)
-
-RI_DIR=RoutineInstrumenter
-VI_DIR=VisitInstrumenter
-INSTR_DIRS=$(RI_DIR) $(VI_DIR)
-
-MAKE=make --no-print-directory
-CXX=g++
-#FLAGS=-g -O3 -DDEBUG
-FLAGS=-g -O3
-INCLUDES=-I. -I${RT_DIR}
+FLAGS=$(BASE_FLAGS)
+INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) -I$(CONTRACTS_DIR)
 
 LDFLAGS=$(FLAGS)
-CXXFLAGS=$(INCLUDES) $(FLAGS) -Wno-deprecated
-
-ROSE_LIB = -lrose -L$(ROSE_HOME)/lib
-# -Wl,-rpath $(ROSE_HOME)/lib 
-BOOST_LIB = -L$(BOOST_HOME)/lib
-# -Wl,-rpath $(BOOST_HOME)/lib
-ROSE_INCLUDES = -I$(ROSE_HOME)/include -I$(BOOST_HOME)/include $(INCLUDES)
-#ROSE_FLAGS = --edg:no_warnings
-ROSE_FLAGS = $(FLAGS)
-
-ROSE_OPTS = -rose:skipfinalCompileStep
-
-ROSE_LDFLAGS = $(ROSE_LIB) $(BOOST_LIB) $(FLAGS)
-ROSE_CXXFLAGS = $(ROSE_INCLUDES) $(ROSE_FLAGS) -Wno-deprecated
+CXXFLAGS=$(INCLUDES) $(FLAGS) $(ROSE_CXXFLAGS) $(BASE_CXXFLAGS)
 
 
 EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*" 
@@ -52,46 +22,57 @@ RCI_EXE=RoutineContractInstrumenter
 VCI_EXE=VisitContractsInstrumenter
 #VCI_EXE=
 
+
+# TBD/ToDo:  Need to address library linking
 BASE_ROSE_SOURCES = \
-	RoseHelpers.cpp
+	$(CONTRACTS_DIR)/RoseHelpers.cpp
 BASE_ROSE_OBJECTS=$(BASE_ROSE_SOURCES:.cpp=.o)
 BASE_CLAUSE_SOURCES = \
 	$(BASE_ROSE_SOURCES) \
-	ContractsProcessor.cpp
+	$(CONTRACTS_DIR)/ContractsProcessor.cpp
 BASE_CLAUSE_OBJECTS=$(BASE_CLAUSE_SOURCES:.cpp=.o)
+
 
 KS_BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE)
 ROSE_BINARIES= $(CPRINTER_EXE) $(CAPRINTER_EXE) $(RCI_EXE) $(VCI_EXE)
-
 BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
 
-# WARNING:  The following assumes unnamed C++ targets are associated
-#  with ROSE objects.
+#
+# Test results settings
+RES_DIR=$(ROOT_DIR)/results
+BASE_RES_DIR=$(RES_DIR)/base
+BASE_ORACLE_DIR=$(SRC_DIR)/data
 
-.cpp.o:
-	$(CXX) -c $(ROSE_CXXFLAGS) -o $@ $<
+RI_DIR=RoutineInstrumenter
+VI_DIR=VisitInstrumenter
+INSTR_DIRS=$(RI_DIR) $(VI_DIR)
+
 
 all: $(BINARIES)
 
-check: checkClean all checkSetup checkKnapsackTests checkRose
-	@$(MAKE) checkSummary; \
+
+.cpp.o:
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
+
+check: checkclean all checksetup checkKnapsackTests checkRose
+	@$(MAKE) checksummary; \
 	echo "DONE (check)"; echo
 
-checkAll: checkClean all checkSetup checkKnapsackTests checkRose checkContracts
-	@$(MAKE) checkSummary; \
-	echo "DONE (checkAll)"; echo
+checkall: checkclean all checksetup checkKnapsackTests checkRose checkcontracts
+	@$(MAKE) checksummary; \
+	echo "DONE (checkall)"; echo
 
-checkClean:
+checkclean:
 	rm -f *.o *.mout $(BINARIES)
 
-#	  (cd $$dir && make -n checkAll) || echo 0 > $$CSFN; \
+#	  (cd $$dir && make -n checkall) || echo 0 > $$CSFN; \
 
-checkContracts: all checkSetup
+checkcontracts: all checksetup
 	@echo; \
 	for dir in $(INSTR_DIRS); do \
 	  echo; echo "Checking instrumented $$dir sources..."; \
 	  CSFN=$(CHECK_ALL_STATUS)-$$dir; \
-	  (cd $(RES_DIR)/$$dir && make checkAll) || echo 0 > $$CSFN; \
+	  (cd $(RES_DIR)/$$dir && make checkall) || echo 0 > $$CSFN; \
 	  if [ -f "$$CSFN" ]; then \
 	    res=`cat $$CSFN`; \
 	    if [ "$$res" -eq "0" ]; then \
@@ -106,12 +87,12 @@ checkContracts: all checkSetup
 	  fi; \
 	done
 
-checkSetup: 
+checksetup: 
 	@if [ ! -f $(CHECK_SRC_STATUS) ]; then \
 	  echo 1 > $(CHECK_SRC_STATUS); \
 	fi
 
-checkSummary:
+checksummary:
 	@echo; \
 	if [ -f $(CHECK_SRC_STATUS) ]; then \
 	  res=`cat $(CHECK_SRC_STATUS)`; \
@@ -148,24 +129,24 @@ $(UKCPP_EXE): $(UKCPP_EXE).cpp
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o
 
 $(CPRINTER_EXE): $(CPRINTER_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
-	$(CXX) -c $(ROSE_CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
+	$(CXX) -c $(CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
 	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o \
 	  $(BASE_ROSE_OBJECTS)
 
 $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
 		$(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
-	$(CXX) -c $(ROSE_CXXFLAGS) -DNO_MAIN -o $(CPRINTER_EXE)-mainLess.o  \
+	$(CXX) -c $(CXXFLAGS) -DNO_MAIN -o $(CPRINTER_EXE)-mainLess.o  \
 	  $(CPRINTER_EXE).cpp
-	$(CXX) -c $(ROSE_CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp
+	$(CXX) -c $(CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp
 	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
 	  $(CPRINTER_EXE)-mainLess.o $(BASE_ROSE_OBJECTS)
 
 $(RCI_EXE): $(RCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
-	$(CXX) -c $(ROSE_CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp
+	$(CXX) -c $(CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp
 	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(BASE_CLAUSE_OBJECTS)
 
 $(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
-	$(CXX) -c $(ROSE_CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp
+	$(CXX) -c $(CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp
 	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(BASE_CLAUSE_OBJECTS)
 
 
@@ -338,9 +319,7 @@ checkRoseTrans: $(EXE)
 clean:
 	@rm -f *.o *.out *.mout *.diffs *.ti rose_* *.res *.checks
 
-clean-all: cleanAll
-
-cleanAll: clean
+cleanall: clean
 	@rm -f $(BINARIES) *.dot *.pdf; \
 	if [ "$(RES_DIR)" != "" ]; then \
 	  rm -rf $(RES_DIR)/*; \

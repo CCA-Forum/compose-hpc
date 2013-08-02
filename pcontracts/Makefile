@@ -1,13 +1,15 @@
+ROOT_DIR=.
+include make_test.inc
+
 SUBDIRS = src
-include make.inc
 
 all:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) all) \
 	done;
 
-docs: clean-docs
-	@ln -s ${ROSE_HOME} rose; \
+docs: cleandocs
+	@ln -s $(ROSE_HOME) rose; \
 	doxygen; \
 	cp COPYRIGHT docs/html
 
@@ -15,17 +17,17 @@ check:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) check) \
 	done; \
-	$(MAKE) checkSummary; \
+	$(MAKE) checksummary; \
 	echo; echo "DONE (check)"; echo
 
-checkAll: 
+checkall: 
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  (cd $$subdir && $(MAKE) checkAll) \
+	  (cd $$subdir && $(MAKE) checkall) \
 	done; \
-	$(MAKE) checkSummary; \
-	echo "DONE (checkAll)"; echo
+	$(MAKE) checksummary; \
+	echo "DONE (checkall)"; echo
 
-checkSummary:
+checksummary:
 	@echo; \
 	echo "  *************************************************************";\
 	echo "  * Standard out messages must be reviewed manually.          *";\
@@ -38,15 +40,13 @@ clean:
 	  (cd $$subdir && $(MAKE) clean) \
 	done;
 
-clean-all:  cleanAll
-
-cleanAll:  clean-docs
+cleanall:  cleandocs
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  (cd $$subdir && $(MAKE) cleanAll) \
+	  (cd $$subdir && $(MAKE) cleanall) \
 	done; \
 	rm -f *.out $(CHECK_STATUS)*
 
-clean-docs:
+cleandocs:
 	@rm -rf rose docs
 
 help:
@@ -56,7 +56,7 @@ help:
 	echo "  *                                                           *";\
 	echo "  * NOTE:                                                     *";\
 	echo "  * - 'make check' checks the core software.                  *";\
-	echo "  * - 'make checkAll' checks core AND instrumented codes.     *";\
+	echo "  * - 'make checkall' checks core AND instrumented codes.     *";\
 	echo "  *                                                           *";\
 	echo "  * Exercising instrumented codes requires the software be    *";\
 	echo "  * built with 'PCEFLAGS=-DPAUL_CONTRACTS'.  It can be added  *";\

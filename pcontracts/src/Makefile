@@ -1,9 +1,8 @@
 ROOT_DIR=..
-include $(ROOT_DIR)/make.inc
+include $(ROOT_DIR)/make_test.inc
 
-CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
+SUBDIRS = runtime contracts examples tests
 
-SUBDIRS = runtime examples tests
 
 all:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -17,19 +16,19 @@ check:  all
 	  echo "Calling '$(MAKE) check' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) check) \
 	done; \
-	$(MAKE) checkSummary; \
+	$(MAKE) checksummary; \
 	echo; echo "DONE (check)"; echo
 
-checkAll:  all
+checkall:  all
 	@echo 1 > $(CHECK_ALL_STATUS); \
 	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Calling '$(MAKE) checkAll' in $$subdir"; \
-	  (cd $$subdir && $(MAKE) checkAll) \
+	  echo "Calling '$(MAKE) checkall' in $$subdir"; \
+	  (cd $$subdir && $(MAKE) checkall) \
 	done; \
-	$(MAKE) checkSummary; \
+	$(MAKE) checksummary; \
 	echo; echo "DONE (check)"; echo
 
-checkSummary:
+checksummary:
 	@echo; \
 	if [ -f $(CHECK_ALL_STATUS) ]; then \
 	  RES=`cat $(CHECK_ALL_STATUS)`; \
@@ -43,16 +42,15 @@ checkSummary:
 	fi; \
 	echo
 
+
 clean: 
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  echo "Calling '$(MAKE) clean' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) clean) \
 	done;
 
-clean-all: cleanAll
-
-cleanAll: 
+cleanall: 
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Calling '$(MAKE) cleanAll' in $$subdir"; \
-	  (cd $$subdir && $(MAKE) cleanAll) \
+	  echo "Calling '$(MAKE) cleanall' in $$subdir"; \
+	  (cd $$subdir && $(MAKE) cleanall) \
 	done;

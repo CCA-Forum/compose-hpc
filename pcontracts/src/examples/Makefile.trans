@@ -1,15 +1,62 @@
 ROOT_DIR=../..
 
 #import $(ROOT_DIR)/make.inc
-CHECK_STATUS=.checkStatus
-
-SRC_DIR=$(ROOT_DIR)/src
-
-EX_DIR=$(SRC_DIR)/examples
-RT_DIR=$(SRC_DIR)/runtime
-BASE_ORACLE_DIR=$(SRC_DIR)/data
+#############
+#
+# Dependencies: None
+#
+# ROOT_DIR   contains the path to the PAUL Contracts root directory
+#
 
 MAKE=make --no-print-directory
+
+INCLUDE_DIR=$(ROOT_DIR)/include
+LIB_DIR=$(ROOT_DIR)/lib
+SRC_DIR=$(ROOT_DIR)/src
+
+CONTRACTS_DIR=$(SRC_DIR)/contracts
+CONTRACTS_LIB_BASE=PaulContracts001a
+CONTRACTS_LIB=lib$(CONTRACTS_LIB_BASE).a
+
+RT_DIR=$(SRC_DIR)/runtime
+RUNTIME_LIB_BASE=ContractsRuntime001a
+RUNTIME_LIB=lib$(RUNTIME_LIB_BASE).a
+
+EX_DIR=$(SRC_DIR)/examples
+
+
+#
+# Common compiler flags and settings
+#
+BASE_FLAGS=-g -O3
+#BASE_FLAGS=-g -O3 -DDEBUG
+
+BASE_INCLUDES=-I. -I$(INCLUDE_DIR)
+
+CXX=g++
+BASE_CXXFLAGS=-Wno-deprecated
+
+#############
+
+#import $(ROOT_DIR)/make_test.inc
+#############
+#
+# Dependencies:
+#
+# ROOT_DIR   contains the path to the PAUL Contracts root directory
+#
+
+RES_DIR=$(ROOT_DIR)/results
+
+BASE_RES_DIR=$(RES_DIR)/base
+BASE_ORACLE_DIR=$(SRC_DIR)/data
+
+CHECK_STATUS=.checkStatus
+CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
+CHECK_SRC_STATUS=$(SRC_DIR)/$(CHECK_STATUS)
+
+#############
+
 
 # NOTE: The following value is automatically replaced by the examples Makefile.
 BASE_TEST_DIR=REPLACEME
@@ -17,23 +64,17 @@ BASE_TEST_DIR=REPLACEME
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(BASE_TEST_DIR)
 CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(BASE_TEST_DIR)
 
+
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
 # contract checking.
-CXX = g++
-FLAGS = -g -O3 $(PCEFLAGS)
+FLAGS=$(BASE_FLAGS) $(PCEFLAGS)
+INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) -I$(CONTRACTS_DIR)
 
-INCLUDES = -I. -I$(RT_DIR)
+CXXFLAGS = $(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 
-LIBS=
-#LIBS=-L$(EX_DIR)/../../lib -lPaulContracts001a
+LDFLAGS = -L$(LIB_DIR) -l$(RUNTIME_LIB_BASE) -l$(CONTRACTS_LIB_BASE)
 
-# TBD/ToDo:  Need to resolve library linking issue
-CE_OBJ=$(RT_DIR)/ContractsEnforcer.o
-
-#LDFLAGS = $(FLAGS) $(INCLUDES) $(LIBS)
-LDFLAGS = $(FLAGS) $(LIBS)
-CXXFLAGS = $(INCLUDES) $(FLAGS) -Wno-deprecated
 
 CSRCS = knapsack.c unlabeledknapsack.c
 CCSRCS = helloworld.cc helloworld-v2.cc helloworld-v3.cc
@@ -52,6 +93,7 @@ UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack-v2
 UKCPP_EXE=UnlabeledKnapsack-v2
 
+
 all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
 
 .c.o:
@@ -63,42 +105,42 @@ all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o $(CE_OBJ)
-	$(CXX) -o $(HWCC_EXE) $(LDFLAGS) $(HWCC_EXE).o $(CE_OBJ)
+$(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o 
+	$(CXX) -o $(HWCC_EXE) $(FLAGS) $(HWCC_EXE).o $(LDFLAGS)
 
-$(HWCC2_EXE): $(HWCC2_EXE).cc $(HWCC2_EXE).o $(CE_OBJ)
-	$(CXX) -o $(HWCC2_EXE) $(LDFLAGS) $(HWCC2_EXE).o $(CE_OBJ)
+$(HWCC2_EXE): $(HWCC2_EXE).cc $(HWCC2_EXE).o 
+	$(CXX) -o $(HWCC2_EXE) $(FLAGS) $(HWCC2_EXE).o $(LDFLAGS)
 
-$(HWCC3_EXE): $(HWCC3_EXE).cc $(HWCC3_EXE).o $(CE_OBJ)
-	$(CXX) -o $(HWCC3_EXE) $(LDFLAGS) $(HWCC3_EXE).o $(CE_OBJ)
+$(HWCC3_EXE): $(HWCC3_EXE).cc $(HWCC3_EXE).o 
+	$(CXX) -o $(HWCC3_EXE) $(FLAGS) $(HWCC3_EXE).o $(LDFLAGS)
 
-$(LKC_EXE): $(LKC_EXE).c $(LKC_EXE).o $(CE_OBJ)
-	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o $(CE_OBJ)
+$(LKC_EXE): $(LKC_EXE).c $(LKC_EXE).o 
+	$(CXX) -o $(LKC_EXE) $(FLAGS) $(LKC_EXE).o $(LDFLAGS)
 
-$(UKC_EXE): $(UKC_EXE).c $(UKC_EXE).o $(CE_OBJ)
-	$(CXX) -o $(UKC_EXE) $(LDFLAGS) $(UKC_EXE).o $(CE_OBJ)
+$(UKC_EXE): $(UKC_EXE).c $(UKC_EXE).o 
+	$(CXX) -o $(UKC_EXE) $(FLAGS) $(UKC_EXE).o $(LDFLAGS)
 
-$(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o $(CE_OBJ)
-	$(CXX) -o $(LKCPP_EXE) $(LDFLAGS) $(LKCPP_EXE).o $(CE_OBJ)
+$(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o 
+	$(CXX) -o $(LKCPP_EXE) $(FLAGS) $(LKCPP_EXE).o $(LDFLAGS)
 
-$(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o $(CE_OBJ)
-	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o $(CE_OBJ)
+$(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o 
+	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS)
 
-check: checkClean checkSetup all checkBasicsCore checkSummary
+check: checkclean checksetup all checkBasicsCore checksummary
 	@echo "DONE (check)"; echo
 
-checkAll: checkClean checkSetup all checkBasicsCore checkContractsCore \
-	    checkSummary
-	@echo "DONE (checkAll)"; echo
+checkall: checkclean checksetup all checkBasicsCore checkContractsCore \
+	    checksummary
+	@echo "DONE (checkall)"; echo
 	
 
-checkBasics: checkClean checkSetup all checkBasicsCore checkSummary
+checkBasics: checkclean checksetup all checkBasicsCore checksummary
 	@echo "DONE (checkBasics)"
 
 checkBasicsCore: checkKC checkKCpp checkKnapsack checkUK
 	@echo "DONE (checkBasicsCore)"
 
-checkContracts:  checkClean checkSetup all checkContractsCore checkSummary
+checkContracts:  checkclean checksetup all checkContractsCore checksummary
 	@echo "DONE (checkContracts)"
 
 checkContractsCore: 
@@ -132,7 +174,7 @@ checkContractsCore:
 	echo; echo "DONE (checkContractsCore)"; echo
 
 # Do NOT remove $(CHECK_EX_STATUS) as long as the root makefile expects it
-checkSummary:
+checksummary:
 	@echo; \
 	if [ -f $(CHECK_EX_STATUS) ]; then \
 	  res=`cat $(CHECK_EX_STATUS)`; \
@@ -149,10 +191,10 @@ checkSummary:
 	  echo "*******"; \
 	fi
 
-checkClean:
+checkclean:
 	@rm -f *.o *.mout $(EXES)
 
-checkSetup:
+checksetup:
 	@echo 1 > $(CHECK_EX_STATUS)
 
 checkKC: $(LKC_EXE) $(UKC_EXE)
@@ -299,9 +341,7 @@ checkUK: $(UKC_EXE) $(LKCPP_EXE)
 clean:
 	rm -f *.o *.mout *.out *.diffs *.stats *.trace 
 
-clean-all: cleanAll
+cleanall: clean cleanexe
 
-cleanAll: clean cleanExe
-
-cleanExe:
+cleanexe:
 	rm -f *.o $(EXES)

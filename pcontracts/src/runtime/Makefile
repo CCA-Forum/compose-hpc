@@ -1,3 +1,8 @@
+ROOT_DIR=../..
+include $(ROOT_DIR)/make.inc
+
+#
+# DEBUG settings
 ifdef DEBUG
 DDEBUG=-DDEBUG=$(DEBUG)
 else
@@ -12,22 +17,27 @@ endif
 #DCONFIG=
 #endif
 
-CXX=g++
-FLAGS=-g -O3 ${DDEBUG} ${DCONFIG} 
-INCLUDES=-I.
+FLAGS=$(BASE_FLAGS) $(DDEBUG) $(DCONFIG) 
+INCLUDES=$(BASE_INCLUDES)
 
-LIB_DIR=../../lib
-LIB=$(LIB_DIR)/libPaulContracts001a.a
+LIB=$(LIB_DIR)/$(CONTRACTS_LIB)
 
 LDFLAGS=$(FLAGS)
-CXXFLAGS=$(INCLUDES) $(FLAGS) -Wno-deprecated
+CXXFLAGS=$(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
+
 
 C_FILES=ContractsEnforcer.c
-
 C_OBJECTS=$(C_FILES:.c=.o)
+C_HEADERS= \
+	contractMacros.h \
+	contractOptions.h \
+	contractPrivateTypes.h \
+	ContractsEnforcer.h \
+	contracts.h
 
-all: $(C_OBJECTS)
-	@test -d $(LIB_DIR) || mkdir $(LIB_DIR); \
+
+all: $(C_OBJECTS) $(C_HEADERS)
+	test -d $(LIB_DIR) || mkdir $(LIB_DIR); \
 	ar cr $(LIB) $(C_OBJECTS)
 
 .c.o:
@@ -35,12 +45,10 @@ all: $(C_OBJECTS)
 
 check:
 
-checkAll:
+checkall:
 
 clean:
-	@rm -f *.o 
+	rm -f *.o 
 
-clean-all: cleanAll
-
-cleanAll: clean
-	@rm -f $(LIB)
+cleanall: clean
+	rm -f $(LIB)

@@ -1,6 +1,18 @@
 PROTOTYPE
 
-- Complete testing and debugging of STATS support.
+HIGH:
+- Finish cleaning up and restructuring the code base.
+  -- Move includes to the root include directory
+  -- Create and populate a driver directory for the Visit version of the 
+     instrumenter.
+  -- Ensure OBJS depending on headers
+
+- Finish writing up document describing what this work is about, benefits, and
+  how to use it.  Distribute to collaborators!
+
+
+MODERATE:
+- TBD: Complete testing and debugging of STATS support.
   -- TBD: Where should pre-routine STATS be instrumented?
      (Now blanket adding before finalize regardless of annotation location.)
 
@@ -16,8 +28,6 @@ PROTOTYPE
 
 
 Refinements:
-- Move runtime headers to include directory and adjust build accordingly.
-
 - TRACE annotation support (optional?)
   -- Add support for an in-lined TRACE comment to output enforcement trace
      information (provided a trace file was specified in the configuration).
@@ -26,9 +36,6 @@ Refinements:
 
 - Support advanced (non-standard C) contract expressions
      (ie, those containing non-C operators supported in SIDL built-ins)
-
-- Ensure build failures in rose examples accounted for in 'make check' results.
-  (Assumes skipping 'make' step.)
 
 
 Lower Priority Refinements:
