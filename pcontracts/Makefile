@@ -44,7 +44,7 @@ cleanall:  cleandocs
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) cleanall) \
 	done; \
-	rm -f *.out $(CHECK_STATUS)*
+	rm -f *.out $(CHECK_STATUS)* ./bin/*
 
 cleandocs:
 	@rm -rf rose docs

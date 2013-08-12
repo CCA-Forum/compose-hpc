@@ -11,5 +11,6 @@ BASE_ORACLE_DIR=$(SRC_DIR)/data
 
 CHECK_STATUS=.checkStatus
 CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
-CHECK_SRC_STATUS=$(SRC_DIR)/$(CHECK_STATUS)
+
+EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*"
 

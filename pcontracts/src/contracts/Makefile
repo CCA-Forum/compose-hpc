@@ -1,6 +1,5 @@
 ROOT_DIR=../..
 include $(ROOT_DIR)/make_rose.inc
-include $(ROOT_DIR)/make_test.inc
 
 
 FLAGS=$(BASE_FLAGS)
@@ -33,8 +32,9 @@ all: $(CLAUSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 check: 
+	@echo "Tests are located in a different directory"
 
-checkall: 
+checkall: check
 
 clean:
 	rm -f *.o 

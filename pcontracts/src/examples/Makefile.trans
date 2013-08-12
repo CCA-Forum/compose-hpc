@@ -1,7 +1,7 @@
 ROOT_DIR=../..
 
 #import $(ROOT_DIR)/make.inc
-#############
+############# BEGIN
 #
 # Dependencies: None
 #
@@ -36,10 +36,11 @@ BASE_INCLUDES=-I. -I$(INCLUDE_DIR)
 CXX=g++
 BASE_CXXFLAGS=-Wno-deprecated
 
-#############
+############# END
+
 
 #import $(ROOT_DIR)/make_test.inc
-#############
+############# BEGIN
 #
 # Dependencies:
 #
@@ -53,9 +54,8 @@ BASE_ORACLE_DIR=$(SRC_DIR)/data
 
 CHECK_STATUS=.checkStatus
 CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
-CHECK_SRC_STATUS=$(SRC_DIR)/$(CHECK_STATUS)
 
-#############
+############# END
 
 
 # NOTE: The following value is automatically replaced by the examples Makefile.
@@ -127,24 +127,21 @@ $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o
 	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS)
 
 check: checkclean checksetup all checkBasicsCore checksummary
-	@echo "DONE (check)"; echo
+	@echo 
 
 checkall: checkclean checksetup all checkBasicsCore checkContractsCore \
 	    checksummary
-	@echo "DONE (checkall)"; echo
+	@echo
 	
 
 checkBasics: checkclean checksetup all checkBasicsCore checksummary
-	@echo "DONE (checkBasics)"
 
 checkBasicsCore: checkKC checkKCpp checkKnapsack checkUK
-	@echo "DONE (checkBasicsCore)"
 
 checkContracts:  checkclean checksetup all checkContractsCore checksummary
-	@echo "DONE (checkContracts)"
 
 checkContractsCore: 
-	@echo "Checking contracts..."; \
+	@echo; echo "Checking contract-instrumented versions..."; \
 	$(MAKE) PCEFLAGS=-DPAUL_CONTRACTS check || echo 0 > $(CHECK_EX_STATUS);\
 	ok=0; \
 	n=0; \
@@ -170,8 +167,7 @@ checkContractsCore:
 	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	done; \
-	echo "...Successfully processed $$ok of $$n files."; \
-	echo; echo "DONE (checkContractsCore)"; echo
+	echo "...Successfully processed $$ok of $$n files."
 
 # Do NOT remove $(CHECK_EX_STATUS) as long as the root makefile expects it
 checksummary:
@@ -179,15 +175,15 @@ checksummary:
 	if [ -f $(CHECK_EX_STATUS) ]; then \
 	  res=`cat $(CHECK_EX_STATUS)`; \
 	  if [ "$$res" -eq "0" ]; then \
-	    echo "$$BASE_TEST_DIR Test Suite:  FAILED"; \
+	    echo "$(BASE_TEST_DIR) Test Suite:  FAILED"; \
 	    echo; echo "Review output to identify failure(s)"; \
 	  else \
-	    echo "$$BASE_TEST_DIR Test Suite:  PASSED"; \
+	    echo "$(BASE_TEST_DIR) Test Suite:  PASSED"; \
 	  fi; \
 	else \
 	  echo; echo "*******"; \
 	  echo "WARNING:  $(CHECK_EX_STATUS) is missing.  "; \
-	  echo "          Cannot assess $$BASE_TEST_DIR test suite."; \
+	  echo "          Cannot assess $(BASE_TEST_DIR) test suite."; \
 	  echo "*******"; \
 	fi
 
@@ -198,7 +194,7 @@ checksetup:
 	@echo 1 > $(CHECK_EX_STATUS)
 
 checkKC: $(LKC_EXE) $(UKC_EXE)
-	@echo "Checking C knapsack programs..."; \
+	@echo; echo "Checking C knapsack programs..."; \
 	if [ -s $(LKC_EXE) ]; then \
 	  if [ -s $(UKC_EXE) ]; then \
 	    ./$(LKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
@@ -220,11 +216,10 @@ checkKC: $(LKC_EXE) $(UKC_EXE)
 	else \
 	  echo "ERROR: Cannot find or empty $(LKC_EXE)"; \
 	  echo 0 > $(CHECK_EX_STATUS); \
-	fi; \
-	echo "DONE (checkKC)"; echo
+	fi
 
 checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
-	@echo "Checking C++ knapsack programs..."; \
+	@echo; echo "Checking C++ knapsack programs..."; \
 	if [ -s $(LKCPP_EXE) ]; then \
 	  if [ -s $(UKCPP_EXE) ]; then \
 	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
@@ -258,11 +253,10 @@ checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
 	else \
 	  echo "ERROR: Cannot find or empty $(LKCPP_EXE)"; \
 	  echo 0 > $(CHECK_EX_STATUS); \
-	fi; \
-	echo "DONE (checkKCpp)"; echo
+	fi
 
 checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
-	@echo "Checking C and C++ knapsack programs..."; \
+	@echo; echo "Checking C and C++ knapsack programs..."; \
 	if [ -s $(LKCPP_EXE) ]; then \
 	  if [ -s $(LKC_EXE) ]; then \
 	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
@@ -297,11 +291,10 @@ checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
 	else \
 	  echo "ERROR: Cannot find or empty $(LKCPP_EXE)"; \
 	  echo 0 > $(CHECK_EX_STATUS); \
-	fi; \
-	echo "DONE (checkKnapsack)"; echo
+	fi
 
 checkUK: $(UKC_EXE) $(LKCPP_EXE)
-	@echo "Checking C and C++ knapsack programs..."; \
+	@echo; echo "Checking C and C++ knapsack programs..."; \
 	if [ -s $(LKCPP_EXE) ]; then \
 	  if [ -s $(UKC_EXE) ]; then \
 	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
@@ -335,8 +328,7 @@ checkUK: $(UKC_EXE) $(LKCPP_EXE)
 	else \
 	  echo "ERROR: Cannot find or empty Unlabeledknapsack"; \
 	  echo 0 > $(CHECK_EX_STATUS); \
-	fi; \
-	echo "DONE (checkUK)"; echo
+	fi
 
 clean:
 	rm -f *.o *.mout *.out *.diffs *.stats *.trace 

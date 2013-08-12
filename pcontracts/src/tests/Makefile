@@ -39,10 +39,10 @@ checkTCE: $(TCE_EXE)
 	./$(TCE_EXE) > run$(TCE_EXE).out 2>&1; \
 	SUCCESS=`grep "TEST SUITE PASSED" run$(TCE_EXE).out`; \
 	if [ -z "$$SUCCESS" ]; then \
-	  echo "...FAILED"; \
+	  echo "Contracts Enforcer Test Suite: FAILED"; \
 	  echo 0 > $(CHECK_ALL_STATUS); \
 	else \
-	  echo "...PASSED"; \
+	  echo "Contracts Enforcer Test Suite: PASSED"; \
 	fi; \
 	echo
 

@@ -7,6 +7,7 @@
 MAKE=make --no-print-directory
 
 INCLUDE_DIR=$(ROOT_DIR)/include
+BIN_DIR=$(ROOT_DIR)/bin
 LIB_DIR=$(ROOT_DIR)/lib
 SRC_DIR=$(ROOT_DIR)/src
 

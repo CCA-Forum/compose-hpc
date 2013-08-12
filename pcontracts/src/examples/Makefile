@@ -1,51 +1,23 @@
 ROOT_DIR=../..
-include $(ROOT_DIR)/make_rose.inc
+include $(ROOT_DIR)/make.inc
 include $(ROOT_DIR)/make_test.inc
+
+CHECK_EXAMPLES_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-examples
 
 
 FLAGS=$(BASE_FLAGS)
-INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) -I$(CONTRACTS_DIR)
+INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) 
 
 LDFLAGS=$(FLAGS)
-CXXFLAGS=$(INCLUDES) $(FLAGS) $(ROSE_CXXFLAGS) $(BASE_CXXFLAGS)
+CXXFLAGS=$(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 
-
-EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*" 
 
 LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack-v2
 UKCPP_EXE=UnlabeledKnapsack-v2
-CPRINTER_EXE=ContractPrinter
-CAPRINTER_EXE=ContractAssertionPrinter
-RCI_EXE=RoutineContractInstrumenter
-VCI_EXE=VisitContractsInstrumenter
-#VCI_EXE=
 
-
-# TBD/ToDo:  Need to address library linking
-BASE_ROSE_SOURCES = \
-	$(CONTRACTS_DIR)/RoseHelpers.cpp
-BASE_ROSE_OBJECTS=$(BASE_ROSE_SOURCES:.cpp=.o)
-BASE_CLAUSE_SOURCES = \
-	$(BASE_ROSE_SOURCES) \
-	$(CONTRACTS_DIR)/ContractsProcessor.cpp
-BASE_CLAUSE_OBJECTS=$(BASE_CLAUSE_SOURCES:.cpp=.o)
-
-
-KS_BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE)
-ROSE_BINARIES= $(CPRINTER_EXE) $(CAPRINTER_EXE) $(RCI_EXE) $(VCI_EXE)
-BINARIES=$(KS_BINARIES) $(ROSE_BINARIES)
-
-#
-# Test results settings
-RES_DIR=$(ROOT_DIR)/results
-BASE_RES_DIR=$(RES_DIR)/base
-BASE_ORACLE_DIR=$(SRC_DIR)/data
-
-RI_DIR=RoutineInstrumenter
-VI_DIR=VisitInstrumenter
-INSTR_DIRS=$(RI_DIR) $(VI_DIR)
+BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE)
 
 
 all: $(BINARIES)
@@ -54,60 +26,37 @@ all: $(BINARIES)
 .cpp.o:
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
-check: checkclean all checksetup checkKnapsackTests checkRose
+check: checkclean all checksetup checkKnapsackTests
 	@$(MAKE) checksummary; \
-	echo "DONE (check)"; echo
+	echo "DONE (check)"
 
-checkall: checkclean all checksetup checkKnapsackTests checkRose checkcontracts
-	@$(MAKE) checksummary; \
-	echo "DONE (checkall)"; echo
+checkall: check 
+	@echo "DONE (checkall)"; echo
 
 checkclean:
 	rm -f *.o *.mout $(BINARIES)
 
-#	  (cd $$dir && make -n checkall) || echo 0 > $$CSFN; \
-
-checkcontracts: all checksetup
-	@echo; \
-	for dir in $(INSTR_DIRS); do \
-	  echo; echo "Checking instrumented $$dir sources..."; \
-	  CSFN=$(CHECK_ALL_STATUS)-$$dir; \
-	  (cd $(RES_DIR)/$$dir && make checkall) || echo 0 > $$CSFN; \
-	  if [ -f "$$CSFN" ]; then \
-	    res=`cat $$CSFN`; \
-	    if [ "$$res" -eq "0" ]; then \
-	      echo "$$dir test suite failed..."; \
-	      echo 0 > $(CHECK_SRC_STATUS); \
-	    else \
-	      echo "$$dir test suite passed..."; \
-	    fi; \
-	  else \
-	    echo "ERROR: Unable to detect $$CSFN"; \
-	    echo 0 > $(CHECK_SRC_STATUS); \
-	  fi; \
-	done
-
 checksetup: 
-	@if [ ! -f $(CHECK_SRC_STATUS) ]; then \
-	  echo 1 > $(CHECK_SRC_STATUS); \
+	@if [ ! -f $(CHECK_EXAMPLES_STATUS) ]; then \
+	  echo 1 > $(CHECK_EXAMPLES_STATUS); \
 	fi
 
 checksummary:
 	@echo; \
-	if [ -f $(CHECK_SRC_STATUS) ]; then \
-	  res=`cat $(CHECK_SRC_STATUS)`; \
+	if [ -f $(CHECK_EXAMPLES_STATUS) ]; then \
+	  res=`cat $(CHECK_EXAMPLES_STATUS)`; \
 	  if [ "$$res" -eq "0" ]; then \
-	    echo; echo "Complete Test Suite:  FAILED";\
+	    echo; echo "Examples Test Suite: FAILED";\
 	    echo; echo "Review output to identify failure(s)"; \
 	    echo 0 > $(CHECK_ALL_STATUS); \
 	  else \
-	    echo; echo "Complete Test Suite:  PASSED";\
+	    echo; echo "Examples Test Suite: PASSED";\
 	  fi; \
-	  rm -f $(CHECK_SRC_STATUS); \
+	  rm -f $(CHECK_EXAMPLES_STATUS); \
 	else \
 	  echo; echo "***********"; \
 	  echo "WARNING:  Cannot assess test suite."; \
-	  echo "          $(CHECK_SRC_STATUS) is missing."; \
+	  echo "          $(CHECK_EXAMPLES_STATUS) is missing."; \
 	  echo "***********"; \
 	  echo 0 > $(CHECK_ALL_STATUS); \
 	fi
@@ -128,27 +77,6 @@ $(UKCPP_EXE): $(UKCPP_EXE).cpp
 	$(CXX) -c $(CXXFLAGS) -o $(UKCPP_EXE).o $(UKCPP_EXE).cpp
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o
 
-$(CPRINTER_EXE): $(CPRINTER_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
-	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o \
-	  $(BASE_ROSE_OBJECTS)
-
-$(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
-		$(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -DNO_MAIN -o $(CPRINTER_EXE)-mainLess.o  \
-	  $(CPRINTER_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp
-	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
-	  $(CPRINTER_EXE)-mainLess.o $(BASE_ROSE_OBJECTS)
-
-$(RCI_EXE): $(RCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp
-	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(BASE_CLAUSE_OBJECTS)
-
-$(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp
-	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(BASE_CLAUSE_OBJECTS)
-
 
 checkKnapsackDiffs: 
 	@echo "..Comparing runs of $$EXE1 and $$EXE2 with target $$KT"; \
@@ -165,7 +93,7 @@ checkKnapsackDiffs:
 	        diff $$OFN1 $$OFN2 > $$DIFFS; \
                 if [ -s $$DIFFS ]; then \
 	          echo "....*** Different: $$PRE $$COMP ***"; \
-	          echo 0 > $(CHECK_SRC_STATUS); \
+	          echo 0 > $(CHECK_EXAMPLES_STATUS); \
 	        else \
 	          echo "....Identical: $$PRE $$COMP"; \
 	          if [ -f $$DIFFS ]; then \
@@ -175,19 +103,19 @@ checkKnapsackDiffs:
 	        fi; \
 	      else \
 	        echo "....ERROR:  Missing COMP definition"; \
-	        echo 0 > $(CHECK_SRC_STATUS); \
+	        echo 0 > $(CHECK_EXAMPLES_STATUS); \
 	      fi; \
 	    else \
 	      echo "....ERROR:  Missing PRE definition"; \
-	      echo 0 > $(CHECK_SRC_STATUS); \
+	      echo 0 > $(CHECK_EXAMPLES_STATUS); \
 	    fi; \
 	  else \
 	    echo "....ERROR:  Missing EXE2 definition"; \
-	    echo 0 > $(CHECK_SRC_STATUS); \
+	    echo 0 > $(CHECK_EXAMPLES_STATUS); \
 	  fi; \
 	else \
 	  echo "....ERROR:  Missing EXE1 definition"; \
-	  echo 0 > $(CHECK_SRC_STATUS); \
+	  echo 0 > $(CHECK_EXAMPLES_STATUS); \
 	fi
 
 checkKnapsacks: $(KS_BINARIES)
@@ -209,115 +137,8 @@ checkKnapsackTests:
 	$(MAKE) checkKnapsacks KT=; \
 	echo "DONE (checkKnapsackTests)"
 
-checkRose: checkRosePrinters checkRoseTranslators
-
-checkRosePrinters: checkCAPrinter checkCPrinter
-
-checkCAPrinter: $(CAPRINTER_EXE)
-	@$(MAKE) checkRosePrinter EXE=$(CAPRINTER_EXE) SDIR="CAPrinter"
-
-checkCPrinter: $(CPRINTER_EXE)
-	@$(MAKE) checkRosePrinter EXE=$(CPRINTER_EXE) SDIR="CPrinter"
-
-checkRosePrinter: $(EXE)
-	@echo; echo "Running $(EXE)..."; \
-	OUTDIR=$(RES_DIR)/$$SDIR; \
-	mkdir -p $$OUTDIR; \
-	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config | grep -v checks | grep -v diffs`; \
-	for file in $$FILES; do \
-	  n=`expr $$n + 1`; \
-	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
-	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
-	  echo "..Processing $$BASE.$$EXT"; \
-	  OFN=$$OUTDIR/$$BASE.mout; \
-	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
-	  if [ -s $$OFN ]; then \
-	    ok=`expr $$ok + 1`; \
-	    echo "....Results in $$OFN"; \
-	  else \
-	    echo "....FAILED on $$file"; echo; \
-	    echo 0 > $(CHECK_SRC_STATUS); \
-	  fi; \
-	done; \
-	echo "..Successfully processed $$ok of $$n files."; \
-	echo "DONE (checkRosePrinter)"; echo
-
-checkRoseTranslators: checkRCI checkVCI
-
-#checkRoseTranslators: checkRCI 
-
-checkRCI: $(RCI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(RCI_EXE) SDIR="$(RI_DIR)"
-
-checkVCI: $(VCI_EXE)
-	@$(MAKE) checkRoseTrans EXE=$(VCI_EXE) SDIR="$(VI_DIR)"
-
-checkRoseTrans: $(EXE)
-	@echo; echo "Running $(EXE)..."; \
-	OUTDIR=$(RES_DIR)/$$SDIR; \
-	mkdir -p $$OUTDIR; \
-	n=0; \
-	FILES=`find ../examples $(EXAMPLES) | grep -v rose | grep -v .swp | grep -v .config | grep -v checks | grep -v diffs`; \
-	ok=0; \
-	for file in $$FILES; do \
-	  n=`expr $$n + 1`; \
-	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
-	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
-	  echo "..Processing $$BASE.$$EXT"; \
-	  OFN=rose_$$BASE.$$EXT; \
-	  ERRFN=$$OUTDIR/$$BASE.err; \
-	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
-	  ERFN=$$BASE.checks; \
-	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$ERFN; \
-	  if [ -f $$OFN ]; then \
-	    grep PCE_CHECK $$OFN | grep ASSERT | wc -l > $$ERFN; \
-	    grep PCE_CHECK $$OFN | grep INVARIANT | wc -l >> $$ERFN; \
-	    grep PCE_CHECK $$OFN | grep POSTCONDITION | wc -l >> $$ERFN;\
-	    grep PCE_CHECK $$OFN | grep PRECONDITION | wc -l >> $$ERFN; \
-	    grep PCE_FINALIZE $$OFN | wc -l >> $$ERFN; \
-	    grep PCE_INITIALIZE $$OFN | wc -l >> $$ERFN; \
-	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
-	    diff $$ERFN $$ORFN > $$ERFN.diffs; \
-            if [ -s $$ERFN.diffs ]; then \
-	      echo "....*** Different: $$ERFN $$ORFN ***"; \
-	      cat $$ERFN.diffs; \
-	      echo "....FAILED on $$file"; echo; \
-	      echo 0 > $(CHECK_SRC_STATUS); \
-	    else \
-	      echo "....Identical: $$ERFN $$ORFN"; \
-	      ok=`expr $$ok + 1`; \
-	    fi; \
-	    DESTFN=$$OUTDIR/$$BASE.$$EXT; \
-	    mv -f $$OFN $$DESTFN; \
-	    echo "....Unparse results in $$DESTFN"; \
-	  else \
-	    echo "....No output generated.  FAILED on $$file"; \
-	    echo 0 > $(CHECK_SRC_STATUS); \
-	  fi; \
-	  if [ ! -s $$ERRFN ]; then \
-	    echo "....Removing empty error file."; \
-	    rm -f $$ERRFN; \
-	  fi; \
-	done; \
-	echo; echo "..Successfully processed $$ok of $$n files."; echo; \
-        if [ "$$ok" = "$$n" ]; then \
-	  echo "Copying Makefile to $$OUTDIR"; \
-	  cat Makefile.trans | sed 's/REPLACEME/${SDIR}/g' > $$OUTDIR/Makefile;\
-	  echo "Copying configuration file(s) to $$OUTDIR"; \
-	  cp -f *.config $$OUTDIR; \
-	  echo "Copying header files to $$OUTDIR"; \
-	  cp -f *ack*.h* $$OUTDIR; \
-	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
-	else \
-	  echo "ERROR: Must resolve issues before able to build translations.";\
-	  echo 0 > $(CHECK_SRC_STATUS); \
-        fi; \
-	echo "DONE (checkRoseTran)"
-
-
 clean:
-	@rm -f *.o *.out *.mout *.diffs *.ti rose_* *.res *.checks
+	@rm -f *.o *.out *.mout *.diffs
 
 cleanall: clean
 	@rm -f $(BINARIES) *.dot *.pdf; \

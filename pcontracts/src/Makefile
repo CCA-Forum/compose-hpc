@@ -1,7 +1,7 @@
 ROOT_DIR=..
 include $(ROOT_DIR)/make_test.inc
 
-SUBDIRS = runtime contracts examples tests
+SUBDIRS = runtime contracts drivers examples tests
 
 
 all:
@@ -33,12 +33,12 @@ checksummary:
 	if [ -f $(CHECK_ALL_STATUS) ]; then \
 	  RES=`cat $(CHECK_ALL_STATUS)`; \
 	  if [ "$$RES" -eq "1" ]; then \
-	    echo "ALL SUITES: PASSED"; \
+	    echo "All Suites: PASSED"; \
 	  else \
-	    echo "ALL SUITES: FAILED"; \
+	    echo "All Suites: FAILED"; \
 	  fi; \
 	else \
-	  echo "ALL SUITES: FAILED: $(CHECK_ALL_STATUS) is missing"; \
+	  echo "All SUITESSuites FAILED: $(CHECK_ALL_STATUS) is missing"; \
 	fi; \
 	echo
 
