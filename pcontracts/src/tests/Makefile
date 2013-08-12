@@ -1,6 +1,6 @@
 ROOT_DIR=../..
-include $(ROOT_DIR)/make.inc
-include $(ROOT_DIR)/make_test.inc
+include $(ROOT_DIR)/src/make.inc
+include $(ROOT_DIR)/src/make_test.inc
 
 
 FLAGS=$(BASE_FLAGS)

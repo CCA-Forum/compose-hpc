@@ -1,5 +1,5 @@
 ROOT_DIR=.
-include make_test.inc
+include ./src/make_test.inc
 
 SUBDIRS = src
 

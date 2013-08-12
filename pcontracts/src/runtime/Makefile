@@ -1,5 +1,5 @@
 ROOT_DIR=../..
-include $(ROOT_DIR)/make.inc
+include $(ROOT_DIR)/src/make.inc
 
 #
 # DEBUG settings

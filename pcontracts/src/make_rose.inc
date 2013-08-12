@@ -5,7 +5,7 @@
 # ROOT_DIR   contains the path to the PAUL Contracts root directory
 # ROSE_HOME  contains the path to the ROSE installation root directory
 # 
-include $(ROOT_DIR)/make.inc
+include $(ROOT_DIR)/src/make.inc
 
 ROSE_LIB = -lrose -L$(ROSE_HOME)/lib
 # -Wl,-rpath $(ROSE_HOME)/lib 

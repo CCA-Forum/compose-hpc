@@ -1,5 +1,5 @@
 ROOT_DIR=..
-include $(ROOT_DIR)/make_test.inc
+include make_test.inc
 
 SUBDIRS = runtime contracts drivers examples tests
 

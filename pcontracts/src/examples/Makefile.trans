@@ -1,6 +1,6 @@
 ROOT_DIR=../..
 
-#import $(ROOT_DIR)/make.inc
+#import $(ROOT_DIR)/src/make.inc
 ############# BEGIN
 #
 # Dependencies: None
@@ -24,7 +24,6 @@ RUNTIME_LIB=lib$(RUNTIME_LIB_BASE).a
 
 EX_DIR=$(SRC_DIR)/examples
 
-
 #
 # Common compiler flags and settings
 #
@@ -39,7 +38,7 @@ BASE_CXXFLAGS=-Wno-deprecated
 ############# END
 
 
-#import $(ROOT_DIR)/make_test.inc
+#import $(ROOT_DIR)/src/make_test.inc
 ############# BEGIN
 #
 # Dependencies:
@@ -175,10 +174,10 @@ checksummary:
 	if [ -f $(CHECK_EX_STATUS) ]; then \
 	  res=`cat $(CHECK_EX_STATUS)`; \
 	  if [ "$$res" -eq "0" ]; then \
-	    echo "$(BASE_TEST_DIR) Test Suite:  FAILED"; \
+	    echo "$(BASE_TEST_DIR) Test Suite: FAILED"; \
 	    echo; echo "Review output to identify failure(s)"; \
 	  else \
-	    echo "$(BASE_TEST_DIR) Test Suite:  PASSED"; \
+	    echo "$(BASE_TEST_DIR) Test Suite: PASSED";\
 	  fi; \
 	else \
 	  echo; echo "*******"; \

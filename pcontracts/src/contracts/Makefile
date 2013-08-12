@@ -1,5 +1,5 @@
 ROOT_DIR=../..
-include $(ROOT_DIR)/make_rose.inc
+include $(ROOT_DIR)/src/make_rose.inc
 
 
 FLAGS=$(BASE_FLAGS)

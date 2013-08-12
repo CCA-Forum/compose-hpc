@@ -1,6 +1,6 @@
 ROOT_DIR=../..
-include $(ROOT_DIR)/make.inc
-include $(ROOT_DIR)/make_test.inc
+include $(ROOT_DIR)/src/make.inc
+include $(ROOT_DIR)/src/make_test.inc
 
 CHECK_EXAMPLES_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-examples
 
