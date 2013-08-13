@@ -9,7 +9,6 @@ BASE_TEST_DIR=REPLACEME
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(BASE_TEST_DIR)
 CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(BASE_TEST_DIR)
 
-
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
 # contract checking.
@@ -119,17 +118,22 @@ checksummary:
 	@echo; \
 	if [ -f $(CHECK_EX_STATUS) ]; then \
 	  res=`cat $(CHECK_EX_STATUS)`; \
-	  if [ "$$res" -eq "0" ]; then \
-	    echo "$(BASE_TEST_DIR) Test Suite: FAILED"; \
-	    echo; echo "Review output to identify failure(s)"; \
-	  else \
-	    echo "$(BASE_TEST_DIR) Test Suite: PASSED";\
-	  fi; \
 	else \
+	  res="-1"; \
 	  echo; echo "*******"; \
 	  echo "WARNING:  $(CHECK_EX_STATUS) is missing.  "; \
-	  echo "          Cannot assess $(BASE_TEST_DIR) test suite."; \
 	  echo "*******"; \
+	fi; \
+	if [ "X$$PCEFLAGS" != "X" ]; then \
+	  stat="enabled"; \
+	else \
+	  stat="disabled"; \
+	fi; \
+	if [ "$$res" -eq "0" ]; then \
+	  echo "$(BASE_TEST_DIR) Test Suite: Contracts-$$stat: FAILED"; \
+	  echo; echo "Review output to identify failure(s)"; \
+	else \
+	  echo "$(BASE_TEST_DIR) Test Suite: Contracts-$$stat: PASSED";\
 	fi
 
 checkclean:

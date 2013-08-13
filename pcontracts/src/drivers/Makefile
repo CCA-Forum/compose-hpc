@@ -86,11 +86,11 @@ checksummary:
 	if [ -f $(CHECK_DRIVERS_STATUS) ]; then \
 	  res=`cat $(CHECK_DRIVERS_STATUS)`; \
 	  if [ "$$res" -eq "0" ]; then \
-	    echo; echo "Drivers Test Suite:  FAILED";\
+	    echo; echo "Drivers Test Suite: FAILED";\
 	    echo; echo "Review output to identify failure(s)"; \
 	    echo 0 > $(CHECK_ALL_STATUS); \
 	  else \
-	    echo; echo "Drivers Test Suite:  PASSED";\
+	    echo; echo "Drivers Test Suite: PASSED";\
 	  fi; \
 	  rm -f $(CHECK_DRIVERS_STATUS); \
 	else \
