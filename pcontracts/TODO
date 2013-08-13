@@ -1,9 +1,6 @@
 PROTOTYPE
 
 HIGH:
-- Finish cleaning up and restructuring the code base.
-  -- Move includes to the root include directory
-
 - Finish writing up document describing what this work is about, benefits, and
   how to use it.  Distribute to collaborators!
 
@@ -39,7 +36,6 @@ Lower Priority Refinements:
 - Support multiple enforcers (and configurations).
 - Support routine-specific time estimates (as had been done in Babel).
 - Add tests (testContractsEnforcer) for the initialization routine.
-- Build:  Ensure OBJS depending on headers
 
 
    

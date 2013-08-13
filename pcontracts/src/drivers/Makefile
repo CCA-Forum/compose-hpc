@@ -6,7 +6,7 @@ CHECK_DRIVERS_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-drivers
 
 
 FLAGS=$(BASE_FLAGS)
-INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) -I$(CONTRACTS_DIR)
+INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR)
 
 LDFLAGS=$(FLAGS)
 CXXFLAGS=$(INCLUDES) $(FLAGS) $(ROSE_CXXFLAGS) $(BASE_CXXFLAGS)
@@ -236,7 +236,7 @@ clean:
 	@rm -f *.o *.out *.mout *.diffs *.ti rose_* *.res *.checks
 
 cleanall: clean
-	@rm -f $(BINARIES) *.dot *.pdf; \
+	@rm -f $(BINARIES) $(BIN_DIR)/$(BINARIES) *.dot *.pdf; \
 	if [ "$(RES_DIR)" != "" ]; then \
 	  rm -rf $(RES_DIR)/*; \
 	fi
