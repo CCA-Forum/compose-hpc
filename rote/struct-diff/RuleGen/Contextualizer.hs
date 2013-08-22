@@ -30,14 +30,16 @@ strategoVar = do
   ident <- genName "RG_"
   return $ Node (LBLString ident) []
 
-booler :: WeaveTree a -> WeaveTree Bool
-booler (WLeaf t) = WLeaf t
-booler (WNode lbl _ kids) = WNode lbl (or flags) kids'
-  where kfilt (Match m) = let w@(WNode _ flag _) = booler m
+-- annotate a weave tree with a bool flag that indicates
+-- whether or not a subtree of each node contains a hole.
+containsHoles :: WeaveTree a -> WeaveTree Bool
+containsHoles (WLeaf t) = WLeaf t
+containsHoles (WNode lbl _ kids) = WNode lbl (or flags) kids'
+  where kfilt (Match m) = let w@(WNode _ flag _) = containsHoles m
                           in (Match w, flag)
-        kfilt (Mismatch m1 m2) = (Mismatch (booler m1) (booler m2), False)
-        kfilt (LeftHole lh) = (LeftHole (booler lh), True)
-        kfilt (RightHole rh) = (RightHole (booler rh), True)
+        kfilt (Mismatch m1 m2) = (Mismatch (containsHoles m1) (containsHoles m2), False)
+        kfilt (LeftHole lh) = (LeftHole (containsHoles lh), True)
+        kfilt (RightHole rh) = (RightHole (containsHoles rh), True)
         (kids',flags) = unzip $ map kfilt kids
 
 -- wrapper that annotates the tree with booleans indicating the presence of a hole in
@@ -45,7 +47,7 @@ booler (WNode lbl _ kids) = WNode lbl (or flags) kids'
 -- contextualize_booltree
 contextualize :: [ContextualizeFilterRule] -> WeaveTree a -> IDGen [(LabeledTree, LabeledTree)]
 contextualize ctxt_filt t = do
-  let bt = booler t
+  let bt = containsHoles t
       lsetmatch = foldl1 S.union $ map (\(ContextualizeFilterRule r) -> r) ctxt_filt
   contextualize_booltree (ContextualizeFilterRule lsetmatch) bt
 
@@ -59,8 +61,7 @@ contextualize_booltree ctxt_filt@(ContextualizeFilterRule filt_set) w@(WNode lbl
     contextualize_inner w
     else
       (do rv <- mapM (contextualize_booltree ctxt_filt) $ mapMaybe checkMatch kids
-          return $ concat rv
-        )
+          return $ concat rv )
 contextualize_booltree _ (WNode _ False _) = do return []
 contextualize_booltree _ (WLeaf _) = error "BAD"
 
@@ -79,7 +80,8 @@ contextualize_inner (WLeaf _) =
 -- no holes underneath, and we are inside a subtree that is under a context
 -- node, so subtrees without holes turn into metavariables.
 contextualize_inner (WNode _ False _) = do  
-  l <- strategoVar
+  l <- strategoVar  -- TODO: is this right?  leave subtrees instead 
+                    --       to make most specific instead of most general?
   return [(l,l)]
 
 -- otherwise, handle kids and keep this label
