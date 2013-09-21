@@ -1,0 +1,99 @@
+/**
+\page Build
+
+\tableofcontents
+
+\section build_sec Building the Software
+
+Simple makefiles are used to build the tools; run examples; and run regression 
+tests.  
+Basic instructions for each makefile target are given below and in the README 
+file.
+
+
+\section build_reqs_sec Prerequisites
+
+Environment requirements associated with the build process are described 
+\ref environ_sec "here".  
+
+
+\section basic_build_sec Basics
+
+The software is built through a simple makefile invocation at the command
+line:
+
+- \b make
+
+
+\section run_examples_sec Running Tests and Examples
+
+Once the software is built, regression tests and examples can be executed.
+There are actually two options.
+The first performs basic checks of the infrastructure and driver programs.
+The second adds building and checking the transformed source files.
+
+The rule to perform basic checks can be invoked at the command line as 
+follows:
+
+- \b make \b check
+
+This rule executes and verifies the results of the runtime library, input 
+source files, and driver programs.
+Input source files are checked to ensure they build and are still functioning.
+Only the success or failure of the traversal and transformation processes of
+the driver programs, which all involve traversing the abstract syntax trees
+(AST) of the input source files, are verified.
+
+Checking transformed sources is performed with the \em checkall rule.
+
+- \b make \b checkall
+
+Using this rule adds building, executing, and checking the results of 
+instrumented source files -- <em>with enforcement checks <b>enabled</b> and 
+<b>disabled</b></em> -- to the checks performed with the \em check rule.
+
+The execution of either rule leads to the creation of a \b results
+subdirectory containing outputs from the processes.
+Results of executing programs are generally redirected to files with 
+<b>.mout</b> extensions.  
+Any comparisons with oracle files are redirected to files with <b>.diffs</b>
+extensions.
+Enforcement statistics and trace information, if any, are redirected to files
+having <b>.csv</b> extensions.
+These files are automatically removed when the directory is cleaned.
+
+Information about driver and input programs can be found \ref Programs "here".
+
+
+\section cleanup_sec Cleaning Directories
+
+There are several options for removing generated files from directories.
+
+Object and output files are automatically removed with:
+
+- \b make \b clean
+
+Generated documentation can be removed with:
+
+- \b make \b cleandocs
+
+Documentation, object, output, and executable files are removed with:
+
+- \b make \b cleanall
+
+
+\section docs_sec Generating Documentation
+
+With \b Doxygen and \b GraphViz's \b dot installed and in the path, 
+documentation can be (re)generated in a \b docs subdirectory by running 
+the following at the command line:
+
+- \b make \b docs
+
+Now you can navigate to and open the index.html file from a web
+browser to see information about the classes and files in this package.
+
+
+\htmlinclude copyright.html
+
+*/

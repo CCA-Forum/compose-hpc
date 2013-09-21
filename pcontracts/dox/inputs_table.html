@@ -1,0 +1,99 @@
+<table border="1">
+<colgroup>
+  <col span="1" style="width: 15%;">
+  <col span="1" style="width: 20%;">
+  <col span="1" style="width: 15%;">
+  <col span="1" style="width: 50%;">
+</colgroup>
+<thead>
+  <tr>
+    <th rowspan="2">Program</th>
+    <th colspan="2">Contract Annotation(s)</th>
+    <th rowspan="2">Purpose</th>
+  </tr>
+  <tr>
+    <th>Routine</th>
+    <th>Inlined</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td style="text-align:center;">
+      <a href="helloworld_8cc.html">helloworld.cc</a>
+    </td>
+    <td style="text-align:center;">FINAL, INIT, REQUIRE, STATS</td>
+    <td style="text-align:center;"></td>
+    <td>An example containing only routine annotations.</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <a href="helloworld-v2_8cc.html">helloworld-v2.cc</a>
+    </td>
+    <td style="text-align:center;">REQUIRE</td>
+    <td style="text-align:center;">FINAL, INIT, STATS</td>
+    <td>An example containing mostly in-lined annotations, which means
+        much of the enforcement instrumentation can only be added through 
+        the <em>VisitContractsInstrumenter</em> driver.
+        Unfortunately, this is also a case where the in-lined finalization 
+        annotation does not get translated with ROSE 0.9.5a-17286.
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <a href="helloworld-v3_8cc.html">helloworld-v3.cc</a>
+    </td>
+    <td style="text-align:center;">REQUIRE</td>
+    <td style="text-align:center;">FINAL, INIT, STATS</td>
+    <td>An example containing routine and in-lined annotations placed such
+        that the finalization annotation does get translated with ROSE
+        0.9.5a-17286.
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <a href="knapsack_8c.html">knapsack.c</a>
+    </td>
+    <td style="text-align:center;">ENSURE, FINAL, INIT, REQUIRE</td>
+    <td style="text-align:center;">ASSERT</td>
+    <td>An example with simple, labeled routine contracts and in-lined 
+        assertions translated with the <em>VisitContractsInstrumenter</em> driver.
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <a href="Knapsack-v2_8cpp.html">Knapsack-v2.cpp</a>
+    </td>
+    <td style="text-align:center;">
+      ENSURE, FINAL, INIT, INVARIANT, REQUIRE
+    </td>
+    <td style="text-align:center;">ASSERT</td>
+    <td>An example with labeled routine contracts and in-lined assertions but an
+        advanced, unsupported assertion expression that does not get translated
+        by either transformation driver.
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <a href="unlabeledknapsack_8c.html">unlabeledknapsack.c</a>
+    </td>
+    <td style="text-align:center;">ENSURE, FINAL, INIT, REQUIRE</td>
+    <td style="text-align:center;">ASSERT</td>
+    <td>An example with unlabeled routine contract and in-lined assertion
+        annotations.
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <a href="UnlabeledKnapsack-v2_8cpp.html">UnlabeledKnapsack-v2.cpp</a>
+    </td>
+    <td style="text-align:center;">
+      ENSURE, FINAL, INIT, INVARIANT, REQUIRE
+    </td>
+    <td style="text-align:center;">ASSERT</td>
+    <td>An example with unlabeled routine contract and in-lined assertion 
+        annotations but an advanced, unsupported assertion expression that does
+        not get translated by either transformation driver.
+    </td>
+  </tr>
+</tbody>
+</table>

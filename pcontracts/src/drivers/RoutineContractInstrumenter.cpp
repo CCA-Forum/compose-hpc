@@ -11,7 +11,7 @@
  * Initial contract enforcement instrumentation example.
  *
  * @details
- * This example only translates structured contract comments associated
+ * This driver only translates structured contract comments associated
  * with function nodes in the AST into either contract checks or comments,
  * depending on whether a rudimentary (string) check of the associated 
  * expression indicates it is (likely to be) a basic C expression or a more

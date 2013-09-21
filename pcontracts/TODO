@@ -1,16 +1,17 @@
 PROTOTYPE
 
 HIGH:
+- Add an html table to Annotations.dox
 - Finish writing up document describing what this work is about, benefits, and
   how to use it.  Distribute to collaborators!
 
 
 MODERATE:
-- TBD: Complete testing and debugging of STATS support.
+- Complete supporting, testing, and debugging of STATS.
   -- TBD: Where should pre-routine STATS be instrumented?
      (Now blanket adding before finalize regardless of annotation location.)
 
-  -- Need to resolve in-lined STATS not being translated (since currently
+  -- Need to determine why in-lined STATS not being translated (since currently
      treating like FINAL).  Review whether distinguishing between inlined
      and pre-routine annotations.
 

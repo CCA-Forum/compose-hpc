@@ -1,0 +1,39 @@
+/**
+\page Programs
+
+\tableofcontents
+
+A number of programs contained in this package serve either as drivers,
+programs used to traverse input source file abstract syntax trees (ASTs), 
+or input source files that can, themselves, be executed.
+
+
+\section programs_sec Driver Programs
+
+Driver programs, listed in the table below, recognize and process contract 
+comment annotations in C/C++ source files.
+There are two types of drivers:  traversal and transformation. 
+Traversal drivers simply walk the abstract syntax tree (AST) and print
+information about any contract annotations detected.
+Additionally, transformation drivers insert the corresponding enforcement 
+instrumentation.
+
+\htmlinclude drivers_table.html
+
+
+\section example_inputs_sec Annotated Input Programs
+
+There are several very basic programs used as input source files for the
+driver programs.
+Each input program contains contract annotations in the comments of
+routines and or inlined within routines.
+The table below lists the associated CONTRACT annotations and summarizes
+the intention of each program.
+
+
+\htmlinclude inputs_table.html
+
+
+\htmlinclude copyright.html
+
+*/

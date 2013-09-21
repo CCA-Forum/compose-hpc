@@ -37,6 +37,7 @@ checkall: checkTCE
 checkTCE: $(TCE_EXE)
 	@echo "\nRunning Contracts Enforcer tests with default options..."; \
 	./$(TCE_EXE) > run$(TCE_EXE).out 2>&1; \
+	echo; cat run$(TCE_EXE).out; echo; \
 	SUCCESS=`grep "TEST SUITE PASSED" run$(TCE_EXE).out`; \
 	if [ -z "$$SUCCESS" ]; then \
 	  echo "Contracts Enforcer Test Suite: FAILED"; \

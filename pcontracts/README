@@ -71,9 +71,9 @@ clean rule:
 
   $ make clean
 
-while all files, including documentation, are removed with the clean-all rule:
+while all files, including documentation, are removed with the cleanall rule:
 
-  $ make clean-all
+  $ make cleanall
 
 
 
@@ -90,4 +90,4 @@ see information about the classes and files in this package.
   
 
 
-Last Updated:  2013 April 23
+Last Updated:  2013 September 12

@@ -3,7 +3,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 August 2
+ * Last Modified: 2013 September 20
  * \endinternal
  *
  * @file
@@ -120,11 +120,16 @@ processCommentContents(
         printLineComment(node, "Finalization:", true);
         printClause(cmt.substr(pos+5));
       }
+      else if ((pos=cmt.find("STATS"))!=string::npos)
+      {
+        printLineComment(node, "Finalization:", true);
+        printClause(cmt.substr(pos+5));
+      }
       else
       {
         printLineComment(node, "WARNING: Unidentified contract annotation:",
                          true);
-        printClause(cmt.substr(pos+8));
+        printClause(cmt.substr(pos));
       }
     }
   }

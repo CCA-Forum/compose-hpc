@@ -38,7 +38,7 @@ checksummary:
 	    echo "All Suites: FAILED"; \
 	  fi; \
 	else \
-	  echo "All SUITESSuites FAILED: $(CHECK_ALL_STATUS) is missing"; \
+	  echo "All Suites FAILED: $(CHECK_ALL_STATUS) is missing"; \
 	fi; \
 	echo
 

@@ -1,0 +1,26 @@
+/**
+\page Environment
+
+\section environ_sec Environment Settings
+
+Ensure ROSE and associated dependencies are installed and running before 
+attempting to build this package.  The software has been successfully built
+in the following environment(s):
+
+- \b Ubuntu 11.04:\n  \b GNU \b Make 3.81, \b GraphViz 2.26.3, \b Doxygen 1.7.3,
+\b java 1.6, \b gmp 5.0.2, \b mpfr 3.1.0, \b mpc 0.9, \b gcc 4.4.6, 
+\b boost 1.45.0, and \b rose 0.9.5a.
+
+Note that \b GraphViz and \b Doxygen are only needed to generate this
+documentation.
+
+
+Makefiles assume the following environment variables are properly defined:
+
+- \b ROSE_HOME  # ROSE installation root with lib and include subdirectories
+- \b BOOST_HOME  # BOOST installation root with lib and include subdirectories
+
+
+\htmlinclude copyright.html
+
+*/

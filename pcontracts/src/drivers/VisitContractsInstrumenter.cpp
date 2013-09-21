@@ -11,11 +11,12 @@
  * Second contract enforcement instrumentation example.
  *
  * @details
- * This example translates structured contract comments associated with any
- * AST node into contract checks, contract-related runtime calls, or comments,
- * depending on the annotation and associated AST node.  Preconditions
- * and Postconditions must still be associated with function nodes; however, 
- * all other contract annotations can be associated with other node types.
+ * This is the main driver for translating structured contract comments 
+ * associated with any AST node into contract checks, contract-related 
+ * runtime calls, or comments, depending on the annotation and associated 
+ * AST node.  Preconditions and Postconditions must still be associated 
+ * with function nodes; however, all other contract annotations can be 
+ * associated with other node types.
  *
  * Only rudimentary (string) check of the associated expression is performed to
  * assess whether the expression is (likely to be) a basic C expression or a
