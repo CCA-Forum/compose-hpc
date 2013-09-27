@@ -13,10 +13,10 @@ or input source files that can, themselves, be executed.
 Driver programs, listed in the table below, recognize and process contract 
 comment annotations in C/C++ source files.
 There are two types of drivers:  traversal and transformation. 
-Traversal drivers simply walk the abstract syntax tree (AST) and print
+\b Traversal drivers simply walk the abstract syntax tree (AST) and print
 information about any contract annotations detected.
-Additionally, transformation drivers insert the corresponding enforcement 
-instrumentation.
+\b Transformation drivers, in addition to walking the AST, insert the 
+enforcement instrumentation associated with the annotation.
 
 \htmlinclude drivers_table.html
 
@@ -27,7 +27,7 @@ There are several very basic programs used as input source files for the
 driver programs.
 Each input program contains contract annotations in the comments of
 routines and or inlined within routines.
-The table below lists the associated CONTRACT annotations and summarizes
+The table below lists the associated \b CONTRACT annotations and summarizes
 the intention of each program.
 
 

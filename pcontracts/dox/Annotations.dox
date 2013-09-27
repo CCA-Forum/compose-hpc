@@ -22,26 +22,36 @@ This software supports the translation of PAUL-compliant interface contracts
 and in-lined assertions specified in C/C++ into statements for checking the
 associated assertions.
 All interface contract annotations start with \b CONTRACT.
-The table below lists supported annotations.
+The table below lists supported annotations and indicates where the annotation
+may appear relative to the associated method definition, if relevant.
 
 \htmlinclude annotations_table.html
 
-\section clause_sec Contract Clauses
+Annotations containing an \em expression-list are referred to as \b contract 
+\b clauses.
+The \b expression-list is a semi-colon separated list of assertions, each of
+which is optionally prefaced by a label followed by a colon.
+The label is added to the error message when a contract clause violation is
+reported.  
+So meaningful labels aid violation isolation.
 
-Each clause annotation supports a semi-colon separated list of assertions, 
-each optionally prefaced with a label followed by a colon.  
-For example,
+
+\section clause_sec Examples
+
+Examples using different sets of annotations can be found on the 
+\ref Programs "Programs" page.
+Below is an example of a method with precondition and postcondition clauses.
 
 \htmlinclude knapsack.html
 
-shows a precondition clause annotation -- \b CONTRACT \b REQUIRE -- consisting 
+The precondition clause annotation -- \b CONTRACT \b REQUIRE -- consists
 of two labeled assertions.  
 The first assertion states the \b weights argument must not be 0 (or null) and 
 the second assertion states \b n must be positive.
-The example also contains a postcondition clause annotation -- \b CONTRACT 
-\b ENSURE -- stating that the result of the call -- identified as 
-\b pce_result -- is expected to be in the range of 0 and 1 (assuming the 
-preconditions were satisfied on entry).
+The example also contains an unlabeled postcondition clause -- \b CONTRACT 
+\b ENSURE -- stating that the result of the call, identified by \b pce_result, 
+is expected to be in the range of 0 and 1 (assuming the preconditions were 
+satisfied on entry).
 While one could argue that the first precondition assertion is inappropriate
 from a defensive programming standpoint, the main point here is to illustrate
 the syntax of a clause.
@@ -64,8 +74,8 @@ resulting in all clause checks being enforced, or
 /* %CONTRACT INIT helloworld.config; */
 </pre>
 
-if there is a configuration file providing information for the desired 
-enforcement strategy.
+if there is a configuration file (i.e., \em helloworld.config) providing 
+information for the desired enforcement strategy.
 
 
 

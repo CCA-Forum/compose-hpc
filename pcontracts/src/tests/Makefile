@@ -6,12 +6,11 @@ include $(ROOT_DIR)/src/make_test.inc
 FLAGS=$(BASE_FLAGS)
 INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR)
 
-# TBD/ToDo:  Need to resolve library linking issue
 CE_OBJ=$(RT_DIR)/ContractsEnforcer.o
 
-LDFLAGS=$(FLAGS) -L$(LIB_DIR) -l$(CONTRACTS_LIB_BASE) -l$(RUNTIME_LIB_BASE)
 CXXFLAGS=$(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 
+LDFLAGS=-L$(LIB_DIR) -l$(RUNTIME_LIB_BASE)
 
 TCE_EXE=testContractsEnforcer
 BINARIES=$(TCE_EXE)
@@ -27,7 +26,7 @@ all: $(BINARIES)
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 $(TCE_EXE): $(TCE_EXE).o $(CE_OBJ)
-	$(CXX) -o $(TCE_EXE) $(LDFLAGS) $(TCE_EXE).o $(CE_OBJ)
+	$(CXX) -o $(TCE_EXE) $(LDFLAGS) $(TCE_EXE).o $(LDFLAGS)
 
 
 check: checkall

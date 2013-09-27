@@ -73,10 +73,6 @@ Object and output files are automatically removed with:
 
 - \b make \b clean
 
-Generated documentation can be removed with:
-
-- \b make \b cleandocs
-
 Documentation, object, output, and executable files are removed with:
 
 - \b make \b cleanall
@@ -92,6 +88,10 @@ the following at the command line:
 
 Now you can navigate to and open the index.html file from a web
 browser to see information about the classes and files in this package.
+
+Generated documentation can be removed using the \em cleandocs rule.
+
+- \b make \b cleandocs
 
 
 \htmlinclude copyright.html

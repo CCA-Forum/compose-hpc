@@ -1,43 +1,48 @@
 <table border="1">
 <colgroup>
   <col span="1" style="width: 30%;">
-  <col span="1" style="width: 70%;">
+  <col span="1" style="width: 25%;">
+  <col span="1" style="width: 45%;">
 </colgroup>
 <thead>
   <tr>
     <th>Annotation</th>
-    <th>Meaning</th>
+    <th>Type</th>
+    <th>Placement</th>
   </tr>
 </thead>
 <tbody>
   <tr>
     <td style="text-align:center;"><b>ASSERT</b> expression-list</td>
-    <td>Identifies an assertion clause</td>
+    <td>Assertion clause</td>
+    <td>Within a routine/method</td>
   </tr>
   <tr>
     <td style="text-align:center;"><b>ENSURE</b> expression-list</td>
-    <td>Identifies a routine/method postcondition clause</td>
+    <td>Postcondition clause</td>
+    <td>Above the method name and arguments</td>
   </tr>
   <tr>
     <td style="text-align:center;"><b>FINAL</b></td>
-    <td>Terminates contract enforcement</td>
+    <td>Enforcement termination</td>
+    <td>Above or within a routine/method</td>
   </tr>
   <tr>
     <td style="text-align:center;">
       <b>INIT</b> [ configuration-filename<b>;</b> ]
     </td>
-    <td>
-      Initializes contract enforcement using the optional configuration file,
-      when provided.
-    </td>
+    <td>Enforcement initialization</td>
+    <td>Above or within a routine/method</td>
   </tr>
   <tr>
     <td style="text-align:center;"><b>INVARIANT</b> expression-list</td>
-    <td>Identifies a class invariant clause</td>
+    <td>Class Invariant clause</td>
+    <td>Before any method definitions</td>
   </tr>
   <tr>
     <td style="text-align:center;"><b>REQUIRE</b> expression-list</td>
-    <td>Identifies a routine/method precondition clause</td>
+    <td>Precondition clause</td>
+    <td>Above the method name and arguments</td>
   </tr>
   <tr>
 </tbody>

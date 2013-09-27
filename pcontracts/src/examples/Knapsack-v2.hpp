@@ -94,6 +94,13 @@ class Knapsack
      */
     bool
     hasSolution(unsigned int t);
+
+    /**
+     * Print any weights in the knapsack.
+     */
+    void
+    printWeights();
+
 };  /* end class Knapsack */
 
 }; /* end namespace Examples */

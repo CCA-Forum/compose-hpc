@@ -1,9 +1,11 @@
 PROTOTYPE
 
 HIGH:
-- Add an html table to Annotations.dox
 - Finish writing up document describing what this work is about, benefits, and
   how to use it.  Distribute to collaborators!
+
+- Finish investigating why in-lined STATS not translated using new DEBUG sttmts
+  (helloworld examples)
 
 
 MODERATE:
@@ -11,9 +13,7 @@ MODERATE:
   -- TBD: Where should pre-routine STATS be instrumented?
      (Now blanket adding before finalize regardless of annotation location.)
 
-  -- Need to determine why in-lined STATS not being translated (since currently
-     treating like FINAL).  Review whether distinguishing between inlined
-     and pre-routine annotations.
+- Need more test cases to ensure triggering every clause violation class.
 
 - TBD: How should finer grained timing data be acquired for partial
   enforcement strategies?
@@ -47,4 +47,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2013 June 14
+Last Updated:  2013 September 26

@@ -3,7 +3,7 @@
  * File:          ContractAssertionPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 September 20
+ * Last Modified: 2013 September 26
  * \endinternal
  *
  * @file
@@ -90,40 +90,40 @@ processCommentContents(
     size_t pos;
     if ((pos=cmt.find("CONTRACT"))!=string::npos)
     {
-      if ((pos=cmt.find("REQUIRE"))!=string::npos)
+      if ((pos=cmt.find(" REQUIRE"))!=string::npos)
       {
         printLineComment(node, "Precondition clause:", true);
-        printClause(cmt.substr(pos+7));
+        printClause(cmt.substr(pos+8));
       }
-      else if ((pos=cmt.find("ENSURE"))!=string::npos)
+      else if ((pos=cmt.find(" ENSURE"))!=string::npos)
       {
         printLineComment(node, "Postcondition clause:", true);
-        printClause(cmt.substr(pos+6));
+        printClause(cmt.substr(pos+7));
       }
-      else if ((pos=cmt.find("INVARIANT"))!=string::npos)
+      else if ((pos=cmt.find(" INVARIANT"))!=string::npos)
       {
         printLineComment(node, "Invariant clause:", true);
-        printClause(cmt.substr(pos+9));
+        printClause(cmt.substr(pos+10));
       }
-      else if ((pos=cmt.find("ASSERT"))!=string::npos)
+      else if ((pos=cmt.find(" ASSERT"))!=string::npos)
       {
         printLineComment(node, "Assertion clause:", true);
-        printClause(cmt.substr(pos+6));
+        printClause(cmt.substr(pos+7));
       }
-      else if ((pos=cmt.find("INIT"))!=string::npos)
+      else if ((pos=cmt.find(" INIT"))!=string::npos)
       {
         printLineComment(node, "Initialization:", true);
-        printClause(cmt.substr(pos+4));
-      }
-      else if ((pos=cmt.find("FINAL"))!=string::npos)
-      {
-        printLineComment(node, "Finalization:", true);
         printClause(cmt.substr(pos+5));
       }
-      else if ((pos=cmt.find("STATS"))!=string::npos)
+      else if ((pos=cmt.find(" FINAL"))!=string::npos)
       {
         printLineComment(node, "Finalization:", true);
-        printClause(cmt.substr(pos+5));
+        printClause(cmt.substr(pos+6));
+      }
+      else if ((pos=cmt.find(" STATS"))!=string::npos)
+      {
+        printLineComment(node, "Statistics:", true);
+        printClause(cmt.substr(pos+6));
       }
       else
       {
@@ -190,6 +190,25 @@ ContractAssertionPrinter::visit(
   return;
 } /* ContractAssertionPrinter::visit */
 
+
+/**
+ * Print usage information (i.e., how to run the executable).
+ */
+void
+printCAPUsage()
+{
+  cout << "\nUSAGE:\n";
+  cout << "  ContractAssertionPrinter [option] <source-file-list>\n\n";
+  cout << "where option can include basic ROSE options, such as:\n";
+  cout << "  -rose:verbose [LEVEL]\n";
+  cout << "              Verbosely list internal processing, with higher\n";
+  cout << "              levels generating more output (default 0).\n";
+  cout << "and\n";
+  cout << "  <source-file-list>  is a list of one or more source file names.\n";
+  return;
+}  /* printCAPUsage */
+
+
 /**
  * Build and process the AST nodes of the input source file(s).
  */
@@ -198,24 +217,32 @@ main(int argc, char* argv[])
 {
   int status = 0;
 
-  /* Building the initial AST. */
-  SgProject* project = frontend(argc, argv);
-
-  if (project != NULL)
+  if (argc > 1)
   {
-    /* Build the traversal object. */
-    ContractAssertionPrinter* vis = new ContractAssertionPrinter();
-
-    /*
-     * Traverse each input file, starting at project node of the AST
-     * and using preorder traversal.
-     */
-    vis->traverseInputFiles(project, preorder);
-
-    delete vis;
-    delete project;
-  } else {
-    cout << "\nERROR:  Failed to build the AST.\n";
+    /* Building the initial AST. */
+    SgProject* project = frontend(argc, argv);
+  
+    if (project != NULL)
+    {
+      /* Build the traversal object. */
+      ContractAssertionPrinter* vis = new ContractAssertionPrinter();
+  
+      /*
+       * Traverse each input file, starting at project node of the AST
+       * and using preorder traversal.
+       */
+      vis->traverseInputFiles(project, preorder);
+  
+      delete vis;
+      delete project;
+    } else {
+      cout << "\nERROR:  Failed to build the AST.\n";
+      status = 1;
+    }
+  }
+  else
+  {
+    printCAPUsage();
     status = 1;
   }
 

@@ -4,10 +4,7 @@
     has_weights: weights != 0;
     has_n: n &gt 0;
  */
-/*
- %CONTRACT ENSURE
-    valid_result: pce_inrange(pce_result, 0, 1);
- */
+/* %CONTRACT ENSURE pce_inrange(pce_result, 0, 1); */
 int 
 knapsack(
   /* in */ unsigned int* weights, 

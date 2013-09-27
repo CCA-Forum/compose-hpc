@@ -94,7 +94,7 @@ runIt(
   /* in */ unsigned int  t, 
   /* in */ unsigned int  num)
 {
-  printf("Solution for target=%d?: ", t);
+  printf("\nSolution for target=%d?: ", t);
   if (!knapsack(weights, t, 0, num)) {
     printf("None");
   } else if (t == 0) {
@@ -137,7 +137,7 @@ main(int argc, char **argv) {
   for (i=0; i<num-1; i++) {
     printf("%d, ", weights[i]);
   }
-  printf("and %d.\n\n", weights[num-1]);
+  printf("and %d.\n", weights[num-1]);
 
   if (t != -1) {
     runIt(weights, t, num);

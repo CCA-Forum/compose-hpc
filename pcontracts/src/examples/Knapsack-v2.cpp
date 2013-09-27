@@ -41,7 +41,7 @@ bool
 solve(unsigned int* weights, unsigned int t, unsigned int i, unsigned int n);
 
 
-/* %CONTRACT INVARIANT all_pos_weights: onlyPosWeights(); */
+/* %CONTRACT INVARIANT all_pos_weights: Examples::Knapsack::onlyPosWeights(); */
 
 
 Examples::Knapsack::Knapsack() : d_nextIndex(0) {
@@ -131,6 +131,24 @@ bool
 Examples::Knapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
 }
+
+
+/**
+ * Print any weights in the knapsack.
+ */
+void
+Examples::Knapsack::printWeights()
+{
+  cout << "Knapsack contains: ";
+  for (int i=0; i<d_nextIndex-1; i++) {
+    cout << d_weights[i] << ", ";
+  }
+  if (d_nextIndex>1) {
+    cout << "and " << d_weights[d_nextIndex-1] << ".\n";
+  }
+
+  return;
+} /* printWeights */
 
 
 /**
@@ -308,7 +326,7 @@ runIt(
   /* in */ Examples::Knapsack* ksack, 
   /* in */ unsigned int        t)
 {
-  cout << "Solution for target=" << t <<"?: ";
+  cout << "\nSolution for target=" << t <<"?: ";
   if ( (ksack != NULL) && !ksack->hasSolution(t) ) {
     cout << "None";
   } else if (t == 0) {
@@ -348,21 +366,16 @@ main(int argc, char **argv) {
 
   Examples::Knapsack* ksack = new Examples::Knapsack();
   if (ksack != NULL) {
-    unsigned int i, num=7;
+    unsigned int num=7;
     unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
 
     ksack->initialize(weights, num);
-
-    cout << "Knapsack contains: ";
-    for (i=0; i<num-1; i++) {
-      cout << weights[i] << ", ";
-    }
-    cout << "and " << weights[num-1] << ".\n\n";
+    ksack->printWeights();
 
     if (t != -1) {
       runIt(ksack, t);
     } else {
-      for (i=min; i<=max; i++) {
+      for (int i=min; i<=max; i++) {
         runIt(ksack, i);
       }
     }

@@ -4,25 +4,25 @@ include $(ROOT_DIR)/src/make_test.inc
 
 
 # NOTE: The following value is automatically replaced by the examples Makefile.
-BASE_TEST_DIR=REPLACEME
+TEST_DRIVER_DIR=REPLACEME
 
-ORACLE_DIR=$(BASE_ORACLE_DIR)/$(BASE_TEST_DIR)
-CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(BASE_TEST_DIR)
+ORACLE_DIR=$(BASE_ORACLE_DIR)/$(TEST_DRIVER_DIR)
+CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(TEST_DRIVER_DIR)
 
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
 # contract checking.
 FLAGS=$(BASE_FLAGS) $(PCEFLAGS)
-INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) -I$(CONTRACTS_DIR)
+INCLUDES=$(BASE_INCLUDES)
 
 CXXFLAGS = $(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 
-LDFLAGS = -L$(LIB_DIR) -l$(RUNTIME_LIB_BASE) -l$(CONTRACTS_LIB_BASE)
+LDFLAGS = -L$(LIB_DIR) -l$(RUNTIME_LIB_BASE)
 
 
 CSRCS = knapsack.c unlabeledknapsack.c
 CCSRCS = helloworld.cc helloworld-v2.cc helloworld-v3.cc
-CPPSRCS = Knapsack-v2.cpp UnlabeledKnapsack-v2.cpp
+CPPSRCS = Knapsack-v2.cpp UnlabeledKnapsack-v2.cpp WeightsList.cpp
 
 SRCS=$(CSRCS) $(CCSRCS) $(CPPSRCS)
 HDRS=$(CSRCS:.h=.o) $(CCSRCS:.hh=.o) $(CPPSRCS:.hpp=.o)
@@ -36,6 +36,7 @@ LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack-v2
 UKCPP_EXE=UnlabeledKnapsack-v2
+WLCPP_EXE=WeightsList
 
 
 all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
@@ -70,6 +71,9 @@ $(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o
 $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o 
 	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS)
 
+$(WLCPP_EXE): $(WLCPP_EXE).cpp $(WLCPP_EXE).o 
+	$(CXX) -o $(WLCPP_EXE) $(FLAGS) $(WLCPP_EXE).o $(LDFLAGS)
+
 check: checkclean checksetup all checkBasicsCore checksummary
 	@echo 
 
@@ -92,22 +96,27 @@ checkContractsCore:
 	for exe in $(EXES); do \
 	  n=`expr $$n + 1`; \
 	  echo "..Processing $$exe"; \
-	  TFN=$$exe.mout; \
-	  ORFN=$(ORACLE_DIR)/$$TFN; \
-	  ./$$exe > $$TFN; \
-	  if [ -f $$ORFN ]; then \
-	    diff $$TFN $$ORFN > $$TFN.diffs; \
-	    if [ -s $$TFN.diffs ]; then \
-	      echo "....*** Different: $$TFN $$ORFN ***"; \
-	      cat $$TFN.diffs; \
-	      echo "....FAILED on $$exe"; echo; \
-	      echo 0 > $(CHECK_EX_STATUS); \
+	  if [ -f $$exe ]; then \
+	    TFN=$$exe.mout; \
+	    ORFN=$(ORACLE_DIR)/$$TFN; \
+	    ./$$exe > $$TFN; \
+	    if [ -f $$ORFN ]; then \
+	      diff $$TFN $$ORFN > $$TFN.diffs; \
+	      if [ -s $$TFN.diffs ]; then \
+	        echo "....*** Different: $$TFN $$ORFN ***"; \
+	        cat $$TFN.diffs; \
+	        echo "....FAILED on $$exe"; echo; \
+	        echo 0 > $(CHECK_EX_STATUS); \
+	      else \
+	        echo "....Identical:  $$TFN $$ORFN"; \
+	        ok=`expr $$ok + 1`; \
+	      fi; \
 	    else \
-	      echo "....Identical:  $$TFN $$ORFN"; \
-	      ok=`expr $$ok + 1`; \
+	      echo "....*** $$ORFN is missing ***"; \
+	      echo 0 > $(CHECK_EX_STATUS); \
 	    fi; \
 	  else \
-	    echo "....*** $$ORFN is missing ***"; \
+	    echo "....*** $$exe is missing ***"; \
 	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	done; \
@@ -130,10 +139,10 @@ checksummary:
 	  stat="disabled"; \
 	fi; \
 	if [ "$$res" -eq "0" ]; then \
-	  echo "$(BASE_TEST_DIR) Test Suite: Contracts-$$stat: FAILED"; \
+	  echo "$(TEST_DRIVER_DIR) Test Suite: Contracts-$$stat: FAILED"; \
 	  echo; echo "Review output to identify failure(s)"; \
 	else \
-	  echo "$(BASE_TEST_DIR) Test Suite: Contracts-$$stat: PASSED";\
+	  echo "$(TEST_DRIVER_DIR) Test Suite: Contracts-$$stat: PASSED";\
 	fi
 
 checkclean:

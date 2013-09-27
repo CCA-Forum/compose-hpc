@@ -114,6 +114,24 @@ Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
 
 
 /**
+ * Print any weights in the knapsack.
+ */
+void
+Examples::UnlabeledKnapsack::printWeights()
+{
+  cout << "Knapsack contains: ";
+  for (int i=0; i<d_nextIndex-1; i++) {
+    cout << d_weights[i] << ", ";
+  }
+  if (d_nextIndex>1) {
+    cout << "and " << d_weights[d_nextIndex-1] << ".\n";
+  }
+
+  return;
+} /* printWeights */
+
+
+/**
  * Determine whether the weights of all of the available items are
  * positive.
  *
@@ -268,7 +286,7 @@ solve(const unsigned int* weights, unsigned int t, unsigned int i,
 void
 runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
 {
-  cout << "Solution for target=" << t <<"?: ";
+  cout << "\nSolution for target=" << t <<"?: ";
   if ( (ksack != NULL) && !ksack->hasSolution(t) ) {
     cout << "None";
   } else if (t == 0) {
@@ -278,6 +296,7 @@ runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
 
   return;
 } /* runIt */
+
 
 
 /**
@@ -308,21 +327,16 @@ main(int argc, char **argv) {
 
   Examples::UnlabeledKnapsack* ksack = new Examples::UnlabeledKnapsack();
   if (ksack != NULL) {
-    unsigned int i, num=7;
+    unsigned int num=7;
     unsigned int weights[7] = { 1, 8, 6, 5, 20, 4, 15 };
 
     ksack->initialize(weights, num);
-
-    cout << "Knapsack contains: ";
-    for (i=0; i<num-1; i++) {
-      cout << weights[i] << ", ";
-    }
-    cout << "and " << weights[num-1] << ".\n\n";
+    ksack->printWeights();
 
     if (t != -1) {
       runIt(ksack, t);
     } else {
-      for (i=min; i<=max; i++) {
+      for (int i=min; i<=max; i++) {
         runIt(ksack, i);
       }
     }

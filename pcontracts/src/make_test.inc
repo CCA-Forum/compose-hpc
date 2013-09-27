@@ -7,10 +7,10 @@
 RES_DIR=$(ROOT_DIR)/results
 
 BASE_RES_DIR=$(RES_DIR)/base
-BASE_ORACLE_DIR=$(SRC_DIR)/data
+BASE_ORACLE_DIR=$(SRC_DIR)/tests/data
 
 CHECK_STATUS=.checkStatus
 CHECK_ALL_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)
 
-EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*"
+EXAMPLES=-name "*sack*.c*" -o -name "hello*.c*" -o -name "WeightsList*.c*"
 

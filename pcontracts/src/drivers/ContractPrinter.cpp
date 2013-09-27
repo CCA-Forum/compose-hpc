@@ -3,7 +3,7 @@
  * File:          ContractPrinter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 July 6
- * Last Modified: 2013 September 20
+ * Last Modified: 2013 September 26
  * \endinternal
  *
  * @file
@@ -103,6 +103,24 @@ ContractPrinter::visit(
 } /* ContractPrinter::visit */
 
 
+/**
+ * Print usage information (i.e., how to run the executable).
+ */
+void
+printUsage()
+{
+  cout << "\nUSAGE:\n";
+  cout << "  ContractPrinter [option] <source-file-list>\n\n";
+  cout << "where option can include basic ROSE options, such as:\n";
+  cout << "  -rose:verbose [LEVEL]\n";
+  cout << "              Verbosely list internal processing, with higher\n";
+  cout << "              levels generating more output (default 0).\n";
+  cout << "and\n";
+  cout << "  <source-file-list>  is a list of one or more source file names.\n";
+  return;
+}  /* printUsage */
+
+
 #ifndef NO_MAIN
 /**
  * Build and process the AST nodes of the input source file(s).
@@ -112,24 +130,32 @@ main(int argc, char* argv[])
 {
   int status = 0;
 
-  /* Building the initial AST. */
-  SgProject* project = frontend(argc, argv);
-
-  if (project != NULL)
+  if (argc > 1)
   {
-    /* Build the traversal object. */
-    ContractPrinter* vis = new ContractPrinter();
-
-    /*
-     * Traverse each input file, starting at project node of the AST
-     * and using preorder traversal.
-     */
-    vis->traverseInputFiles(project, preorder);
-
-    delete vis;
-    delete project;
-  } else {
-    cout << "\nERROR:  Failed to build the AST.\n";
+    /* Building the initial AST. */
+    SgProject* project = frontend(argc, argv);
+  
+    if (project != NULL)
+    {
+      /* Build the traversal object. */
+      ContractPrinter* vis = new ContractPrinter();
+  
+      /*
+       * Traverse each input file, starting at project node of the AST
+       * and using preorder traversal.
+       */
+      vis->traverseInputFiles(project, preorder);
+  
+      delete vis;
+      delete project;
+    } else {
+      cout << "\nERROR:  Failed to build the AST.\n";
+      status = 1;
+    }
+  }
+  else
+  {
+    printUsage();
     status = 1;
   }
 

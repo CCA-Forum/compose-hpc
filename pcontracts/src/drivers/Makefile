@@ -6,13 +6,13 @@ CHECK_DRIVERS_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-drivers
 
 
 FLAGS=$(BASE_FLAGS)
-INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR)
+INCLUDES=$(BASE_INCLUDES) 
 
-LDFLAGS=$(FLAGS)
 CXXFLAGS=$(INCLUDES) $(FLAGS) $(ROSE_CXXFLAGS) $(BASE_CXXFLAGS)
 
+LDFLAGS=-L$(LIB_DIR) -l$(CONTRACTS_LIB_BASE)
 
-# TBD/ToDo:  Need to address library linking
+
 BASE_ROSE_SOURCES = \
 	$(CONTRACTS_DIR)/RoseHelpers.cpp
 BASE_ROSE_OBJECTS=$(BASE_ROSE_SOURCES:.cpp=.o)
@@ -104,8 +104,7 @@ checksummary:
 
 $(CPRINTER_EXE): $(CPRINTER_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
-	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o \
-	  $(BASE_ROSE_OBJECTS)
+	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o $(LDFLAGS)
 
 $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
 		$(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
@@ -113,16 +112,15 @@ $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
 	  $(CPRINTER_EXE).cpp
 	$(CXX) -c $(CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp
 	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
-	  $(CPRINTER_EXE)-mainLess.o $(BASE_ROSE_OBJECTS)
+	  $(CPRINTER_EXE)-mainLess.o $(LDFLAGS)
 
 $(RCI_EXE): $(RCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp
-	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(BASE_CLAUSE_OBJECTS)
+	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(LDFLAGS)
 
 $(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp
-	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(BASE_CLAUSE_OBJECTS)
-
+	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(LDFLAGS)
 
 checkRose: checkRosePrinters checkRoseTranslators
 	@echo; echo "DONE (checkRose)"; echo
@@ -147,7 +145,7 @@ checkRosePrinter: $(EXE)
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
-	  echo "..Processing $$BASE.$$EXT"; \
+	  echo; echo "..Processing $$BASE.$$EXT"; \
 	  OFN=$$OUTDIR/$$BASE.mout; \
 	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
 	  if [ -s $$OFN ]; then \
@@ -181,7 +179,7 @@ checkRoseTrans: $(EXE)
 	  n=`expr $$n + 1`; \
 	  BASE=`echo $$file | sed 's/..\/examples\/\([^.]*\).*/\1/g'`; \
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
-	  echo "..Processing $$BASE.$$EXT"; \
+	  echo; echo "..Processing $$BASE.$$EXT"; \
 	  OFN=rose_$$BASE.$$EXT; \
 	  ERRFN=$$OUTDIR/$$BASE.err; \
 	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
@@ -195,21 +193,26 @@ checkRoseTrans: $(EXE)
 	    grep PCE_FINALIZE $$OFN | wc -l >> $$ERFN; \
 	    grep PCE_INITIALIZE $$OFN | wc -l >> $$ERFN; \
 	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
-	    diff $$ERFN $$ORFN > $$ERFN.diffs; \
-            if [ -s $$ERFN.diffs ]; then \
-	      echo "....*** Different: $$ERFN $$ORFN ***"; \
-	      cat $$ERFN.diffs; \
-	      echo "....FAILED on $$file"; echo; \
-	      echo 0 > $(CHECK_DRIVERS_STATUS); \
+	    if [ -f $$ORFN ]; then \
+	      diff $$ERFN $$ORFN > $$ERFN.diffs; \
+              if [ -s $$ERFN.diffs ]; then \
+	        echo "....*** Different: $$ERFN $$ORFN ***"; \
+	        cat $$ERFN.diffs; \
+	        echo "....FAILED on $$file"; echo; \
+	        echo 0 > $(CHECK_DRIVERS_STATUS); \
+	      else \
+	        echo "....Identical: $$ERFN $$ORFN"; \
+	        ok=`expr $$ok + 1`; \
+	      fi; \
+	      DESTFN=$$OUTDIR/$$BASE.$$EXT; \
+	      mv -f $$OFN $$DESTFN; \
+	      echo "....Unparse results in $$DESTFN"; \
 	    else \
-	      echo "....Identical: $$ERFN $$ORFN"; \
-	      ok=`expr $$ok + 1`; \
+	      echo "....Missing oracle file: $$ORFN".  FAILED on $$file; \
+	      echo 0 > $(CHECK_DRIVERS_STATUS); \
 	    fi; \
-	    DESTFN=$$OUTDIR/$$BASE.$$EXT; \
-	    mv -f $$OFN $$DESTFN; \
-	    echo "....Unparse results in $$DESTFN"; \
 	  else \
-	    echo "....No output generated.  FAILED on $$file"; \
+	    echo "....No output generated.  FAILED on $$file"; echo; \
 	    echo 0 > $(CHECK_DRIVERS_STATUS); \
 	  fi; \
 	  if [ ! -s $$ERRFN ]; then \
@@ -224,7 +227,7 @@ checkRoseTrans: $(EXE)
 	  echo "Copying configuration file(s) to $$OUTDIR"; \
 	  cp -f ../examples/*.config $$OUTDIR; \
 	  echo "Copying header files to $$OUTDIR"; \
-	  cp -f ../examples/*ack*.h* $$OUTDIR; \
+	  cp -f ../examples/*.h* $$OUTDIR; \
 	  echo "Try 'make PCEFLAGS=-DPAUL_CONTRACTS check' in $$OUTDIR"; \
 	else \
 	  echo "ERROR: Must resolve issues before able to build translations.";\

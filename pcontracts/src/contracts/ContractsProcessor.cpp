@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 August 2
+ * Last Modified:  2013 September 27
  * \endinternal
  *
  * @file
@@ -127,7 +127,19 @@ buildDump(
       SageInterface::attachComment(sttmt, S_PREFACE + S_DUMP + S_END,
         PreprocessingInfo::after, dt);
 #endif /* PCE_ADD_COMMENTS */
+//#ifdef DEBUG
     }
+    else
+    {
+        cout<<"DEBUG: ....Sage failed to build PCE_DUMP_STATS statement\n";
+//#endif /* DEBUG */
+    }
+//#ifdef DEBUG
+  }
+  else
+  {
+    cout<<"DEBUG: ....buildDump not passed are gen'd required args\n";
+//#endif /* DEBUG */
   }
 
   return sttmt;
@@ -1122,60 +1134,60 @@ ContractsProcessor::processCommentEntry(
     size_t pos;
     if ((pos=cmt.find("\%CONTRACT"))!=string::npos)
     {
-      if ((pos=cmt.find("REQUIRE"))!=string::npos)
+      if ((pos=cmt.find(" REQUIRE"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_PRECONDITION, dirType);
-        addExpressions(cmt.substr(pos+7), cc);
+        addExpressions(cmt.substr(pos+8), cc);
 #ifdef DEBUG
         cout<<"DEBUG: Created REQUIRE ContractComment: "<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
-      else if ((pos=cmt.find("ENSURE"))!=string::npos)
+      else if ((pos=cmt.find(" ENSURE"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_POSTCONDITION, dirType);
-        addExpressions(cmt.substr(pos+6), cc);
+        addExpressions(cmt.substr(pos+7), cc);
 #ifdef DEBUG
         cout<<"DEBUG: Created ENSURE ContractComment: "<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
-      else if ((pos=cmt.find("INVARIANT"))!=string::npos)
+      else if ((pos=cmt.find(" INVARIANT"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_INVARIANT, dirType);
-        addExpressions(cmt.substr(pos+9), cc);
+        addExpressions(cmt.substr(pos+10), cc);
 #ifdef DEBUG
         cout<<"DEBUG: Created INVARIANT ContractComment: ";
         cout<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
-      else if ((pos=cmt.find("ASSERT"))!=string::npos)
+      else if ((pos=cmt.find(" ASSERT"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_ASSERT, dirType);
-        addExpressions(cmt.substr(pos+6), cc);
+        addExpressions(cmt.substr(pos+7), cc);
 #ifdef DEBUG
         cout<<"DEBUG: Created ASSERT ContractComment: ";
         cout<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
-      else if ((pos=cmt.find("INIT"))!=string::npos)
+      else if ((pos=cmt.find(" INIT"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_INIT, dirType);
-        addExpressions(cmt.substr(pos+5), cc);
+        addExpressions(cmt.substr(pos+6), cc);
 #ifdef DEBUG
         cout<<"DEBUG: Created INIT ContractComment: ";
         cout<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
-      else if ((pos=cmt.find("FINAL"))!=string::npos)
+      else if ((pos=cmt.find(" FINAL"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_FINAL, dirType);
 #ifdef DEBUG
         cout<<"DEBUG: Created FINAL ContractComment: "<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
       }
-      else if ((pos=cmt.find("STATS"))!=string::npos)
+      else if ((pos=cmt.find(" STATS"))!=string::npos)
       {
         cc = new ContractComment(ContractComment_STATS, dirType);
-        addExpressions(cmt.substr(pos+6), cc);
+        addExpressions(cmt.substr(pos+7), cc);
 #ifdef DEBUG
         cout<<"DEBUG: Created STATS ContractComment: "<<cc->str(S_SEP)<<endl;
 #endif /* DEBUG */
@@ -1252,6 +1264,8 @@ ContractsProcessor::processFunctionComments(
           ContractComment* cc = (*iter);
           if (cc != NULL)
           {
+            if (cc->isInInit()) { isInitRoutine = true; }
+
 #ifdef PCE_ENABLE_WARNING
             if (cc->numExecutable() <= 0)
             {
@@ -1264,7 +1278,6 @@ ContractsProcessor::processFunctionComments(
             case ContractComment_PRECONDITION:
               {
                 pre = cc;
-                if (cc->isInInit()) { isInitRoutine = true; }
                 numChecks[0] += pre->size();
 
                 /**
@@ -1583,6 +1596,11 @@ ContractsProcessor::processNonFunctionNode(
               num += processAssert(lNode, cc);
             }
             break;
+          case ContractComment_STATS:
+            {
+              num += processStats(lNode, cc);
+            }
+            break;
           case ContractComment_NONE:
             {
 #ifdef DEBUG
@@ -1641,7 +1659,7 @@ ContractsProcessor::setInvariants(
       {
         SageInterface::addMessageStatement(currSttmt, S_NOTE_INVARIANTS);
 
-       // Ideally would use the following instead of adding simple :
+       // Ideally would use the following instead of adding simple text:
         SageInterface::attachComment(currSttmt, S_NOTE_INVARIANTS,
           PreprocessingInfo::before, cc->directive());
       }
@@ -1833,9 +1851,10 @@ ContractsProcessor::processStats(
 {
   int num = 0;
 
-#ifdef DEBUG
-  cout<<"DEBUG: ....processing STATS\n";
-#endif /* DEBUG */
+//#ifdef DEBUG
+  cout << "DEBUG: ....processing STATS\n";
+  cout << "DEBUG: ......cc=" << cc->str(",") << endl;
+//#endif /* DEBUG */
 
   if ( (lNode != NULL) && (cc != NULL) && cc->isFinal() ) 
   {
@@ -1848,8 +1867,23 @@ ContractsProcessor::processStats(
       {
         SageInterface::insertStatementBefore(currSttmt, sttmt, true);
         num += 1;
+//#ifdef DEBUG
+        cout<<"DEBUG: ......stats dump statement successfully inserted?\n";
+//#endif /* DEBUG */
       }
+//#ifdef DEBUG
+      else
+      {
+        cout<<"DEBUG: ......failed to build dump statement.\n";
+      }
+//#endif /* DEBUG */
     }
+//#ifdef DEBUG
+    else
+    {
+      cout<<"DEBUG: ......lNode is NOT an SgStatement so skipping.\n";
+    }
+//#endif /* DEBUG */
   }
 
   return num;

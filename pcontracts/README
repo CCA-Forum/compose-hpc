@@ -8,6 +8,7 @@ CONTENTS
   Introduction
   Subdirectories
   Build
+  Tests and Examples
   Documentation
 
 
@@ -30,44 +31,83 @@ and annotation features.
 SUBDIRECTORIES
 ==============
 
-  The subdirectories contained within the Paul Contracts root are:
+  The subdirectories in the Paul Contracts root distributed with content are:
 
-    ./conf              # Configuration file(s) (TBD)
-    ./include           # Include files (TBD)
+    ./conf              # Configuration file(s) (Not currently used)
+    ./dox               # Input files for Doxygen documentation generation
+    ./include           # Include files (runtime and driver header files)
     ./src               # Source files
-    ./src/examples      # ...Example programs 
-                        # ......With contract annotations
-                        # ......Related ROSE codes
-    ./src/runtime       # ...Runtime library(ies)
-                        # ......Stand-alone contract enforcement
-    ./src/tests         # ...Test programs (runtime)
+    ./src/contracts     # ...Contract Clause processing library sources
+    ./src/drivers       # ...Programs for locating, printing, and/or 
+                        #    transforming contract annotations in C/C++
+    ./src/examples      # ...Example programs with contract annotations
+                        # ......These programs are also used by tests.
+    ./src/runtime       # ...Contract Clause Enforcement libarary sources
+    ./src/tests         # ...Test programs and scripts
+    ./src/tests/data    # ...Test oracle inputs
 
-while the following subdirectories are created after a build and/or check:
+while contents within the following subdirectories are created after a build 
+or check:
 
-    ./lib               # The runtime library
-    ./results           # Sources and output from example 
+    ./bin               # Executables
+    ./lib               # Libraries (runtime and instrumentation)
+    ./results           # Sources and output from 'make check'/'make checkall'
 
 
 
 BUILD
 =====
 
+  The software is built, tested, documented, and directories cleaned through 
+simple makefile invocations on the command line.
+
+
+BASICS
+------
+
   The translation software can be built through a simple makefile invocation
-at the command line:
+at the command line, where '$' indicates the command line prompt:
 
   $ make
 
-  Basic tests can be executed, with rudimentary results comparisons, through
+
+TESTS AND EXAMPLES
+------------------
+
+  Basic infrastructure, example, and driver program tests are executed through
 the check rule:
 
   $ make check
 
-where results of a variety of translation examples can be found in files
-with .mout extensions and, when provided, comparisons between translations
-in files with .diffs extensions.  
+This rule executes and verifies the results of tests of the runtime library,
+input source files, and driver programs.  Input source files are checked to 
+ensure they build and are (still) functioning.  Only the success (or failure) 
+of the traversal and transformation processes of the driver programs, which 
+all involve traversing the abstract syntax tree (AST) of the input source 
+files, is verified.
+
+  Checking transformed source files is included with the above checks using the
+checkall rule, as follows:
+
+  $ make checkall
+
+Using this rule adds building, executing, and checking the results of the 
+instrumented source files -- with enforcement enabled and disabled.
+
+  The executing of either check rule leads to the creation/population of a 
+results subdirectory containing outputs from the processes.  Results of
+executing programs are generally redirected to files with .mout extensions.
+Any comparisons with oracle files are redirected to files with .diff extensions.
+Enforcement statistics and trace information, if any, are redirected to files
+having .csv extensions.  These files are automatically removed, however, when
+directories are cleaned.
+
+
+CLEANING DIRECTORIES
+--------------------
 
   Basic file cleanup -- of object and output files --  is performed using the
-clean rule:
+clean rule as follows:
 
   $ make clean
 
@@ -80,14 +120,18 @@ while all files, including documentation, are removed with the cleanall rule:
 DOCUMENTATION
 =============
 
-  PAUL contracts documentation is generated using Doxygen and GraphViz using
-the docs rule:
+  PAUL contracts documentation is generated using Doxygen and GraphViz with
+the docs rule as follows:
 
   $ make docs
 
 where you can navigate to and open the index.html file with a web browser to
 see information about the classes and files in this package.
+
+  The generated documentation can be removed with the cleandocs rule:
+
+  $ make cleandocs
   
 
 
-Last Updated:  2013 September 12
+Last Updated:  2013 September 26
