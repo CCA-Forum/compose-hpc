@@ -57,9 +57,7 @@ Examples::Knapsack::~Knapsack() {}
     pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
     initialization: is initialization;
  */
-/* %CONTRACT ENSURE 
-    has_new_weights: hasWeights(weights, len); 
- */
+/* %CONTRACT ENSURE has_new_weights: hasWeights(weights, len); */
 void
 Examples::Knapsack::initialize(
   /* in */ const unsigned int* weights,
@@ -98,9 +96,7 @@ Examples::Knapsack::initialize(
   return;  
 }
 
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
 Examples::Knapsack::onlyPosWeights() {
   return onlyPos(d_weights, d_nextIndex);
@@ -109,9 +105,7 @@ Examples::Knapsack::onlyPosWeights() {
 /* %CONTRACT REQUIRE 
   pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
 Examples::Knapsack::hasWeights(
   /* in */ const unsigned int* weights, 
@@ -121,12 +115,7 @@ Examples::Knapsack::hasWeights(
 }
 
 
-/* %CONTRACT REQUIRE
-    pos_target: t > 0;
- */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT REQUIRE pos_target: t > 0; */
 bool
 Examples::Knapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
@@ -164,9 +153,7 @@ Examples::Knapsack::printWeights()
 /* %CONTRACT REQUIRE 
     pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
 onlyPos(
   /* in */ const unsigned int* weights,
@@ -216,9 +203,7 @@ onlyPos(
     pos_w_weights: ((nW!=NULL) and (lenW>0)) implies pce_all(nW>0, lenW); 
     pos_s_weights: ((nS!=NULL) and (lenS>0)) implies pce_all(nS>0, lenS); 
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
 sameWeights(
   /* in */ const unsigned int* nW, 
@@ -271,9 +256,7 @@ sameWeights(
     pos_weights: ((weights!=NULL) and (n>0)) 
 			implies pce_all(weights>0, n); 
  */
-/* %CONTRACT ENSURE 
-    side_effect_free: is pure;
- */
+/* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
 solve(
   /* in */ unsigned int* weights, 
@@ -318,9 +301,7 @@ solve(
  * @param[in] ksack  The knapsack instance.
  * @param[in] t      The target weight.
  */
-/* %CONTRACT REQUIRE 
-    has_sack: ksack != NULL;
- */
+/* %CONTRACT REQUIRE has_sack: ksack != NULL; */
 void
 runIt(
   /* in */ Examples::Knapsack* ksack, 

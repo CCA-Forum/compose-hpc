@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 September 27
+ * Last Modified:  2013 October 1
  * \endinternal
  *
  * @file
@@ -310,6 +310,7 @@ ContractsProcessor::addExpressions(
 
         if (expr == "is pure") 
         {
+          cc->setIsPure(true);
 #ifdef DEBUG
             cout << "DEBUG: ..is advisory expression.\n";
 #endif /* DEBUG */
@@ -1248,6 +1249,7 @@ ContractsProcessor::processFunctionComments(
       if (clauses.size() > 0)
       {
         bool isInitRoutine = false;
+        bool isPureRoutine = false;
 
         ContractComment* final = NULL;
         ContractComment* init = NULL;
@@ -1265,6 +1267,7 @@ ContractsProcessor::processFunctionComments(
           if (cc != NULL)
           {
             if (cc->isInInit()) { isInitRoutine = true; }
+            if (cc->isPure()) { isPureRoutine = true; }
 
 #ifdef PCE_ENABLE_WARNING
             if (cc->numExecutable() <= 0)
@@ -1391,7 +1394,7 @@ ContractsProcessor::processFunctionComments(
              */
             bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
               || (d_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
-              || (!isMemberFunc) || inInvariants(nm);
+              || (!isMemberFunc) || inInvariants(nm) || isPureRoutine;
 
 
             if (! (skipInvariants || isInitRoutine) )

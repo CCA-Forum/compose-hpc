@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 August 2
+ * Last Modified:  2013 October 1
  * \endinternal
  *
  * @file
@@ -91,7 +91,7 @@ class ContractComment
     /** Constructor */
     ContractComment(ContractCommentEnum t, PPIDirectiveType dt): 
       d_type(t), d_dirType(dt), d_numExec(0), d_needsResult(false), 
-      d_isInInit(false) {}
+      d_isInInit(false), d_isPure(false) {}
 
     /** Destructor */
     ~ContractComment() { d_aeList.clear(); }
@@ -135,6 +135,17 @@ class ContractComment
 
     /** Return whether an invariant clause. */
     bool isInvariant() { return d_type == ContractComment_INVARIANT; }
+
+    /** 
+     * Cache whether the 'is pure' annotation is included in the clause.
+     *
+     * @param[in] isPure  Pass true if the annotation is included in the clause;
+     *                    otherwise, pass false.
+     */
+    void setIsPure(bool isPure) { d_isPure = isPure; }
+
+    /** Return whether the clause contains an 'is pure' annotation. */
+    bool isPure() { return d_isPure; }
 
     /** Return whether a precondition clause. */
     bool isPreconditions() { return d_type == ContractComment_PRECONDITION; }
@@ -239,6 +250,7 @@ class ContractComment
       rep << d_aeList.size() << sep;
       rep << (d_needsResult ? "NeedsResult" : "NoResult") << sep;
       rep << (d_isInInit ? "isINIT" : "notINIT") << sep;
+      rep << (d_isPure ? "isPure" : "notIsPure") << sep;
       rep << d_numExec;
       return rep.str();
     }
@@ -262,6 +274,9 @@ class ContractComment
 
     /** Cache whether the clause is associated with initialization routine. */
     bool                            d_isInInit;
+
+    /** Cache whether the clause contains an 'is pure' annotation. */
+    bool                            d_isPure;
 };  /* class ContractComment */
 
 /**

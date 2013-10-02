@@ -106,7 +106,6 @@ Examples::UnlabeledKnapsack::hasWeights(const unsigned int* weights,
 
 
 /* %CONTRACT REQUIRE t > 0; */
-/* %CONTRACT ENSURE is pure; */
 bool
 Examples::UnlabeledKnapsack::hasSolution(unsigned int t) {
   return solve(d_weights, t, 0, d_nextIndex);
