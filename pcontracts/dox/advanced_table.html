@@ -1,0 +1,58 @@
+<table border="1">
+<colgroup>
+  <col span="1" style="width: 15%;">
+  <col span="1" style="width: 75%;">
+  <col span="1" style="width: 10%;">
+</colgroup>
+<thead>
+  <tr>
+    <th>Feature</th>
+    <th>Description</th>
+    <th>Status</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td style="text-align:center;"><b>pce_result</b></td>
+    <td>
+      This is a built-in variable representing the value returned by the 
+      associated function.
+    </td>
+    <td style="text-align:center;">Supported</td>
+  </tr>
+<!-- TODO
+-->
+  <tr>
+    <td style="text-align:center;"><b>pce_all(</b>expression<b>)</b></td>
+    <td>
+      Universal quantification.
+      Returns true if the expression evaluates to true for each element in
+      the specified array(s). 
+      For example, <b>pce_all(u &gt 0)</b> returns true if the values of all 
+      elements in array u are greater than 0.
+    </td>
+    <td style="text-align:center;">Planned</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><b>pce_any(</b>expression<b>)</b></td>
+    <td>
+      Existential quantification.
+      Returns true if the expression evaluates to true for at least one element
+      in the specified array(s). 
+      So <b>pce_any(u &gt 0)</b> returns true if at least one element in array 
+      u is greater than 0.
+    </td>
+    <td style="text-align:center;">Planned</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><b>pce_count(</b>expression<b>)</b></td>
+    <td>
+      Returns the count of the number of entries in the array that satisfy
+      the expression.
+      For example, <b>pce_count(u &gt 0)</b> returns the number of elements of 
+      array, u, whose values are greater than 0.
+    </td>
+    <td style="text-align:center;">Planned</td>
+  </tr>
+</tbody>
+</table>

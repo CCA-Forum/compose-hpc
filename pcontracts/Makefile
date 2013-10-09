@@ -9,8 +9,7 @@ all:
 	done;
 
 docs: cleandocs
-	@ln -s $(ROSE_HOME) rose; \
-	doxygen; \
+	@doxygen; \
 	cp COPYRIGHT docs/html
 
 check: 
@@ -47,7 +46,7 @@ cleanall:  cleandocs
 	rm -f *.out $(CHECK_STATUS)* ./bin/*
 
 cleandocs:
-	@rm -rf rose docs
+	@rm -rf docs
 
 help:
 	@echo; \

@@ -3,7 +3,7 @@
 
 \tableofcontents
 
-\section annotations_intro_sec Annotations
+\section annotations_intro_sec Introduction
 
 Executable interface contracts and assertions are generally useful in terms 
 of documenting expectations and features of software.  They also provide a 
@@ -15,15 +15,18 @@ class invariants.
 Preconditions are obligations on the caller; postconditions are guarantees
 of the implementation; and class invariants are assertions expected to hold, 
 in general, prior to and after the execution of routines.
-In-lined assertions are conditions expected to be true at the given point
+In-lined assertions are conditions expected to be true at the specified point
 in the execution of the code.
+
+
+\section annotation_forms_sec PAUL-compliant Annotations
 
 This software supports the translation of PAUL-compliant interface contracts 
 and in-lined assertions specified in C/C++ into statements for checking the
 associated assertions.
-All interface contract annotations start with \b CONTRACT.
+All interface contract-related annotations start with \b CONTRACT.
 The table below lists supported annotations and indicates where the annotation
-may appear relative to the associated method definition, if relevant.
+may appear relative to the associated routine/method definition, if relevant.
 
 \htmlinclude annotations_table.html
 
@@ -32,15 +35,12 @@ Annotations containing an \em expression-list are referred to as \b contract
 The \b expression-list is a semi-colon separated list of assertions, each of
 which is optionally prefaced by a label followed by a colon.
 The label is added to the error message when a contract clause violation is
-reported.  
-So meaningful labels aid violation isolation.
+reported, making meaningful labels an important aid in the identification of
+violated expression(s).
 
-
-\section clause_sec Examples
-
-Examples using different sets of annotations can be found on the 
-\ref Programs "Programs" page.
 Below is an example of a method with precondition and postcondition clauses.
+Complete examples, using different sets of annotations, are listed on the
+\ref Programs "Programs" page.
 
 \htmlinclude knapsack.html
 
@@ -56,26 +56,58 @@ While one could argue that the first precondition assertion is inappropriate
 from a defensive programming standpoint, the main point here is to illustrate
 the syntax of a clause.
 
-\section init_sec Enforcement Initialization
+
+\subsection enf_init_subsec Enforcement Initialization
 
 The \b CONTRACT \b INIT annotation, which indicates where contract enforcement
 initialization needs to occur in the program, supports the optional 
 specification of a configuration file.  
-In other words, it can take the form:
+In other words, it can take the following form if there is no configuration 
+file to be used to drive enforcement, resulting in all clause checks being 
+enforced.
 
 <pre>
 /* %CONTRACT INIT */
 </pre>
 
-if there is no configuration file to be used to drive enforcement, therefore
-resulting in all clause checks being enforced, or 
+Alternatively, if a configuration file is available (e.g., 
+\em helloworld.config) that provides information for the desired enforcement 
+strategy, the name of the file should be provided as shown in the following
+example.
 
 <pre>
 /* %CONTRACT INIT helloworld.config; */
 </pre>
 
-if there is a configuration file (i.e., \em helloworld.config) providing 
-information for the desired enforcement strategy.
+
+\section expressions_sec Expressions
+
+There are two classes of supported expressions:  native C/C++ and built-in.
+Assertions specified as (native) C/C++ expressions are translated into checks.  
+Built-in expressions are special contract enforcement-related annotations
+used to guide instrumentation.
+
+The table below lists the current set of built-in expressions. 
+Each expression is expected to appear as a separate entry in an expression 
+list (i.e., terminated by a semi-colon). 
+Additional (native) C/C++ expressions can also be included in any expression
+list containing a built-in expression.
+Constraints, if any, on the clause type in which the expression may appear
+is shown in the \em Clauses column.
+
+\htmlinclude expressions_table.html
+
+A single space between \em is and either \em initialization or \em pure
+is currently required.
+
+
+\section advanced_features_sec Advanced Features
+
+Advanced features support built-in variables, routines, and macros for use
+in contract clause expressions.
+The convention is to start the names of these features with \em pce_.
+
+\htmlinclude advanced_table.html
 
 
 

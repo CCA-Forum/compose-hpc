@@ -3,7 +3,7 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 September 27
+ * Last Modified:  2013 October 8
  * \endinternal
  *
  * @file
@@ -21,8 +21,7 @@
 
 
 /**
- * Non-executable assertion expression reserved words (provided for SIDL 
- * specifications).
+ * Non-executable assertion expression reserved words.
  *
  * @todo Once expressions are parsed, this should be changed to a
  *    typdef map<string, string> dictType;
@@ -38,37 +37,27 @@
  *     // Use it
  *   }
  */
-static const std::string ReservedWordPairs[][2] = {
-  { "pce_all", "PCE_ALL" },
-  { " and ", " && " },
-  { "pce_any", "PCE_ANY" },
-  { "pce_count", "PCE_COUNT" },
-  { "pce_dimen", "PCE_DIMEN" },
-  { " false ", " 0 " },
-  { " iff ", "" },
-  { "implies ", "" },
-  { "pce_irange", "PCE_IRANGE" },
-  { " is ", "" },
-  { "pce_lower", "PCE_LOWER" },
-  { "pce_max", "PCE_MAX" },
-  { "pce_min", "PCE_MIN" },
-  { " mod ", "" },
-  { "pce_near_equal", "PCE_NEAR_EQUAL" },
-  { "pce_non_decr", "PCE_NON_DECR" },
-  { "pce_none", "PCE_NONE" },
-  { "pce_non_incr", "PCE_NON_INCR" },
-  { " not ", " !" },
-  { " or ", " || " },
-  { " pure", "" },
-  { "pce_range", "PCE_RANGE" },
-  { " rem ", "" },
-  { "pce_result", "pce_result" },
-  { "pce_size", "PCE_SIZE" },
-  { "pce_stride", "PCE_STRIDE" },
-  { "pce_sum", "PCE_SUM" },
-  { " true ", " 1 " },
-  { "pce_upper", "PCE_UPPER" },
-  { " xor ", "" },
+static const std::string ReservedWords[] = {
+  "is initialization",
+  "pce_all", 
+  "pce_any",
+  "pce_count",
+  "pce_dimen",
+  "pce_irange",
+  "pce_lower",
+  "pce_max",
+  "pce_min",
+  "pce_near_equal",
+  "pce_non_decr",
+  "pce_none",
+  "pce_non_incr",
+  "pce_range",
+  "pce_result",
+  "pce_size",
+  "pce_stride",
+  "pce_sum",
+  "pce_upper",
+  "is pure",
 };
 static const int MIN_NEE_INDEX = 0;
 static const int MAX_NEE_INDEX = 29;

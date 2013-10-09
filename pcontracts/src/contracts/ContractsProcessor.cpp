@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 1
+ * Last Modified:  2013 October 8
  * \endinternal
  *
  * @file
@@ -308,6 +308,13 @@ ContractsProcessor::addExpressions(
 #endif /* DEBUG */
         }
 
+
+        /*
+         * Order of expression, expr, checks IS important.  
+         *
+         * For example, all built-in, non-executable expressions should
+         * be checks prior to invoking isExectuable().
+         */
         if (expr == "is pure") 
         {
           cc->setIsPure(true);
@@ -315,19 +322,11 @@ ContractsProcessor::addExpressions(
             cout << "DEBUG: ..is advisory expression.\n";
 #endif /* DEBUG */
         }
-        else if (expr == "is initialization") 
+        else if (expr == "is initialization")
         {
           cc->setInInit(true);
 #ifdef DEBUG
             cout << "DEBUG: ..is initialization routine.\n";
-#endif /* DEBUG */
-        } 
-        else if (isExecutable(expr))
-        {
-          AssertionExpression ae (label, expr, AssertionSupport_EXECUTABLE);
-          cc->add(ae);
-#ifdef DEBUG
-            cout << "DEBUG: ..is executable expression.\n";
 #endif /* DEBUG */
         } 
         else if (cc->isInit()) // Assuming the expression is a filename
@@ -359,6 +358,14 @@ ContractsProcessor::addExpressions(
           {
             cerr << S_ERROR_STATS << " Ignoring any additional entries.\n";
           } 
+        } 
+        else if (isExecutable(expr))
+        {
+          AssertionExpression ae (label, expr, AssertionSupport_EXECUTABLE);
+          cc->add(ae);
+#ifdef DEBUG
+            cout << "DEBUG: ..is executable expression.\n";
+#endif /* DEBUG */
         } 
         else
         {
@@ -1098,10 +1105,10 @@ ContractsProcessor::isExecutable(
   {
     for (int i=MIN_NEE_INDEX; i<MAX_NEE_INDEX; i++)
     {
-      if (expr.find(ReservedWordPairs[i][0]) != string::npos)
+      if (expr.find(ReservedWords[i]) != string::npos)
       {
 #ifdef DEBUG
-        cout << "DEBUG: Detected \'" << ReservedWordPairs[i][0];
+        cout << "DEBUG: Detected \'" << ReservedWords[i];
         cout << "\' in \'"<< expr << "\' making expression non-executable.\n";
 #endif /* DEBUG */
         isOkay = false;

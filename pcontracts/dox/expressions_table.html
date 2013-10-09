@@ -1,0 +1,35 @@
+<table border="1">
+<colgroup>
+  <col span="1" style="width: 15%;">
+  <col span="1" style="width: 15%;">
+  <col span="1" style="width: 70%;">
+</colgroup>
+<thead>
+  <tr>
+    <th>Expression</th>
+    <th>Clauses</th>
+    <th>Meaning</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td style="text-align:center;"><b>is initialization</b></td>
+    <td style="text-align:center;">Precondition</td>
+    <td>
+      The routine completes the initialization of an instance of a class.
+      The factory design pattern is a case where an instance may be constructed
+      but not necessarily fully initialized.
+      Methods with this annotation will only have class invariants instrumented
+      at execution return points.
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><b>is pure</b></td>
+    <td style="text-align:center;">Postcondition</td>
+    <td>
+      The implementation is not supposed to have side effects. 
+      Class invariant checks are not added to the associated method.
+    </td>
+  </tr>
+</tbody>
+</table>
