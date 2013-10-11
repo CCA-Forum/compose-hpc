@@ -3,7 +3,7 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 8
+ * Last Modified:  2013 October 11
  * \endinternal
  *
  * @file
@@ -43,11 +43,11 @@ static const std::string ReservedWords[] = {
   "pce_any",
   "pce_count",
   "pce_dimen",
-  "pce_irange",
+  //"pce_in_range",
   "pce_lower",
   "pce_max",
   "pce_min",
-  "pce_near_equal",
+  //"pce_near_equal",
   "pce_non_decr",
   "pce_none",
   "pce_non_incr",

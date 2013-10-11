@@ -39,7 +39,7 @@
  *                       0.
  */
 /* %CONTRACT REQUIRE weights != 0; n > 0; */
-/* %CONTRACT ENSURE pce_inrange(pce_result, 0, 1); */
+/* %CONTRACT ENSURE pce_in_range(pce_result, 0, 1); */
 int 
 knapsack(
   /* in */ unsigned int* weights, 

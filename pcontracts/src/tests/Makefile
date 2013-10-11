@@ -13,7 +13,8 @@ CXXFLAGS=$(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 LDFLAGS=-L$(LIB_DIR) -l$(RUNTIME_LIB_BASE)
 
 TCE_EXE=testContractsEnforcer
-BINARIES=$(TCE_EXE)
+TER_EXE=testExpressionRoutines
+BINARIES=$(TCE_EXE) $(TER_EXE)
 
 C_FILES = $(TCE_EXE).c
 C_OBJECTS = $(C_FILES:.c=.o)
@@ -28,10 +29,13 @@ all: $(BINARIES)
 $(TCE_EXE): $(TCE_EXE).o $(CE_OBJ)
 	$(CXX) -o $(TCE_EXE) $(LDFLAGS) $(TCE_EXE).o $(LDFLAGS)
 
+$(TER_EXE): $(TER_EXE).o $(CE_OBJ)
+	$(CXX) -o $(TER_EXE) $(LDFLAGS) $(TER_EXE).o $(LDFLAGS)
+
 
 check: checkall
 
-checkall: checkTCE
+checkall: checkTCE checkTER
 
 checkTCE: $(TCE_EXE)
 	@echo "\nRunning Contracts Enforcer tests with default options..."; \
@@ -43,6 +47,19 @@ checkTCE: $(TCE_EXE)
 	  echo 0 > $(CHECK_ALL_STATUS); \
 	else \
 	  echo "Contracts Enforcer Test Suite: PASSED"; \
+	fi; \
+	echo
+
+checkTER: $(TER_EXE)
+	@echo "\nRunning Contract Expressions tests with default options..."; \
+	./$(TER_EXE) > run$(TER_EXE).out 2>&1; \
+	echo; cat run$(TER_EXE).out; echo; \
+	SUCCESS=`grep "TEST SUITE PASSED" run$(TER_EXE).out`; \
+	if [ -z "$$SUCCESS" ]; then \
+	  echo "Contracts Expressions Test Suite: FAILED"; \
+	  echo 0 > $(CHECK_ALL_STATUS); \
+	else \
+	  echo "Contracts Expressions Test Suite: PASSED"; \
 	fi; \
 	echo
 

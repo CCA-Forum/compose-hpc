@@ -26,14 +26,15 @@ LDFLAGS=$(FLAGS)
 CXXFLAGS=$(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 
 
-C_FILES=ContractsEnforcer.c
+C_FILES=ContractsEnforcer.c ExpressionRoutines.c
 C_OBJECTS=$(C_FILES:.c=.o)
 C_HEADERS= \
 	$(INCLUDE_DIR)/contractMacros.h \
 	$(INCLUDE_DIR)/contractOptions.h \
 	$(INCLUDE_DIR)/contractPrivateTypes.h \
 	$(INCLUDE_DIR)/ContractsEnforcer.h \
-	$(INCLUDE_DIR)/contracts.h
+	$(INCLUDE_DIR)/contracts.h \
+	$(INCLUDE_DIR)/ExpressionRoutines.h
 
 
 all: $(C_OBJECTS) $(C_HEADERS)

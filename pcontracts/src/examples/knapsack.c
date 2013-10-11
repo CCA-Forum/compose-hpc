@@ -45,7 +45,7 @@
  */
 /*
  %CONTRACT ENSURE
-    valid_result: pce_inrange(pce_result, 0, 1);
+    valid_result: pce_in_range(pce_result, 0, 1);
  */
 int 
 knapsack(

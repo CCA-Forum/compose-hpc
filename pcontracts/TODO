@@ -1,13 +1,13 @@
 PROTOTYPE
 
 HIGH:
+- Verify the new expressions are actually instrumented and checked
+
 - Finish writing up document describing what this work is about, benefits, and
   how to use it.  Distribute to collaborators!
 
 - Finish investigating why in-lined STATS not translated using new DEBUG sttmts
   (helloworld examples)
-
-- Document 'is pure' ==> class invariant checks are not added to the routine
 
 MODERATE:
 - Complete supporting, testing, and debugging of STATS.
