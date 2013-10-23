@@ -37,7 +37,7 @@ all: $(CLAUSE_OBJECTS) $(CLAUSE_HEADERS)
 #  with ROSE objects.
 
 .cpp.o: 
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
 check: 
 	@echo "Tests are located in a different directory"

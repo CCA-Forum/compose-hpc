@@ -31,10 +31,10 @@ all: $(BINARIES)
 
 
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
 .cc.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
 check: checkclean all checksetup checkExamples checkKnapsackTests
 	@$(MAKE) checksummary; \
@@ -72,24 +72,34 @@ checksummary:
 	fi
 
 $(KC_EXE): $(KC_EXE).c
-	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c
-	$(CXX) -o $(KC_EXE) $(LDFLAGS) $(KC_EXE).o
+	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(KC_EXE) $(LDFLAGS) $(KC_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 $(LKC_EXE): $(LKC_EXE).c
-	$(CXX) -c $(CXXFLAGS) -o $(LKC_EXE).o $(LKC_EXE).c
-	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o
+	$(CXX) -c $(CXXFLAGS) -o $(LKC_EXE).o $(LKC_EXE).c \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 $(KCPP_EXE): $(KCPP_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(KCPP_EXE).o $(KCPP_EXE).cpp
-	$(CXX) -o $(KCPP_EXE) $(LDFLAGS) $(KCPP_EXE).o
+	$(CXX) -c $(CXXFLAGS) -o $(KCPP_EXE).o $(KCPP_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(KCPP_EXE) $(LDFLAGS) $(KCPP_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 $(UKCPP_EXE): $(UKCPP_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(UKCPP_EXE).o $(UKCPP_EXE).cpp
-	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o
+	$(CXX) -c $(CXXFLAGS) -o $(UKCPP_EXE).o $(UKCPP_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 $(WLCPP_EXE): $(WLCPP_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(WLCPP_EXE).o $(WLCPP_EXE).cpp
-	$(CXX) -o $(WLCPP_EXE) $(LDFLAGS) $(WLCPP_EXE).o
+	$(CXX) -c $(CXXFLAGS) -o $(WLCPP_EXE).o $(WLCPP_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(WLCPP_EXE) $(LDFLAGS) $(WLCPP_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 
 # TODO: Consider deprecating the labeled versus unlabeled knapsack checks.

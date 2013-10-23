@@ -1,4 +1,5 @@
 ROOT_DIR=.
+include ./src/make.inc
 include ./src/make_test.inc
 
 SUBDIRS = src
@@ -6,7 +7,31 @@ SUBDIRS = src
 all:
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) all) \
-	done;
+	done; \
+	$(MAKE) buildsummary
+
+buildsummary:
+	@ok=1; \
+	if [ -f $(PC_BUILD_STATUS) ]; then \
+	  RES=`cat $(PC_BUILD_STATUS)`; \
+	  echo; \
+	  if [ "$$RES" -eq "1" ]; then \
+	    echo "Build: Okay"; \
+	  else \
+	    ok=0; \
+	    echo "Build: FAILED"; \
+	  fi; \
+	else \
+	  ok=0; \
+	  echo "Build: FAILED: $(PC_BUILD_STATUS) is missing"; \
+	fi; \
+	if [ "$$ok" -eq "0" ]; then \
+	  echo; \
+	  echo "  ***********************************************************";\
+	  echo "  * Standard out messages must be reviewed manually.        *";\
+	  echo "  ***********************************************************";\
+	  echo; \
+	fi;
 
 docs: cleandocs
 	@doxygen; \
@@ -43,7 +68,7 @@ cleanall:  cleandocs
 	@list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) cleanall) \
 	done; \
-	rm -f *.out $(CHECK_STATUS)* ./bin/*
+	rm -f *.out $(CHECK_STATUS)* $(BUILD_STATUS)* ./bin/*
 
 cleandocs:
 	@rm -rf docs

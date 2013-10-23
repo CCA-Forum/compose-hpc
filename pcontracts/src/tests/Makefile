@@ -24,13 +24,15 @@ CXX_OBJECTS = $(CXX_FILES:.cpp=.o)
 all: $(BINARIES)
 
 .c.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
 $(TCE_EXE): $(TCE_EXE).o $(CE_OBJ)
-	$(CXX) -o $(TCE_EXE) $(LDFLAGS) $(TCE_EXE).o $(LDFLAGS)
+	$(CXX) -o $(TCE_EXE) $(LDFLAGS) $(TCE_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 $(TER_EXE): $(TER_EXE).o $(CE_OBJ)
-	$(CXX) -o $(TER_EXE) $(LDFLAGS) $(TER_EXE).o $(LDFLAGS)
+	$(CXX) -o $(TER_EXE) $(LDFLAGS) $(TER_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 
 check: checkall

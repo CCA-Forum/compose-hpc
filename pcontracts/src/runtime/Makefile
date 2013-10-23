@@ -42,7 +42,7 @@ all: $(C_OBJECTS) $(C_HEADERS)
 	ar cr $(LIB) $(C_OBJECTS)
 
 .c.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
 check:
 

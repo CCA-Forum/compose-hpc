@@ -8,6 +8,7 @@ TEST_DRIVER_DIR=REPLACEME
 
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(TEST_DRIVER_DIR)
 CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(TEST_DRIVER_DIR)
+BUILD_EX_STATUS=$(ROOT_DIR)/$(BUILD_STATUS)-$(TEST_DRIVER_DIR)
 
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 
@@ -40,39 +41,65 @@ WLCPP_EXE=WeightsList
 
 
 all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
+	$(MAKE) buildsummary
 
 .c.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $< || echo 0 > $(BUILD_EX_STATUS)
 
 .cc.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $< || echo 0 > $(BUILD_EX_STATUS)
 
 .cpp.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $< || echo 0 > $(BUILD_EX_STATUS)
 
 $(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o 
-	$(CXX) -o $(HWCC_EXE) $(FLAGS) $(HWCC_EXE).o $(LDFLAGS)
+	$(CXX) -o $(HWCC_EXE) $(FLAGS) $(HWCC_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(HWCC2_EXE): $(HWCC2_EXE).cc $(HWCC2_EXE).o 
-	$(CXX) -o $(HWCC2_EXE) $(FLAGS) $(HWCC2_EXE).o $(LDFLAGS)
+	$(CXX) -o $(HWCC2_EXE) $(FLAGS) $(HWCC2_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(HWCC3_EXE): $(HWCC3_EXE).cc $(HWCC3_EXE).o 
-	$(CXX) -o $(HWCC3_EXE) $(FLAGS) $(HWCC3_EXE).o $(LDFLAGS)
+	$(CXX) -o $(HWCC3_EXE) $(FLAGS) $(HWCC3_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(LKC_EXE): $(LKC_EXE).c $(LKC_EXE).o 
-	$(CXX) -o $(LKC_EXE) $(FLAGS) $(LKC_EXE).o $(LDFLAGS)
+	$(CXX) -o $(LKC_EXE) $(FLAGS) $(LKC_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(UKC_EXE): $(UKC_EXE).c $(UKC_EXE).o 
-	$(CXX) -o $(UKC_EXE) $(FLAGS) $(UKC_EXE).o $(LDFLAGS)
+	$(CXX) -o $(UKC_EXE) $(FLAGS) $(UKC_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(LKCPP_EXE): $(LKCPP_EXE).cpp $(LKCPP_EXE).o 
-	$(CXX) -o $(LKCPP_EXE) $(FLAGS) $(LKCPP_EXE).o $(LDFLAGS)
+	$(CXX) -o $(LKCPP_EXE) $(FLAGS) $(LKCPP_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o 
-	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS)
+	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(WLCPP_EXE): $(WLCPP_EXE).cpp $(WLCPP_EXE).o 
-	$(CXX) -o $(WLCPP_EXE) $(FLAGS) $(WLCPP_EXE).o $(LDFLAGS)
+	$(CXX) -o $(WLCPP_EXE) $(FLAGS) $(WLCPP_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
+
+buildsummary:
+	@echo; \
+	if [ -f $(BUILD_EX_STATUS) ]; then \
+	  res=`cat $(BUILD_EX_STATUS)`; \
+	else \
+	  res="-1"; \
+	  echo; echo "*******"; \
+	  echo "WARNING:  $(BUILD_EX_STATUS) is missing.  "; \
+	  echo "*******"; \
+	fi; \
+	if [ "$$res" -eq "0" ]; then \
+	  echo "$(TEST_DRIVER_DIR) Build: Contracts-$$stat: FAILED"; \
+	  echo; echo "Review output to identify failure(s)"; \
+	else \
+	  echo "$(TEST_DRIVER_DIR) Build: Contracts-$$stat: Okay";\
+	fi
 
 check: checkclean checksetup all checkBasicsCore checksummary
 	@echo 

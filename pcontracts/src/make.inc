@@ -21,6 +21,8 @@ RUNTIME_LIB=lib$(RUNTIME_LIB_BASE).a
 
 EX_DIR=$(SRC_DIR)/examples
 
+BUILD_STATUS=.buildStatus
+PC_BUILD_STATUS=$(ROOT_DIR)/$(BUILD_STATUS)
 
 #
 # Common compiler flags and settings

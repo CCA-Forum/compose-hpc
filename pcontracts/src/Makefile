@@ -1,11 +1,13 @@
 ROOT_DIR=..
+include $(ROOT_DIR)/src/make.inc
 include $(ROOT_DIR)/src/make_test.inc
 
 SUBDIRS = runtime contracts drivers examples tests
 
 
 all:
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
+	@echo 1 > $(PC_BUILD_STATUS); \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  echo "Calling '$(MAKE) all' in $$subdir"; \
 	  (cd $$subdir && $(MAKE) all) \
 	done;
@@ -30,15 +32,24 @@ checkall:  all
 
 checksummary:
 	@echo; \
-	if [ -f $(CHECK_ALL_STATUS) ]; then \
-	  RES=`cat $(CHECK_ALL_STATUS)`; \
+	if [ -f $(PC_BUILD_STATUS) ]; then \
+	  RES=`cat $(PC_BUILD_STATUS)`; \
 	  if [ "$$RES" -eq "1" ]; then \
-	    echo "All Suites: PASSED"; \
+	    if [ -f $(CHECK_ALL_STATUS) ]; then \
+	      RES=`cat $(CHECK_ALL_STATUS)`; \
+	      if [ "$$RES" -eq "1" ]; then \
+	        echo "All Suites: PASSED"; \
+	      else \
+	        echo "All Suites: FAILED"; \
+	      fi; \
+	    else \
+	      echo "All Suites FAILED: $(CHECK_ALL_STATUS) is missing"; \
+	    fi; \
 	  else \
-	    echo "All Suites: FAILED"; \
+	    echo "Build: FAILED"; \
 	  fi; \
 	else \
-	  echo "All Suites FAILED: $(CHECK_ALL_STATUS) is missing"; \
+	  echo "Build FAILED: $(PC_BUILD_STATUS) is missing"; \
 	fi; \
 	echo
 

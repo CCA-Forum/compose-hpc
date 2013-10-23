@@ -40,7 +40,7 @@ all: $(BINARIES)
 	cp -f $(BINARIES) $(BIN_DIR)
 
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
 check: checkclean all checksetup checkRose
 	@$(MAKE) checksummary; \
@@ -103,24 +103,32 @@ checksummary:
 
 
 $(CPRINTER_EXE): $(CPRINTER_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp
-	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o $(LDFLAGS)
+	$(CXX) -c $(CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(PC_BUILD_STATUS)
+
 
 $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
 		$(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -DNO_MAIN -o $(CPRINTER_EXE)-mainLess.o  \
-	  $(CPRINTER_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp
+	  $(CPRINTER_EXE).cpp || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -c $(CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
 	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
-	  $(CPRINTER_EXE)-mainLess.o $(LDFLAGS)
+	  $(CPRINTER_EXE)-mainLess.o $(LDFLAGS) || echo 0 > $(PC_BUILD_STATUS)
 
 $(RCI_EXE): $(RCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp
-	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(LDFLAGS)
+	$(CXX) -c $(CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 $(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
-	$(CXX) -c $(CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp
-	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(LDFLAGS)
+	$(CXX) -c $(CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp \
+	  || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(PC_BUILD_STATUS)
 
 checkRose: checkRosePrinters checkRoseTranslators
 	@echo; echo "DONE (checkRose)"; echo
