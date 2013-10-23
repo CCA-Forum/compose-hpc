@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 August 2
+ * Last Modified:  2013 October 22
  * \endinternal
  *
  * @file
@@ -30,11 +30,12 @@
 /**
  * Contract enforcement include files.
  */
-const std::string S_INCLUDE_BASICS   = "#include \"contracts.h\"";
-const std::string S_INCLUDE_ENFORCER = "#include \"ContractsEnforcer.h\"";
-const std::string S_INCLUDE_OPTIONS  = "#include \"contractOptions.h\"";
+const std::string S_INCLUDE_BASICS      = "#include \"contracts.h\"";
+const std::string S_INCLUDE_ENFORCER    = "#include \"ContractsEnforcer.h\"";
+const std::string S_INCLUDE_EXPRESSIONS = "#include \"ExpressionRoutines.h\"";
+const std::string S_INCLUDE_OPTIONS     = "#include \"contractOptions.h\"";
 const std::string S_INCLUDES = S_INCLUDE_BASICS + "\n" + S_INCLUDE_ENFORCER 
-                             + "\n" + S_INCLUDE_OPTIONS;
+          + "\n" + S_INCLUDE_OPTIONS + "\n" + S_INCLUDE_EXPRESSIONS;
 
 class ContractsProcessor
 {
@@ -61,8 +62,10 @@ class ContractsProcessor
     int addStatsDump(const SgFunctionDefinition* def, SgBasicBlock* body,
       ContractComment* cc);
 
-
     int addTimeUpdate(SgBasicBlock* body);
+
+    int addReturnVariable(SgBasicBlock* body, ContractComment* cc, 
+      SgType* returnType);
 
     SgExprStatement* buildCheck(const SgStatement* currSttmt, 
       ContractClauseEnum clauseType, AssertionExpression ae, 

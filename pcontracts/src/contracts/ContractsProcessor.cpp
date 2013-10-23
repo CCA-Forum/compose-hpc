@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 8
+ * Last Modified:  2013 October 22
  * \endinternal
  *
  * @file
@@ -767,6 +767,36 @@ ContractsProcessor::addTimeUpdate(
 
 
 /**
+ * Build and add the return variable.
+ *
+ * @param[in,out]  body  Pointer to the function body.
+ * @param[in]      cc    Contract comment.
+ * @return               Number of declarations (successfully) added.
+ */
+int
+ContractsProcessor::addReturnVariable(
+  /* inout */ SgBasicBlock*    body, 
+  /* in */    ContractComment* cc,
+  /* in */    SgType*          returnType)
+{
+  int num = 0;
+
+  if ( (body != NULL) && (cc != NULL) && (returnType != NULL) )
+  {
+    SgVariableDeclaration* varDecl = new SgVariableDeclaration(FILE_INFO,
+        "pce_result", returnType);
+    if (varDecl != NULL) {
+      body->prepend_statement(varDecl);
+      //varDecl->set_parent(body);
+      num += 1;
+    }
+  }
+              
+  return num;
+}  /* addReturnVariable */
+
+
+/**
  * Build the contract clause check statement.
  *
  * @param[in]  currSttmt  Pointer to the current statement.
@@ -1377,6 +1407,7 @@ ContractsProcessor::processFunctionComments(
            || (post != NULL) || (stats != NULL) || (d_invariants != NULL) )
         {
           SgBasicBlock* body = def->get_body();
+          bool returnAdded = false;
   
           if (body != NULL)
           {
@@ -1414,6 +1445,14 @@ ContractsProcessor::processFunctionComments(
             { 
               num += addPreChecks(body, pre);
               numExec += pre->numExecutable();
+
+              if (pre->needsResult() && !returnAdded) {
+                if (addReturnVariable(body, pre, decl->get_orig_return_type()))
+                {
+                  returnAdded = true;
+                  num += 1;
+                }
+              }
             }
 
             if (init != NULL)
@@ -1429,6 +1468,14 @@ ContractsProcessor::processFunctionComments(
             {
               if (numChecks[1] > 0)
               {
+                if (post->needsResult() && !returnAdded) {
+                  if (addReturnVariable(body, post, 
+                                        decl->get_orig_return_type()))
+                  {
+                    returnAdded = true;
+                    num += 1;
+                  }
+                }
                 num += addPostChecks(def, body, post);
                 numExec += post->numExecutable();
               }
