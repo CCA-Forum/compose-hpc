@@ -194,14 +194,18 @@ checkRoseTrans: $(EXE)
 	  ERFN=$$BASE.checks; \
 	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$ERFN; \
 	  if [ -f $$OFN ]; then \
-	    grep PCE_CHECK $$OFN | grep ASSERT | wc -l > $$ERFN; \
-	    grep PCE_CHECK $$OFN | grep INVARIANT | wc -l >> $$ERFN; \
-	    grep PCE_CHECK $$OFN | grep POSTCONDITION | wc -l >> $$ERFN;\
-	    grep PCE_CHECK $$OFN | grep PRECONDITION | wc -l >> $$ERFN; \
-	    grep PCE_DUMP_STATS $$OFN | wc -l >> $$ERFN; \
-	    grep PCE_FINALIZE $$OFN | wc -l >> $$ERFN; \
-	    grep PCE_INITIALIZE $$OFN | wc -l >> $$ERFN; \
-	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
+	    grep PCE_CHECK $$OFN | grep ASSERT | \
+	      echo "ASSERT `wc -l`" > $$ERFN; \
+	    grep PCE_CHECK $$OFN | grep INVARIANT | \
+	      echo "INVARIANT `wc -l`" >> $$ERFN; \
+	    grep PCE_CHECK $$OFN | grep POSTCONDITION | \
+	      echo "ENSURE `wc -l`" >> $$ERFN;\
+	    grep PCE_CHECK $$OFN | grep PRECONDITION | \
+	      echo "REQUIRE `wc -l`" >> $$ERFN; \
+	    grep PCE_DUMP_STATS $$OFN | echo "STATS `wc -l`" >> $$ERFN; \
+	    grep PCE_FINALIZE $$OFN | echo "FINAL `wc -l`" >> $$ERFN; \
+	    grep PCE_INITIALIZE $$OFN | echo "INIT `wc -l`" >> $$ERFN; \
+	    grep PCE_UPDATE_EST_TIME $$OFN | echo "UPDATE `wc -l`" >> $$ERFN; \
 	    if [ -f $$ORFN ]; then \
 	      diff $$ERFN $$ORFN > $$ERFN.diffs; \
               if [ -s $$ERFN.diffs ]; then \
