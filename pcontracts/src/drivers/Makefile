@@ -198,6 +198,7 @@ checkRoseTrans: $(EXE)
 	    grep PCE_CHECK $$OFN | grep INVARIANT | wc -l >> $$ERFN; \
 	    grep PCE_CHECK $$OFN | grep POSTCONDITION | wc -l >> $$ERFN;\
 	    grep PCE_CHECK $$OFN | grep PRECONDITION | wc -l >> $$ERFN; \
+	    grep PCE_DUMP_STATS $$OFN | wc -l >> $$ERFN; \
 	    grep PCE_FINALIZE $$OFN | wc -l >> $$ERFN; \
 	    grep PCE_INITIALIZE $$OFN | wc -l >> $$ERFN; \
 	    grep PCE_UPDATE_EST_TIME $$OFN | wc -l >> $$ERFN; \
