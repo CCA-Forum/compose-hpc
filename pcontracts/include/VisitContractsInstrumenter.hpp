@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.hpp
  * Author:        T. Dahlgren
  * Created:       2012 November 1
- * Last Modified: 2013 August 2
+ * Last Modified: 2013 October 28
  * \endinternal
  *
  * @file
@@ -71,6 +71,9 @@ class VisitContractsInstrumenter : public AstSimpleProcessing
 
     /** The last line processed. */
     long  d_lastLine;
+
+    /** Global processing status. */
+    bool  d_globalDone;
 
     /** The number of contract-related statements added. */
     int  d_num;

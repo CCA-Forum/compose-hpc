@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 November 9
- * Last Modified: 2013 August 2
+ * Last Modified: 2013 October 28
  * \endinternal
  *
  * @file
@@ -70,7 +70,7 @@ using namespace std;
 
 VisitContractsInstrumenter::VisitContractsInstrumenter(Sg_File_Info* fileInfo) 
   : d_processor(new ContractsProcessor()), d_fileInfo(fileInfo), d_lastLine(-1),
-    d_num(0) {}
+    d_globalDone(false), d_num(0) {}
 
 
 VisitContractsInstrumenter::~VisitContractsInstrumenter()
@@ -94,48 +94,52 @@ VisitContractsInstrumenter::visit(
       d_lastLine = line;
 
 #ifdef DEBUG
-      printLineComment(lNode, "\nDEBUG:  Processing...", true);
-      cout << "Node type: " << lNode->variantT() << "(";
+      printLineComment(lNode, "DEBUG:  Visiting...", true);
+      cout << "   Node type: " << lNode->variantT() << " (";
       cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
 #endif /* DEBUG */
 
-      SgGlobal* globalScope = NULL;
-      SgFunctionDefinition* def = NULL;
-      SgFunctionDeclaration* decl = NULL;
-
-      if ( (globalScope = isSgGlobal(node)) != NULL )
+      if ( d_processor->hasContractComment(lNode) || (!d_globalDone) )
       {
-        int status = d_processor->addIncludes(globalScope);
-      }
-      else if ( (decl = isSgFunctionDeclaration(lNode)) != NULL )
-      {
-        def = decl->get_definition();
-        if (def != NULL)
-        {
-          d_num += d_processor->processFunctionDef(def);
-        }
-#ifdef PCE_ENABLE_WARNINGS
-        else
-        {  
-          cout << "\nWARNING: Detected null definition for a declaration.\n  ";
-          cout << "Ignoring any associated contract comments.\n";
-        }
-#endif /* PCE_ENABLE_WARNINGS */
-      }
-      else if ( (def = isSgFunctionDefinition(lNode)) == NULL )
-      {
-        /* The node could support an invariant or contract clause. */
-        d_num += d_processor->processNonFunctionNode(lNode);
-      }
 #ifdef DEBUG
-      else
-      {
-         cout << "Skipping Node type: " << lNode->variantT() << "(";
-         cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
-      }
+        printLineComment(lNode, "DEBUG:  ..processing..", false);
 #endif /* DEBUG */
+
+        if (!d_globalDone)
+        {
+          SgGlobal* globalScope = isSgGlobal(node);
+          if (globalScope != NULL) 
+          {
+            int status = d_processor->addIncludes(globalScope);
+            d_globalDone = true;
+          }
+        }
+
+        SgFunctionDeclaration* decl = isSgFunctionDeclaration(lNode);
+        SgFunctionDefinition* def = NULL;
+        if (decl != NULL)
+        {
+          if ( (def = decl->get_definition()) != NULL)
+          {
+            d_num += d_processor->processFunctionDef(def);
+          }
+#ifdef PCE_ENABLE_WARNINGS
+          else
+          {  
+            cout << "\nWARNING: Detected null definition for a declaration.";
+            cout << "\nIgnoring any associated contract comments.\n";
+          }
+#endif /* PCE_ENABLE_WARNINGS */
+        }
+        else 
+        {
+          /* The node could support an invariant or contract clause. */
+          d_num += d_processor->processNonFunctionNode(lNode);
+        }
+      }
     }
   }
+
   return;
 } /* visit */
 
@@ -191,7 +195,6 @@ main(int argc, char* argv[])
           {
             vis->traverseInputFiles(project, preorder);
 
-
             /*
              * The following is REQUIRED to generate source (unlike
              * the routine instrumentation version).
@@ -201,6 +204,9 @@ main(int argc, char* argv[])
             delete vis;
           }
           /* Do NOT attempt to delete info as doing so messes up AST. */
+        } else {
+          cout << "\nERROR: Failed to retrieve file info.\n";
+          status = 1;
         }
       } else {
         cout << "\nERROR: Failed to retrieve the file node.\n";

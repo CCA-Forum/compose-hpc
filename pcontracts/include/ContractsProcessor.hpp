@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 22
+ * Last Modified:  2013 October 28
  * \endinternal
  *
  * @file
@@ -75,6 +75,8 @@ class ContractsProcessor
     
     ContractComment* extractContractComment(SgNode* aNode, 
       AttachedPreprocessingInfoType::iterator info);
+    
+    bool hasContractComment(SgLocatedNode* lNode);
     
     bool inInvariants(std::string nm);
     

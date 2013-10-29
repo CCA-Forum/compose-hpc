@@ -53,6 +53,7 @@ extern "C" {
   if ((_pce_vio!=ContractViolation_NONE)&&(ContractsEnforcer_terminate(ENF))) \
   { \
     printf("Terminating execution...\n"); \
+    PCE_DUMP_STATS(ENF, "Contract Violated"); \
     exit(1); \
   } \
 }

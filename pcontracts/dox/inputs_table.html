@@ -23,7 +23,9 @@
     </td>
     <td style="text-align:center;">FINAL, INIT, REQUIRE, STATS</td>
     <td style="text-align:center;"></td>
-    <td>An example containing only routine annotations.</td>
+    <td>An example containing only routine-level annotations and an enforcement
+      configuration file resulting in enforcement statistics output.
+    </td>
   </tr>
   <tr>
     <td style="text-align:center;">
@@ -35,7 +37,8 @@
         much of the enforcement instrumentation can only be added through 
         the <em>VisitContractsInstrumenter</em> driver.
         Unfortunately, this is also a case where the in-lined finalization 
-        annotation does not get translated with ROSE 0.9.5a-17286.
+        annotation appearing immediately before the return does not get 
+        translated (at least with ROSE 0.9.5a-17286).
     </td>
   </tr>
   <tr>
@@ -43,10 +46,11 @@
       <a href="helloworld-v3_8cc.html">helloworld-v3.cc</a>
     </td>
     <td style="text-align:center;">REQUIRE</td>
-    <td style="text-align:center;">FINAL, INIT, STATS</td>
+    <td style="text-align:center;">FINAL, INIT</td>
     <td>An example containing routine and in-lined annotations placed such
-        that the finalization annotation does get translated with ROSE
-        0.9.5a-17286.
+        that the finalization annotation does get translated.  An enforcement
+        configuration file is also provided and enforcement statistics 
+        output through the FINAL instrumentation.
     </td>
   </tr>
   <tr>
@@ -56,7 +60,8 @@
     <td style="text-align:center;">ENSURE, FINAL, INIT, REQUIRE</td>
     <td style="text-align:center;">ASSERT</td>
     <td>An example with simple, labeled routine contracts and in-lined 
-        assertions translated with the <em>VisitContractsInstrumenter</em> driver.
+        assertions translated with the <em>VisitContractsInstrumenter</em> 
+        driver.
     </td>
   </tr>
   <tr>

@@ -516,11 +516,7 @@ ContractsEnforcer_finalize(void)
 {
   DEBUG_MESSAGE("ContractsEnforcer_finalize(): begin")
 
-#if DEBUG==2
-      printf("DEBUG: finalizing..\n");
-#endif /* DEBUG==2 */
-
-  ContractsEnforcer_dumpStatistics(pce_enforcer, "In Finalize");
+  ContractsEnforcer_dumpStatistics(pce_enforcer, "Finalizing");
 
   ContractsEnforcer_free(pce_enforcer);
 

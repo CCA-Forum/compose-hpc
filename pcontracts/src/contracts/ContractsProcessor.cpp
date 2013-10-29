@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 22
+ * Last Modified:  2013 October 28
  * \endinternal
  *
  * @file
@@ -127,19 +127,19 @@ buildDump(
       SageInterface::attachComment(sttmt, S_PREFACE + S_DUMP + S_END,
         PreprocessingInfo::after, dt);
 #endif /* PCE_ADD_COMMENTS */
-//#ifdef DEBUG
+#ifdef DEBUG
     }
     else
     {
         cout<<"DEBUG: ....Sage failed to build PCE_DUMP_STATS statement\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
     }
-//#ifdef DEBUG
+#ifdef DEBUG
   }
   else
   {
-    cout<<"DEBUG: ....buildDump not passed are gen'd required args\n";
-//#endif /* DEBUG */
+    cout<<"DEBUG: ....buildDump not passed or unable to gen required args\n";
+#endif /* DEBUG */
   }
 
   return sttmt;
@@ -724,9 +724,9 @@ ContractsProcessor::addStatsDump(
 
   if ( (def != NULL) && (body != NULL) && (cc != NULL) )
   {
-//#ifdef DEBUG
+#ifdef DEBUG
     cout<<"DEBUG: ....STATS comment =\""<<cc->getComment()<<"\"\n";
-//#endif /* DEBUG */
+#endif /* DEBUG */
 
     SgExprStatement* sttmt = buildDump(body, cc->directive(), cc->getComment());
     if (sttmt != NULL)
@@ -934,6 +934,7 @@ ContractsProcessor::extractContract(
     AttachedPreprocessingInfoType* cmts = lNode->getAttachedPreprocessingInfo();
     if (cmts != NULL)
     {
+      int numComments = 0;
 
       AttachedPreprocessingInfoType::iterator iter;
       for (iter = cmts->begin(); iter != cmts->end(); iter++)
@@ -941,10 +942,24 @@ ContractsProcessor::extractContract(
         ContractComment* cc = extractContractComment(lNode, iter);
         if (cc != NULL)
         {
+          numComments++;
+
+#ifdef DEBUG
+          if (numComments <= 1) 
+          {
+            printLineComment(lNode, "DEBUG: ..Processing..", false);
+          }
+          cout << "DEBUG: ....Pushing back node clause #" << numComments <<"\n";
+#endif /* DEBUG */
           clauses.push_back(cc);
         } /* end if have contract comment to process */
       } /* end for each comment */
 
+      if (numComments != clauses.size())
+      {
+        cerr << "ERROR: Expected " << numComments << " contract clauses but ";
+        cerr << "only " << clauses.size() << " saved off.\n";
+      }
     } /* end if have comments */
   } /* end if have a node */
 
@@ -998,6 +1013,40 @@ ContractsProcessor::extractContractComment(
 
   return cc;
 }  /* extractContractComment */
+
+
+/**
+ * Determine if the located node has an associated contract comment.
+ *
+ * @param[in]  nm  Method name.
+ * @return         True if nm is in at least one invariant expression; false 
+ *                   otherwise.
+ */
+bool
+ContractsProcessor::hasContractComment(
+  /* in */ SgLocatedNode* lNode)
+{
+  bool hasClause = false;
+  
+  AttachedPreprocessingInfoType* cmts = lNode->getAttachedPreprocessingInfo();
+  if (cmts != NULL)
+  {
+    AttachedPreprocessingInfoType::iterator iter;
+    for (iter = cmts->begin(); iter != cmts->end() && !hasClause; iter++)
+    {
+      if (isCComment(((*iter)->getTypeOfDirective())))
+      {
+        string str = (*iter)->getString();
+        if (str.find("\%CONTRACT")!=string::npos)
+        {
+          hasClause = true;
+        }
+      }
+    }
+  }
+
+  return hasClause;
+} /* hasContractComment */
 
 
 /**
@@ -1600,8 +1649,6 @@ ContractsProcessor::processNonFunctionNode(
 #ifdef DEBUG
     printLineComment(lNode, "DEBUG: ..processing non-function node", 
              true);
-    cout << "       Node type: " << lNode->variantT() << "(";
-    cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
 #endif /* DEBUG */
 
     ContractClauseType clauses;
@@ -1609,7 +1656,7 @@ ContractsProcessor::processNonFunctionNode(
     if (clauses.size() > 0)
     {
 #ifdef DEBUG
-      cout<<"DEBUG: ..processing non-function node contract clauses\n";
+      cout<<"DEBUG: ..processing contract clauses\n";
 #endif /* DEBUG */
 
       ContractClauseType::iterator iter;
@@ -1908,12 +1955,11 @@ ContractsProcessor::processStats(
 {
   int num = 0;
 
-//#ifdef DEBUG
+#ifdef DEBUG
   cout << "DEBUG: ....processing STATS\n";
-  cout << "DEBUG: ......cc=" << cc->str(",") << endl;
-//#endif /* DEBUG */
+#endif /* DEBUG */
 
-  if ( (lNode != NULL) && (cc != NULL) && cc->isFinal() ) 
+  if ( (lNode != NULL) && (cc != NULL) && cc->isStats() ) 
   {
     SgStatement* currSttmt = isSgStatement(lNode);
     if (currSttmt != NULL)
@@ -1922,25 +1968,25 @@ ContractsProcessor::processStats(
                                          cc->getComment());
       if (sttmt != NULL)
       {
+#ifdef DEBUG
+        cout<<"DEBUG: ......inserting stats dump statement\n";
+#endif /* DEBUG */
         SageInterface::insertStatementBefore(currSttmt, sttmt, true);
         num += 1;
-//#ifdef DEBUG
-        cout<<"DEBUG: ......stats dump statement successfully inserted?\n";
-//#endif /* DEBUG */
       }
-//#ifdef DEBUG
+#ifdef DEBUG
       else
       {
         cout<<"DEBUG: ......failed to build dump statement.\n";
       }
-//#endif /* DEBUG */
+#endif /* DEBUG */
     }
-//#ifdef DEBUG
+#ifdef DEBUG
     else
     {
       cout<<"DEBUG: ......lNode is NOT an SgStatement so skipping.\n";
     }
-//#endif /* DEBUG */
+#endif /* DEBUG */
   }
 
   return num;
