@@ -7,6 +7,7 @@
 --
 module Data.Tree.AntiUnification (
   antiunify,
+  antiunifyList,
   Subs(..),
   Term
 ) where
@@ -72,3 +73,14 @@ antiunifyM n1 n2 | otherwise = do
 
 antiunify :: Term -> Term -> (Term, Subs, Subs)
 antiunify t1 t2 = evalState (antiunifyM t1 t2) 0
+
+-- | This requires a non-empty list
+antiunifyList :: [Term] -> Maybe (Term, [Subs])
+antiunifyList []     = Nothing
+antiunifyList (t:ts) = case evalState (foldM antiunifyM' (t,[]) ts) 0 of
+  (t',ss) -> Just (t',reverse ss)
+  where
+  antiunifyM' :: (Term, [Subs]) -> Term -> IDGen (Term, [Subs])
+  antiunifyM' (t1,ss) t2 = do
+    (t3,s1,s2) <- antiunifyM t1 t2
+    return (t3,s2:s1:ss)
