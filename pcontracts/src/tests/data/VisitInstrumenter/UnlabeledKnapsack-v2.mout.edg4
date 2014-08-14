@@ -1,0 +1,7 @@
+Assuming targets ranging from 0 to 20.
+
+Knapsack contains: 1, 8, 6, 5, 20, 4, and 15.
+
+Solution for target=0?: 
+ERROR: UnlabeledKnapsack-v2.cpp:113: Precondition Violation: : 0
+Terminating execution...

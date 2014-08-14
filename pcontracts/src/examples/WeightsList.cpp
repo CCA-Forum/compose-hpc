@@ -24,6 +24,9 @@ using namespace std;
 static const char* L_MAX_WEIGHTS = "Cannot exceed maximum number of weights.";
 
 
+/* %CONTRACT ENSURE 
+    side_effect_free: is pure;
+ */
 bool
 onlyPos(const unsigned int* weights, unsigned int len);
 

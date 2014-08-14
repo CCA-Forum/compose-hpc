@@ -1,8 +1,9 @@
 PROTOTYPE
 
 HIGH:
-- Finish writing up document describing what this work is about, benefits, and
-  how to use it.  Distribute to collaborators!
+- Finish paper.
+- Address test case where Rose with Edg-4 properly handling invariant on 
+  implicit return but older Rose doesn't (SimpleClass.cpp).
 
 
 MODERATE:
@@ -53,4 +54,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2013 October 29
+Last Updated:  2014 July 24

@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 28
+ * Last Modified:  2014 June 19
  * \endinternal
  *
  * @file
@@ -26,16 +26,6 @@
 #include "AssertionExpression.hpp"
 #include "ContractComment.hpp"
 
-
-/**
- * Contract enforcement include files.
- */
-const std::string S_INCLUDE_BASICS      = "#include \"contracts.h\"";
-const std::string S_INCLUDE_ENFORCER    = "#include \"ContractsEnforcer.h\"";
-const std::string S_INCLUDE_EXPRESSIONS = "#include \"ExpressionRoutines.h\"";
-const std::string S_INCLUDE_OPTIONS     = "#include \"contractOptions.h\"";
-const std::string S_INCLUDES = S_INCLUDE_BASICS + "\n" + S_INCLUDE_ENFORCER 
-          + "\n" + S_INCLUDE_OPTIONS + "\n" + S_INCLUDE_EXPRESSIONS;
 
 class ContractsProcessor
 {

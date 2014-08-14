@@ -4,7 +4,8 @@
 # ROOT_DIR   contains the path to the PAUL Contracts root directory
 #
 
-MAKE=make --no-print-directory
+#MAKE=make --no-print-directory
+MAKE=make
 
 INCLUDE_DIR=$(ROOT_DIR)/include
 BIN_DIR=$(ROOT_DIR)/bin

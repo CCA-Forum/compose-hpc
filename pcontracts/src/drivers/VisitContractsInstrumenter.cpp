@@ -3,7 +3,7 @@
  * File:          VisitContractsInstrumenter.cpp
  * Author:        T. Dahlgren
  * Created:       2012 November 9
- * Last Modified: 2013 October 28
+ * Last Modified: 2014 June 19
  * \endinternal
  *
  * @file
@@ -96,13 +96,15 @@ VisitContractsInstrumenter::visit(
 #ifdef DEBUG
       printLineComment(lNode, "DEBUG:  Visiting...", true);
       cout << "   Node type: " << lNode->variantT() << " (";
-      cout << Cxx_GrammarTerminalNames[lNode->variantT()].name << ")\n";
+      cout << Cxx_GrammarTerminalNames[lNode->variantT()].name;
+      cout << "), hasContractComment = ";
+      cout << d_processor->hasContractComment(lNode) << endl;
 #endif /* DEBUG */
 
       if ( d_processor->hasContractComment(lNode) || (!d_globalDone) )
       {
 #ifdef DEBUG
-        printLineComment(lNode, "DEBUG:  ..processing..", false);
+        printLineComment(lNode, "DEBUG:  ..processing...", true);
 #endif /* DEBUG */
 
         if (!d_globalDone)
@@ -115,26 +117,36 @@ VisitContractsInstrumenter::visit(
           }
         }
 
-        SgFunctionDeclaration* decl = isSgFunctionDeclaration(lNode);
         SgFunctionDefinition* def = NULL;
-        if (decl != NULL)
+
+        switch(lNode->variantT())
         {
-          if ( (def = decl->get_definition()) != NULL)
-          {
-            d_num += d_processor->processFunctionDef(def);
-          }
-#ifdef PCE_ENABLE_WARNINGS
-          else
-          {  
-            cout << "\nWARNING: Detected null definition for a declaration.";
-            cout << "\nIgnoring any associated contract comments.\n";
-          }
-#endif /* PCE_ENABLE_WARNINGS */
-        }
-        else 
-        {
-          /* The node could support an invariant or contract clause. */
-          d_num += d_processor->processNonFunctionNode(lNode);
+            case V_SgFunctionDeclaration:
+            case V_SgMemberFunctionDeclaration:
+              {
+                SgFunctionDeclaration* decl = isSgFunctionDeclaration(lNode);
+                if (decl != NULL)
+                {
+                  if ( (def = decl->get_definition()) != NULL)
+                  {
+                    d_num += d_processor->processFunctionDef(def);
+                  }
+                }
+              }
+              break;
+
+            case V_SgFunctionDefinition:
+              {
+                def = isSgFunctionDefinition(lNode);
+                d_num += d_processor->processFunctionDef(def);
+              }
+              break;
+
+            default:
+              {
+                d_num += d_processor->processNonFunctionNode(lNode);
+              }
+              break;
         }
       }
     }
@@ -169,6 +181,9 @@ main(int argc, char* argv[])
   if (project != NULL)
   {
     /* Check internal consistency of the AST.  */
+#ifdef DEBUG
+        cout<<"DEBUG: Calling AstTests::runAllTests...\n";
+#endif /* DEBUG */
     AstTests::runAllTests(project);
 
     /*
@@ -193,12 +208,32 @@ main(int argc, char* argv[])
 
           if (vis != NULL)
           {
+#ifdef DEBUG
+            cout << "DEBUG: Instrumenting the routines...\n";
+#endif /* DEBUG */
             vis->traverseInputFiles(project, preorder);
+            //vis->traverse(project, preorder);
+
+#if 0
+            // For debugging...
+            cout << "DEBUG: Calling generatePDF...\n";
+            generatePDF(*project);
+
+            /* Must 'dot -Tps filename.dot -o outfile.ps */
+            cout << "DEBUG: Calling generateDOT...\n";
+            generateDOT(*project);
+
+            cout << "DEBUG: Calling generateAstGraph...\n";
+            generateAstGraph(project, 4000);
+#endif
 
             /*
              * The following is REQUIRED to generate source (unlike
              * the routine instrumentation version).
              */
+#ifdef DEBUG
+            cout<<"DEBUG: Generating source (via backend call)...\n";
+#endif /* DEBUG */
             status = backend(project);
 
             delete vis;

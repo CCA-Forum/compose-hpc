@@ -10,8 +10,9 @@ INCLUDES=$(BASE_INCLUDES)
 
 CXXFLAGS=$(INCLUDES) $(FLAGS) $(ROSE_CXXFLAGS) $(BASE_CXXFLAGS)
 
-LDFLAGS=-L$(LIB_DIR) -l$(CONTRACTS_LIB_BASE)
-
+# TODO:  The build needs more time/thought/work for portability
+#LDFLAGS=-L$(LIB_DIR) -l$(CONTRACTS_LIB_BASE)
+LDFLAGS=
 
 BASE_ROSE_SOURCES = \
 	$(CONTRACTS_DIR)/RoseHelpers.cpp
@@ -34,6 +35,10 @@ RI_DIR=RoutineInstrumenter
 VI_DIR=VisitInstrumenter
 INSTR_DIRS=$(RI_DIR) $(VI_DIR)
 
+.PHONY: all check checkall checkclean clean cleanall \
+	checkcontracts checksetup checksummary \
+	checkRose checkRosePrinters checkCAPrinter CheckCPrinter \
+	checkRosePrinter checkRoseTranslator checkRCI checkVCI checkRoseTrans
 
 all: $(BINARIES)
 	test -d $(BIN_DIR) || mkdir $(BIN_DIR); \
@@ -105,7 +110,8 @@ checksummary:
 $(CPRINTER_EXE): $(CPRINTER_EXE).cpp $(BASE_ROSE_SOURCES) $(BASE_ROSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $(CPRINTER_EXE).o $(CPRINTER_EXE).cpp \
 	  || echo 0 > $(PC_BUILD_STATUS)
-	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(CPRINTER_EXE).o $(LDFLAGS) \
+	$(CXX) -o $(CPRINTER_EXE) $(ROSE_LDFLAGS) $(LDFLAGS) $(CPRINTER_EXE).o \
+	  $(BASE_ROSE_OBJECTS) \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
 
@@ -115,19 +121,25 @@ $(CAPRINTER_EXE): $(CAPRINTER_EXE).cpp $(CPRINTER_EXE).cpp \
 	  $(CPRINTER_EXE).cpp || echo 0 > $(PC_BUILD_STATUS)
 	$(CXX) -c $(CXXFLAGS) -o $(CAPRINTER_EXE).o $(CAPRINTER_EXE).cpp \
 	  || echo 0 > $(PC_BUILD_STATUS)
-	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(CAPRINTER_EXE).o \
-	  $(CPRINTER_EXE)-mainLess.o $(LDFLAGS) || echo 0 > $(PC_BUILD_STATUS)
+	$(CXX) -o $(CAPRINTER_EXE) $(ROSE_LDFLAGS) $(LDFLAGS) \
+	  $(CAPRINTER_EXE).o $(CPRINTER_EXE)-mainLess.o \
+	  $(BASE_ROSE_OBJECTS) \
+	  || echo 0 > $(PC_BUILD_STATUS)
+
 
 $(RCI_EXE): $(RCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $(RCI_EXE).o $(RCI_EXE).cpp \
 	  || echo 0 > $(PC_BUILD_STATUS)
-	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(RCI_EXE).o $(LDFLAGS) \
+	$(CXX) -o $(RCI_EXE) $(ROSE_LDFLAGS) $(LDFLAGS) $(RCI_EXE).o \
+	  $(BASE_CLAUSE_OBJECTS) \
 	  || echo 0 > $(PC_BUILD_STATUS)
+
 
 $(VCI_EXE): $(VCI_EXE).cpp $(BASE_CLAUSE_SOURCES) $(BASE_CLAUSE_OBJECTS)
 	$(CXX) -c $(CXXFLAGS) -o $(VCI_EXE).o $(VCI_EXE).cpp \
 	  || echo 0 > $(PC_BUILD_STATUS)
-	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(VCI_EXE).o $(LDFLAGS) \
+	$(CXX) -o $(VCI_EXE) $(ROSE_LDFLAGS) $(LDFLAGS) $(VCI_EXE).o \
+	  $(BASE_CLAUSE_OBJECTS) \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
 checkRose: checkRosePrinters checkRoseTranslators
@@ -155,7 +167,7 @@ checkRosePrinter: $(EXE)
 	  EXT=`echo $$file | sed 's/..\/examples\/[^.]*.\(.*\)/\1/g'`; \
 	  echo; echo "..Processing $$BASE.$$EXT"; \
 	  OFN=$$OUTDIR/$$BASE.mout; \
-	  ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
+	  ulimit -c $(ULIMIT_MAX); ./$(EXE) $(ROSE_OPTS) -c $$file > $$OFN; \
 	  if [ -s $$OFN ]; then \
 	    ok=`expr $$ok + 1`; \
 	    echo "....Results in $$OFN"; \
@@ -190,7 +202,7 @@ checkRoseTrans: $(EXE)
 	  echo; echo "..Processing $$BASE.$$EXT"; \
 	  OFN=rose_$$BASE.$$EXT; \
 	  ERRFN=$$OUTDIR/$$BASE.err; \
-	  ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
+	  ulimit -c $(ULIMIT_MAX); ./$(EXE) $(ROSE_OPTS) $$file 2> $$ERRFN; \
 	  ERFN=$$BASE.checks; \
 	  ORFN=$(BASE_ORACLE_DIR)/$$SDIR/$$ERFN; \
 	  if [ -f $$OFN ]; then \
@@ -236,7 +248,8 @@ checkRoseTrans: $(EXE)
 	echo; echo "..Successfully processed $$ok of $$n files."; echo; \
         if [ "$$ok" = "$$n" ]; then \
 	  echo "Copying Makefile to $$OUTDIR"; \
-	  cat ../examples/Makefile.trans | sed 's/REPLACEME/${SDIR}/g' > $$OUTDIR/Makefile;\
+	  cat ../examples/Makefile.trans | sed 's/REPLACEDIR/${SDIR}/g' | \
+	     sed 's/REPLACEEXE/${EXE}/g' > $$OUTDIR/Makefile;\
 	  echo "Copying configuration file(s) to $$OUTDIR"; \
 	  cp -f ../examples/*.config $$OUTDIR; \
 	  echo "Copying header files to $$OUTDIR"; \
@@ -249,7 +262,7 @@ checkRoseTrans: $(EXE)
 
 
 clean:
-	@rm -f *.o *.out *.mout *.diffs *.ti rose_* *.res *.checks
+	@rm -f *.o *.out *.mout *.diffs *.ti rose_* *.res *.checks *.core
 
 cleanall: clean
 	@rm -f $(BINARIES) $(BIN_DIR)/$(BINARIES) *.dot *.pdf; \

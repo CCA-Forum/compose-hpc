@@ -1,0 +1,3 @@
+
+ERROR: WeightsList.cpp:71: Invariant Violation: all_pos_weights: 0
+Terminating execution...

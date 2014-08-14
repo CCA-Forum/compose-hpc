@@ -210,8 +210,11 @@ main(int argc, char **argv)
    */
   static const unsigned int numEC = S_ENFORCEMENT_CLAUSE_MAX+1;
   static const unsigned int numEF = S_ENFORCEMENT_FREQUENCY_MAX+1;
+
   //static const unsigned int defaultEnforced[numEC][numEF] = 
-  static const unsigned int defaultEnforced[][numEF] = 
+  // Hard coding since using static const appears to be non-portable...
+  //static const unsigned int defaultEnforced[][numEF] = 
+  static const unsigned int defaultEnforced[][6] = 
   {
   /* NEVER, ALWAYS,   AF,   AT, PERIODIC, RANDOM */
     {    0,      0,    0,    0,        0,      0 }, /*  0=NONE */

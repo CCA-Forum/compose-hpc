@@ -77,6 +77,21 @@ getLanguageOptionName(SgFile::outputLanguageOption_enum lang);
 
 
 /**
+ * Add the statement to each return point of the given function.
+ *
+ * Source:  
+ * This function is a slight variant of SageInterface::instrumentEndOfFunction
+ * provided in ROSE. (2014 June 6)
+ *
+ * @param[in] decl   The declaration of the function of interest.
+ * @param[in] sttmt  The statement to be added prior to each return point.
+ * @return           The number of instrumented return points.
+ */
+int
+instrumentReturnPoints(SgFunctionDeclaration* decl, SgStatement* sttmt);
+
+
+/**
  * Determines if the specified directive type is a C/C++ comment.
  *
  * @param[in] dType  The type of preprocessing directive.

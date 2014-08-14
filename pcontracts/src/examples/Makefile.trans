@@ -3,8 +3,10 @@ include $(ROOT_DIR)/src/make.inc
 include $(ROOT_DIR)/src/make_test.inc
 
 
-# NOTE: The following value is automatically replaced by the examples Makefile.
-TEST_DRIVER_DIR=REPLACEME
+# NOTE: The following values are automatically replaced by the examples 
+# Makefile.
+TEST_DRIVER_DIR=REPLACEDIR
+TEST_DRIVER=$(ROOT_DIR)/bin/REPLACEEXE
 
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(TEST_DRIVER_DIR)
 CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(TEST_DRIVER_DIR)
@@ -21,7 +23,7 @@ CXXFLAGS = $(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 LDFLAGS = -L$(LIB_DIR) -l$(RUNTIME_LIB_BASE)
 
 
-CSRCS = knapsack.c unlabeledknapsack.c
+CSRCS = knapsack.c unlabeledknapsack.c hello.c
 CCSRCS = helloworld.cc helloworld-v2.cc helloworld-v3.cc
 CPPSRCS = Knapsack-v2.cpp UnlabeledKnapsack-v2.cpp WeightsList.cpp
 
@@ -30,6 +32,7 @@ HDRS=$(CSRCS:.h=.o) $(CCSRCS:.hh=.o) $(CPPSRCS:.hpp=.o)
 OBJS=$(CSRCS:.c=.o) $(CCSRCS:.cc=.o) $(CPPSRCS:.cpp=.o)
 EXES=$(CSRCS:.c=) $(CCSRCS:.cc=) $(CPPSRCS:.cpp=)
 
+H_EXE=hello
 HWCC_EXE=helloworld
 HWCC2_EXE=helloworld-v2
 HWCC3_EXE=helloworld-v3
@@ -37,8 +40,15 @@ LKC_EXE=knapsack
 UKC_EXE=unlabeledknapsack
 LKCPP_EXE=Knapsack-v2
 UKCPP_EXE=UnlabeledKnapsack-v2
+S_EXE=simple
+SC_EXE=SimpleClass
 WLCPP_EXE=WeightsList
+WLCPP2_EXE=WeightsList2
 
+
+.PHONY:  buildsummary check checkall checkBasics checkBasicsCore \
+	checksummary; checkclean checksetup checkKC checkKCpp checkKnapsack \
+	checkUK clean cleanall cleanexe
 
 all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
 	$(MAKE) buildsummary
@@ -51,6 +61,10 @@ all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $< || echo 0 > $(BUILD_EX_STATUS)
+
+$(H_EXE): $(H_EXE).c $(H_EXE).o 
+	$(CXX) -o $(H_EXE) $(FLAGS) $(H_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
 
 $(HWCC_EXE): $(HWCC_EXE).cc $(HWCC_EXE).o 
 	$(CXX) -o $(HWCC_EXE) $(FLAGS) $(HWCC_EXE).o $(LDFLAGS) \
@@ -80,8 +94,20 @@ $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o
 	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS) \
 	  || echo 0 > $(BUILD_EX_STATUS)
 
+$(S_EXE): $(S_EXE).cpp $(S_EXE).o 
+	$(CXX) -o $(S_EXE) $(FLAGS) $(S_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
+
+$(SC_EXE): $(SC_EXE).cpp $(SC_EXE).o 
+	$(CXX) -o $(SC_EXE) $(FLAGS) $(SC_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
+
 $(WLCPP_EXE): $(WLCPP_EXE).cpp $(WLCPP_EXE).o 
 	$(CXX) -o $(WLCPP_EXE) $(FLAGS) $(WLCPP_EXE).o $(LDFLAGS) \
+	  || echo 0 > $(BUILD_EX_STATUS)
+
+$(WLCPP2_EXE): $(WLCPP2_EXE).cpp $(WLCPP2_EXE).o 
+	$(CXX) -o $(WLCPP2_EXE) $(FLAGS) $(WLCPP2_EXE).o $(LDFLAGS) \
 	  || echo 0 > $(BUILD_EX_STATUS)
 
 buildsummary:
@@ -93,6 +119,11 @@ buildsummary:
 	  echo; echo "*******"; \
 	  echo "WARNING:  $(BUILD_EX_STATUS) is missing.  "; \
 	  echo "*******"; \
+	fi; \
+	if [ "X$$PCEFLAGS" != "X" ]; then \
+	  stat="enabled"; \
+	else \
+	  stat="disabled"; \
 	fi; \
 	if [ "$$res" -eq "0" ]; then \
 	  echo "$(TEST_DRIVER_DIR) Build: Contracts-$$stat: FAILED"; \
@@ -115,6 +146,13 @@ checkBasicsCore: checkKC checkKCpp checkKnapsack checkUK
 
 checkContracts:  checkclean checksetup all checkContractsCore checksummary
 
+# WARNING:  The following rule assumes Rose's installation of edg 4 is
+# responsible for addition namespace lines at the top of generated C++ source 
+# files.  Specifically, Rose 0.9.6a (with edg-4.7) adds empty namespaces for
+# std # (when not specifying "using namespace std;) and __cxxabiv1.
+# This results in contract violations reported with line numbers off by up to 
+# 6.  These changes have been reflected in the .edg versions of the oracle
+# (or fiducial) output files under the src/tests/data directory.
 checkContractsCore: 
 	@echo; echo "Checking contract-instrumented versions..."; \
 	$(MAKE) PCEFLAGS=-DPAUL_CONTRACTS check || echo 0 > $(CHECK_EX_STATUS);\
@@ -125,9 +163,16 @@ checkContractsCore:
 	  echo "..Processing $$exe"; \
 	  if [ -f $$exe ]; then \
 	    TFN=$$exe.mout; \
+	    EDGVS=`${TEST_DRIVER} --version | grep edg | sed 's/[^:]*: edg-//g' | sed 's/\([0-9]*\).\([0-9]*\)\(.*\)/\1/g'`; \
+	    EDGV=`expr $$EDGVS`; \
+	    if [ "$$EDGV" -gt "3" ]; then \
+	      ORFN=$(ORACLE_DIR)/$$TFN.edg4; \
+	    else \
 	    ORFN=$(ORACLE_DIR)/$$TFN; \
+	    fi; \
 	    ./$$exe > $$TFN; \
-	    if [ -f $$ORFN ]; then \
+	    if [ -s $$TFN ]; then \
+	      if [ -f $$ORFN -a -s $$TFN ]; then \
 	      diff $$TFN $$ORFN > $$TFN.diffs; \
 	      if [ -s $$TFN.diffs ]; then \
 	        echo "....*** Different: $$TFN $$ORFN ***"; \
@@ -140,6 +185,10 @@ checkContractsCore:
 	      fi; \
 	    else \
 	      echo "....*** $$ORFN is missing ***"; \
+	      echo 0 > $(CHECK_EX_STATUS); \
+	    fi; \
+	  else \
+	      echo "....*** $$TFN is empty ***"; \
 	      echo 0 > $(CHECK_EX_STATUS); \
 	    fi; \
 	  else \
@@ -182,10 +231,10 @@ checkKC: $(LKC_EXE) $(UKC_EXE)
 	@echo; echo "Checking C knapsack programs..."; \
 	if [ -s $(LKC_EXE) ]; then \
 	  if [ -s $(UKC_EXE) ]; then \
-	    ./$(LKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
-	        sed 's/ [ ]*/ /g' > $(LKC_EXE).mout 2>&1; \
-	    ./$(UKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
-	        sed 's/ [ ]*/ /g' > $(UKC_EXE).mout 2>&1; \
+	    ./$(LKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(LKC_EXE).mout 2>&1; \
+	    ./$(UKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(UKC_EXE).mout 2>&1; \
 	    diff $(LKC_EXE).mout $(UKC_EXE).mout > checkKC.diffs 2>&1; \
 	    if [ -s checkKC.diffs ]; then \
 	      echo "ERROR: Different C knapsack results"; \
@@ -207,14 +256,15 @@ checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
 	@echo; echo "Checking C++ knapsack programs..."; \
 	if [ -s $(LKCPP_EXE) ]; then \
 	  if [ -s $(UKCPP_EXE) ]; then \
-	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
-	        sed 's/ [ ]*/ /g' > $(LKCPP_EXE).mout 2>&1; \
-	    ./$(UKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " | \
-	        sed 's/ [ ]*/ /g' > $(UKCPP_EXE).mout 2>&1; \
+	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(LKCPP_EXE).mout 2>&1; \
+	    ./$(UKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(UKCPP_EXE).mout 2>&1; \
 	    diff $(LKCPP_EXE).mout $(UKCPP_EXE).mout > checkKCpp.diffs 2>&1;\
 	    if [ -s checkKCpp.diffs ]; then \
 	      if [ "X$$PCEFLAGS" != "X" ]; then \
-	        cat $(LKCPP_EXE).mout | grep pos_target > checkKCpp-pt.mout 2>&1;\
+	        cat $(LKCPP_EXE).mout \
+	            | grep pos_target > checkKCpp-pt.mout 2>&1;\
 	        if [ -s checkKCpp-pt.mout ]; then \
 	          echo "SUCCESS: Different C++ knapsack results due to";\
 	          echo "  known C++ precondition violation (label)."; \
@@ -241,7 +291,9 @@ checkKCpp: $(LKCPP_EXE) $(UKCPP_EXE)
 	fi
 
 checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
-	@echo; echo "Checking C and C++ knapsack programs..."; \
+	@echo; \
+	TYPE=labeled; \
+	echo "Checking C and C++ $$TYPE knapsack programs..."; \
 	if [ -s $(LKCPP_EXE) ]; then \
 	  if [ -s $(LKC_EXE) ]; then \
 	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
@@ -254,19 +306,19 @@ checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
 	        cat $(LKCPP_EXE).mout \
 	           | grep pos_target > checkKnapsack-pt.mout 2>&1; \
 	        if [ -s checkKnapsack-pt.mout ]; then \
-	          echo "SUCCESS: Different C and C++ knapsack results due to";\
-	          echo "  known C++ precondition violation (label)."; \
+	          echo "SUCCESS: Different C and C++ $$TYPE knapsack results";\
+	          echo "  due to known C++ precondition violation (label)."; \
 	        else \
-	          echo "ERROR: Different C and C++ knapsack results"; \
+	          echo "ERROR: Different C and C++ $$TYPE knapsack results"; \
 	          echo 0 > $(CHECK_EX_STATUS); \
 	        fi; \
 	        rm -f checkKnapsack-pt.mout; \
 	      else \
-	        echo "ERROR: Different C and C++ knapsack results"; \
+	        echo "ERROR: Different C and C++ $$TYPE knapsack results"; \
 	        echo 0 > $(CHECK_EX_STATUS); \
 	      fi; \
 	    else \
-	      echo "SUCCESS: Identical C and C++ knapsack results!"; \
+	      echo "SUCCESS: Identical C and C++ $$TYPE knapsack results!"; \
 	    fi; \
 	    rm -f checkKnapsack.diffs; \
 	  else \
@@ -278,32 +330,34 @@ checkKnapsack: $(LKC_EXE) $(LKCPP_EXE)
 	  echo 0 > $(CHECK_EX_STATUS); \
 	fi
 
-checkUK: $(UKC_EXE) $(LKCPP_EXE)
-	@echo; echo "Checking C and C++ knapsack programs..."; \
-	if [ -s $(LKCPP_EXE) ]; then \
+checkUK: $(UKC_EXE) $(UKCPP_EXE)
+	@echo; \
+	TYPE=unlabeled; \
+	echo "Checking C and C++ $$TYPE knapsack programs..."; \
+	if [ -s $(UKCPP_EXE) ]; then \
 	  if [ -s $(UKC_EXE) ]; then \
-	    ./$(LKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
-	        | sed 's/ [ ]*/ /g' > $(LKCPP_EXE).mout 2>&1; \
+	    ./$(UKCPP_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
+	        | sed 's/ [ ]*/ /g' > $(UKCPP_EXE).mout 2>&1; \
 	    ./$(UKC_EXE) | grep -v DEBUG | tr "\n\r\f\v" " " \
 	        | sed 's/ [ ]*/ /g' > $(UKC_EXE).mout 2>&1; \
-	    diff $(LKCPP_EXE).mout $(UKC_EXE).mout > checkUK.diffs 2>&1; \
+	    diff $(UKCPP_EXE).mout $(UKC_EXE).mout > checkUK.diffs 2>&1; \
 	    if [ -s checkUK.diffs ]; then \
 	      if [ "X$$PCEFLAGS" != "X" ]; then \
-	        cat $(LKCPP_EXE).mout | grep Violation > checkUK-pt.mout 2>&1; \
+	        cat $(UKCPP_EXE).mout | grep Violation > checkUK-pt.mout 2>&1; \
 	        if [ -s checkUK-pt.mout ]; then \
-	          echo "SUCCESS: Different C and C++ unlabeled knapsack";\
+	          echo "SUCCESS: Different C and C++ $$TYPE knapsack";\
 	          echo "  results due to known C++ precondition violation."; \
 	        else \
-	          echo "ERROR: Different C and C++ unlabeled knapsack results";\
+	          echo "ERROR: Different C and C++ $$TYPE knapsack results";\
 	          echo 0 > $(CHECK_EX_STATUS); \
 	        fi; \
 	        rm -f checkUK-pt.mout; \
 	      else \
-	        echo "ERROR: Different C and C++ unlabeled knapsack results"; \
+	        echo "ERROR: Different C and C++ $$TYPE knapsack results"; \
 	        echo 0 > $(CHECK_EX_STATUS); \
 	      fi; \
 	    else \
-	      echo "SUCCESS: Identical C and C++ unlabeled knapsack results!"; \
+	      echo "SUCCESS: Identical C and C++ $$TYPE knapsack results!"; \
 	    fi; \
 	    rm -f checkUK.diffs; \
 	  else \
@@ -311,7 +365,7 @@ checkUK: $(UKC_EXE) $(LKCPP_EXE)
 	    echo 0 > $(CHECK_EX_STATUS); \
 	  fi; \
 	else \
-	  echo "ERROR: Cannot find or empty Unlabeledknapsack"; \
+	  echo "ERROR: Cannot find or empty $(UKCPP_EXE)"; \
 	  echo 0 > $(CHECK_EX_STATUS); \
 	fi
 

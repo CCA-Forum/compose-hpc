@@ -1,0 +1,5 @@
+Hello David!
+Hello Tom!
+
+ERROR: helloworld.cc:26: Precondition Violation: have_name: 0
+Terminating execution...

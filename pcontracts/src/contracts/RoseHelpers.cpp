@@ -3,7 +3,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 August 2
+ * Last Modified:  2014 July 24
  * \endinternal
  *
  * @file
@@ -195,6 +195,64 @@ getLanguageOptionName(
 
   return res;
 } /* getLanguageOptionName */
+
+
+int
+instrumentReturnPoints(SgFunctionDeclaration* decl, SgStatement* sttmt)
+{
+  int result = 0;
+
+  if ( (decl != NULL) && (sttmt != NULL) )
+  {
+    // The following code is a slightly modified variant of ROSE's
+    // SageInterface::instrumentEndOfFunction, which did not check
+    // whether the function had a return type or not before performing
+    // the rewrite. (2014 June 6)
+    Rose_STL_Container<SgNode*> stmts = NodeQuery::querySubTree(decl, 
+        V_SgReturnStmt);
+
+    Rose_STL_Container<SgNode*>::iterator i;
+    for (i = stmts.begin(); i != stmts.end(); i++)
+    {
+      SgReturnStmt* currStmt = isSgReturnStmt(*i);
+      if (currStmt != NULL)
+      {
+        SgExpression* exp = currStmt->get_expression();
+
+        // TV (05/03/2011) Catch the case "return ;" where exp is NULL
+        bool needRewrite = (exp != NULL) && !(isSgValueExp(exp)) 
+            && (!isSgTypeVoid(decl->get_type()->get_return_type()));
+        if (needRewrite)
+        {
+          SageInterface::splitExpression(exp);
+        }
+
+        // avoid reusing the statement
+        if (result >= 1)
+            sttmt = SageInterface::copyStatement(sttmt);
+
+        SageInterface::insertStatementBefore(currStmt,sttmt);
+        result++;
+      }
+    } // for
+
+    if (stmts.size() == 0) // a function without any return at all,
+    {
+      SgBasicBlock * body = decl->get_definition()->get_body();
+      if (body == NULL)
+      {
+        cout<<"In instrumentEndOfFunction(), ";
+        cout<<"found a missing function body!\n";
+        ROSE_ASSERT(false);
+      }
+
+      SageInterface::appendStatement(sttmt, body);
+      result++;
+    }
+  }
+
+  return result;
+} /* instrumentReturnPoints */
 
 
 bool

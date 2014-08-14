@@ -21,6 +21,8 @@ C_OBJECTS = $(C_FILES:.c=.o)
 CXX_FILES = 
 CXX_OBJECTS = $(CXX_FILES:.cpp=.o)
 
+.PHONY: all check checkall checkTCE checkTER clean cleanall
+
 all: $(BINARIES)
 
 .c.o:

@@ -10,6 +10,9 @@ in the following environment(s):
 - \b Ubuntu 11.04:\n  \b GNU \b Make 3.81, \b GraphViz 2.26.3, \b Doxygen 1.7.3,
 \b java 1.6, \b gmp 5.0.2, \b mpfr 3.1.0, \b mpc 0.9, \b gcc 4.4.6, 
 \b boost 1.45.0, and \b rose 0.9.5a.
+- \b Redhat Linux 6.5:\n  \b GNU \b Make 3.81, \b GraphViz 2.26.3, 
+\b Doxygen 1.8.2, \b java 1.7.0_13, \b gcc 4.4.7, 
+\b boost 1.47, and \b rose 0.9.6a (\b edg 4.7).
 
 Note that \b GraphViz and \b Doxygen are only needed to generate this
 documentation.

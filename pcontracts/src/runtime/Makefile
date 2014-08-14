@@ -36,6 +36,7 @@ C_HEADERS= \
 	$(INCLUDE_DIR)/contracts.h \
 	$(INCLUDE_DIR)/ExpressionRoutines.h
 
+.PHONY: all check checkall clean cleanall
 
 all: $(C_OBJECTS) $(C_HEADERS)
 	test -d $(LIB_DIR) || mkdir $(LIB_DIR); \

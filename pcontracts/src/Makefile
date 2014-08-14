@@ -5,6 +5,8 @@ include $(ROOT_DIR)/src/make_test.inc
 SUBDIRS = runtime contracts drivers examples tests
 
 
+.PHONY: all check checkall checksummary clean cleanall
+
 all:
 	@echo 1 > $(PC_BUILD_STATUS); \
 	list='$(SUBDIRS)'; for subdir in $$list; do \

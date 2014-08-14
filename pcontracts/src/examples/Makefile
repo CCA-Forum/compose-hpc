@@ -14,29 +14,43 @@ LDFLAGS=$(FLAGS)
 CXXFLAGS=$(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 
 
-LKC_EXE=knapsack
-UKC_EXE=unlabeledknapsack
-LKCPP_EXE=Knapsack-v2
-UKCPP_EXE=UnlabeledKnapsack-v2
-WLCPP_EXE=WeightsList
+H_EXE=hello
 HW_EXE=helloworld
 HW2_EXE=helloworld-v2
 HW3_EXE=helloworld-v3
 
-BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) \
-	$(HW_EXE) $(HW2_EXE) $(HW3_EXE) $(WLCPP_EXE)
+LKC_EXE=knapsack
+UKC_EXE=unlabeledknapsack
+LKCPP_EXE=Knapsack-v2
+UKCPP_EXE=UnlabeledKnapsack-v2
 
+WLCPP_EXE=WeightsList
+WLCPP2_EXE=WeightsList2
+S_EXE=simple
+SC_EXE=SimpleClass
+
+BINARIES=$(LKC_EXE) $(UKC_EXE) $(LKCPP_EXE) $(UKCPP_EXE) \
+	$(H_EXE) $(HW_EXE) $(HW2_EXE) $(HW3_EXE) \
+	$(WLCPP_EXE) $(WLCPP2_EXE) $(S_EXE) $(SC_EXE)
+
+
+.PHONY : check checkall checkclean checksetup checksummary checkKnapsackDiffs \
+	checkKnapsacks checkKnapsackTests checkExamples clean cleanall
 
 all: $(BINARIES)
 
 
-.cpp.o:
+%.o: %.c
 	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
-.cc.o:
+%.o: %.cc
 	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
 
-check: checkclean all checksetup checkExamples checkKnapsackTests
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) -o $@ $< || echo 0 > $(PC_BUILD_STATUS)
+
+
+check: checkclean checksetup checkExamples checkKnapsackTests
 	@$(MAKE) checksummary; \
 	echo "DONE (check)"
 
@@ -44,7 +58,7 @@ checkall: check
 	@echo "DONE (checkall)"; echo
 
 checkclean:
-	rm -f *.o *.mout $(BINARIES)
+	rm -f *.mout 
 
 checksetup: 
 	@if [ ! -f $(CHECK_EXAMPLES_STATUS) ]; then \
@@ -71,34 +85,52 @@ checksummary:
 	  echo 0 > $(CHECK_ALL_STATUS); \
 	fi
 
-$(KC_EXE): $(KC_EXE).c
-	$(CXX) -c $(CXXFLAGS) -o $(KC_EXE).o $(KC_EXE).c \
-	  || echo 0 > $(PC_BUILD_STATUS)
-	$(CXX) -o $(KC_EXE) $(LDFLAGS) $(KC_EXE).o \
+$(H_EXE): $(H_EXE).o
+	$(CXX) -o $(H_EXE) $(LDFLAGS) $(H_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
-$(LKC_EXE): $(LKC_EXE).c
-	$(CXX) -c $(CXXFLAGS) -o $(LKC_EXE).o $(LKC_EXE).c \
+$(HW_EXE): $(HW_EXE).o
+	$(CXX) -o $(HW_EXE) $(LDFLAGS) $(HW_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(HW2_EXE): $(HW2_EXE).o
+	$(CXX) -o $(HW2_EXE) $(LDFLAGS) $(HW2_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(HW3_EXE): $(HW3_EXE).o
+	$(CXX) -o $(HW3_EXE) $(LDFLAGS) $(HW3_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(LKC_EXE): $(LKC_EXE).o
 	$(CXX) -o $(LKC_EXE) $(LDFLAGS) $(LKC_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
-$(KCPP_EXE): $(KCPP_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(KCPP_EXE).o $(KCPP_EXE).cpp \
-	  || echo 0 > $(PC_BUILD_STATUS)
-	$(CXX) -o $(KCPP_EXE) $(LDFLAGS) $(KCPP_EXE).o \
+$(LKCPP_EXE): $(LKCPP_EXE).o
+	$(CXX) -o $(LKCPP_EXE) $(LDFLAGS) $(LKCPP_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
-$(UKCPP_EXE): $(UKCPP_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(UKCPP_EXE).o $(UKCPP_EXE).cpp \
+$(UKC_EXE): $(UKC_EXE).o
+	$(CXX) -o $(UKC_EXE) $(LDFLAGS) $(UKC_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(UKCPP_EXE): $(UKCPP_EXE).o
 	$(CXX) -o $(UKCPP_EXE) $(LDFLAGS) $(UKCPP_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
-$(WLCPP_EXE): $(WLCPP_EXE).cpp
-	$(CXX) -c $(CXXFLAGS) -o $(WLCPP_EXE).o $(WLCPP_EXE).cpp \
+$(S_EXE): $(S_EXE).o
+	$(CXX) -o $(S_EXE) $(LDFLAGS) $(S_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(SC_EXE): $(SC_EXE).o
+	$(CXX) -o $(SC_EXE) $(LDFLAGS) $(SC_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(WLCPP_EXE): $(WLCPP_EXE).o
 	$(CXX) -o $(WLCPP_EXE) $(LDFLAGS) $(WLCPP_EXE).o \
+	  || echo 0 > $(PC_BUILD_STATUS)
+
+$(WLCPP2_EXE): $(WLCPP2_EXE).o
+	$(CXX) -o $(WLCPP2_EXE) $(LDFLAGS) $(WLCPP2_EXE).o \
 	  || echo 0 > $(PC_BUILD_STATUS)
 
 

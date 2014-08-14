@@ -28,8 +28,10 @@ CLAUSE_OBJECTS=$(CLAUSE_SOURCES:.cpp=.o)
 
 LIB=$(LIB_DIR)/$(CONTRACTS_LIB)
 
+.PHONY: all check checkall clean cleanall
+
 all: $(CLAUSE_OBJECTS) $(CLAUSE_HEADERS)
-	@test -d $(LIB_DIR) || mkdir $(LIB_DIR); \
+	test -d $(LIB_DIR) || mkdir $(LIB_DIR); \
         ar cr $(LIB) $(CLAUSE_OBJECTS)
 
 

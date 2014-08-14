@@ -3,7 +3,7 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 August 2
+ * Last Modified:  2014 June 19
  * \endinternal
  *
  * @file
@@ -83,15 +83,30 @@ main(int argc, char* argv[])
       /* Now instrument routines. */
       if (status == 0)
       {
+#ifdef DEBUG
+        cout << "DEBUG: Instrumenting the routines...\n";
+#endif /* DEBUG */
         status = processor->instrumentRoutines(project, skipTransforms);
         /*
          * The following appears to break on C++ sources:
-         *
+         */
         if (status == 0)
         {
+#if 0
+          // For debugging...
+          cout << "DEBUG: Calling generatePDF...\n";
+          generatePDF(*project);
+
+          /* Must 'dot -Tps filename.dot -o outfile.ps */
+          cout << "DEBUG: Calling generateDOT...\n";
+          generateDOT(*project);
+
+          cout << "DEBUG: Calling generateAstGraph...\n";
+          generateAstGraph(project, 4000);
+#endif
+          cout << "DEBUG: Calling backend...\n";
           status = backend(project);
         } 
-        */
       }
       else
       {
