@@ -7,18 +7,12 @@ HIGH:
 
 
 MODERATE:
-- Talk with someone from ROSE team regarding problem of visit() not visiting 
-  nodes after some transformations (e.g., helloworld-v2.cc's 'return 0;' appears
-  to be bypassed in visit()).
-  
 - Address remaining STATS instrumentation issues.
   -- Where should pre-routine STATS be instrumented?
      (Now blanket adding before finalize regardless of annotation location.)
   -- Checks currently terminate on violation (PCE_CHECK_EXPR_TERM).  How
      should the possibility of supporting PCE_CHECK_EXPR be specified instead?
      (Will need to test the feature.)
-
-- Need more test cases to ensure triggering every clause violation class.
 
 - TBD: How should finer grained timing data be acquired for partial
   enforcement strategies?
@@ -54,4 +48,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2014 July 24
+Last Updated:  2014 October 09
