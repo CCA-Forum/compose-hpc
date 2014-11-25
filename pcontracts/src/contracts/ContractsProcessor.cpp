@@ -1076,21 +1076,23 @@ ContractsProcessor::hasContractComment(
 
 /**
  * Determine if what is assumed to be the method name is in the 
- * invariants clause.
+ * specified clause.
  *
  * @param[in]  nm  Method name.
+ * @param[in]  cc  Contract clause.
  * @return         True if nm is in at least one invariant expression; false 
  *                   otherwise.
  */
 bool
-ContractsProcessor::inInvariants(
-  /* in */ string nm)
+ContractsProcessor::inClause(
+  /* in */ string nm,
+  /* in */ ContractComment* cc)
 {
   bool isIn = false;
   
-  if ( !nm.empty() && (d_invariants != NULL) )
+  if ( !nm.empty() && (cc != NULL) )
   {
-    list<AssertionExpression> aeList = d_invariants->getList();
+    list<AssertionExpression> aeList = cc->getList();
     for(list<AssertionExpression>::iterator iter = aeList.begin();
         iter != aeList.end() && !isIn; iter++)
     {
@@ -1107,7 +1109,7 @@ ContractsProcessor::inInvariants(
   }
 
   return isIn;
-}  /* inInvariants */
+}  /* inClause */
 
 
 /**
@@ -1535,7 +1537,7 @@ ContractsProcessor::processFunctionComments(
              */
             bool skipInvariants = (nm=="main") || (init!=NULL) || (final!=NULL)
               || (d_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
-              || (!isMemberFunc) || inInvariants(nm) || isPureRoutine;
+              || (!isMemberFunc) || inClause(nm, d_invariants) || isPureRoutine;
 
 
             if (! (skipInvariants || isInitRoutine) )
@@ -1544,7 +1546,7 @@ ContractsProcessor::processFunctionComments(
               numExec += d_invariants->numExecutable();
             }
 
-            if ( (pre != NULL) && (numChecks[0] > 0) )
+            if ( (pre != NULL) && (numChecks[0] > 0) && !inClause(nm, pre) )
             { 
               num += addPreChecks(body, pre);
               numExec += pre->numExecutable();
@@ -1569,7 +1571,7 @@ ContractsProcessor::processFunctionComments(
              */
             if (post != NULL) 
             {
-              if (numChecks[1] > 0)
+              if ( (numChecks[1] > 0) && !inClause(nm, post) )
               {
                 if (post->needsResult() && !returnAdded) {
                   if (addReturnVariable(body, post, 

@@ -52,9 +52,12 @@ Examples::Knapsack::Knapsack() : d_nextIndex(0) {
 
 Examples::Knapsack::~Knapsack() {}
 
-
+/*
+ * @pre ((weights!=NULL) and (len>0)) implies onlyPos(weights, len)
+ */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
+    pos_weights: 
+        !((weights!=NULL) && (len>0)) || onlyPos(weights,len);
     initialization: is initialization;
  */
 /* %CONTRACT ENSURE has_new_weights: hasWeights(weights, len); */
@@ -102,8 +105,12 @@ Examples::Knapsack::onlyPosWeights() {
   return onlyPos(d_weights, d_nextIndex);
 }
 
+/*
+ * @pre ((weights!=NULL) and (len>0)) implies onlyPos(weights, len)
+ */
+
 /* %CONTRACT REQUIRE 
-  pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
+  pos_weights: !((weights!=NULL) && (len>0)) || onlyPos(weights, len);
  */
 /* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
@@ -149,9 +156,14 @@ Examples::Knapsack::printWeights()
  * @param[in] len      The length, or number, of weights in the list.
  * @return             Returns true if they are all non-zero; otherwise,
  *                       returns false.
+ *
+ * NOTE: The following inappropriate precondition, if generated, would lead 
+ * to an infinite loop since it calls itself.
+ *
+ * @pre ((weights!=NULL) and (n>0)) implies onlyPos(weights, n)
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
+    pos_weights: !((weights!=NULL) && (n>0)) || onlyPos(weights, n); 
  */
 /* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
@@ -196,12 +208,16 @@ onlyPos(
  * @param[in] nS    The weights of the items that could be added to the 
  *                    knapsack.
  * @param[in] lenS  The length, or number, of weights in nS.
+ *
  * @return          Returns true if the values in the two lists match; 
  *                    otherwise, returns false.
+ *
+ * @pre ((nW!=NULL) and (lenW>0)) implies onlyPos(nW, lenW)
+ * @pre ((nS!=NULL) and (lenS>0)) implies onlyPos(nS, lenS)
  */
 /* %CONTRACT REQUIRE 
-    pos_w_weights: ((nW!=NULL) and (lenW>0)) implies pce_all(nW>0, lenW); 
-    pos_s_weights: ((nS!=NULL) and (lenS>0)) implies pce_all(nS>0, lenS); 
+    pos_w_weights: !((nW!=NULL) && (lenW>0)) || onlyPos(nW, lenW); 
+    pos_s_weights: !((nS!=NULL) && (lenS>0)) || onlyPos(nS, lenS); 
  */
 /* %CONTRACT ENSURE side_effect_free: is pure; */
 bool
@@ -251,10 +267,11 @@ sameWeights(
  * @param[in] n        The number of weights in the list.
  * @return             Returns true if the solution has been found based on
  *                       the specified entry; otherwise, returns false.
+ *
+ * @pre ((weights!=NULL) and (n>0)) implies onlyPos(weights, n)
  */
 /* %CONTRACT REQUIRE 
-    pos_weights: ((weights!=NULL) and (n>0)) 
-			implies pce_all(weights>0, n); 
+    pos_weights: !((weights!=NULL) && (n>0)) || onlyPos(weights, n); 
  */
 /* %CONTRACT ENSURE side_effect_free: is pure; */
 bool

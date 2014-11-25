@@ -2,11 +2,14 @@ PROTOTYPE
 
 HIGH:
 - Finish paper.
-- Address test case where Rose with Edg-4 properly handling invariant on 
-  implicit return but older Rose doesn't (SimpleClass.cpp).
 
 
 MODERATE:
+- Spend more time investigating whether -rose:collectAllCommentsAndDirectives,
+  which is supposed to preserve comments and directives from the header in the
+  AST, can be used to move invariants, preconditions, and postconditions to
+  declarations in the header file (where they belong).
+
 - Address remaining STATS instrumentation issues.
   -- Where should pre-routine STATS be instrumented?
      (Now blanket adding before finalize regardless of annotation location.)
@@ -48,4 +51,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2014 October 09
+Last Updated:  2014 October 16

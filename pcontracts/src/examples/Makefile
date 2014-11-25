@@ -235,7 +235,7 @@ checkExamples: $(BINARIES)
 
 
 clean:
-	@rm -f *.o *.out *.mout *.diffs
+	@rm -f *.o *.out *.mout *.diffs *.*~
 
 cleanall: clean
 	@rm -f $(BINARIES) *.dot *.pdf; \

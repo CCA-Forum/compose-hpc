@@ -4,7 +4,7 @@
 
 using namespace std;
 
-/* %CONTRACT INVARIANT inRange(); */ 
+/* %CONTRACT INVARIANT isValid(); */ 
 
 class SimpleClass
 {
@@ -30,7 +30,7 @@ class SimpleClass
 }; /* SimpleClass */
 
 /** Basic void method with multiple return statements. */
-/* %CONTRACT REQUIRE i > -6 && i <= 500; */
+/* %CONTRACT REQUIRE pce_in_range(i, -5, 500); */
 void 
 SimpleClass::checkValue(int i)
 {

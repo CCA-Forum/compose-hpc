@@ -47,8 +47,8 @@ WLCPP2_EXE=WeightsList2
 
 
 .PHONY:  buildsummary check checkall checkBasics checkBasicsCore \
-	checksummary; checkclean checksetup checkKC checkKCpp checkKnapsack \
-	checkUK clean cleanall cleanexe
+	checksummary; checkbuild checkclean checksetup checkKC checkKCpp \
+	checkKnapsack checkUK clean cleanall cleanexe
 
 all:	$(EXES) $(OBJS) $(HDRS) $(SRCS)
 	$(MAKE) buildsummary
@@ -132,19 +132,19 @@ buildsummary:
 	  echo "$(TEST_DRIVER_DIR) Build: Contracts-$$stat: Okay";\
 	fi
 
-check: checkclean checksetup all checkBasicsCore checksummary
+check: checkbuild checkBasicsCore checksummary
 	@echo 
 
-checkall: checkclean checksetup all checkBasicsCore checkContractsCore \
-	    checksummary
+checkall: checkbuild checkBasicsCore checkContractsCore checksummary
 	@echo
-	
 
-checkBasics: checkclean checksetup all checkBasicsCore checksummary
+checkBasics: check
 
 checkBasicsCore: checkKC checkKCpp checkKnapsack checkUK
 
-checkContracts:  checkclean checksetup all checkContractsCore checksummary
+checkbuild: checkclean checksetup all
+
+checkContracts:  checkbuild checkContractsCore checksummary
 
 # WARNING:  The following rule assumes Rose's installation of edg 4 is
 # responsible for addition namespace lines at the top of generated C++ source 

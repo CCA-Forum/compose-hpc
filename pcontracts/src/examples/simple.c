@@ -11,7 +11,7 @@ isValid();
 int d_i;
 
 
-/* %CONTRACT REQUIRE i > -6 && i < 500; */
+/* %CONTRACT REQUIRE pce_in_range(i, -5, 499); */
 void
 checkValue(int i)
 {

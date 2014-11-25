@@ -19,7 +19,7 @@ ROSE_INCLUDES = -I$(ROSE_HOME)/include -I$(BOOST_HOME)/include $(BASE_INCLUDES)
 #ROSE_FLAGS = $(BASE_FLAGS) --edg:no_warnings
 ROSE_FLAGS = $(BASE_FLAGS)
 
-ROSE_OPTS = -rose:skipfinalCompileStep
+ROSE_OPTS = -rose:skipfinalCompileStep -rose:collectAllCommentsAndDirectives
 #ROSE_OPTS = 
 
 ROSE_LDFLAGS = $(ROSE_LIB) $(BOOST_LIB) $(BASE_FLAGS)

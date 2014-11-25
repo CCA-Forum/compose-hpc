@@ -56,9 +56,12 @@ Examples::UnlabeledKnapsack::UnlabeledKnapsack() : d_nextIndex(0)
 Examples::UnlabeledKnapsack::~UnlabeledKnapsack() {}
 
 
+/*
+ * @pre ((weights!=NULL) and (len>0)) implies onlyPos(weights, len)
+ */
+
 /* %CONTRACT REQUIRE 
-    is initialization;
-    ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len); 
+   is initialization; !((weights!=NULL) && (len>0)) || onlyPos(weights, len);
  */
 /* %CONTRACT ENSURE hasWeights(weights, len); */
 void
@@ -93,8 +96,12 @@ Examples::UnlabeledKnapsack::onlyPosWeights() {
 } /* onlyPosWeights */
 
 
+/*
+ * @pre ((weights!=NULL) and (len>0)) implies onlyPos(weights, len);
+ */
+
 /* %CONTRACT REQUIRE 
-  ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
+  !((weights!=NULL) && (len>0)) || onlyPos(weights, len);
  */
 /* %CONTRACT ENSURE is pure; */
 bool
@@ -137,11 +144,9 @@ Examples::UnlabeledKnapsack::printWeights()
  * @param weights  The weights of the items that could be added to the 
  *                   knapsack.
  * @param len      The length, or number, of weights in the list.
+ *
  * @return         Returns true if they are all non-zero; otherwise,
  *                   returns false.
- */
-/* %CONTRACT REQUIRE 
-    ((weights!=NULL) and (len>0)) implies pce_all(weights>0, len);
  */
 /* %CONTRACT ENSURE is pure; */
 bool
@@ -182,12 +187,16 @@ onlyPos(const unsigned int* weights, unsigned int len)
  * @param lenW  The length, or number, of weights in nW.
  * @param nS    The weights of the items that could be added to the knapsack.
  * @param lenS  The length, or number, of weights in nS.
+ *
  * @return      Returns true if the values in the two lists match; 
  *                otherwise, returns false.
+ *
+ * @pre ((nW!=NULL) and (lenW>0)) implies onlyPos(nW, lenW)
+ * @pre ((nS!=NULL) and (lenS>0)) implies onlyPos(nS, lenS)
  */
 /* %CONTRACT REQUIRE 
-    ((nW!=NULL) and (lenW>0)) implies pce_all(nW>0, lenW); 
-    ((nS!=NULL) and (lenS>0)) implies pce_all(nS>0, lenS); 
+    !((nW!=NULL) && (lenW>0)) || onlyPos(nW, lenW); 
+    !((nS!=NULL) && (lenS>0)) || onlyPos(nS, lenS); 
  */
 /* %CONTRACT ENSURE is pure; */
 bool
@@ -232,12 +241,15 @@ sameWeights(const unsigned int* nW, unsigned int lenW,
  *                   the knapsack.
  * @param i        The current entry in the list.
  * @param n        The number of weights in the list.
+ *
  * @return         Returns true if the solution has been found based on
  *                   the specified entry; otherwise, returns false.
+ *
+ * @pre ((weights!=NULL) and (n>0)) implies onlyPos(weights, n)
  */
 /* %CONTRACT REQUIRE 
     pos_target: t > 0;
-    ((weights!=NULL) and (n>0)) implies pce_all(weights>0, n); 
+    !((weights!=NULL) && (n>0)) || onlyPos(weights, n); 
  */
 /* %CONTRACT ENSURE is pure; */
 bool

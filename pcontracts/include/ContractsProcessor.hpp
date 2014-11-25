@@ -68,7 +68,7 @@ class ContractsProcessor
     
     bool hasContractComment(SgLocatedNode* lNode);
     
-    bool inInvariants(std::string nm);
+    bool inClause(std::string nm, ContractComment* cc);
     
     int instrumentRoutines(SgProject* project, bool skipTransforms);
     
