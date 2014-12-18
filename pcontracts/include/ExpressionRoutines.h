@@ -3,7 +3,7 @@
  * File:           ExpressionRoutines.h
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2013 October 8
+ * Last Modified:  2014 December 18
  * \endinternal
  *
  * @file
@@ -35,15 +35,47 @@
 
 
 /*
+ *
  **********************************************************************
  * PUBLIC ROUTINES
  **********************************************************************
  */
+/**
+ * \publicsection
+ */
+
+#define pce_max(A, B) (((A) > (B)) ? (A) : (B))
+#define pce_min(A, B) (((A) < (B)) ? (A) : (B))
+
+/**
+ * Determine if all (of the first) num entries are NULL.
+ * 
+ * @param[in] arr  The array of addresses variable.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are NULL; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_null(
+  /* in */ void**  arr, 
+  /* in */ int64_t num);
 
 
 /**
- * \publicsection
+ * Determine if any (of the first) num entries are NULL.
  *
+ * @param[in] arr  The array of addresses variable.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are NULL; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_any_null(
+  /* in */ void**  arr,
+  /* in */ int64_t num);
+
+
+/**
  * Determine if the provided variable is in the specified range.
  *
  * @param[in] var       The variable whose value is being checked.
@@ -74,5 +106,6 @@ pce_near_equal(
   /* in */ long double var,
   /* in */ long double value,
   /* in */ long double tol);
+
 
 #endif /* Expression_Routines_h */

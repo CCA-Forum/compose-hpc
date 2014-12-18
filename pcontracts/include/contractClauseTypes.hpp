@@ -3,7 +3,7 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2013 October 22
+ * Last Modified:  2014 December 18
  * \endinternal
  *
  * @file
@@ -21,33 +21,35 @@
 
 
 /**
- * Non-executable assertion expression reserved words.
+ * Non-executable assertion expression interfaces.
  *
  * @todo Once expressions are parsed, this should be changed to a
  *    typdef map<string, string> dictType;
  *    typdef pair<string, string> dictEntryType;
  * then populate with:
- *   dictType ReservedWordDict;
- *   dictEntryType ReservedEntry;
+ *   dictType UnsupportedDict;
+ *   dictEntryType UnsupportedEntry;
  *   For each entry:
- *     ReservedWordDict.insert(ReservedEntry(<key>, <value>));
+ *     UnsupportedDict.insert(UnsupportedEntry(<key>, <value>));
  * and access:
- *   string value = ReservedWordDict[<key>];
+ *   string value = UnsupportedDict[<key>];
  *   if (value != "") {  // TBD: Distinguish keys with no values from non-keys
  *     // Use it
  *   }
  */
 
-static const std::string ReservedWords[] = {
+static const std::string UnsupportedInterfaces[] = {
   "is initialization",
   "pce_all", 
+  //"pce_all_null",  /* Now supported */
   "pce_any",
+  //"pce_any_null",  /* Now supported */
   "pce_count",
   "pce_dimen",
   //"pce_in_range", /* Now supported */
   "pce_lower",
-  "pce_max",
-  "pce_min",
+  //"pce_max",  /* Now supported */
+  //"pce_min",  /* Now supported */
   //"pce_near_equal", /* Now supported */
   "pce_non_decr",
   "pce_none",

@@ -3,7 +3,7 @@
  * File:           testExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2013 October 11
+ * Last Modified:  2014 December 18
  * \endinternal
  *
  * @file
@@ -29,6 +29,93 @@ long g_numTests = 0;
 
 /** Number of test cases. */
 long g_numOkay = 0;
+
+
+/**
+ * Free any allocated memory in the provided array.
+ */
+void
+cleanup(
+  /* in */ void**   arr,
+  /* in */ int64_t  sz)
+{
+  for (int64_t i = 0; i < sz; i++) {
+    if (arr[i] != NULL) 
+    {
+        free((void*)arr[i]);
+    }
+  }
+  free((void*)arr);
+} /* cleanup */
+
+
+/**
+ * Checks pce_all_null for an expected result.
+ *
+ * @param[in] arr     The array whose (pointer) contents are being checked.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllNull(
+  /* in */ void**         arr,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_null(%s, %d) == %d:  ",
+    g_numTests, desc, num, result);
+
+  if (pce_all_null(arr, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllNull */
+
+
+/**
+ * Checks pce_any_null for an expected result.
+ *
+ * @param[in] arr     The array whose (pointer) contents are being checked.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyNull(
+  /* in */ void**         arr,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_null(%s, %d) == %d:  ",
+    g_numTests, desc, num, result);
+
+  if (pce_any_null(arr, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyNull */
+
 
 
 /**
@@ -62,7 +149,143 @@ checkInRangeI64(
   printf("\n");
 
   return;
-} /* checkInRangeLD */
+} /* checkInRangeI64 */
+
+
+/**
+ * Checks pce_max for a specific pair of float values.
+ *
+ * @param[in] a       The first value.
+ * @param[in] b       The second value.
+ * @param[in] expRes  The expected maximum value.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkMaxF(
+  /* in */ long double    a,
+  /* in */ long double    b,
+  /* in */ long double    expRes,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. (checkMaxF(%Le, %Le) == %Le)== %d:  ", g_numTests, a, b, 
+    expRes, result);
+
+  if ((pce_max(a, b) == expRes) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkMaxF */
+
+
+/**
+ * Checks pce_max for a specific pair of integer values.
+ *
+ * @param[in] a       The first value.
+ * @param[in] b       The second value.
+ * @param[in] expRes  The expected maximum value.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkMaxI(
+  /* in */ int64_t        a,
+  /* in */ int64_t        b,
+  /* in */ int64_t        expRes,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. (checkMaxI(%ld, %ld) == %ld)== %d:  ", g_numTests, a, b, 
+    expRes, result);
+
+  if ((pce_max(a, b) == expRes) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkMaxI */
+
+
+/**
+ * Checks pce_min for a specific pair of float values.
+ *
+ * @param[in] a       The first value.
+ * @param[in] b       The second value.
+ * @param[in] expRes  The expected minimum value.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkMinF(
+  /* in */ long double    a,
+  /* in */ long double    b,
+  /* in */ long double    expRes,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. (checkMinF(%Le, %Le) == %Le)== %d:  ", g_numTests, a, b, 
+    expRes, result);
+
+  if ((pce_min(a, b) == expRes) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkMinF */
+
+
+/**
+ * Checks pce_min for a specific pair of integer values.
+ *
+ * @param[in] a       The first value.
+ * @param[in] b       The second value.
+ * @param[in] expRes  The expected minimum value.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkMinI(
+  /* in */ int64_t        a,
+  /* in */ int64_t        b,
+  /* in */ int64_t        expRes,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. (checkMinI(%ld, %ld) == %ld)== %d:  ", g_numTests, a, b, 
+    expRes, result);
+
+  if ((pce_min(a, b) == expRes) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkMinI */
 
 
 /**
@@ -99,41 +322,286 @@ checkNearEqualLD(
 } /* checkNearEqualLD */
 
 
+/**
+ * Executes checkAllNull cases for a character array of character arrays.
+ */
+void
+checkPceAllNullChars()
+{
+  int i, sz = 20;
+  const char *desc = "chcharr";
+  char **chcharr = (char **)malloc((size_t)sz * sizeof(char *));
+
+  for (i = 0; i < sz; i++) chcharr[i] = NULL;
+  checkAllNull((void**)chcharr, sz, desc, CONTRACTS_TRUE);
+
+  chcharr[sz-1] = (char *)malloc((size_t)sz * sizeof(char));
+  checkAllNull((void**)chcharr, sz, desc, CONTRACTS_FALSE);
+
+  free((void*)chcharr[sz-1]);
+  chcharr[sz-1] = NULL;
+  checkAllNull((void**)chcharr, sz, desc, CONTRACTS_TRUE);
+
+  chcharr[0] = (char *)malloc((size_t)sz * sizeof(char));
+  checkAllNull((void**)chcharr, sz, desc, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  cleanup((void**)chcharr, sz);
+} /* checkPceAllNullChars */
+
 
 /**
- * Test driver.  
+ * Executes checkAllNull cases for an integer array.
  */
-int
-main(int argc, char **argv)
+void
+checkPceAllNullInts()
 {
-  printf("\nRunning testExpressionRoutines tests...\n");
+  int sz = 20;
+  const char *desc = "intarr";
+  int **intarr = (int **)malloc((size_t)sz * sizeof(int *));
+
+  for (int i = 0; i < sz; i++) intarr[i] = NULL;
+  checkAllNull((void**)intarr, sz, desc, CONTRACTS_TRUE);
+
+  intarr[sz-1] = (int *)malloc((size_t)sz * sizeof(int));
+  checkAllNull((void**)intarr, sz, desc, CONTRACTS_FALSE);
+
+  free((void*)intarr[sz-1]);
+  intarr[sz-1] = NULL;
+  checkAllNull((void**)intarr, sz, desc, CONTRACTS_TRUE);
+
+  intarr[0] = (int *)malloc((size_t)sz * sizeof(int));
+  checkAllNull((void**)intarr, sz, desc, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  cleanup((void**)intarr, sz);
+} /* checkAllNullInts */
 
 
-  /* 1-4 */
+/**
+ * Executes checkAllNull cases for a long double array.
+ */
+void
+checkPceAllNullLDs()
+{
+  int sz = 20;
+  const char *desc = "ldarr";
+  long double **ldarr = (long double **)malloc((size_t)sz * 
+    sizeof(long double *));
+
+  for (int i = 0; i < sz; i++) ldarr[i] = NULL;
+  checkAllNull((void**)ldarr, sz, desc, CONTRACTS_TRUE);
+
+  ldarr[sz-1] = (long double *)malloc((size_t)sz * sizeof(long double));
+  checkAllNull((void**)ldarr, sz, desc, CONTRACTS_FALSE);
+
+  free((void*)ldarr[sz-1]);
+  ldarr[sz-1] = NULL;
+  checkAllNull((void**)ldarr, sz, desc, CONTRACTS_TRUE);
+
+  ldarr[0] = (long double *)malloc((size_t)sz * sizeof(long double));
+  checkAllNull((void**)ldarr, sz, desc, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  cleanup((void**)ldarr, sz);
+} /* checkAllNullLDs */
+
+
+/**
+ * Executes checkAnyNull cases for a character array of characters.
+ */
+void
+checkPceAnyNullChars()
+{
+  int i, sz = 20;
+  const char *desc = "chcharr";
+  char **chcharr = (char **)malloc((size_t)sz * sizeof(char *));
+
+  for (i = 0; i < sz; i++) chcharr[i] = NULL;
+  checkAnyNull((void**)chcharr, sz, desc, CONTRACTS_TRUE);
+
+  for (i = 1; i < sz-1; i++) {
+    chcharr[i] = (char *)malloc((size_t)sz * sizeof(char));
+  }
+  checkAnyNull((void**)chcharr, sz, desc, CONTRACTS_TRUE);
+
+  chcharr[0] = (char *)malloc((size_t)sz * sizeof(char));
+  checkAnyNull((void**)chcharr, sz, desc, CONTRACTS_TRUE);
+
+  chcharr[sz-1] = (char *)malloc((size_t)sz * sizeof(char));
+  checkAnyNull((void**)chcharr, sz, desc, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  cleanup((void**)chcharr, sz);
+} /* checkPceAnyNullChars */
+
+
+/**
+ * Executes checkAnyNull cases for an integer array.
+ */
+void
+checkPceAnyNullInts()
+{
+  int i, sz = 20;
+  const char *desc = "intarr";
+  int **intarr = (int **)malloc((size_t)sz * sizeof(int *));
+
+  for (i = 0; i < sz; i++) intarr[i] = NULL;
+  checkAnyNull((void**)intarr, sz, desc, CONTRACTS_TRUE);
+
+  for (i = 1; i < sz-1; i++) {
+      intarr[i] = (int *)malloc(sizeof(int));
+  }
+  checkAnyNull((void**)intarr, sz, desc, CONTRACTS_TRUE);
+
+  intarr[0] = (int *)malloc(sizeof(int));
+  checkAnyNull((void**)intarr, sz, desc, CONTRACTS_TRUE);
+
+  intarr[sz-1] = (int *)malloc(sizeof(int));
+  checkAnyNull((void**)intarr, sz, desc, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  cleanup((void**)intarr, sz);
+} /* checkAnyNullInts */
+
+
+/**
+ * Executes checkAnyNull cases for a long double array.
+ */
+void
+checkPceAnyNullLDs()
+{
+  int i, sz = 20;
+  const char *desc = "ldarr";
+  long double **ldarr = (long double **)malloc((size_t)sz * 
+    sizeof(long double *));
+
+  for (i = 0; i < sz; i++) ldarr[i] = NULL;
+  checkAnyNull((void**)ldarr, sz, desc, CONTRACTS_TRUE);
+
+  for (i = 1; i < sz-1; i++) {
+      ldarr[i] = (long double *)malloc(sizeof(long double));
+  }
+  checkAnyNull((void**)ldarr, sz, desc, CONTRACTS_TRUE);
+
+  ldarr[0] = (long double *)malloc(sizeof(long double));
+  checkAnyNull((void**)ldarr, sz, desc, CONTRACTS_TRUE);
+
+  ldarr[sz-1] = (long double *)malloc(sizeof(long double));
+  checkAnyNull((void**)ldarr, sz, desc, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  cleanup((void**)ldarr, sz);
+} /* checkAnyNullLDs */
+
+
+/**
+ * Executes all checkInRangeI64 cases.
+ */
+void
+checkPceInRange()
+{
+  /* First use long long values */
   checkInRangeI64(LLONG_MIN, LLONG_MIN, LLONG_MAX, CONTRACTS_TRUE);
   checkInRangeI64(LLONG_MIN+1L, LLONG_MIN, LLONG_MAX, CONTRACTS_TRUE);
   checkInRangeI64(LLONG_MAX-1L, LLONG_MIN, LLONG_MAX, CONTRACTS_TRUE);
   checkInRangeI64(LLONG_MAX, LLONG_MIN, LLONG_MAX, CONTRACTS_TRUE);
+  checkInRangeI64(LLONG_MAX, LLONG_MAX, LLONG_MIN, CONTRACTS_FALSE);
+  checkInRangeI64(LLONG_MIN, LLONG_MAX, LLONG_MIN, CONTRACTS_FALSE);
 
   printf("\n");
 
-  /* 5-6 */
-  long la = LONG_MIN;
-  long lb = LONG_MAX;
-  checkInRangeI64(la, LONG_MIN+1L, LONG_MAX, CONTRACTS_FALSE);
-  checkInRangeI64(lb, LONG_MIN, LONG_MAX-1L, CONTRACTS_FALSE);
+  /* Use long values */
+  checkInRangeI64(LONG_MIN, LONG_MIN+1L, LONG_MAX, CONTRACTS_FALSE);
+  checkInRangeI64(LONG_MAX, LONG_MIN, LONG_MAX-1L, CONTRACTS_FALSE);
 
   printf("\n");
 
-  /* 7-8 */
-  int ia = INT_MIN;
-  int ib = INT_MAX;
-  checkInRangeI64(ia, INT_MIN+1, INT_MAX, CONTRACTS_FALSE);
-  checkInRangeI64(ib, INT_MIN, INT_MAX-1, CONTRACTS_FALSE);
+  /* Use int values */
+  checkInRangeI64(INT_MIN, INT_MIN+1, INT_MAX, CONTRACTS_FALSE);
+  checkInRangeI64(INT_MAX, INT_MIN, INT_MAX-1, CONTRACTS_FALSE);
 
   printf("\n");
+} /* checkPceInRange */
 
-  /* 9-14 */
+
+/**
+ * Executes all checkMaxF cases.
+ */
+void
+checkPceMaxF()
+{
+  /* Should only need to use long double values at this point */
+  checkMaxF(LDBL_MIN, LDBL_MAX, LDBL_MAX, CONTRACTS_TRUE);
+  checkMaxF(LDBL_MAX, LDBL_MAX, LDBL_MAX, CONTRACTS_TRUE);
+  checkMaxF(LDBL_MAX, LDBL_MIN, LDBL_MAX, CONTRACTS_TRUE);
+  checkMaxF(LDBL_MIN, LDBL_MAX, LDBL_MIN, CONTRACTS_FALSE);
+
+  printf("\n");
+} /* checkPceMaxF */
+
+
+/**
+ * Executes all checkMaxI cases.
+ */
+void
+checkPceMaxI()
+{
+  /* Should only need to use long long values at this point */
+  checkMaxI(LLONG_MIN, LLONG_MAX, LLONG_MAX, CONTRACTS_TRUE);
+  checkMaxI(LLONG_MIN, LLONG_MIN, LLONG_MIN, CONTRACTS_TRUE);
+  checkMaxI(LLONG_MAX, LLONG_MIN, LLONG_MAX, CONTRACTS_TRUE);
+  checkMaxI(LLONG_MIN, LLONG_MAX, LLONG_MIN, CONTRACTS_FALSE);
+
+  printf("\n");
+} /* checkPceMaxI */
+
+
+/**
+ * Executes all checkMinI cases.
+ */
+void
+checkPceMinI()
+{
+  /* Should only need to use long long values at this point */
+  checkMinI(LLONG_MIN, LLONG_MAX, LLONG_MIN, CONTRACTS_TRUE);
+  checkMinI(LLONG_MIN, LLONG_MIN, LLONG_MIN, CONTRACTS_TRUE);
+  checkMinI(LLONG_MAX, LLONG_MIN, LLONG_MIN, CONTRACTS_TRUE);
+  checkMinI(LLONG_MIN, LLONG_MAX, LLONG_MAX, CONTRACTS_FALSE);
+
+  printf("\n");
+} /* checkPceMinI */
+
+
+/**
+ * Executes all checkMinF cases.
+ */
+void
+checkPceMinF()
+{
+  /* Should only need to use long long values at this point */
+  checkMinF(LDBL_MIN, LDBL_MAX, LDBL_MIN, CONTRACTS_TRUE);
+  checkMinF(LDBL_MAX, LDBL_MAX, LDBL_MAX, CONTRACTS_TRUE);
+  checkMinF(LDBL_MAX, LDBL_MIN, LDBL_MIN, CONTRACTS_TRUE);
+  checkMinF(LDBL_MIN, LDBL_MAX, LDBL_MAX, CONTRACTS_FALSE);
+
+  printf("\n");
+} /* checkPceMinF */
+
+
+/**
+ * Executes all checkNearEqualLD cases.
+ */
+void
+checkPceNearEqual()
+{
+  /* Use long double values */
   long double ldtol = 0.0000001L;
   checkNearEqualLD(LDBL_MIN, LDBL_MIN, ldtol, CONTRACTS_TRUE);
   checkNearEqualLD(LDBL_MIN+ldtol, LDBL_MIN, ldtol, CONTRACTS_TRUE);
@@ -144,27 +612,60 @@ main(int argc, char **argv)
 
   printf("\n");
 
-  /* 15-18 */
+  /* Use float values */
   float ftol = 0.0000001f;
-  float fa = FLT_MIN;
-  float fb = FLT_MAX;
-  checkNearEqualLD(fa, FLT_MIN+ftol, ftol, CONTRACTS_TRUE);
-  checkNearEqualLD(fa, FLT_MIN+(2.0f*ftol), ftol, CONTRACTS_FALSE);
-  checkNearEqualLD(fb, FLT_MAX/(1.0f+ftol), ftol, CONTRACTS_FALSE);
-  checkNearEqualLD(fb, FLT_MAX-ftol, ftol, CONTRACTS_TRUE);
+  checkNearEqualLD(FLT_MIN, FLT_MIN+ftol, ftol, CONTRACTS_TRUE);
+  checkNearEqualLD(FLT_MIN, FLT_MIN+(2.0f*ftol), ftol, CONTRACTS_FALSE);
+  checkNearEqualLD(FLT_MAX, FLT_MAX/(1.0f+ftol), ftol, CONTRACTS_FALSE);
+  checkNearEqualLD(FLT_MAX, FLT_MAX-ftol, ftol, CONTRACTS_TRUE);
 
   printf("\n");
 
-  /* 19-22 */
+  /* Use double values */
   double dtol = 0.0000001;
-  double da = DBL_MIN;
-  double db = DBL_MAX;
-  checkNearEqualLD(da, DBL_MIN+dtol, dtol, CONTRACTS_TRUE);
-  checkNearEqualLD(da, DBL_MIN+(2.0*dtol), dtol, CONTRACTS_FALSE);
-  checkNearEqualLD(db, DBL_MAX/(1.0+dtol), dtol, CONTRACTS_FALSE);
-  checkNearEqualLD(db, DBL_MAX-dtol, dtol, CONTRACTS_TRUE);
+  checkNearEqualLD(DBL_MIN, DBL_MIN+dtol, dtol, CONTRACTS_TRUE);
+  checkNearEqualLD(DBL_MIN, DBL_MIN+(2.0*dtol), dtol, CONTRACTS_FALSE);
+  checkNearEqualLD(DBL_MAX, DBL_MAX/(1.0+dtol), dtol, CONTRACTS_FALSE);
+  checkNearEqualLD(DBL_MAX, DBL_MAX-dtol, dtol, CONTRACTS_TRUE);
+
+  printf("\n");
+} /* checkPceNearEqual */
 
 
+
+/**
+ * Test driver.  
+ */
+int
+main(int argc, char **argv)
+{
+  printf("\nRunning testExpressionRoutines tests...\n");
+
+  /* pce_all_null checks */
+  checkPceAllNullChars();
+  checkPceAllNullInts();
+  checkPceAllNullLDs();
+
+  /* pce_any_null checks */
+  checkPceAnyNullChars();
+  checkPceAnyNullInts();
+  checkPceAnyNullLDs();
+
+  /* pce_in_range checks */
+  checkPceInRange();
+
+  /* pce_max checks */
+  checkPceMaxI();
+  checkPceMaxF();
+
+  /* pce_min checks */
+  checkPceMinI();
+  checkPceMinF();
+
+  /* pce_near_equal checks */
+  checkPceNearEqual();
+
+  /* Wrap up by summarizing results */
   printf("\n..%ld passed out of %ld cases\n", g_numOkay, g_numTests);
   printf("\n\nTEST SUITE %s\n", (g_numOkay==g_numTests) ? "PASSED" : "FAILED");
 

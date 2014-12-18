@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2014 July 24
+ * Last Modified:  2014 December 18
  * \endinternal
  *
  * @file
@@ -1235,10 +1235,10 @@ ContractsProcessor::isExecutable(
   {
     for (int i=MIN_NEE_INDEX; i<MAX_NEE_INDEX; i++)
     {
-      if (expr.find(ReservedWords[i]) != string::npos)
+      if (expr.find(UnsupportedInterfaces[i]) != string::npos)
       {
 #ifdef DEBUG
-        cout << "DEBUG: Detected \'" << ReservedWords[i];
+        cout << "DEBUG: Detected \'" << UnsupportedInterfaces[i];
         cout << "\' in \'"<< expr << "\' making expression non-executable.\n";
 #endif /* DEBUG */
         isOkay = false;
