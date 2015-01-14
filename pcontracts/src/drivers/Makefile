@@ -1,8 +1,19 @@
-ROOT_DIR=../..
-include $(ROOT_DIR)/src/make_rose.inc
-include $(ROOT_DIR)/src/make_test.inc
+#
+# Name:      src/drivers/Makefile
+#
+# Purpose:
+# This is the PAUL Contracts drivers, or instrumenters, makefile.
+# It is used to manage the build, checking, and cleanup of all of
+# the programs used to traverse or instrument C/C++ source files.
+#
+# Dependencies:
+# Refer to the ../../setup.sh script for the required environment variables.
 
-CHECK_DRIVERS_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-drivers
+include $(PCONTRACTS_HOME)/src/make_rose.inc
+include $(PCONTRACTS_HOME)/src/make_test.inc
+
+
+CHECK_DRIVERS_STATUS=$(PCONTRACTS_HOME)/$(CHECK_STATUS)-drivers
 
 
 FLAGS=$(BASE_FLAGS)

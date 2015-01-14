@@ -1,6 +1,17 @@
-ROOT_DIR=..
-include $(ROOT_DIR)/src/make.inc
-include $(ROOT_DIR)/src/make_test.inc
+#
+# Name:      src/Makefile
+#
+# Purpose:
+# This is the top-most PAUL Contracts source subdirectory makefile.
+# It is used to manage the build, basic build checking, and cleanup
+# of the source files.
+#
+# Dependencies:
+# Refer to the ../setup.sh script for the required environment variables.
+
+
+include $(PCONTRACTS_HOME)/src/make_test.inc
+
 
 SUBDIRS = runtime contracts drivers examples tests
 

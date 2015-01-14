@@ -1,6 +1,16 @@
-ROOT_DIR=../..
-include $(ROOT_DIR)/src/make.inc
-include $(ROOT_DIR)/src/make_test.inc
+#
+# Name:      src/tests/Makefile
+#
+# Purpose:
+# This is the PAUL Contracts runtime library tests makefile.  It is used to
+# manage the building, checking, and cleaning up of the built-in tests for
+# the runtime library.
+#
+# Dependencies:
+# Refer to the ../../setup.sh script for the required environment variables.
+
+
+include $(PCONTRACTS_HOME)/src/make_test.inc
 
 
 FLAGS=$(BASE_FLAGS)

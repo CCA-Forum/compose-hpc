@@ -1,5 +1,16 @@
-ROOT_DIR=../..
-include $(ROOT_DIR)/src/make.inc
+#
+# Name:      src/runtime/Makefile
+#
+# Purpose:
+# This is the PAUL Contracts runtime library makefile.  It is used to 
+# manage the build and creation of the runtime library.
+#
+# Dependencies:
+# Refer to the ../../setup.sh script for the required environment variables.
+
+
+include $(PCONTRACTS_HOME)/src/make.inc
+
 
 #
 # DEBUG settings

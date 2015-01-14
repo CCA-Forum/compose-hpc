@@ -1,18 +1,24 @@
 #
-# Dependencies:
+# Name:      src/make_rose.inc
 #
-# BOOST_HOME contains the path to the BOOST installation root directory
-# ROOT_DIR   contains the path to the PAUL Contracts root directory
-# ROSE_HOME  contains the path to the ROSE installation root directory
-# JAVA_HOME  contains the path to the Java installation
-# 
-include $(ROOT_DIR)/src/make.inc
+# Purpose:
+# This make include file defines variables required to manage the build,
+# checking, and cleanup of the programs used to traverse or instrument
+# C/C++ source files.
+#
+# Dependencies:
+# Refer to the ../setup.sh script for the required environment variables.
+
+
+########## You should NOT have to change anything below this line ##########
+
+include $(PCONTRACTS_HOME)/src/make.inc
 
 ROSE_LIB = -lrose -L$(ROSE_HOME)/lib
-# -Wl,-rpath $(ROSE_HOME)/lib 
+#ROSE_LIB = -Wl,-rpath $(ROSE_HOME)/lib 
 
-BOOST_LIB = -L$(BOOST_HOME)/lib
-# -Wl,-rpath $(BOOST_HOME)/lib
+#BOOST_LIB = -L$(BOOST_HOME)/lib
+BOOST_LIB = -Wl,-rpath $(BOOST_HOME)/lib
 
 ROSE_INCLUDES = -I$(ROSE_HOME)/include -I$(BOOST_HOME)/include $(BASE_INCLUDES)
 

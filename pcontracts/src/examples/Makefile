@@ -1,13 +1,26 @@
-ROOT_DIR=../..
-include $(ROOT_DIR)/src/make.inc
-include $(ROOT_DIR)/src/make_test.inc
+#
+# Name:      src/examples/Makefile
+#
+# Purpose:
+# This is the examples subdirectory makefile.  It is used to manage the
+# build, checking, and cleanup of the examples, which are used as the
+# basis for built-in tests.  
+#
+# If these examples fail to produce the expected outputs then their 
+# instrumented versions will also fail to produce the expected outputs.
+#
+# Dependencies:
+# Refer to the ../../setup.sh script for the required environment variables.
+
+
+include $(PCONTRACTS_HOME)/src/make_test.inc
+
 
 ORACLE_DIR=$(BASE_ORACLE_DIR)/examples
-CHECK_EXAMPLES_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-examples
+CHECK_EXAMPLES_STATUS=$(PCONTRACTS_HOME)/$(CHECK_STATUS)-examples
 
 
 FLAGS=$(BASE_FLAGS)
-#INCLUDES=$(BASE_INCLUDES) -I$(RT_DIR) 
 INCLUDES=$(BASE_INCLUDES)
 
 LDFLAGS=$(FLAGS)

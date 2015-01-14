@@ -1,6 +1,22 @@
-ROOT_DIR=.
-include ./src/make.inc
+#
+# Name:      Makefile
+#
+# Purpose:
+# This is the top-most makefile in the PAUL Contracts directory structure.
+# It is used to perform global operations, such as 
+#
+#     build                            # make all
+#     check build                      # make check  (..after.. make all)
+#     check instrumented examples      # make checkall (..after.. make all)
+#     clean up                         # make clean  ..or.. make cleanall
+#     generate doxygen documentation   # make docs
+#
+# Dependencies:
+# Refer to the setup.sh script for the required environment variables.
+
+
 include ./src/make_test.inc
+
 
 SUBDIRS = src
 

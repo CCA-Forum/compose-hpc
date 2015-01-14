@@ -1,16 +1,24 @@
 #
-# Dependencies: None
+# Name:      src/make.inc
 #
-# ROOT_DIR   contains the path to the PAUL Contracts root directory
+# Purpose:
+# This make include file defines the core variables for managing the
+# PAUL Contracts software.
 #
+# Dependencies:
+# Refer to the ../setup.sh script for the required environment variables.
+
+
+########## You should NOT have to change anything below this line  ##########
+########## except compiler and flags, which may require debugging. ##########
 
 #MAKE=make --no-print-directory
 MAKE=make
 
-INCLUDE_DIR=$(ROOT_DIR)/include
-BIN_DIR=$(ROOT_DIR)/bin
-LIB_DIR=$(ROOT_DIR)/lib
-SRC_DIR=$(ROOT_DIR)/src
+INCLUDE_DIR=$(PCONTRACTS_HOME)/include
+BIN_DIR=$(PCONTRACTS_HOME)/bin
+LIB_DIR=$(PCONTRACTS_HOME)/lib
+SRC_DIR=$(PCONTRACTS_HOME)/src
 
 CONTRACTS_DIR=$(SRC_DIR)/contracts
 CONTRACTS_LIB_BASE=PaulContracts001a
@@ -23,7 +31,7 @@ RUNTIME_LIB=lib$(RUNTIME_LIB_BASE).a
 EX_DIR=$(SRC_DIR)/examples
 
 BUILD_STATUS=.buildStatus
-PC_BUILD_STATUS=$(ROOT_DIR)/$(BUILD_STATUS)
+PC_BUILD_STATUS=$(PCONTRACTS_HOME)/$(BUILD_STATUS)
 
 #
 # Common compiler flags and settings

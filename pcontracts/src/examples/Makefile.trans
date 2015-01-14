@@ -1,16 +1,26 @@
-ROOT_DIR=../..
-include $(ROOT_DIR)/src/make.inc
-include $(ROOT_DIR)/src/make_test.inc
+#
+# Name:      src/examples/Makefile.trans
+#
+# Purpose:
+# This is the top-most PAUL Contracts source subdirectory makefile.
+# It is used to manage the build, basic build checking, and cleanup
+# of the source files.
+#
+# Dependencies:
+# Refer to the ../../setup.sh script for the required environment variables.
+
+
+include $(PCONTRACTS_HOME)/src/make_test.inc
 
 
 # NOTE: The following values are automatically replaced by the examples 
 # Makefile.
 TEST_DRIVER_DIR=REPLACEDIR
-TEST_DRIVER=$(ROOT_DIR)/bin/REPLACEEXE
+TEST_DRIVER=$(BIN_DIR)/REPLACEEXE
 
 ORACLE_DIR=$(BASE_ORACLE_DIR)/$(TEST_DRIVER_DIR)
-CHECK_EX_STATUS=$(ROOT_DIR)/$(CHECK_STATUS)-$(TEST_DRIVER_DIR)
-BUILD_EX_STATUS=$(ROOT_DIR)/$(BUILD_STATUS)-$(TEST_DRIVER_DIR)
+CHECK_EX_STATUS=$(PCONTRACTS_HOME)/$(CHECK_STATUS)-$(TEST_DRIVER_DIR)
+BUILD_EX_STATUS=$(PCONTRACTS_HOME)/$(BUILD_STATUS)-$(TEST_DRIVER_DIR)
 
 #
 # Be sure to call this with 'make PCEFLAGS=-DPAUL_CONTRACTS' to enable 

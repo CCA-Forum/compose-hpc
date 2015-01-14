@@ -1,5 +1,14 @@
-ROOT_DIR=../..
-include $(ROOT_DIR)/src/make_rose.inc
+#
+# Name:     src/contracts/Makefile
+#
+# Purpose:
+# This is the PAUL Contracts instrumentation library makefile.  It is used
+# to manage the build and cleanup of the contracts instrumentation library.
+#
+# Dependencies:
+# Refer to the ../../setup.sh script for the required environment variables.
+
+include $(PCONTRACTS_HOME)/src/make_rose.inc
 
 
 FLAGS=$(BASE_FLAGS)
