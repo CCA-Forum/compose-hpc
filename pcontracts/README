@@ -7,6 +7,7 @@ CONTENTS
 
   Introduction
   Subdirectories
+  Environment Settings
   Build
   Tests and Examples
   Documentation
@@ -42,7 +43,7 @@ SUBDIRECTORIES
                         #    transforming contract annotations in C/C++
     ./src/examples      # ...Example programs with contract annotations
                         # ......These programs are also used by tests.
-    ./src/runtime       # ...Contract Clause Enforcement libarary sources
+    ./src/runtime       # ...Contract Clause Enforcement library sources
     ./src/tests         # ...Test programs and scripts
     ./src/tests/data    # ...Test oracle inputs
 
@@ -52,6 +53,33 @@ or check:
     ./bin               # Executables
     ./lib               # Libraries (runtime and instrumentation)
     ./results           # Sources and output from 'make check'/'make checkall'
+
+
+
+ENVIRONMENT SETTINGS
+====================
+
+There are environment variables required to be set prior to attempting to
+build or test the software.  The variables that must be set are:
+
+  PCONTRACTS_HOME  = path to the PAUL Contracts directory
+  BOOST_HOME       = path to the BOOST installation directory for the version
+                     of BOOST used when ROSE was built
+  ROSE_HOME        = path to the ROSE installation directory
+
+In addition, the LD_LIBRARY_PATH will need to include the following directories:
+
+  LD_LIBRARY_PATH  += path to the directory containing libjvm.so of the
+                      Java installation used to build ROSE
+                   += path ${ROSE_HOME}/lib
+
+A shell script (setup.sh) has been provided in the PCONTRACTS_HOME directory.
+You will need to modify the script to provide the correct paths for your
+system.
+
+If you are running from c shell, you can use the build.sh script to build
+the software.  The script sets up the required environment variables
+before passing the first command line argument it is given, if any, to make.
 
 
 
@@ -69,6 +97,9 @@ BASICS
 at the command line, where '$' indicates the command line prompt:
 
   $ make
+or
+  $ sh build.sh
+
 
 
 TESTS AND EXAMPLES
@@ -78,6 +109,8 @@ TESTS AND EXAMPLES
 the check rule:
 
   $ make check
+or
+  $ sh build.sh check
 
 This rule executes and verifies the results of tests of the runtime library,
 input source files, and driver programs.  Input source files are checked to 
@@ -90,6 +123,8 @@ files, is verified.
 checkall rule, as follows:
 
   $ make checkall
+or
+  $ sh build.sh checkall
 
 Using this rule adds building, executing, and checking the results of the 
 instrumented source files -- with enforcement enabled and disabled.
@@ -110,10 +145,14 @@ CLEANING DIRECTORIES
 clean rule as follows:
 
   $ make clean
+or
+  $ sh build.sh clean
 
 while all files, including documentation, are removed with the cleanall rule:
 
   $ make cleanall
+or
+  $ sh build.sh cleanall
 
 
 
@@ -124,6 +163,8 @@ DOCUMENTATION
 the docs rule as follows:
 
   $ make docs
+or
+  $ sh build.sh docs
 
 where you can navigate to and open the index.html file with a web browser to
 see information about the classes and files in this package.
@@ -131,7 +172,9 @@ see information about the classes and files in this package.
   The generated documentation can be removed with the cleandocs rule:
 
   $ make cleandocs
+or
+  $ sh build.sh cleandocs
   
 
 
-Last Updated:  2013 September 26
+Last Updated:  2015 January 13

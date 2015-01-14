@@ -24,6 +24,9 @@ line:
 
 - \b make
 
+or
+- \b sh \b build.sh # Initializes required environment variables before make
+
 
 \section run_examples_sec Running Tests and Examples
 
@@ -37,6 +40,9 @@ follows:
 
 - \b make \b check
 
+or
+- \b sh \b build.sh check # Initializes environment variables before performing the check
+
 This rule executes and verifies the results of the runtime library, input 
 source files, and driver programs.
 Input source files are checked to ensure they build and are still functioning.
@@ -47,6 +53,9 @@ the driver programs, which all involve traversing the abstract syntax trees
 Checking transformed sources is performed with the \em checkall rule.
 
 - \b make \b checkall
+
+or
+- \b sh \b build.sh checkall # Initializes environment variables before performing checkall
 
 Using this rule adds building, executing, and checking the results of 
 instrumented source files -- <em>with enforcement checks <b>enabled</b> and 
@@ -73,9 +82,15 @@ Object and output files are automatically removed with:
 
 - \b make \b clean
 
+or
+- \b sh \b build.sh clean # Initializes environment variables before performing clean
+
 Documentation, object, output, and executable files are removed with:
 
 - \b make \b cleanall
+
+or
+- \b sh \b build.sh cleanall # Initializes environment variables before performing cleanall
 
 
 \section docs_sec Generating Documentation
@@ -86,12 +101,18 @@ the following at the command line:
 
 - \b make \b docs
 
+or
+- \b sh \b build.sh docs # Initializes environment variables before building documentation
+
 Now you can navigate to and open the index.html file from a web
 browser to see information about the classes and files in this package.
 
 Generated documentation can be removed using the \em cleandocs rule.
 
 - \b make \b cleandocs
+
+or
+- \b sh \b build.sh cleandocs # Initializes environment variables before cleaning up the documentation directory
 
 
 \htmlinclude copyright.html

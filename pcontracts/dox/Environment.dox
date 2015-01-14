@@ -15,13 +15,16 @@ in the following environment(s):
 \b boost 1.47, and \b rose 0.9.6a (\b edg 4.7).
 
 Note that \b GraphViz and \b Doxygen are only needed to generate this
-documentation.
+documentation.  \b Java and \b Boost must be the versions used to build
+Rose.
 
 
 Makefiles assume the following environment variables are properly defined:
 
-- \b ROSE_HOME  # ROSE installation root with lib and include subdirectories
 - \b BOOST_HOME  # BOOST installation root with lib and include subdirectories
+- \b LD_LIBRARY_PATH  # Must include the path to libjvm.so and $ROSE_HOME/lib
+- \b PCONTRACTS_HOME  # Root directory of the PAUL Contracts sources
+- \b ROSE_HOME  # ROSE installation root with lib and include subdirectories
 
 
 \htmlinclude copyright.html

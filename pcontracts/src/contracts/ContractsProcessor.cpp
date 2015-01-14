@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2014 December 18
+ * Last Modified:  2015 January 13
  * \endinternal
  *
  * @file
@@ -788,9 +788,11 @@ ContractsProcessor::addTimeUpdate(
 /**
  * Build and add the return variable.
  *
- * @param[in,out]  body  Pointer to the function body.
- * @param[in]      cc    Contract comment.
- * @return               Number of declarations (successfully) added.
+ * @param[in,out]  body        Pointer to the function body.
+ * @param[in]      cc          Contract comment.
+ * @param[in]      returnType  The function's return type.
+ *
+ * @return Number of declarations (successfully) added.
  */
 int
 ContractsProcessor::addReturnVariable(
@@ -1043,9 +1045,9 @@ ContractsProcessor::extractContractComment(
 /**
  * Determine if the located node has an associated contract comment.
  *
- * @param[in]  nm  Method name.
- * @return         True if nm is in at least one invariant expression; false 
- *                   otherwise.
+ * @param[in] lNode  Current located AST node.
+ *
+ * @return True if lNode has an associated contract comment; false otherwise.
  */
 bool
 ContractsProcessor::hasContractComment(

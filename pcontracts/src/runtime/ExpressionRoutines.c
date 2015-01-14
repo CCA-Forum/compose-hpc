@@ -3,7 +3,7 @@
  * File:           ExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2014 December 18
+ * Last Modified:  2015 January 13
  * \endinternal
  *
  * @file
@@ -126,9 +126,9 @@ pce_in_range(
  * Determine if the provided variable is within the tolerance of the specified
  * value.
  *
- * @param[in] var    The variable whose value is being checked.
- * @param[in] value  The target equivalent value.
- * @param[in] tol    The allowable tolerance for the value range.
+ * @param[in] var  The variable whose value is being checked.
+ * @param[in] val  The target equivalent value.
+ * @param[in] tol  The allowable tolerance for the value range.
  *
  * @return    Returns true if @a var is in range; false otherwise.
  */
