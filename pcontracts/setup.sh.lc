@@ -1,0 +1,21 @@
+#!/bin/sh
+
+addToLoadLib() {
+    LIB=$1
+    if [ $LD_LIBRARY_PATH ]; then
+      echo $LD_LIBRARY_PATH | grep -q ${LIB}
+      if [ $? -ne 0 ]; then
+        export LD_LIBRARY_PATH="$LIB:$LD_LIBRARY_PATH"
+      fi
+    else
+      export LD_LIBRARY_PATH="$LIB"
+    fi
+}
+
+
+export BOOST_HOME=/usr/gapps/babel/chaos_5_x86_64_ib/boost
+export ROSE_HOME=/usr/gapps/babel/chaos_5_x86_64/rose
+export PCONTRACTS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"; pwd )"
+
+addToLoadLib /usr/lib/jvm/java-1.6.0-sun.x86_64/jre/lib/amd64/server
+addToLoadLib $ROSE_HOME/lib
