@@ -3,7 +3,7 @@
  * File:           testExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2014 December 18
+ * Last Modified:  2015 February 5
  * \endinternal
  *
  * @file
@@ -134,7 +134,7 @@ checkInRangeI64(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. pce_inrange(%ld, %ld, %ld) == %d:  ",
+  printf("%3ld. pce_in_range(%ld, %ld, %ld) == %d:  ",
     g_numTests, var, minvalue, maxvalue, result);
 
   if (pce_in_range(var, minvalue, maxvalue) == result) 
@@ -153,6 +153,42 @@ checkInRangeI64(
 
 
 /**
+ * Checks pce_range for a specific value.
+ *
+ * @param[in] var       The variable whose value is being checked.
+ * @param[in] minvalue  The lowest value @a var can take on in the range.
+ * @param[in] maxvalue  The highest value @a var can take on in the range.
+ * @param[in] tol       The tolerance for the min and max values.
+ * @param[in] result    The expected result from the test.
+ */ 
+void
+checkRangeF(
+  /* in */ long double    var,
+  /* in */ long double    minvalue,
+  /* in */ long double    maxvalue,
+  /* in */ long double    tol,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_range(%Le, %Le, %Le, %Le) == %d:  ",
+    g_numTests, var, minvalue, maxvalue, tol, result);
+
+  if (pce_range(var, minvalue, maxvalue, tol) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkRangeF */
+
+
+/**
  * Checks pce_max for a specific pair of float values.
  *
  * @param[in] a       The first value.
@@ -168,7 +204,7 @@ checkMaxF(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMaxF(%Le, %Le) == %Le)== %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMaxF(%Le, %Le) == %Le) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_max(a, b) == expRes) == result) 
@@ -202,7 +238,7 @@ checkMaxI(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMaxI(%ld, %ld) == %ld)== %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMaxI(%ld, %ld) == %ld) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_max(a, b) == expRes) == result) 
@@ -236,7 +272,7 @@ checkMinF(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMinF(%Le, %Le) == %Le)== %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMinF(%Le, %Le) == %Le) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_min(a, b) == expRes) == result) 
@@ -270,7 +306,7 @@ checkMinI(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMinI(%ld, %ld) == %ld)== %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMinI(%ld, %ld) == %ld) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_min(a, b) == expRes) == result) 
@@ -532,6 +568,58 @@ checkPceInRange()
 
 
 /**
+ * Executes all checkRangeF cases.
+ */
+void
+checkPceRange()
+{
+  long double dtol = 0.0000001L;
+
+  /* First use double values */
+  checkRangeF(DBL_MIN, DBL_MIN, DBL_MAX, dtol, CONTRACTS_TRUE);
+  checkRangeF(DBL_MIN+dtol, DBL_MIN, DBL_MAX, dtol, CONTRACTS_TRUE);
+  checkRangeF(DBL_MAX-dtol, DBL_MIN, DBL_MAX, dtol, CONTRACTS_TRUE);
+  checkRangeF(DBL_MIN-2.*dtol, DBL_MIN, DBL_MAX, dtol, CONTRACTS_FALSE);
+  /* Note tol gets lost when added to DBL_MAX... */
+  checkRangeF(DBL_MAX+2.*dtol, DBL_MIN, DBL_MAX, dtol, CONTRACTS_TRUE);
+  checkRangeF(1.1*DBL_MAX, DBL_MIN, DBL_MAX, dtol, CONTRACTS_FALSE);
+  checkRangeF(DBL_MAX, DBL_MAX, DBL_MIN, dtol, CONTRACTS_FALSE);
+  checkRangeF(DBL_MIN, DBL_MAX, DBL_MIN, dtol, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  /* Use double values with 0.0 tolerance */
+  checkRangeF(DBL_MIN, DBL_MIN, DBL_MAX, 0.0, CONTRACTS_TRUE);
+  checkRangeF(DBL_MAX, DBL_MIN, DBL_MAX, 0.0, CONTRACTS_TRUE);
+  checkRangeF(DBL_MIN-dtol, DBL_MIN, DBL_MAX, 0.0, CONTRACTS_FALSE);
+  checkRangeF(DBL_MAX+dtol, DBL_MIN, DBL_MAX, 0.0, CONTRACTS_TRUE);
+  checkRangeF(1.1*DBL_MAX, DBL_MIN, DBL_MAX, 0.0, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  /* Use long double values */
+  checkRangeF(LDBL_MIN, LDBL_MIN+2.*dtol, LDBL_MAX, dtol, CONTRACTS_FALSE);
+  /* Note tol gets lost when added to DBL_MAX... */
+  checkRangeF(LDBL_MAX, LDBL_MIN, LDBL_MAX-DBL_MIN, dtol, CONTRACTS_TRUE);
+  /* Note DBL_MAX gets lost when added to DBL_MAX... */
+  checkRangeF(LDBL_MAX, LDBL_MIN, LDBL_MAX-DBL_MAX, dtol, CONTRACTS_TRUE);
+  checkRangeF(LDBL_MAX, LDBL_MIN, 0.9*LDBL_MAX, dtol, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  /* Use long double values with 0.0 tolerance */
+  checkRangeF(LDBL_MIN, LDBL_MIN+dtol, LDBL_MAX, 0.0, CONTRACTS_FALSE);
+  /* Note tol gets lost when added to DBL_MAX... */
+  checkRangeF(LDBL_MAX, LDBL_MIN, LDBL_MAX-dtol, 0.0, CONTRACTS_TRUE);
+  /* Note DBL_MAX gets lost when added to DBL_MAX... */
+  checkRangeF(LDBL_MAX, LDBL_MIN, LDBL_MAX-DBL_MAX, 0.0, CONTRACTS_TRUE);
+  checkRangeF(LDBL_MAX, LDBL_MIN, 0.9*LDBL_MAX, 0.0, CONTRACTS_FALSE);
+
+  printf("\n");
+} /* checkPceRange */
+
+
+/**
  * Executes all checkMaxF cases.
  */
 void
@@ -653,6 +741,9 @@ main(int argc, char **argv)
 
   /* pce_in_range checks */
   checkPceInRange();
+
+  /* pce_range checks */
+  checkPceRange();
 
   /* pce_max checks */
   checkPceMaxI();
