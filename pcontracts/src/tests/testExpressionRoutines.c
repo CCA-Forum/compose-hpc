@@ -3,7 +3,7 @@
  * File:           testExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2015 February 5
+ * Last Modified:  2015 March 17
  * \endinternal
  *
  * @file
@@ -50,6 +50,375 @@ cleanup(
 
 
 /**
+ * Checks pce_all_double for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllD(
+  /* in */ double*        arr,
+  /* in */ const char*    rel,
+  /* in */ double         val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_double(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_double(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllD */
+
+
+/**
+ * Executes suite of tests for check_all_double.
+ */
+void
+checkPceAllD()
+{
+  int i, sz = 20;
+  const char *desc = "darr";
+  const char *desc5 = "darr.5";
+  double *darr = (double *)malloc((size_t)sz * sizeof(double));
+
+  for (i = 0; i < sz; i++) darr[i] = DBL_MIN;
+  checkAllD(darr, "==", DBL_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllD(darr, "<", DBL_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAllD(darr, "<=", DBL_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllD(darr, ">", DBL_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAllD(darr, ">=", DBL_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllD(darr, "!=", DBL_MIN, sz, desc, CONTRACTS_FALSE);
+
+  darr[sz-1] = DBL_MAX*.5;
+  checkAllD(darr, "==", DBL_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllD(darr, "<", DBL_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllD(darr, "<=", DBL_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllD(darr, ">", DBL_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllD(darr, ">=", DBL_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAllD(darr, "!=", DBL_MIN, sz, desc5, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)darr);
+} /* checkPceAllD */
+
+
+/**
+ * Checks pce_all_int for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllInt(
+  /* in */ int*           arr,
+  /* in */ const char*    rel,
+  /* in */ int            val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_int(%s, %s, %d, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_int(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllInt */
+
+
+/**
+ * Executes suite of tests for check_all_int.
+ */
+void
+checkPceAllInt()
+{
+  int i, sz = 20;
+  const char *desc = "iarr";
+  const char *desc0 = "iarr0";
+  const char *desc0M = "iarr0M";
+  int *iarr = (int *)malloc((size_t)sz * sizeof(int));
+
+  for (i = 0; i < sz; i++) iarr[i] = INT_MAX;
+  checkAllInt(iarr, "==", INT_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllInt(iarr, "<", INT_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAllInt(iarr, "<=", INT_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllInt(iarr, ">", INT_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAllInt(iarr, ">=", INT_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllInt(iarr, "!=", INT_MAX, sz, desc, CONTRACTS_FALSE);
+
+  iarr[sz-1] = 0;
+  checkAllInt(iarr, "==", INT_MAX, sz, desc0, CONTRACTS_FALSE);
+  checkAllInt(iarr, "<", INT_MAX, sz, desc0, CONTRACTS_FALSE);
+  checkAllInt(iarr, "<=", INT_MAX, sz, desc0, CONTRACTS_TRUE);
+  checkAllInt(iarr, ">", INT_MAX, sz, desc0, CONTRACTS_FALSE);
+  checkAllInt(iarr, ">=", INT_MAX, sz, desc0, CONTRACTS_FALSE);
+  checkAllInt(iarr, "!=", INT_MAX, sz, desc0, CONTRACTS_FALSE);
+
+  iarr[0] = 0;
+  iarr[sz-1] = INT_MAX;
+  checkAllInt(iarr, "==", INT_MAX, sz, desc0M, CONTRACTS_FALSE);
+  checkAllInt(iarr, "<", INT_MAX, sz, desc0M, CONTRACTS_FALSE);
+  checkAllInt(iarr, "<=", INT_MAX, sz, desc0M, CONTRACTS_TRUE);
+  checkAllInt(iarr, ">", INT_MAX, sz, desc0M, CONTRACTS_FALSE);
+  checkAllInt(iarr, ">=", INT_MAX, sz, desc0M, CONTRACTS_FALSE);
+  checkAllInt(iarr, "!=", INT_MAX, sz, desc0M, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)iarr);
+} /* checkPceAllInt */
+
+
+
+/**
+ * Checks pce_all_int64 for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllI64(
+  /* in */ int64_t*       arr,
+  /* in */ const char*    rel,
+  /* in */ int64_t        val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_int64(%s, %s, %lld, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_int64(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllI64 */
+
+
+/**
+ * Executes suite of tests for check_all_i64.
+ */
+void
+checkPceAllI64()
+{
+  int i, sz = 20;
+  const char *desc = "i64arr";
+  const char *desc0 = "i64arr0";
+  int64_t *i64arr = (int64_t *)malloc((size_t)sz * sizeof(int64_t));
+
+  for (i = 0; i < sz; i++) i64arr[i] = LLONG_MIN;
+  checkAllI64(i64arr, "==", LLONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllI64(i64arr, "<", LLONG_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAllI64(i64arr, "<=", LLONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllI64(i64arr, ">", LLONG_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAllI64(i64arr, ">=", LLONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllI64(i64arr, "!=", LLONG_MIN, sz, desc, CONTRACTS_FALSE);
+
+  i64arr[sz-1] = (int64_t)0.0;
+  checkAllI64(i64arr, "==", LLONG_MIN, sz, desc0, CONTRACTS_FALSE);
+  checkAllI64(i64arr, "<", LLONG_MIN, sz, desc0, CONTRACTS_FALSE);
+  checkAllI64(i64arr, "<=", LLONG_MIN, sz, desc0, CONTRACTS_FALSE);
+  checkAllI64(i64arr, ">", LLONG_MIN, sz, desc0, CONTRACTS_FALSE);
+  checkAllI64(i64arr, ">=", LLONG_MIN, sz, desc0, CONTRACTS_TRUE);
+  checkAllI64(i64arr, "!=", LLONG_MIN, sz, desc0, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)i64arr);
+} /* checkPceAllI64 */
+
+
+
+/**
+ * Checks pce_all_long for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllL(
+  /* in */ long*          arr,
+  /* in */ const char*    rel,
+  /* in */ long           val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_long(%s, %s, %ld, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_long(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllL */
+
+
+/**
+ * Executes suite of tests for check_all_long.
+ */
+void
+checkPceAllL()
+{
+  int i, sz = 20;
+  const char *desc = "larr";
+  const char *desc9 = "larr.9";
+  long *larr = (long *)malloc((size_t)sz * sizeof(long));
+
+  for (i = 0; i < sz; i++) larr[i] = LONG_MAX;
+  checkAllL(larr, "==", LONG_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllL(larr, "<", LONG_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAllL(larr, "<=", LONG_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllL(larr, ">", LONG_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAllL(larr, ">=", LONG_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllL(larr, "!=", LONG_MAX, sz, desc, CONTRACTS_FALSE);
+
+  larr[sz-1] = LONG_MAX*0.9;
+  checkAllL(larr, "==", LONG_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllL(larr, "<", LONG_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllL(larr, "<=", LONG_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAllL(larr, ">", LONG_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllL(larr, ">=", LONG_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllL(larr, "!=", LONG_MAX, sz, desc9, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)larr);
+} /* checkPceAllL */
+
+
+
+/**
+ * Checks pce_all_longdouble for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllLD(
+  /* in */ long double*   arr,
+  /* in */ const char*    rel,
+  /* in */ long double    val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_longdouble(%s, %s, %Lg, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_longdouble(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllLD */
+
+
+/**
+ * Executes suite of tests for check_all_longdouble.
+ */
+void
+checkPceAllLD()
+{
+  int i, sz = 20;
+  const char *desc = "ldarr";
+  const char *desc9 = "ldarr.9";
+  long double *ldarr = (long double *)malloc((size_t)sz * sizeof(long double));
+
+  for (i = 0; i < sz; i++) ldarr[i] = LDBL_MAX;
+  checkAllLD(ldarr, "==", LDBL_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllLD(ldarr, "<", LDBL_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAllLD(ldarr, "<=", LDBL_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllLD(ldarr, ">", LDBL_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAllLD(ldarr, ">=", LDBL_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAllLD(ldarr, "!=", LDBL_MAX, sz, desc, CONTRACTS_FALSE);
+
+  ldarr[sz-1] = LDBL_MAX*0.9;
+  checkAllLD(ldarr, "==", LDBL_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllLD(ldarr, "<", LDBL_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllLD(ldarr, "<=", LDBL_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAllLD(ldarr, ">", LDBL_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllLD(ldarr, ">=", LDBL_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAllLD(ldarr, "!=", LDBL_MAX, sz, desc9, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)ldarr);
+} /* checkPceAllLD */
+
+
+
+/**
  * Checks pce_all_null for an expected result.
  *
  * @param[in] arr     The array whose (pointer) contents are being checked.
@@ -65,7 +434,7 @@ checkAllNull(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. pce_all_null(%s, %d) == %d:  ",
+  printf("%3ld. pce_all_null(%s, %lld) == %d:  ",
     g_numTests, desc, num, result);
 
   if (pce_all_null(arr, num) == result) 
@@ -84,6 +453,371 @@ checkAllNull(
 
 
 /**
+ * Checks pce_any_double for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyD(
+  /* in */ double*        arr,
+  /* in */ const char*    rel,
+  /* in */ double         val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_double(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_double(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyD */
+
+
+/**
+ * Executes a suite of checks for pce_any_double.
+ */
+void
+checkPceAnyD()
+{
+  int i, sz = 20;
+  const char *desc = "darr";
+  const char *desc5 = "darr.5";
+  double *darr = (double *)malloc((size_t)sz * sizeof(double));
+
+  for (i = 0; i < sz; i++) darr[i] = DBL_MIN;
+  checkAnyD(darr, "==", DBL_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyD(darr, "<", DBL_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyD(darr, "<=", DBL_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyD(darr, ">", DBL_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyD(darr, ">=", DBL_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyD(darr, "!=", DBL_MIN, sz, desc, CONTRACTS_FALSE);
+
+  darr[sz-1] = DBL_MAX*0.5;
+  checkAnyD(darr, "==", DBL_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyD(darr, "<", DBL_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAnyD(darr, "<=", DBL_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyD(darr, ">", DBL_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyD(darr, ">=", DBL_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyD(darr, "!=", DBL_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyD(darr, "==", darr[sz-1], sz, desc5, CONTRACTS_TRUE);
+
+  printf("\n");
+
+  free((void*)darr);
+} /* checkPceAnyD */
+
+
+
+/**
+ * Checks pce_any_int for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyInt(
+  /* in */ int*           arr,
+  /* in */ const char*    rel,
+  /* in */ int            val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_int(%s, %s, %d, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_int(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyInt */
+
+
+/**
+ * Executes a suite of checks for pce_any_int.
+ */
+void
+checkPceAnyInt()
+{
+  int i, sz = 20;
+  const char *desc = "iarr";
+  const char *desc0 = "iarr0";
+  int *iarr = (int *)malloc((size_t)sz * sizeof(int));
+
+  for (i = 0; i < sz; i++) iarr[i] = INT_MAX;
+  checkAnyInt(iarr, "==", INT_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAnyInt(iarr, "<", INT_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAnyInt(iarr, "<=", INT_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAnyInt(iarr, ">", INT_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAnyInt(iarr, ">=", INT_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAnyInt(iarr, "!=", INT_MAX, sz, desc, CONTRACTS_FALSE);
+
+  iarr[sz-1] = 0;
+  checkAnyInt(iarr, "==", INT_MAX, sz, desc0, CONTRACTS_TRUE);
+  checkAnyInt(iarr, "<", INT_MAX, sz, desc0, CONTRACTS_TRUE);
+  checkAnyInt(iarr, "<=", INT_MAX, sz, desc0, CONTRACTS_TRUE);
+  checkAnyInt(iarr, ">", INT_MAX, sz, desc0, CONTRACTS_FALSE);
+  checkAnyInt(iarr, ">=", INT_MAX, sz, desc0, CONTRACTS_TRUE);
+  checkAnyInt(iarr, "!=", INT_MAX, sz, desc0, CONTRACTS_TRUE);
+  checkAnyInt(iarr, "==", 0, sz, desc0, CONTRACTS_TRUE);
+
+  printf("\n");
+
+  free((void*)iarr);
+} /* checkPceAnyInt */
+
+
+
+/**
+ * Checks pce_any_int for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyInt64(
+  /* in */ int64_t*       arr,
+  /* in */ const char*    rel,
+  /* in */ int64_t        val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_int64(%s, %s, %lld, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_int64(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyInt64 */
+
+
+/**
+ * Executes a suite of checks for pce_any_int64.
+ */
+void
+checkPceAnyI64()
+{
+  int i, sz = 20;
+  const char *desc = "i64arr";
+  const char *desc5 = "i64arr.5";
+  int64_t *i64arr = (int64_t *)malloc((size_t)sz * sizeof(int64_t));
+
+  for (i = 0; i < sz; i++) i64arr[i] = LLONG_MIN;
+  checkAnyInt64(i64arr, "==", LLONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, "<", LLONG_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyInt64(i64arr, "<=", LLONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, ">", LLONG_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyInt64(i64arr, ">=", LLONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, "!=", LLONG_MIN, sz, desc, CONTRACTS_FALSE);
+
+  i64arr[sz-1] = LLONG_MAX*0.5;
+  checkAnyInt64(i64arr, "==", LLONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, "<", LLONG_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAnyInt64(i64arr, "<=", LLONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, ">", LLONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, ">=", LLONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, "!=", LLONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyInt64(i64arr, "==", i64arr[sz-1], sz, desc5, CONTRACTS_TRUE);
+
+  printf("\n");
+
+  free((void*)i64arr);
+} /* checkPceAnyI64 */
+
+
+
+/**
+ * Checks pce_any_long for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyL(
+  /* in */ long*          arr,
+  /* in */ const char*    rel,
+  /* in */ long           val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_long(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_long(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyL */
+
+
+/**
+ * Executes a suite of checks for pce_any_long.
+ */
+void
+checkPceAnyL()
+{
+  int i, sz = 20;
+  const char *desc = "larr";
+  const char *desc5 = "larr.5";
+  long *larr = (long *)malloc((size_t)sz * sizeof(long));
+
+  for (i = 0; i < sz; i++) larr[i] = LONG_MIN;
+  checkAnyL(larr, "==", LONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyL(larr, "<", LONG_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyL(larr, "<=", LONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyL(larr, ">", LONG_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyL(larr, ">=", LONG_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyL(larr, "!=", LONG_MIN, sz, desc, CONTRACTS_FALSE);
+
+  larr[sz-1] = LONG_MAX*0.5;
+  checkAnyL(larr, "==", LONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyL(larr, "<", LONG_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAnyL(larr, "<=", LONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyL(larr, ">", LONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyL(larr, ">=", LONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyL(larr, "!=", LONG_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyL(larr, "==", larr[sz-1], sz, desc5, CONTRACTS_TRUE);
+
+  printf("\n");
+
+  free((void*)larr);
+} /* checkPceAnyL */
+
+
+
+/**
+ * Checks pce_any_longdouble for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyLD(
+  /* in */ long double*   arr,
+  /* in */ const char*    rel,
+  /* in */ long double    val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_longdouble(%s, %s, %Lg, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_longdouble(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyLD */
+
+
+/**
+ * Executes a suite of checks for pce_any_longdouble.
+ */
+void
+checkPceAnyLD()
+{
+  int i, sz = 20;
+  const char *desc = "d64arr";
+  const char *desc9 = "d64arr.9";
+  long double *d64arr = (long double *)malloc((size_t)sz * sizeof(long double));
+
+  for (i = 0; i < sz; i++) d64arr[i] = LDBL_MAX;
+  checkAnyLD(d64arr, "==", LDBL_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, "<", LDBL_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAnyLD(d64arr, "<=", LDBL_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, ">", LDBL_MAX, sz, desc, CONTRACTS_FALSE);
+  checkAnyLD(d64arr, ">=", LDBL_MAX, sz, desc, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, "!=", LDBL_MAX, sz, desc, CONTRACTS_FALSE);
+
+  d64arr[sz-1] = LDBL_MAX*0.9;
+  checkAnyLD(d64arr, "==", LDBL_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, "<", LDBL_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, "<=", LDBL_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, ">", LDBL_MAX, sz, desc9, CONTRACTS_FALSE);
+  checkAnyLD(d64arr, ">=", LDBL_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, "!=", LDBL_MAX, sz, desc9, CONTRACTS_TRUE);
+  checkAnyLD(d64arr, "==", d64arr[sz-1], sz, desc9, CONTRACTS_TRUE);
+
+  printf("\n");
+
+  free((void*)d64arr);
+} /* checkPceAnyLD */
+
+
+
+/**
  * Checks pce_any_null for an expected result.
  *
  * @param[in] arr     The array whose (pointer) contents are being checked.
@@ -99,7 +833,7 @@ checkAnyNull(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. pce_any_null(%s, %d) == %d:  ",
+  printf("%3ld. pce_any_null(%s, %lld) == %d:  ",
     g_numTests, desc, num, result);
 
   if (pce_any_null(arr, num) == result) 
@@ -119,6 +853,371 @@ checkAnyNull(
 
 
 /**
+ * Checks pce_count_double for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountD(
+  /* in */ double*        arr,
+  /* in */ const char*    rel,
+  /* in */ double         val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ int64_t        result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_double(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_double(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountD */
+
+
+/**
+ * Executes a suite of checks for pce_count_double.
+ */
+void
+checkPceCountD()
+{
+  int i, sz = 20;
+  const char *desc = "darr";
+  const char *desc5 = "darr.5";
+  double *darr = (double *)malloc((size_t)sz * sizeof(double));
+
+  for (i = 0; i < sz; i++) darr[i] = DBL_MIN;
+  checkCountD(darr, "==", DBL_MIN, sz, desc, sz);
+  checkCountD(darr, "<", DBL_MIN, sz, desc, 0);
+  checkCountD(darr, "<=", DBL_MIN, sz, desc, sz);
+  checkCountD(darr, ">", DBL_MIN, sz, desc, 0);
+  checkCountD(darr, ">=", DBL_MIN, sz, desc, sz);
+  checkCountD(darr, "!=", DBL_MIN, sz, desc, 0);
+
+  darr[sz-1] = DBL_MAX*0.5;
+  checkCountD(darr, "==", DBL_MIN, sz, desc5, sz-1);
+  checkCountD(darr, "<", DBL_MIN, sz, desc5, 0);
+  checkCountD(darr, "<=", DBL_MIN, sz, desc5, sz-1);
+  checkCountD(darr, ">", DBL_MIN, sz, desc5, 1);
+  checkCountD(darr, ">=", DBL_MIN, sz, desc5, sz);
+  checkCountD(darr, "!=", DBL_MIN, sz, desc5, 1);
+  checkCountD(darr, "==", darr[sz-1], sz, desc5, 1);
+
+  printf("\n");
+
+  free((void*)darr);
+} /* checkPceCountD */
+
+
+
+/**
+ * Checks pce_count_int for an expected result.
+ *
+ * @param[in] arr     The array whose (pointer) contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountInt(
+  /* in */ int*           arr,
+  /* in */ const char*    rel,
+  /* in */ int            val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ int64_t        result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_int(%s, %s, %d, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_int(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountInt */
+
+
+/**
+ * Executes a suite of checks for pce_count_int.
+ */
+void
+checkPceCountInt()
+{
+  int i, sz = 20;
+  const char *desc = "iarr";
+  const char *desc0 = "iarr0";
+  int *iarr = (int *)malloc((size_t)sz * sizeof(int));
+
+  for (i = 0; i < sz; i++) iarr[i] = INT_MAX;
+  checkCountInt(iarr, "==", INT_MAX, sz, desc, sz);
+  checkCountInt(iarr, "<", INT_MAX, sz, desc, 0);
+  checkCountInt(iarr, "<=", INT_MAX, sz, desc, sz);
+  checkCountInt(iarr, ">", INT_MAX, sz, desc, 0);
+  checkCountInt(iarr, ">=", INT_MAX, sz, desc, sz);
+  checkCountInt(iarr, "!=", INT_MAX, sz, desc, 0);
+
+  iarr[sz-1] = 0;
+  checkCountInt(iarr, "==", INT_MAX, sz, desc0, sz-1);
+  checkCountInt(iarr, "<", INT_MAX, sz, desc0, 1);
+  checkCountInt(iarr, "<=", INT_MAX, sz, desc0, sz);
+  checkCountInt(iarr, ">", INT_MAX, sz, desc0, 0);
+  checkCountInt(iarr, ">=", INT_MAX, sz, desc0, sz-1);
+  checkCountInt(iarr, "!=", INT_MAX, sz, desc0, 1);
+  checkCountInt(iarr, "==", 0, sz, desc0, 1);
+
+  printf("\n");
+
+  free((void*)iarr);
+} /* checkPceCountInt */
+
+
+
+/**
+ * Checks pce_count_int64 for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountI64(
+  /* in */ int64_t*       arr,
+  /* in */ const char*    rel,
+  /* in */ int64_t        val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ int64_t        result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_int64(%s, %s, %lld, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_int64(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountI64 */
+
+
+/**
+ * Executes a suite of checks for pce_count_int64.
+ */
+void
+checkPceCountI64()
+{
+  int i, sz = 20;
+  const char *desc = "i64arr";
+  const char *desc5 = "i64arr.5";
+  int64_t *i64arr = (int64_t *)malloc((size_t)sz * sizeof(int64_t));
+
+  for (i = 0; i < sz; i++) i64arr[i] = LLONG_MIN;
+  checkCountI64(i64arr, "==", LLONG_MIN, sz, desc, sz);
+  checkCountI64(i64arr, "<", LLONG_MIN, sz, desc, 0);
+  checkCountI64(i64arr, "<=", LLONG_MIN, sz, desc, sz);
+  checkCountI64(i64arr, ">", LLONG_MIN, sz, desc, 0);
+  checkCountI64(i64arr, ">=", LLONG_MIN, sz, desc, sz);
+  checkCountI64(i64arr, "!=", LLONG_MIN, sz, desc, 0);
+
+  i64arr[sz-1] = LLONG_MAX*0.5;
+  checkCountI64(i64arr, "==", LLONG_MIN, sz, desc5, sz-1);
+  checkCountI64(i64arr, "<", LLONG_MIN, sz, desc5, 0);
+  checkCountI64(i64arr, "<=", LLONG_MIN, sz, desc5, sz-1);
+  checkCountI64(i64arr, ">", LLONG_MIN, sz, desc5, 1);
+  checkCountI64(i64arr, ">=", LLONG_MIN, sz, desc5, sz);
+  checkCountI64(i64arr, "!=", LLONG_MIN, sz, desc5, 1);
+  checkCountI64(i64arr, "==", i64arr[sz-1], sz, desc5, 1);
+
+  printf("\n");
+
+  free((void*)i64arr);
+} /* checkPceCountI64 */
+
+
+
+/**
+ * Checks pce_count_long for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountL(
+  /* in */ long*          arr,
+  /* in */ const char*    rel,
+  /* in */ long           val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ int64_t        result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_long(%s, %s, %ld, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_long(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountL */
+
+
+/**
+ * Executes a suite of checks for pce_count_long.
+ */
+void
+checkPceCountL()
+{
+  int i, sz = 20;
+  const char *desc = "ldarr";
+  const char *desc9 = "ldarr.9";
+  long *larr = (long *)malloc((size_t)sz * sizeof(long));
+
+  for (i = 0; i < sz; i++) larr[i] = LONG_MAX;
+  checkCountL(larr, "==", LONG_MAX, sz, desc, sz);
+  checkCountL(larr, "<", LONG_MAX, sz, desc, 0);
+  checkCountL(larr, "<=", LONG_MAX, sz, desc, sz);
+  checkCountL(larr, ">", LONG_MAX, sz, desc, 0);
+  checkCountL(larr, ">=", LONG_MAX, sz, desc, sz);
+  checkCountL(larr, "!=", LONG_MAX, sz, desc, 0);
+
+  larr[sz-1] = LONG_MAX*0.9;
+  checkCountL(larr, "==", LONG_MAX, sz, desc9, sz-1);
+  checkCountL(larr, "<", LONG_MAX, sz, desc9, 1);
+  checkCountL(larr, "<=", LONG_MAX, sz, desc9, sz);
+  checkCountL(larr, ">", LONG_MAX, sz, desc9, 0);
+  checkCountL(larr, ">=", LONG_MAX, sz, desc9, sz-1);
+  checkCountL(larr, "!=", LONG_MAX, sz, desc9, 1);
+  checkCountL(larr, "==", larr[sz-1], sz, desc9, 1);
+
+  printf("\n");
+
+  free((void*)larr);
+} /* checkPceCountL */
+
+
+
+/**
+ * Checks pce_count_longdouble for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountLD(
+  /* in */ long double*   arr,
+  /* in */ const char*    rel,
+  /* in */ long double    val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ int64_t        result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_longdouble(%s, %s, %Lg, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_longdouble(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountLD */
+
+
+/**
+ * Executes a suite of checks for pce_count_longdouble.
+ */
+void
+checkPceCountLD()
+{
+  int i, sz = 20;
+  const char *desc = "ldarr";
+  const char *desc9 = "ldarr.9";
+  long double *ldarr = (long double *)malloc((size_t)sz * sizeof(long double));
+
+  for (i = 0; i < sz; i++) ldarr[i] = LDBL_MAX;
+  checkCountLD(ldarr, "==", LDBL_MAX, sz, desc, sz);
+  checkCountLD(ldarr, "<", LDBL_MAX, sz, desc, 0);
+  checkCountLD(ldarr, "<=", LDBL_MAX, sz, desc, sz);
+  checkCountLD(ldarr, ">", LDBL_MAX, sz, desc, 0);
+  checkCountLD(ldarr, ">=", LDBL_MAX, sz, desc, sz);
+  checkCountLD(ldarr, "!=", LDBL_MAX, sz, desc, 0);
+
+  ldarr[sz-1] = LDBL_MAX*0.9;
+  checkCountLD(ldarr, "==", LDBL_MAX, sz, desc9, sz-1);
+  checkCountLD(ldarr, "<", LDBL_MAX, sz, desc9, 1);
+  checkCountLD(ldarr, "<=", LDBL_MAX, sz, desc9, sz);
+  checkCountLD(ldarr, ">", LDBL_MAX, sz, desc9, 0);
+  checkCountLD(ldarr, ">=", LDBL_MAX, sz, desc9, sz-1);
+  checkCountLD(ldarr, "!=", LDBL_MAX, sz, desc9, 1);
+  checkCountLD(ldarr, "==", ldarr[sz-1], sz, desc9, 1);
+
+  printf("\n");
+
+  free((void*)ldarr);
+} /* checkPceCountLD */
+
+
+
+/**
  * Checks pce_in_range for a specific value.
  *
  * @param[in] var       The variable whose value is being checked.
@@ -134,7 +1233,7 @@ checkInRangeI64(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. pce_in_range(%ld, %ld, %ld) == %d:  ",
+  printf("%3ld. pce_in_range(%lld, %lld, %lld) == %d:  ",
     g_numTests, var, minvalue, maxvalue, result);
 
   if (pce_in_range(var, minvalue, maxvalue) == result) 
@@ -170,7 +1269,7 @@ checkRangeF(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. pce_range(%Le, %Le, %Le, %Le) == %d:  ",
+  printf("%3ld. pce_range(%Lg, %Lg, %Lg, %Lg) == %d:  ",
     g_numTests, var, minvalue, maxvalue, tol, result);
 
   if (pce_range(var, minvalue, maxvalue, tol) == result) 
@@ -204,7 +1303,7 @@ checkMaxF(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMaxF(%Le, %Le) == %Le) == %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMaxF(%Lg, %Lg) == %Lg) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_max(a, b) == expRes) == result) 
@@ -238,7 +1337,7 @@ checkMaxI(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMaxI(%ld, %ld) == %ld) == %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMaxI(%lld, %lld) == %lld) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_max(a, b) == expRes) == result) 
@@ -272,7 +1371,7 @@ checkMinF(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMinF(%Le, %Le) == %Le) == %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMinF(%Lg, %Lg) == %Lg) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_min(a, b) == expRes) == result) 
@@ -306,7 +1405,7 @@ checkMinI(
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. (checkMinI(%ld, %ld) == %ld) == %d:  ", g_numTests, a, b, 
+  printf("%3ld. (checkMinI(%lld, %lld) == %lld) == %d:  ", g_numTests, a, b, 
     expRes, result);
 
   if ((pce_min(a, b) == expRes) == result) 
@@ -333,14 +1432,14 @@ checkMinI(
  * @param[in] result  The expected result from the test.
  */ 
 void
-checkNearEqualLD(
+checkNearEqualF(
   /* in */ long double    var,
   /* in */ long double    value,
   /* in */ long double    tol,
   /* in */ CONTRACTS_BOOL result)
 {
   g_numTests += 1;
-  printf("%3ld. checkNearEqualLD(%Le, %Le, %Le) == %d:  ",
+  printf("%3ld. checkNearEqualF(%Lg, %Lg, %Lg) == %d:  ",
     g_numTests, var, value, tol, result);
 
   if (pce_near_equal(var, value, tol) == result) 
@@ -355,7 +1454,7 @@ checkNearEqualLD(
   printf("\n");
 
   return;
-} /* checkNearEqualLD */
+} /* checkNearEqualF */
 
 
 /**
@@ -391,7 +1490,7 @@ checkPceAllNullChars()
  * Executes checkAllNull cases for an integer array.
  */
 void
-checkPceAllNullInts()
+checkPceAllNullIs()
 {
   int sz = 20;
   const char *desc = "intarr";
@@ -413,14 +1512,14 @@ checkPceAllNullInts()
   printf("\n");
 
   cleanup((void**)intarr, sz);
-} /* checkAllNullInts */
+} /* checkAllNullIs */
 
 
 /**
  * Executes checkAllNull cases for a long double array.
  */
 void
-checkPceAllNullLDs()
+checkPceAllNullFs()
 {
   int sz = 20;
   const char *desc = "ldarr";
@@ -443,7 +1542,7 @@ checkPceAllNullLDs()
   printf("\n");
 
   cleanup((void**)ldarr, sz);
-} /* checkAllNullLDs */
+} /* checkAllNullFs */
 
 
 /**
@@ -480,7 +1579,7 @@ checkPceAnyNullChars()
  * Executes checkAnyNull cases for an integer array.
  */
 void
-checkPceAnyNullInts()
+checkPceAnyNullIs()
 {
   int i, sz = 20;
   const char *desc = "intarr";
@@ -503,14 +1602,14 @@ checkPceAnyNullInts()
   printf("\n");
 
   cleanup((void**)intarr, sz);
-} /* checkAnyNullInts */
+} /* checkAnyNullIs */
 
 
 /**
  * Executes checkAnyNull cases for a long double array.
  */
 void
-checkPceAnyNullLDs()
+checkPceAnyNullFs()
 {
   int i, sz = 20;
   const char *desc = "ldarr";
@@ -534,7 +1633,7 @@ checkPceAnyNullLDs()
   printf("\n");
 
   cleanup((void**)ldarr, sz);
-} /* checkAnyNullLDs */
+} /* checkAnyNullFs */
 
 
 /**
@@ -684,40 +1783,53 @@ checkPceMinF()
 
 
 /**
- * Executes all checkNearEqualLD cases.
+ * Executes all checkNearEqualF cases.
  */
 void
 checkPceNearEqual()
 {
   /* Use long double values */
   long double ldtol = 0.0000001L;
-  checkNearEqualLD(LDBL_MIN, LDBL_MIN, ldtol, CONTRACTS_TRUE);
-  checkNearEqualLD(LDBL_MIN+ldtol, LDBL_MIN, ldtol, CONTRACTS_TRUE);
-  checkNearEqualLD(LDBL_MIN+(2.0L*ldtol), LDBL_MIN, ldtol, CONTRACTS_FALSE);
-  checkNearEqualLD(LDBL_MAX/(1.0L+ldtol), LDBL_MAX, ldtol, CONTRACTS_FALSE);
-  checkNearEqualLD(LDBL_MAX-ldtol, LDBL_MAX, ldtol, CONTRACTS_TRUE);
-  checkNearEqualLD(LDBL_MAX, LDBL_MAX, ldtol, CONTRACTS_TRUE);
+  checkNearEqualF(LDBL_MIN, LDBL_MIN, ldtol, CONTRACTS_TRUE);
+  checkNearEqualF(LDBL_MIN+ldtol, LDBL_MIN, ldtol, CONTRACTS_TRUE);
+  checkNearEqualF(LDBL_MIN+(2.0L*ldtol), LDBL_MIN, ldtol, CONTRACTS_FALSE);
+  checkNearEqualF(LDBL_MAX/(1.0L+ldtol), LDBL_MAX, ldtol, CONTRACTS_FALSE);
+  checkNearEqualF(LDBL_MAX-ldtol, LDBL_MAX, ldtol, CONTRACTS_TRUE);
+  checkNearEqualF(LDBL_MAX, LDBL_MAX, ldtol, CONTRACTS_TRUE);
 
   printf("\n");
 
   /* Use float values */
   float ftol = 0.0000001f;
-  checkNearEqualLD(FLT_MIN, FLT_MIN+ftol, ftol, CONTRACTS_TRUE);
-  checkNearEqualLD(FLT_MIN, FLT_MIN+(2.0f*ftol), ftol, CONTRACTS_FALSE);
-  checkNearEqualLD(FLT_MAX, FLT_MAX/(1.0f+ftol), ftol, CONTRACTS_FALSE);
-  checkNearEqualLD(FLT_MAX, FLT_MAX-ftol, ftol, CONTRACTS_TRUE);
+  checkNearEqualF(FLT_MIN, FLT_MIN+ftol, ftol, CONTRACTS_TRUE);
+  checkNearEqualF(FLT_MIN, FLT_MIN+(2.0f*ftol), ftol, CONTRACTS_FALSE);
+  checkNearEqualF(FLT_MAX, FLT_MAX/(1.0f+ftol), ftol, CONTRACTS_FALSE);
+  checkNearEqualF(FLT_MAX, FLT_MAX-ftol, ftol, CONTRACTS_TRUE);
 
   printf("\n");
 
   /* Use double values */
   double dtol = 0.0000001;
-  checkNearEqualLD(DBL_MIN, DBL_MIN+dtol, dtol, CONTRACTS_TRUE);
-  checkNearEqualLD(DBL_MIN, DBL_MIN+(2.0*dtol), dtol, CONTRACTS_FALSE);
-  checkNearEqualLD(DBL_MAX, DBL_MAX/(1.0+dtol), dtol, CONTRACTS_FALSE);
-  checkNearEqualLD(DBL_MAX, DBL_MAX-dtol, dtol, CONTRACTS_TRUE);
+  checkNearEqualF(DBL_MIN, DBL_MIN+dtol, dtol, CONTRACTS_TRUE);
+  checkNearEqualF(DBL_MIN, DBL_MIN+(2.0*dtol), dtol, CONTRACTS_FALSE);
+  checkNearEqualF(DBL_MAX, DBL_MAX/(1.0+dtol), dtol, CONTRACTS_FALSE);
+  checkNearEqualF(DBL_MAX, DBL_MAX-dtol, dtol, CONTRACTS_TRUE);
 
   printf("\n");
 } /* checkPceNearEqual */
+
+
+/**
+ * Executes all checkPceRels cases.
+ */
+void
+checkPceRels()
+{
+  /* Use long double values */
+  long double ldtol = 0.0000001L;
+  checkNearEqualF(LDBL_MIN, LDBL_MIN, ldtol, CONTRACTS_TRUE);
+  checkNearEqualF(LDBL_MIN+ldtol, LDBL_MIN, ldtol, CONTRACTS_TRUE);
+} /* checkPceRels */
 
 
 
@@ -729,15 +1841,36 @@ main(int argc, char **argv)
 {
   printf("\nRunning testExpressionRoutines tests...\n");
 
+  /* pce_all checks */
+  checkPceAllD();
+  checkPceAllInt();
+  checkPceAllI64();
+  checkPceAllL();
+  checkPceAllLD();
+
   /* pce_all_null checks */
   checkPceAllNullChars();
-  checkPceAllNullInts();
-  checkPceAllNullLDs();
+  checkPceAllNullIs();
+  checkPceAllNullFs();
+
+  /* pce_any checks */
+  checkPceAnyD();
+  checkPceAnyInt();
+  checkPceAnyI64();
+  checkPceAnyL();
+  checkPceAnyLD();
 
   /* pce_any_null checks */
   checkPceAnyNullChars();
-  checkPceAnyNullInts();
-  checkPceAnyNullLDs();
+  checkPceAnyNullIs();
+  checkPceAnyNullFs();
+
+  /* pce_count checks */
+  checkPceCountD();
+  checkPceCountInt();
+  checkPceCountI64();
+  checkPceCountL();
+  checkPceCountLD();
 
   /* pce_in_range checks */
   checkPceInRange();
@@ -757,7 +1890,7 @@ main(int argc, char **argv)
   checkPceNearEqual();
 
   /* Wrap up by summarizing results */
-  printf("\n..%ld passed out of %ld cases\n", g_numOkay, g_numTests);
+  printf("\n..%lld passed out of %ld cases\n", g_numOkay, g_numTests);
   printf("\n\nTEST SUITE %s\n", (g_numOkay==g_numTests) ? "PASSED" : "FAILED");
 
   return 0;

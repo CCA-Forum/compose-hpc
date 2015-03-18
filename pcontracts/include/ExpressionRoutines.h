@@ -3,7 +3,7 @@
  * File:           ExpressionRoutines.h
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2015 February 5
+ * Last Modified:  2015 February 17
  * \endinternal
  *
  * @file
@@ -48,6 +48,101 @@
 #define pce_min(A, B) (((A) < (B)) ? (A) : (B))
 
 /**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_double(
+  /* in */ double*      arr,
+  /* in */ const char*  rel,
+  /* in */ double       val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_int(
+  /* in */ int*         arr,
+  /* in */ const char*  rel,
+  /* in */ int          val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_int64(
+  /* in */ int64_t*     arr,
+  /* in */ const char*  rel,
+  /* in */ int64_t      val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_long(
+  /* in */ long*        arr,
+  /* in */ const char*  rel,
+  /* in */ long         val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_longdouble(
+  /* in */ long double* arr,
+  /* in */ const char*  rel,
+  /* in */ long double  val,
+  /* in */ int64_t      num);
+
+
+/**
  * Determine if all (of the first) num entries are NULL.
  * 
  * @param[in] arr  The array of addresses variable.
@@ -62,6 +157,101 @@ pce_all_null(
 
 
 /**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_any_double(
+  /* in */ double*      arr,
+  /* in */ const char*  rel,
+  /* in */ double       val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_any_int(
+  /* in */ int*         arr,
+  /* in */ const char*  rel,
+  /* in */ int          val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_any_int64(
+  /* in */ int64_t*     arr,
+  /* in */ const char*  rel,
+  /* in */ int64_t      val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_any_long(
+  /* in */ long*        arr,
+  /* in */ const char*  rel,
+  /* in */ long         val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_any_longdouble(
+  /* in */ long double* arr,
+  /* in */ const char*  rel,
+  /* in */ long double  val,
+  /* in */ int64_t      num);
+
+
+/**
  * Determine if any (of the first) num entries are NULL.
  *
  * @param[in] arr  The array of addresses variable.
@@ -73,6 +263,101 @@ CONTRACTS_BOOL
 pce_any_null(
   /* in */ void**  arr,
   /* in */ int64_t num);
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_double(
+  /* in */ double*      arr,
+  /* in */ const char*  rel,
+  /* in */ double       val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_int(
+  /* in */ int*         arr,
+  /* in */ const char*  rel,
+  /* in */ int          val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_int64(
+  /* in */ int64_t*     arr,
+  /* in */ const char*  rel,
+  /* in */ int64_t      val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_long(
+  /* in */ long*        arr,
+  /* in */ const char*  rel,
+  /* in */ long         val,
+  /* in */ int64_t      num);
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_longdouble(
+  /* in */ long double* arr,
+  /* in */ const char*  rel,
+  /* in */ long double  val,
+  /* in */ int64_t      num);
 
 
 /**
