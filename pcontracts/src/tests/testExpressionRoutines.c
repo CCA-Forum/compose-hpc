@@ -3,7 +3,7 @@
  * File:           testExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2015 March 17
+ * Last Modified:  2015 March 24
  * \endinternal
  *
  * @file
@@ -47,6 +47,83 @@ cleanup(
   }
   free((void*)arr);
 } /* cleanup */
+
+
+/**
+ * Checks pce_all_char for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllC(
+  /* in */ const char*    arr,
+  /* in */ const char*    rel,
+  /* in */ const char     val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_char(%s, %s, '%c', %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_char(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllC */
+
+
+/**
+ * Executes suite of tests for check_all_char.
+ */
+void
+checkPceAllC()
+{
+  int i, sz = 20;
+  const char *desc = "carr";
+  const char *desc1 = "carr1";
+  char *carr = (char *)malloc((size_t)sz * sizeof(char));
+
+  for (i = 0; i < sz; i++) carr[i] = 0;
+  checkAllC(carr, "==", 0, sz, desc, CONTRACTS_TRUE);
+  checkAllC(carr, "!=", 0, sz, desc, CONTRACTS_FALSE);
+  checkAllC(carr, "<=", 0, sz, desc, CONTRACTS_TRUE);
+  checkAllC(carr, "<", 0, sz, desc, CONTRACTS_FALSE);
+  checkAllC(carr, ">=", 0, sz, desc, CONTRACTS_TRUE);
+  checkAllC(carr, ">", 0, sz, desc, CONTRACTS_FALSE);
+
+  checkAllC(carr, "==", 'c', sz, desc, CONTRACTS_FALSE);
+
+  carr[sz-1] = 'b';
+  checkAllC(carr, "<=", 'b', sz, desc1, CONTRACTS_TRUE);
+  checkAllC(carr, "==", 'b', sz, desc1, CONTRACTS_FALSE);
+  checkAllC(carr, ">=", 'b', sz, desc1, CONTRACTS_FALSE);
+
+  const char *desc2 = "barr";
+  const char *barr = "   ";
+  int blen = strlen(barr);
+
+  checkAllC(barr, "==", ' ', blen, desc2, CONTRACTS_TRUE);
+  checkAllC(barr, "!=", ' ', blen, desc2, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)carr);
+} /* checkPceAllC */
 
 
 /**
@@ -453,6 +530,86 @@ checkAllNull(
 
 
 /**
+ * Checks pce_any_char for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyC(
+  /* in */ const char*    arr,
+  /* in */ const char*    rel,
+  /* in */ const char     val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_char(%s, %s, '%c', %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_char(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyC */
+
+
+/**
+ * Executes a suite of checks for pce_any_char.
+ */
+void
+checkPceAnyC()
+{
+  int i, sz = 20;
+  const char *desc = "carr";
+  const char *desc1 = "carr1";
+  char *carr = (char *)malloc((size_t)sz * sizeof(char));
+
+  for (i = 0; i < sz; i++) carr[i] = 0;
+  checkAnyC(carr, "==", 0, sz, desc, CONTRACTS_TRUE);
+  checkAnyC(carr, "!=", 0, sz, desc, CONTRACTS_FALSE);
+  checkAnyC(carr, ">", 0, sz, desc, CONTRACTS_FALSE);
+  checkAnyC(carr, ">=", 0, sz, desc, CONTRACTS_TRUE);
+  checkAnyC(carr, "<", 0, sz, desc, CONTRACTS_FALSE);
+  checkAnyC(carr, "<=", 0, sz, desc, CONTRACTS_TRUE);
+  checkAnyC(carr, "==", 'c', sz, desc, CONTRACTS_FALSE);
+
+  carr[sz-1] = 'b';
+  checkAnyC(carr, "<=", 'b', sz, desc1, CONTRACTS_TRUE);
+  checkAnyC(carr, "<", 'b', sz, desc1, CONTRACTS_TRUE);
+  checkAnyC(carr, ">=", 'b', sz, desc1, CONTRACTS_TRUE);
+  checkAnyC(carr, ">", 'b', sz, desc1, CONTRACTS_FALSE);
+  checkAnyC(carr, "!=", 'b', sz, desc1, CONTRACTS_TRUE);
+  checkAnyC(carr, "==", 'b', sz, desc1, CONTRACTS_TRUE);
+
+  const char *desc2 = "barr";
+  const char *barr = "     ";
+  int blen = strlen(barr);
+
+  checkAnyC(barr, "==", ' ', blen, desc2, CONTRACTS_TRUE);
+  checkAnyC(barr, "!=", ' ', blen, desc2, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)carr);
+} /* checkPceAnyC */
+
+
+
+/**
  * Checks pce_any_double for an expected result.
  *
  * @param[in] arr     The array whose contents are being checked.
@@ -849,6 +1006,84 @@ checkAnyNull(
 
   return;
 } /* checkAnyNull */
+
+
+
+/**
+ * Checks pce_count_char for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountC(
+  /* in */ const char*    arr,
+  /* in */ const char*    rel,
+  /* in */ const char     val,
+  /* in */ const int64_t  num,
+  /* in */ const char*    desc,
+  /* in */ const int64_t  result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_char(%s, %s, \'%c\', %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_char(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountC */
+
+
+/**
+ * Executes a suite of checks for pce_count_char.
+ */
+void
+checkPceCountC()
+{
+  int i, sz = 20;
+  const char *desc = "narr";
+  const char *desc1 = "uarr";
+  const char *desc2 = "larr";
+  const char *uarr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const char *larr = " aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz ";
+  char *narr = (char *)malloc((size_t)sz * sizeof(char));
+
+  for (i = 0; i < sz; i++) narr[i] = 0;
+  checkCountC(narr, "==", 0, sz, desc, sz);
+  checkCountC(narr, "!=", 0, sz, desc, 0);
+
+  int ulen = strlen(uarr);
+  checkCountC(uarr, "==", 'l', ulen, desc1, 0);
+  checkCountC(uarr, "==", 'A', ulen, desc1, 1);
+  checkCountC(uarr, "!=", 'A', ulen, desc1, ulen-1);
+  checkCountC(uarr, ">=", 'A', ulen, desc1, ulen);
+  checkCountC(uarr, ">", 'A', ulen, desc1, ulen-1);
+  checkCountC(uarr, "<", 'A', ulen, desc1, 0);
+  checkCountC(uarr, "<=", 'A', ulen, desc1, 1);
+
+  int llen = strlen(larr);
+  checkCountC(larr, "==", ' ', llen, desc2, 2);
+  checkCountC(larr, "!=", ' ', llen, desc2, llen-2);
+  checkCountC(larr, "==", 'L', llen, desc2, 0);
+  checkCountC(larr, "!=", 'L', llen, desc2, llen);
+  checkCountC(larr, "==", 'a', llen, desc2, 2);
+  checkCountC(larr, "==", 'z', llen, desc2, 2);
+
+  printf("\n");
+} /* checkPceCountC */
 
 
 
@@ -1842,6 +2077,7 @@ main(int argc, char **argv)
   printf("\nRunning testExpressionRoutines tests...\n");
 
   /* pce_all checks */
+  checkPceAllC();
   checkPceAllD();
   checkPceAllInt();
   checkPceAllI64();
@@ -1854,6 +2090,7 @@ main(int argc, char **argv)
   checkPceAllNullFs();
 
   /* pce_any checks */
+  checkPceAnyC();
   checkPceAnyD();
   checkPceAnyInt();
   checkPceAnyI64();
@@ -1866,6 +2103,7 @@ main(int argc, char **argv)
   checkPceAnyNullFs();
 
   /* pce_count checks */
+  checkPceCountC();
   checkPceCountD();
   checkPceCountInt();
   checkPceCountI64();

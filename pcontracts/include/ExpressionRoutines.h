@@ -3,7 +3,7 @@
  * File:           ExpressionRoutines.h
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2015 February 17
+ * Last Modified:  2015 March 24
  * \endinternal
  *
  * @file
@@ -46,6 +46,25 @@
 
 #define pce_max(A, B) (((A) > (B)) ? (A) : (B))
 #define pce_min(A, B) (((A) < (B)) ? (A) : (B))
+
+/**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_char(
+  /* in */ const char*  arr,
+  /* in */ const char*  rel,
+  /* in */ const char   val,
+  /* in */ int64_t      num);
+
 
 /**
  * Determine if all (of the first) num entries have the specified relation
@@ -168,6 +187,26 @@ pce_all_null(
  * @return    Returns true if all are so related; otherwise, returns false.
  */
 CONTRACTS_BOOL
+pce_any_char(
+  /* in */ const char*  arr,
+  /* in */ const char*  rel,
+  /* in */ const char   val,
+  /* in */ int64_t      num);
+
+
+
+/**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
 pce_any_double(
   /* in */ double*      arr,
   /* in */ const char*  rel,
@@ -263,6 +302,25 @@ CONTRACTS_BOOL
 pce_any_null(
   /* in */ void**  arr,
   /* in */ int64_t num);
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_char(
+  /* in */ const char*  arr,
+  /* in */ const char*  rel,
+  /* in */ const char   val,
+  /* in */ int64_t      num);
 
 
 /**
