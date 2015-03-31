@@ -3,7 +3,7 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2015 March 24
+ * Last Modified:  2015 March 31
  * \endinternal
  *
  * @file
@@ -43,6 +43,7 @@ static const std::string UnsupportedInterfaces[] = {
   "pce_all",         /* Since assuming C, currently require type appended */
   //"pce_all_char",
   //"pce_all_double",
+  //"pce_all_float",
   //"pce_all_int",
   //"pce_all_int64",
   //"pce_all_long",
@@ -51,6 +52,7 @@ static const std::string UnsupportedInterfaces[] = {
   "pce_any",         /* Since assuming C, currently require type appended */
   //"pce_any_char",
   //"pce_any_double",
+  //"pce_any_float",
   //"pce_any_int",
   //"pce_any_int64",
   //"pce_any_long",
@@ -59,6 +61,7 @@ static const std::string UnsupportedInterfaces[] = {
   "pce_count",       /* Since assuming C, currently require type appended */
   //"pce_count_char",
   //"pce_count_double",
+  //"pce_count_float",
   //"pce_count_int",
   //"pce_count_int64",
   //"pce_count_long",
@@ -81,7 +84,7 @@ static const std::string UnsupportedInterfaces[] = {
   "is pure",
 };
 static const int MIN_NEE_INDEX = 0;
-static const int MAX_NEE_INDEX = 29;
+static const int MAX_NEE_INDEX = 13;
 
 static const std::string L_UNSUPPORTED_EXPRESSION 
     = "Unsupported reserved word(s) detected in:\n\t";

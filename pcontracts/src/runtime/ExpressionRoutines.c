@@ -3,7 +3,7 @@
  * File:           ExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2015 March 24
+ * Last Modified:  2015 March 31
  * \endinternal
  *
  * @file
@@ -187,6 +187,34 @@ pce_all_double(
 
   return _are;
 } /* pce_all_double */
+
+
+
+/**
+ * Determine if all (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
+pce_all_float(
+  /* in */ float*       arr,
+  /* in */ const char*  rel,
+  /* in */ float        val,
+  /* in */ int64_t      num)
+{
+  CONTRACTS_BOOL _are = CONTRACTS_FALSE;
+  int64_t i;
+
+  CONTRACTS_PCE_ALL(arr, rel, val, num, i, _are)
+
+  return _are;
+} /* pce_all_float */
 
 
 
@@ -394,6 +422,34 @@ pce_any_double(
  * @return    Returns true if all are so related; otherwise, returns false.
  */
 CONTRACTS_BOOL
+pce_any_float(
+  /* in */ float*       arr,
+  /* in */ const char*  rel,
+  /* in */ float        val,
+  /* in */ int64_t      num)
+{
+  CONTRACTS_BOOL _are = CONTRACTS_FALSE;
+  int64_t i;
+
+  CONTRACTS_PCE_ANY(arr, rel, val, num, i, _are)
+
+  return _are;
+}  /* pce_any_float */
+
+
+
+/**
+ * Determine if any (of the first) num entries have the specified relation
+ * to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+CONTRACTS_BOOL
 pce_any_int(
   /* in */ int*         arr,
   /* in */ const char*  rel,
@@ -568,6 +624,33 @@ pce_count_double(
 
   return _cnt;
 }  /* pce_count_double */
+
+
+
+/**
+ * Determine the number (of the first) num entries that have the specified 
+ * relation to the value.
+ *
+ * @param[in] arr  The array variable.
+ * @param[in] rel  The binary relationship operator (as a string).
+ * @param[in] val  The value to be compared.
+ * @param[in] num  The length or number of entries in the array.
+ *
+ * @return    Returns true if all are so related; otherwise, returns false.
+ */
+int64_t
+pce_count_float(
+  /* in */ float*       arr,
+  /* in */ const char*  rel,
+  /* in */ float        val,
+  /* in */ int64_t      num)
+{
+  int64_t _cnt, i;
+
+  CONTRACTS_PCE_COUNT(arr, rel, val, num, i, _cnt)
+
+  return _cnt;
+}  /* pce_count_float */
 
 
 

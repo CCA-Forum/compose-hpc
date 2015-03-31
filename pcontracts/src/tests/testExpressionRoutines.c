@@ -3,7 +3,7 @@
  * File:           testExpressionRoutines.c
  * Author:         T. Dahlgren
  * Created:        2013 October 8
- * Last Modified:  2015 March 24
+ * Last Modified:  2015 March 31
  * \endinternal
  *
  * @file
@@ -195,6 +195,78 @@ checkPceAllD()
 
   free((void*)darr);
 } /* checkPceAllD */
+
+
+/**
+ * Checks pce_all_float for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAllF(
+  /* in */ float*         arr,
+  /* in */ const char*    rel,
+  /* in */ float          val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_all_float(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_all_float(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAllF */
+
+
+/**
+ * Executes suite of tests for check_all_int.
+ */
+void
+checkPceAllF()
+{
+  int i, sz = 20;
+  const char *desc = "farr";
+  const char *desc5 = "farr.5";
+  float *farr = (float *)malloc((size_t)sz * sizeof(float));
+
+  for (i = 0; i < sz; i++) farr[i] = FLT_MIN;
+  checkAllF(farr, "==", FLT_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllF(farr, "<", FLT_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAllF(farr, "<=", FLT_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllF(farr, ">", FLT_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAllF(farr, ">=", FLT_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAllF(farr, "!=", FLT_MIN, sz, desc, CONTRACTS_FALSE);
+
+  farr[sz-1] = FLT_MAX*.5;
+  checkAllF(farr, "==", FLT_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllF(farr, "<", FLT_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllF(farr, "<=", FLT_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllF(farr, ">", FLT_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAllF(farr, ">=", FLT_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAllF(farr, "!=", FLT_MIN, sz, desc5, CONTRACTS_FALSE);
+
+  printf("\n");
+
+  free((void*)farr);
+} /* checkPceAllF */
+
 
 
 /**
@@ -683,6 +755,79 @@ checkPceAnyD()
 
 
 /**
+ * Checks pce_any_float for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkAnyF(
+  /* in */ float*         arr,
+  /* in */ const char*    rel,
+  /* in */ float          val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ CONTRACTS_BOOL result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_any_float(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_any_float(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkAnyF */
+
+
+/**
+ * Executes a suite of checks for pce_any_float.
+ */
+void
+checkPceAnyF()
+{
+  int i, sz = 20;
+  const char *desc = "farr";
+  const char *desc5 = "farr.5";
+  float *farr = (float *)malloc((size_t)sz * sizeof(float));
+
+  for (i = 0; i < sz; i++) farr[i] = FLT_MIN;
+  checkAnyF(farr, "==", FLT_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyF(farr, "<", FLT_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyF(farr, "<=", FLT_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyF(farr, ">", FLT_MIN, sz, desc, CONTRACTS_FALSE);
+  checkAnyF(farr, ">=", FLT_MIN, sz, desc, CONTRACTS_TRUE);
+  checkAnyF(farr, "!=", FLT_MIN, sz, desc, CONTRACTS_FALSE);
+
+  farr[sz-1] = FLT_MAX*0.5;
+  checkAnyF(farr, "==", FLT_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyF(farr, "<", FLT_MIN, sz, desc5, CONTRACTS_FALSE);
+  checkAnyF(farr, "<=", FLT_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyF(farr, ">", FLT_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyF(farr, ">=", FLT_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyF(farr, "!=", FLT_MIN, sz, desc5, CONTRACTS_TRUE);
+  checkAnyF(farr, "==", farr[sz-1], sz, desc5, CONTRACTS_TRUE);
+
+  printf("\n");
+
+  free((void*)farr);
+} /* checkPceAnyF */
+
+
+
+/**
  * Checks pce_any_int for an expected result.
  *
  * @param[in] arr     The array whose contents are being checked.
@@ -1084,6 +1229,79 @@ checkPceCountC()
 
   printf("\n");
 } /* checkPceCountC */
+
+
+
+/**
+ * Checks pce_count_float for an expected result.
+ *
+ * @param[in] arr     The array whose contents are being checked.
+ * @param[in] rel     The binary relationship operator (as a string).
+ * @param[in] val     The value to be compared.
+ * @param[in] num     The number of entries in the array (to check).
+ * @param[in] desc    The character description of the array check.
+ * @param[in] result  The expected result from the test.
+ */ 
+void
+checkCountF(
+  /* in */ float*         arr,
+  /* in */ const char*    rel,
+  /* in */ float          val,
+  /* in */ int64_t        num,
+  /* in */ const char*    desc,
+  /* in */ int64_t        result)
+{
+  g_numTests += 1;
+  printf("%3ld. pce_count_float(%s, %s, %g, %lld) == %d:  ",
+    g_numTests, desc, rel, val, num, result);
+
+  if (pce_count_float(arr, rel, val, num) == result) 
+  {
+    g_numOkay +=1;
+    printf("PASSED");
+  } 
+  else
+  {
+    printf("FAILED");
+  } 
+  printf("\n");
+
+  return;
+} /* checkCountF */
+
+
+/**
+ * Executes a suite of checks for pce_count_float.
+ */
+void
+checkPceCountF()
+{
+  int i, sz = 20;
+  const char *desc = "farr";
+  const char *desc5 = "farr.5";
+  float *farr = (float *)malloc((size_t)sz * sizeof(float));
+
+  for (i = 0; i < sz; i++) farr[i] = FLT_MIN;
+  checkCountF(farr, "==", FLT_MIN, sz, desc, sz);
+  checkCountF(farr, "<", FLT_MIN, sz, desc, 0);
+  checkCountF(farr, "<=", FLT_MIN, sz, desc, sz);
+  checkCountF(farr, ">", FLT_MIN, sz, desc, 0);
+  checkCountF(farr, ">=", FLT_MIN, sz, desc, sz);
+  checkCountF(farr, "!=", FLT_MIN, sz, desc, 0);
+
+  farr[sz-1] = FLT_MAX*0.5;
+  checkCountF(farr, "==", FLT_MIN, sz, desc5, sz-1);
+  checkCountF(farr, "<", FLT_MIN, sz, desc5, 0);
+  checkCountF(farr, "<=", FLT_MIN, sz, desc5, sz-1);
+  checkCountF(farr, ">", FLT_MIN, sz, desc5, 1);
+  checkCountF(farr, ">=", FLT_MIN, sz, desc5, sz);
+  checkCountF(farr, "!=", FLT_MIN, sz, desc5, 1);
+  checkCountF(farr, "==", farr[sz-1], sz, desc5, 1);
+
+  printf("\n");
+
+  free((void*)farr);
+} /* checkPceCountF */
 
 
 
@@ -2079,6 +2297,7 @@ main(int argc, char **argv)
   /* pce_all checks */
   checkPceAllC();
   checkPceAllD();
+  checkPceAllF();
   checkPceAllInt();
   checkPceAllI64();
   checkPceAllL();
@@ -2092,6 +2311,7 @@ main(int argc, char **argv)
   /* pce_any checks */
   checkPceAnyC();
   checkPceAnyD();
+  checkPceAnyF();
   checkPceAnyInt();
   checkPceAnyI64();
   checkPceAnyL();
@@ -2105,6 +2325,7 @@ main(int argc, char **argv)
   /* pce_count checks */
   checkPceCountC();
   checkPceCountD();
+  checkPceCountF();
   checkPceCountInt();
   checkPceCountI64();
   checkPceCountL();
