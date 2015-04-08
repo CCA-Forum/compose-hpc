@@ -966,20 +966,36 @@ ContractsProcessor::extractContract(
       AttachedPreprocessingInfoType::iterator iter;
       for (iter = cmts->begin(); iter != cmts->end(); iter++)
       {
-        ContractComment* cc = extractContractComment(lNode, iter);
-        if (cc != NULL)
+        /* Delete any comments if we've hit the end of a macro */
+        PreprocessingInfo::DirectiveType dt = (*iter)->getTypeOfDirective();
+        if (dt == PreprocessingInfo::CpreprocessorEndifDeclaration) 
         {
-          numComments++;
+#ifdef DEBUG
+            cout << "DEBUG: ....Encountered endif, removing " << clauses.size() <<" comments\n";
+#endif /* DEBUG */
+          while (!clauses.empty()) 
+          {
+            numComments--;
+            clauses.pop_back();
+          }
+        }
+        else 
+        {
+          ContractComment* cc = extractContractComment(lNode, iter);
+          if (cc != NULL)
+          {
+            numComments++;
 
 #ifdef DEBUG
-          if (numComments <= 1) 
-          {
-            printLineComment(lNode, "DEBUG: ..Processing..", false);
-          }
-          cout << "DEBUG: ....Pushing back node clause #" << numComments <<"\n";
+            if (numComments <= 1) 
+            {
+              printLineComment(lNode, "DEBUG: ..Processing..", false);
+            }
+            cout << "DEBUG: ....Pushing back node clause #" << numComments <<"\n";
 #endif /* DEBUG */
-          clauses.push_back(cc);
-        } /* end if have contract comment to process */
+            clauses.push_back(cc);
+          } /* end if have contract comment to process */
+        }
       } /* end for each comment */
 
       if (numComments != clauses.size())
