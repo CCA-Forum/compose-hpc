@@ -180,7 +180,8 @@ checkContractsCore:
 	    else \
 	    ORFN=$(ORACLE_DIR)/$$TFN; \
 	    fi; \
-	    ./$$exe > $$TFN; \
+	    ./$$exe > $$TFN.save; \
+	    cat $$TFN.save | grep -v DEBUG > $$TFN; \
 	    if [ -s $$TFN ]; then \
 	      if [ -f $$ORFN -a -s $$TFN ]; then \
 	      diff $$TFN $$ORFN > $$TFN.diffs; \
@@ -232,7 +233,7 @@ checksummary:
 	fi
 
 checkclean:
-	@rm -f *.o *.mout $(EXES)
+	@rm -f *.o *.mout *.mout.save $(EXES)
 
 checksetup:
 	@echo 1 > $(CHECK_EX_STATUS)

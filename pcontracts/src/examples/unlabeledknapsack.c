@@ -67,7 +67,7 @@ knapsack(
   } else if (i >= n) {
     has = 0;
   } else if (knapsack(weights, t-weights[i], i+1, n)) {
-    printf("%d ", weights[i]);
+    printf("%d\n", weights[i]);
     has = 1;
   } else {
     has = knapsack(weights, t, i+1, n);
@@ -94,7 +94,7 @@ runIt(
   /* in */ unsigned int  t, 
   /* in */ unsigned int  num)
 {
-  printf("\nSolution for target=%d?: ", t);
+  printf("\nSolution for target=%d?:\n", t);
   if (!knapsack(weights, t, 0, num)) {
     printf("None");
   } else if (t == 0) {

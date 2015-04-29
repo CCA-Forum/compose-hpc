@@ -41,6 +41,10 @@ extern "C" {
              S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
       (CVE) = (ContractViolationEnum)(TP); \
     } \
+    else {\
+      printf("DEBUG: %s:%d: %s passed: %s: %d\n", __FILE__, __LINE__, \
+             S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
+    } \
   } \
 }
 

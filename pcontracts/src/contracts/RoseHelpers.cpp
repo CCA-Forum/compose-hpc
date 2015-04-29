@@ -3,7 +3,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2014 July 24
+ * Last Modified:  2015 April 28
  * \endinternal
  *
  * @file
@@ -323,7 +323,7 @@ compress(
     int i;
     for (i=0; i<txt.length(); i++)
     {
-      if (isspace(txt[i]))
+      if (isspace(txt[i]) || iscntrl(txt[i]))  // Ensure no extraneous controls
       {
         txt[i] = ' ';
       }

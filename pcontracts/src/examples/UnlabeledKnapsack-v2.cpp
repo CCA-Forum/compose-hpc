@@ -276,7 +276,7 @@ solve(const unsigned int* weights, unsigned int t, unsigned int i,
   } else if (i >= n) {
     has = false;
   } else if (solve(weights, t-weights[i], i+1, n)) {
-    cout << weights[i] << " ";
+    cout << weights[i] << "\n";
     has = true;
   } else {
     has = solve(weights, t, i+1, n);
@@ -297,7 +297,7 @@ solve(const unsigned int* weights, unsigned int t, unsigned int i,
 void
 runIt(Examples::UnlabeledKnapsack* ksack, unsigned int t)
 {
-  cout << "\nSolution for target=" << t <<"?: ";
+  cout << "\nSolution for target=" << t <<"?:\n";
   if ( (ksack != NULL) && !ksack->hasSolution(t) ) {
     cout << "None";
   } else if (t == 0) {
