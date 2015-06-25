@@ -3,7 +3,7 @@
  * File:           contractClauseTypes.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2015 March 31
+ * Last Modified:  2015 June 4
  * \endinternal
  *
  * @file
@@ -76,7 +76,7 @@ static const std::string UnsupportedInterfaces[] = {
   "pce_none",
   "pce_non_incr",
   //"pce_range",  /* Now supported as executable */
-  //"pce_result", /* Now supported as executable */
+  //"pce_result", /* Now recognized as (part of) possibly executable expr */
   "pce_size",
   "pce_stride",
   "pce_sum",

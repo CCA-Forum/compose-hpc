@@ -35,6 +35,9 @@ extern "C" {
  * Macro to check an assertion expression.
  */
 #define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) { \
+  (CVE) = ContractViolation_NONE; \
+  printf("DEBUG: PCE_CHECK_EXPR: %s:%d: %s: %s: %d\n", __FILE__, __LINE__, \
+         S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
   if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
     if (!(EXPR)) { \
       printf("\nERROR: %s:%d: %s Violation: %s: %d\n", __FILE__, __LINE__, \
@@ -42,7 +45,7 @@ extern "C" {
       (CVE) = (ContractViolationEnum)(TP); \
     } \
     else {\
-      printf("DEBUG: %s:%d: %s passed: %s: %d\n", __FILE__, __LINE__, \
+      printf("DEBUG: %s:%d: %s okay: %s: %d\n", __FILE__, __LINE__, \
              S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
     } \
   } \
@@ -53,7 +56,7 @@ extern "C" {
  */
 #define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, LBL, EXPR) { \
   ContractViolationEnum _pce_vio = ContractViolation_NONE; \
-  PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (LBL), (EXPR), _pce_vio) \
+  PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (LBL), (EXPR), _pce_vio); \
   if ((_pce_vio!=ContractViolation_NONE)&&(ContractsEnforcer_terminate(ENF))) \
   { \
     printf("Terminating execution...\n"); \

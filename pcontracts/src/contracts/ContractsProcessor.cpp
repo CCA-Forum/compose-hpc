@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2015 January 13
+ * Last Modified:  2015 June 25
  * \endinternal
  *
  * @file
@@ -109,16 +109,28 @@ buildDump(
   SgExprListExp* parms = new SgExprListExp(FILE_INFO);
   if ( (currSttmt != NULL) && (parms != NULL) )
   {
+    parms->set_endOfConstruct(FILE_INFO);
+
+    SgScopeStatement* currScope = currSttmt->get_scope();
+
+#ifdef DEBUG
+    cout<<"DEBUG: ....Building PCE_DUMP_STATS\n";
+    cout<<"DEBUG: ......currScope="<<currScope<<endl;
+#endif /* DEBUG */
+
     parms->append_expression(SageBuilder::buildOpaqueVarRefExp("pce_enforcer",
-        currSttmt->get_scope()));
+        currScope));
     if (desc.empty()) {
-      parms->append_expression(SageBuilder::buildOpaqueVarRefExp("NULL",
-          currSttmt->get_scope()));
+      SgNullExpression* nExpr = new SgNullExpression(FILE_INFO);
+      if (nExpr != NULL) {
+        nExpr->set_endOfConstruct(FILE_INFO);
+        parms->append_expression(nExpr);
+      }
     } else {
       parms->append_expression(SageBuilder::buildStringVal(desc));
     }
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_DUMP_STATS", 
-      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+      SageBuilder::buildVoidType(), parms, currScope);
     if (sttmt != NULL)
     {
       sttmt->set_parent(currSttmt->get_parent());
@@ -165,8 +177,17 @@ buildFinal(
   SgExprListExp* parms = new SgExprListExp(FILE_INFO);
   if ( (currSttmt != NULL) && (parms != NULL) )
   {
+    parms->set_endOfConstruct(FILE_INFO);
+
+    SgScopeStatement* currScope = currSttmt->get_scope();
+
+#ifdef DEBUG
+    cout<<"DEBUG: ....Building PCE_FINALIZE\n";
+    cout<<"DEBUG: ......currScope="<<currScope<<endl;
+#endif /* DEBUG */
+
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_FINALIZE", 
-      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+      SageBuilder::buildVoidType(), parms, currScope);
     if (sttmt != NULL)
     {
       sttmt->set_parent(currSttmt->get_parent());
@@ -203,15 +224,26 @@ buildInit(
   SgExprListExp* parms = new SgExprListExp(FILE_INFO);
   if ( (currSttmt != NULL) && (parms != NULL) )
   {
+    parms->set_endOfConstruct(FILE_INFO);
+    SgScopeStatement* currScope = currSttmt->get_scope();
+
+#ifdef DEBUG
+    cout<<"DEBUG: ....Building PCE_INITIALIZE\n";
+    cout<<"DEBUG: ......currScope="<<currScope<<endl;
+#endif /* DEBUG */
+
     if (filename.empty()) {
-      parms->append_expression(SageBuilder::buildOpaqueVarRefExp("NULL", 
-          currSttmt->get_scope()));
+      SgNullExpression* nExpr = new SgNullExpression(FILE_INFO);
+      if (nExpr != NULL) {
+        nExpr->set_endOfConstruct(FILE_INFO);
+        parms->append_expression(nExpr);
+      }
     } else {
       parms->append_expression(SageBuilder::buildStringVal(filename));
     }
 
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_INITIALIZE", 
-      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+      SageBuilder::buildVoidType(), parms, currScope);
     if (sttmt != NULL)
     {
       sttmt->set_parent(currSttmt->get_parent());
@@ -244,12 +276,21 @@ buildTimeUpdate(
   SgExprListExp* parms = new SgExprListExp(FILE_INFO);
   if ( (currSttmt != NULL) && (parms != NULL) )
   {
+    parms->set_endOfConstruct(FILE_INFO);
+
+    SgScopeStatement* currScope = currSttmt->get_scope();
+
+#ifdef DEBUG
+    cout<<"DEBUG: ....Building PCE_UPDATE_EST_TIME\n";
+    cout<<"DEBUG: ......currScope="<<currScope<<endl;
+#endif /* DEBUG */
+
     parms->append_expression(SageBuilder::buildOpaqueVarRefExp("pce_enforcer",
-        currSttmt->get_scope()));
+        currScope));
     parms->append_expression(SageBuilder::buildOpaqueVarRefExp(
-      "pce_def_times.routine", currSttmt->get_scope()));
+      "pce_def_times.routine", currScope));
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_UPDATE_EST_TIME", 
-      SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+      SageBuilder::buildVoidType(), parms, currScope);
     if (sttmt != NULL)
     {
       sttmt->set_parent(currSttmt->get_parent());
@@ -310,15 +351,6 @@ ContractsProcessor::addExpressions(
 #ifdef DEBUG
         cout << expr << "\n";
 #endif /* DEBUG */
-
-        if (expr.find("pce_result") != string::npos )
-        {
-          cc->setResult(true);
-#ifdef DEBUG
-        cout << "DEBUG: ..contains pce_result\n";
-#endif /* DEBUG */
-        }
-
 
         /*
          * Order of expression, expr, checks IS important.  
@@ -417,12 +449,16 @@ ContractsProcessor::addFinalize(
   {
     PPIDirectiveType dt = cc->directive();
 
-    SgExprStatement* sttmt = buildFinal(body, dt);
-    if (sttmt != NULL)
+    SgExprStatement* eStmt = buildFinal(body, dt);
+    if (eStmt != NULL)
     {
-      // Call our special version of SageInterface's instrumentEndOfFunction,
-      // which knows how to handle void "functions".
-      num += instrumentReturnPoints(def->get_declaration(), sttmt);
+      SgStatement* sttmt = isSgStatement(eStmt);
+      if (sttmt != NULL) {
+        // Call our special version of SageInterface's instrumentEndOfFunction.
+        std::vector<SgStatement*> stmtList;
+        stmtList.push_back(sttmt);
+        num += instrumentReturnPoints(def->get_declaration(), stmtList, "");
+      }
     }
   }
               
@@ -567,11 +603,11 @@ ContractsProcessor::addInitialize(
  * Add checks for all contract clause assertion expressions to the end
  * of the routine body.  
  *
- * @param[in]      def   Function definition.
- * @param[in,out]  body  Pointer to the function body, which is assumed
- *                         to belong to the function definition, def.
- * @param[in]      cc    The contract comment whose expressions are to be added.
- * @return               The number of statements added to the body.
+ * @param[in]      def  Function definition.
+ * @param[in,out]  body Pointer to the function body, which is assumed
+ *                        to belong to the function definition, def.
+ * @param[in]      cc   The contract comment whose expressions are to be added.
+ * @return              The number of statements added to the body.
  */
 int
 ContractsProcessor::addPostChecks(
@@ -592,6 +628,7 @@ ContractsProcessor::addPostChecks(
       cout << " expressions and/or comments...\n";
 #endif /* DEBUG */
 
+      vector<SgStatement*> stmtList;
       list<AssertionExpression> aeList = cc->getList();
       for(list<AssertionExpression>::iterator iter = aeList.begin();
           iter != aeList.end(); iter++)
@@ -601,14 +638,14 @@ ContractsProcessor::addPostChecks(
         {
           case AssertionSupport_EXECUTABLE:
             {
-              SgExprStatement* sttmt = buildCheck(body, ccType, ae, 
+              bool hasResult = ae.hasResult();
+              SgExprStatement* cStmt = buildCheck(body, ccType, ae, 
                                                   cc->directive());
-              if (sttmt != NULL)
-              {
-                // Call our special version of SageInterface's 
-                // instrumentEndOfFunction, which knows how to handle 
-                // returns without values in void "functions".
-                num += instrumentReturnPoints(def->get_declaration(), sttmt);
+              if (cStmt != NULL) {
+                SgStatement* sttmt = isSgStatement(cStmt);
+                if (sttmt != NULL) {
+                  stmtList.push_back(sttmt);
+                }
               }
             }
             break;
@@ -635,9 +672,15 @@ ContractsProcessor::addPostChecks(
             break;
         }
       }
-    } 
+
+      // Call our special version of SageInterface's instrumentEndOfFunction.
+      SgFunctionDeclaration* decl = def->get_declaration();
+      if ( (decl != NULL) && (stmtList.size() > 0) ) {
+        num += instrumentReturnPoints(decl, stmtList, CONTRACTS_RESULT_VAR);
+      }
+    }
     else
-    { 
+    {
       cerr<<"\n"<<S_ERROR_BAD_CHECKS<<"n";
     } /* end if have something to work with */
 
@@ -746,12 +789,17 @@ ContractsProcessor::addStatsDump(
     cout<<"DEBUG: ....STATS comment =\""<<cc->getComment()<<"\"\n";
 #endif /* DEBUG */
 
-    SgExprStatement* sttmt = buildDump(body, cc->directive(), cc->getComment());
-    if (sttmt != NULL)
+    SgExprStatement* dStmt = buildDump(body, cc->directive(), cc->getComment());
+    if (dStmt != NULL)
     {
-      // Call our special version of SageInterface's instrumentEndOfFunction,
-      // which knows how to handle returns without values in void "functions".
-      num += instrumentReturnPoints(def->get_declaration(), sttmt);
+      // Call our special version of SageInterface's instrumentEndOfFunction.
+      SgStatement* sttmt = isSgStatement(dStmt);
+      if (sttmt != NULL) {
+        // Call our special version of SageInterface's instrumentEndOfFunction.
+        std::vector<SgStatement*> stmtList;
+        stmtList.push_back(sttmt);
+        num += instrumentReturnPoints(def->get_declaration(), stmtList, "");
+      }
     }
   }
               
@@ -785,37 +833,6 @@ ContractsProcessor::addTimeUpdate(
 }  /* addTimeUpdate */
 
 
-/**
- * Build and add the return variable.
- *
- * @param[in,out]  body        Pointer to the function body.
- * @param[in]      cc          Contract comment.
- * @param[in]      returnType  The function's return type.
- *
- * @return Number of declarations (successfully) added.
- */
-int
-ContractsProcessor::addReturnVariable(
-  /* inout */ SgBasicBlock*    body, 
-  /* in */    ContractComment* cc,
-  /* in */    SgType*          returnType)
-{
-  int num = 0;
-
-  if ( (body != NULL) && (cc != NULL) && (returnType != NULL) )
-  {
-    SgVariableDeclaration* varDecl = new SgVariableDeclaration(FILE_INFO,
-        "pce_result", returnType);
-    if (varDecl != NULL) {
-      varDecl->set_parent(body);
-      body->prepend_statement(varDecl);
-      num += 1;
-    }
-  }
-              
-  return num;
-}  /* addReturnVariable */
-
 
 /**
  * Build the contract clause check statement.
@@ -840,12 +857,21 @@ ContractsProcessor::buildCheck(
   {
     string cmt, clauseTypeStr, clauseTime;
     SgExprListExp* parms = new SgExprListExp(FILE_INFO);
+    SgScopeStatement* currScope = currSttmt->get_scope();
+
+#ifdef DEBUG
+    if (currScope == NULL) {
+      cout << "DEBUG/WARNING: buildCheck: Scope of curr statement is NULL!\n";
+    }
+#endif /* DEBUG */
 
     if (parms != NULL)
     {
+      parms->set_endOfConstruct(FILE_INFO);
+
       string cmt, clauseTypeStr, clauseTime;
       parms->append_expression(SageBuilder::buildOpaqueVarRefExp(
-          "pce_enforcer", currSttmt->get_scope()));
+          "pce_enforcer", currScope));
   
       switch (clauseType)
       {
@@ -888,27 +914,31 @@ ContractsProcessor::buildCheck(
       }
 
       parms->append_expression(SageBuilder::buildOpaqueVarRefExp(clauseTypeStr,
-          currSttmt->get_scope()));
+          currScope));
       parms->append_expression(SageBuilder::buildOpaqueVarRefExp(clauseTime,
-          currSttmt->get_scope()));
+          currScope));
       parms->append_expression(SageBuilder::buildOpaqueVarRefExp(
-        "pce_def_times.routine", currSttmt->get_scope()));
-      parms->append_expression(new SgStringVal(FILE_INFO, ae.label()));
+        "pce_def_times.routine", currScope));
+      SgStringVal* lbl = new SgStringVal(FILE_INFO, ae.label());
+      assert(lbl != NULL);
+      lbl->set_endOfConstruct(FILE_INFO);
+      parms->append_expression(lbl);
       parms->append_expression(SageBuilder::buildOpaqueVarRefExp(
-          "("+ae.expr()+")", currSttmt->get_scope()));
+          "("+ae.expr()+")", currScope));
   
       sttmt = SageBuilder::buildFunctionCallStmt("PCE_CHECK_EXPR_TERM", 
-        SageBuilder::buildVoidType(), parms, currSttmt->get_scope());
+        SageBuilder::buildVoidType(), parms, currScope);
 
-#ifdef PCE_ADD_COMMENTS
       if (sttmt != NULL)
       {
         sttmt->set_parent(currSttmt->get_parent());
 
+#ifdef PCE_ADD_COMMENTS
         SageInterface::attachComment(sttmt, S_PREFACE + cmt + S_BEGIN,
           PreprocessingInfo::before, dt);
         SageInterface::attachComment(sttmt, S_PREFACE + cmt + S_END,
           PreprocessingInfo::after, dt);
+#endif /* PCE_ADD_COMMENTS */
       }
 #ifdef DEBUG
       else
@@ -916,7 +946,6 @@ ContractsProcessor::buildCheck(
         cout << "DEBUG: buildCheck: New statement is NULL.\n";
       }
 #endif /* DEBUG */
-#endif /* PCE_ADD_COMMENTS */
     }
 #ifdef DEBUG
     else
@@ -1530,7 +1559,6 @@ ContractsProcessor::processFunctionComments(
            || (post != NULL) || (stats != NULL) || (d_invariants != NULL) )
         {
           SgBasicBlock* body = def->get_body();
-          bool returnAdded = false;
   
           if (body != NULL)
           {
@@ -1568,14 +1596,6 @@ ContractsProcessor::processFunctionComments(
             { 
               num += addPreChecks(body, pre);
               numExec += pre->numExecutable();
-
-              if (pre->needsResult() && !returnAdded) {
-                if (addReturnVariable(body, pre, decl->get_orig_return_type()))
-                {
-                  returnAdded = true;
-                  num += 1;
-                }
-              }
             }
 
             if (init != NULL)
@@ -1591,14 +1611,6 @@ ContractsProcessor::processFunctionComments(
             {
               if ( (numChecks[1] > 0) && !inClause(nm, post) )
               {
-                if (post->needsResult() && !returnAdded) {
-                  if (addReturnVariable(body, post, 
-                                        decl->get_orig_return_type()))
-                  {
-                    returnAdded = true;
-                    num += 1;
-                  }
-                }
                 num += addPostChecks(def, body, post);
                 numExec += post->numExecutable();
               }

@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2014 June 19
+ * Last Modified:  2015 June 25
  * \endinternal
  *
  * @file
@@ -30,8 +30,9 @@
 class ContractsProcessor
 {
   public:
-    ContractsProcessor() : d_invariants(NULL), d_first(false) {}
-    ~ContractsProcessor() { if (d_invariants != NULL) {delete d_invariants;} }
+    ContractsProcessor() : d_invariants(NULL), d_first(false) {};
+
+    ~ContractsProcessor() { if (d_invariants != NULL) {delete d_invariants;} };
 
     void addExpressions(const std::string clause, ContractComment* cc);
     
@@ -53,9 +54,6 @@ class ContractsProcessor
       ContractComment* cc);
 
     int addTimeUpdate(SgBasicBlock* body);
-
-    int addReturnVariable(SgBasicBlock* body, ContractComment* cc, 
-      SgType* returnType);
 
     SgExprStatement* buildCheck(const SgStatement* currSttmt, 
       ContractClauseEnum clauseType, AssertionExpression ae, 

@@ -3,7 +3,7 @@
  * File:           AssertionExpression.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 August 2
+ * Last Modified:  2015 June 11
  * \endinternal
  *
  * @file
@@ -16,8 +16,10 @@
 #ifndef include_Assertion_Expression_hpp
 #define include_Assertion_Expression_hpp
 
+#include <stdio.h>
 #include <string>
 #include <sstream>
+#include "rose.h"
 
 /**
  * Assertion expression support states.
@@ -34,6 +36,17 @@ typedef enum AssertionSupport__enum {
   /** UNSUPPORTED:  Known to include an unsupported annotation. */
   AssertionSupport_UNSUPPORTED
 } AssertionSupportEnum;
+
+
+/**
+ * The supported result variable as a string.
+ */
+static const std::string CONTRACTS_RESULT = "pce_result";
+
+/**
+ * The supported result variable as a Sage variable.
+ */
+static const SgName CONTRACTS_RESULT_VAR = CONTRACTS_RESULT;
 
 
 /**
@@ -62,6 +75,12 @@ class AssertionExpression
 
     /** Return the level of support for the expression. */
     AssertionSupportEnum support() { return d_level; }
+
+    /** Return true if the expression has CONTRACTS_RESULT; otherwise, false. */
+    bool hasResult() 
+    { 
+        return d_expr.find(CONTRACTS_RESULT) != std::string::npos; 
+    }
 
     /** 
      * Return a string representation of the expression.  

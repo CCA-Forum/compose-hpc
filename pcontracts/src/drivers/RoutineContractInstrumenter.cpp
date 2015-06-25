@@ -3,7 +3,7 @@
  * File:           RoutineContractInstrumenter.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2014 June 19
+ * Last Modified:  2015 June 18
  * \endinternal
  *
  * @file
@@ -104,7 +104,9 @@ main(int argc, char* argv[])
           cout << "DEBUG: Calling generateAstGraph...\n";
           generateAstGraph(project, 4000);
 #endif
+#ifdef DEBUG
           cout << "DEBUG: Calling backend...\n";
+#endif /* DEBUG */
           status = backend(project);
         } 
       }

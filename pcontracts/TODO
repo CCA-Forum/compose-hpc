@@ -36,6 +36,9 @@ Refinements:
   -- This requires integration with Adrian's work since the expressions 
      need to be properly parsed.
 
+- Support type-specific versions of pce_range and pce_in_range helpers
+   (and add associated unit tests)
+
 
 Lower Priority Refinements:
 - Support multiple enforcers (and configurations).
@@ -51,4 +54,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2014 October 16
+Last Updated:  2015 June 4

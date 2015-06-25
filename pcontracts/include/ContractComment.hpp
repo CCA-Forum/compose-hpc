@@ -3,7 +3,7 @@
  * File:           ContractComment.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 9
- * Last Modified:  2013 October 1
+ * Last Modified:  2015 June 11
  * \endinternal
  *
  * @file
@@ -111,6 +111,7 @@ class ContractComment
     { 
       d_aeList.push_front(ae); 
       if (ae.support() == AssertionSupport_EXECUTABLE) { d_numExec += 1; }
+      if (ae.hasResult()) { d_needsResult = true; }
     }
 
     /** 
@@ -249,7 +250,7 @@ class ContractComment
       rep << sep;
       rep << d_aeList.size() << sep;
       rep << (d_needsResult ? "NeedsResult" : "NoResult") << sep;
-      rep << (d_isInInit ? "isINIT" : "notINIT") << sep;
+      rep << (d_isInInit ? "isInInit" : "notInInit") << sep;
       rep << (d_isPure ? "isPure" : "notIsPure") << sep;
       rep << d_numExec;
       return rep.str();
@@ -272,7 +273,12 @@ class ContractComment
     /** Cache whether the function result appears in the clause. */
     bool                            d_needsResult;
 
-    /** Cache whether the clause is associated with initialization routine. */
+    /** 
+     * Cache whether the clause is associated with initialization routine. 
+     *
+     * This information is determines whether precondition checks are added
+     * to the method.
+     */
     bool                            d_isInInit;
 
     /** Cache whether the clause contains an 'is pure' annotation. */

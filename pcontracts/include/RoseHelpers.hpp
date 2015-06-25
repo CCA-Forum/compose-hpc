@@ -3,7 +3,7 @@
  * File:           RoseHelpers.hpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2013 August 2
+ * Last Modified:  2015 June 18
  * \endinternal
  *
  *
@@ -80,15 +80,19 @@ getLanguageOptionName(SgFile::outputLanguageOption_enum lang);
  * Add the statement to each return point of the given function.
  *
  * Source:  
- * This function is a slight variant of SageInterface::instrumentEndOfFunction
+ * This function is a variant of SageInterface::instrumentEndOfFunction
  * provided in ROSE. (2014 June 6)
  *
- * @param[in] decl   The declaration of the function of interest.
- * @param[in] sttmt  The statement to be added prior to each return point.
+ * @param[in] decl     The declaration of the function of interest.
+ * @param[in] stmtList The list of statements to be added prior to each return 
+ *                       point.
+ * @param[in] resName  The name of the expected result variable or "".
+ *
  * @return           The number of instrumented return points.
  */
 int
-instrumentReturnPoints(SgFunctionDeclaration* decl, SgStatement* sttmt);
+instrumentReturnPoints(SgFunctionDeclaration* decl, 
+    std::vector<SgStatement*> stmtList, std::string resName);
 
 
 /**

@@ -3,7 +3,7 @@
  * File:           RoseHelpers.cpp
  * Author:         T. Dahlgren
  * Created:        2012 August 3
- * Last Modified:  2015 April 28
+ * Last Modified:  2015 June 25
  * \endinternal
  *
  * @file
@@ -18,6 +18,7 @@
 #include <string>
 #include "rose.h"
 #include "RoseHelpers.hpp"
+
 
 using namespace std;
 
@@ -198,16 +199,22 @@ getLanguageOptionName(
 
 
 int
-instrumentReturnPoints(SgFunctionDeclaration* decl, SgStatement* sttmt)
+instrumentReturnPoints(SgFunctionDeclaration* decl, 
+  std::vector<SgStatement*> stmtList, std::string resName)
 {
   int result = 0;
+  int numStmts = stmtList.size();
 
-  if ( (decl != NULL) && (sttmt != NULL) )
+  if ( (decl != NULL) && (numStmts > 0) )
   {
     // The following code is a slightly modified variant of ROSE's
     // SageInterface::instrumentEndOfFunction, which did not check
     // whether the function had a return type or not before performing
     // the rewrite. (2014 June 6)
+    //
+    // The code has since been extended to ensure the result variable
+    // of a post-condition clause has the right value prior to the]
+    // contract check.
     Rose_STL_Container<SgNode*> stmts = NodeQuery::querySubTree(decl, 
         V_SgReturnStmt);
 
@@ -224,30 +231,44 @@ instrumentReturnPoints(SgFunctionDeclaration* decl, SgStatement* sttmt)
             && (!isSgTypeVoid(decl->get_type()->get_return_type()));
         if (needRewrite)
         {
-          SageInterface::splitExpression(exp);
+          SageInterface::splitExpression(exp, resName);
         }
 
-        // avoid reusing the statement
-        if (result >= 1)
-            sttmt = SageInterface::copyStatement(sttmt);
+        for (std::vector<SgStatement*>::iterator iter = stmtList.begin();
+             iter != stmtList.end(); iter++)
+        {
+          SgStatement* sttmt;
 
-        SageInterface::insertStatementBefore(currStmt,sttmt);
-        result++;
+          // avoid reusing the statement
+          if (result >= numStmts) {
+              sttmt = SageInterface::copyStatement((*iter));
+          } else {
+              sttmt = *iter;
+          } 
+          sttmt->set_parent(currStmt->get_parent());
+
+          SageInterface::insertStatementBefore(currStmt, sttmt);
+          result++;
+        }
       }
-    } // for
+    } // for each return statement
 
     if (stmts.size() == 0) // a function without any return at all,
     {
       SgBasicBlock * body = decl->get_definition()->get_body();
       if (body == NULL)
       {
-        cout<<"In instrumentEndOfFunction(), ";
+        cout<<"In instrumentReturnPoints(), ";
         cout<<"found a missing function body!\n";
         ROSE_ASSERT(false);
       }
 
-      SageInterface::appendStatement(sttmt, body);
-      result++;
+      for (std::vector<SgStatement*>::iterator iter = stmtList.begin();
+           iter != stmtList.end(); iter++)
+      {
+        SageInterface::appendStatement((*iter), body);
+        result++;
+      }
     }
   }
 
