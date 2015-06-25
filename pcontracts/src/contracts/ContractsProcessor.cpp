@@ -232,19 +232,6 @@ buildInit(
     cout<<"DEBUG: ......currScope="<<currScope<<endl;
 #endif /* DEBUG */
 
-#if TLD
-    if (filename.empty()) {
-      SgNullExpression* nExpr = new SgNullExpression(FILE_INFO);
-      if (nExpr != NULL) {
-        nExpr->set_endOfConstruct(FILE_INFO);
-        parms->append_expression(nExpr);
-      }
-      SgName sName = "";
-      parms->append_expression(sName);
-    } else {
-      parms->append_expression(SageBuilder::buildStringVal(filename));
-    }
-#endif
     parms->append_expression(SageBuilder::buildStringVal(filename));
 
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_INITIALIZE", 
