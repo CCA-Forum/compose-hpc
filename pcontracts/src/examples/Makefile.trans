@@ -105,7 +105,7 @@ $(UKCPP_EXE): $(UKCPP_EXE).cpp $(UKCPP_EXE).o
 	$(CXX) -o $(UKCPP_EXE) $(FLAGS) $(UKCPP_EXE).o $(LDFLAGS) \
 	  || echo 0 > $(BUILD_EX_STATUS)
 
-$(S_EXE): $(S_EXE).cpp $(S_EXE).o 
+$(S_EXE): $(S_EXE).c $(S_EXE).o 
 	$(CXX) -o $(S_EXE) $(FLAGS) $(S_EXE).o $(LDFLAGS) \
 	  || echo 0 > $(BUILD_EX_STATUS)
 
