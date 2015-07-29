@@ -10,6 +10,7 @@ CONTENTS
   Environment Settings
   Build
   Tests and Examples
+    Known Failures
   Documentation
 
 
@@ -136,6 +137,17 @@ Any comparisons with oracle files are redirected to files with .diff extensions.
 Enforcement statistics and trace information, if any, are redirected to files
 having .csv extensions.  These files are automatically removed, however, when
 directories are cleaned.
+
+
+Known Test Case Failures
+------------------------
+The following test cases are known to fail:
+
+- SimpleClass.cpp generated with RoutineInstrumenter
+  This case currently fails due to issues with the generated code using the
+  return variable incorrectly and not declaring the return variable in 
+  branches where it is a hard coded value (of zero).
+
 
 
 CLEANING DIRECTORIES
