@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.cpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2015 June 25
+ * Last Modified:  2015 July 29
  * \endinternal
  *
  * @file
@@ -232,19 +232,6 @@ buildInit(
     cout<<"DEBUG: ......currScope="<<currScope<<endl;
 #endif /* DEBUG */
 
-#if TLD
-    if (filename.empty()) {
-      SgNullExpression* nExpr = new SgNullExpression(FILE_INFO);
-      if (nExpr != NULL) {
-        nExpr->set_endOfConstruct(FILE_INFO);
-        parms->append_expression(nExpr);
-      }
-      SgName sName = "";
-      parms->append_expression(sName);
-    } else {
-      parms->append_expression(SageBuilder::buildStringVal(filename));
-    }
-#endif
     parms->append_expression(SageBuilder::buildStringVal(filename));
 
     sttmt = SageBuilder::buildFunctionCallStmt("PCE_INITIALIZE", 
@@ -612,82 +599,143 @@ ContractsProcessor::addInitialize(
  * @param[in,out]  body Pointer to the function body, which is assumed
  *                        to belong to the function definition, def.
  * @param[in]      cc   The contract comment whose expressions are to be added.
+ * @param[in]      addInvariants   True if invariants should be added; False
+ *                                   otherwise.
  * @return              The number of statements added to the body.
  */
 int
 ContractsProcessor::addPostChecks(
   /* in */    const SgFunctionDefinition* def, 
   /* inout */ SgBasicBlock*               body, 
-  /* in */    ContractComment*            cc)
+  /* in */    ContractComment*            cc,
+  /* in */    bool                        addInvariants)
 {
   int num = 0;
 
-  if ( (def != NULL) && (body != NULL) && (cc != NULL) && (cc->size() > 0) )
+
+  if ( (def != NULL) && (body != NULL) )
   {
-    ContractClauseEnum ccType = cc->clause();
-    if (  (ccType == ContractClause_POSTCONDITION)
-       || (ccType == ContractClause_INVARIANT) )
+    vector<SgStatement*> stmtList;
+    ContractClauseEnum ccType;
+
+    if ( (cc != NULL) && (cc->size() > 0) )
     {
+      ccType = cc->clause();
+      ContractClauseEnum ccType = cc->clause();
+      if (  (ccType == ContractClause_POSTCONDITION)
+         || (ccType == ContractClause_INVARIANT) )
+      {
 #ifdef DEBUG
-      cout << "DEBUG: addPostChecks: Adding "<<cc->size();
-      cout << " expressions and/or comments...\n";
+        cout << "DEBUG: addPostChecks: Adding "<<cc->size();
+        cout << " expressions and/or comments...\n";
 #endif /* DEBUG */
 
-      vector<SgStatement*> stmtList;
-      list<AssertionExpression> aeList = cc->getList();
-      for(list<AssertionExpression>::iterator iter = aeList.begin();
-          iter != aeList.end(); iter++)
-      {
-        AssertionExpression ae = (*iter);
-        switch (ae.support())
+        list<AssertionExpression> aeList = cc->getList();
+        for(list<AssertionExpression>::iterator iter = aeList.begin();
+            iter != aeList.end(); iter++)
         {
-          case AssertionSupport_EXECUTABLE:
-            {
-              bool hasResult = ae.hasResult();
-              SgExprStatement* cStmt = buildCheck(body, ccType, ae, 
-                                                  cc->directive());
-              if (cStmt != NULL) {
-                SgStatement* sttmt = isSgStatement(cStmt);
-                if (sttmt != NULL) {
-                  stmtList.push_back(sttmt);
+          AssertionExpression ae = (*iter);
+          switch (ae.support())
+          {
+            case AssertionSupport_EXECUTABLE:
+              {
+                SgExprStatement* cStmt = buildCheck(body, ccType, ae, 
+                                                    cc->directive());
+                if (cStmt != NULL) {
+                  SgStatement* sttmt = isSgStatement(cStmt);
+                  if (sttmt != NULL) {
+                    stmtList.push_back(sttmt);
+                  }
                 }
               }
-            }
-            break;
-          case AssertionSupport_UNSUPPORTED:
-            {
+              break;
+            case AssertionSupport_UNSUPPORTED:
+              {
 #ifdef DEBUG
-              cout << "DEBUG: ..unsupported expression(s)\n";
+                cout << "DEBUG: ..unsupported expression(s)\n";
 #endif /* DEBUG */
-              /*
-               * Attach unsupported comment (NOTE: ROSE/unparser seems to 
-               * ignore!)
-               */
-              SageInterface::attachComment(body, 
-                S_PREFACE + string(S_CONTRACT_CLAUSE[ccType])
-                  + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
-                PreprocessingInfo::after, cc->directive());
-            }
-            break;
-          default:
-            // Nothing to do here
+                /*
+                 * Attach unsupported comment (NOTE: ROSE/unparser seems to 
+                 * ignore!)
+                 */
+                SageInterface::attachComment(body, 
+                  S_PREFACE + string(S_CONTRACT_CLAUSE[ccType])
+                    + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
+                  PreprocessingInfo::after, cc->directive());
+              }
+              break;
+            default:
+              // Nothing to do here
 #ifdef DEBUG
-            cout << "DEBUG: ..unrecognized support level\n";
+              cout << "DEBUG: ..unrecognized support level\n";
 #endif /* DEBUG */
-            break;
-        }
-      }
+              break;
+          }
+        }  /* for each expression */
+      }  /* If actually postconditions */
+    }  /* If had postcondition checks to process */
 
-      // Call our special version of SageInterface's instrumentEndOfFunction.
-      SgFunctionDeclaration* decl = def->get_declaration();
-      if ( (decl != NULL) && (stmtList.size() > 0) ) {
-        num += instrumentReturnPoints(decl, stmtList, CONTRACTS_RESULT_VAR);
-      }
-    }
-    else
+    if ( addInvariants && (ccType != ContractClause_INVARIANT)
+       && (d_invariants != NULL) && (d_invariants->size() > 0) )
     {
-      cerr<<"\n"<<S_ERROR_BAD_CHECKS<<"n";
-    } /* end if have something to work with */
+      ccType = d_invariants->clause();
+      if (ccType == ContractClause_INVARIANT)
+      {
+#ifdef DEBUG
+        cout << "DEBUG: addPostChecks: Adding "<<d_invariants->size();
+        cout << " invariant expressions and/or comments...\n";
+#endif /* DEBUG */
+
+        list<AssertionExpression> aeList = d_invariants->getList();
+        for(list<AssertionExpression>::iterator iter = aeList.begin();
+            iter != aeList.end(); iter++)
+        {
+          AssertionExpression ae = (*iter);
+          switch (ae.support())
+          {
+            case AssertionSupport_EXECUTABLE:
+              {
+                SgExprStatement* cStmt = buildCheck(body, ccType, ae, 
+                                                    d_invariants->directive());
+                if (cStmt != NULL) {
+                  SgStatement* sttmt = isSgStatement(cStmt);
+                  if (sttmt != NULL) {
+                    stmtList.push_back(sttmt);
+                  }
+                }
+              }
+              break;
+            case AssertionSupport_UNSUPPORTED:
+              {
+#ifdef DEBUG
+                cout << "DEBUG: ..unsupported expression(s)\n";
+#endif /* DEBUG */
+                /*
+                 * Attach unsupported comment (NOTE: ROSE/unparser seems to 
+                 * ignore!)
+                 */
+                SageInterface::attachComment(body, 
+                  S_PREFACE + string(S_CONTRACT_CLAUSE[ccType])
+                    + ": " + L_UNSUPPORTED_EXPRESSION + ae.expr(),
+                  PreprocessingInfo::after, d_invariants->directive());
+              }
+              break;
+            default:
+              // Nothing to do here
+#ifdef DEBUG
+              cout << "DEBUG: ..unrecognized support level\n";
+#endif /* DEBUG */
+              break;
+          }
+        }
+      } /* If actually invariants */
+    }  /* If have invariant checks to process */
+
+    // Call our special version of SageInterface's instrumentEndOfFunction.
+    SgFunctionDeclaration* decl = def->get_declaration();
+    if ( (decl != NULL) && (stmtList.size() > 0) ) {
+      num += instrumentReturnPoints(decl, stmtList, CONTRACTS_RESULT_VAR);
+    }
 
 #ifdef DEBUG
     cout << "DEBUG: addPostChecks: number statements appended = "<<num<<"\n";
@@ -727,8 +775,8 @@ ContractsProcessor::addPreChecks(
 #endif /* DEBUG */
 
       list<AssertionExpression> aeList = cc->getList();
-      for(list<AssertionExpression>::iterator iter = aeList.begin();
-          iter != aeList.end(); iter++)
+      for(list<AssertionExpression>::reverse_iterator iter = aeList.rbegin();
+          iter != aeList.rend(); iter++)
       {
         AssertionExpression ae = (*iter);
         switch (ae.support())
@@ -1285,7 +1333,7 @@ ContractsProcessor::isExecutable(
 
   if (!expr.empty())
   {
-    for (int i=MIN_NEE_INDEX; i<MAX_NEE_INDEX; i++)
+    for (int i=MIN_NEE_INDEX; i<=MAX_NEE_INDEX; i++)
     {
       if (expr.find(UnsupportedInterfaces[i]) != string::npos)
       {
@@ -1590,7 +1638,6 @@ ContractsProcessor::processFunctionComments(
               || (d_invariants==NULL) || (numChecks[2]<=0) || isConstructor 
               || (!isMemberFunc) || inClause(nm, d_invariants) || isPureRoutine;
 
-
             if (! (skipInvariants || isInitRoutine) )
             {
               num += addPreChecks(body, d_invariants);
@@ -1616,16 +1663,21 @@ ContractsProcessor::processFunctionComments(
             {
               if ( (numChecks[1] > 0) && !inClause(nm, post) )
               {
-                num += addPostChecks(def, body, post);
+                num += addPostChecks(def, body, post, 
+                    !(skipInvariants || isDestructor));
                 numExec += post->numExecutable();
+                if (d_invariants != NULL)
+                {
+                    numExec += d_invariants->numExecutable();
+                }
               }
+            } 
+            else if (! (skipInvariants || isDestructor) )
+            { // Have valid invariants but no postconditions to add
+              num += addPostChecks(def, body, d_invariants, false);
+              numExec += d_invariants->numExecutable();
             }
 
-            if (! (skipInvariants || isDestructor) )
-            {
-              num += addPostChecks(def, body, d_invariants);
-              numExec += d_invariants->numExecutable();
-            } 
 
             if (stats != NULL)
             {
@@ -1842,6 +1894,8 @@ ContractsProcessor::setInvariants(
   if ( (lNode != NULL) && (cc != NULL) && (cc->isInvariant()) ) {
     if (d_invariants == NULL)
     {
+      //cout<<"DEBUG: ....Setting d_invariants: "<<cc->str(",")<<endl;
+
       d_invariants = cc;
 
 #if 0
@@ -1911,8 +1965,8 @@ ContractsProcessor::processAssert(
       }
 
       list<AssertionExpression> aeList = cc->getList();
-      for(list<AssertionExpression>::reverse_iterator iter = aeList.rbegin();
-          iter != aeList.rend(); iter++)
+      for(list<AssertionExpression>::iterator iter = aeList.begin();
+          iter != aeList.end(); iter++)
       {
         AssertionExpression ae = (*iter);
         switch (ae.support())

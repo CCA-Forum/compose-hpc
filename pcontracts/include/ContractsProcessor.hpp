@@ -3,7 +3,7 @@
  * File:           ContractsProcessor.hpp
  * Author:         T. Dahlgren
  * Created:        2012 November 1
- * Last Modified:  2015 June 25
+ * Last Modified:  2015 July 2
  * \endinternal
  *
  * @file
@@ -46,7 +46,7 @@ class ContractsProcessor
     int addInitialize(SgBasicBlock* body, ContractComment* cc);
     
     int addPostChecks(const SgFunctionDefinition* def, SgBasicBlock* body, 
-      ContractComment* cc);
+      ContractComment* cc, bool addInvariants);
     
     int addPreChecks(SgBasicBlock* body, ContractComment* cc);
 

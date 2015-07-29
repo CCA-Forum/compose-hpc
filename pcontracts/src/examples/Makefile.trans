@@ -33,9 +33,10 @@ CXXFLAGS = $(INCLUDES) $(FLAGS) $(BASE_CXXFLAGS)
 LDFLAGS = -L$(LIB_DIR) -l$(RUNTIME_LIB_BASE)
 
 
-CSRCS = knapsack.c unlabeledknapsack.c hello.c
+CSRCS = hello.c knapsack.c simple.c unlabeledknapsack.c 
 CCSRCS = helloworld.cc helloworld-v2.cc helloworld-v3.cc
-CPPSRCS = Knapsack-v2.cpp UnlabeledKnapsack-v2.cpp WeightsList.cpp
+CPPSRCS = Knapsack-v2.cpp SimpleClass.cpp UnlabeledKnapsack-v2.cpp \
+	WeightsList.cpp WeightsList2.cpp
 
 SRCS=$(CSRCS) $(CCSRCS) $(CPPSRCS)
 HDRS=$(CSRCS:.h=.o) $(CCSRCS:.hh=.o) $(CPPSRCS:.hpp=.o)

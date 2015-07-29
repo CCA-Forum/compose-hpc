@@ -1,5 +1,5 @@
 Hello David!
 Hello Tom!
 
-ERROR: helloworld-v2.cc:25: Precondition Violation: have_name: 0
+ERROR: helloworld-v2.cc:24: Precondition Violation: have_name: 0
 Terminating execution...

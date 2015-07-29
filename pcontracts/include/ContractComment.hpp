@@ -109,7 +109,7 @@ class ContractComment
      */
     void add(AssertionExpression ae) 
     { 
-      d_aeList.push_front(ae); 
+      d_aeList.push_back(ae); 
       if (ae.support() == AssertionSupport_EXECUTABLE) { d_numExec += 1; }
       if (ae.hasResult()) { d_needsResult = true; }
     }

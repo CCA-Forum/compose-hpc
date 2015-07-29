@@ -43,7 +43,10 @@ Refinements:
 Lower Priority Refinements:
 - Support multiple enforcers (and configurations).
 - Support routine-specific time estimates (as had been done in Babel).
-- More test cases.
+- Add regular expression support for test fiducial outputs so can eliminate
+  outdated test fiducials whose only differences are in line numbers output
+  with error messages.
+- Add more test cases.
 
 
    
@@ -54,4 +57,4 @@ LIBPAUL
 - Add related unit test(s)
 
 
-Last Updated:  2015 June 4
+Last Updated:  2015 July 29
