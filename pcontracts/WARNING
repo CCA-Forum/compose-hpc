@@ -1,13 +1,16 @@
                                    BEWARE
 
+GENERAL WARNING
+
   These files represent a WORK IN PROGRESS.  Consequently the tentative 
 contents are based on a very preliminary, "stream of consciousness"
 pass at identifying relevant libpaul features and POTENTIAL approaches to
 getting the interface contracts work going.  
 
-Also note the SimpleClass.cpp example's test of the generated code is known
-to fail on an older version of Rose (without Edg-4) since it doesn't add the
-invariant before the implicit return at the end of the checkValue method.
-While the VisitContractInstrumenter adds invariant checks to the returns
-within the checkValue method's switch statement, the same cannot be said
-for the RoutineContractInstrumenter.
+
+KNOWN FAILIURES
+
+SimpleClass.cpp 
+    This example's test of the generated code is known to fail on an older 
+version of Rose (without Edg-4) since it doesn't add the invariant before 
+the implicit return at the end of the checkValue method.

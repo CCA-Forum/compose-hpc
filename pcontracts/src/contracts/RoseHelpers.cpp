@@ -227,9 +227,9 @@ instrumentReturnPoints(SgFunctionDeclaration* decl,
         SgExpression* exp = currStmt->get_expression();
 
         // TV (05/03/2011) Catch the case "return ;" where exp is NULL
-        bool needRewrite = (exp != NULL) && !(isSgValueExp(exp)) 
-            && (!isSgTypeVoid(decl->get_type()->get_return_type()));
-        if (needRewrite)
+        // TLD (08/06/2015) At this point it should only matter for rewrite-
+        //     purposes if this is a function.
+        if (!isSgTypeVoid(decl->get_type()->get_return_type()))
         {
           SageInterface::splitExpression(exp, resName);
         }
@@ -240,9 +240,12 @@ instrumentReturnPoints(SgFunctionDeclaration* decl,
           SgStatement* sttmt;
 
           // avoid reusing the statement
-          if (result >= numStmts) {
-              sttmt = SageInterface::copyStatement((*iter));
-          } else {
+          if (result >= numStmts) 
+          {
+              sttmt = SageInterface::copyStatement(*iter);
+          } 
+          else
+          { 
               sttmt = *iter;
           } 
           sttmt->set_parent(currStmt->get_parent());
@@ -258,8 +261,8 @@ instrumentReturnPoints(SgFunctionDeclaration* decl,
       SgBasicBlock * body = decl->get_definition()->get_body();
       if (body == NULL)
       {
-        cout<<"In instrumentReturnPoints(), ";
-        cout<<"found a missing function body!\n";
+        cerr<<"In instrumentReturnPoints(), ";
+        cerr<<"found a missing function body!\n";
         ROSE_ASSERT(false);
       }
 

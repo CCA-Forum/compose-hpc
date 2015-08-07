@@ -111,8 +111,8 @@ SimpleClass::getCount()
  * be added prior to each return.
  */
 /* %CONTRACT ENSURE 
- *   pce_result >= 0; 
- *   pce_result <= 777; 
+     pce_result >= 0; 
+     pce_result <= 777; 
  */
 int
 SimpleClass::ensureValueInRange()
