@@ -380,16 +380,16 @@ ContractsEnforcer_initialize(
 {
   if ( (configfile == NULL) || (strlen(configfile) == 0) )
   {
-    DEBUG_MESSAGE("ContractsEnforcer_initialize(): No config file given")
+    printf("\nWARNING: %s. Enforcing all contracts by default.\n",
+      "Contract enforcement initialization without configuration file");
     pce_config_filename = NULL;
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
-      CONTRACTS_TRUE, NULL, NULL);
+      CONTRACTS_TRUE, "contracts.stats", "contracts.trace");
   }
-  else if (strlen(configfile) > 0)
+  else
   {
     DEBUG_MESSAGE("ContractsEnforcer_initialize(): Config file given")
-//#ifdef PCE_CONFIG
     memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
     /*
      * @todo Review potential runtime location issues with configuration file. 
@@ -487,20 +487,15 @@ ContractsEnforcer_initialize(
 
       fclose(cfPtr);
     }
-
-//#else /* PCE_CONFIG */
-//    printf("\nFATAL: %s %s\n",
-//           "Contract enforcement initialization from configuration file",
-//           "not yet supported.");
-//    exit(1);
-//#endif /* PCE_CONFIG */
-  }
-  else
-  {
-    printf("\nFATAL: %s %s\n",
-           "Contract enforcement initialization with non-NULL configuration",
-           "file requires a non-empty file name.");
-    exit(1);
+    else
+    {
+      printf("\nWARNING: %s %s. Enforcing all contracts by default.\n",
+        "Contract enforcement initialization failed from configuration file",
+        configfile);
+      memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
+      pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 
+        CONTRACTS_TRUE, "contracts.stats", "contracts.trace");
+    }
   }
 
   return;

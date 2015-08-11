@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 October 29
+ * Last Modified:  2015 August 11
  * \endinternal
  *
  * @file
@@ -36,17 +36,14 @@ extern "C" {
  */
 #define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) { \
   (CVE) = ContractViolation_NONE; \
-  printf("DEBUG: PCE_CHECK_EXPR: %s:%d: %s: %s: %d\n", __FILE__, __LINE__, \
-         S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
-  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
-    if (!(EXPR)) { \
+  if (!(EXPR)) { \
+    if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
       printf("\nERROR: %s:%d: %s Violation: %s: %d\n", __FILE__, __LINE__, \
-             S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
+        S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
       (CVE) = (ContractViolationEnum)(TP); \
-    } \
-    else {\
-      printf("DEBUG: %s:%d: %s okay: %s: %d\n", __FILE__, __LINE__, \
-             S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
+    } else { \
+      printf("\nWARNING: %s:%d: %s Violation Ignored (wrong clause): %s: %d\n",\
+        __FILE__, __LINE__, S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
     } \
   } \
 }
@@ -57,17 +54,21 @@ extern "C" {
 #define PCE_CHECK_EXPR_TERM(ENF, TP, TA, TR, LBL, EXPR) { \
   ContractViolationEnum _pce_vio = ContractViolation_NONE; \
   PCE_CHECK_EXPR((ENF), (TP), (TA), (TR), (LBL), (EXPR), _pce_vio); \
-  if ((_pce_vio!=ContractViolation_NONE)&&(ContractsEnforcer_terminate(ENF))) \
-  { \
-    printf("Terminating execution...\n"); \
-    PCE_DUMP_STATS(ENF, "Contract Violated") \
-    exit(1); \
+  if (_pce_vio != ContractViolation_NONE) { \
+    if (ContractsEnforcer_terminate(ENF)) { \
+      printf("FATAL: Terminating execution due to contract violation\n"); \
+      PCE_DUMP_STATS(ENF, "Contract Violated") \
+      exit(1); \
+    } else { \
+      printf("WARNING: PCE_CHECK_EXPR_TERM(%d): %s:%d: %s: %s: %d\n", \
+        (ENF), __FILE__, __LINE__, S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
+    } \
   } \
 }
 
 #define PCE_DUMP_STATS(ENF,CMT) ContractsEnforcer_dumpStatistics(ENF, CMT);
-#define PCE_FINALIZE() ContractsEnforcer_finalize();
-#define PCE_INITIALIZE(FN) ContractsEnforcer_initialize(FN);
+#define PCE_FINALIZE() ContractsEnforcer_finalize(); 
+#define PCE_INITIALIZE(FN) ContractsEnforcer_initialize(FN); 
 #define PCE_UPDATE_EST_TIME(ENF,TR) ContractsEnforcer_updateEstTime(ENF, TR);
 
 #else /* !def PAUL_CONTRACTS */
