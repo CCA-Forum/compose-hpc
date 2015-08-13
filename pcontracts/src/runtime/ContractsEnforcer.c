@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.c
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2013 August 2
+ * Last Modified:  2013 August 13
  * \endinternal
  *
  * @file
@@ -109,10 +109,10 @@ newBaseEnforcer(
       {
         DEBUG_MESSAGE("newBaseEnforcer: stats allocated")
         enforcer->stats->fileName = strdup(statsfile);
-        enforcer->stats->filePtr = fopen(statsfile, "w");
+        enforcer->stats->filePtr = fopen(statsfile, "a");
         if (enforcer->stats->filePtr != NULL) 
         {
-          fprintf(enforcer->stats->filePtr, "%s%s%s%s\n",
+          fprintf(enforcer->stats->filePtr, "\n\n%s%s%s%s\n",
             "Clauses; Frequency; Value; Timestamp; ",        /* Policy */
             "Requests; Requests Allowed; Countdown; Skip; ", /* State basics */
             l_timesLine,                                     /* Time totals */
@@ -137,10 +137,10 @@ newBaseEnforcer(
       {
         DEBUG_MESSAGE("newBaseEnforcer: trace allocated")
         enforcer->trace->fileName = strdup(tracefile);
-        enforcer->trace->filePtr = fopen(tracefile, "w");
+        enforcer->trace->filePtr = fopen(tracefile, "a");
         if (enforcer->trace->filePtr != NULL) 
         {
-          fprintf(enforcer->trace->filePtr, "%s%s%s\n",
+          fprintf(enforcer->trace->filePtr, "\n\n%s%s%s\n",
                   "Name; ",        /* Trace identification */
                   l_timesLine,     /* Time estimates */
                   "Message"
@@ -489,8 +489,8 @@ ContractsEnforcer_initialize(
     }
     else
     {
-      printf("\nWARNING: %s %s. Enforcing all contracts by default.\n",
-        "Contract enforcement initialization failed from configuration file",
+      printf("\nWARNING: %s '%s'. Enforcing all contracts by default.\n",
+        "Contract enforcement initialization failed to read configuration file",
         configfile);
       memset(&pce_def_times, 0, sizeof(TimeEstimatesType));
       pce_enforcer = ContractsEnforcer_setEnforceAll(EnforcementClause_ALL, 

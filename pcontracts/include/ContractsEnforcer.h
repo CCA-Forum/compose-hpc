@@ -3,7 +3,7 @@
  * File:           ContractsEnforcer.h
  * Author:         T. Dahlgren
  * Created:        2012 May 11
- * Last Modified:  2015 August 11
+ * Last Modified:  2015 August 13
  * \endinternal
  *
  * @file
@@ -33,6 +33,9 @@ extern "C" {
 #ifdef PAUL_CONTRACTS
 /**
  * Macro to check an assertion expression.
+ *
+ * @todo Once done testing, change back to not checking the expression if the
+ *       clause is not being enforced.
  */
 #define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) { \
   (CVE) = ContractViolation_NONE; \
@@ -60,8 +63,8 @@ extern "C" {
       PCE_DUMP_STATS(ENF, "Contract Violated") \
       exit(1); \
     } else { \
-      printf("WARNING: PCE_CHECK_EXPR_TERM(%d): %s:%d: %s: %s: %d\n", \
-        (ENF), __FILE__, __LINE__, S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
+      printf("WARNING: Ignoring contract violation: %s:%d: %s: %s: %d\n", \
+        __FILE__, __LINE__, S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
     } \
   } \
 }
