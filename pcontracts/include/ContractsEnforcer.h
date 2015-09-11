@@ -34,19 +34,20 @@ extern "C" {
 /**
  * Macro to check an assertion expression.
  *
- * @todo Once done testing, change back to not checking the expression if the
- *       clause is not being enforced.
+ * @todo Remove the warning once done testing.
  */
 #define PCE_CHECK_EXPR(ENF, TP, TA, TR, LBL, EXPR, CVE) { \
   (CVE) = ContractViolation_NONE; \
-  if (!(EXPR)) { \
-    if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
+  if (ContractsEnforcer_enforceClause((ENF), (TP), (TA), (TR))) { \
+    if (!(EXPR)) { \
       printf("\nERROR: %s:%d: %s Violation: %s: %d\n", __FILE__, __LINE__, \
         S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
       (CVE) = (ContractViolationEnum)(TP); \
-    } else { \
-      printf("\nWARNING: %s:%d: %s Violation Ignored (wrong clause): %s: %d\n",\
-        __FILE__, __LINE__, S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
+    } \
+  } else { \
+    if (!(EXPR)) { \
+      printf("\nWARNING: %s:%d: %s Violation skipped (wrong clause): %s: %d\n", __FILE__, __LINE__, \
+        S_CONTRACT_CLAUSE[TP], (LBL), (EXPR)); \
     } \
   } \
 }
